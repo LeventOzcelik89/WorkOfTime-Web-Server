@@ -1,0 +1,151 @@
+﻿@model IEnumerable<Guid>
+@{
+    ViewBag.Title = "Personel Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+@section Javascript{
+    <script src="~/Content/Custom/js/wordexport.js"></script>
+    <script type="text/javascript">
+        function cvSavePersonDetail(data) {
+            var url = '@Url.Action("CreateResume", "VWSH_User", new { area = "SH" })';
+            $.ajax({
+                type: "GET",
+                url: url,
+                data: { id: data.id },
+                success: function (response) {
+                    $('.close').trigger('click')
+                    $($(response).find("#page-content").prevObject[7]).wordExport(data.firstname + " " + data.lastname);
+                }
+            });
+        }
+
+        $(document)
+            .on("selected:grid", "#VWSH_User", function (e, resp) {
+                if (resp.IsWorking == false) {
+                    $('[data-href="/SH/VWSH_User/SendPassword"]').addClass("hide");
+                }
+            })
+            .on('click', '[data-task="cv"]', function (e, i) {
+                var grid = $('#VWSH_User').data('kendoGrid');
+                cvSavePersonDetail(grid.dataItem(grid.select()));
+            })
+
+        .on('selected:grid', '#VWSH_User', function (e, item) {
+            if (item.IsWorking == false) {
+                $('[data-requestdismiss=""]').hide();
+                } else {
+                $('[data-requestdismiss=""]').show();
+                }
+            })
+
+    </script>
+}
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Insert", "VWSH_User", new { area = "SH",IsMyStaff = true })"><i class="fa fa-user-plus"></i> Personel Ekle</a>
+
+                    <a class="btn btn-block btn-warning" data-task="Insert" data-allresume="true" data-ask="" data-blank="" data-method="GET" data-modal="false" data-show="always" data-href="@Url.Action("CreateResumeAll", "VWSH_User", new { area = "SH" })"><i class="fa fa-download"></i> Personel CV'lerini İndir</a>
+
+                    <a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den İşletme Ekle" class="btn btn-info btn-block" data-gridRefresh="VWSH_User"
+                       data-properties="@ExcelHelper.GetSchema(typeof(SH_UserExcel))" data-post="@Url.Action("Import","VWSH_User", new { area = "SH" })">
+                        <i class="fa fa-file-excel-o"></i> Excel'den Personel Ekle
+                    </a>
+
+                    <a download href="~/Content/SampleExcels/person_template.xls" class="btn btn-block btn-info" data-original-title="Örnek Excel İndir">
+                        <i class="fa fa-download"></i> Örnek Excel İndir
+                    </a>
+
+                    <div class="space-25"></div>
+                    <h5>Çalışma Durumuna Göre </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWSH_User" data-switch="radio" data-category="0" data-query="(type~eq~0~and~IsWorking~eq~true)">
+                                <i class="fa text-primary fa-user"></i>Çalışan Personeller
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/SH/VWSH_User/DataSourceCount?filter=(type~eq~0~and~IsWorking~eq~true)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWSH_User" data-switch="radio" data-category="0" data-query="(type~eq~0~and~IsWorking~eq~false)">
+                                <i class="fa text-danger fa-user-times"></i>Çalışmayan Personeller
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/SH/VWSH_User/DataSourceCount?filter=(type~eq~0~and~IsWorking~eq~false)">0</span>
+                        </li>
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <h5>Personeller</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+					.Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_User")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_User", new { area = "SH" }))
+					.PageSize(25)
+					.Sort(a => a.Add(c => c.FullName))
+					.Filter(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && !Model.Contains(a.id)))
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
+					.Filterable(a => a.Mode(GridFilterMode.Row))
+					.Scrollable(a => a.Height(650))
+					.Columns(x =>
+					{
+						x.Bound(y => y.searchField).Title("Personel Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('personelTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+						x.Bound(y => y.code).Title("Personel Kodu").Width(180).Hidden(true);
+						x.Bound(y => y.IdentificationNumber).Title("TC Kimlik No").Width(180).Hidden(true);
+						x.Bound(y => y.firstname).Title("Ad").Width(180).Hidden(true);
+						x.Bound(y => y.lastname).Title("Soyad").Width(180).Hidden(true);
+						x.Bound(y => y.Gender_Title).Title("Cinsiyet").Hidden(true);
+						x.Bound(y => y.SchoolLevel_Title).Title("Eğitim Durumu").Hidden(true);
+						x.Bound(y => y.IBAN).Title("IBAN").Hidden(true);
+						x.Bound(y => y.title).Title("Ünvan").Hidden(true);
+						x.Bound(y => y.Company_Title).Title("Çalıştığı Şirket").Width(180).Hidden(true);
+						x.Bound(y => y.Department_Title).Title("Çalıştığı Departman").Width(180).Hidden(true);
+						x.Bound(y => y.birthday).Title("Doğum Tarihi").Width(180).Format(Extensions.DateFormatShort(true)).Hidden(true);
+						x.Bound(y => y.cellphone).Title("Şahsi Cep Telefonu").Width(180).Hidden(true);
+						x.Bound(y => y.email).Title("Email").Width(180).Hidden(true);
+						x.Bound(y => y.address).Title("Adres").Width(180).Hidden(true);
+						x.Bound(y => y.CompanyPerson_Title).Title("Sigortadaki Ünvan").Width(180).Hidden(true);
+						x.Bound(y => y.companyCellPhone).Title("Şirket Cep Telefonu").Width(180).Hidden(true);
+						x.Bound(y => y.JobStartDate).Title("İşe Giriş Tarihi").Format(Extensions.DateFormatShort(true)).Hidden(true);
+						x.Bound(y => y.PersonWorkingCount).Title("Toplam Çalışılan Gün").Hidden(true);
+						x.Bound(y => y.PersonWorking).Title("Toplam Çalışma Süresi").Hidden(true);
+						x.Bound(y => y.PermitYearlyDeserved).Title("Hak Edilen Yıllık İzin").Hidden(true);
+						x.Bound(y => y.PermitYearlyUsed).Title("Kullanılan Yıllık İzin").Hidden(true);
+						x.Bound(y => y.PermitYearlyUsable).Title("Kalan Yıllık İzin").Hidden(true);
+					})
+					.ToolBar(x =>
+					{
+						x.Custom().Text("<i class='fa fa-edit' data-original-title='Personel Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_User", new { area = "SH" }));
+						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Personel Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" },{"data-blank","" } }).Url(Url.Action("Detail", "VWSH_User", new { area = "SH" }));
+						x.Custom().Text("<i class='fa fa-user-times' data-original-title='Personel İşten Çıkar'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } , { "data-requestdismiss", "" } }).Url(Url.Action("Dismissal", "VWSH_User", new { area = "SH" }));
+						x.Custom().Text("<i class='icon-mail-1'  data-original-title='Yeni Şifre Gönder'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Şifre sıfırlamak istediğinizden eminmisiniz." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
+						x.Custom().Text("<i class='fa fa-download'  data-original-title='CV İndir'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "type", "button" }, { "data-task", "cv" }, }).Url("#");
+						x.Custom().Text("<i class='fa fa-trash' data-original-title='Personeli Tamamen Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Kullanıcı bilgileri tamamen silinecektir. Eğer daha önce yapılan ödeme işlemi varsa, muhasebe verileri de etkilenecektir. Bu işlemi yapmak istediğinizden emin misiniz?" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
+
+					})
+                )
+            </div>
+        </div>
+    </div>
+</div>
+

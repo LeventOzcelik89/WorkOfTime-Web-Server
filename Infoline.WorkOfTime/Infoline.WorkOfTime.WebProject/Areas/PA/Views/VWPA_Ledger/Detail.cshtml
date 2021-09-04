@@ -1,0 +1,146 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPA_Ledger
+@{
+    ViewBag.Title = "İşlem Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="form-horizontal" data-selector="modalContainer">
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Type_Title">İşlem Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.type_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="accountId_Title">İlgili Hesap</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.accountId_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Title">İşlem Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.date, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="totalAmount">İşlem Tutarı</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group m-b">
+                @(Html
+                    .Akilli().NumericTextBoxFor(model => model.totalAmount)
+                    .Spinners(false)
+                    .Decimals(2)
+                    .Format("N2")
+                    .Value(Model.totalAmount * Model.direction)
+                    .HtmlAttributes(new Dictionary<string, object>() {
+                        {"readonly", "readonly" },
+                        {"style", "width:100%" }
+                    }))
+                <span class="input-group-addon">@Model.Currency_Symbol</span>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Currency_Symbol != "₺")
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="rateExchange">İşlem Sırasında Kur</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group m-b">
+                    @(Html
+                        .Akilli().NumericTextBoxFor(model => model.rateExchange)
+                        .Spinners(false)
+                        .Decimals(2)
+                        .Format("N2")
+                        .HtmlAttributes(new Dictionary<string, object>() {
+                            {"readonly", "readonly" },
+                            {"style", "width:100%" }
+                        }))
+                    <span class="input-group-addon">₺</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="rateExchange">TL Karşılığı</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group m-b">
+                    @(Html
+                        .Akilli().NumericTextBox("TL")
+                        .Spinners(false)
+                        .Decimals(2)
+                        .Format("N2")
+                        .Value(Model.rateExchange * Model.totalAmount * Model.direction)
+                        .HtmlAttributes(new Dictionary<string, object>() {
+                            {"readonly", "readonly" },
+                            {"style", "width:100%" }
+                        }))
+                    <span class="input-group-addon">₺</span>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Dekont</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("PA_Ledger")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Dekont Dosyası")
+                .PreviewMode(true)
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+
+</div>

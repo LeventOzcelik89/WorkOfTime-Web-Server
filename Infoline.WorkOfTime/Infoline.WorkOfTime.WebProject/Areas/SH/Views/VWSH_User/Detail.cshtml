@@ -1,0 +1,1151 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+@{
+    ViewBag.Title = "Personel Detayı (" + Model.FullName + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var permits = (System.Collections.Generic.List<KeyValue>)(ViewBag.permits);
+}
+
+@if (userStatus.AuthorizedRoles.Contains(new Guid("df09bcdb-9d52-4fa1-a941-d702fc8ce491")))
+{
+    @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonCertificate>("VWSH_PersonCertificate")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonCertificate", new { area = "SH" })).PageSize(25)
+                                .Sort(a => a.Add(c => c.StartDate)).Filter(a => a.UserId == Model.id))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.CertificateType_Title).Title("Sertifika Tipi").Width(300);
+                                    x.Bound(y => y.CertificateName).Title("Sertifikanın Alındığı Kurum").Width(300);
+                                    x.Bound(y => y.StartDate).Title("Eğitim Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.EndDate).Title("Eğitim Bitiş Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.ExpirationDate).Title("Sertifika Geçerlilik Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.point).Title("Puan").Width(100);
+                                })
+                               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                               .ToolBar(x =>
+                               {
+                                   x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Sertifika Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonCertificate", new { area = "SH", userId = Model.id }));
+                                   x.Custom().Text("<i class='fa fa-edit' data-original-title='Sertifika Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonCertificate", new { area = "SH" }));
+                                   x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonCertificate", new { area = "SH" }));
+                               }))
+}
+else
+{
+
+
+    @section Javascript{
+        <script src="~/Content/Custom/js/wordexport.js"></script>
+        <script type="text/javascript">
+
+        var userDetail = {
+            dfn: {
+                ledgerTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
+            },
+            fnc: {
+                cvSavePersonDetail: function () {
+                    $.ajax({
+                        type: "GET",
+                        url: '@Url.Action("CreateResume", "VWSH_User", new { area = "SH" })',
+                        data: { id: '@Model.id' },
+                        success: function (response) {
+                            $($(response).find("#page-content").prevObject[7]).wordExport('@Model.firstname' + " " + '@Model.lastname');
+                        }
+                    });
+                }
+            },
+            templates: {
+                totalAmountTemp: function (data, amountTotals) {
+                    var textColor = data.direction == -1 ? "text-danger" : "text-primary";
+                    if (amountTotals != 0) {
+                        return '<span class="' + textColor + ' pull-right" style="font-size:20px; color:#116b06;">' + kendo.toString(amountTotals, "n2") + " " + data.Currency_Symbol + '</span>';
+                    }
+
+                    return "";
+                },
+                ledgerTypeTemp: function (data) {
+                    var type = $.Enumerable.From(userDetail.dfn.ledgerTypes).Where(a => a.Key == data.type).FirstOrDefault();
+                    var color = data.direction == -1 ? "#b30909" : "#116b06";
+                    return '<i style="color:'+color+'" class="fa-2x '+ type.Generic.icon +'">';
+                },
+            }
+        }
+
+        $(document)
+            .on("load:grid", "#VWPA_Account", function (e) {
+                $('[data-toggle="toggle"]').bootstrapToggle({
+                    width: 90,
+                    height: 20
+                });
+            })
+            .on("selected:grid", "#VWPRD_StockSummaryPerson", function (e, res) {
+                var detail = $('[data-person="detail"]');
+                var dataProduct = $('[data-product="detail"]');
+                $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+                if (res.stockType == 2 && res.quantity != 0) {
+                    $(dataProduct).show();
+                    $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+                }
+                else {
+                    $(dataProduct).hide();
+                }
+            })
+           .on('before:submit', '#VWSH_PublicationsFormInsert,#VWSH_PublicationsFormUpdate', function (e) {
+               $('[data-item="keywords"]').each(function (c) {
+                   var data = $(this).data("tagify");
+                   if (data && data.value) {
+                       $(this).val(data.value.map(a => a.value).join(","));
+                   }
+               });
+           });
+
+    function PermitTypeFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetINV_PermitTypeName", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--İzin Tipi Seçiniz--"
+        });
+    }
+
+		function ShiftTrackingFunc(e) {
+			var url = $('#shiftTrackingDetailButton').attr('data-href');
+			location.href = url;
+		}
+        </script>
+    }
+
+    <script type="text/x-kendo-template" id="template">
+
+        <a data-href="" data-button="ShiftDetail" id="shiftTrackingDetailButton" onclick="ShiftTrackingFunc()" data-method="GET" data-show="single" class="k-button hidden">Detay</a>
+        <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span>Excel'e Aktar</a>
+        <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span>PDF'e Aktar</a>
+
+    </script>
+
+    <style type="text/css">
+        #VWSH_UserRole, #VWSH_Ticket {
+            border: 0px !important;
+        }
+
+            #VWSH_UserRole .k-header, #VWSH_UserRole .k-grid-pager {
+                display: none !important;
+            }
+
+            #VWSH_Ticket .k-header, #VWSH_Ticket .k-grid-pager {
+                display: none !important;
+            }
+
+        .list-group.clear-list .list-group-item {
+            padding: 5px 0px !important;
+        }
+
+        .table {
+            border-top: 0px #ddd solid;
+        }
+
+        .hr-line-dashed {
+            margin: 15px 0 !important;
+        }
+
+        .toggle-group label {
+            line-height: 20px !important;
+        }
+    </style>
+    <div class="row">
+        <div class="col-lg-3">
+            <div class="ibox ">
+
+                <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px;">
+
+                    <img src="@(Model.ProfilePhoto  != null ? Model.ProfilePhoto : "/Content/Custom/img/na.png")" alt="image" class="img-circle m-t-xs img-responsive" style="width:110px;height: 110px;margin: auto;margin-top: 10px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/na.png')">
+                    <div class="m-t-md m-b-sm">
+                        <h2 class="font-bold no-margins">
+                            @Model.FullName
+                        </h2>
+                        <div>
+                            <small data-original-title="Kullanıcı Adı"> @Model.loginname </small>
+                        </div>
+                        <a class="btn btn-xs btn-primary" data-task="Insert" data-modal="true" data-href="/SH/VWSH_User/Update?id=@Model.id"> <i class="fa fa-edit" data-original-title="Kullanıcı bilgileri düzenle"></i> Düzenle</a>
+                        <a class="btn btn-xs btn-info" href="#" onclick="userDetail.fnc.cvSavePersonDetail()"><i data-original-title="CV'sini İndir" class="fa fa-download"></i> CV İndir</a>
+                        @if (Model.IsWorking == true)
+                        {
+                            <a class="btn btn-xs btn-danger" data-href="@Url.Action("Dismissal", "VWSH_User", new { area = "SH",id=Model.id })" data-task="Insert"><i class="fa fa-user-times" data-original-title="Personeli İşten Çıkar"></i> İşten Çıkar</a>
+                            <a class="btn btn-xs btn-warning" data-ask="Şifre sıfırlamak istediğinizden eminmisiniz." data-href="/SH/VWSH_User/SendPassword?id=@Model.id" data-task="Insert"><i class="fa fa-envelope-o" data-original-title="Yeni Şifre Gönder"></i> Şifre Gönder</a>
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>KULLANICI BİLGİLERİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding">
+                    <ul class="list-group">
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.code</span>
+                            Personel Kodu :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.firstname</span>
+                            Ad :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.lastname</span>
+                            Soyad :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.title</span>
+                            Ünvan :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.loginname</span>
+                            Kullanıcı Adı  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(!string.IsNullOrEmpty(Model.Manager1_Title) ? Model.Manager1_Title : "-")</span>
+                            1. Yönetici  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(!string.IsNullOrEmpty(Model.Manager2_Title) ? Model.Manager2_Title : "-")</span>
+                            2. Yönetici  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(!string.IsNullOrEmpty(Model.Manager3_Title) ? Model.Manager3_Title : "-")</span>
+                            3. Yönetici  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(!string.IsNullOrEmpty(Model.Manager4_Title) ? Model.Manager4_Title : "-")</span>
+                            4. Yönetici  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(!string.IsNullOrEmpty(Model.Manager5_Title) ? Model.Manager5_Title : "-")</span>
+                            5. Yönetici  :
+                        </li>
+
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@string.Format("{0:dd.MM.yyyy}", Model.birthday)</span>
+                            Doğum Tarihi :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="mailto:@Model.email">@Model.email</a></span>
+                            E-Posta :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="mailto:@Model.email">@Model.VWSH_PersonInformation.PersonalMail</a></span>
+                            Kişisel E-Posta Adresi :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="tel:@Model.phone">@Model.phone</a></span>
+                            Sabit Telefon (Şahsi) :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="tel:@Model.cellphone">@Model.cellphone</a></span>
+                            Cep Telefon (Şahsi):
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="tel:@Model.companyOfficePhone">@Model.companyOfficePhone</a> - @Model.companyOfficePhoneCode</span>
+                            Sabit Telefon (Şirket) :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><a href="tel:@Model.companyCellPhone">@Model.companyCellPhone</a> - @Model.companyCellPhoneCode</span>
+                            Cep Telefon (Şirket):
+                        </li>
+
+                        <li class="list-group-item clearfix @(Model.address== null ? "hide" : "")">
+                            <span class="pull-right" style="width: 80%;text-align: right;">@Model.address</span>
+                            <span class="pull-left">Açık Adres :</span>
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.locationId_Title</span>
+                            Ülke/İl/İlçe :
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="ibox  collapsed">
+                <div class="ibox-title">
+                    <h5>ROL BİLGİLERİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding">
+                    @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserRole>("VWSH_UserRole")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_UserRole", new { area = "SH" })).PageSize(500)
+                .Sort(a => a.Add(c => c.created).Descending()).Filter(a => a.userid == Model.id))
+                .Scrollable(a => a.Height(250))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.Role_Title);
+                }))
+                </div>
+            </div>
+
+            <div class="ibox  collapsed">
+                <div class="ibox-title">
+                    <h5>OTURUM GEÇMİŞİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding">
+                    @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWSH_Ticket>("VWSH_Ticket")
+                 .Navigatable(a => a.Enabled(false))
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "SH_Ticket", new { area = "SH" })).PageSize(50)
+                 .Sort(a => a.Add(c => c.createtime).Descending()).Filter(a => a.userid == Model.id))
+                 .Scrollable(a => a.Height(250))
+                 .Selectable(a => a.Enabled(false))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.createtime).Title("Oturum Başlangıç").ClientTemplate("#=TemplateEngine('VWSH_TicketTemplate',data)#");
+                 }))
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-9">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5> <i class="fa text-success fa-bar-chart-o"></i> ÖZET BİLGİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="col-md-6">
+                        <table class="table medium m-b-xs">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top:none;"> <span class="pull-right">@Model.Company_Title</span> <i class="fa fa-building"></i> Çalıştığı İşletme </td>
+                                </tr>
+                                <tr>
+                                    <td> <span class="pull-right">@String.Format("{0:dd.MM.yyy}", Model.JobStartDate)</span> <i class="fa fa-calendar"></i>  İşe Giriş Tarihi </td>
+                                </tr>
+
+                                @if (Model.IsWorking == true)
+                                {
+                                    <tr>
+                                        <td> <span class="label label-success pull-right">@Model.PermitYearlyDeserved Gün</span> <i class="fa fa-info-circle"></i> Hak Edilen Yıllık İzin </td>
+                                    </tr>
+                                    <tr>
+                                        <td> <span class="label label-danger pull-right">@Model.PermitYearlyUsed Gün</span> <i class="fa fa-minus-circle"></i> Kullanılan Yıllık İzin</td>
+                                    </tr>
+                                    <tr>
+                                        <td> <span class="label label-primary pull-right">@Model.PermitYearlyUsable Gün</span> <i class="fa fa-plus-circle"></i> Kalan Yıllık İzin</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td> <span class="pull-right  @(Model.IsWorking == false ? "badge badge-danger" : "")">@String.Format("{0:dd.MM.yyy}", Model.JobEndDate)</span> <i class="fa fa-calendar"></i>  İşten Çıkış Tarihi </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="col-md-6">
+                        <table class="table medium m-b-xs">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top:none;"> <span class="pull-right">@(Model.Department_Title != null ? Model.Department_Title : "-")</span> <i class="fa fa-align-justify"></i> Departman</td>
+                                </tr>
+                                <tr>
+                                    <td> <span class="pull-right">@Model.PersonWorking</span>  <i class="fa fa-calendar"></i> Çalıştığı Gün Sayısı </td>
+                                </tr>
+
+                                @if (Model.IsWorking == true)
+                                {
+                                    <tr>
+                                        <td> <span class="label label-success pull-right">@Model.FormatHour(Model.PermitExcuseDeserved)</span> <i class="fa fa-info-circle"></i> Hak Edilen Mazeret İzni </td>
+                                    </tr>
+                                    <tr>
+                                        <td> <span class="label label-danger pull-right">@Model.FormatHour(Model.PermitExcuseUsed)</span> <i class="fa fa-minus-circle"></i> Kullanılan Mazeret İzni</td>
+                                    </tr>
+                                    <tr>
+                                        <td> <span class="label label-primary pull-right">@Model.FormatHour(Model.PermitExcuseUsable)</span> <i class="fa fa-plus-circle"></i> Kalan Mazeret İzni</td>
+                                    </tr>
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td> <span class="pull-right @(Model.IsWorking == false ? "badge badge-danger" : "")">@Model.JobLeaving_Title</span> <i class="fa fa-user-times"></i>  İşten Çıkış Nedeni </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+
+
+            <section style="margin-bottom: 20px;">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs">
+
+                        <li class="active" data-href="@Url.Action("Update", "VWSH_PersonInformation", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Özlük Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonInformationTab" aria-expanded="false"><i class="fa fa-info-circle text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-toggle="tooltip" data-placement="top" title="Özlük Dosyaları">
+                            <a data-toggle="tab" href="#VWSH_PersonFileTab" aria-expanded="false"><i class="fa fa-files-o text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonSchools", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Eğitim Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonSchoolsTab" aria-expanded="false"><i class="fa fa-graduation-cap text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonCertificate", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Sertifika/Eğitim/Dosya Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonCertificateTab" aria-expanded="false"><i class="fa fa-file-text-o text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonLanguages", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Yabancı Dil Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonLanguagesTab" aria-expanded="false"><i class="fa fa-language text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonWorkExperience", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="İş Deneyimleri">
+                            <a data-toggle="tab" href="#VWSH_PersonWorkExperienceTab" aria-expanded="false"><i class="fa fa-history text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonCompetencies", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Beceri Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonCompetenciesTab" aria-expanded="false"><i class="fa fa-star text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_PersonReferences", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Referans Bilgileri">
+                            <a data-toggle="tab" href="#VWSH_PersonReferencesTab" aria-expanded="false"><i class="fa fa-users text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWINV_CompanyPerson", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="İşletme Bilgileri">
+                            <a data-toggle="tab" href="#VWINV_CompanyPersonTab" aria-expanded="false"><i class="fa fa-building text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="Departman Geçmişi">
+                            <a data-toggle="tab" href="#VWINV_CompanyPersonDepartmentsTab" aria-expanded="false"><i class="fa fa-sitemap text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+
+
+                        <li data-href="@Url.Action("DataSource", "VWINV_Permit", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="İzin İşlemleri">
+                            <a data-toggle="tab" href="#VWINV_PermitTab" aria-expanded="false"><i class="fa fa-clock-o text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+
+                        <li data-href="@Url.Action("DataSource", "VWINV_CommissionsPersons", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="Görevlendirme Geçmişi">
+                            <a data-toggle="tab" href="#VWINV_CommissionsPersonsTab" aria-expanded="false"><i class="fa fa-hotel text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="Maaş İşlemleri">
+                            <a data-toggle="tab" href="#VWINV_CompanyPersonSalaryTab" aria-expanded="false"><i class="fa fa-dollar text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource","VWPA_Account", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Banka&Kasa Hesap İşlemleri">
+                            <a data-toggle="tab" href="#VWPA_Accounts" aria-expanded="false"><i class="fa fa-bank text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Zimmet Özeti">
+                            <a data-toggle="tab" href="#VWPRD_StockSummaryTab" aria-expanded="false"><i class="fa fa-cubes text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })" data-toggle="tooltip" data-placement="top" title="Değerlendirme Gecmişi">
+                            <a data-toggle="tab" href="#VWPDS_FormResultTab" aria-expanded="false"><i class="fa fa-calculator text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("PersonalPerformanceReport", "VWPDS_FormResult", new { area = "PDS" })" data-toggle="tooltip" data-placement="top" title="Performans Raporu">
+                            <a data-toggle="tab" href="#PersonalPerformance" aria-expanded="false"><i class="fa fa-bar-chart text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource", "VWSH_ShiftTracking", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Personel Giriş-Çıkış Raporu">
+                            <a data-toggle="tab" href="#VWVWSH_ShiftTrackingTab" aria-expanded="false"><i class="glyphicon glyphicon-calendar text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="VWSH_PersonInformationTab" data-href="@Url.Action("Update", "VWSH_PersonInformation", new { area = "SH" })">
+                            @(Html.Partial("~/Areas/SH/Views/VWSH_PersonInformation/Update.cshtml", Model.VWSH_PersonInformation ?? new Infoline.WorkOfTime.BusinessData.VWSH_PersonInformation()))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonFileTab">
+                            <h4><i class="fa text-building fa-files-o"></i> ÖZLÜK DOSYALARI </h4>
+                            @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "SH_User" })
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonSchoolsTab" data-href="@Url.Action("DataSource", "VWSH_PersonSchools", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-graduation-cap"></i> EĞİTİM BİLGİLERİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonSchools>("VWSH_PersonSchools")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonSchools", new { area = "SH" }))
+                                .Sort(a => a.Add(c => c.EndDate)).Filter(a => a.UserId == Model.id).PageSize(25))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.School_Title).Title("Okul").Width(250);
+                                    x.Bound(y => y.Level_Title).Title("Eğitim Düzeyi").Width(200);
+                                    x.Bound(y => y.Branch).Title("Bölüm");
+                                    x.Bound(y => y.area).Title("Alan").Width(180);
+                                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                    x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonSchools", new { area = "SH", userId = Model.id }));
+                                    x.Custom().Text("<i class='fa fa-edit' data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonSchools", new { area = "SH" }));
+                                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonSchools", new { area = "SH" }));
+                                }))
+                        </div>
+
+                        <div class="tab-pane" id="VWSH_PublicationsTab" data-href="@Url.Action("DataSource", "VWSH_Publications", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-book"></i> YAYINLAR </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_Publications>("VWSH_Publications")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_Publications", new { area = "SH" })).PageSize(25)
+                                .Sort(a => a.Add(c => c.date)))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.date).Title("Yayın Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.name).Title("Yayın Adı").Width(300);
+                                    x.Bound(y => y.description).Title("Yayın Açıklaması").Width(300);
+                                    x.Bound(y => y.keywords).Title("Anahtar Kelimeler").Width(300);
+                                })
+                               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                               .ToolBar(x =>
+                               {
+                                   x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Yayın Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_Publications", new { area = "SH", userId = Model.id }));
+                                   x.Custom().Text("<i class='fa fa-edit' data-original-title='Yayın Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_Publications", new { area = "SH" }));
+                                   x.Custom().Text("<i class='fa fa-trash' data-original-title='Yayını Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_Publications", new { area = "SH" }));
+                               }))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonCertificateTab" data-href="@Url.Action("DataSource", "VWSH_PersonCertificate", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-file-text-o"></i> SERTİFİKA/EĞİTİM/DOSYA BİLGİLERİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonCertificate>("VWSH_PersonCertificate")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonCertificate", new { area = "SH" })).PageSize(25)
+                                .Sort(a => a.Add(c => c.StartDate)).Filter(a => a.UserId == Model.id))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.CertificateType_Title).Title("Sertifika/Eğitim/Dosya Tipi").Width(300);
+                                    x.Bound(y => y.CertificateName).Title("Alındığı Kurum").Width(300);
+                                    x.Bound(y => y.StartDate).Title("Eğitim Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.EndDate).Title("Eğitim Bitiş Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.ExpirationDate).Title("Geçerlilik Tarihi").Format(Extensions.DateFormatShort(true)).Width(200);
+                                    x.Bound(y => y.point).Title("Puan").Width(100);
+                                })
+                               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                               .ToolBar(x =>
+                               {
+                                   x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Sertifika/Dosya/Eğitim Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonCertificate", new { area = "SH", userId = Model.id }));
+                                   x.Custom().Text("<i class='fa fa-edit' data-original-title='Sertifika/Dosya/Eğitim Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonCertificate", new { area = "SH" }));
+                                   x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonCertificate", new { area = "SH" }));
+                               }))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonLanguagesTab" data-href="@Url.Action("DataSource", "VWSH_PersonLanguages", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-language"></i> YABANCI DİL BİLGİLERİ </h4>
+                            @(Html.Akilli()
+                                 .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonLanguages>("VWSH_PersonLanguages")
+                                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonLanguages", new { area = "SH" }))
+                                 .Filter(a => a.UserId == Model.id)
+                                 .PageSize(25))
+                                 .Columns(x =>
+                                 {
+                                     x.Bound(y => y.Languages_Title).Title("Konuştuğu Dil").Width(250);
+                                     x.Bound(y => y.Reads_Title).Title("Okuma").Width(180);
+                                     x.Bound(y => y.Write_Title).Title("Yazma").Width(180);
+                                     x.Bound(y => y.Speak_Title).Title("Konuşma");
+                                     x.Bound(y => y.CertificateType_Title).Title("Belge Türü").Width(200);
+                                     x.Bound(y => y.point).Title("Puan").Width(180);
+                                 })
+                                 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                 .ToolBar(x =>
+                                 {
+                                     x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Dil Bilgisi Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonLanguages", new { area = "SH", userId = Model.id }));
+                                     x.Custom().Text("<i class='fa fa-edit' data-original-title='Dil Bilgisi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonLanguages", new { area = "SH" }));
+                                     x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonLanguages", new { area = "SH" }));
+                                 }))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonWorkExperienceTab" data-href="@Url.Action("DataSource", "VWSH_PersonWorkExperience", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-history"></i> İŞ DENEYİMLERİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonWorkExperience>("VWSH_PersonWorkExperience")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonWorkExperience", new { area = "SH" }))
+                                .Filter(a => a.UserId == Model.id)
+                                .PageSize(25))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.CompanyName).Title("Şirket Adı").Width(300);
+                                    x.Bound(y => y.JobStartDate).Title("İşe Başlama Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                                    x.Bound(y => y.JobEndDate).Title("İşten Çıkma Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                                    x.Bound(y => y.WorkingPosition).Title("Çalışma Pozisyonu").Width(200);
+                                    x.Bound(y => y.JobDescription).Title("İş Tanımı");
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='İş Deneyimi Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonWorkExperience", new { area = "SH", userId = Model.id }));
+                                    x.Custom().Text("<i class='fa fa-edit' data-original-title='İş Deneyimi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonWorkExperience", new { area = "SH" }));
+                                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonWorkExperience", new { area = "SH" }));
+                                }))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonCompetenciesTab" data-href="@Url.Action("DataSource", "VWSH_PersonCompetencies", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-star"></i> BECERİLER </h4>
+                            @(Html.Akilli()
+                               .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonCompetencies>("VWSH_PersonCompetencies")
+                               .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonCompetencies", new { area = "SH" }))
+                               .Filter(a => a.UserId == Model.id)
+                               .PageSize(25))
+                               .Columns(x =>
+                               {
+                                   x.Bound(y => y.Competencies_Title).Title("Beceri").Width(600);
+                                   x.Bound(y => y.CompetenciesLevel_Title).Title("Beceri Seviyesi").Width(550);
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Beceri Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonCompetencies", new { area = "SH", userId = Model.id }));
+                                    x.Custom().Text("<i class='fa fa-edit' data-original-title='Beceri Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonCompetencies", new { area = "SH" }));
+                                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonCompetencies", new { area = "SH" }));
+                                }))
+                        </div>
+                        <div class="tab-pane" id="VWSH_PersonReferencesTab" data-href="@Url.Action("DataSource", "VWSH_PersonReferences", new { area = "SH" })">
+                            <h4><i class="fa text-building fa-users"></i> REFERANS BİLGİLERİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonReferences>("VWSH_PersonReferences")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonReferences", new { area = "SH" }))
+                                 .Filter(a => a.UserId == Model.id)
+                                .PageSize(25))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.ReferenceUserName).Title("Referans Adı").Width(250);
+                                    x.Bound(y => y.ReferencePosition).Title("Referansın Pozisyonu").Width(250);
+                                    x.Bound(y => y.ReferenceMail).Title("Referansın E-Posta Adresi").Width(250);
+                                    x.Bound(y => y.ReferencePhone).Title("Referansın Telefonu").Width(250);
+                                    x.Bound(y => y.ReferenceWorkingCompany).Title("Referansın Çalıştığı Firma");
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Referans Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonReferences", new { area = "SH", userId = Model.id }));
+                                    x.Custom().Text("<i class='fa fa-edit' data-original-title='Referans Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonReferences", new { area = "SH" }));
+                                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Referans Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWSH_PersonReferences", new { area = "SH" }));
+                                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonReferences", new { area = "SH" }));
+                                }))
+                        </div>
+
+
+                        <div class="tab-pane" id="VWINV_CompanyPersonTab" data-href="@Url.Action("DataSource", "INV_CompanyPerson", new { area = "INV" })">
+                            <h4><i class="fa text-building fa-building"></i> İŞLETME GEÇMİŞİ  </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPerson>("VWINV_CompanyPerson")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "INV_CompanyPerson", new { area = "INV" }))
+                                .Filter(a => a.IdUser == Model.id)
+                                .PageSize(25).Sort(f => f.Add("created").Descending()))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.Company_Title).Title("İşletme").Width(300);
+                                    x.Bound(y => y.Title).Title("Sigortadaki Ünvan").Width(100);
+                                    x.Bound(y => y.Level).Title("Kademesi").Width(100);
+                                    x.Bound(y => y.JobStartDate).Title("Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(100);
+                                    x.Bound(y => y.JobEndDate).Title("Bitiş Tarihi").Format(Extensions.DateFormatShort(true)).Width(100);
+                                    x.Bound(y => y.PersonWorkingCount).Title("Toplam Çalışılan Gün").Width(100);
+                                })
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i data-original-title='İşletme Bilgisi Ekleme' class='fa fa-plus-circle'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "INV_CompanyPerson", new { area = "INV", IdUser = Model.id }));
+                                    x.Custom().Text("<i data-original-title='Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "INV_CompanyPerson", new { area = "INV" }));
+                                }))
+                        </div>
+
+
+                        <div class="tab-pane" id="VWINV_CompanyPersonDepartmentsTab">
+                            <div>
+
+
+                                <h4><i class="fa text-building fa-sitemap"></i> DEPARTMAN GEÇMİŞİ  </h4>
+                                @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartments")
+                                .DataSource(x => x.Ajax()
+                                .Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" }))
+                                .Filter(a => a.IdUser == Model.id && a.OrganizationType == (int)EnumINV_CompanyDepartmentsType.Organization)
+                                .PageSize(25))
+                                .Scrollable(a => a.Height(300))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.Department_Title).Title("Departman").Width(200);
+                                    x.Bound(y => y.Title).Title("Departmandaki Ünvanı");
+                                    x.Bound(y => y.Manager1_Title).Title("Departmandaki 1. Yöneticisi");
+                                    x.Bound(y => y.Manager2_Title).Title("Departmandaki 2. Yöneticisi");
+                                    x.Bound(y => y.StartDate).Title("Pozisyon Baş. Tarihi").Format(Extensions.DateFormatShort(true));
+                                    x.Bound(y => y.EndDate).Title("Pozisyon Bit. Tarihi").Format(Extensions.DateFormatShort(true));
+                                    x.Bound(y => y.IsBasePosition).Title("Asli Görevi mi?").ClientTemplate("#if(IsBasePosition != true){ # Hayır # } else { # Evet # }#");
+                                    x.Bound(y => y.Department_Title).Title("Departmanı");
+                                })
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i data-original-title='Departman Bilgisi Güncelleme' class='fa fa-edit'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonDepartments", new { area = "INV", IdUser = Model.id }));
+                                }))
+
+                            </div>
+                            <div class="m-t-md">
+                                <h4><i class="fa text-building fa-sitemap"></i> PROJE GEÇMİŞİ  </h4>
+                                @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartmentsProject")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" }))
+                                    .Filter(a => a.IdUser == Model.id && a.OrganizationType == (int)EnumINV_CompanyDepartmentsType.Matrix)
+                                    .PageSize(25)
+                                )
+                                .Scrollable(a => a.Height(300))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.Project_Title).Title("Proje İsmi").Width(300);
+                                    x.Bound(y => y.Department_Title).Title("Projedeki Departmanı").Width(180);
+                                    x.Bound(y => y.Title).Title("Projedeki Ünvanı").Width(200);
+                                    x.Bound(y => y.Manager1_Title).Title("Projedeki 1. Yöneticisi").Width(220);
+                                    x.Bound(y => y.Manager2_Title).Title("Projedeki 2. Yöneticisi").Width(220);
+                                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(150);
+                                    x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Format(Extensions.DateFormatShort(true)).Width(150);
+                                }))
+                            </div>
+                        </div>
+
+
+                        <div class="tab-pane" id="VWINV_PermitTab">
+                            @*<div class="row">
+                                    @foreach (var item in permits)
+                                    {
+                                        var str = "";
+                                        var control = item.Value.ToString().Split(',');
+                                        if (control.Count() > 1)
+                                        {
+                                            str += control[0] + " Saat ";
+                                            str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                                        }
+                                        if (control.Count() == 1)
+                                        {
+                                            str += control[0] + " Saat ";
+                                        }
+
+                                        <div class="col-md-3">
+                                            <div class="dd-handle">
+                                                <span class="label label-info"><i> @(item.Tooltip == "true" ? item.Value + " Gün" : str)</i></span> <small> @item.Key </small>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>*@
+
+                            <h4><i class="fa text-building fa-clock-o"></i> PERSONEL İZİN İŞLEMLERİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_Permit>("VWINV_Permit")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_Permit", new { area = "INV" }))
+                                .Filter(a => a.IdUser == Model.id
+                                && (a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrol
+                                || a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin
+                                || a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.AvansIzin
+                                || a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IslakImzaYuklendi
+                                || a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.SaglikRaporu)).PageSize(25))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.PermitCode).Title("İzin Kodu").Width(180);
+                                    x.Bound(y => y.PermitType_Title).Title("İzin Tipi").Filterable(filterable => filterable.UI("PermitTypeFilter"));
+                                    x.Bound(y => y.StartDate).Title("İzin Başlangıç Tarihi").Format(Extensions.DateFormatFull(true));
+                                    x.Bound(y => y.EndDate).Title("İzin Bitiş Tarihi").Format(Extensions.DateFormatFull(true));
+                                    x.Bound(y => y.TotalHoursText).Title("İzin Süresi").Width(170).Filterable(false);
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                .ToolBar(x =>
+                                {
+                                 x.Custom().Text("<i class='fa fa-plus-circle'></i> Geçmiş İzin Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("PastYearlyPermits", "VWINV_Permit", new { area = "INV", IdUser = Model.id }));
+                                    x.Custom().Text("<i class='fa fa-plus-circle'></i>  Avans İzin Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("AllowancePermit", "VWINV_Permit", new { area = "INV", IdUser = Model.id }));
+
+                                    x.Custom().Text("<i class='fa fa-plus-circle'></i>  Sağlık İzin Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("HealthPermit", "VWINV_Permit", new { area = "INV", IdUser = Model.id }));
+                                    x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_Permit", new { area = "INV" }));
+                                     x.Custom().Text("<i class='fa fa-trash' data-original-title='İzin Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, }).Url(Url.Action("Delete", "VWINV_Permit", new { area = "INV" }));
+                                }))
+                        </div>
+
+                        <div class="tab-pane" id="VWINV_CommissionsPersonsTab" data-href="@Url.Action("DataSource", "VWINV_CommissionsPersons", new { area = "INV" })">
+                            <h4><i class="fa text-building fa-hotel"></i> PERSONEL GÖREVLENDİRME İŞLEMLERİ  </h4>
+
+                            @(Html.Akilli()
+                                   .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CommissionsPersons>("VWINV_CommissionsPersons")
+                                   .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CommissionsPersons", new { area = "INV" }))
+                                   .Filter(a => a.IdUser == Model.id && (a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi)).PageSize(25))
+                                   .Columns(x =>
+                                   {
+                                       x.Bound(y => y.Information_Title).Title("Görevlendirme Tipi").Width(180);
+                                       x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                                       x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                                       x.Bound(y => y.TravelInformation_Title).Title("Seyahat Tipi").Width(250);
+                                       x.Bound(y => y.Manager1ApprovalDate).Title("Yönetici Onay Tarihi").Format(Extensions.DateFormatFull(true));
+
+                                   })
+                                   .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                   .ToolBar(x =>
+                                   {
+                                       x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_Commissions", new { area = "INV" }));
+                                   }))
+                        </div>
+
+
+                        <div class="tab-pane" id="VWINV_CompanyPersonSalaryTab">
+                            <h4><i class="fa text-building fa-dollar"></i> PERSONEL MAAŞ İŞLEMLERİ </h4>
+                            @(Html.Akilli()
+                                 .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonSalary>("VWINV_CompanyPersonSalary")
+                                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" }))
+                                 .Sort(sort => sort.Add("isActive").Descending())
+                                 .Filter(a => a.IdUser == Model.id)
+                                 .PageSize(25))
+                                 .Columns(x =>
+                                 {
+                                     x.Bound(y => y.Salary).Title("Ücret").ClientTemplate("#if(Salary==null){# - #}else{ # #=Salary# # }#").Width(200);
+                                     x.Bound(y => y.isActive).Title("Durumu").ClientTemplate("#if(isActive==1){# Aktif #}else{ # Pasif # }#").Width(100);
+                                     x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(300).Format(Extensions.DateFormatShort(true));
+                                     x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(300).Format(Extensions.DateFormatShort(true));
+                                 })
+                                 .ToolBar(x =>
+                                 {
+                                     x.Custom().Text("<i data-original-title='Yeni Ücret Ekle' class='fa fa-plus-circle'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_CompanyPersonSalary", new { area = "INV", IdUser = Model.id }));
+                                     x.Custom().Text("<i data-original-title='Düzenle' class='fa fa-edit'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                                     x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                                     x.Custom().Text("<i data-original-title='Sil' class='fa fa-trash'><i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                                 }))
+                        </div>
+
+
+                        <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
+                            <div class="m-t-md">
+                                <h4><i class="fa fa-bank"></i> BANKA VE KASA HESAP İŞLEMLERİ </h4>
+
+                                @(Html.Akilli()
+                                       .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Account>("VWPA_Account")
+                                       .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Account", new { area = "PA" }))
+                                       .Filter(a => a.dataTable == "SH_User" && a.dataId == Model.id).PageSize(25))
+                                       .Columns(x =>
+                                       {
+                                           x.Bound(y => y.name).HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('VWPA_AccountTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter"))); ;
+                                            x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatShort(true)).Width(130).Hidden(true);
+                                            x.Bound(y => y.dataId_Title).Title("Hesap Sahibi").Width(200).Hidden(true);
+                                            x.Bound(y => y.code).Title("Hesap Kodu").Width(160).Hidden(true);
+                                            x.Bound(y => y.currencyId_Title).Title("Döviz Cinsi").Width(160).Hidden(true);
+                                            x.Bound(y => y.Currency_Symbol).Title("Döviz Sembol").Width(160).Hidden(true);
+                                            x.Bound(y => y.bankId_Title).Title("Banka Adı").Width(160).Hidden(true);
+                                            x.Bound(y => y.iban).Title("IBAN").Width(160).Hidden(true);
+                                            x.Bound(y => y.status_Title).Title("Durumu").Width(100).Hidden(true);
+                                       })
+                                       .Scrollable(x => x.Height(350))
+                                       .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                       .ToolBar(x =>
+                                       {
+                                           x.Custom().Text("<i data-original-title='Hesap Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Account", new { area = "PA", dataTable = "SH_User", dataId = Model.id }));
+                                           x.Custom().Text("<i data-original-title='Hesap Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPA_Account", new { area = "PA" }));
+                                       }))
+                            </div>
+                            <div data-href="@Url.Action("DataSource", "VWPA_Ledger", new { area = "PA" })" class="m-t-md">
+                                <h4 class="m-t-md"><i class="text-success icon-money"></i> GEÇMİŞ ÖDEMELER </h4>
+
+                                @if (accountIds.Count() > 0)
+                                {
+                                    @(Html.Akilli()
+                                            .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                                            .Sort(a =>
+                                            {
+                                                a.Add(b => b.date).Descending();
+                                                a.Add(b => b.created).Descending();
+                                            })
+                                            .Filter(a => accountIds.Contains(a.accountId)).PageSize(25))
+                                            .Columns(x =>
+                                            {
+                                                x.Bound(y => y.id).ClientTemplate("#= userDetail.templates.ledgerTypeTemp(data) #").Width(40).Filterable(false).Title("");
+                                                x.Bound(y => y.type_Title).Title("İşlem Türü").Width(150);
+                                                x.Bound(y => y.date).Title("İşlem Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                                                x.Bound(y => y.accountRelatedCompanyId_Title).Title("İlgili Hesap").Width(180);
+                                                x.Bound(y => y.description).Title("Açıklama").Width(200);
+                                                x.Bound(y => y.inputAmount).Title("Giriş").ClientTemplate("#=userDetail.templates.totalAmountTemp(data, data.inputAmount)#").Width(100)
+                                                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                                                .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                                                x.Bound(y => y.outputAmount).Title("Çıkış").ClientTemplate("#=userDetail.templates.totalAmountTemp(data, data.outputAmount)#").Width(100)
+                                                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                                                .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                                                x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                                            })
+                                            .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                            .ToolBar(x =>
+                                            {
+                                                x.Custom().Text("<i data-original-title='Ödeme Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Ledger", new { area = "PA" }));
+                                            }))
+                                }
+                                else
+                                {
+                                    @(Html.Akilli()
+                                            .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                                            .Filter(a => a.accountId == Guid.NewGuid()).PageSize(25))
+                                            .Columns(x =>
+                                            {
+                                                 x.Bound(y => y.id).ClientTemplate("#= userDetail.templates.ledgerTypeTemp(data) #").Width(40).Filterable(false).Title("");
+                                            }))
+                                }
+
+
+                            </div>
+                        </div>
+
+                        <div id="VWPRD_StockSummaryTab" class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })">
+                            <div data-href="@Url.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })">
+                                <h4><i class="text-building icon-th-list"></i> PERSONEL ZİMMET İŞLEM LİSTESİ  </h4>
+                                @(Html.Akilli()
+                                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_Transaction")
+                                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })).Filter(a => a.inputId == Model.id || a.outputId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
+                                         .Scrollable(a => a.Height(400))
+                                         .Filterable(t => t.Mode(GridFilterMode.Row))
+                                         .Columns(x =>
+                                         {
+                                             x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                                             x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                                             x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                                             x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                                             x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                                             x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                                             x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                                             x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                                             x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                                         })
+                                         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                         .ToolBar(x =>
+                                         {
+                                             x.Custom().Text("<i data-original-title='Zimmet Ver' class='icon-user-add-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD", type = 11, inputId = Model.id }));
+                                             x.Custom().Text("<i data-original-title='Zimmet Al' class='icon-user-delete'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertEmbezzlePerson", "VWPRD_Transaction", new { area = "PRD", personId = Model.id }));
+                                             x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+
+                                         }))
+                            </div>
+                            <div style="margin-top:30px;">
+                                <h4><i class="text-building fa fa-cubes"></i> PERSONEL ZİMMET ÖZETİ  </h4>
+                                @(Html.Akilli()
+                                       .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryPerson")
+                                       .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "SH_User" && a.stockId == Model.id).PageSize(25))
+                                       .Scrollable(a => a.Height(400))
+                                       .Columns(x =>
+                                       {
+                                           x.Bound(y => y.id).ClientTemplate("#=TemplateEngine('photoTemplate',data) #").Filterable(false).Title("").Width(70);
+                                           x.Bound(y => y.productId_Title).Title("Ürün");
+                                           x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+                                          x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+
+                                       })
+                                       .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                       .ToolBar(x =>
+                                       {
+                                        x.Custom().Text("<i data-original-title='Zimmet Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-person", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+                                        x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-product", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
+                                       }))
+                            </div>
+                        </div>
+
+
+
+                        <div class="tab-pane" id="VWPDS_FormResultTab" data-href="@Url.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })">
+                            <h4><i class="fa text-building fa-calculator"></i> DEĞERLENDİRME GEÇMİŞİ </h4>
+                            @(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormResult>("VWPDS_FormResult")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })).Filter(a => a.evaluatedUserId == Model.id).PageSize(25))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.evaluator_Title).Title("Değerlendiren Personel").Width(180);
+                                    x.Bound(y => y.created).Title("Değerlendirme Tarihi").Width(180).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                                    x.Bound(y => y.comment).Title("Genel Sonuç Yorum").Width(250);
+                                    x.Bound(y => y.score).Title("Aldığı Puan").Width(150).ClientTemplate("#= kendo.toString(score, 'n2') #");
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-blank", "true" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_FormResult", new { area = "PDS" }));
+                                }))
+                        </div>
+                        <div id="PersonalPerformance" class="tab-pane" data-href="@Url.Action("PersonalPerformanceReport", "VWPDS_FormResult", new { area = "PDS" })">
+                            <h4><i class="fa text-building fa-bar-chart"></i> PERFORMANS RAPORU </h4>
+                            @Html.Action("PersonalPerformanceReport", "VWPDS_FormResult", new { area = "PDS", id = Model.id, detail = true })
+                        </div>
+
+                        <div class="tab-pane" id="VWVWSH_ShiftTrackingTab">
+                            <div class="row">
+
+                                <div class="form-group" style="margin-bottom:50px;">
+                                    <div class="col-md-4">
+                                        @(
+                                     Html.Akilli().
+                                     DatePicker("shiftTrackingStartDate").
+                                     Enable(true)
+                                     .Value(DateTime.Now)
+                                     .Events(x => x.Change("onChangeStartDate"))
+                                     .Format(Extensions.DateFormatShort())
+                                                 )
+                                    </div>
+                                    <div class="col-md-4">
+                                        @(
+                            Html.Akilli().
+                            DatePicker("shiftTrackingEndDate").
+                            Enable(true)
+                            .Events(x=>x.Change("onChangeEndDate"))
+                            .MinDateElement("shiftTrackingStartDate")
+                            .Value(DateTime.Now)
+                            .Format(Extensions.DateFormatShort())
+
+
+    )
+                                    </div>
+                                    <div class="col-md-4">
+
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <div id="shiftTrackingPersonalGrid">
+
+                            </div>
+
+
+                        </div>
+
+
+                    </div>
+                </div>
+            </section>
+
+
+        </div>
+    </div>
+
+
+    <script>
+
+    var dateData = "";
+    function onChangeStartDate() {
+        var startDate = $("#shiftTrackingStartDate").val();
+        var endDate = $("#shiftTrackingEndDate").val();
+        dateData = startDate;
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetDateDataReportResult', { startDate: startDate, endDate: endDate, userId: '@Model.id.ToString()' }, function (res) {
+            grid.data = res;
+            grid.init();
+        })
+    }
+    function onChangeEndDate() {
+        var startDate = $("#shiftTrackingStartDate").val();
+        var endDate = $("#shiftTrackingEndDate").val();
+        dateData = endDate;
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetDateDataReportResult', { startDate: startDate, endDate: endDate, userId: '@Model.id.ToString()' }, function (res) {
+            grid.data = res;
+            grid.init();
+        })
+    }
+
+
+	var grid = {
+		data: [],
+		init: function () {
+			$("#shiftTrackingPersonalGrid").kendoGrid({
+				toolbar: kendo.template($("#template").html()),
+
+				excel: {
+					fileName: "Günlük Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
+					filterable: true,
+					allPages: true,
+				},
+				dataSource: {
+					data: $.Enumerable.From(grid.data).ToArray(),
+					pageSize: 50
+				},
+				columnMenu: true,
+				selectable: true,
+				reorderable: true,
+				sortable: true,
+				encoded: true,
+				height: 600,
+				change: function (e, resp) {
+					$('#shiftTrackingDetailButton').removeClass('hidden')
+					var grid = $("#shiftTrackingPersonalGrid").data("kendoGrid");
+					var selectedItem = grid.dataItem(grid.select());
+					$('[data-button="ShiftDetail"]').show();
+					$('[data-button="ShiftDetail"]').attr('data-href', '/SH/VWSH_ShiftTracking/LogDetail?id=' + selectedItem.userId + '&date=' + dateData + '');
+				},
+				scrollable: true,
+				resizable: true,
+				pageable: {
+					refresh: true,
+					pageSizes: ["all"],
+					buttonCount: 5,
+					messages: {
+						itemsPerPage: "",
+						display: "{0} - {1} aralığı gösteriliyor. Toplam {2:#,##} öğe var",
+						empty: "",
+						allPages: "Tümü"
+					}
+				},
+				columns: [
+					{
+						field: "userId",
+						hidden: true
+					},
+					{
+						field: "id",
+						hidden: true
+					},
+					{
+						field: "UserId_Title",
+						title: "Personel"
+
+					},
+					{
+						field: "date",
+						title: "Tarih",
+						type: "date",
+						format: "{0:dd.MM.yyyy}"
+					},
+					{
+						field: "totalWorking",
+						title: "Toplam Çalışma Saati"
+					},
+					{
+						field: "CompanyId_Title",
+						title: "İşletme"
+					}
+				]
+			});
+		}
+	}
+	$(document)
+		.on('ready', function () {
+			$('#shiftTrackingStartDate').data('kendoDatePicker').trigger('change');
+		})
+        .on('ready', function () {
+            $('#shiftTrackingEndDate').data('kendoDatePicker').trigger('change');
+        })
+
+		.on("selected:grid", "#shiftTrackingPersonalGrid", function (e, resp) {
+
+		});
+    </script>
+
+}

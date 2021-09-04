@@ -1,0 +1,240 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMDOC_DocumentModel
+@{
+    ViewBag.Title = "Doküman Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<div class="row" id="DetailForm">
+
+    <div class="col-lg-3">
+        <div class="ibox">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.title
+                    </h2>
+                    <small> @Model.subject </small>
+                </div>
+                <img src="~/Content/Custom/img/document-detail.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px;margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+                <div style="margin-top: 15px;">
+
+                    <a href="#" data-task="Insert" data-modal="true" title="Bilgileri Düzenle" style="line-height: 14px;" data-href="@Url.Action("Update", "VWDOC_Document", new {area = "DOC" , id = Model.id })" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Bilgileri Düzenle</a>
+                </div>
+            </div>
+            <div class="widget-text-box">
+                <ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-file"></i> <strong> Doküman Tipi : </strong> @Model.type_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-code"></i> <strong> Doküman Numarası : </strong> @Model.code
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-info-circle"></i> <strong> Versiyon : </strong> @Model.versionNumber
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-user"></i><strong> Doküman Sorumlusu : </strong> @(Model.responsibleUserId_Title != null ? Model.responsibleUserId_Title : "Bulunamadı")
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-exchange"></i><strong> Toplam Revizyon Talebi : </strong> @(Model.totalRevision.HasValue ? Model.totalRevision : 0)
+                    </li>
+                </ul>
+            </div>
+
+            <br />
+            <div class="ibox collapsed">
+                <div class="ibox-title">
+                    <h5>İçerik</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content clearfix">
+                    <textarea class="form-control" name="content" id="contentme" data-item="content"></textarea>
+                </div>
+            </div>
+
+            <div class="ibox collapsed">
+                <div class="ibox-title">
+                    <h5>Doküman Onay Sırası</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content clearfix">
+                    <ul class="list-group clear-list">
+                        @foreach (var flow in Model.flowList.Where(x => x.userId.HasValue || x.organizationUnitId.HasValue).OrderBy(x => x.order).ToArray())
+                        {
+                            <li class="list-group-item fist-item">
+                                <strong> @(flow.order + 1) : </strong> @(flow.organizationUnitId.HasValue ? flow.organizationUnitId_Title : flow.userId_Title)
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>Doküman</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content clearfix">
+                    @(
+                 Html.Akilli().FileUpload()
+                 .DataTable("DOC_DocumentVersion")
+                 .DataId(Model.documentVersion.id)
+                 .DataKey(x => x.fileGroup == "Doküman Dosyası").PreviewMode(true)
+            )
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="ibox">
+            <section style="margin-bottom: 20px;">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs">
+                        <li class="active" data-href="@Url.Action("DataSource", "VWDOC_DocumentRelation", new { area = "DOC" })" data-toggle="tooltip" data-placement="top" title="İlişkili Dokümanlar">
+                            <a data-toggle="tab" href="#VWDOC_DocumentRelations" aria-expanded="false"><i class="icon-buffer text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource","VWDOC_DocumentVersion", new { area = "DOC" })" data-toggle="tooltip" data-placement="top" title="Versiyon Yönetimi">
+                            <a data-toggle="tab" href="#VWDOC_DocumentVersions" aria-expanded="false"><i class="icon-sort-number-up text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-href="@Url.Action("DataSource","VWDOC_DocumentRevisionRequest", new { area = "DOC" })" data-toggle="tooltip" data-placement="top" title="Revizyon Talepleri">
+                            @*Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-check' data-original-title='Activate Version'></i>" : "<i class='fa fa-check' data-original-title='Versiyonu Aktif Et'></i>"))*@
+                                () { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                                <a data-toggle="tab" href="#VWDOC_DocumentRevisionRequests" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWDOC_DocumentRelation", new { area = "DOC" })" id="VWDOC_DocumentRelations">
+                            <h4><i class="icon-buffer text-success"></i> @(Request.Cookies["language"].Value == "ENG" ? "RELATED DOCUMENTS" : "İLİŞKİLİ DOKÜMANLAR")</h4>
+                            @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_DocumentRelation>("VWDOC_DocumentRelation").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "documentRelationId" } })
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_DocumentRelation", new { area = "DOC" })).Filter(a => a.documentId == Model.id).PageSize(25))
+                        .Scrollable(a => a.Height(480))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.created).Title("Oluşturma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+                            x.Bound(y => y.documentRelationCode).Title("İlişkili Doküman Kodu").Width(180);
+                            x.Bound(y => y.documentRelationTitle).Title("İlişkili Doküman Başlığı").Width(180);
+                            x.Bound(y => y.documentRelationSubject).Title("İlişkili Doküman Konusu").Width(180);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Add Associated Document' class='icon-plus-circle'></i>" : "<i data-original-title='İlişkili Doküman Ekle' class='icon-plus-circle'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                            x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Document Detail' class='fa fa-info-circle'></i>" : "<i data-original-title='Doküman Detayı' class='fa fa-info-circle'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                        }))
+                        </div>
+
+
+                        <div class="tab-pane" data-href="@Url.Action("DataSource", "VWDOC_DocumentVersion", new { area = "DOC" })" id="VWDOC_DocumentVersions">
+                            <h4><i class="icon-sort-number-up text-success "></i> @(Request.Cookies["language"].Value == "ENG" ? "VERSION MANAGEMENT" : "VERSİYON YÖNETİMİ") </h4>
+                            @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_DocumentVersion>("VWDOC_DocumentVersion")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_DocumentVersion", new { area = "DOC" })).Filter(f => f.documentId == Model.id).PageSize(25))
+                        .Scrollable(a => a.Height(470))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.versionNumber).Title("Versiyon Numarası").Width(180);
+
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Edit Document' class='fa fa-edit'></i>" : "<i data-original-title='Doküman Düzenle' class='fa fa-edit'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                            x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-check' data-original-title='Activate Version'></i>" : "<i class='fa fa-check' data-original-title='Versiyonu Aktif Et'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                            x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-info-circle' data-original-title='Version Detail'></i>" : "<i class='fa fa-info-circle' data-original-title='Versiyon Detayı'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                        })
+                        )
+                        </div>
+
+
+                        <div class="tab-pane" data-href="@Url.Action("DataSource", "VWDOC_DocumentRevisionRequest", new { area = "DOC" })" id="VWDOC_DocumentRevisionRequests">
+                            <h4><i class="icon-exchange text-success "></i> @(Request.Cookies["language"].Value == "ENG" ? " REVISION REQUESTS" : " REVİZYON TALEPLERİ") </h4>
+                            @(Html.Akilli()
+                         .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_DocumentRevisionRequest>("VWDOC_DocumentRevisionRequest")
+                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_DocumentRevisionRequest", new { area = "DOC" })).Filter(f => f.documentId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
+                         .Scrollable(a => a.Height(490))
+                         .Columns(x =>
+                         {
+                             x.Bound(y => y.lastStatus_Title).Title("Talep Durumu").Width(180);
+                             x.Bound(y => y.created).Title("Talep Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                             x.Bound(y => y.createdby_Title).Title("Talep Gerçekleştiren").Width(180);
+                             x.Bound(y => y.confirmationUserTitles).Title("Onaylayacak/lar").Width(180);
+                         })
+                         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                         .ToolBar(x =>
+                         {
+                             x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='icon-plus-circle' data-original-title='Request a Revision'></i>" : "<i class='icon-plus-circle' data-original-title='Revizyon Talebi Yap'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                             x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='icon-edit' data-original-title='Approve/Decline Request'></i>" : "<i class='icon-edit' data-original-title='Talebi Onayla/Reddet'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                             x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-trash' data-original-title='Delete Revision Request'></i>" : "<i class='fa fa-trash' data-original-title='Revizyon Talebini Sil'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                         }))
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+      var page = {
+        content: `@Html.Raw(Model.content)`,
+        loadEditor: function (content) {
+            if ($('#' + content).length == 0) {
+                return;
+            }
+            var form = $('#' + content).parents('.form-horizontal');
+            var idElem = form.find('[name="id"]');
+
+            var id = newGuid();
+
+            if (idElem && idElem != null && idElem != "") {
+                id = idElem.val();
+            }
+
+            CKEDITOR.replace(content, {
+                extraPlugins: 'image2',
+                height: '120px',
+                removeButtons: 'CustomImageUploader',
+                filebrowserImageUploadUrl: '/HDM/VWHDM_TicketMessage/EditorUploadFile?id=' + id,
+                removePlugins: 'about'
+            });
+
+            $('#contentme').val(page.content);
+        },
+        onChangeType: function () {
+
+        }
+    };
+
+    CKEDITOR.config.entities_latin = !0;
+    CKEDITOR.config.entities_latin = false;
+    CKEDITOR.config.extraAllowedContent = false;
+    page.loadEditor('contentme');
+
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+    #DetailForm span#cke_1_top {
+        display: none;
+    }
+</style>

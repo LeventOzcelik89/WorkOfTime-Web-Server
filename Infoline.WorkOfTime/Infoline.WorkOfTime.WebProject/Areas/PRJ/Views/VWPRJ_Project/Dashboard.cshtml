@@ -1,0 +1,363 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+
+@model Infoline.WorkOfTime.BusinessData.VWPRJ_ProjectPageReport
+@{
+    ViewBag.Title = "Proje Raporları ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Toplam Proje").Value(Model.ToplamProje.ToString("N0") + " Adet").IconClass("fa fa-area-chart")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Aktif Projeler").Value(Model.AktifProjeler.ToString("N0") + " Adet").IconClass("fa fa-arrow-up")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("En Yakın Bitişli Proje").Value(Model.EnYakinBitisli).IconClass("fa fa-check")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Son Alınan Proje ").Value(Model.SonProje).IconClass("fa fa-list-ol")
+    </div>
+</div>
+
+<div class="row">
+
+    <div id="reportArea">
+        <div class="col-md-6">
+            <div class="ibox">
+                <div class="ibox-title text-center">
+                    <h3 class="text-center">Şirketlere göre Proje Dağılımı </h3>
+                    <small> Proje'yi yapan şirketlere göre (Devam Eden,Tamamlanmış)</small>
+                </div>
+                <div class="ibox-content">
+                    <div id="CompanyChart"></div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-6">
+            <div class="ibox">
+                <div class="ibox-title text-center">
+                    <h3 class="text-center">Kurumlara göre Proje Dağılımı </h3>
+                    <small> Proje'nin yapıldığı kurumlara göre (Devam Eden,Tamamlanmış)</small>
+                </div>
+                <div class="ibox-content">
+                    <div id="CorporationChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="ibox">
+                <div class="ibox-title text-center">
+                    <h3 class="text-center">Proje Tipine Göre Dağılım </h3>
+                    <small>Devam Eden Projeler'e göre</small>
+                </div>
+                <div class="ibox-content">
+                    <div id="ProjectTypeChart"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <div class="col-md-6">
+            <div class="ibox">
+                <div class="ibox-title text-center">
+                    <h3 class="text-center">Proje Tiplerine Göre Personel Dağılımı </h3>
+                    <small> Devam Eden Projelerdeki Personel Adetleri</small>
+                </div>
+                <div class="ibox-content">
+                    <div id="ProjectPersonChart"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="fixed-button">
+    <a href="@Url.Action("Insert","VWPRJ_Project",new {area="PRJ" })" class="btn btn-success btn-block text-left" title="Yeni Proje Ekle"><i class="fa fa-plus" aria-hidden="true"></i> Proje Ekle</a>
+    <a href="@Url.Action("Index","VWPRJ_Project",new {area="PRJ" })" class="btn btn-success btn-block text-left" title="Proje Listesi"><i class="fa fa-arrow-right" aria-hidden="true"></i> Proje Listesi</a>
+</div>
+
+
+<style type="text/css">
+    .wrapper-content, iframe {
+        margin-bottom: 0px !important;
+        padding-bottom: 0px !important;
+    }
+
+    iframe {
+        width: 100%;
+        height: 89vh;
+        overflow-x: hidden;
+        overflow-y: hidden;
+        border: none;
+    }
+
+    .nodata {
+        text-align: center;
+        color: red;
+    }
+</style>
+
+
+<script type="text/javascript">
+    var Page = {
+        Data: null,
+        JiraProjectData: null,
+        TechnicalType: [],
+        LineChart: function (element, data) {
+
+            if ((data == undefined || data == null || data.length == 0)) {
+                element.parents('div').eq(0).append('<div class="nodata"><div>Kayıt Bulunamadı</div></div>');
+                return;
+            }
+
+            var myCategories = data.map(function (e) { return e.Key });
+            var myValues = data.map(function (e) { return e.Value });
+            element.kendoChart({
+                title: {
+                    text: "Yıllara Göre Proje Sayıları ",
+                    font: "17px Arial,Helvetica,sans-serif",
+                    color: "#313131"
+                },
+                legend: {
+                    position: "bottom",
+                    visible: false
+                },
+                dataSource: {
+                    data: data
+                },
+                seriesDefaults: {
+                    type: "column",
+                    overlay: {
+                        gradient: "none"
+                    },
+                },
+                seriesColors: ["#1ab394", "#3F51B5", "#03A9F4", "#4CAF50", "#1c0F7F", "#9de219", "#90cc38"],
+                series: [{
+                    data: myValues,
+                    name: "Toplam Proje",
+                    labels: {
+                        visible: true,
+                        format: "{0} Adet"
+                    }
+                }],
+                categoryAxis: {
+                    categories: myCategories,
+                    labels: {
+                        rotation: -15
+                    },
+                    majorGridLines: {
+                        visible: true
+                    }
+                },
+                valueAxis: {
+                    labels: {
+                        format: "{0} Adet"
+                    },
+                    title: {
+                        text: "Yapılan Proje Sayısı"
+                    },
+                    majorUnit: 1
+                },
+                tooltip: {
+                    visible: true,
+                    //  shared: true,
+                    template: "${category} Yılında <br />Toplam Proje : ${value} Adet",
+                }
+            });
+            $(element.selector).append(kendoExportTemplate(element.selector));
+        },
+        PieChart: function (element, data, legendPosition, tooltipText) {
+
+            if ((data == undefined || data == null || data.length == 0)) {
+                element.parents('div').eq(0).append('<div class="nodata"><div>Kayıt Bulunamadı</div></div>');
+                return;
+            }
+            element.kendoChart({
+                title: {},
+                legend: {
+                    position: legendPosition ? legendPosition : "bottom"
+                },
+                dataSource: {
+                    data: data
+                },
+                chartArea: {
+                    background: "transparent"
+                },
+                seriesDefaults: {
+                    labels: {
+                        visible: true,
+                        background: "transparent",
+                        template: "#= kendo.format('{0:p2}', percentage)#"
+                    },
+                    overlay: {
+                        gradient: "none"
+                    },
+                },
+                seriesColors: ["#9de219", "#068c35", "#4CAF50", "#026634", "#004d38", "#033939"],
+                series: [{
+                    type: "pie",
+                    field: "Value",
+                    categoryField: "Key"
+                }],
+
+                tooltip: {
+                    visible: true,
+                    template: tooltipText,
+                    format: "{0:N0}"
+                },
+            });
+            $(element.selector).append(kendoExportTemplate(element.selector));
+        },
+        NullControl: function (data, description, IsDateTime) {
+            if (!(data == undefined || data == null || data.length == 0)) {
+
+                if (description != null) {
+                    return data + " " + description;
+                }
+                else {
+                    if (IsDateTime == true) {
+
+                        return new Date(parseInt(data.substring(6, data.length - 2))).toLocaleDateString();
+                    }
+                    else {
+                        return data;
+                    }
+                }
+            }
+            else return ' -- ';
+        },
+        ProjectElementCreator: function (data) {
+            var projetekniktip = "";
+            if (data.ProjectTechnicalType && data.ProjectTechnicalType != "" && data.ProjectTechnicalType != null) {
+
+                var types = data.ProjectTechnicalType.split(',');
+
+                $.each(types, function (i, type) {
+                    if (i == 0) {
+                        projetekniktip = Page.TechnicalType.find(a=>a.Id == type).Name;
+                    } else {
+                        projetekniktip = projetekniktip + ", " + Page.TechnicalType.find(a=>a.Id == type).Name;
+                    }
+                })
+            }
+
+            //Page.JiraProjectData
+
+            if (Page.JiraProjectData == null) {
+                return false;
+            }
+            var projectCompletePercent = data.ProjectJiraKey ? $.Enumerable.From(Page.JiraProjectData.Data).Where(function (f) { return f.ProjectKey == data.ProjectJiraKey }).Select(function (s) { return s.CompletePercent }).FirstOrDefault() : 0;
+            projectCompletePercent = (projectCompletePercent ? projectCompletePercent : 0);
+
+            var Start = new Date(data.ProjectStartDate);
+            var End = new Date(data.ProjectEndDate);
+            var Confirm = data.ProjectConfirmDate ? new Date(data.ProjectConfirmDate).toLocaleDateString("tr-TR") : "-";
+
+            var Now = new Date();
+            var Percent = Now > Start ? Math.ceil(((Now - Start) * 100) / (End - Start)) : 0;
+            //var randomNumber = Math.floor(Math.random() * (100 - 5 + 1) + 5);  // this is a temporary variable,will be deleted entegration with  jira
+
+            return '<tr>' +
+                   '<td width="60%" class="project-title">' +
+                   '<strong>' + Page.NullControl(data.ProjectName) + '</strong><br /><br />' +
+                   '<small><strong>Tamamlanma Oranı (Jiradan çekilen) : </strong>' + projectCompletePercent + '%</small>' +
+                   '<div class="progress progress-mini"> <div style="width:' + projectCompletePercent + '%;" class="progress-bar"></div></div><br />' +
+                   '<small><strong>Geçen Süre :</strong> ' + Percent + '%</small>' +
+                   '<div class="progress progress-mini"> <div style="width:' + Percent + '%;" class="progress-bar"></div></div> ' +
+                   '</td>' +
+                   '<td>' +
+                   '<br/><small><strong>Başlangıç Tarihi : </strong>' + Start.toLocaleDateString("tr-TR") + '</small><br/>' +
+                   '<small><strong>Bitiş Tarihi : </strong>' + End.toLocaleDateString("tr-TR") + '</small><br/>' +
+                   '<small><strong>Onay Tarihi : </strong>' + (Confirm) + '</small><br/>' +
+                   '<small><strong>Proje Tipi : </strong>' + data.ProjectType_Title + '</small><br/>' +
+                   '<small><strong>Proje Teknik Tipi : </strong>' + projetekniktip + '</small><br/>' +
+                   '</td>' +
+                   '<td>' +
+                   '<br/><small><strong>Proje Kodu : </strong>' + data.ProjectCode + '</small><br/>' +
+                   '<small><strong>Projeyi Yapan İşletme : </strong>' + data.Company_Title + '</small><br/>' +
+                   '<small><strong>Projenin Yapıldığı Kurum : </strong>' + data.Corporation_Title + '</small><br/>' +
+                   '</td>' +
+                   '<td class="project-actions"><br/>' +
+                   '<a href="/PRJ/VWPRJ_Project/Detail?id=' + data.id + '" class="btn btn-warning btn-sm btn-block"><i class="fa fa-folder"></i> Detay </a>' +
+                   '<a href="/PRJ/VWPRJ_Project/Update?id=' + data.id + '" class="btn btn-info btn-sm btn-block"><i class="fa fa-pencil"></i> Düzenle </a>' +
+                   '</td>' +
+                   '</tr>';
+
+        },
+        Init: function () {
+
+            var Now = new Date();
+
+            var TumProje = $.Enumerable.From(Page.Data.Projects).Where(function (e) {
+                return e.IsActive == true && e.IsConfirm == true;
+            }).ToArray();
+
+            var DevamEdenProje = $.Enumerable.From(Page.Data.Projects).Where(function (e) {
+                return e.IsActive == true && e.IsConfirm == true && new Date(e.ProjectStartDate) < Now && new Date(e.ProjectEndDate) > Now;;
+            }).ToArray();
+
+            var TamamlanmisProje = $.Enumerable.From(Page.Data.Projects).Where(function (e) {
+                return e.IsActive == true && e.IsConfirm == true && new Date(e.ProjectEndDate) < Now;
+            }).ToArray();
+
+
+            $.each(DevamEdenProje, function (i, item) {
+                $('#myTbody').append(Page.ProjectElementCreator(item));
+            });
+
+            Page.PieChart($("#CompanyChart"), $.Enumerable.From(TumProje).GroupBy(function (e) {
+                return e.Company_Title;
+            }).Select(function (e) {
+                return { Key: e.Key(), Value: e.source.length }
+            }).ToArray(), "right", "#=category# : #= data.value# Adet");
+
+            Page.PieChart($("#CorporationChart"), $.Enumerable.From(TumProje).GroupBy(function (e) {
+                return e.Corporation_Title;
+            }).Select(function (e) {
+                return { Key: e.Key(), Value: e.source.length }
+            }).ToArray(), "right", "#=category# : #= data.value# Adet");
+
+            Page.PieChart($("#ProjectTypeChart"), $.Enumerable.From(DevamEdenProje).GroupBy(function (e) {
+                return e.ProjectType_Title;
+            }).Select(function (e) {
+                return { Key: e.Key(), Value: e.source.length };
+            }).ToArray(), "bottom", "#=category# : #= data.value# Adet");
+
+            Page.PieChart($("#ProjectPersonChart"), $.Enumerable.From(DevamEdenProje).GroupBy(function (e) {
+                return e.ProjectType_Title;
+            }).Select(function (e) {
+                return { Key: e.Key(), Value: e.source[0].ProjectPersonCount };
+            }).ToArray(), "bottom", "#=category# : #= data.value# Personel");
+        }
+    }
+
+    $(document).on('ready', function () {
+        GetJsonDataFromUrl('/General/GetEnumProjectTechnicalType', null, function (res) {
+            Page.TechnicalType = res;
+             GetJsonDataFromUrl('/PRJ/VWPRJ_Project/DashboardResult', null, function(resp) {
+
+                    $('#reportArea').addClass("hide");
+                     if (res && resp != null) {
+
+                        $('#reportArea').removeClass("hide");
+
+                         Page.Data = resp.Object;
+                         Page.JiraProjectData = resp.Object.JiraProjects;
+          
+                         Page.Init();
+                     }
+
+                 }, "Proje verileri yükleniyor lütfen bekleyiniz.");
+
+     })
+    });
+
+</script>
+

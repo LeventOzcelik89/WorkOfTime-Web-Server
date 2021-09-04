@@ -1,0 +1,372 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
+    var navigation = TenantConfig.Tenant.TenantCode == 1191 ? new NavModelIICS().GetHtml() : new NavModel(userStatus).GetHtml();
+}
+
+<style data-selector="modalContainer">
+    .badgeCustom {
+        background: rgb(0, 153, 255);
+        color: white;
+        top: -3px !important;
+    }
+
+    i.icon-home-3, i.icon-folder-open-2, i.icon-flow-tree, i.icon-home-circled, i.icon-folder-open {
+        margin-left: -3px !important;
+    }
+
+    body:not(.fixed-sidebar):not(.canvas-menu).mini-navbar .nav-second-level {
+        display: none;
+        width: 200px;
+        text-align: left;
+    }
+
+    ul.list-unstyled li {
+        list-style: none;
+    }
+</style>
+<script type="text/javascript" data-selector="modalContainer">
+    var _openNavMenu = true;
+    var _navMenu = {
+        Items: null,
+        init: function () {
+            var ul = $("#side-menu");
+            var headers = $("#side-menu > li:not(.nav-header)");
+            var items = [];
+            $.each(headers, function (i, item) {
+                var values = [];
+                var subItems = $(item).children('ul').children('li');
+                $.each(subItems, function (is, itemSub) {
+
+                    var thirdValues = [];
+                    var thirdItems = $(itemSub).children('ul').children('li');
+
+                    $.each(thirdItems, function (iThird, itemThird) {
+
+                        var elThird = {
+                            name: $(itemThird).children('a').text().trim().split("İ").join("i").toLocaleUpperCase(),
+                            type: 'ThirdItem',
+                            elem: $(itemThird),
+                            values: []
+                        };
+
+                        thirdValues.push(elThird);
+
+                    });
+
+                    var el = {
+                        name: $(itemSub).children('a').text().trim().split("İ").join("i").toLocaleUpperCase(),
+                        type: 'SubItem',
+                        elem: $(itemSub),
+                        values: thirdValues
+                    };
+                    values.push(el);
+                });
+                var el = {
+                    name: $(item).children('a').children('.nav-label').text().trim().split("İ").join("i").toLocaleUpperCase(),
+                    type: 'Header',
+                    elem: $(item),
+                    values: values
+                };
+                items.push(el);
+            });
+            this.Items = items;
+        },
+        ShowMenu: function (elem) {
+
+            $(elem).show();
+
+            var subMenu = $(elem).children("ul");
+            if (subMenu.length == 0) {
+                return;
+            }
+
+            if (this.SearchedText == '') { return; }
+
+            var mm = $('#side-menu').data('mm');
+
+            subMenu.addClass("in").removeAttr('style');
+
+            //  if (timeOut == true) {
+            //      setTimeout(function () {
+            //          mm.show(subMenu);
+            //      }, 500);
+            //  } else {
+            //      mm.show(subMenu);
+            //  }
+
+        },
+        HideMenu: function (elem) {
+
+            $(elem).hide();
+
+            var subMenu = $(elem).children("ul");
+
+            if (subMenu.length == 0) {
+                return;
+            }
+
+            var mm = $('#side-menu').data('mm');
+
+            subMenu.removeClass("in").height(0);
+
+        },
+        SearchedText: null,
+        Search: function (elem) {
+
+            var text = elem.value.trim().split("İ").join("i").toLocaleUpperCase();
+
+            this.SearchedText = text;
+
+            if (text == '') {
+                $("#side-menu > li:not(.nav-header)").css("display", "block");
+            }
+
+            text = text.split("İ").join("i").toLocaleUpperCase();
+            if (_navMenu.Items == null) {
+                return;
+            }
+            $.each(_navMenu.Items, function (i, item) {
+
+                _navMenu.HideMenu($(item.elem));
+
+                //  $(item.elem).hide().removeClass('active');
+
+                $.each(item.values, function (iv, itemValue) {
+
+                    _navMenu.HideMenu($(itemValue.elem));
+                    //  $(itemValue.elem).hide();
+
+                    $.each(itemValue.values, function (iThird, itemThird) {
+                        //  $(itemThird.elem).hide();
+                        _navMenu.HideMenu($(itemThird.elem));
+                    });
+
+                });
+
+            });
+
+            $.each(_navMenu.Items, function (i, item) {
+
+                if (item.name.indexOf(text) > -1) {
+                    _navMenu.ShowMenu($(item.elem));
+                    //  $(item.elem).show() //   .addClass('active');
+                }
+
+                var haveResult = false;
+
+                $.each(item.values, function (iv, itemValue) {
+
+                    $.each(itemValue.values, function (iThird, itemThird) {
+
+                        if (itemThird.name == text) {
+                            _navMenu.ShowMenu($(item.elem));
+                            _navMenu.ShowMenu($(itemValue.elem));
+                            _navMenu.ShowMenu($(itemThird.elem));
+                            //  $(item.elem).show() //   .addClass('active');
+                            //  $(itemValue.elem).show() //   .addClass('active');
+                            //  $(itemThird.elem).show();
+                            haveResult = true;
+                        }
+                        else {
+
+                            if (itemThird.name.indexOf(text) > -1) {
+
+                                _navMenu.ShowMenu($(item.elem));
+                                _navMenu.ShowMenu($(itemValue.elem));
+                                _navMenu.ShowMenu($(itemThird.elem));
+
+                                //  $(item.elem).show() //   .addClass('active');
+                                //  $(itemValue.elem).show() //   .addClass('active');
+                                //  $(itemThird.elem).show();
+                                haveResult = true;
+
+                            } else {
+                                _navMenu.HideMenu($(itemThird.elem));
+
+                                //  $(itemThird.elem).hide() //   .removeClass('active');
+                            }
+
+                        }
+
+                    });
+
+                    if (!haveResult) {
+                        _navMenu.HideMenu($(itemValue.elem));
+                        //  $(itemValue.elem).hide() //   .removeClass('active');
+                    }
+
+                    if (item.name == text) {
+                        _navMenu.ShowMenu($(item.elem));
+                        _navMenu.ShowMenu($(itemValue.elem));
+
+                        //  $(itemValue.elem).show() //   .addClass('active');
+                        //  $(item.elem).show() //   .addClass('active');
+                        haveResult = true;
+                    }
+                    else {
+
+                        if (itemValue.name.indexOf(text) > -1) {
+                            _navMenu.ShowMenu($(item.elem));
+                            _navMenu.ShowMenu($(itemValue.elem));
+
+                            //  $(itemValue.elem).show() //   .addClass('active');
+                            //  $(item.elem).show() //   .addClass('active');
+                            haveResult = true;
+                        }
+
+                    }
+
+                });
+
+                if (!haveResult && item.elem.children('ul').length > 0) {
+                    _navMenu.HideMenu($(item.elem));
+                    //  $(item.elem).hide() //   .removeClass('active');
+                }
+
+            });
+        }
+    };
+
+    $(document)
+        .on('ready', function () {
+            _navMenu.init();
+            $('.searchInput')
+                .on('focusin', function () {
+                    $('.searchContainer').addClass('active');
+                })
+                .on('focusout', function () {
+                    $('.searchContainer').removeClass('active');
+                })
+                ;
+        })
+        ;
+</script>
+<style type="text/css">
+    .miniListElement {
+        color: #1ab394 !important;
+    }
+
+    .inputContainer {
+        display: block;
+        width: 85%;
+        margin: 0 auto;
+        position: relative;
+    }
+
+        .inputContainer .searchInput {
+            width: 100%;
+            border-radius: 4px;
+            padding: 4px 10px 8px 35px;
+            border: 1px #a7b1c2 solid;
+            background: #2f404f;
+        }
+
+        .inputContainer > i {
+            position: absolute;
+            left: 10px;
+            font-size: 15px;
+            line-height: 29px;
+            color: #9a9a9a;
+            opacity: 1;
+        }
+
+    .searchContainer {
+        display: block;
+        text-align: center;
+        padding-top: 0px;
+        padding-bottom: 15px;
+        background: #233646;
+    }
+
+    .inputContainer, .inputContainer * {
+        transition: all 0.4s linear;
+    }
+
+    .searchContainer.active .searchInput:active, .searchContainer.active .searchInput:focus {
+        outline: none !important;
+    }
+
+    .searchContainer.active .searchInput {
+        border-radius: 4px;
+        padding: 4px 10px 8px 10px;
+        color: #a7b1c2;
+    }
+
+    .searchContainer .searchInput::-webkit-input-placeholder {
+        color: #a7b1c2;
+    }
+
+    .searchContainer.active .searchInput::-webkit-input-placeholder {
+        opacity: 0;
+    }
+
+    .searchContainer.active .inputContainer > i {
+        opacity: 0;
+    }
+
+    .mini-navbar .searchContainer {
+        display: none;
+    }
+</style>
+
+<nav class="navbar-default navbar-static-side" role="navigation">
+    <div class="sidebar-collapse">
+        <ul class="nav metismenu" id="side-menu">
+            <li class="nav-header">
+                <div class="dropdown profile-element text-center">
+                    <span>
+                        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.Ogrenci)))
+                        {
+                            <a href="@Url.Action("Index", "Account", new { area = "" })">
+                                <img src="data: image / jpeg; base64, @userStatus.user.ProfilePhoto" class="img-circle photos" style="width:48px; overflow:hidden">
+                            </a>
+                           
+                        }
+                        else
+                        {
+                            <a href="@Url.Action("Index", "Account", new { area = "" })">
+                                <img src="@(userStatus != null && userStatus.user.ProfilePhoto != null ? userStatus.user.ProfilePhoto : "/Content/Custom/img/na.png")" class="img-circle photos" onerror="ImageError(this,'/Content/Custom/img/na.png')" style="width:48px; overflow:hidden">
+                            </a>
+                        }
+
+                    </span>
+                    <a data-toggle="dropdown" class="dropdown-toggle" href="#">
+                        <span class="block m-t-xs">
+                            <strong class="font-bold">@(userStatus != null ? (userStatus.user.FullName) : "Misafir Kullanıcı")  <b class="caret"></b></strong>
+                        </span>
+                        <span class="text-muted text-xs block">@(userStatus != null ? (userStatus.user.Company_Title) : "") </span>
+                    </a>
+
+                    <ul class="dropdown-menu animated fadeInRight m-t-xs">
+                        @if (TenantConfig.Tenant.Config.LdapUrls.Length == 0)
+                        {
+                            <li class="text-center" style="list-style:none">
+                                <a class="" href="#modal-form" data-modal="true" data-task="Insert" data-href="/Account/UpdatePassword"> <i class="text-success fa fa-key"></i> Şifre Değiştir</a>
+                            </li>
+                        }
+                        <li class="text-center" style="list-style:none">
+                            <a href="@Url.Action("SignOut","Account",new { area=""})"><i class="text-success fa fa-close"></i> Oturumu Kapat</a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="logo-element">
+                    <img style="height:57px;" src="~/Content/Custom/img/workoftimemini.png" class="miniLogonavheader" />
+                    <span class="hide">INFOLINE +</span>
+                </div>
+            </li>
+
+            <div class="searchContainer">
+                <div class="inputContainer">
+                    <i class="fa fa-search"></i>
+                    <input type="text" placeholder="Arama yapmak için yazınız.." onkeyup="_navMenu.Search(this)" class="searchInput" autocomplete="off">
+                </div>
+            </div>
+
+            @Html.Raw(navigation)
+
+        </ul>
+    </div>
+</nav>
+
+<a class="navbar-minimalize minimalize-styl-1 btn btn-primary pull-left" href="#" id="minimilize" onclick="clickMinimilize()"><i class="fa fa-bars"></i> </a>

@@ -1,0 +1,84 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_User[]
+@{
+    ViewBag.Title = "Firma&Cari Personel Rehberi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    function imageError(element) {
+        element.onerror = '';
+        element.src = '/Content/Custom/img/na.png';
+    }
+
+    function EmailTemplate(data) {
+        if (data.email && data.email != null && data.email != "") {
+            return '<a href="mailto:' + data.email + '"> ' + data.email + ' </a>';
+        }
+        else {
+            return "";
+        }
+    }
+
+    function PhoneTemplate(data) {
+        if (data.cellphone && data.cellphone != null && data.cellphone != "") {
+            return '<a href="tel:' + data.cellphone + '"> ' + data.cellphone + ' </a>';
+        }
+        else {
+            return "";
+        }
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-href="/SH/VWSH_User/InsertCustomer" data-modal="true" data-method="get">
+                        <i class="fa fa-plus-circle"></i> Yeni Firma&Cari Personeli
+                    </a>
+                    <a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den Personel Ekle" class="btn btn-block btn-primary" data-gridRefresh="VWSH_User"
+                       data-properties="@ExcelHelper.GetSchema(typeof(SH_UserOtherExcel), "SH_User")" data-post="@Url.Action("ImportCustomer","VWSH_User",new { area="SH"})">
+                        <i class="fa fa-file-excel-o"></i> Excel'den Personel Ekle
+                    </a>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Firma&Cari Personel Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                     .Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_User")
+                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_User", new { area = "SH" }))
+                     .PageSize(25).Sort(a => a.Add(c => c.FullName)).Filter(a => a.type == (int)(EnumSH_UserType.OtherPerson)))
+                     .Selectable(x => x.Mode(GridSelectionMode.Single))
+                     .Scrollable(a => a.Height(650))
+                     .Columns(x =>
+                     {
+                         x.Bound(c => c.ProfilePhoto).Filterable(false).Sortable(false).Title("").ClientTemplate("<img src='" + "#=ProfilePhoto#' class='img-circle' onerror='imageError(this)' alt='#=FullName #' Title='#=FullName #' class='photos' style='width:48px; overflow:hidden'/>").Width(50);
+                         x.Bound(y => y.FullName).Title("Ad Soyad").Width(180);
+                         x.Bound(y => y.Company_Title).Title("Şirket").Width(180);
+                         x.Bound(y => y.cellphone).Title("Şahsi Cep Telefonu").Width(180).ClientTemplate("#=PhoneTemplate(data)#");
+                         x.Bound(y => y.email).Title("Email").Width(180).ClientTemplate("#=EmailTemplate(data)#");
+                         x.Bound(y => y.address).Title("Adres").Width(180);
+                     })
+                     .ToolBar(x =>
+                     {
+                         x.Custom().Text("<i class='fa fa-edit' data-original-title='Kişi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateCustomer", "VWSH_User", new { area = "SH" }));
+                     })
+                )
+            </div>
+        </div>
+    </div>
+</div>

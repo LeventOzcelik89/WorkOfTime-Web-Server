@@ -1,0 +1,45 @@
+﻿@{
+    ViewBag.Title = "Para Birimleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var card = (UT_CurrencyCard)ViewBag.Card;
+
+}
+
+
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>Para Birimi Listesi</h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+
+
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.UT_Currency>("UT_Currency")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "UT_Currency", new { area = "UT" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.code).Title("Döviz Kodu").Width(180);
+                x.Bound(y => y.symbol).Title("Sembolü").Width(180);
+                x.Bound(y => y.name).Title("Birimi").Width(180);
+                x.Bound(y => y.subName).Title("Alt Birimi");
+            })
+            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "UT_Currency", new { area = "UT" }));
+                x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "UT_Currency", new { area = "UT" }));
+                x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "UT_Currency", new { area = "UT" }));
+                x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "UT_Currency", new { area = "UT" }));
+            }))
+
+
+
+    </div>
+</div>
+

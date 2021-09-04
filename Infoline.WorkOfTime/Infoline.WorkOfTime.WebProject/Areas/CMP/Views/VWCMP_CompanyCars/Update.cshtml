@@ -1,0 +1,453 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCars
+@{
+    ViewBag.Title = "Araç Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('change', '#ContactStartDate', function () {
+            var el = $('#ContactStartDate').data('kendoDatePicker');
+            if (el.value() != undefined) {
+                $('#ContactEndDate').data('kendoDatePicker').value(el.value());
+            }
+        })
+
+        .on('change', '#insuranceStartDate', function () {
+            var el = $('#insuranceStartDate').data('kendoDatePicker');
+            if (el.value() != undefined) {
+                $('#insuranceEndDate').data('kendoDatePicker').value(el.value());
+            }
+        })
+
+        .on('change', '#trafficInsuranceStartDate', function () {
+            var el = $('#trafficInsuranceStartDate').data('kendoDatePicker');
+            if (el.value() != undefined) {
+                $('#trafficInsuranceEndDate').data('kendoDatePicker').value(el.value());
+            }
+        })
+</script>
+
+@using (Html.BeginForm("Update", "VWCMP_CompanyCars", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1"> <i class="icon-list-alt text-success"></i> Genel Bilgiler </a>
+                </h4>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="plate">Plaka</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.plate, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Plaka Giriniz.."},
+                            }).Validate(Validations.TextTurkce09(true, 7, 8))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="companyId">İşletme</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                        .DropDownListFor(model => model.companyId)
+                        .OptionLabel("Lütfen İşletme Seçiniz..")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                        .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                        .Sort(x => x.Add("name").Ascending())
+                        .Validate(Validations.Required)
+                        .Execute()
+                        )
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="responsiblePersonId">Zimmetli Kişi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                        .DropDownListFor(model => model.responsiblePersonId)
+                        .OptionLabel("Lütfen Zimmetli Kişi Seçiniz..")
+                        .DataTextField("FullName")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                        //.Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                        .Sort(x => x.Add("FullName").Ascending())
+                        .Validate(Validations.Required)
+                         .CascadeFrom("companyId")
+                        .CascadeFromField("companyId")
+                        .Execute("id")
+                        )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="companyStorageId">Depo</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                        .DropDownListFor(model => model.companyStorageId)
+                        .OptionLabel("Lütfen araç deposu seçiniz ya da tanımlayınız.")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                        .BasicInsert(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP" }), "name", true)
+                        .Sort(x => x.Add("name").Ascending())
+                        .CascadeFrom("companyId")
+                        .CascadeFromField("companyId")
+                        .Execute()
+                        )
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2"> <i class="fa fa-car text-success"></i> Araç Bilgileri </a>
+                </h4>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="brand">Araç Markası</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.brand, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Markası Giriniz.."},
+                             }).Validate(Validations.TextEverywhere(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="model">Araç Modeli</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.model, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Modeli Giriniz.."},
+                            }).Validate(Validations.TextEverywhere(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="vehicleIdentificationNumber">Araç Ticari Numarası</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.vehicleIdentificationNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Ticari Numarasını Giriniz.."}
+                            }).Validate(Validations.TextTurkce09(false, 0, 17))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="vehicleTransitionNumber">Araç Geçiş Numarası</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.vehicleTransitionNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Geçiş Numarasını Giriniz.."},
+                            }).Validate(Validations.TextTurkce09(false, 0, 20))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="consumptionFuel"> Yakıt Tüketimi </label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                @( Html.Kendo().NumericTextBoxFor(model => model.consumptionFuel).
+                                 Value(Model.consumptionFuel).Format("n2").Spinners(false).
+                                 HtmlAttributes(new Dictionary<string, object>()
+                                 {
+                                     {"style", "width:100%"},
+                                     {"class", "text-right form-control"},
+                                 }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                                 )
+                                <span class="input-group-addon">100km/L</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="color">Araç Rengi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.color, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Rengini Giriniz.."},
+                            }).Validate(Validations.TextTurkceSpace(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="engineNumber">Motor No</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.engineNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Motor No Giriniz.."},
+                            }).Validate(Validations.TextTurkce09(false, 0, 17))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="chassisNumber">Şase Numarası</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.chassisNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Araç Şase Numarasını Giriniz.."}
+                            }).Validate(Validations.TextTurkce09(false, 0, 17))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="fuelType">Yakıt Tipi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                            .DropDownListFor(model => model.fuelType)
+                            .OptionLabel("Lütfen Yakıt Tipini Seçiniz..")
+                            .MinLength(2)
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumDescription").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CMP_CompanyCars" && a.fieldName == "fuelType")
+                            .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse3"> <i class="icon-list text-success"></i> Diğer Bilgiler </a>
+                </h4>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="isHire">Araç Kiralık mı</label>
+                        </div>
+
+                        <div class="col-md-9">
+                            <div tabindex="0">
+                                @Html.Akilli().RadioButtonGroupFor(model => model.isHire).Value(EnumCMP_CompanyCarsisHire.Hayir)
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="contractStartDate">Sözleşme Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.contractStartDate)
+                             .Value(Model.contractStartDate)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="contractEndDate">Sözleşme Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.contractEndDate)
+                             .Value(Model.contractEndDate)
+                             .MinDateElement("contractStartDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="insuranceStartDate">Sigorta Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.insuranceStartDate)
+                             .Value(Model.insuranceStartDate)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="insuranceEndDate">Sigorta Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.insuranceEndDate)
+                             .Value(Model.insuranceEndDate)
+                             .MinDateElement("insuranceStartDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="trafficInsuranceStartDate">Trafik Sigorta Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.trafficInsuranceStartDate)
+                             .Value(Model.trafficInsuranceStartDate)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="trafficInsuranceEndDate">Trafik Sigorta Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                             Html.Akilli()
+                             .DatePickerFor(model => model.trafficInsuranceEndDate)
+                             .Value(Model.trafficInsuranceEndDate)
+                             .MinDateElement("trafficInsuranceStartDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="tradeName">Ticari Ünvan</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.tradeName, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Ticari Ünvanı Giriniz.."},
+                            }).Validate(Validations.TextTurkceSpace(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="trafficReleaseDate">Trafiğe Çıkış Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                              Html.Akilli()
+                              .DatePickerFor(model => model.trafficReleaseDate)
+                              .Value(Model.trafficReleaseDate)
+                             )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="registrationDate">Araç Kayıt Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                              Html.Akilli()
+                              .DatePickerFor(model => model.registrationDate)
+                              .Value(Model.trafficReleaseDate)
+                             )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="licenseSeries">Lisans No</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.licenseSeries, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Lisans No Giriniz.."},
+                            }).Validate(Validations.TextTurkce09(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="policyNumber">Poliçe No</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.policyNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Poliçe Numarasını Giriniz.."},
+                            }).Validate(Validations.Text09(false, 0, 8))
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

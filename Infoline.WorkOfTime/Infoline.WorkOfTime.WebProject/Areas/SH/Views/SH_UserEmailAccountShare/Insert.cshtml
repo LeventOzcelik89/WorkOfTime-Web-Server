@@ -1,0 +1,92 @@
+﻿@model Infoline.WorkOfTime.BusinessData.SH_UserEmailAccountShare
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "SH_UserEmailAccountShare", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="userIdFrom">userIdFrom</label>
+        </div>
+        <div class="col-md-8">
+          @(Html.Kendo().DropDownListFor(model => model.userIdFrom).HtmlAttributes(new Dictionary<string, object>() 
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen userIdFrom seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="userIdTo">userIdTo</label>
+        </div>
+        <div class="col-md-8">
+          @(Html.Kendo().DropDownListFor(model => model.userIdTo).HtmlAttributes(new Dictionary<string, object>() 
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen userIdTo seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="share">share</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.share, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen share Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -1,0 +1,664 @@
+﻿@model VMPRD_InventoryLog
+@{
+    ViewBag.Title = "Envanter Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var lastData = Model.CameraLogs.OrderByDescending(a => a.created).FirstOrDefault();
+    var ipAdres = (string)ViewBag.IpAdress;
+
+}
+
+<script type="text/x-kendo-template" id="VWPRD_InventoryActionTemplate">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>()))#
+    <div class="vertical-timeline-block">
+        <div class="vertical-timeline-icon navy-bg">
+            <i class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#"></i>
+        </div>
+        <div class="vertical-timeline-content navy-bg">
+            <strong>#:type_Title#</strong><br />
+                                          <div>
+                                              #:(dataId_Title != null ? dataId_Title : "-")#
+                                          </div>
+            <br />
+            <small data-original-title="İşlem Tarihi" class="vertical-date pull-right" style="font-size: 9px;">
+                <i class="fa fa-calendar"></i> #=kendo.toString(kendo.parseDate(created), "dd.MM.yyyy hh:mm")#<br>
+            </small><br />
+            <small data-original-title="İşlem Yapan" class="vertical-date pull-right" style="font-size: 9px;">
+                <i class="fa fa-user"></i> #=createdby_Title#<br>
+            </small>
+        </div>
+    </div>
+</script>
+
+<style type="text/css">
+    #Harita {
+        height: 400px !important;
+        min-height: 400px !important;
+    }
+
+    #VWPRD_InventoryAction {
+        border: 0px !important;
+    }
+
+        #VWPRD_InventoryAction .k-grid-header {
+            border-color: #fff !important;
+        }
+
+        #VWPRD_InventoryAction td {
+            border-color: #fff !important;
+        }
+
+        #VWPRD_InventoryAction .k-header.k-grid-toolbar.k-grid-top {
+            display: none;
+        }
+
+        #VWPRD_InventoryAction .k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+            display: none;
+        }
+
+        #VWPRD_InventoryAction .k-grid-header-wrap {
+            display: none;
+        }
+
+    #vertical-timeline::before {
+        left: 37px;
+    }
+
+    #IOT_CameraLogs .k-grid-toolbar {
+        display: none;
+    }
+
+    #IOT_CameraLogs .k-grid-pager {
+        display: none;
+    }
+
+    .fa-check-circle-o {
+        display: inline-block;
+        -moz-animation: pulse 2s infinite linear;
+        -o-animation: pulse 2s infinite linear;
+        -webkit-animation: pulse 2s infinite linear;
+        animation: pulse 2s infinite linear;
+    }
+
+    .fa-warning {
+        display: inline-block;
+        -moz-animation: pulse 2s infinite linear;
+        -o-animation: pulse 2s infinite linear;
+        -webkit-animation: pulse 2s infinite linear;
+        animation: pulse 2s infinite linear;
+    }
+
+    @@-webkit-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-moz-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-o-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-ms-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold m-t-none m-b-sm">
+                        @Model.code
+                    </h2>
+                    <small> <i class="icon-barcode-1"></i> @Model.serialcode <i class="icon-barcode-1"></i></small>
+                </div>
+                <img  src="@(Model.productId_Image!=null ? Model.productId_Image : "/Content/Custom/img/urun-bulunamadi.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 110px;margin: auto;margin-top: 25px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png')">
+
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-method="GET" data-href="@Url.Action("Update", "VWPRD_Inventory", new { area = "PRD", id = Model.id  })">  <i class="fa fa-edit"></i> Envanter Düzenle </a>
+                </div>
+            </div>
+        </div>
+
+        @Html.Action("Detail", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "PRD_Inventory" })
+
+        <div class="ibox-title">
+            <h5>HAREKET GEÇMİŞİ</h5>
+            <div class="ibox-tools">
+                <a class="collapse-link">
+                    <i class="fa fa-chevron-up"></i>
+                </a>
+            </div>
+        </div>
+        <div class="ibox-content">
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_InventoryAction>("VWPRD_InventoryAction")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_InventoryAction", new { area = "PRD" })).PageSize(500).Filter(c => c.inventoryId == Model.id).Sort(a => a.Add("created").Descending()))
+                .Selectable(a => a.Enabled(false))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Title("Hareket Geçmişi").ClientTemplate("#=TemplateEngine('VWPRD_InventoryActionTemplate',data)#");
+                })
+                .Scrollable(x => x.Height(800))
+            )
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <div class="col-lg-9">
+                    <div class="ibox " style="margin-bottom:0px !important;">
+                        <div class="ibox-title">
+                            <h5>GENEL BİLGİLER</h5>
+
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <ul class="list-group">
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.productId_Title != null ? Model.productId_Title : "-")</span>
+                                    Ürün :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.fullName != null ? Model.fullName : "-")</span>
+                                    Adı :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.code != null ? Model.code : "-")</span>
+                                    Kodu :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.serialcode != null ? Model.serialcode : "-")</span>
+                                    Seri No :
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    <div class="qrCodeWrapper" style="width:170px;">
+                        @(  Html.Kendo().QRCode()
+                             .Name("QRCode")
+                             .Value(Model.code)
+                             .Size(160)
+                        )
+                        <span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+                        <div style="text-align:center;">
+                            <a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+                            <a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Envanter Konum Geçmişi">
+                        <a data-toggle="tab" href="#Location" aria-expanded="false"><i class="fa fa-map-marker text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWFTM_Task", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Arıza Bakım işlemleri">
+                        <a data-toggle="tab" href="#VWFTM_Tasks" aria-expanded="false"><i class="fa fa-wrench text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWPRD_InventoryTask", new { area = "" })" data-toggle="tooltip" data-placement="top" title="Envanter Bakım Periyotları">
+                        <a data-toggle="tab" href="#ProductManagers" aria-expanded="false"><i class="fa fa-cogs text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("Preview","Files", new { area = "" })" data-toggle="tooltip" data-placement="top" title="Ürün Dosyaları">
+                        <a data-toggle="tab" href="#PRD_ProductFile" aria-expanded="false"><i class="fa fa-file text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Envanter Görev Form Listesi">
+                        <a data-toggle="tab" href="#TaskForms" aria-expanded="false"><i class="fa fa-list-alt text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+
+                    @if (lastData != null)
+                    {
+                        <li data-toggle="tooltip" data-placement="top" title="IOT Log">
+                            <a data-toggle="tab" href="#IOT_CameraLogs" aria-expanded="false"><i class="fa fa-rss text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                    }
+
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="Location">
+                        <h4><i class="fa fa-map-marker text-success"></i> KONUM GEÇMİŞİ </h4>
+                        <div id="Harita" style="height:400px;"></div>
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWFTM_Task", new { area = "FTM" })" id="VWFTM_Tasks">
+                        <h4><i class="fa fa-wrench text-success"></i> GEÇMİŞ ARIZA BAKIM KAYITLARI </h4>
+                        @(Html.Akilli()
+                             .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_TaskContinuing")
+                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25).Filter(a => a.fixtureId == Model.id))
+                             .Columns(x =>
+                             {
+                                 x.Bound(y => y.type_Title).Title("Görev Tipi").ClientTemplate("#=imageName(type)#").HtmlAttributes(new { style = "text-align:center;" }).Width(120);
+                                 x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+                                 x.Bound(y => y.fixture_Title).Title("Görevlendirilen Ürün").Width(180);
+                                 x.Bound(y => y.company_Title).Title("Görevli Firma").Width(180);
+                                 x.Bound(y => y.assignUser_Title).Title("Görevli Personel").Width(180);
+                                 x.Bound(y => y.lastOperationStatus_Title).Title("Son Operasyon").Width(180);
+                                 x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180);
+                                 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true)).Width(180);
+                             })
+                             .Selectable(x => x.Mode(GridSelectionMode.Single))
+                             .ToolBar(x =>
+                             {
+                                 x.Custom().Text("<i title='Görev Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", id = Model.id }));
+                                 x.Custom().Text("<i title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+                             }))
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("Preview","Files", new { area = "" })" id="PRD_ProductFile">
+                        <h4><i class="fa fa-file text-success"></i> ÜRÜN DOSYALARI </h4>
+                        @Html.Action("Preview", "Files", new { area = "", DataId = Model.productId, DataTable = "PRD_Product" })
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWPRD_InventoryTask", new { area = "PRD" })" id="ProductManagers">
+                        <h4><i class="fa fa-cogs text-success"></i> BAKIM PERİYOTLARI VE SORUMLULARI </h4>
+
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_InventoryTask>("VWPRD_InventoryTask")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_InventoryTask", new { area = "PRD" })).PageSize(25)
+                            .Filter(a => a.inventoryId == Model.id))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.inventoryId_Title).Title("Envanter").Width(130);
+                                x.Bound(y => y.companyId_Title).Title("Görevli İşletme").Width(130);
+                                x.Bound(y => y.userId_Title).Title("Görevli Personel").Width(130);
+                                x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.endDate).Title("Bitiş Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.period_Title).Title("Periyot").Width(130);
+                                x.Bound(y => y.description).Title("Açıklama").Width(130);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i title='Ürün Bakım Periyodu Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_InventoryTask", new { area = "PRD", inventoryId = Model.id }));
+                                x.Custom().Text("<i title='Ürün Bakım Periyodunu Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWPRD_InventoryTask", new { area = "PRD" }));
+                                //x.Custom().Text("<i title='Ürün Bakım Periyodunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_InventoryTask", new { area = "PRD" }));
+                            }))
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" id="TaskForms">
+                        <h4><i class="fa fa-list-alt text-success"></i> ENVANTER GÖREV FORM LİSTESİ</h4>
+                        @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskFormRelation>("VWFTM_TaskFormRelation").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "formId" } })
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" }))
+                 .Filter(v => v.inventoryId == Model.id)
+                 .PageSize(25))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.formId_Title).Title("Form İsmi").Width(260);
+                     x.Bound(y => y.productId_Title).Title("Ürün").Width(320);
+                 })
+                 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                 .ToolBar(x =>
+                 {
+                         x.Custom().Text("<i data-original-title='Form Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
+                 }))
+                    </div>
+
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWPRD_InventoryTask", new { area = "PRD" })" id="IOT_CameraLogs">
+
+
+                        @if (lastData != null)
+                        {
+
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <div class="ibox " style="margin-bottom:0px !important;">
+                                        <div class="ibox-title">
+                                            <h5>CİHAZ ANLIK BİLGİLERİ</h5>
+                                        </div>
+                                        <div class="ibox-content no-padding">
+                                            <ul class="list-group">
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.modelName != null ? lastData.modelName : "-")</span>
+                                                    Model :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.version != null ? lastData.version : "-")</span>
+                                                    Versiyon :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.videoType != null ? lastData.videoType : "-")</span>
+                                                    Video Tipi :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.audioType != null ? lastData.audioType : "-")</span>
+                                                    Ses Tipi :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.macAddress != null ? lastData.macAddress : "-")</span>
+                                                    Mac Adresi :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.ipAddress != null ? lastData.ipAddress : "-")</span>
+                                                    IP Adresi :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.dnsAddress != null ? lastData.dnsAddress : "-")</span>
+                                                    DNS Adresi :
+                                                </li>
+                                                <li class="list-group-item">
+                                                    <span class="badge badge-white">@Html.Raw(lastData.subnetMask != null ? lastData.subnetMask : "-")</span>
+                                                    Alt Ağ Maskesi :
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div style="padding-top: 40px;"></div>
+                                    <div class="row" id="statusContent">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="hr-line-dashed"></div>
+                                    <h4> KAMERA 1 VERİLERİ </h4>
+                                    <div id="camera1">
+                                        @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.IOT_CameraLog>("IOT_CameraLog1")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceCameraLog", "VWPRD_Inventory", new { area = "PRD" })).PageSize(9999)
+                                        .Filter(a => a.ipAddress == lastData.ipAddress))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.created).Title("Tarih").Format(Extensions.DateFormatFull(true));
+                                            x.Bound(y => y.alarmInputStatus1).Title("Alarm (Giriş)").Width(150).ClientTemplate("#=getTranslate(data.alarmInputStatus1)#");
+                                            x.Bound(y => y.alarmOutputStatus1).Title("Alarm (Çıkış)").Width(150).ClientTemplate("#=getTranslate(data.alarmOutputStatus1)#");
+                                            x.Bound(y => y.motionDetectionStatus1).Title("Hareket Sensörü").Width(150).ClientTemplate("#=getTranslate(data.motionDetectionStatus1)#");
+                                            x.Bound(y => y.tamperingDetectionStatus1).Title("Darbe Sensörü").Width(150).ClientTemplate("#=getTranslate(data.tamperingDetectionStatus1)#");
+                                            x.Bound(y => y.videoStatusChannel1).Title("Video Durumu").Width(150).ClientTemplate("#=getTranslate(data.videoStatusChannel1)#");
+                                            x.Bound(y => y.recordingStatus1).Title("Kayıt Durumu").Width(150).ClientTemplate("#=getTranslate(data.recordingStatus1)#");
+                                        })
+                                        .Scrollable(s => s.Height(250))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+                                    </div>
+                                    <div class="hr-line-dashed"></div>
+                                    <h4> KAMERA 2 VERİLERİ </h4>
+                                    <div id="camera2">
+                                        @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.IOT_CameraLog>("IOT_CameraLog2")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceCameraLog", "VWPRD_Inventory", new { area = "PRD" })).PageSize(9999)
+                                        .Filter(a => a.ipAddress == lastData.ipAddress))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.created).Title("Tarih").Format(Extensions.DateFormatFull(true));
+                                            x.Bound(y => y.alarmInputStatus2).Title("Alarm (Giriş)").Width(150).ClientTemplate("#=getTranslate(data.alarmInputStatus2)#");
+                                            x.Bound(y => y.alarmOutputStatus2).Title("Alarm (Çıkış)").Width(150).ClientTemplate("#=getTranslate(data.alarmOutputStatus2)#");
+                                            x.Bound(y => y.motionDetectionStatus2).Title("Hareket Sensörü").Width(150).ClientTemplate("#=getTranslate(data.motionDetectionStatus2)#");
+                                            x.Bound(y => y.tamperingDetectionStatus2).Title("Darbe Sensörü").Width(150).ClientTemplate("#=getTranslate(data.tamperingDetectionStatus2)#");
+                                            x.Bound(y => y.videoStatusChannel2).Title("Video Durumu").Width(150).ClientTemplate("#=getTranslate(data.videoStatusChannel2)#");
+                                            x.Bound(y => y.recordingStatus2).Title("Kayıt Durumu").Width(150).ClientTemplate("#=getTranslate(data.recordingStatus2)#");
+                                        })
+                                        .Scrollable(s => s.Height(250))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+                                    </div>
+                                    <div class="hr-line-dashed"></div>
+                                    <h4>KAMERA 3 VERİLERİ </h4>
+                                    <div id="camera3">
+                                        @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.IOT_CameraLog>("IOT_CameraLog3")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceCameraLog", "VWPRD_Inventory", new { area = "PRD" })).PageSize(9999)
+                                        .Filter(a => a.ipAddress == lastData.ipAddress))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.created).Title("Tarih").Format(Extensions.DateFormatFull(true));
+                                            x.Bound(y => y.alarmInputStatus3).Title("Alarm (Giriş)").Width(150).ClientTemplate("#=getTranslate(data.alarmInputStatus3)#");
+                                            x.Bound(y => y.alarmOutputStatus3).Title("Alarm (Çıkış)").Width(150).ClientTemplate("#=getTranslate(data.alarmOutputStatus3)#");
+                                            x.Bound(y => y.motionDetectionStatus3).Title("Hareket Sensörü").Width(150).ClientTemplate("#=getTranslate(data.motionDetectionStatus3)#");
+                                            x.Bound(y => y.tamperingDetectionStatus3).Title("Darbe Sensörü").Width(150).ClientTemplate("#=getTranslate(data.tamperingDetectionStatus3)#");
+                                            x.Bound(y => y.videoStatusChannel3).Title("Video Durumu").Width(150).ClientTemplate("#=getTranslate(data.videoStatusChannel3)#");
+                                            x.Bound(y => y.recordingStatus3).Title("Kayıt Durumu").Width(150).ClientTemplate("#=getTranslate(data.recordingStatus3)#");
+                                        })
+                                        .Scrollable(s => s.Height(250))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+                                    </div>
+                                    <div class="hr-line-dashed"></div>
+                                    <h4> KAMERA 4 VERİLERİ </h4>
+                                    <div id="camera4">
+                                        @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.IOT_CameraLog>("IOT_CameraLog4")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceCameraLog", "VWPRD_Inventory", new { area = "PRD" })).PageSize(9999)
+                                        .Filter(a => a.ipAddress == lastData.ipAddress))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.created).Title("Tarih").Format(Extensions.DateFormatFull(true));
+                                            x.Bound(y => y.alarmInputStatus4).Title("Alarm (Giriş)").Width(150).ClientTemplate("#=getTranslate(data.alarmInputStatus4)#");
+                                            x.Bound(y => y.alarmOutputStatus4).Title("Alarm (Çıkış)").Width(150).ClientTemplate("#=getTranslate(data.alarmOutputStatus4)#");
+                                            x.Bound(y => y.motionDetectionStatus4).Title("Hareket Sensörü").Width(150).ClientTemplate("#=getTranslate(data.motionDetectionStatus4)#");
+                                            x.Bound(y => y.tamperingDetectionStatus4).Title("Darbe Sensörü").Width(150).ClientTemplate("#=getTranslate(data.tamperingDetectionStatus4)#");
+                                            x.Bound(y => y.videoStatusChannel4).Title("Video Durumu").Width(150).ClientTemplate("#=getTranslate(data.videoStatusChannel4)#");
+                                            x.Bound(y => y.recordingStatus4).Title("Kayıt Durumu").Width(150).ClientTemplate("#=getTranslate(data.recordingStatus4)#");
+                                        })
+                                        .Scrollable(s => s.Height(250))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+                                    </div>
+                                </div>
+                            </div>
+
+
+                        }
+
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on('ready', function () {
+            $($('#VWPRD_InventoryAction').find('tbody')).attr('id', 'vertical-timeline');
+        })
+       .on("load:grid", '#IOT_CameraLog1', function (e, res) {
+           $('#statusContent').empty();
+           createStatusGrid();
+       })
+       var model=@Html.Raw(Infoline.Helper.Json.Serialize(Model));
+        var inventoryDetail = {
+        query: "(inventoryId~eq~'" + model.id + "')",
+    }
+    var icons = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>()));
+
+     var Actions = $.ajax({
+        type: "GET",
+        url: '/PRD/VWPRD_InventoryAction/DataSource?filter=' + inventoryDetail.query,
+        async: false
+    }).responseJSON;
+
+
+    var Harita = new AkilliHarita('Harita', {
+        zoom: 6,
+        maxZoom:18,
+        uiAltlik: false,
+        uiDefault: false,
+        uiSearch: true,
+        uiMinimap: false,
+        uiScaleLine: false,
+        uiMousePosition: false,
+        uiMesurement: false,
+        uiInfo: false
+    });
+
+    Harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+    Harita.layer.addVector("Action", "Action");
+    Harita.layer.addVector("ActionPoint", "ActionPoint");
+
+    var points = [];
+    Actions.Data.forEach(function (item, i) {
+        var icon = (item.location == '@Model.location' ? "Marker_SonKonum" : "Guncel_Konum");
+               //var icon = icons.filter(a=>a.Value == item.type_Title).map(a=>a.Generic['icon'])
+        Harita.style.add(i + "d", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
+        Harita.style.add(i + "c", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
+        var icon = icons.filter(a=>a.Value == item.type_Title).map(a=>a.Generic['icon'])
+
+        var feature = Harita.feature.add("ActionPoint", item.id, item.location);
+        if (feature) {
+            feature.set("properties", item);
+            feature.set("style", i + "d");
+            feature.set("styleHover", i + "c");
+            feature.set("styleSelected", i + "c");
+            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+        }
+    });
+    Harita.layer.panTo("ActionPoint");
+
+    var line = "LINESTRING(" + points.join(", ") + ")";
+    Harita.feature.add("Action", "linestring", line);
+
+    function imageName(item) {
+         if (item == null) { return ''; }
+                var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()));
+                var icon = types.filter(function (e) { return e.Key == item }).map(a => a.Generic['icon'])
+                return '<i class="' + icon + '" data-toggle="tooltip" data-placement="right" data-original-title="' + types[item].Value +'"></i>'
+    }
+
+    function getHtmlStatus(field, header) {
+
+        var dataRaw = $('#IOT_CameraLog1').data("kendoGrid").dataSource.data();
+        var data = $.Enumerable.From(dataRaw).OrderByDescending(a => a.created).FirstOrDefault();
+
+        var color = data[field] == "ON" ? "text-navy" : "text-danger";
+        var text = data[field] != null ? " " + data[field] : " Bilinmiyor";
+        var icon = data[field] == "ON" ? "fa-check-circle-o" : "fa-warning";
+        var date = data.created != null ? kendo.toString(data.created, "dd.MM.yyyy HH:mm") : " - ";
+
+        var ibox = '<div class="col-md-4"><div class="ibox-content" style="background-color: #f3f3f4;margin: 5px;">'+
+                '    <h5 class="m-b-md">' + header + '</h5>' +
+                '    <h2 class="' + color + '">' +
+                '        <i class="fa '+ icon +'">'+ text + '</i>'+
+                '    </h2>'+
+                '    <small>'+
+                '        Son güncelleme :'+
+                '        <span data-id="lastUpdateDate">' + date + '</span>'+
+                '    </small>'+
+            '</div></div>';
+
+        return ibox;
+    }
+
+    function getTranslate(data) {
+        if (data == null) { return "BİLİNMİYOR"; }
+
+        return data == "ON" || data == "OPEN" ? "AÇIK" :
+                data == "OFF" || data == "CLOSE" ? "KAPALI" :
+                    data == "VLOSS" ? "GÖRÜNTÜ YOK" :
+                        data == "DISABLE" ? "DEVRE DIŞI" :
+                            data == "NOTSUPPORTED" || data == "NOT SUPPORTED"? "DESTEKLENMİYOR" :
+                                data == "RECORDING OFF" ? "KAPALI" :
+                                    data == "RECORDING ON" ? "AÇIK" : "BİLİNMİYOR";
+    }
+
+    function getHtmlStatus2(field, header) {
+
+        var dataRaw = $('#IOT_CameraLog1').data("kendoGrid").dataSource.data();
+        var data = $.Enumerable.From(dataRaw).OrderByDescending(a => a.created).FirstOrDefault();
+
+        var color = data[field] == "ON" || data[field] == "OPEN" || data[field] == "RECORDING ON" ? "text-navy" : "text-danger";
+        var text = getTranslate(data[field]);
+
+        var icon = data[field] == "ON" || data[field] == "OPEN" ||  data[field] == "RECORDING ON"  ? "fa-check-circle-o" : "fa-warning";
+        var date = data.created != null ? kendo.toString(data.created, "dd.MM.yyyy HH:mm") : " - ";
+        var textColor = data[field] == "ON" || data[field] == "OPEN"|| data[field] == "RECORDING ON" ? "#1ab394" : "#ed5565";
+
+        var ibox = '<div class="col-md-4"><div class="widget p-lg text-center" style="background-color:#f3f3f4;color:'+ textColor +'">'+
+                    '<div class="m-b-md">                          '+
+                    '    <i class="fa '+ color + ' ' + icon +' fa-4x"></i>     '+
+                    '    <h2 class="m-xs">'+ text +'</h2>                 '+
+                    '    <h4 class="font-bold no-margins">         '+
+                    '        - ' + header + ' -                                 '+
+                    '    </h4>                                     '+
+                    '    <small> Son güncelleme ('+ date +')</small>                     '+
+                    '</div>                                        '+
+            '</div></div>';
+        return ibox;
+    }
+
+    function createStatusGrid() {
+
+        $('#statusContent').append(getHtmlStatus2('alarmInputStatus1', "Alarm (Giriş)"));
+        $('#statusContent').append(getHtmlStatus2('alarmOutputStatus1', "Alarm (Çıkış)"));
+        $('#statusContent').append(getHtmlStatus2('motionDetectionStatus1', "Hareket Sensörü"));
+        $('#statusContent').append(getHtmlStatus2('tamperingDetectionStatus1', "Darbe Sensörü"));
+        $('#statusContent').append(getHtmlStatus2('videoStatusChannel1', "Video Durumu"));
+        $('#statusContent').append(getHtmlStatus2('recordingStatus1', "Kayıt Durumu"));
+    }
+
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+    setTimeout(function () {
+        $('#IOT_CameraLog1').data("kendoGrid").dataSource.read();
+        $('#IOT_CameraLog2').data("kendoGrid").dataSource.read();
+        $('#IOT_CameraLog3').data("kendoGrid").dataSource.read();
+        $('#IOT_CameraLog4').data("kendoGrid").dataSource.read();
+    }, 60000)
+
+</script>

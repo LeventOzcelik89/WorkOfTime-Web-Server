@@ -1,0 +1,56 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_StorageSection
+@{
+    ViewBag.Title = "İşletme Şube/Depoları Alt Birimler Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWCMP_StorageSection", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    {"id","storageSectionForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.companyId)
+    @Html.HiddenFor(model => model.storageId)
+    @Html.HiddenFor(model => model.pid)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="code">Kodu</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Kodu giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">İsmi</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen İsmi giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true,0,1000))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -1,0 +1,120 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Publications
+@{
+    ViewBag.Title = "Personel Yayınları Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on('before:submit', 'form', function (e) {
+            $('[data-item="keywords"]').each(function (c) {
+                var data = $(this).data("tagify");
+                if (data && data.value) {
+                    $(this).val(data.value.map(a => a.value).join(","));
+                }
+            });
+        });
+
+
+</script>
+
+@using (Html.BeginForm("Update", "VWSH_Publications", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "VWSH_PublicationsFormUpdate" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Yayın İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Yayın İsmi giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Yayın Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Yayın Açıklaması giriniz.."}
+            })
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="date">Yayın Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().
+                DatePickerFor(model => model.date).
+                Placeholder("Lütfen Yayın Tarihi girin..").
+                Format(Extensions.DateFormatShort()).
+                Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" data-role="tagsinput" for="keywords">Anahtar Kelimeler</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBox("keywords", Model.keywords,
+                                 new Dictionary<string, object> {
+                                     { "data-role","tagify"},
+                                     //{ "readonly", "readonly" },
+                                     { "data-item", "keywords" },
+                                     { "data-value",Model.keywords}
+                             })
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Yayın Dosyası </label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("SH_Publications")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Yayın Dosyası")
+            )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

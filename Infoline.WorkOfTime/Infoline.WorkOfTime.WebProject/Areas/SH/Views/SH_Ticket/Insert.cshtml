@@ -1,0 +1,97 @@
+﻿@model Infoline.WorkOfTime.BusinessData.SH_Ticket
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "SH_Ticket", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-loadingtitle", "Yeni göl tanımlama işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.." },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userid">Kullanıcı</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownListFor(model => model.userid).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+                {"required", "required"}
+            })
+            .OptionLabel("Lütfen Kullanıcı Seçiniz..")
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                s.Read(r =>
+                {
+                    r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                });
+            }).Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="createtime">createtime</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.createtime).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Başlangıç Tarihi Giriniz.."},
+            }).Format("dd.MM.yyyy")
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="endtime">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.endtime).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Bitiş Tarihi Giriniz.."},
+            }).Format("dd.MM.yyyy")
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IP">IP</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.IP, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen IP Giriniz.."},
+            }).Validate(Validations.IP(true))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+

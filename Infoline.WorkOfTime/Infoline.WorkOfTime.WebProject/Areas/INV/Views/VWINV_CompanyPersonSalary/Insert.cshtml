@@ -1,0 +1,107 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonSalary
+@{
+    ViewBag.Title = "Personel Ücreti Ekleme";
+    if (Request.Url.ToString().IndexOf("Insert") == -1)
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+@using (Html.BeginForm("Insert", "VWINV_CompanyPersonSalary", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    if (Model.IdUser == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4 req">
+                <label class="control-label label-md" for="IdStaff">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.IdUser)
+                 .OptionLabel("Lütfen Personel Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                   .Template("#=TemplateEngine('userTemplate',data)#")
+                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Execute("id")
+                  .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.IdUser)
+    }
+
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Salary">Ücret</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.Salary).HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"style", "width:100%"},
+                    {"class", "text-right form-control"},
+                    {"placeholder", "Lütfen Personel Ücretini Giriniz.."}
+                }).Step(1).Spinners(false).Validate(Validations.Required)
+                <span class="input-group-addon" id="Salary">₺</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+
+            @(
+                Html.Akilli()
+                .DatePickerFor(model => model.StartDate)
+                .Value(DateTime.Now)
+                .Format(Extensions.DateFormatShort())
+                .MaxDateElement("EndDate")
+
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.EndDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Bitiş Tarihini Giriniz.."}
+            })
+            .Format(Extensions.DateFormatShort())
+             .Value(DateTime.Now.AddDays(30))
+            .MinDateElement("StartDate")
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

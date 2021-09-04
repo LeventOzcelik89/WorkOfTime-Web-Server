@@ -1,0 +1,198 @@
+﻿@model VWPRJ_ProjectTimeline
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Projeler";
+    Layout = null;
+}
+
+<style type="text/css">
+    .k-gantt-toolbar:last-child, .k-task-delete {
+        display: none;
+    }
+
+    .k-task-dot, .k-task-draghandle {
+        display: none !important;
+    }
+
+    .k-task-template {
+        cursor: pointer !important;
+    }
+
+    .k-reset > .k-task-content {
+        margin-top: -16px;
+        color: white;
+    }
+</style>
+
+    @(Html.Kendo().Gantt<TaskViewModel, DependencyViewModel>()
+        .Name("Gant")
+        .Columns(columns =>
+        {
+            columns.Bound("title").Title("Başlık").Sortable(true).Editable(true);
+            columns.Bound("start").Title("Başlangıç Tarihi").Format("{0:dd.MM.yyyy}").Width(100).Editable(true).Sortable(true);
+            columns.Bound("end").Title("Bitiş Tarihi").Format("{0:dd.MM.yyyy}").Width(100).Editable(true).Sortable(true);
+        })
+        .Views(views =>
+        {
+            views.DayView(o => o
+                .Type(GanttViewType.Day)
+                .DayHeaderTemplate("#=kendo.toString(start, 'D')#")
+                );
+
+            views.WeekView(weekView => weekView
+                .Selected(true)
+                .DayHeaderTemplate("#=kendo.toString(start, 'd')#")
+                .WeekHeaderTemplate("#=kendo.toString(start, 'D')# - #=kendo.toString(kendo.date.addDays(end, -1), 'D')#")
+                ).SlotSize(85);
+
+            views.MonthView(m => m
+                .MonthHeaderTemplate("#=kendo.toString(start, 'MMMM, yyyy')#")
+                .WeekHeaderTemplate("#=kendo.toString(start, 'M.dd')# - #=kendo.toString(kendo.date.addDays(end, -1), 'M.dd')#")
+                ).SlotSize(130);
+
+            views.YearView(y => y
+                .MonthHeaderTemplate("#=kendo.toString(start, 'MMMM')#")
+                );
+        })
+        .Events(e => e.Edit("PageGant.GantEdit").Remove("PageGant.GantEdit"))
+        .Messages(m => m
+            .Views(x => x
+                .Day("Günlük")
+                .Month("Aylık")
+                .Week("Haftalık")
+                .Year("Yıllık")
+                .Start("Başlangıç Tarihi")
+                .End("Bitiş Tarihi")
+            ).Actions(x => x.Pdf("PDF'E AKTAR"))
+        )
+        .DataSource(ds =>
+            ds.Read(read => read.Action("GanttBinder", "VWPRJ_ProjectTimeline", new { area = "PRJ", projeId = Model.IdProject })
+
+        )
+        .Model(m =>
+        {
+            m.Id(f => f.TaskID);
+            m.ParentId(f => f.ParentID);
+            m.OrderId(f => f.OrderId);
+            m.Field(f => f.Expanded).DefaultValue(false).Editable(false);
+        }))
+        .Tooltip(x => x.TemplateId("myTemplate"))
+        .Pdf(pdf => pdf.FileName("proje-gantt-sema.pdf"))
+        .Toolbar(t =>
+        {
+            t.Add().Name("Insert").Template("<a data-modal=\"true\" data-show=\"always\" class=\"k-button k-button-icontext\"  data-new data-task=\"Insert\" data-href='/PRJ/VWPRJ_ProjectTimeline/Insert?projeId=" + Model.IdProject + "'>Yeni Kayıt</a>");
+            t.Add().Name("pdf");
+        })
+        .Resources(r => r
+            .Field("resources")
+            .DataColorField("Color")
+            .DataTextField("Name")
+            .DataSource(d => d
+                .Custom()
+                .Schema(s => s
+                    .Model(m => m.Id("ID"))
+                    .Data("Data")
+                )
+                .Transport(t =>
+                {
+                    t.Read("Resources", "VWPRJ_ProjectTimeline", new { area = "PRJ", projeId = Model.IdProject });
+                })
+            )
+        )
+        .DependenciesDataSource(ds => ds.Read(read => read.Action("Dependencies", "VWPRJ_ProjectTimeline", new { area = "PRJ", projeId = Model.IdProject }))
+            .Model(m =>
+            {
+                m.Id(f => f.DependencyID);
+                m.PredecessorId(f => f.PredecessorID);
+                m.SuccessorId(f => f.SuccessorID);
+                m.Type(f => f.Type);
+            })
+        )
+    )
+    <div class="hide" data-accestoken>
+        @Html.AntiForgeryToken()
+    </div>
+    <script type="text/x-kendo-template" id="myTemplate">
+        <div class="form-group" style="width:250px !important;">
+            <div class="col-md-12 p0"><strong>#:task.title#</strong></div>
+            #if(task.Status_Title!=null){#
+            <div class="col-md-12 p0"><span class="pull-left">Proje Durumu : </span> <span class="pull-left">#: kendo.toString(task.Status_Title)  #</span></div>
+            #}#
+            <div class="col-md-12 p0"><span class="pull-left">Başlangıç Tarihi : </span> <span class="pull-left">#: kendo.toString(task.start, "d")  #</span></div>
+            <div class="col-md-12 p0"><span class="pull-left">Bitiş Tarihi :</span> <span class="pull-left">#: kendo.toString(task.end, "d")  #</span></div>
+            <div class="col-md-12 p0"><span class="pull-left">Takvim Günü :</span> <span class="pull-left">#: PageGant.TakvimGunu(task.start,task.end)  # gün</span></div>
+        </div>
+        <div class="clearfix"></div>
+    </script>
+    <a class="k-button k-button-icontext hide" data-show="always" data-task="Insert" data-method="GET" data-update data-href=""></a>
+
+
+<script type="text/javascript">
+    var PageGant = {
+        move: function (e) {
+            e.preventDefault();
+            return false;
+        },
+        GantEdit: function (e) {
+            e.preventDefault();
+            $('.k-gantt-cancel').trigger('click');
+            $('[data-update]').attr('data-href', '/PRJ/VWPRJ_ProjectTimeline/Update?id=' + e.task.TaskID + '&delete=true');
+            $('[data-update]').trigger('click');
+            return false;
+        },
+        onDataBound: function (e) {
+            var gantt = $("#Gant").data("kendoGantt");
+              
+              gantt.element.find(".k-task").each(function(e) {
+                var dataItem = gantt.dataSource.getByUid($(this).attr("data-uid"));
+
+              var statusEnum = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRJ_ProjectTimelineStatus>()));
+                    var color = statusEnum.filter(function (e) { return e.Key == dataItem.Status }).map(a => a.Generic['color']);
+              if (dataItem.Status =='@((int)EnumPRJ_ProjectTimelineStatus.Baslamadi)') {
+                   this.style.backgroundColor = color;
+              }
+              else if (dataItem.Status == '@((int)EnumPRJ_ProjectTimelineStatus.Baslandi)') {
+                  this.style.backgroundColor = color;
+              }
+              else if (dataItem.Status == '@((int)EnumPRJ_ProjectTimelineStatus.Beklemede)') {
+                    this.style.backgroundColor = color;
+              }
+              else if(dataItem.Status =='@((int)EnumPRJ_ProjectTimelineStatus.Bitti)') {
+                       this.style.backgroundColor = color;
+              }
+              else {
+                  this.style.backgroundColor = "";
+              }
+
+              });
+        },
+        TakvimGunu: function (start, end) {
+            var result = Math.floor((end - start) / 1000 / 60 / 60 / 24);
+            return (result == 0 ? 1 : result + 1);
+        },
+        IdProject: '@(Model.IdProject)'
+    }
+
+    $(document)
+        .on('ready', function (e) {
+            var gantt = $("#Gant").data("kendoGantt");
+            gantt.bind("move", PageGant.move);
+            gantt.bind("resize", PageGant.move);
+            gantt.bind("resizeStart", PageGant.move);
+                gantt.bind("dataBound", PageGant.onDataBound);
+              
+        })
+        .on('dblclick', 'table[role="treegrid"] [role="rowgroup"] tr', function (e) {
+            var uid = $(this).attr('data-uid');
+            console.log(uid);
+            $('table.k-gantt-tasks').find('[data-uid="' + uid + '"]').trigger('dblclick');
+        })
+        .on("click", '[href="#Gantt"]', function () {
+            $('.k-gantt-treelist').css('width', '35%');
+            $(window).trigger("resize");
+        })
+        .on('success', 'form#VWPRJ_ProjectTimeline', function (e) {
+            $('#Gant').data('kendoGantt').dataSource.read();
+            $('#Gant').data('kendoGantt').dependencies.read();
+        });
+</script>

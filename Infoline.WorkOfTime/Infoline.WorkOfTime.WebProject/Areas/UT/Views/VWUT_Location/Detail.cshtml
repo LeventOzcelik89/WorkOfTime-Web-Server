@@ -1,0 +1,65 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_Location
+@{
+    ViewBag.Title = "Lokasyon(" + Model.pid_Title + ") Detay";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var card = (Infoline.WorkOfTime.BusinessAccess.UT_LocationCard)ViewBag.Card;
+
+    var childEnum = (EnumUT_LocationType)(Model.type + 1);
+    var childEnum2 = (EnumUT_LocationType)(Model.type + 2);
+
+    var text1 = (childEnum).ToDescription();
+    var text1Upper = text1.ToUpper();
+    var text2 = (childEnum2).ToDescription();
+    var text2Upper = text2.ToUpper();
+}
+
+
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>@text1Upper Listesi</h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+
+        @(Html.Akilli()
+  .Grid<Infoline.WorkOfTime.BusinessData.VWUT_Location>("VWUT_Location")
+  .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_Location", new { area = "UT" })).Filter(a => a.pid == Model.id).PageSize(25))
+  .Columns(x =>
+  {
+      x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+      x.Bound(y => y.code).Title(text1 + " Kodu").Width(120);
+      x.Bound(y => y.name).Title(text1 + " İsmi");
+  })
+  .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+  .ToolBar(x =>
+  {
+      x.Custom().Text(text1Upper + " EKLE").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWUT_Location", new { area = "UT", pid = Model.id, type = (int)childEnum }));
+      x.Custom().Text(text1Upper + " DÜZENLE").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_Location", new { area = "UT", type = (int)childEnum }));
+      x.Custom().Text(text2Upper + " GÖRÜNTÜLE").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "style", "display:" + (Model.type == (int)EnumUT_LocationType.Sehir ? "none" : "intial") + "" } }).Url(Url.Action("Detail", "VWUT_Location", new { area = "UT", type = (int)childEnum }));
+      x.Custom().Text(text1Upper + " SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_Location", new { area = "UT" }));
+  }))
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,153 @@
+﻿@model Infoline.WorkOfTime.BusinessData.INV_PermitType[]
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "İzin Talepleri (Onayımı Bekleyen)";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userid = userStatus.user.id;
+
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+     function PersonFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetVWSH_User_OurCompanies", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Personel Seçiniz--"
+        });
+    }
+
+    function statusTemplate(data) {
+
+        switch ('@userid') {
+            case data.Manager1Approval:
+                if (data.ApproveStatus == 0) {
+                    return '<i class="fa text-warning fa-spinner">';
+                } else if (data.ApproveStatus == 1 || data.ApproveStatus == 3 || data.ApproveStatus == 5 || data.ApproveStatus == 7) {
+                    return '<i class="fa text-navy fa-check">';
+                } else {
+                    return '<i class="fa text-danger fa-times-circle"></i>';
+                }
+                break;
+            case data.Manager2Approval:
+                if (data.ApproveStatus == 1) {
+                    return '<i class="fa text-warning fa-spinner">';
+                } else if (data.ApproveStatus == 3 || data.ApproveStatus == 5 || data.ApproveStatus == 7) {
+                    return '<i class="fa text-navy fa-check">';
+                } else {
+                    return '<i class="fa text-danger fa-times-circle"></i>';
+                }
+                break;
+            case data.IkApproval:
+                if (data.ApproveStatus == 3) {
+                    return '<i class="fa text-warning fa-spinner">';
+                } else if (data.ApproveStatus == 5 || data.ApproveStatus == 7) {
+                    return '<i class="fa text-navy fa-check">';
+                } else {
+                    return '<i class="fa text-danger fa-times-circle"></i>';
+                }
+                break;
+        }
+
+
+
+     }
+
+</script>
+
+
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <h5> DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~3))">
+                                <i class="fa text-warning fa-spinner"></i>   Onayımı Bekleyenler
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~3))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="(((Manager1Approval~eq~'@userid'~and~(((ApproveStatus~eq~1~or~ApproveStatus~eq~3)~or~ApproveStatus~eq~7)~or~ApproveStatus~eq~5))~or~(Manager2Approval~eq~'@userid'~and~((ApproveStatus~eq~3~or~ApproveStatus~eq~7)~or~ApproveStatus~eq~5)))~or~(IkApproval~eq~'@userid'~and~(ApproveStatus~eq~5~or~ApproveStatus~eq~7)))">
+                                <i class="fa text-navy fa-check"></i>   Onayladıklarım
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((Manager1Approval~eq~'@userid'~and~(((ApproveStatus~eq~1~or~ApproveStatus~eq~3)~or~ApproveStatus~eq~7)~or~ApproveStatus~eq~5))~or~(Manager2Approval~eq~'@userid'~and~((ApproveStatus~eq~3~or~ApproveStatus~eq~7)~or~ApproveStatus~eq~5)))~or~(IkApproval~eq~'@userid'~and~(ApproveStatus~eq~5~or~ApproveStatus~eq~7)))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~2)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~4))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~6))">
+                                <i class="fa text-danger fa-times-circle"></i>  Reddettiklerim
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~2)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~4))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~6))">0</span>
+                        </li>
+                    </ul>
+
+
+                    <div class="space-25"></div>
+                    <h5> TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Model.OrderBy(a => a.created))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_Permit" data-category="1" data-switch="checkbox" data-query="(PermitTypeId~eq~'@item.id')">@item.Name</a>
+                            </li>
+                        }
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>İzin Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_Permit>("VWINV_Permit")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_Permit", new { area = "INV" }))
+                .Filter(a => (a.Manager1Approval == userStatus.user.id && a.ApproveStatus == ((Int32)EnumINV_PermitApproveStatus.TalepEdildi)) || (a.Manager2Approval == userStatus.user.id && a.ApproveStatus == ((Int32)EnumINV_PermitApproveStatus.Yonetici1Onay)) || (a.IkApproval == userStatus.user.id && a.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Onay))
+                .PageSize(25))
+                .Scrollable(a => a.Height(650))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.ApproveStatus_Title).Title("").ClientTemplate("#=statusTemplate(data)#").Filterable(a => a.Enabled(false)).Width(40);                
+                    x.Bound(y => y.created).Title("Talep Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.Person_Title).Title("Talep Eden").Filterable(filterable => filterable.UI("PersonFilter")).Width(200);
+                    x.Bound(y => y.PermitCode).Title("İzin Kodu").Width(130);
+                    x.Bound(y => y.PermitType_Title).Title("İzin Tipi").Width(160);
+                    x.Bound(y => y.StartDate).Title("İzin Başlangıç Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.EndDate).Title("İzin Bitiş Tarihi").Width(160).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.TotalHoursText).Title("İzin Süresi").Width(180).Filterable(false);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='İzin Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" } }).Url(Url.Action("Detail", "VWINV_Permit", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-edit' data-original-title='İşlem Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWINV_Permit", new { area = "INV" }));
+                }))
+            </div>
+        </div>
+    </div>
+</div>
+

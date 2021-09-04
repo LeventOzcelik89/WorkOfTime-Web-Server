@@ -1,0 +1,98 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonReferences
+@{
+    ViewBag.Title = "Personel Referans Düzenleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWSH_PersonReferences", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.UserId)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="ReferenceUserName">Referansın Adı Soyadı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ReferenceUserName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Referansın Adı Soyadını Girin.."},
+             }).Validate(Validations.TextTurkceSpace(true, 3, 50))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ReferencePosition">Referansın Çalıştığı Pozisyon</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ReferencePosition, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Referansın Çalıştığı Pozisyonu Girin.."},
+            }).Validate(Validations.TextTurkceSpace(false, 3, 50))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ReferenceMail">Referansın E-Posta Adresi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ReferenceMail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Referansın E-Posta Adresi Girin.."},
+             }).Validate(Validations.EMail(false))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ReferencePhone">Referansın Telefonu</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().MaskedTextBoxFor(a => a.ReferencePhone).HtmlAttributes(new Dictionary<string, object>()
+                        {
+                            { "style", "width: 100%"},
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Referansın Telefonunu giriniz."},
+                        })
+                        .Mask("0 (000) 000 00 00")
+                        .UnmaskOnPost(true)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ReferenceWorkingCompany">Referansın Çalıştığı Firma</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ReferenceWorkingCompany, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Referansın Çalıştığı Firmayı Girin.."},
+           }).Validate(Validations.Adres(false,3))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

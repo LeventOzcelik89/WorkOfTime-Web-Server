@@ -1,0 +1,371 @@
+﻿@model VMVWINV_CompanyPersonAssessment
+@using System.Globalization
+@using Infoline.WorkOfTime.BusinessAccess
+
+@{
+    var userStatus = (PageSecurity)Session["UserStatus"];
+}
+
+<html>
+<head>
+    <title>&nbsp;&nbsp;</title>
+    <script src="~/Content/2048-master/js/jquery.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+
+    <style type="text/css" data-selector="modalContainer">
+        #page {
+            width: 842px !important;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        body {
+            font-family: "Calibri",Helvetica,Arial,sans-serif;
+        }
+
+        td.stil {
+            height: 28px;
+            width: 280px;
+            padding-left: 5px;
+        }
+
+        .space-left {
+            padding-left: 5px;
+        }
+
+        .demo-section {
+            position: absolute;
+            top: 11px;
+            left: 805px;
+        }
+
+        td {
+            width: 320px;
+            padding: 0px;
+            font-size: 11pt;
+        }
+
+        #wizard {
+            width: 100%;
+            position: relative;
+            margin-top: 50px;
+        }
+
+            #wizard img {
+                width: 100%;
+            }
+
+            #wizard .adim {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 46%;
+                z-index: 99;
+            }
+
+            #wizard .adim1 {
+                left: 3%;
+            }
+
+            #wizard .adim2 {
+                left: 28%;
+            }
+
+            #wizard .adim3 {
+                left: 52%;
+            }
+
+            #wizard .adim4 {
+                left: 77%;
+            }
+
+            #wizard .tarih {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 31%;
+                z-index: 199;
+            }
+
+            #wizard .tarih1 {
+                left: 3%;
+            }
+
+            #wizard .tarih2 {
+                left: 28%;
+                top: 62%;
+            }
+
+            #wizard .tarih3 {
+                left: 52%;
+            }
+
+            #wizard .tarih4 {
+                left: 77%;
+                top: 62%;
+            }
+
+        table#sub tr td {
+            text-align: center;
+            line-height: 20px;
+            font-size: 10pt;
+        }
+
+        table#sub2 tr td {
+            text-align: center;
+            line-height: 20px;
+            border: 1px solid #808080;
+            font-size: 10pt;
+        }
+
+        table#headerTable {
+            margin-bottom: 20px;
+        }
+
+        td[colspan="3"] {
+            padding-left: 0px;
+        }
+
+        table#personInformationTable {
+            margin-bottom: 20px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="page">
+        <table id="headerTable" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            <thead>
+                <tr>
+                    <td class="stil" style="padding: 14px;width: 16%; border-left: 1px solid gray;border-bottom: 1px solid gray;border-top: 1px solid gray;"><img src="@(Model.Owner.Company_Title != null && Model.Owner.Company_Title.IndexOf("kıll")>-1 ? "/Content/Custom/img/akilli-logo.png" : "/Content/Custom/img/infolinelogo.png")" width="98" alt="" title="" /></td>
+                    <td>
+                        <table id="sub" class="m-b-sm" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td colspan="5" class="stil" style="text-align: center; border-bottom: 1px solid gray;font-size: 18px;line-height: 52px;">
+                                    <b>
+                                        @(Model.AssessmentType == 2 ? "PERSONEL DENEME SÜRESİ DEĞERLENDİRME FORMU" :
+                                           Model.AssessmentType == 6 ? "YENİ PERSONEL 6 AYLIK PERFORMANS DEĞERLENDİRME FORMU" :
+                                            "PERFORMANS DEĞERLENDİRME FORMU" )
+                                    </b>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">DOK. NO</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">YÜRÜRLÜK TARİHİ</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">REVİZYON NO</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">REVİZYON TARİHİ</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">S.NO</td>
+                            </tr>
+                            <tr>
+                                <td class="stil" style="border-right: 1px solid gray">
+                                    @(Model.AssessmentType == 2 ? "SRC-13-FRM-03" : Model.AssessmentType == 6 ? "SRC-13-FRM-07"
+                                                                                                                  : "PERFORMANS DEĞERLENDİRME FORMU" )
+                                </td>
+                                <td class="stil" style="border-right: 1px solid gray">20.11.2017</td>
+                                <td class="stil" style="border-right: 1px solid gray">01</td>
+                                <td class="stil" style="border-right: 1px solid gray">12.03.2018</td>
+                                <td class="stil" style="border-right: 1px solid gray">1/1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+
+        <table id="personInformationTable" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+
+            <tr>
+                <td class="stil"><b>Personel Ad-Soyad</b></td>
+                <td colspan="3">
+                     @(Model.Owner.firstname + " " + Model.Owner.lastname)
+                </td>
+            </tr>
+            <tr>
+                <td class="col-md-3 stil"> <b>Bölümü</b> </td>
+                <td class="col-md-3 stil"> @(Model.department) </td>
+                <td class="col-md-3 stil"> <b> Görevi</b> </td>
+                <td class="col-md-3 stil"> @(Model.task) </td>
+            </tr>
+            <tr>
+                <td class="col-md-3 stil"> <b>İşe Giriş Tarihi</b> </td>
+                <td class="col-md-3 stil"> @(Model.jobStartDate.HasValue ? Model.jobStartDate.Value.ToString("d", new CultureInfo("tr-TR")) : "") </td>
+                <td class="col-md-3 stil"> <b>Değerlendirme Tarihi</b> </td>
+                <td class="col-md-3 stil"> @(Model.GeneralManagerApprovalDate.HasValue ? Model.GeneralManagerApprovalDate.Value.ToString("d", new CultureInfo("tr-TR")) : "") </td>
+            </tr>
+
+        </table>
+
+        <table id="assessmentTable" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+
+            <tr style="background:#808080;">
+                <td class="col-md-6 stil"> <b>Değerlendirme Kriteri</b> </td>
+                <td class="col-md-2 stil" style="text-align:center;"> Başarılı </td>
+                <td class="col-md-2 stil" style="text-align:center;"> Gelişmesi Gerekli </td>
+                <td class="col-md-2 stil" style="text-align:center;"> Başarısız </td>
+            </tr>
+
+            @foreach (var item in Model.Rating)
+            {
+                <tr>
+                    <td class="stil" style="width:55%"> @item.question </td>
+                    <td class="stil" style="text-align:center;width:15%"> @(item.answer == 10 ? "X" : " ") </td>
+                    <td class="stil" style="text-align:center;width:15%"> @(item.answer == 20 ? "X" : " ") </td>
+                    <td class="stil" style="text-align:center;width:15%"> @(item.answer == 30 ? "X" : " ") </td>
+                </tr>
+            }
+
+        </table>
+
+        <table id="assessmentTable2" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            @if (Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.AltiAy)
+            {
+                <tr style="background:#808080">
+                    <td colspan="4" class="stil" style="text-align:center;"> 1. Yönetici Değerlendirmesi </td>
+                </tr>
+
+                <tr>
+                    <td class="stil col-md-3" style="text-align:center;">
+                        İş Sözleşmesinin devamı halinde şirketimize katkı sağlayacaktır.<br />
+                        <b>İşe uygundur.</b> <br /><br />
+                        <div>
+                            <input style="text-align:center;" type="text" maxlength="1" size="1" value="@(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.Uygun ? "✔" : "")" readonly />
+                        </div>
+                    </td>
+                    <td class="stil col-md-9" colspan="3">
+
+                        <table id="sub2" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="stil col-md-6" style="text-align:center;">
+                                    İş sözleşmesinin devamında …………………….
+                                    …………………………………………………………………
+                                    ……………………………………………pozisyonunda, <br />
+
+                                    <b>Başka bir işte değerlendirilebilir.</b><br />
+                                    <div>
+                                        <input style="text-align:center;" type="text" maxlength="1" size="1" readonly value="@(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.BaskaIs ? "✔" : "")" />
+                                    </div> <br />
+                                </td>
+                                <td class="stil col-md-6" style="text-align:center;">
+                                    İş sözleşmesinin devamında şirketimize değer katmayacaktır. <br /> <b>İşe uygun değildir.</b>
+                                    <div>
+                                        <input style="text-align:center;" type="text" maxlength="1" size="1" readonly value="@(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.UygunDegil ? "✔" : "")" />
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr style="background:#808080;">
+                                <td class="stil" style="text-align:center;"> Personel başka bir işe uygun ise; </td>
+                                <td class="stil" style="text-align:center;"> Personel İşe Uygun Değilse </td>
+                            </tr>
+                            <tr>
+                                <td class="stil" style="text-align:center;"> Açıklama </td>
+                                <td class="stil" style="text-align:center;"> Açıklama </td>
+                            </tr>
+                            <tr>
+                                <td> @(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.BaskaIs ? Model.Manager1ApprovalComment : "") <br /><br /> </td>
+                                <td> @(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.UygunDegil ? Model.Manager1ApprovalComment : "") <br /><br /> </td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            }
+
+            @if (Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.IkiAy)
+            {
+                <tr style="background:#808080">
+                    <td colspan="4" class="stil" style="text-align:center;"> İlk Yönetici Değerlendirmesi </td>
+                </tr>
+
+                <tr>
+                    <td class="stil" style="text-align:center;">
+                        İş Sözleşmesinin devamı halinde şirketimize katkı sağlayacaktır. <br />
+                        <b>İşe uygundur.</b> <br /> <br />
+                        <div>
+                            <input style="text-align:center;" type="text" maxlength="1" size="1" value="@(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.Uygun ? "✔" : "")" readonly />
+                        </div>
+                    </td>
+                    <td>
+
+                        <table id="sub2" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td class="stil col-md-6" style="text-align:center;">
+                                    İş sözleşmesinin devamında şirketimize değer katmayacaktır. <br />
+                                    <b>İşe uygun değildir.</b>
+                                    <div>
+                                        <input style="text-align:center;" type="text" maxlength="1" size="1" readonly value="@(Model.ConfirmStatus == (Int32)EnumINV_CompanyPersonConfirmStatus.UygunDegil ? "✔" : "")" />
+                                    </div> 
+                                    <br />
+                                </td>
+                            </tr>
+
+                            <tr style="background:#808080;">
+                                <td class="stil" style="text-align:center;"> Açıklama </td>
+                            </tr>
+
+                            <tr>
+                                <td> <br /><br /><br />  </td>
+                            </tr>
+
+                        </table>
+                    </td>
+                </tr>
+            }
+
+        </table>
+
+        <table id="assessmentApprovalTable" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            <tr>
+                <td colspan="4" class="stil" style="text-align:center;"> ONAY </td>
+            </tr>
+
+            <tr>
+                <td class="stil" style="text-align:center"> <b> Değerlendirici </b> </td>
+                <td class="stil" style="text-align:center"> <b> Bölüm Yöneticisi </b> </td>
+                <td class="stil" style="text-align:center"> <b> Genel Müdür Yardımcısı </b> </td>
+            </tr>
+
+            <tr>
+                <td class="stil" style="text-align:center">@Model.Manager1Approval_Title <br /> @Model.Manager1ApprovalDate <br /> <br /> ONAYLADI<br /><br /> </td>
+                <td class="stil" style="text-align:center">@Model.Manager2Approval_Title <br /> @Model.Manager2ApprovalDate <br /><br /> ONAYLADI <br /><br /></td>
+                <td class="stil" style="text-align:center">@Model.GeneralManagerApproval_Title <br /> @Model.GeneralManagerApprovalDate <br /><br /> ONAYLADI <br /><br /> </td>
+            </tr>
+
+
+        </table>
+
+        <div style="top: 15px; padding: 0px; float: right">
+            <div id="qrUrl"></div>
+        </div>
+
+        <table class="m-b-sm" cellpadding="0" cellspacing="0" data-selector="modalContainer" style="margin-top: 2px;font-size: 10px;border-top: 1px solid gray;border-bottom: 1px solid gray;border-right: none;border-left: none;">
+            <tr>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] GİZLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] ANONİM</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ X ] DAHİLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[   ] HARİCİ</td>
+            </tr>
+        </table>
+
+    </div>
+    <script type='text/javascript'>
+        window.print();
+
+        $("#qrUrl").kendoQRCode({
+            value: "http://@Model.Url",
+            errorCorrection: "M",
+            size: 100
+        });
+    </script>
+</body>
+</html>

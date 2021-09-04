@@ -1,0 +1,318 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_Contact
+@{
+    ViewBag.Title = "Potansiyel/Fırsat Aktivite Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@using (Html.BeginForm("Detail", "VWCRM_Contact", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="CustomerCompanyId_Title">Müşteri</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextBoxFor(model => model.CustomerCompanyId_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="IdUsers">Katılımcılar</label>
+        </div>
+        <div class="col-md-9">
+            <select required="required"
+                    id="IdUsers"
+                    name="IdUsers"
+                    style="width: 100%"
+                    class="form-control"
+                    data-readurl="/General/GetSH_UsersForPresentationById?id=@Model.PresentationId"
+                    placeholder="Lütfen Katılımcıları Seçiniz.."
+                    disabled="disabled"></select>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="ContactStageId">Aşama</label>
+        </div>
+        <div class="col-md-9">
+
+            @(Html.Akilli()
+              .DropDownListFor(model => model.PresentationStageId)
+              .OptionLabel("Lütfen Aşama Seçiniz..")
+              .MinLength(2)
+              .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+              .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+              .DataValueField("Id")
+              .DataTextField("Name")
+              .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+              .Sort(x => x.Add("Name").Ascending())
+              .Validate(Validations.Required)
+              .Execute()
+              .Enable(false)
+            )
+
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="ContactStartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextBox("ContactStartDate", string.Format(Extensions.DateFormatFull(true), Model.ContactStartDate), new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"disabled", "disabled"},
+                })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="ContactEndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextBox("ContactEndDate", string.Format(Extensions.DateFormatFull(true), Model.ContactEndDate), new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"disabled", "disabled"},
+                })
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="ContactType">Aktivite/Randevu Tipi</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextBoxFor(model => model.ContactType_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md " for="ContactStatusT">Aktivite/Randevu Durumu</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextBoxFor(model => model.ContactStatus_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-9">
+            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="Dosya">Aktivite/Randevu Dosyaları</label>
+        </div>
+        <div class="col-md-9">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("CRM_Contact")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Toplantı Dosyası").PreviewMode(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="Dosya1">Kartvizitler</label>
+        </div>
+        <div class="col-md-9">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("CRM_Contact")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Kartvizitler").PreviewMode(true)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" style="text-align:left;" for="Dosya2">Aktivite/Randevu Diğer Dosyaları</label>
+        </div>
+        <div class="col-md-9">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("CRM_Contact")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Diğer Dosyalar").PreviewMode(true)
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var _contact = {
+        Model: @Html.Raw(Json.Encode(Model)),
+        init: function (users) {
+
+            $.each($('[data-readurl]'), function (i, item) {
+
+                $(item)
+                    .kendoMultiSelect({
+
+                        value: users,
+                        autoClose: false,
+                        dataTextField: 'Name',
+                        dataValueField: 'Id',
+                        optionLabel: $(item).attr('placeholder'),
+                        filter: 'contains',
+                        dataSource: new kendo.data.DataSource({
+                            transport: {
+                                read: {
+                                    url: $(item).attr('data-readurl'),
+                                    dataType: "json"
+                                }
+                            }
+                        }),
+                        dataBound: _contact.Events.onDataBound,
+                        select: _contact.Events.onSelect,
+                        template: _contact.Events.Template,
+                        tagTemplate: function(dataItem){
+
+                            if(dataItem.type == 0){
+                                _cls = 'warning';
+                                _txt = 'İşletmemiz';
+                            }
+                            else if(dataItem.type == 1){
+                                _cls = 'info';
+                                _txt = 'Kanal';
+                            }else if(dataItem.type == 2){
+                                _cls = 'success';
+                                _txt = 'Müşteri';
+                            } else if(dataItem.type == 3){
+                                _cls = 'primary';
+                                _txt = 'Çözüm Ortağı';
+                            }
+
+                            return '<span class="label label-xs label-' + _cls + '">' + '' + _txt + '</span> ' + dataItem.Name;
+
+                        }
+                    });
+
+            });
+
+        },
+        Events: {
+            onDataBound: function () {
+
+                var $this = this;
+
+                var ds = $this.dataSource;
+                var newEntry = $.Enumerable.From($this.dataSource.data()).Where(function (a) { return a.Name == $this._prev }).FirstOrDefault();
+
+                if (newEntry == null && $this._prev.length > 2) {
+
+                    var items = $.Enumerable.From($this.dataSource.data()).Where(function (a) { return a.newItem != true; }).ToArray();
+                    if (items.length != $this.dataSource.data().length) {
+                        $this.dataSource.data(items);
+                        return;
+                    }
+
+                    ds.add({ Name: $this._prev, Id: newGuid(), newItem: true, type: 1 });   //  Kanal Personeli
+                    ds.add({ Name: $this._prev, Id: newGuid(), newItem: true, type: 2 });   //  Müşteri Personeli
+                    ds.add({ Name: $this._prev, Id: newGuid(), newItem: true, type: 3 });   //  Çözüm Ortağı Personeli
+                    this.open();
+                }
+
+            },
+            onSelect: function (e) {
+
+                if (e.item == null) { return; }
+
+                var elem = this.dataSource.view()[e.item.index()];
+
+                if (elem.newItem == true) {
+
+                    $.ajax({
+                        type: "POST",
+                        url: '/CRM/VWCRM_ContactUser/InstantInsert',
+                        data: { contactType: elem.type, name: elem.Name, id: elem.Id, ContactId: _contact.Model.id, PresentationId: _contact.Model.PresentationId  },
+                        success: function (response) {
+                            if (response.result) {
+                                elem.newItem = false;
+                            }
+                        }
+                    });
+
+                }
+            },
+            Template: function (dataItem) {
+
+                var _cls = '';
+                var _txt = '';
+
+                if(dataItem.type == 0){
+                    _cls = 'warning';
+                    _txt = 'İşletmemiz';
+                }
+                else if(dataItem.type == 1){
+                    _cls = 'info';
+                    _txt = 'Kanal';
+                }else if(dataItem.type == 2){
+                    _cls = 'success';
+                    _txt = 'Müşteri';
+                } else if(dataItem.type == 3){
+                    _cls = 'primary';
+                    _txt = 'Çözüm Ortağı';
+                }
+
+                return '<span class="label label-xs label-' + _cls + '">' + (dataItem.newItem == true ? 'Yeni Ekle ' : '') + '( ' + _txt + ' )</span> ' + dataItem.Name;
+
+            }
+        },
+    };
+
+    _contact.init(@Html.Raw(Json.Encode(ViewBag.IdUsers)));
+
+</script>

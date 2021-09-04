@@ -1,0 +1,185 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCSM_StudentModel
+@{
+    ViewBag.Title = "Aday Öğrenci Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+    var isAddContact = _model.isAddContact;
+
+    function LastStageFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetCSM_StageName", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Aşama Seçiniz--"
+        });
+    }
+
+    function LastStageTemplate(data) {
+        var dataStateColor = data.stageId_Color == "#ffffff" ? "#000000" : data.stageId_Color;
+        var template = '<button type="button" data-task="Insert" data-method="GET" data-show="single" data-href="/CSM/VWCSM_Activity/UpdateStage?id=' + data.id + '"' +
+                        '        class="btn btn-outline" style="box-shadow:inset 0 0 0 ' + data.stageId_Color + ', 0 5px 0 0  ' + data.stageId_Color + ', 0 10px 5px #999999;color:' + dataStateColor + ';border-color:' + data.stageId_Color + '">' +
+                        '    <i class="fa fa-check"></i>' +
+                         data.stageId_Title +
+                        '</button>';
+        return template;
+    }
+
+    $(document)
+        .on("load:grid", '#VWCSM_Activity', function () {
+            if (_model.isAddContact == true) {
+                var button = $('[data-id="insertActivity"]');
+                var href = button.attr("data-href");
+                var url = new URL(location.origin + href);
+                url.searchParams.append("type", '@((int)EnumCSM_ActivityType.Cagri)');
+                $('[data-id="insertActivity"]').attr("data-href", url.pathname + url.search);
+                setTimeout(function () {
+                    _model.isAddContact = false;
+                    $('[data-id="insertActivity"]').trigger("click");
+                }, 50);
+            }
+        })
+
+</script>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.name
+                    </h2>
+                    <small> <i class="fa fa-location-arrow"></i> @(Model.locationId_Title != null ? Model.locationId_Title : "Adres bulunamadı")</small>
+                </div>
+                <img src="/Content/Custom/img/na.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
+            </div>
+            <div class="widget-text-box">
+                <ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-question-circle"></i> <strong> İletişim İzni : </strong> @Model.isAllowContact_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-envelope"></i> <strong> E-Posta : </strong> <a href="mailto:@Model.email"> @Model.email </a>
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-phone"></i><strong> Telefon : </strong> <a href="tel:@Model.phone"> @Model.phone </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>GENEL BİLGİLER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.locationId_Title</span>
+                        İl, İlçe :
+                    </li>
+                    <li class="list-group-item ">
+                        <span class="badge badge-white">@Model.schoolId_Title</span>
+                        Okul :
+                    </li>
+                    <li class="list-group-item ">
+                        <span class="badge badge-white">@Model.grade_Title</span>
+                        Sınıfı :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.source_Title</span>
+                        Verinin Kaynağı :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.sourceDescription</span>
+                        Verinin Geldiği Yer :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.createdby_Title</span>
+                        Veriyi Giren Kişi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.lastActivity_Date</span>
+                        Son Görüşme Tarihi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.LastStageId_Title </span>
+                        Son Aşama :
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>İLGİLENDİĞİ BÖLÜMLER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    @foreach (var item in Model.StudentDepartments)
+                    {
+                        <li class="list-group-item">
+                            @item.departmentId_Title
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Görüşme Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCSM_Activity>("VWCSM_Activity")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCSM_Activity", new { area = "CSM" }))
+                    .Filter(a => a.studentId == Model.id)
+                    .PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.type_Title).Title("Görüşme Tipi").Width(130);
+                        x.Bound(y => y.stageId_Title).Title("Görüşme Aşaması").Width(180).Filterable(filterable => filterable.UI("LastStageFilter")).ClientTemplate("#=LastStageTemplate(data)#");
+                        x.Bound(y => y.createdby_Title).Title("Görüşmeyi Gerçekleştiren").Width(180);
+                        x.Bound(y => y.contactDate).Title("Varsa Randevu Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.date).Title("Görüşme Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.duration).Title("Görüşme Süresi (dk)").Width(130);
+                        x.Bound(y => y.description).Title("Görüşme Notları").Width(250);
+                    })
+                    .Scrollable(x => x.Height(650))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Görüşme Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-id", "insertActivity" } }).Url(Url.Action("Insert", "VWCSM_Activity", new { area = "CSM", studentId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Görüşme Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCSM_Activity", new { area = "CSM" }));
+                        x.Custom().Text("<i data-original-title='Görüşme Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCSM_Activity", new { area = "CSM" }));
+                        x.Custom().Text("<i data-original-title='Görüşme Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCSM_Activity", new { area = "CSM" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>

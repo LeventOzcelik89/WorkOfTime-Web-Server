@@ -1,0 +1,1829 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_CompanyModel
+@{
+	ViewBag.Path = Model.breadCrumps;
+	ViewBag.Title = Model.fullName;
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
+
+}
+
+<script type="text/javascript">
+	var first = false;
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+            dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+
+		function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+	}
+
+	  function FilterMenuInventoryLastStatus(element) {
+        element.kendoDropDownList({
+            dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuInventoryLastStatus", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Durum Seçiniz"
+
+        })
+    }
+
+
+	$(document).on('shown.bs.tab', 'a[href="#VWFTM_Tasks"]', function (e) {
+		if (first == false) {
+			first = true;
+			$("#VWFTM_TaskContinuing").data("kendoGrid").refresh();
+		}
+	});
+
+    $(document).on('shown.bs.tab', 'a[href="#VWPRD_Transaction"]', function (e) {
+        if (first == false) {
+            first = true;
+            $("#VWPRD_Inventory").data("kendoGrid").refresh();
+        }
+	});
+
+
+	$(document)
+		.on("selected:grid", "#VWFTM_TaskFormRelations", function (e, res) {
+			var detail = $("#taskFormDetail");
+			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
+		})
+
+
+</script>
+
+
+<script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
+     #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+            </strong>
+            <strong><i class="fa fa-qrcode text-success" data-toggle="tooltip" title="Seri Numarası ve Kodu"></i> #:fullName#</strong>
+            <p class="m-b-none"><i class="fa fa-info-circle text-success" data-toggle="tooltip" title="Ürün"></i> #:(productId_Title != null ? productId_Title : "-")#</p>
+            <p class="m-b-none"><i class="icon-warehouse text-success" data-toggle="tooltip" title="Şu anki Konumu"></i> #=(lastActionType_Title ? lastActionType_Title + ' |' : '-')# #=(lastActionDataCompanyId_Title ? lastActionDataCompanyId_Title : '-')# #=(lastActionDataId_Title ? ' - '+lastActionDataId_Title : '-')#</p>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+	#if(type_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+	#}#
+</script>
+
+
+<script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+	#if(lastOperationStatus_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+	#}#
+</script>
+
+<script type="text/javascript">
+
+	function taskPriorityResult(data) {
+
+		if (data.priority == 0) {
+
+			return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+		}
+		else if (data.priority == 1) {
+			return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+		}
+		else if (data.priority == 2) {
+			return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+		}
+
+	}
+
+	var gridBase = {
+		items: {
+			DropDown1: null,
+			DropDown2: null
+		}
+	};
+
+	function filterMenuInit(e) {
+		if (e.field == "created") {
+			var $container = e.container;
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[14]).html("Başlangıç Tarihi");
+			$($('.k-header')[17]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+
+		}
+		else if (e.field == "dueDate") {
+			var $container = e.container;
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[20]).html("Başlangıç Tarihi");
+			$($('.k-header')[23]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+		}
+		else if (e.field == "lastOperationDate") {
+			var $container = e.container;
+
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[25]).html("Başlangıç Tarihi");
+			$($('.k-header')[28]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+		}
+	}
+
+</script>
+
+
+<script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+	#if(description!=null){#
+	#if(description.length >= 25){#
+	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
+	#}
+	else
+	{#
+	<div style="font-size:13px;">#=description#</div>
+	#}#
+	#}#
+</script>
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+	#var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+	#var color ="text-primary"#
+
+	#if(priority==0){#
+	#color = "text-danger"#
+	#}else if(priority==1){#
+	#color = "text-warning"#
+	#}else if(priority==2){#
+	#color = "text-primary"#
+	#}#
+
+	<table class="table shoping-cart-table">
+		<tbody>
+			<tr>
+				<td style="width:3%;text-align: center;vertical-align: inherit;">
+					<span>
+						#if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+					</span>
+				</td>
+
+				<td class="desc" style="width:55%;">
+					#if(type_Title != null){#
+					<div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+					#}#
+
+					#if(description!=null){#
+					#if(description.length >= 25){#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+					#}
+					else
+					{#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+					#}#
+					#}#
+
+
+					#if(code!=null){#
+					<div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+					#}#
+
+					#if(customer_Title!=null){#
+					<div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+					#}#
+
+					#if(customerStorage_Title!=null){#
+					<div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+					#}#
+
+					#if(fixture_Title!=null){#
+					<div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+					#}#
+
+					<div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
+					#if(lastOperationStatus_Title!=null){#
+					<div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+					#}#
+
+					#if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+					<div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+					#}#
+
+					#if(taskSubjectType_Title != null){#
+					<span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+					#}#
+				</td>
+	             <td style="width:10%;vertical-align: inherit;">
+	             	<h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+	             				</h5>
+	             </td>
+			</tr>
+		</tbody>
+	</table>
+
+</script>
+
+<style type="text/css">
+	.list-group.clear-list .list-group-item {
+		padding: 5px 0px !important;
+	}
+
+	.table {
+		border-top: 0px #ddd solid;
+	}
+
+	.mywidget {
+		border-radius: 10px !important;
+		padding: 10px 15px !important;
+		margin-bottom: 10px !important;
+		margin-top: 0px !important;
+		min-height: 70px !important;
+	}
+
+	.dl-horizontal dt {
+		text-align: left !important;
+	}
+
+	.toggle-group label {
+		line-height: 20px !important;
+	}
+
+	.breadcrumb {
+		padding: 0px 0px !important;
+		margin-bottom: 0px !important;
+		border-radius: 4px !important;
+	}
+</style>
+
+
+
+<div class="row">
+	<div class="col-lg-3">
+		<div class="ibox ">
+			<div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+				<div class="m-b-md">
+					<h2 class="font-bold no-margins">
+						@Model.name
+					</h2>
+					<small> <i class="fa fa-location-arrow"></i> @(Model.openAddressLocationId_Title != null ? Model.openAddressLocationId_Title : "Lokasyon bulunamadı")</small>
+				</div>
+				<img src="@(Model.logo != null ? Model.logo : "")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+
+				@if (Model.type == (int)EnumCMP_CompanyType.Diger)
+				{
+					<div style="margin-top: 15px;">
+						<a class="btn btn-xs btn-primary" data-href="/CMP/VWCMP_Company/Update?id=@Model.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+						<a class="btn btn-xs btn-primary" href="mailto:@Model.email"> <i class="fa fa-envelope"></i> Mail Gönder </a>
+						<a class="btn btn-xs btn-primary" href="tel:@Model.phone"> <i class="fa fa-phone"></i> Ara </a>
+					</div>
+				}
+				else
+				{
+					<div style="margin-top: 15px;">
+						<a class="btn btn-xs btn-primary" data-href="/CMP/VWCMP_Company/Update?id=@Model.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+					</div>
+				}
+
+			</div>
+			<div class="widget-text-box">
+				<ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+					<li class="list-group-item fist-item">
+						<i class="fa fa-building"></i> <strong> Firma Kodu : </strong> @Model.code
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-envelope"></i> <strong> E-Posta : </strong> <a href="mailto:@Model.email"> @Model.email </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-phone"></i><strong> Telefon : </strong> <a href="tel:@Model.phone"> @Model.phone </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-info-circle"></i><strong> Durumu : </strong> @Model.isActive_Title
+					</li>
+					@if (TenantConfig.Tenant.TenantCode == 1133)
+	                {
+				        <li class="list-group-item fist-item">
+				        	<i class="fa fa-info-circle"></i><strong> Açıklama : </strong> @Model.description
+				        </li>
+	                }
+				</ul>
+			</div>
+		</div>
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>GENEL BİLGİLER</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content no-padding">
+				<ul class="list-group">
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.commercialTitle</span>
+						Ticari Ünvan :
+					</li>
+					<li class="list-group-item ">
+						<span class="badge badge-white">@Model.taxType_Title</span>
+						Ticari Firma Türü :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white"><a href="/CMP/CMP_Company/Detail?id=@Model.pid">@Model.pid_Title</a></span>
+						Bağlı Olduğu Firma :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.fax</span>
+						Faks Numarası:
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.mersisNo</span>
+						Mersis Numarası :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.taxOffice</span>
+						Vergi Dairesi :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.taxNumber </span>
+						Vergi Numarası :
+					</li>
+					<li class="list-group-item" style="padding: 12px 0px 30px 15px;">
+						<span style="width:75%;text-align:right;white-space:normal;" class="badge badge-white">@Model.invoiceAddress</span>
+						Fatura Adresi :
+					</li>
+					<li class="list-group-item clearfix">
+						<span style="width:80%;text-align:right;white-space:normal;" class="badge badge-primary">@Model.Sectors</span>
+						Faaliyet Alanları :
+					</li>
+				</ul>
+			</div>
+		</div>
+		@if (TenantConfig.Tenant.Config.CustomProperty.ContainsKey("CMP_Company") && TenantConfig.Tenant.Config.CustomProperty["CMP_Company"].Length > 0)
+		{
+			@Html.Action("Detail", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "CMP_Company" })
+		}
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>KONUM BİLGİSİ</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link" id="locationArrow">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content p-sm clearfix">
+				@Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker-company.png").ZoomLevel(16).Navigation(false).Height(300)
+			</div>
+		</div>
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>QR KOD</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content clearfix">
+				<div class="qrCodeWrapper" data-wrapper="qrCode" style="width: 170px;">
+					@(Html.Kendo().QRCode()
+                 .Name("QRCode")
+                 .Value(Model.code)
+                 .Size(160)
+                    )
+					<span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+					<div style="text-align:center;">
+						<a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+						<a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-9">
+
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5> <i class="fa text-success fa-bar-chart-o"></i> ÖZET BİLGİ</h5>
+			</div>
+			<div class="ibox-content clearfix" style="padding-bottom:10px !important; padding-top:10px !important;">
+				<div class="col-md-6">
+					<table class="table m-b-xs">
+						<tbody>
+							<tr>
+								<td style="border-top:none;"> <span data-id="VWCMP_Storage" class="label label-success pull-right">1</span> <i class="ii-ambarmevcudu"></i> Toplam Şube/Depo/Kısım Sayısı </td>
+							</tr>
+							<tr>
+								<td><span class="label label-success pull-right" data-id="VWSH_UserActive">1</span><i class="fa fa-hand-o-right"></i> Toplam Personel Sayısı </td>
+							</tr>
+							<tr>
+								<td><span data-id="VWCMP_Company" class="label label-success pull-right">1</span> <i class="fa fa-calendar"></i> Toplam Şube Sayısı </td>
+							</tr>
+							<tr>
+								<td><span class="label label-success pull-right" data-id="VWCMP_TenderSelling">1</span> <i class="fa fa-hand-o-left"></i> Satış Teklifleri </td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div class="col-md-6">
+					<table class="table m-b-xs">
+						<tbody>
+							<tr>
+								<td style="border-top:none;"><span class="label label-success pull-right" data-id="VWCMP_InvoiceSelling">1</span> <i class="fa fa-mail-reply"></i>  Satış Faturaları </td>
+							</tr>
+							<tr>
+								<td> <span class="label label-success pull-right" data-id="VWCMP_InvoiceBuying">1</span> <i class="fa fa-mail-forward"></i> Alış Faturaları </td>
+							</tr>
+							<tr>
+								<td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceSelling">1</span> <i class="fa fa-money"></i> Satış Faturaları Tutarı </td>
+							</tr>
+							<tr>
+								<td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceBuying">1</span> <i class="fa fa-money"></i> Alış Faturaları Tutarı </td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+
+		<section style="margin-bottom: 20px;">
+			<div class="tabs-container">
+				<ul class="nav nav-tabs">
+					<li data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" class="active" data-toggle="tooltip" data-placement="top" title="Firma Şube/Depo/Kısımları">
+						<a data-toggle="tab" href="#VWCMP_Storages" aria-expanded="true"><i class="icon-home-4 text-success fa-2x"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Firma Personelleri">
+						<a data-toggle="tab" href="#VWSH_Users" aria-expanded="false"><i class="icon-adult text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWCMP_Company", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Bağlı Firmalar">
+						<a data-toggle="tab" href="#VWCMP_Companys" aria-expanded="false"><i class="icon-building text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-toggle="tooltip" data-placement="top" title="Firma Dosya ve Evrakları">
+						<a data-toggle="tab" href="#SYS_Files" aria-expanded="false"><i class="icon-attach text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWPRJ_Project", new { area = "SH" })" data-toggle="tooltip" data-placement="top" title="Firmanın Projeleri">
+						<a data-toggle="tab" href="#VWPRJ_Projects" aria-expanded="false"><i class="icon-briefcase text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Alış Faturaları">
+						<a data-toggle="tab" href="#VWCMP_InvoiceBuyings" aria-expanded="false"><i class="icon-newspaper-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Satış Faturaları">
+						<a data-toggle="tab" href="#VWCMP_InvoiceSellings" aria-expanded="false"><i class="icon-doc-text-inv-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Order", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Satış Siparişleri">
+						<a data-toggle="tab" href="#VWCMP_OrderSellings" aria-expanded="false"><i class="icon-basket text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Tender", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Satış Teklifleri">
+						<a data-toggle="tab" href="#VWCMP_TenderSellings" aria-expanded="false"><i class="icon-pencil-alt text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Tender", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Satın Alma Teklifleri">
+						<a data-toggle="tab" href="#VWCMP_TenderBuyings" aria-expanded="false"><i class="icon-edit-3 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+					{
+						<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Request", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Satın Alma Talepleri">
+							<a data-toggle="tab" href="#VWCMP_Requests" aria-expanded="false"><i class="icon-up-hand text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+					}
+					else
+					{
+						<li data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Arıza/Bakım/Keşif işlemleri">
+							<a data-toggle="tab" href="#VWFTM_Tasks" aria-expanded="false"><i class="icon-wrench text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Görev Form Tanımları">
+							<a data-toggle="tab" href="#VWFTM_TaskFormRelation" aria-expanded="false"><i class="icon-doc-text-inv-1 text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-href="@Url.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" })" data-toggle="tooltip" data-placement="top" title="Potansiyel/Fırsatlar">
+							<a data-toggle="tab" href="#VWCRM_Presentations" aria-expanded="false"><i class="icon-dollar text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-href="@Url.Action("DataSource", "VWCRM_Contact", new { area = "CRM" })" data-toggle="tooltip" data-placement="top" title="Aktiviteler/Randevular">
+							<a data-toggle="tab" href="#VWCRM_Contacts" aria-expanded="false"><i class="icon-calendar text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-href="@Url.Action("DataSource", "VWCRM_ContactUser", new { area = "CRM" })" data-toggle="tooltip" data-placement="top" title="Personeller ve Katıldıkları Toplantılar">
+							<a data-toggle="tab" href="#VWCRM_ContactUsers" aria-expanded="false"><i class="icon-group text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+						<li class="pull-right" data-href="@Url.Action("DataSource", "VWPA_Transaction", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Borç-Alacak">
+							<a data-toggle="tab" href="#VWPA_Transactions" aria-expanded="false"><i class="icon-list-alt text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+
+					}
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Banka&Kasa İşlemleri">
+						<a data-toggle="tab" href="#VWPA_Accounts" aria-expanded="false"><i class="icon-bank text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPA_Ledger", new { area = "PA" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Ödemeler">
+						<a data-toggle="tab" href="#VWPA_Ledgers" aria-expanded="false"><i class="icon-money text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Ürün/Stok Durumu">
+						<a data-toggle="tab" href="#VWPRD_Transaction" aria-expanded="false"><i class="icon-cubes text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+				</ul>
+
+				<div class="tab-content">
+					<div class="tab-pane active" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
+						<h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
+						@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(d => d.companyId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.address).Title("").Width(30).ClientTemplate("#=hasLocation(data.address)#").HeaderTemplate("<i data-toggle='tooltip' title='Konum' data-placement='left'  class='fa fa-location-arrow'></i>").Filterable(false);
+                    x.Bound(y => y.code).Title("Kodu").Width(100).Filterable(true);
+                    x.Bound(y => y.name).Title("İsmi").Width(100).Filterable(true);
+                    x.Bound(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
+                    x.Bound(y => y.locationId_Title).Title("Ülke/İl/İlçe").Width(150).Filterable(true);
+                    if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                    {
+                        x.Bound(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
+                    }
+                })
+                .Scrollable(x => x.Height(350))
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
+                    //x.Custom().Text("<i data-original-title='Rafları Göster' class='fa fa-align-left'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("TreeViewStorage", "VWCMP_StorageSection", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
+                })
+                        )
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
+						<h4><i class="icon-adult text-success"></i> PERSONEL LİSTESİ </h4>
+						@(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_UserActive")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_User", new { area = "SH" }))
+            .Filter(a => a.CompanyId == Model.id && a.IsWorking == true).PageSize(25).Sort(a => a.Add(c => c.FullName)))
+            .Columns(x =>
+            {
+
+                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                {
+                    x.Bound(y => y.FullName).Title("Personel Bilgileri").ClientTemplate("#=TemplateEngine('personelTemplate',data)#");
+                    x.Bound(y => y.code).Title("Personel Kodu").Width(180).Hidden(true);
+                    x.Bound(y => y.loginname).Title("TC Kimlik No").Width(180).Hidden(true);
+                    x.Bound(y => y.firstname).Title("Ad").Width(180).Hidden(true);
+                    x.Bound(y => y.lastname).Title("Soyad").Width(180).Hidden(true);
+                    x.Bound(y => y.title).Title("Ünvan").Hidden(true);
+                    x.Bound(y => y.Department_Title).Title("Çalıştığı Departman").Width(180).Hidden(true);
+                    x.Bound(y => y.birthday).Title("Doğum Tarihi").Width(180).Format(Extensions.DateFormatShort(true)).Hidden(true);
+                    x.Bound(y => y.cellphone).Title("Şahsi Cep Telefonu").Width(180).Hidden(true);
+                    x.Bound(y => y.email).Title("Email").Width(180).Hidden(true);
+                    x.Bound(y => y.address).Title("Adres").Width(180).Hidden(true);
+                    x.Bound(y => y.CompanyPerson_Title).Title("Sigortadaki Ünvan").Width(180).Hidden(true);
+                    x.Bound(y => y.companyCellPhone).Title("Şirket Cep Telefonu").Width(180).Hidden(true);
+                    x.Bound(y => y.JobStartDate).Title("İşe Giriş Tarihi").Format(Extensions.DateFormatShort(true)).Hidden(true);
+                    x.Bound(y => y.PersonWorkingCount).Title("Toplam Çalışılan Gün").Hidden(true);
+                    x.Bound(y => y.PermitYearlyDeserved).Title("Hak Edilen Yıllık İzin").Hidden(true);
+                    x.Bound(y => y.PermitYearlyUsed).Title("Kullanılan Yıllık İzin").Hidden(true);
+                    x.Bound(y => y.PermitYearlyUsable).Title("Kalan Yıllık İzin").Hidden(true);
+                }
+                else
+                {
+                    x.Bound(y => y.FullName).Title("Adı Soyadı");
+                    x.Bound(y => y.title).Title("Ünvanı").Width(200);
+                    x.Bound(y => y.cellphone).Title("Cep Telefonu").Width(200);
+                    x.Bound(y => y.phone).Title("Sabit Telefon").Width(200);
+                    x.Bound(y => y.email).Title("Eposta Adresi").Width(200);
+
+                }
+            })
+            .Scrollable(x => x.Height(350))
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+
+                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                {
+                    x.Custom().Text("<i data-original-title='Personel Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "" } }).Url(Url.Action("Update", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Personel Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWSH_User", new { area = "SH" }));
+                }
+                else
+                {
+                    x.Custom().Text("<i data-original-title='Personel Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-show", "always" }, { "data-method", "get" } }).Url(Url.Action("InsertCustomer", "VWSH_User", new { area = "SH", companyId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Personel Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-show", "single" }, { "data-method", "get" } }).Url(Url.Action("UpdateCustomer", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i class='icon-mail-1'  data-original-title='Oturum Bilgisi (KullanıcıAdı,Şifre) Paylaş'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Oturum bilgisi paylaşmak istediğinizden eminmisiniz.Kullanıcı bu bilgilerle sistemde oturum açabilecektir." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
+                    x.Custom().Text("<i title='Personeli Sİl' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
+                }
+
+            }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Company", new { area = "CMP" })" id="VWCMP_Companys">
+						<h4><i class="text-success icon-building"></i> BAĞLI FİRMALAR </h4>
+						@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).PageSize(25).Filter(c => c.pid == Model.id))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.fullName).Title("İşletme Bilgileri").ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#");
+                    x.Bound(y => y.code).Title("Kodu").Hidden(true);
+                    x.Bound(y => y.name).Title("İsmi").Hidden(true);
+                    x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
+                    x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
+                    x.Bound(y => y.email).Title("E-Mail").Hidden(true);
+                    x.Bound(y => y.fax).Title("Telefon Numarası").Hidden(true);
+                    x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
+                    x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
+                    x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
+                    x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
+                    x.Bound(y => y.invoiceAddress).Title("Fatura Adresi").Hidden(true);
+                    x.Bound(y => y.openAddress).Title("Açık Adres").Hidden(true);
+                })
+                .Scrollable(x => x.Height(350))
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Firma Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-Insert", "Company" }, { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", pid = Model.id, type = Model.type }));
+                    x.Custom().Text("<i data-original-title='Firma Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP", pid = Model.id }));
+                    x.Custom().Text("<i data-original-title='Firma Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+                })
+                        )
+					</div>
+
+					<div class="tab-pane" id="SYS_Files">
+						<h4><i class="text-success icon-attach"></i> FİRMA DOSYALARI VE EVRAKLARI </h4>
+						@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_Company", Filter = false })
+
+						@Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Contact", DataIds = ((Guid[])ViewBag.ContactIds), Filter = false })
+
+						@Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Presentation", DataIds = ((Guid[])ViewBag.PresentationIds), Filter = false })
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" id="VWCMP_InvoiceSellings">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-doc-text-inv-1"></i> SATIŞ FATURALARIM </h4>
+							@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_InvoiceSelling")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                .Filter(a => a.supplierId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.Customer_Title).Title("Müşteri").Width(350);
+                    x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .Scrollable(x => x.Height(350))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Satış Faturası Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP", supplierId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+
+                }))
+						}
+
+						else
+						{
+							<h4><i class="text-success icon-doc-text-inv-1"></i> FİRMAYA KESTİĞİM SATIŞ FATURALARI </h4>
+							@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_InvoiceSelling")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                .Filter(a => a.customerId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.Supplier_Title).Title("Faturayı Kesen İşletmem").Width(350);
+                    x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .Scrollable(x => x.Height(350))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Satış Faturası Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP", customerId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+
+                }))
+						}
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" id="VWCMP_InvoiceBuyings">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-newspaper-1"></i> ALIŞ FATURALARIM </h4>
+							@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_InvoiceBuying")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                .Filter(a => a.customerId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.Supplier_Title).Title("Tedarikçi Firma").Width(350);
+                    x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                })
+                .Scrollable(x => x.Height(350))
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Fatura Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP", customerId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+                }))
+						}
+						else
+						{
+							<h4><i class="text-success icon-newspaper-1"></i> FİRMANIN KESTİĞİ FATURALAR  </h4>
+							@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_InvoiceBuying")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                .Filter(a => a.supplierId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.Customer_Title).Title("Faturanın Kesildiği İşletmem").Width(350);
+                    x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                })
+                .Scrollable(x => x.Height(350))
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Fatura Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP", supplierId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+                }))
+						}
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Order", new { area = "CMP" })" id="VWCMP_OrderSellings">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-basket"></i> SATIŞ SİPARİŞLERİM </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Order>("VWCMP_OrderSelling")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Order", new { area = "CMP" }))
+                    .Filter(a => a.supplierId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.orderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Sipariş Durumu").Width(150);
+                        x.Bound(y => y.Customer_Title).Title("Müşteri").Width(350);
+                        x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .Scrollable(x => x.Height(350))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Satış Siparişi Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Order", new { area = "CMP", supplierId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Satış Siparişi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Order", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Siparişi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateSelling", "VWCMP_Order", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Sipariş Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Order", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Siparişi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Order", new { area = "CMP" }));
+                    }))
+						}
+
+						else
+						{
+							<h4><i class="text-success icon-basket"></i> FİRMANIN VERDİĞİ SİPARİŞLER </h4>
+							@(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Order>("VWCMP_OrderSelling")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Order", new { area = "CMP" }))
+                .Filter(a => a.customerId == Model.id).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.orderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                    x.Bound(y => y.status_Title).Title("Sipariş Durumu").Width(150);
+                    x.Bound(y => y.Supplier_Title).Title("Siparişin Geldiği İşletmem").Width(350);
+                    x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .Scrollable(x => x.Height(350))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Satış Siparişi Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Order", new { area = "CMP", customerId = Model.id }));
+                    x.Custom().Text("<i data-original-title='Siparişi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Order", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Siparişi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateSelling", "VWCMP_Order", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Sipariş Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Order", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Siparişi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Order", new { area = "CMP" }));
+                }))
+						}
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Tender", new { area = "CMP" })" id="VWCMP_TenderSellings">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-pencil-alt"></i> FİRMAMIN VERDİĞİ SATIŞ TEKLİFLERİ </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderSelling")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+                    .Filter(a => a.supplierId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.tenderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Teklif Durumu").Width(150);
+                        x.Bound(y => y.Customer_Title).Title("Müşteri").Width(350);
+                        x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Teklif Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", supplierId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Teklifi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateSelling", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Tender", new { area = "CMP" }));
+                    }))
+						}
+						else
+						{
+							<h4><i class="text-success icon-pencil-alt"></i> FİRMAYA VERİLEN SATIŞ TEKLİFLERİ </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderSelling")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+                    .Filter(a => a.customerId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.tenderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Teklif Durumu").Width(150);
+                        x.Bound(y => y.Supplier_Title).Title("Firmayı Veren İşletmem").Width(350);
+                        x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Teklif Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", customerId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Teklifi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Tender", new { area = "CMP" }));
+                    }))
+						}
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Tender", new { area = "CMP" })" id="VWCMP_TenderBuyings">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-edit-3"></i> FİRMAMIN SATIN ALMA TEKLİFLERİ </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderBuying")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+                    .Filter(a => a.customerId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.tenderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Teklif Durumu").Width(150);
+                        x.Bound(y => y.Customer_Title).Title("Müşteri").Width(350);
+                        x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Teklif Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Tender", new { area = "CMP", customerId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Teklifi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+                    }))
+						}
+						else
+						{
+							<h4><i class="text-success icon-edit-3"></i> FİRMADAN GELEN SATIN ALMA TEKLİFLERİ </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderBuying")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+                    .Filter(a => a.supplierId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.tenderStatusTemp(data) #").Width(40).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Teklif Durumu").Width(150);
+                        x.Bound(y => y.Supplier_Title).Title("Firmayı Veren İşletmem").Width(350);
+                        x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalTax)#");
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=cmpDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Teklif Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Tender", new { area = "CMP", supplierId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Teklifi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+                    }))
+						}
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Request", new { area = "CMP" })" id="VWCMP_Requests">
+						<h4><i class="text-success icon-up-hand"></i> SATIN ALMA TALEPLERİ </h4>
+
+						@(Html.Akilli()
+               .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
+               .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
+               .Filter(a => a.type == (int)EnumCMP_InvoiceType.Talep && a.customerId == Model.id).PageSize(25))
+               .Columns(x =>
+               {
+                   x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.requestStatusTemp(data) #").Width(30).Filterable(false).Title("");
+                   x.Bound(y => y.status_Title).Title("Talep Durumu").Width(180);
+                   x.Bound(y => y.rowNumber).Title("Talep Kodu").Width(180);
+                   x.Bound(y => y.created).Title("Talep Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                   x.Bound(y => y.CustomerStorage_Title).Title("Giriş Yapılacak Şube/Depo/Kısım").Width(220);
+                   x.Bound(y => y.createdby_Title).Title("Talep Eden Personel").Width(180);
+               })
+               .Scrollable(x => x.Height(350))
+               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+               .ToolBar(x =>
+               {
+                   x.Custom().Text("<i data-original-title='Talep Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Request", new { area = "CMP" }));
+                   x.Custom().Text("<i data-original-title='Talebi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", IsCopy = true }));
+                   x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
+                   x.Custom().Text("<i data-original-title='Talebi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Request", new { area = "CMP" }));
+               }))
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
+						<h4><i class="text-success icon-bank"></i> BANKA VE KASA İŞLEMLERİ </h4>
+
+						@(Html.Akilli()
+               .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Account>("VWPA_Account")
+               .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Account", new { area = "PA" }))
+               .Filter(a => a.dataTable == "CMP_Company" && a.dataId == Model.id).PageSize(25))
+               .Columns(x =>
+               {
+                   x.Bound(y => y.name).HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('VWPA_AccountTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter"))); ;
+                   x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatShort(true)).Width(130).Hidden(true);
+                   x.Bound(y => y.dataId_Title).Title("Hesap Sahibi").Width(200).Hidden(true);
+                   x.Bound(y => y.code).Title("Hesap Kodu").Width(160).Hidden(true);
+                   x.Bound(y => y.currencyId_Title).Title("Döviz Cinsi").Width(160).Hidden(true);
+                   x.Bound(y => y.Currency_Symbol).Title("Döviz Sembol").Width(160).Hidden(true);
+                   x.Bound(y => y.bankId_Title).Title("Banka Adı").Width(160).Hidden(true);
+                   x.Bound(y => y.iban).Title("IBAN").Width(160).Hidden(true);
+                   x.Bound(y => y.status_Title).Title("Durumu").Width(100).Hidden(true);
+                   x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+               })
+               .Scrollable(x => x.Height(350))
+               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+               .ToolBar(x =>
+               {
+                   if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                   {
+                       x.Custom().Text("<i data-original-title='Hesap Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Account", new { area = "PA", dataTable = "CMP_Company", dataId = Model.id }));
+                       x.Custom().Text("<i data-original-title='Hesap Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPA_Account", new { area = "PA" }));
+                       x.Custom().Text("<i data-original-title='Hesap Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Account", new { area = "PA" }));
+                   }
+               }))
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Transaction", new { area = "PA" })" id="VWPA_Transactions">
+						<h4><i class="fa fa-list-alt text-success"></i> BORÇ-ALACAK TABLOSU </h4>
+
+						@if (accountIds.Count() > 0)
+						{
+							if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.OnMuhasebe)))
+							{
+
+								@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+                        .Filter(a => accountIds.Contains(a.accountId) && a.createdby == userStatus.user.id).PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionTemplate',data)#");
+                            x.Bound(y => y.invoiceId_Title).Title("İlişkili Fatura").Hidden(true).Width(130);
+                            x.Bound(y => y.accountId_Title).Title("İlişkili Hesap").Hidden(true).Width(130);
+                            x.Bound(y => y.direction_Title).Title("İşlem Yönü").Hidden(true).Width(130);
+                            x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                            x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                            x.Bound(y => y.currencyId_Title).Title("Döviz Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.date).Title("Planlanan Ödeme Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                            x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+                        })
+                        .Scrollable(x => x.Height(350))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+							}
+							else
+							{
+
+								@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+                        .Filter(a => accountIds.Contains(a.accountId)).PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionTemplate',data)#");
+                            x.Bound(y => y.invoiceId_Title).Title("İlişkili Fatura").Hidden(true).Width(130);
+                            x.Bound(y => y.accountId_Title).Title("İlişkili Hesap").Hidden(true).Width(130);
+                            x.Bound(y => y.direction_Title).Title("İşlem Yönü").Hidden(true).Width(130);
+                            x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                            x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                            x.Bound(y => y.currencyId_Title).Title("Döviz Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.date).Title("Planlanan Ödeme Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                            x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+                        })
+                        .Scrollable(x => x.Height(350))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+							}
+
+						}
+						else
+						{
+							@(Html.Akilli()
+              .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+              .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+              .Filter(a => a.accountId == Guid.NewGuid()).PageSize(25))
+              .Columns(x =>
+              {
+                  x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+              }))
+						}
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Ledger", new { area = "PA" })" id="VWPA_Ledgers">
+						<h4><i class="text-success icon-money"></i> GEÇMİŞ ÖDEMELER </h4>
+
+						@if (accountIds.Count() > 0)
+						{
+							@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                        .Sort(a =>
+                        {
+                            a.Add(b => b.date).Descending();
+                            a.Add(b => b.created).Descending();
+                        })
+                                        .Filter(a => accountIds.Contains(a.accountId)).PageSize(25))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.ledgerTypeTemp(data) #").Width(40).Filterable(false).Title("");
+                                            x.Bound(y => y.type_Title).Title("İşlem Türü").Width(150);
+                                            x.Bound(y => y.date).Title("İşlem Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                                            x.Bound(y => y.accountRelatedCompanyId_Title).Title("İlgili Hesap").Width(180);
+                                            x.Bound(y => y.description).Title("Açıklama").Width(200);
+                                            x.Bound(y => y.inputAmount).Title("Giriş").ClientTemplate("#=cmpDetail.templates.totalAmountTemp(data, data.inputAmount)#").Width(100)
+                                                        .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                                        .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                                            x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                                        })
+                                .Selectable(x => x.Mode(GridSelectionMode.Single)))
+						}
+						else
+						{
+							@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                        .Filter(a => a.accountId == Guid.NewGuid()).PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).ClientTemplate("#= cmpDetail.templates.ledgerTypeTemp(data) #").Width(40).Filterable(false).Title("");
+                        }))
+						}
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_Project", new { area = "SH" })" id="VWPRJ_Projects">
+
+						@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+						{
+							<h4><i class="text-success icon-briefcase"></i> FİRMANIN YAPTIĞI PROJELER </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_Project>("VWPRJ_Project")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_Project", new { area = "PRJ" }))
+                    .Filter(a => a.CompanyId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.ProjectCode).Title("Proje Kodu").Width(120);
+                        x.Bound(y => y.ProjectName).Title("Proje Adı").Width(250);
+                        x.Bound(y => y.Corporation_Title).Title("Projenin Yapıldığı Kurum").Width(180);
+                        x.Bound(y => y.ProjectStartDate).Title("Proje Başlangıç Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.ProjectEndDate).Title("Proje Bitiş Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Proje Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRJ_Project", new { area = "PRJ" }));
+                    }))
+						}
+						else
+						{
+							<h4><i class="text-success icon-briefcase"></i> FİRMAYA YAPILAN PROJELER </h4>
+							@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_Project>("VWPRJ_Project")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_Project", new { area = "PRJ" }))
+                    .Filter(a => a.CorporationId == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.ProjectCode).Title("Proje Kodu").Width(120);
+                        x.Bound(y => y.ProjectName).Title("Proje Adı").Width(250);
+                        x.Bound(y => y.Company_Title).Title("Projeyi Yapan İşletmem").Width(180);
+                        x.Bound(y => y.ProjectStartDate).Title("Proje Başlangıç Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.ProjectEndDate).Title("Proje Bitiş Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                    })
+                    .Scrollable(x => x.Height(350))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Proje Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRJ_Project", new { area = "PRJ" }));
+                    }))
+						}
+
+					</div>
+
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" id="VWFTM_Tasks">
+						<h4><i class="icon-wrench text-success"></i> GEÇMİŞ ARIZA/BAKIM/KEŞİF KAYITLARI </h4>
+						@(Html.Akilli()
+						 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_TaskContinuing")
+						 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25).Filter(a => a.customerId == Model.id))
+						 .Columns(x =>
+						 {
+							 x.Bound(y => y.type_Title).Title("Görev Tipi").Width(150).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+							 x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(240).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+							 x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(200).ClientTemplate("#=taskPriorityResult(data)#");
+							 x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+							 x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+							 x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+							 x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+							 x.Bound(y => y.lastOperationDate).Title("Son İşlem Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+							 x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+							 {
+								 b.Clear();
+								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+							 }
+
+							 ))).Width(180).Format(Extensions.DateFormatFull(true));
+							 x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+							 x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+							 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+							 {
+
+								 b.Clear();
+								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+							 }
+
+							 ))).Width(180).Format(Extensions.DateFormatFull(true));
+						 })
+								.Events(ev => ev.FilterMenuInit("filterMenuInit"))
+						 .Selectable(x => x.Mode(GridSelectionMode.Single))
+						 .ToolBar(x =>
+						 {
+							 x.Custom().Text("<i data-original-title='Görev Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", customerId = Model.id }));
+							 x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+						 }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" id="VWFTM_TaskFormRelation">
+						<h4><i class="icon-doc-text-inv-1 text-success"></i> GÖREV FORM TANIMLARI </h4>
+						@(Html.Akilli()
+						 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskFormRelation>("VWFTM_TaskFormRelations")
+						 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })).PageSize(25).Filter(a => a.companyId == Model.id))
+						 .Columns(x =>
+						 {
+							 x.Bound(y => y.formId).Title("Form ismi").Hidden(true);
+							 x.Bound(y => y.formId_Title).Title("Form ismi").Width(240);
+							 x.Bound(y => y.productId_Title).Title("Ürün");
+							 x.Bound(y => y.company_Title).Title("İşletme").Width(180);
+							 x.Bound(y => y.companyStorage_Title).Title("Şube/Depo/Kısım");
+							 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+						 })
+						 .Selectable(x => x.Mode(GridSelectionMode.Single))
+						 .ToolBar(x =>
+						 {
+							 x.Custom().Text("<i data-original-title='Form Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, {"id","taskFormDetail" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
+						 }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" })" id="VWCRM_Presentations">
+						<h4><i class="text-success icon-dollar"></i> POTANSİYEL/FIRSATLAR </h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_Presentation>("VWCRM_Presentation")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" })).PageSize(25)
+                        .Filter(a => a.CustomerCompanyId == Model.id || a.ChannelCompanyId == Model.id))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.Name).Title("Potansiyel/Fırsat Adı").Width(180);
+                            x.Bound(y => y.changed).ClientTemplate("#=('" + Model.id + "' == data.CustomerCompanyId  ? 'Müşteri' : 'Kanal')#").Title("Potansiyeldeki Rolü").Width(180).Sortable(false).Filterable(false);
+                            x.Bound(y => y.SalesPerson_Title).Title("Satış Personeli").Width(180);
+                            x.Bound(y => y.ChannelCompany_Title).Title("Kanal").Width(180);
+                            x.Bound(y => y.Stage_Title).Title("Son Aşama").Width(180);
+                            x.Bound(y => y.LastStatus).Title("Son Aktivite Durumu").Width(180);
+                        })
+                        .Scrollable(x => x.Height(350))
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Potansiyel/Fırsat Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Insert", "VWCRM_Presentation", new { area = "CRM", CustomerCompanyId = Model.id }));
+                            x.Custom().Text("<i data-original-title='Potansiyel/Fırsat Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWCRM_Presentation", new { area = "CRM" }));
+                        }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCRM_Contact", new { area = "CRM" })" id="VWCRM_Contacts">
+						<h4><i class="text-success icon-calendar"></i> AKTİVİTELER/RANDEVULAR </h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_Contact>("VWCRM_Contact")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_Contact", new { area = "CRM" })).PageSize(25).Sort(u => u.Add(b => b.ContactStartDate))
+                        .Filter(a => (a.CustomerCompanyId == Model.id || a.ChannelCompanyId == Model.id) && a.ContactStatus != 1))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.Presentation_Title).Title("Potansiyel Fırsat").Width(280);
+                            x.Bound(y => y.ContactType_Title).Title("Aktivite Tipi").Width(130);
+                            x.Bound(y => y.ContactStatus_Title).Title("Aktivite Durumu").Width(150);
+                            x.Bound(y => y.ContactStartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.ContactEndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.Description).Title("Aktivite Notu").ClientTemplate("#=First50Char(data.Description)#").Width(150);
+                            x.Bound(y => y.changed).ClientTemplate("#=('" + Model.id + "' == data.CustomerCompanyId  ? 'Müşteri' : 'Kanal')#").Title("Aktivite Katılım Tipi").Width(180).Sortable(false).Filterable(false);
+                        })
+                        .Scrollable(x => x.Height(350))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Aktivite/Randevu Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCRM_Contact", new { area = "CRM" }));
+                            x.Custom().Text("<i data-original-title='Aktivite/Randevu Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWCRM_Contact", new { area = "CRM" }));
+                        }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCRM_ContactUser", new { area = "CRM" })" id="VWCRM_ContactUsers">
+						<h4><i class="text-success icon-group"></i> PERSONELLER VE KATILDIKLARI TOPLANTILAR </h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_ContactUser>("VWCRM_ContactUser")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_ContactUser", new { area = "CRM" })).PageSize(25)
+                        .Filter(a => (a.CustomerCompanyId == Model.id || a.ChannelCompanyId == Model.id))
+                        .Group(c => c.Add(y => y.Presentation_Title)).Sort(u => u.Add(i => i.ContactStartDate).Descending()))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.ContactStartDate).Title("Aktivite/Randevu Tarih").Width(180).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.Presentation_Title).Title("Potansiyel/Fırsat Adı").Width(200);
+                            x.Bound(y => y.User_Title).Title("Personel").Width(150);
+                            x.Bound(y => y.UserType_Title).Title("Personel Katılım Tipi").Width(180);
+                        })
+                        .Scrollable(x => x.Height(350))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Toplantı Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWCRM_Contact", new { area = "CRM" }));
+                        }))
+					</div>
+
+					<div class="tab-pane" id="VWPRD_Transaction">
+
+						<div class="clearfix m-b-md" data-href="@Url.Action("DataSource","VWPRD_StockSummary",new { area="PRD"})">
+							<h4><i class="text-success icon-cubes"></i> STOK ÖZETİ </h4>
+							@(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" }))
+                                .Filter(a => a.stockCompanyId == Model.id).PageSize(25))
+                                .Scrollable(a => a.Height(300))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.id).ClientTemplate("#=TemplateEngine('photoTemplate',data) #").Filterable(false).Title("").Width(50);
+                                    x.Bound(y => y.productId_Title).Title("Ürün").Width(500);
+                                    if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem){
+                                        x.Bound(y => y.stockId_Title).Title("Şube/Depo/Kısım - Personel").Width(500);
+                                    }else{
+                                        x.Bound(y => y.stockId_Title).Title("Şube/Depo/Kısım").Width(500);
+                                    }
+                                    x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+                                    x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-storage", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+                                    x.Custom().Text("<i data-original-title='Envanter Listesi' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
+                                }))
+						</div>
+
+						<div class="clearfix m-b-md" data-href="@Url.Action("DataSource","VWPRD_Inventory",new { area="PRD"})">
+							<h4><i class="text-success icon-buffer"></i> ENVANTER LİSTESİ </h4>
+							@(Html.Akilli()
+                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" }))
+                             .Filter(a => a.lastActionDataCompanyId == Model.id).PageSize(25))
+                             .Scrollable(a => a.Height(300))
+                             .Columns(x =>
+                             {
+                                 x.Bound(y => y.id).Title("Envanter Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Locked(true).Sortable(false).Width(600).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+                                 x.Bound(y => y.serialcode).Title("Seri No").Width(130).Hidden(false);
+                                 x.Bound(y => y.code).Title("Envanter Kodu").Width(150).Hidden(false);
+                                 x.Bound(y => y.productId_Title).Title("Ürün Bilgisi").Width(220).Hidden(false);
+                                 x.Bound(y => y.lastActionType_Title).Title("Durumu").Filterable(filterable => filterable.UI("FilterMenuInventoryLastStatus")).Width(130).Hidden(false);
+                                 x.Bound(y => y.lastActionDataCompanyId_Title).Title("Cari Konumu").Width(200).Hidden(false);
+                                 x.Bound(y => y.lastActionDataId_Title).Title("Depo Konumu").Width(200).Hidden(false);
+                             })
+                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                             .ToolBar(x =>
+                             {
+                                 x.Custom().Text("<i title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
+                                 x.Custom().Text("<i title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+                                 // x.Custom().Text("<i title='Hareket Detayı' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Inventory", new { area = "PRD" }));
+                             }))
+						</div>
+
+
+						<div class="clearfix m-b-md" data-href="@Url.Action("DataSource","VWPRD_StockAction",new { area="PRD"})">
+							<h4><i class="text-success icon-exchange-1"></i> STOK HAREKETLERİ </h4>
+
+							@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+							{
+
+								@(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" }))
+                                .Filter(a => a.stockCompanyId == Model.id && a.stockTable=="CMP_Storage").PageSize(25))
+                                .Scrollable(a => a.Height(300))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                                    x.Bound(y => y.created).Title("İşlem Tarihi (Fiil'i)").Width(150).Format(Extensions.DateFormatFull(true)).Hidden(true);
+                                    x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(150);
+                                    x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
+                                    x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity, 'n2')# #:unitId_Title#</span> ").Width(120).Format("{0:N2}");
+                                    x.Bound(y => y.stockId_Title).Title("İşlem Yapan Şube/Depo/Kısım").Width(300);
+                                    x.Bound(y => y.dataCompanyId_Title).Title("Cari").Width(300);
+                                    x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım/Personel").Width(300);
+                                    x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
+                                    x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(90).Format("{0:N2} TL");
+                                    x.Bound(y => y.totalPrice).Title("Tutar").Width(100).Format("{0:N2} TL");
+                                })
+                                .Events(a => a.ExcelExport("Kendo_CustomExport"))
+                                .Selectable(x => x.Mode(GridSelectionMode.Single)))
+							}
+							else
+							{
+								@(Html.Akilli()
+                                .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" }))
+                                .Filter(a => a.dataCompanyId == Model.id).PageSize(25))
+                                .Scrollable(a => a.Height(300))
+                                .Columns(x =>
+                                {
+                                    x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                                    x.Bound(y => y.created).Title("İşlem Tarihi (Fiil'i)").Width(90).Format(Extensions.DateFormatFull(true)).Hidden(true);
+                                    x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(150);
+                                    x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
+                                    x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity, 'n2')# #:unitId_Title#</span> ").Width(120).Format("{0:N2}");
+                                    x.Bound(y => y.stockCompanyId_Title).Title("İşlem Yapan Cari").Width(300);
+                                    x.Bound(y => y.stockId_Title).Title("İşlem Yapan Şube/Depo/Kısım").Width(220);
+                                    x.Bound(y => y.dataId_Title).Title("Şube/Depo/Kısım").Width(250);
+                                    x.Bound(y => y.serialCodes).Title("Seri Kodları").Width(400);
+                                    x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(90).Format("{0:N2} TL");
+                                    x.Bound(y => y.totalPrice).Title("Tutar").Width(100).Format("{0:N2} TL");
+                                })
+                                .Events(a => a.ExcelExport("Kendo_CustomExport"))
+                                .Selectable(x => x.Mode(GridSelectionMode.Single)))
+							}
+						</div>
+
+						<div class="clearfix m-b-md" data-href="@Url.Action("DataSource","VWPRD_Transaction",new { area="PRD"})">
+							<h4><i class="text-success icon-th-list"></i> STOK İŞLEMLERİ </h4>
+							@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_TransactionGrid")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" }))
+                            .Filter(a => a.inputCompanyId == Model.id || a.outputCompanyId == Model.id).PageSize(25)
+                            .Sort(a => a.Add("created").Descending()).PageSize(25))
+                            .Scrollable(a => a.Height(300))
+                            .Filterable(t => t.Mode(GridFilterMode.Row))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                                x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                                x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                                x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                                x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                                x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                                x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                                x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                                x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+                                x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+                                x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+                                x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+                            }))
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		@if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+		{
+
+
+			<div class="ibox  collapsed">
+				<div class="ibox-title">
+					<h5> <i class="fa text-success fa-list-alt"></i>  Şirket Personel Yönetmelikleri </h5>
+					<div class="ibox-tools">
+						<a class="collapse-link">
+							<i class="fa fa-chevron-up"></i>
+						</a>
+					</div>
+				</div>
+				<div class="ibox-content">
+					@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyPersonDocument" })
+				</div>
+			</div>
+
+			<div class="ibox  collapsed">
+				<div class="ibox-title">
+					<h5> <i class="fa text-success fa-list-alt"></i>  İSG Dosyaları</h5>
+					<div class="ibox-tools">
+						<a class="collapse-link">
+							<i class="fa fa-chevron-up"></i>
+						</a>
+					</div>
+				</div>
+				<div class="ibox-content">
+					@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyWorkHealthDocument" })
+				</div>
+			</div>
+
+			<div class="ibox  collapsed">
+				<div class="ibox-title">
+					<h5> <i class="fa text-success fa-list-alt"></i>  Şirket Evrakları </h5>
+					<div class="ibox-tools">
+						<a class="collapse-link">
+							<i class="fa fa-chevron-up"></i>
+						</a>
+					</div>
+				</div>
+				<div class="ibox-content">
+					@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyDocument" })
+				</div>
+			</div>
+		}
+
+
+	</div>
+</div>
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var cmpDetail = {
+        dfn: {
+            tenderStatusEnums: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_TenderStatus>())),
+            orderStatusEnums: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_OrderStatus>())),
+            requestStatusEnums: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_RequestStatus>())),
+            ledgerTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
+            taskTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>())),
+        },
+        templates: {
+            taskIconTemp: function (item) {
+                if (item == null) { return ''; }
+                var type = $.Enumerable.From(cmpDetail.dfn.taskTypes).Where(a => a.Key == item).FirstOrDefault();
+                return '<i class="' + type.Generic.icon + '" data-toggle="tooltip" data-placement="left" data-original-title="' + type.Value + '"></i>';
+            },
+            currencyTemp: function (item, data, isTotal) {
+                if (!data) {
+                    return "-";
+                }
+
+                if (isTotal && isTotal == true) {
+                    return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+                }
+
+                return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+            },
+            requestStatusTemp: function (data) {
+                var status = $.Enumerable.From(cmpDetail.dfn.requestStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+                return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+            },
+            orderStatusTemp: function (data) {
+                var status = $.Enumerable.From(cmpDetail.dfn.orderStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+                return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+            },
+            tenderStatusTemp: function (data) {
+                var status = $.Enumerable.From(cmpDetail.dfn.tenderStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+                return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+            },
+            totalAmountTemp: function (data, amountTotal) {
+                var textColor = data.direction == -1 ? "text-danger" : "text-primary";
+
+                if (amountTotal != 0) {
+                    return '<span class="' + textColor + ' pull-right" style="font-size:18px">' + kendo.toString(amountTotal, "n2") + " " + data.Currency_Symbol +  '</span>';
+                }
+
+                return "";
+            },
+            ledgerTypeTemp: function (data) {
+                var type = $.Enumerable.From(cmpDetail.dfn.ledgerTypes).Where(a => a.Key == data.type).FirstOrDefault();
+                var color = data.direction == -1 ? "text-danger" : "text-primary";
+                return '<i class="'+ color +' fa-2x '+ type.Generic.icon +'">';
+            }
+        }
+    }
+
+    $(document)
+
+		.on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
+            var detail = $('[data-storage="detail"]');
+            var dataProduct = $('[data-productStorage="detail"]');
+            $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+            if (res.stockType == 2 && res.quantity != 0) {
+                $(dataProduct).show();
+                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+            }
+            else {
+                $(dataProduct).hide();
+            }
+        })
+        .on('click', '[data-Insert="Company"]', function (e) {
+            setTimeout(function () {
+                $('#VWCMP_CompanyInsertForm').closest('.modal-dialog').css('width', '90%')
+            }, 500)
+        })
+        .on("load:grid", ".k-grid", function (e, resp) {
+            var grid = $(this).data("kendoGrid");
+            var adet = grid.dataSource.total();
+
+            var gridId = grid.element.attr("id");
+
+            if (gridId == "VWCMP_InvoiceSelling" || gridId == "VWCMP_InvoiceBuying" || gridId == "VWCMP_InvoiceSellingMy" || gridId == "VWCMP_InvoiceBuyingMy") {
+                var data = grid.dataSource.data();
+                var total = $.Enumerable.From(data).Sum(a => a.totalAmountAsTL);
+                $('[data-total="' + gridId + '"]').text(kendo.toString(total, "N2") + " ₺");
+            }
+            else if (gridId == "VWPA_Account") {
+                $('[data-toggle="toggle"]').bootstrapToggle({
+                    width: 90,
+                    height: 20
+                });
+            }
+
+            $('[data-id="' + gridId + '"]').text(adet + " Adet");
+        })
+        .on("click", '#locationArrow', function (e) {
+            setTimeout(function (e) {
+                haritalar['LocationCompany'].map.updateSize();
+                haritalar['LocationCompany'].feature.panTo('@Model.id');
+                haritalar['LocationCompany'].map.getView().setZoom(16);
+            }, 250)
+        })
+        ;
+
+</script>

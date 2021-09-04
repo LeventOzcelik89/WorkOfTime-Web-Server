@@ -1,0 +1,116 @@
+﻿@{
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying"> <i class="fa fa-plus-circle"></i> Satın Alma Teklifi Ekle </a>
+                    <div class="space-25"></div>
+                    <h5>Teklif Sürecine Göre</h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li>
+                            <a class="active" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-success fa fa-align-justify" style="color:black;"></i> Tüm Teklifler
+                                <span class="badge badge-success pull-right black-bg" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumCMP_TenderStatus.CevapBekleniyor)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-warning fa fa-spinner"></i> Yönetici Onayı Beklenenler
+                                <span class="badge badge-warning pull-right" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.CevapBekleniyor)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+                        <li>
+                            <a data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumCMP_TenderStatus.YoneticiOnay)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-success fa fa-check"></i> Yöneticinin Onayladıkları
+                                <span class="badge badge-primary pull-right" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.YoneticiOnay)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumCMP_TenderStatus.TeklifIrsaliye)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-info fa fa-send"></i> İrsaliyesi Kesilen Teklifler
+                                <span class="badge badge-info pull-right" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.TeklifIrsaliye)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumCMP_TenderStatus.TeklifFatura)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-primary fa fa-check-circle"></i> Faturası Kesilen Teklifler
+                                <span class="badge badge-success pull-right" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.TeklifFatura)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a data-grid="VWCMP_TenderPending" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumCMP_TenderStatus.Red)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')" href="#">
+                                <i class="text-danger fa fa-times-circle"></i> Reddedilen Teklifler
+                                <span class="badge badge-warning pull-right" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.Red)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"></span>
+                            </a>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                    <h5> TEKLİF TARİHİNE GÖRE </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="(direction~eq~0)"> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0')"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWCMP_TenderPending" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Tüm Teklifler</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderPending")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+                    .Filter(a => a.direction == (int)EnumCMP_InvoiceDirectionType.Alis).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= statusTemplate(data) #").Width(30).Filterable(false).Title("");
+                        x.Bound(y => y.status_Title).Title("Teklifin Durumu").Width(160);
+                        x.Bound(y => y.rowNumber).Title("Teklif Kodu").Width(120);
+                        x.Bound(y => y.Customer_Title).Title("Teklifin Verildiği İşletmem").Width(200);
+                        x.Bound(y => y.Supplier_Title).Title("Tedarikçi").Width(200);
+                        x.Bound(y => y.createdby_Title).Title("Teklifi Giren Personel").Width(200);
+                        x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(140).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(120).ClientTemplate("#=currencyFunction(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
+                    })
+                    .Scrollable(s => s.Height(650))
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Teklifi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Tender", new { area = "CMP", IsCopy = true }));
+                        x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+
+                        x.Custom().Text("<i data-original-title='İrsaliye Oluştur' class='fa fa-send'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-selector", "SendData" }, { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD", direction = 1 }));
+
+                        //x.Custom().Text("<i data-original-title='Teklifi İndir (PDF)' class='fa fa-download'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("Print", "VWCMP_Tender", new { area = "CMP", type = 0 }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>

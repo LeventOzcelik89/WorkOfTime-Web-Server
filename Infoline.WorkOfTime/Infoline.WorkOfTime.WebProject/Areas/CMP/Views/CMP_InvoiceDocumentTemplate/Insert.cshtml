@@ -1,0 +1,133 @@
+﻿@model Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers.CMP_InvoiceDocumentTemplateModel
+@{
+    ViewBag.Title = "Satış Teklif Şablonu Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<link href="~/Content/Areas/CMP/VWCMP_Invoice/css/invoice.css" data-selector="modalContainer" rel="stylesheet" />
+<script src="~/Content/Areas/CMP/VWCMP_Invoice/js/invoice.js" data-selector="modalContainer"></script>
+
+
+<script type="text/javascript" data-selector="modalContainer">
+	CKEDITOR.replace('cover', {
+		filebrowserImageUploadUrl: '/CMP/VWCMP_Tender/EditorUploadFile?id=' + $("#id").val(),
+		extraPlugins: 'image2',
+		height: '120px',
+		removeButtons: 'CustomImageUploader',
+		removePlugins: 'about'
+
+	});
+
+	CKEDITOR.replace('tenderConditions', {
+		filebrowserImageUploadUrl: '/CMP/VWCMP_Tender/EditorUploadFile?id=' + $("#id").val(),
+		extraPlugins: 'image2',
+		height: '120px',
+		removeButtons: 'CustomImageUploader',
+		removePlugins: 'about'
+	});
+
+	CKEDITOR.replace('descriptionText', {
+		filebrowserImageUploadUrl: '/CMP/VWCMP_Tender/EditorUploadFile?id=' + $("#id").val(),
+		extraPlugins: 'image2',
+		height: '120px',
+		removeButtons: 'CustomImageUploader',
+		removePlugins: 'about'
+    });
+
+    CKEDITOR.config.entities_latin = !0;
+    CKEDITOR.config.entities_latin = false;
+    CKEDITOR.config.extraAllowedContent = true;
+
+
+	$(document)
+		.on("before:submit", "#CMP_InvoiceDocumentTemplateForm", function (e, res) {
+            $("#cover").val(CKEDITOR.instances['cover'].getData());
+			$("#tenderConditions").val(CKEDITOR.instances['tenderConditions'].getData());
+			$("#description").val(CKEDITOR.instances['description'].getData());
+
+		})
+
+</script>
+
+@using (Html.BeginForm("Insert", "CMP_InvoiceDocumentTemplate", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id", "CMP_InvoiceDocumentTemplateForm" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Şablon Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Şablon Adı Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="tenderConditions">Teklif Kapağı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.cover, new Dictionary<string, object>()
+			{
+				{"class", "form-control"}
+			})
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="tenderConditions">Teklif Koşulları</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.tenderConditions, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Teklif Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"id","descriptionText" }
+			})
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="grade">Herkes Görebilir</label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Akilli().RadioButtonGroupFor(a => a.templateVisibleAllUser).Value(EnumCMP_InvoiceDocumentTemplateVisible.Evet))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+    <script type="text/javascript" data-selector="modalContainer">
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+    </script>
+
+}

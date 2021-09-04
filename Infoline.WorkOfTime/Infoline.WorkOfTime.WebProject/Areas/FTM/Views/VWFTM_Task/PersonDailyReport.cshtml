@@ -1,0 +1,366 @@
+﻿@{
+	ViewBag.Title = "Personel Günlük İş Takip Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+	$(document)
+		.on("success", "#VWFTM_TaskInsertForm", function (e, resp) {
+			if (resp.Result) {
+				var userIds = $("#userIds").val();
+				var startDate = $('#startDate').data('kendoDatePicker').value();
+				var scheduler = $("#scheduler").data("kendoScheduler");
+
+				GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds }, function (res) {
+
+					if (startDate == null) {
+						startDate = new Date();
+					}
+
+					if (res != null) {
+						var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
+						var datasource = new kendo.data.SchedulerDataSource({
+							data: resObjects
+						});
+						scheduler.setDataSource(datasource);
+					}
+				})
+
+			}
+		})
+
+		.on('click', '#scheduler .k-event', function () {
+			var uid = $(this).attr('data-uid');
+			var elem = $('#scheduler').data('kendoScheduler');
+			var dataItem = elem.occurrenceByUid(uid);
+			Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+		})
+</script>
+
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                                        Html.Akilli().
+                                        DatePicker("startDate").
+                                        Placeholder("Başlangıç Tarihi").
+                                        Format(Extensions.DateFormatShort()).
+                                        Value(DateTime.Now).
+                                        Validate(Validations.Required)
+                                    )
+						</div>
+					</div>
+
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+								 Html.Akilli()
+								 .DropDownList("customerDataId")
+								 .OptionLabel("Lütfen Müşteri İşletmeyi Seçiniz..")
+								 .DataValueField("id")
+								 .DataTextField("fullName")
+								 .Template("#=TemplateEngine('companyTemplate',data)#")
+								 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+								 .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+								 //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+								 .Sort(x => x.Add("fullName").Ascending())
+								 .Validate(Validations.Required)
+								 .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                              Html.Akilli()
+                              .DropDownList("customerStorageDataId")
+                              .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('storageTemplate',data)#")
+                              .ValueTemplate("#=fullName#)")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                              .CascadeFrom("customerId")
+                              .CascadeFromField("companyId")
+                              .Sort(x => x.Add("fullName").Ascending())
+                              .Execute()
+                              )
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                                       Html.Akilli()
+                                       .DropDownList("group")
+                                       .OptionLabel("Lütfen Grub/Ekip Seçiniz..")
+                                       .DataValueField("id")
+                                       .DataTextField("name")
+                                       .Action(b => b.Action("DataSourceDropDown", "SH_Group", new { area = "SH" }))
+                                       .Events(x=> x.Change("onChangeGroup"))
+                                       .Sort(x => x.Add("name").Ascending())
+                                       .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+							@(
+                                       Html.Akilli()
+                                       .MultiSelect("userIds")
+                                       .Placeholder("Lütfen Personel Seçiniz..")
+                                       .DataValueField("id")
+                                       .DataTextField("FullName")
+                                       .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                                       .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                       .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+                                       .Sort(x => x.Add("FullName").Ascending())
+                                       .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-3 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+
+			<br />
+		</div>
+	</div>
+</div>
+
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="ibox m-b-none">
+			<div class="ibox-title">
+				<div class="col-md-9">
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#1c84c6" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenildi</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#f8ac59" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#1ab394" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Bildirildi</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#22e93f" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözümlenmiş Görevler</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#ff0000" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler</span>
+					</span>
+
+
+				</div>
+				<div class="col-md-3">
+					<div class="btn-group pull-right">
+						<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;margin-right: -7px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert"> <i class="fa fa-plus-circle"></i> Yeni Görev </a>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content">
+				<div id="scheduler"></div>
+
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$("#DashBoardFilter").click(function () {
+
+		var userIds = $("#userIds").val();
+		var customer = $("#customerDataId").val();
+		var customerStorage = $("#customerStorageDataId").val();
+		var startDate = $('#startDate').data('kendoDatePicker').value();
+		var scheduler = $("#scheduler").data("kendoScheduler");
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+
+			if (startDate == null) {
+				startDate = new Date();
+			}
+
+
+			var starttime = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
+
+			$("#scheduler").html(null);
+			$("#scheduler").removeAttr("data-role")
+			$("#scheduler").removeAttr("class")
+			$("#scheduler").removeAttr("role")
+			$("#scheduler").removeAttr("style")
+
+
+			createScheduler(startDate, userIds, customer, customerStorage);
+
+			//if (res != null) {
+			//	var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
+			//	var datasource = new kendo.data.SchedulerDataSource({
+			//		data: resObjects
+			//	});
+
+
+			//	scheduler.date(new Date(starttime));
+			//	scheduler.setDataSource(datasource);
+			//}
+		})
+	})
+
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+
+	function createScheduler(startDate, userIds, customer, customerStorage) {
+
+		if (startDate != null) {
+			startDate = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
+		}
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+
+			if (startDate == null) {
+				startDate = new Date();
+			}
+
+			var starttime = kendo.toString(startDate, "yyyy/MM/dd 00:00:00").replace("00:00:00", "00:00:00");
+			var endtime = kendo.toString(startDate, "yyyy/MM/dd 23:59:59").replace("00:00:00", "23:59:59");
+
+			if (res != null) {
+				var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
+
+				//var enBuyuk = $.Enumerable.From(resObjects).Select(x => x.start).OrderByDescending(a => a.start).FirstOrDefault();
+				//var enKucuk = $.Enumerable.From(resObjects).Select(x => x.start).OrderBy(a => a.start).FirstOrDefault();
+
+				$("#scheduler").kendoScheduler({
+					date: new Date(starttime),
+					startTime: new Date(starttime),
+					endTime: new Date(endtime),
+					height: 700,
+					eventHeight: 10,
+					//majorTick: 60,
+					localization: "tr-TR",
+					views: ["timeline"],
+					scroll: true,
+					eventTemplate: $("#event-template").html(),
+					dataSource: resObjects,
+					editable: {
+						create: true,
+						move: false,
+						resize: false
+					},
+					add: function (e) {
+						Kendo_GetRequest('/FTM/VWFTM_Task/Insert?assignableUsers=' + e.event.attendees, { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+
+						e.preventDefault();
+						return false;
+
+					},
+					edit: function (e) {
+						var buttonsContainer = e.container.find(".k-edit-buttons");
+						var cancelButton = buttonsContainer.find(".k-scheduler-update");
+						var removeButtonContainer = buttonsContainer.find(".k-icon k-si-close");
+						removeButtonContainer.remove();
+						cancelButton.text("");
+						buttonsContainer.text("");
+					},
+					group: {
+						resources: ["Attendees"],
+						orientation: "vertical"
+					},
+					resources: [
+						{
+							field: "attendees",
+							name: "Attendees",
+							dataSource: res,
+							multiple: true,
+							title: "Attendees"
+						}
+					]
+				});
+
+				$("[class='k-link k-scheduler-refresh']").remove()
+			}
+		})
+
+
+	}
+
+
+	$(document)
+		.on('ready', function (e) {
+			createScheduler(null, null);
+		})
+</script>
+
+<script id="event-template" type="text/x-kendo-template">
+	<p style="font-size: 8px;margin-top: 5px;" data-toggle="tooltip" data-placement="bottom" title="#=taskStatus_Title#"><span class="k-scheduler-mark" style="background-color:#=color#;margin-top: -4.3px;margin-left: 5px;"></span> #: customer # - #: kendo.toString(new Date(start), "HH:mm") # - #: kendo.toString(new Date(end), "HH:mm") #</p>
+</script>
+
+<style>
+	.k-scheduler-table .k-today, .k-today > .k-scheduler-datecolumn, .k-today > .k-scheduler-groupcolumn {
+		background-color: rgb(255 255 255 / 15%);
+	}
+
+	.k-scheduler-edit-form .k-edit-field {
+		width: 67%;
+	}
+
+	.k-textbox {
+		width: 315px;
+	}
+
+	.k-input {
+		width: 315px;
+	}
+
+
+	.k-event-actions {
+		visibility: hidden;
+	}
+
+
+	.ibox-custom {
+		clear: both;
+		margin-top: 0;
+		padding: 0;
+	}
+
+	.k-edit-buttons {
+		visibility: hidden;
+	}
+
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 15px;
+	}
+</style>
+
+

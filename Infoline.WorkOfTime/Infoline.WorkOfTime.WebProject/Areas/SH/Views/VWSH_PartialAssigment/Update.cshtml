@@ -1,0 +1,178 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PartialAssigment
+@{
+    ViewBag.Title = "DSÜ Görevlendirilme Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var assigment = {
+        loadStaffNameList: function () {
+            var staffNameList = $.ajax({
+                url: '/SH/VWSH_PartialAssigment/GetStaffNameList',
+                async: false,
+            }).responseJSON;
+
+            staffNameList.forEach(function (c) {
+                $("#staffNameList").append($('<option value="' + c + '"/>'));
+            });
+        },
+        loadSchoolDepartmentList: function () {
+            var schoolDepartmentList = $.ajax({
+                url: '/SH/VWSH_PartialAssigment/GetSchoolDepartmentList',
+                async: false,
+            }).responseJSON;
+
+            schoolDepartmentList.forEach(function (c) {
+                $("#schoolDepartmentList").append($('<option value="' + c + '"/>'));
+            });
+        }
+    };
+
+    window.setTimeout(function () {
+        assigment.loadStaffNameList();
+        assigment.loadSchoolDepartmentList();
+    }, 300);
+</script>
+
+@using (Html.BeginForm("Update", "VWSH_PartialAssigment", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="staffName">Akademisyen</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.staffName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Akademisyen Adı seçiniz veya giriniz.."},
+                {"list","staffNameList" }
+            }).Validate(Validations.Required)
+
+            <datalist id="staffNameList">
+            </datalist>
+
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="startDate">Görev Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                  Html.Akilli()
+                .DateTimePickerFor(model => model.startDate)
+                .Placeholder("Lütfen Görev Başlangıç Tarihi girin..")
+                .Interval(15)
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="endDate">Görev Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli()
+                .DateTimePickerFor(model => model.endDate)
+                .Placeholder("Lütfen Görev Bitiş Tarihi girin..")
+                .Interval(15)
+                .Validate(Validations.Required)
+                .MinDateElement("startDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="courseHours">Girdiği Ders Saati</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(Html.Akilli().
+                    NumericTextBox("courseHours").
+                    Decimals(0).
+                    Id("courseHours").
+                    Min(1).
+                    Spinners(false).
+                    Validate(Validations.Required).
+                    Format("N0"))
+
+                <span class="input-group-addon">Saat</span>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="schoolDepartment">Bölüm Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.schoolDepartment, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Bölüm Adı seçiniz veya giriniz.."},
+                    {"list","schoolDepartmentList" }
+                })
+
+            <datalist id="schoolDepartmentList">
+            </datalist>
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="lesson">Ders Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.lesson, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Ders Adı giriniz.."}
+            }).Validate(Validations.TextEverywhere(false))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="hourlyWage">Saatlik Ücreti</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(Html.Akilli().
+                    NumericTextBox("hourlyWage").
+                    Id("hourlyWage").
+                    Min(1).
+                    Spinners(false).
+                    Format("N2"))
+
+                <span class="input-group-addon">₺</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+
+}

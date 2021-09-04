@@ -1,0 +1,1355 @@
+﻿@model VWSH_User[]
+@{
+    ViewBag.Title = "Görev Yönetimi Haritası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var typeEnums = Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()));
+    var operationEnums = Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()));
+
+    var priorityEnums = Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>()));
+
+    var now = DateTime.Now;
+    var thisMonthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0).Date;
+    var thisYearStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0).Date;
+    var thisMonday = DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek + (int)DayOfWeek.Monday);
+}
+
+@section Javascript{
+    <script type="text/javascript">
+
+        var page = {
+            defines: {
+                colorSelectionData: [
+                        { text: "Önceliğe Göre", value: "Priority" },
+                        { text: "Planlanan Bitiş Tarihine Göre", value: "DueDate" },
+                ],
+                dueDateFilter: [
+                    {text: "Zamanı Gelmeyenler", color: "#F8AC59", value: "0"},
+                    {text: "Zamanında Çözülenler", color: "#1ab394", value: "1"},
+                    {text: "Zamanında Çözülemeyenler", color: "#EF5352", value: "2"}
+                ]
+            },
+            fn: {
+                zoomIn: function (e) {
+                    $('.ol-zoom-in').trigger("click");
+                },
+                zoomOut: function (e) {
+                    $('.ol-zoom-out').trigger("click");
+                },
+                zoomMove: function (e) {
+                    $(e).toggleClass("active");
+                    if ($(e).hasClass("active")) {
+                        $('[data-tool="DragZoom"]').trigger("click");
+                    } else {
+                        $('[data-tool="DragPan"]').trigger("click");
+                    }
+                },
+                home: function (e) {
+                    $('[data-tool="Home"]').trigger("click");
+                },
+                layersSwip: function (e) {
+                    $(e).toggleClass("active");
+                    $('[data-tool="Swipe"]').trigger("click");
+                },
+                slideTab: function (elem, target) {
+
+                    var hasActive = $(elem).hasClass("active");
+                    $(elem).parent().find("button").removeClass("active");
+
+                    if (hasActive) {
+                        $(".btn-bar.right").animate({ right: -600 }, 200);
+                    } else {
+                        $(elem).addClass("active");
+                        $(".btn-bar.right").animate({ right: -600 }, 200, function () {
+                            $('.pan-container').find('.pan-content').hide();
+                            $('.pan-container').find("#" + target).show();
+                            $(".btn-bar.right").animate({ right: 15 }, 200);
+                        });
+                    }
+                },
+                colorSelect: function (e) {
+                    if ($('#ColorBox').hasClass("hide")) {
+                        $('#ColorBox').removeClass("hide");
+                    } else {
+                        $('#ColorBox').addClass("hide");
+                    }
+                },
+                colorInfoSelect: function (e) {
+                    if ($('#ColorInfo').hasClass("hide")) {
+                        $('#ColorInfo').removeClass("hide");
+                    } else {
+                        $('#ColorInfo').addClass("hide");
+                    }
+                },
+            },
+            fnc: {
+                updateLocations: function () {
+                    var layerSource = page.dfn.harita.layer.get("Tasks")["Tasks"].getProperties().source;
+                    var features = layerSource.getFeatures();
+
+                    var groupedByLocation = $.Enumerable.From(page.dfn.mapData).Where(a=>a.location != null).GroupBy(a=>a.location).ToArray();
+
+                    groupedByLocation.forEach(function(data){
+                        if(data.source.length > 1){
+                            data.source.forEach(function(operation){
+                                var feature = $.Enumerable.From(features).Where(a=>a.getId() == operation.id).FirstOrDefault();
+                                var coords = feature.getGeometry().getCoordinates();
+                                coords[0] += Math.floor(Math.random() * 200);
+                                coords[1] += Math.floor(Math.random() * 200);
+                                feature.getGeometry().setCoordinates(coords);
+                            })
+                        }
+                    });
+                },
+                addStyleSvg: function (styleName, iconSvg, fillColor) {
+                    var svg = '<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="512px" height="512px" viewBox="0 0 512 512" style="enable-background:new 0 0 53 75;" xml:space="preserve">'+
+                              '  <g>'+
+                              '      <path stroke="#fff" stroke-miterlimit="20" fill="'+ fillColor +'" d="M26.5,0.9C12.8,0.9,1.6,11.9,1.6,25.6c0,7,6.9,19.5,6.9,19.5l17.1,29l17.9-28.7c0,0,7.9-11.9,7.9-19.8'+
+                              '  		C51.4,11.9,40.2,0.9,26.5,0.9z M26.4,42.4c-9.6,0-17.5-7.8-17.5-17.5S16.8,7.5,26.4,7.5S43.8,15.3,43.8,25S36,42.4,26.4,42.4z"/>'+
+                              '  	<circle style="fill:#FFFFFF;" cx="26.4" cy="25" r="17.5"/></g>'+
+                              '  <g>' +
+                              '      <path transform="rotate(180, 0, 0) translate(-38,-33) scale(0.024)" fill="' + fillColor + '" d="' + iconSvg + '" />' +
+                              '  </g>' +
+                              '</svg>';
+
+                    var styleCustom = new ol.style.Style({
+                        image: new ol.style.Icon({
+                            opacity: 1,
+                            src: 'data:image/svg+xml,' + escape(svg),
+                            scale: 1,
+                            anchor: [0.05, 72],
+                            anchorXUnits: 'fraction',
+                            anchorYUnits: 'pixels',
+                        }),
+                        zIndex: 20
+                    });
+
+                    page.dfn.harita.style.addCustom(styleName, styleCustom);
+                },
+                colorByDueDate: function (task) {
+                    if (task.dueDate) {
+                        if (new Date(task.dueDate).getTime() > new Date().getTime()) {
+                            return "#F8AC59";
+                        } else {
+                            if (task.isComplete == true) {
+                                return "#1ab394";
+                            } else {
+                                return "#EF5352";
+                            }
+                        }
+                    }
+
+                    return "#000";
+                },
+                locateMap: function () {
+
+                    var colorDropDown = $('#colorSelection').data("kendoDropDownList");
+                    var colorSelect = colorDropDown ? colorDropDown.value() : "";
+
+                    page.dfn.harita.layer.get("Tasks")["Tasks"].getSource().clear();
+                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
+                    var data = page.dfn.mapData.filter(a => a.location != null);
+
+                    data.forEach(function (task) {
+                        var enumProp = $.Enumerable.From(@(typeEnums)).Where(a => a.Key == task.type).FirstOrDefault();
+                        var color = task.priority == '@((int)EnumFTM_TaskPriority.Dusuk)' ? "#1ab394" :
+                            task.priority == '@((int)EnumFTM_TaskPriority.Orta)' ? "#F8AC59" : "#EF5352";
+
+                        var styleId = "task_" + task.priority + "_" + task.type;
+
+                        switch (colorSelect) {
+                            case "DueDate":
+                                color = page.fnc.colorByDueDate(task);
+                                var dueDateFilter = page.defines.dueDateFilter.find(a => a.color.toLocaleLowerCase() == color.toLocaleLowerCase());
+                                styleId = "dueDate_" + dueDateFilter.value + "_" + task.type;
+                                break;
+                            default:
+                                break;
+                        }
+
+                        var style = page.dfn.harita.style.properties.list[styleId];
+                        var selected = page.dfn.harita.style.properties.list["selected_" + task.type];
+
+                        if (!style) {
+                            page.fnc.addStyleSvg(styleId, enumProp.Generic["iconsvg"], color);
+                        }
+
+                        if (!selected) {
+                            page.fnc.addStyleSvg("selected_" + task.type, enumProp.Generic["iconsvg"], "#737373");
+                        }
+
+                        var feature = page.dfn.harita.feature.add("Tasks", task.id, task.location);
+                        if (feature) {
+                            feature.set("properties", task);
+                            feature.set("style", styleId);
+                            feature.set("styleHover", styleId);
+                            feature.set("styleSelected", "selected_" + task.type);
+                        }
+                    })
+
+                    page.dfn.harita.layer.panTo("Tasks");
+                    var view = page.dfn.harita.map.getView()
+                    view.setZoom(view.getZoom() - 2);
+                    if (data.length == 0) {
+                        view.setCenter(ol.proj.transform([34.979530, 39.015137], 'EPSG:4326', 'EPSG:3857'));
+                        view.setZoom(7);
+                    }
+                },
+                getDetailForSelected: function (prop) {
+                    var enumProp = $.Enumerable.From(@(typeEnums)).Where(a => a.Key == prop.type).FirstOrDefault();
+
+                    var passedTime = "Bilinmiyor";
+                    if (prop.lastOperationStatus >= @((int)EnumFTM_TaskOperationStatus.CozumBildirildi)) {
+                        passedTime = PassedTime(prop.created, prop.lastOperationDate);
+                    } else {
+                        passedTime = PassedTime(new Date(prop.created), new Date());
+                    }
+
+                    var assignableHtml = "";
+                    var assignHtml = "";
+
+                    if (prop.assignableUserIds == null || prop.assignableUserIds == "") {
+                        assignableHtml = '<span>Henüz personel ataması yapılmamış</span>';
+                        assignableHtml = '<span>Henüz personel ataması yapılmamış</span>';
+                    } else {
+                        prop.assignableUserIds.split(",").forEach(function (item, i) {
+                            var user = $.Enumerable.From(page.dfn.users).Where(a => a.id.toLocaleUpperCase() == item.toLocaleUpperCase()).FirstOrDefault();
+                            var photo = user.ProfilePhoto != null ? user.ProfilePhoto : "/Content/Custom/img/na.png";
+                            assignableHtml +=
+                                `<a href="#">
+                                    <img alt="image" width= "32" height= "32" data-toggle="tooltip" data-placement="top" data-original-title="${user.FullName}"
+                                        onerror='ImageError(this, "/Content/Custom/img/na.png")' class="img-circle" src="${photo}">
+                                </a>`;
+                        })
+                    }
+
+                    if (prop.assignUserId == null || prop.assignUserId == "") {
+                        assignHtml = '<span>Görev henüz üstlenilmemiş.</span>';
+                    } else {
+                        var user = $.Enumerable.From(page.dfn.users).Where(a => a.id.toLocaleUpperCase() == prop.assignUserId.toLocaleUpperCase()).FirstOrDefault();
+                        var photo = user.ProfilePhoto != null ? user.ProfilePhoto : "/Content/Custom/img/na.png";
+                        assignHtml =
+                            `<img alt="image" width= "32" height= "32" data-toggle="tooltip" data-placement="top" data-original-title="${user.FullName}"
+                                onerror='ImageError(this, "/Content/Custom/img/na.png")' class="img-circle" src="${photo}">`;
+                    }
+
+                    var fixture = "";
+                    var company = "";
+                    var customer = "";
+
+                    if (prop.fixtureId != null && prop.fixture_Title != null) {
+                        fixture = '    <div class="ibox-title">' +
+                            '        <h5> Görevlendirilen Envanter: </h5>' +
+                            '        <div class="ibox-tools">' +
+                            '           <a href="/PRD/VWPRD_Inventory/Detail?id=' + prop.fixtureId + '" target="_blank" class="text-navy">' + prop.fixture_Title + ' </a>' +
+                            '        </div>' +
+                            '   </div>';
+                    }
+
+                    if (prop.companyId != null && prop.company_Title != null) {
+                        company = '   <div class="ibox-title">' +
+                            '        <h5> Görevli İşletme: </h5>' +
+                            '        <div class="ibox-tools">' +
+                            '            <a href="/CMP/VWCMP_Company/Detail?id=' + prop.companyId + '" target="_blank" class="text-navy"> ' + prop.company_Title + ' </a>' +
+                            '        </div>' +
+                            '    </div>';
+                    }
+
+                    if (prop.customerId != null && prop.customer_Title != null) {
+                        customer = '   <div class="ibox-title">' +
+                            '        <h5> Müşteri İşletme: </h5>' +
+                            '        <div class="ibox-tools">' +
+                            '            <a href="/CMP/VWCMP_Company/Detail?id=' + prop.customerId + '" target="_blank" class="text-navy"> ' + prop.customer_Title + ' </a>' +
+                            '        </div>' +
+                            '    </div>';
+                    }
+
+                    var dueDate = prop.dueDate ? new Date(prop.dueDate).toLocaleString("tr-TR") : "";
+                    var created = prop.created ? new Date(prop.created).toLocaleString("tr-TR") : "";
+                    var description = prop.description ? prop.description : "";
+                    var createdby = prop.createdby_Title ? prop.createdby_Title : "";
+                    var priority = prop.priority_Title ? prop.priority_Title : "";
+                    var type = prop.type_Title ? prop.type_Title : "";
+                    var icon = enumProp.Generic["icon"] ? enumProp.Generic["icon"] : "";
+
+                    var html = '   <div class="ibox ">' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Görev Kodu: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        prop.code +
+                        '           </div>' +
+                        '       </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Görev Tipi: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        '               <i class="' + icon + '" style="font-size:14px;" data-toggle="tooltip" data-placement="bottom"></i> ' + type +
+                        '           </div>' +
+                        '       </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Görevi Oluşturan: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        createdby +
+                        '           </div>' +
+                        '       </div>' +
+                         '       <div class="ibox-title">' +
+                        '           <h5> Oluşturulma Tarihi: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        created +
+                        '           </div>' +
+                        '       </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Planlanan Çözüm Tarihi: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        dueDate +
+                        '           </div>' +
+                        '       </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Geçen Süre: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        passedTime +
+                        '           </div>' +
+                        '       </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Öncelik Sırası: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        priority +
+                        '           </div>' +
+                        '</div>' +
+                        company +
+                        customer +
+                        fixture +
+                        '    <div class="ibox-title">' +
+                        '        <h5> Üstlenebilecekler: </h5>' +
+                        '        <div class="ibox-tools">' +
+                        assignableHtml +
+                        '        </div>' +
+                        '    </div>' +
+                        '    <div class="ibox-title">' +
+                        '        <h5> Görevi Üstlenen: </h5>' +
+                        '        <div class="ibox-tools">' +
+                        assignHtml +
+                        '        </div>' +
+                        '    </div>' +
+                        '       <div class="ibox-title">' +
+                        '           <h5> Görev Açıklaması: </h5>' +
+                        '           <div class="ibox-tools">' +
+                        '               <span style="white-space: pre-wrap;word-break: break-all;">' + description + '</span>' +
+                        '           </div>' +
+                        '       </div>' +
+                        '   </div>';
+                    return html;
+                },
+                getDetailForHover: function (data) {
+
+                    var lastOperation = data.lastOperationStatus_Title != null ? data.lastOperationStatus_Title : "Bilinmiyor";
+                    var assignuser = data.assignUser_Title != null ? data.assignUser_Title : "Üstlenilmeyi Bekliyor";
+                    var description = data.description != null ? data.description : "-";
+
+                    var company = data.company_Title != null ? data.company_Title : "-";
+                    var priority = data.priority_Title != null ? data.priority_Title : "-";
+
+                    var passedTime = "Bilinmiyor";
+                    if (data.lastOperationStatus >= @((int)EnumFTM_TaskOperationStatus.CozumBildirildi)) {
+                        passedTime = PassedTime(data.created, data.lastOperationDate);
+                    } else {
+                        passedTime = PassedTime(new Date(data.created), new Date());
+                    }
+
+                    var created = new Date(data.created).toLocaleString("tr-TR");
+                    var dueDate = data.dueDate ? new Date(data.dueDate).toLocaleString("tr-TR") : "";
+
+                    var fixture = data.fixture_Title != null ? '<li class="list-group-item fist-item"><i class="icon-wrench"></i> <strong> Envanter : </strong><span class="pull-right"> ' +
+                                                                data.fixture_Title + '</span>' +'</li>' : "";
+
+                    var customer = data.customer_Title != null ? data.customer_Title : "-";
+                    var createdby = data.createdby_Title != null ? data.createdby_Title : "-";
+
+                    var text = '<div class="item">                                                 ' +
+                        '  <div class="head text-center clearfix">                         ' +
+                        '      <a target="_blank" href="#">                                ' +
+                        '          <div class="col-xs-12">' + data.code + '</div>          ' +
+                        '          <div class="col-xs-12" style="padding-top:0px;"><small>(' + lastOperation + ')</small> </div> ' +
+                        '      </a>       ' +
+                        '  </div>         ' +
+                        '<div class="widget-list-group">' +
+                        '    <ul class="list-group clear-list" style="margin-bottom: 0 !important;">' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-tags"></i> <strong> Görev Tipi : </strong><span class="pull-right"> ' + data.type_Title + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-cog"></i> <strong> Öncelik Durumu : </strong><span class="pull-right"> ' + priority + '</span>' +
+                        '        </li>' +
+                                 fixture +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-commerical-building"></i> <strong> İşletme : </strong><span class="pull-right"> ' + company + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-building"></i> <strong> Müşteri İşletme : </strong><span class="pull-right"> ' + customer + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-user-add"></i> <strong> Oluşturan : </strong><span class="pull-right"> ' + createdby + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="fa fa-user"></i> <strong> Üstlenen Personel : </strong> <span class="pull-right"> ' + assignuser + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-stopwatch"></i> <strong> Oluşturulma Tarihi : </strong> <span class="pull-right"> ' + created + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-stopwatch"></i> <strong> Planlanan Çözüm Tarihi : </strong> <span class="pull-right"> ' + dueDate + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-back-in-time"></i> <strong> Geçen Süre : </strong> <span class="pull-right"> ' + passedTime + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item" style="border-bottom:0px !important;">' +
+                        '            <i class="icon-commenting-o"></i><strong> Açıklama : </strong> ' + description +
+                        '        </li>' +
+                        '    </ul>' +
+                        '  </div>' +
+                        '  </div>';
+
+                    return text;
+                },
+                applyFilter: function () {
+                    var createdQuery = $('[data-selector="created"].filterButtonActive').data("query");
+
+                     var priorityQuery = [];
+                    $('[data-selector="priority"].active').each(function (e) {
+                        priorityQuery.push($(this).data("query"));
+                    })
+
+                    var typeQuery = [];
+                    $('[data-selector="type"].active').each(function (e) {
+                        typeQuery.push($(this).data("query"));
+                    })
+
+                    var statusQuery = [];
+                    $('[data-selector="status"].active').each(function (e) {
+                        statusQuery.push($(this).data("query"));
+                    })
+
+                    var customers = $('#customers').data("kendoMultiSelect").value();
+                    var fixtures = $('#inventories').data("kendoMultiSelect").value();
+                    var createdUsers = $('#createdUser').data("kendoMultiSelect").value();
+                    var assignUsers = $('#assignUser').data("kendoMultiSelect").value();
+
+                    var dataQuery = "";
+
+                    if (createdQuery != "()") {
+                        dataQuery = createdQuery;
+                    }
+
+                    if (priorityQuery.length != 0) {
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + priorityQuery.join("~or~") + "))" : "(" + priorityQuery.join("~or~") + ")";
+                    }
+
+                    if (typeQuery.length != 0) {
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + typeQuery.join("~or~") + "))" : "(" + typeQuery.join("~or~") + ")";
+                    }
+
+                    if (statusQuery.length != 0) {
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + statusQuery.join("~or~") + "))" : "(" + statusQuery.join("~or~") + ")";
+                    }
+
+                    if (fixtures.length != 0) {
+                        var query = [];
+                        fixtures.forEach(function (item, i) {
+                            query.push("fixtureId~eq~'" + item + "'");
+                        })
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + query.join("~or~") + "))" : "(" + query.join("~or~") + ")";
+                    }
+
+                    if (customers.length != 0) {
+                        var query = [];
+                        customers.forEach(function (item, i) {
+                            query.push("customerId~eq~'" + item + "'");
+                        })
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + query.join("~or~") + "))" : "(" + query.join("~or~") + ")";
+                    }
+
+                    if (createdUsers.length != 0) {
+                        var query = [];
+                        createdUsers.forEach(function (item, i) {
+                            query.push("createdby~eq~'" + item + "'");
+                        })
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + query.join("~or~") + "))" : "(" + query.join("~or~") + ")" ;
+                    }
+
+                    if (assignUsers.length != 0) {
+                        var query = [];
+                        assignUsers.forEach(function (item, i) {
+                            query.push("assignUserId~eq~'" + item + "'");
+                        })
+                        dataQuery = dataQuery != "" ? "(" + dataQuery + "~and~" + "(" + query.join("~or~") + "))" : "(" + query.join("~or~") + ")";
+                    }
+
+                    if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'thisMonth') {
+                           $('.info-content strong').text('@thisMonthStart.ToString("dd.MM.yyyy")' +  " - " + '@now.ToString("dd.MM.yyyy")')
+                    }
+                    else if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'thisWeek') {
+                           $('.info-content strong').text('@thisMonday.ToString("dd.MM.yyyy")' +  " - " + '@now.ToString("dd.MM.yyyy")')
+                    }
+                    else if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'today') {
+                           $('.info-content strong').text('@now.ToString("dd.MM.yyyy 00:00")' +  " - " + '@now.ToString("dd.MM.yyyy 23:59")')
+                    }
+                    else if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'yesterday') {
+                           $('.info-content strong').text('@now.AddDays(-1).ToString("dd.MM.yyyy 00:00")' +  " - " + '@now.AddDays(-1).ToString("dd.MM.yyyy 23:59")')
+                    }
+                    else if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'lastWeek') {
+                           $('.info-content strong').text('@thisMonday.AddDays(-7).ToString("dd.MM.yyyy")' +  " - " + '@thisMonday.ToString("dd.MM.yyyy")')
+                    }
+                    else if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'lastMonth') {
+                           $('.info-content strong').text('@thisMonthStart.AddMonths(-1).ToString("dd.MM.yyyy")' +  " - " + '@thisMonthStart.ToString("dd.MM.yyyy")')
+                    } else {
+                           $('.info-content strong').text('')
+                    }
+
+                    GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSource', { filter: dataQuery, page: 1, pageSize: 9999 }, function (resp) {
+
+                        page.dfn.harita.layer.get("Tasks")["Tasks"].getSource().clear();
+                        page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
+                        if (resp && resp != null) {
+                            page.dfn.mapData = resp.Data;
+                            page.fnc.locateMap();
+                            page.fnc.updateLocations();
+                        }
+                    })
+
+                },
+                cleanFilter: function () {
+
+                    $('[data-id="thisWeek"][data-selector="created"]').trigger('click');
+                    $('[data-selector="priority"][data-id="all"]').trigger("click");
+
+                    $('[data-selector="type"].active').each(function (e) {
+                        $(this).removeClass("active");
+                    })
+
+                    $('[data-selector="status"].active').each(function (e) {
+                        $(this).removeClass("active");
+                    })
+
+                    $('#inventories').data("kendoMultiSelect").value([]);
+                    $('#assignUser').data("kendoMultiSelect").value([]);
+                    $('#createdUser').data("kendoMultiSelect").value([]);
+                    $('#customers').data("kendoMultiSelect").value([]);
+
+                    page.fnc.applyFilter();
+                },
+                onChangeColorful: function (_this) {
+                    var val = $('#colorSelection').val();
+                    $('#ColorInfoBox').removeClass("hide");
+                    $('#ColorInfo').find("table tbody tr").empty();
+
+                    if (val == "Priority") {
+                        var enums = @priorityEnums;
+
+                        enums.forEach(function (priority) {
+                            var c = '<td data-id="colorRangeCustom" data-type="priority" data-color="#19177a" class="category" ' +
+                                ' style="height: 48px;line-height: 48px;background-color: #' + priority.Generic.color + ';padding: 0 10px 0 10px;">' +
+                                priority.EnumKey +
+                                '</td>';
+
+                            $('#ColorInfo').find("table tbody tr").append(c);
+                        })
+                    }
+                    else if (val == "DueDate") {
+                        page.defines.dueDateFilter.forEach(function (dueDate) {
+                            var c = '<td data-id="colorRangeCustom" data-type="dueDate" data-color="#19177a" class="category" ' +
+                                ' style="white-space: nowrap;height: 48px;line-height: 48px;background-color: ' + dueDate.color + ';padding: 0 10px 0 10px;">' +
+                                dueDate.text +
+                                '</td>';
+
+                            $('#ColorInfo').find("table tbody tr").append(c);
+                        })
+                    }
+
+                    page.fnc.cleanFilter();
+                },
+            },
+            dfn: {
+                users: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+                mapData: [],
+                harita: new AkilliHarita('Harita', {
+                    zoom: 7,
+                    altlik: "Default1",
+                    uiAltlik: false,
+                    uiDefault: true,
+                    uiSearch: false,
+                    uiMinimap: false,
+                    uiScaleLine: false,
+                    uiMousePosition: false,
+                    uiMesurement: false,
+                    uiInfo: false
+                })
+            }
+        }
+
+        $(document)
+            .on("ready", function () {
+                var layer = page.dfn.harita.layer.addVector("Tüm Görevler", "Tasks", "styleCustom", "/Content/Custom/img/marker-selected.png", "/Content/Custom/img/marker-selected.png", null);
+
+                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+
+                //page.fnc.applyFilter();
+
+                $('[role="grid"]').attr('id', 'vertical-timeline');
+
+                $('#colorSelection').kendoDropDownList({
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    dataSource: page.defines.colorSelectionData,
+                    index: 0,
+                    change: page.fnc.onChangeColorful
+                })
+
+                $("#colorSelection").getKendoDropDownList().trigger("change");
+
+                if ($('[data-selector="created"].filterButtonActive').attr('data-id') == 'thisWeek')
+                {
+                        $('.info-content strong').text('@thisMonday.ToString("dd.MM.yyyy")' +  " - " + '@now.ToString("dd.MM.yyyy")')
+                }
+            })
+            .on("hover:feature", "#Harita", function (e, resp) {
+
+                page.dfn.harita.overlay.remove('slider-station');
+
+                if (resp.type == "add") {
+                    var elem = resp.element;
+                    var prop = elem.get("properties");
+                    var text = "";
+                    if (prop) {
+                        text = page.fnc.getDetailForHover(prop);
+                        var geometry = resp.element.getGeometry();
+                        var coordinate = geometry.getCoordinates();
+                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+
+                        var tooltiplocation = "";
+
+                        if (pixel[1] < 400)
+                            tooltiplocation = "top-right";
+                        else if (screen.height - pixel[1] < 400)
+                            tooltiplocation = "bottom-right";
+                        else
+                            tooltiplocation = "center-right";
+
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                        page.dfn.harita.map.updateSize();
+                    }
+                }
+            })
+            .on("select:feature", "#Harita", function (e, resp) {
+                page.dfn.harita.overlay.remove('slider-station');
+
+                $('#detailTask').empty();
+
+                if (resp.type == "add") {
+                    var prop = resp.element.get("properties");
+
+
+                    if ($('#selectTask').hasClass("hide")) {
+                        $('#selectTask').removeClass("hide");
+                    }
+
+                    if ($('#selectTask').hasClass("active")) {
+                        $('#selectTask').removeClass("active");
+                        setTimeout(function () {
+                            $('#selectTask').trigger("click");
+                        }, 300)
+                    }
+                    else {
+                        $('#selectTask').trigger("click");
+                    }
+
+                    var html = page.fnc.getDetailForSelected(prop);
+                    $('#detailTask').append(html);
+
+                    var grid = $('#VWFTM_TaskOperation').data("kendoGrid");
+                    grid.dataSource.filter({ field: "taskId", operator: "eq", value: prop.id });
+                    grid.dataSource.read();
+
+                    if (prop) {
+                        resizeFnc();
+                    }
+
+                }
+            })
+            .on("click", '[data-selector]', function (e) {
+                if ($(this).attr("data-selector") == "type" || $(this).attr("data-selector") == "status") {
+                    $('[data-selector="type"]').each(function (e) {
+                        $(this).addClass('text-info');
+                    })
+
+                    $(this).toggleClass("active");
+                }
+                else if ($(this).attr("data-selector") == "created") {
+                    var _this = $(this);
+                    var group = _this.parents(".btn-group");
+                    $(group).find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+                    _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+                }
+                else if ($(this).attr("data-selector") == "priority") {
+                    var _this = $(this);
+                   $('[data-selector="priority"]').each(function (e) {
+                       if (_this.hasClass("filterButtonActive")) {
+                           _this.removeClass("filterButtonActive")
+                           _this.addClass("filterButtonPassive")
+                       }
+                       else {
+                           _this.removeClass("filterButtonPassive")
+                           _this.addClass("filterButtonActive")
+                       }
+                     })
+                     $(this).toggleClass("active");
+                         }
+                else {
+                    return;
+                 }
+            })
+
+        function PassedTime(previousdate, nextDate) {
+             var day = (new Date(nextDate) - new Date(previousdate)) / 1000 / 60 / 60 / 24;
+             var hour = (day - parseInt(day)) * 24
+             var minute = (hour - parseInt(hour)) * 60
+             return parseInt(day) + ' gün ' + parseInt(hour) + ' saat ' + parseInt(minute) + ' dakika';
+        }
+
+        function RemainingTime(date) {
+            var day = (new Date(date) - new Date()) / 1000 / 60 / 60 / 24;
+            var hour = (day - parseInt(day)) * 24
+            var minute = (hour - parseInt(hour)) * 60
+            return parseInt(day) + ' gün ' + parseInt(hour) + ' saat ' + parseInt(minute) + ' dakika';
+        }
+
+        function resizeFnc() {
+            $.each($(".k-grid"), function (i, item) {
+                var contentArea = $(item).find(".k-grid-content");
+                var finalHeight = $(item).parents(".pan-container").height() - 555;
+                contentArea.height(finalHeight);
+            })
+        }
+
+        $(window).resize(function () {
+            resizeFnc();
+        });
+    </script>
+
+}
+
+<script type="text/x-kendo-template" id="VWFTM_TaskOperationTemplate">
+
+    #var model = @Html.Raw(Infoline.Helper.Json.Serialize(Model))#
+    #var photo  = $.Enumerable.From(model).Where(x => x.id == createdby).Select(x => x.ProfilePhoto).FirstOrDefault()#
+    #if(photo == null){#
+    #photo = '/Content/Custom/img/na.png'#
+    #}#
+
+    <div class="vertical-timeline-block">
+        <div class="vertical-timeline-icon">
+            <img style="width:41px !important;height:41px !important; margin-left:0px; margin-top:-1px;" data-original-title="#:createdby_Title#" class="img-circle" data-toggle="tooltip" onerror="ImageError(this,'/Content/Custom/img/na.png')" data-placement="bottom" src="#:photo#">
+        </div>
+        <div class="vertical-timeline-content">
+            <strong class="pull-left"> #:status_Title#</strong><small style="font-size:10px;padding-top:-5px;" class="pull-right" data-original-title="Oluşturulma Tarihi" data-placement="left"><i class="fa fa-calendar"></i> #=kendo.toString(kendo.parseDate(created), "dd.MM.yyyy hh:mm")#</small>
+            <br />
+            <br />
+            <span class="vertical-date small text-muted"><strong>Görev Kodu : </strong> #:task_Name# </span>
+            #if(fixture_Title!=null){#
+            <br>
+            <span class="vertical-date small text-muted"><strong>Envanter Adı : </strong> #:fixture_Title# </span>
+            #}#
+            <br>
+            <span class="vertical-date small text-muted"><strong> Geçen Süre : </strong> #:passingTime# </span>
+            <br />
+            #if(distance!=null){#
+            <span class="vertical-date small text-muted"><strong> Görev Yerine Uzaklık :</strong> #: kendo.toString(distance, "N2")#</span>
+            <br>
+            #}#
+            #if(battery!=null){#
+            #if(battery>69){#
+            <span class="vertical-date small text-muted"> Batarya Durumu : <i class="icon-battery-3 text-primary"></i> &nbsp;   <strong>#:battery# %</strong></span><br>
+            #}else if(battery>29){#
+            <span class="vertical-date small text-muted"> Batarya Durumu : <i class="icon-battery-2 text-warning"></i> &nbsp;   <strong>#:battery# %</strong></span><br>
+            #}else{#
+            <span class="vertical-date small text-muted"> Batarya Durumu : <i class="icon-battery-1 text-danger"></i> &nbsp;   <strong>#:battery# %</strong></span><br>
+            #}
+            }#
+
+            #if(description!=null){#
+            <span class="vertical-date small text-muted"><strong>Açıklama :</strong>  #:description#</span>
+            #}#
+
+            <div class="btnns pull-right m-t-xs">
+                <a href="/FTM/VWFTM_Task/Detail?id=#:taskId#" target="_blank" class="btn btn-xs btn-info">Görev Detayı</a>
+                #if(status == @((int)EnumFTM_TaskOperationStatus.GorevOlusturuldu) || status == @((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun) || status == @((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun) || status == @((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAltUrun) || status == @((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun) || status == @((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAltUrun) || status == @((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)){#
+                <a class="btn btn-xs btn-warning" style="margin-right:6px;" data-href="/FTM/VWFTM_TaskOperation/Detail/#:id#" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i> Görüntüle</a>
+                #}#
+            </div>
+        </div>
+    </div>
+</script>
+
+<div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
+
+    <div class="btn-bar left top animated slideInLeft" style="top: 10px;">
+        <div class="btn-container m-b-lg">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 65px;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="right" data-original-title="Renklendirme Bilgisi"><i class="fa fa-adjust"></i></button>
+        </div>
+        <div id="ColorInfo" class="color-bar hide">
+            <table class="slider">
+                <tbody>
+                    <tr></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInUp" style="bottom:125px !important;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorSelect(this)" data-placement="right" data-original-title="Renklendirme Tercihi"><i class="icon-palette"></i></button>
+        </div>
+        <div id="ColorBox" class="hide">
+            <div class="col-md-3">
+                <label style="padding-top:8px;">RENKLENDİRME</label>
+            </div>
+            <div class="col-md-9">
+                <select id="colorSelection" style="width:100%;"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar right top animated slideInRight" style="width:660px;right:-600px;">
+        <div class="btn-container m-b-lg">
+            <button id="searchButton" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'search')"><i class="fa fa-sliders"></i></button>
+            <button id="selectTask" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedTask')"><i class="fa fa-qrcode"></i></button>
+        </div>
+        <div class="pan-container">
+            <div id="search" class="pan-content">
+                <div class="pan-head clearfix">
+                    FİLTRELE
+                </div>
+                <div class="pan-body form-horizontal">
+                    <div class="form-group" style="text-align: center;">
+                        <div class="btn-group rounded" role="group" aria-label="Basic example">
+                            <button type="button" data-id="all" data-selector="created" data-query="()" class="btn btn-rounded filterButtonPassive"> TÜMÜ</button>
+                            <button type="button" data-id="lastMonth" data-query="(created~gt~datetime'@thisMonthStart.AddMonths(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@thisMonthStart.ToString("yyyy-MM-ddT00-00-00")')" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN AY</button>
+                            <button type="button" data-id="lastWeek" data-query="(created~gt~datetime'@thisMonday.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@thisMonday.ToString("yyyy-MM-ddT00-00-00")')" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN HAFTA</button>
+                            <button type="button" data-id="yesterday" data-selector="created" data-query="(created~gt~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')" data-name="filterDate" class="btn filterButtonPassive"><span></span>DÜN</button>
+                            <button type="button" data-id="today" data-selector="created" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddTHH-mm-ss")')" data-name="filterDate" class="btn filterButtonPassive"><span></span>BUGÜN</button>
+                            <button type="button" data-query="(created~gt~datetime'@thisMonday.ToString("yyyy-MM-ddTHH-mm-ss")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT23-59-59")')" data-id="thisWeek" data-selector="created" data-name="filterDate" class="btn filterButtonActive"><span></span>BU HAFTA</button>
+                            <button type="button" data-id="thisMonth" data-query="(created~gt~datetime'@thisMonthStart.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddTHH-mm-ss")')" data-selector="created" data-name="filterDate" class="btn btn-rounded filterButtonPassive"><span></span> BU AY</button>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Görev Tipleri</label>
+                        </div>
+                        <div class="col-md-8">
+                            <ul style="padding-left: 0px !important;">
+                                <li>
+                                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+                                    {
+                                        <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="type" data-query="(type~eq~@item.Key)" class="pull-left text-info" href="#" data-category="1">
+                                            <i data-original-title="@item.Value" data-placement="left" class="@item.Generic["icon"]"></i>
+                                        </a>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Görev Durumları</label>
+                        </div>
+                        <div class="col-md-8">
+                            <ul style="padding-left: 0px !important;">
+                                <li>
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~eq~'')~and~isComplete~eq~false)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Personel Ataması Bekleyenler" data-placement="left" class="icon-user-add"></i>
+                                    </a>
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~neq~'')~and~isComplete~eq~false)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Üstlenilmeyi Bekleyenler" data-placement="left" class="icon-users"></i>
+                                    </a>
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="((assignUserId~neq~'99999999-1234-5678-0000-999999999999'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30~and~lastOperationStatus~neq~26)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Devam Edenler" data-placement="left" class="icon-clock"></i>
+                                    </a>
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="(lastOperationStatus~eq~26)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Durdurulanlar" data-placement="left" class="icon-pause"></i>
+                                    </a>
+
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="(isComplete~eq~false~and~lastOperationStatus~eq~30)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Çözüm Onayı Bekleyenler" data-placement="left" class="icon-arrows-cw"></i>
+                                    </a>
+                                    <a style="font-size:28px; color:#a2b8cb;margin: 0px 8px;" data-selector="status" data-query="(isComplete~eq~true)"
+                                       class="pull-left text-info" href="#" data-category="3">
+                                        <i data-original-title="Çözümlenmiş Görevler" data-placement="left" class="fa fa-check"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Öncelik</label>
+                        </div>
+                        <div class="col-md-8 clearfix">
+
+                            <div class="btn-group rounded" role="group" aria-label="Basic example">
+
+                                @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>())
+                                {
+                                    <button type="button" data-selector="priority" data-type="@item.Key" data-query="(priority~eq~@item.Key)" class="btn btn-rounded filterButtonActive active"
+                                            href="#" data-category="2">
+                                        @item.Value
+                                    </button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Müşteri </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .MultiSelect("customers")
+                                .Placeholder("Lütfen Müşteri İşletme seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .ItemTemplate("#=TemplateEngine('companyTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<VWCMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Diger)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute("id")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Envanter</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .MultiSelect("inventories")
+                                .Placeholder("Lütfen Envanter seçiniz..")
+                                .DataTextField("searchField")
+                                .DataValueField("id")
+                                .ItemTemplate("#=TemplateEngine('inventoryTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                                .Sort(x => x.Add("code").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Görevi Oluşturan</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .MultiSelect("createdUser")
+                                .Placeholder("Lütfen Personel Seçiniz..")
+                                .DataValueField("id")
+                                .DataTextField("FullName")
+                                .Action(b => b.Action("DataSourceDropDownForTaskRoles", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Görevi Üstlenen</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .MultiSelect("assignUser")
+                                .Placeholder("Lütfen Personel Seçiniz..")
+                                .DataValueField("id")
+                                .DataTextField("FullName")
+                                .Action(b => b.Action("DataSourceDropDownForTaskRoles", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="hr-line-dashed"></div>
+                </div>
+                <div class="pan-footer clearfix">
+                    <button type="button" onclick="page.fnc.cleanFilter()" class="btn btn-danger  pull-left"><i class="fa fa-trash"></i> Filtreyi Temizle</button>
+                    <button type="button" id="applyFilter" onclick="page.fnc.applyFilter()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Filtreyi Uygula </button>
+                </div>
+            </div>
+            <div id="selectedTask" class="pan-content">
+                <div class="pan-head clearfix">
+                    <div style="padding-top: 7px;">
+                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">GÖREV DETAYI</span>
+                    </div>
+                </div>
+                <div class="panel-body" id="detailTask" style="padding: 0px !important;height:inherit !important;">
+
+                </div>
+                <div class="pan-head clearfix">
+                    <div style="padding-top: 7px;">
+                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">OPERASYON GEÇMİŞİ</span>
+                    </div>
+                </div>
+                <div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+                    <div id="vertical-timeline" class="vertical-container dark-timeline">
+                        @(Html.Akilli()
+                         .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskOperation>("VWFTM_TaskOperation")
+                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskOperation", new { area = "FTM" })).PageSize(30).Sort(a => a.Add("created").Descending()).Sort(y => y.Add("status").Descending()))
+                         //.Selectable(a => a.Enabled(false))
+                         .Selectable(x => x.Mode(GridSelectionMode.Single))
+                         .Scrollable(s => s.Height(500))
+                         .Columns(x =>
+                         {
+                             x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Title("Hareket Geçmişi").ClientTemplate("#=TemplateEngine('VWFTM_TaskOperationTemplate',data)#");
+                         })
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="info-content "><strong></strong></div>
+
+<style type="text/css">
+
+    .form-control .k-dropdown-wrap, .form-control .k-picker-wrap, .form-control .k-multiselect-wrap {
+        padding: 0px !important;
+    }
+
+    .search-control.ol-control {
+        left: 20px !important;
+    }
+
+    .btn-bar {
+        position: absolute;
+        z-index: 99;
+    }
+
+        .btn-bar.left {
+            left: 15px;
+        }
+
+        .btn-bar.right {
+            right: 15px;
+        }
+
+        .btn-bar.bottom {
+            bottom: 60px;
+        }
+
+        .btn-bar.top {
+            top: 15px;
+        }
+
+    .btn-container {
+        border-radius: 100px;
+        background: #fff;
+        float: left;
+        width: 50px;
+    }
+
+    .btn-custom {
+        background: #fff;
+        color: #2f4050;
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        margin-top: 5px;
+        font-size: 15px !important;
+        border: 3px #fff solid;
+        padding: 0 !important;
+        border-radius: 25px !important;
+        width: 50px !important;
+    }
+
+    .btn-container .btn-custom:first-child {
+        margin-top: 0px;
+    }
+
+    .btn-custom span {
+        font-size: 11px;
+        font-weight: Bold;
+    }
+
+    .btn-custom:hover, .btn-custom:focus, .btn-custom.active {
+        background-color: #4aafcd;
+        color: #fff;
+        -webkit-box-shadow: none !important;
+        box-shadow: none !important;
+    }
+
+    .ol-control.default-control {
+        display: none;
+    }
+
+    #Harita {
+        background: #fff;
+    }
+
+    .pan-container {
+        width: 600px;
+        background: #fff;
+        height: calc(100vh - 110px);
+        float: right;
+        border-radius: 15px;
+        padding: 15px 25px;
+    }
+
+    .pan-head {
+        margin-bottom: 10px !important;
+        padding-bottom: 5px;
+        color: #2f4050;
+        font-size: 15px;
+        font-weight: bold;
+        border-bottom: 1px #2f4050 solid;
+    }
+
+    #slider-station .item {
+        background: #fff !important;
+        height: auto;
+        min-width: 450px;
+        box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+        padding: 5px 20px;
+        border-radius: 15px;
+    }
+
+        #slider-station .item .head .col-xs-12 {
+            padding-top: 10px;
+            color: #2f4050;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        #slider-station .item .head .col-xs-2 img {
+            width: 70%;
+            margin: 0 15%;
+        }
+
+    #slider-station .list-group-item {
+        color: #2f4050;
+    }
+
+    .widget-list-group {
+        padding: 10px
+    }
+
+        .widget-list-group .list-group-item {
+            border-bottom: 1px solid #7d7d7d !important;
+        }
+
+    .k-pager-info.k-label {
+        display: none;
+    }
+
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    .filterButtonPassive {
+        background-color: #49afcd;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    ul, li {
+        list-style-type: none;
+    }
+
+    .active {
+        color: black !important;
+    }
+
+    .hr-line-dashed {
+        margin: 10px 0 !important;
+    }
+
+    #VWFTM_TaskOperation, #VWPRD_InventoryTask, #VWFTM_Task {
+        border: 0px !important;
+    }
+
+        #VWFTM_TaskOperation .k-grid-header {
+            border-color: #fff !important;
+        }
+
+        #VWFTM_TaskOperation td {
+            border-color: #fff !important;
+        }
+
+        #VWFTM_TaskOperation .k-header.k-grid-toolbar.k-grid-top {
+            display: none;
+        }
+
+        #VWFTM_TaskOperation .k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+            display: none;
+        }
+
+        #VWFTM_TaskOperation .k-grid-header-wrap {
+            display: none;
+        }
+
+    #vertical-timeline::before {
+        left: 37px;
+    }
+
+    #VWFTM_Task #vertical-timeline::before {
+        left: 3px;
+    }
+
+    #VWFTM_Task #vertical-timeline::before {
+        background: #ffffff;
+    }
+
+
+    #vertical-timeline-content {
+        background-color: #f5f5f5;
+    }
+
+    #vertical-timeline {
+        margin-top: auto !important;
+        margin-bottom: auto !important;
+    }
+
+    .vertical-container {
+        width: auto;
+    }
+
+    .vertical-timeline-icon {
+        background-color: #e7e7e7;
+    }
+
+    .k-grid tr.k-state-selected {
+        color: #5d5555;
+    }
+
+    .k-grid tr.k-state-selected {
+        background-color: #ffffff;
+    }
+
+    .k state selected {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+    }
+
+    #detailTask .ibox-title {
+        padding: 0px;
+        height: 35px !important;
+        min-height: 35px !important;
+    }
+
+    #detailTask .ibox {
+        margin-bottom: 15px;
+    }
+
+    #ColorBox {
+        background: white;
+        position: absolute;
+        left: 54px;
+        padding: 8px;
+        z-index: -1;
+        border: 1px solid rgb(204, 204, 204);
+        border-radius: 10px;
+        width: 500px;
+    }
+
+    #ColorInfo {
+        background: white;
+        position: absolute;
+        left: 54px;
+        z-index: -1;
+        border: 1px solid rgb(204, 204, 204);
+        border-radius: 10px;
+        width: auto;
+        height: 50px;
+    }
+
+        #ColorInfo .category {
+            float: left;
+        }
+
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .slider {
+            color: white;
+            padding-top: 6px;
+        }
+
+            #ColorInfo .slider tr {
+                vertical-align: middle;
+                display: flex;
+                border: none;
+            }
+
+            #ColorInfo .slider td {
+                text-align: center;
+                border: none;
+                opacity: 1;
+            }
+
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .category {
+            min-height: 24px;
+        }
+
+        #ColorInfo .slider tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        #ColorInfo .slider tr td:last-child {
+            border-radius: 0 10px 10px 0px;
+        }
+
+        .info-content strong {
+            width: 250px !important;
+            position: absolute;
+            bottom: 30px;
+            background: white;
+            text-align: center;
+            left: 33px;
+            border-radius: 10px;
+            height: 30px;
+            padding-top: 6px;
+        }
+</style>

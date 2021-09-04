@@ -1,0 +1,87 @@
+﻿@{
+    ViewBag.Title = "Satın Alma Teklifleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var authorizedRoles = userStatus.AuthorizedRoles;
+    var satinAlmaPersonel = new Guid(SHRoles.SatinAlmaPersonel);
+    var satinAlmaOnaylayici = new Guid(SHRoles.SatinAlmaOnaylayici);
+    var muhasebeYonetici = new Guid(SHRoles.MuhasebeAlis);
+}
+
+@if ((authorizedRoles.Contains(muhasebeYonetici)) && !authorizedRoles.Contains(satinAlmaPersonel) && !authorizedRoles.Contains(satinAlmaOnaylayici))
+{
+    Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/BuyingApproved.cshtml");
+}
+else if (authorizedRoles.Contains(satinAlmaPersonel) && !authorizedRoles.Contains(satinAlmaOnaylayici) && !authorizedRoles.Contains(muhasebeYonetici))
+{
+    Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/BuyingMy.cshtml");
+}
+else
+{
+    Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/BuyingAll.cshtml");
+}
+
+
+<script type="text/javascript">
+    var tenderStatusEnums = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_TenderStatus>()));
+
+    function statusTemplate(data) {
+        var status = $.Enumerable.From(tenderStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+        return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+    }
+
+    function currencyFunction(item, data, isTotal) {
+        if (!data) {
+            return "-";
+        }
+
+        if (isTotal && isTotal == true) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+        }
+        return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+    }
+
+
+    $(document)
+        .on("selected:grid", "#VWCMP_TenderPending", function (e, data) {
+            var grid = $('#VWCMP_TenderPending').data("kendoGrid");
+            var statuss = grid.select().map(function (i, item) { return grid.dataItem(item)["status"]; }).toArray();
+            var cntrl = $.Enumerable.From(statuss).Where(x => x == 1).ToArray();
+            if (statuss.length != cntrl.length)
+            {
+                //MesajWarning("Sadece onaylanan teklifler irsaliyeye dönüştürülebilir.", "Bilgilendirme");
+                $('[data-selector="SendData"]').addClass('hide');
+                return;
+            }
+
+            var suppliers = grid.select().map(function (i, item) { return grid.dataItem(item)["supplierId"]; }).toArray();
+            var first = "";
+            var control = false;
+            $.each(suppliers, function (e, item) {
+                if (first == "") {
+                    first = item;
+                }
+
+                if (item != first) {
+                    control = true;
+                }
+            })
+
+            if (control == true) {
+                //MesajWarning("Farklı tedarikçiler için aynı irsaliye kesilemez.", "Bilgilendirme");
+                $('[data-selector="SendData"]').addClass('hide');
+                return;
+            }
+
+            $('[data-selector="SendData"]').removeClass('hide');
+
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
+            
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_Transaction/Upsert?direction=1&type=0&outputCompanyId=" + first +"&tenderIds=" + _selectedRows.ToArray().join(","));
+        })
+
+        .on('load:grid', '#VWCMP_TenderPending', function (e, item) {
+            $('[data-selector="SendData"]').addClass('hide');
+        })
+</script>

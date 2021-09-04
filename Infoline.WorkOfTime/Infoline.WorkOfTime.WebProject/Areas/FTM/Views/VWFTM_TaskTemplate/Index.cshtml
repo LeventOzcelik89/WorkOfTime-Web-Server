@@ -1,0 +1,219 @@
+﻿@{
+    ViewBag.Title = "Planlanmış Görev Şablonları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
+
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1){#
+    #color = "text-warning"#
+    #}else if(priority==2){#
+    #color = "text-primary"#
+    #}#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+
+                <td class="desc">
+    <div style="font-size:13px;"><strong>Şablon Adı : </strong>#=name ?? '-'#</div>
+
+    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    #if(description.length >= 25){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+                    #}
+                    else
+                    {#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+                    #}#
+
+
+                    #if(code!=null){#
+                    <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(inventory_Title != null){#
+                    <div style="font-size:13px;"><strong>Görevli Envanterler : </strong>
+
+    #= SplitDataReturnBadge((inventory_Title.split(',').length > 3 ? inventory_Title.split(',').slice(0, 3) : inventory_Title.split(',')).join(',')) #
+    #= inventory_Title.split(',').length > 3 ? '...' : '' #
+
+                    #}#
+
+                    <div style="font-size:13px;"><strong>Tahmini Görev Süresi : </strong>#:(estimatedTaskMinute != null ?  kendo.toString(estimatedTaskMinute,"N0") + ' dk' : '-')#</div>
+
+                    #if(assignableUserIds != null){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+                    #if(taskSubjectType_Title != null){#
+                    <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+                    #}#
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
+
+<script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+    #if(description!=null){#
+    #if(description.length >= 25){#
+    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+    #}
+    else
+    {#
+    <div style="font-size:13px;">#=description#</div>
+    #}#
+    #}#
+</script>
+
+<script type="text/x-kendo-template" id="taskInventories" data-selector="modalContainer">
+
+    #if(inventory_Title != null){#
+    <span class="badge">
+    #= (inventory_Title.split(',').length > 10 ? inventory_Title.split(',').slice(0,10) : inventory_Title.split(',')).join('</span><span class="badge">') #
+    </span>
+    #= inventory_Title.split(',').length > 10 ? '...' : '' #
+    #}else{#
+    -
+    #}#
+
+</script>
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+    #if(type_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+    #}#
+</script>
+
+<script type="text/javascript">
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+	function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+		}
+
+    function taskPriorityResult(data) {
+        if (data.priority == 0) {
+            return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+        }
+        else if (data.priority == 1) {
+            return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+        }
+        else if (data.priority == 2) {
+            return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+        }
+    }
+
+    function assignStaffButton(data) {
+        return '<a class="btn btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/AssignStaff?id=' + data.id + '"> <i class="fa fa-users"></i> Personel Ata </a>';
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <div class="col-md-9">
+                    <h5>Görev Şablonu Listesi</h5>
+                </div>
+                <div class="col-md-3">
+
+                    <div class="btn-group pull-right" style="margin-top: -5px;">
+                        <a class="btn pull-right m-r-sm btn-sm btn-success" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_TaskTemplate/Insert"> <i class="fa fa-plus-circle"></i> Yeni Görev Şablonu</a>
+                    </div>
+
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskTemplate>("VWFTM_TaskTemplate")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskTemplate", new { area = "FTM" }))
+        .PageSize(25).Sort(a => a.Add(c => c.created).Descending()))
+        .Scrollable(a => a.Height(650))
+        .Columns(x =>
+        {
+            x.Bound(y => y.id).Title("").Width(700).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+            x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+            {
+
+                b.Clear();
+                b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                b.IsLessThanOrEqualTo("Bitiş Tarihi");
+            }
+
+            ))).Width(180).Format(Extensions.DateFormatFull(true));
+            x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+            x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+            x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription', data)#").Width(180);
+            x.Bound(y => y.type_Title).Title("Görev Tipi").Width(125).Filterable(filterable=>filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+            x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable=>filterable.UI("FilterMenuTaskPriority")).Width(140).ClientTemplate("#=taskPriorityResult(data)#");
+            x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+            //x.Bound(y => y.id).Title("").Width(180).Filterable(false).ClientTemplate("#=assignStaffButton(data)#");
+            x.Bound(y => y.assignableUserTitles).Title("Üstlenebilecek Personeller").Width(180);
+            x.Bound(y => y.helperUserTitles).Title("Yardımcı Personeller").Width(180);
+            x.Bound(y => y.plate).Title("Araç").Width(180);
+            x.Bound(y => y.inventory_Title).Title("Görevlendirilen Envanterler").ClientTemplate("#=TemplateEngine('taskInventories', data)#").Width(230);
+            x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+        })
+        .Selectable(x => x.Mode(GridSelectionMode.Single))
+        .ToolBar(x =>
+        {
+
+            x.Custom().Text("<i data-original-title='Görev Şablonunu Düzenle' class='fa fa-pencil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" } }).Url(Url.Action("Update", "VWFTM_TaskTemplate", new { area = "FTM" }));
+
+            x.Custom().Text("<i data-original-title='Görev Şablon Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" } }).Url(Url.Action("Detail", "VWFTM_TaskTemplate", new { area = "FTM" }));
+
+            x.Custom().Text("<i data-original-title='Görev Şablonunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_TaskTemplate", new { area = "FTM" }));
+
+
+            //  TAKVİM ÜZERİNDE GÖSTER OLABİLİR.
+
+        }))
+            </div>
+        </div>
+    </div>
+</div>

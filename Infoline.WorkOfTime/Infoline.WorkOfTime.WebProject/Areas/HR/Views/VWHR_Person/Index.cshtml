@@ -1,0 +1,167 @@
+﻿@model VMKeywordAndPositions
+@{
+    ViewBag.Title = "CV Havuzu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var i = 0;
+}
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-href="/HR/VWHR_Person/Insert"> <i class="fa fa-plus-circle"></i> Yeni CV Ekle </a>
+
+                    <div class="space-25"></div>
+                    <h5>SON MÜLAKAT DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWHR_Person" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa fa-align-justify" style="color:black;"></i>   Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/HR/VWHR_Person/DataSourceCount">0</span>
+                        </li>
+
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PlanResult>())
+                        {
+
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-switch="radio" data-category="0" data-query="(Result~eq~@item.Key)">
+                                    <i class="fa @item.Generic["icon"]" style="color:@item.Generic["color"]"></i>  @item.Value
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" style="background:@item.Generic["color"]" data-counturl="/HR/VWHR_Person/DataSourceCount?filter=(Result~eq~@item.Key)">0</span>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>EĞİTİME GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PersonEducation>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="1" data-query="(Education~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>CİNSİYETE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PersonGender>().OrderBy(x => x.Value).ToArray())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="1" data-query="(Gender~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>MEDENİ DURUMUNA GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PersonMaritalStatus>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="1" data-query="(MaritalStatus~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>ASKERLİK DURUMUNA GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PersonMilitaryStatus>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="2" data-query="(MilitaryStatus~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+
+                    <div class="space-25"></div>
+                    <h5>BİLGİ VE BECERİLERE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+                        @foreach (var item in Model.keywords.OrderBy(a => a.Name))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="3" data-query="(HrKeywords_Title~contains~'@item.Name')">
+                                    @item.Name
+                                </a>
+                            </li>
+                            i++;
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>POZİSYONA GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+                        @foreach (var item in Model.positions.OrderBy(a => a.Name))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHR_Person" data-category="4" data-query="(HrPosition_Title~contains~'@item.Name')">
+                                    @item.Name
+                                </a>
+                            </li>
+                            i++;
+                        }
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>CV Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+               .Grid<Infoline.WorkOfTime.BusinessData.VWHR_Person>("VWHR_Person")
+               .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_Person", new { area = "HR" })).PageSize(25).Sort(c => c.Add(v => v.created).Descending()))
+               .Filterable(a => a.Mode(GridFilterMode.Row))
+               .Columns(x =>
+               {
+                   x.Bound(y => y.Result_Title).Hidden(true).Title("En Son Mülakat Durumu").ClientTemplate("#if(Result_Title != null){# #=Result_Title# #}else if(Result_Title == '-'){#Henüz Görüşülmedi#}else{#Henüz Görüşülmedi#}#").Width(220);
+                   x.Bound(y => y.searchField).Title("CV Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('hrpersongrid',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                   x.Bound(y => y.Name).Hidden(true).Title("İsim").Width(180);
+                   x.Bound(y => y.SurName).Title("Soyisim").Hidden(true).Width(180);
+                   x.Bound(y => y.IdentifyNumber).Title("Kimlik No").Hidden(true).ClientTemplate("#=TcKimlikControl(IdentifyNumber)#").Width(180);
+                   x.Bound(y => y.Phone).Title("Telefon").Hidden(true).Width(180);
+                   x.Bound(y => y.Email).Title("E-mail").Hidden(true).Width(180);
+                   x.Bound(y => y.HrPosition_Title).Title("Pozisyonlar").Hidden(true).Width(220);
+                   x.Bound(y => y.HrKeywords_Title).Title("Bilgi ve Beceriler").Hidden(true).Width(220);
+                   x.Bound(y => y.LocationId_Title).Title("Konum").Hidden(true).Width(180);
+                   x.Bound(y => y.Education_Title).Title("Eğitim Düzeyi").Hidden(true).Width(180);
+                   x.Bound(y => y.MilitaryStatus_Title).Title("Askerlik").Hidden(true).Width(180);
+                   x.Bound(y => y.Description).Title("Açıklama").Hidden(true).Width(180);
+               }).Scrollable(x => x.Height(650))
+               .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+               .ToolBar(x =>
+               {
+                   x.Custom().Text("<i class='fa fa-edit' data-original-title='CV Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWHR_Person", new { area = "HR" }));
+                   //x.Custom().Text("YÖNLENDİR").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("PersonToNeed", "VWHR_StaffNeeds", new { area = "HR" }));
+                   x.Custom().Text("<i class='fa fa-info-circle' data-original-title='CV Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_Person", new { area = "HR" }));
+               }))
+            </div>
+        </div>
+    </div>
+</div>

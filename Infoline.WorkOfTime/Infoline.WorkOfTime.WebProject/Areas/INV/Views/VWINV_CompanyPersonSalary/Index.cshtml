@@ -1,0 +1,77 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonSalaryPageReport
+@{
+    ViewBag.Title = "Tüm Maaşlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Personel Sayısı").Value(Model.ToplamMaasliPersonelSayisi + " Adet").IconClass("fa fa-user")
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("navy").Text("En Yüksek Ücret").Value(Model.EnYusekMaas.ToString("N2") + " ₺").IconClass("fa fa-turkish-lira")
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("blue").Text("En Yüksek Ücretli Personel").Value(Model.EnYusekMaasliPersonel).IconClass("glyphicon glyphicon-user")
+    </div>
+  
+</div>
+
+<div class="tabs-container">
+
+    <ul class="nav nav-tabs">
+        <li class="active" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="Personel Güncel(Mevcut) Ücretleri"> <a data-toggle="tab" href="#Current" aria-expanded="true"> <i class="fa fa-info"></i><span class="hidden-sm hidden-xs"> Personel Güncel(Mevcut) Ücretleri </span></a></li>
+        <li data-href="@Url.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" })" data-toggle="tooltip" data-placement="top" title="Personel Geçmiş Ücretler"> <a data-toggle="tab" href="#History" aria-expanded="false"> <i class="fa fa-user"></i><span class="hidden-sm hidden-xs"> Personel Geçmiş Ücretler </span></a></li>
+    </ul>
+    <div class="tab-content">
+        <section id="Current" class="tab-pane active" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" })">
+
+            @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonSalary>("VWINV_CompanyPersonSalary")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" }))
+                    .Filter(a => a.StartDate <= DateTime.Now && a.EndDate > DateTime.Now && a.IdUser != System.UIHelper.Guid.Null)
+                    .PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                        x.Bound(y => y.Person_Title).Title("Personel").Width(300);
+                        x.Bound(y => y.Salary).Title("Ücret").ClientTemplate("#= Salary# TL");
+                        x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(400).Format(Extensions.DateFormatShort(true));
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                        x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_CompanyPersonSalary", new { area = "INV" }));
+                    }))
+
+        </section>
+
+        <section class="tab-pane" id="History" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" })">
+
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonSalary>("VWINV_CompanyPersonSalaryAll")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonSalary", new { area = "INV" }))
+                 .Filter(a => a.EndDate < DateTime.Now)
+                 .Group(a => a.Add(c => c.Person_Title))
+                .PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                    x.Bound(y => y.Person_Title).Title("Personel").Width(300);
+                    x.Bound(y => y.Salary).Title("Ücret").ClientTemplate("#= (Salary != null ? Salary : '0')# TL").Width(250);
+                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(300).Format(Extensions.DateFormatShort(true));
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+              
+                }))
+        </section>
+
+    </div>
+
+</div>

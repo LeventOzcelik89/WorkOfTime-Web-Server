@@ -1,0 +1,47 @@
+﻿@model VWFTM_TaskFormResult
+@{
+    ViewBag.Title = "Görev Formu Detayı";
+}
+
+<script src="~/Content/Plugins/formBuilder/form-render.min.js" data-selector="modalContainer"></script>
+<script type="text/javascript" data-selector="modalContainer">
+    var pageDetail = {
+        data: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        fnc:{
+            renderForm: function () {
+                var data = JSON.parse(pageDetail.data.jsonResult);
+                $("#markup").formRender({ formData: data });
+                $.each(data, function (i, item) { if (item.type === "checkbox-group" || item.type === "radio-group") { if (typeof item.required !== 'undefined' && item.required === true) { if (item.userData.length > 0) { $('.field-' + item.name).find('input').each(function (i, e) { if ($.inArray(e.value, item.userData) !== -1) { $(e).trigger("click"); } }); } } } });
+            }
+        }
+    }
+
+    $(document).ready(function () {
+        pageDetail.fnc.renderForm();
+    })
+</script>
+
+@using (Html.BeginForm("Update", "VWFTM_TaskOperation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id","UpdateForm"}
+}))
+{
+
+    @Html.Hidden("jsonResult")
+
+    <fieldset>
+        <legend id="formName">Görev Formu</legend>
+        <div id="markup"></div>
+    </fieldset>
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .rendered-form .form-group {
+        margin-right: 0px !important;
+    }
+</style>
+
+

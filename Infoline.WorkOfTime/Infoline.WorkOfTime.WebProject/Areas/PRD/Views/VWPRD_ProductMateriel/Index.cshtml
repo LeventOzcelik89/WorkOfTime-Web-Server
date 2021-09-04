@@ -1,0 +1,23 @@
+﻿@{
+    ViewBag.Title = "Ürün Materyelleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductMateriel>("VWPRD_ProductMateriel")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductMateriel", new { area = "PRD" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.productId_Title).Title("Ürün");
+        x.Bound(y => y.materialId_Title).Title("Materyal Ürün").Width(500);
+        x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span data-toggle=\"tooltip\" title=\"#=quantity#\">#if (quantity != null) {#  #=quantity# #=unitId_Title# #}#</span>").Width(150);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductMateriel", new { area = "PRD" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductMateriel", new { area = "PRD" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductMateriel", new { area = "PRD" }));
+    }))

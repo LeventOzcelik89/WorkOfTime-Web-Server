@@ -1,0 +1,140 @@
+﻿
+@{
+    ViewBag.Title = "Personel Giriş Çıkış Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+	var dateData = "";
+	function onChangeDate(e) {
+		dateData = e.sender._oldText;
+
+		GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetDataReportResult', { date: dateData }, function (res) {
+			grid.data = res;
+			grid.init();
+		})
+	}
+
+	function ShiftTrackingFunc(e) {
+		var url = $('#shiftTrackingDetailButton').attr('data-href');
+		location.href = url;
+	}
+</script>
+
+<script type="text/x-kendo-template" id="template">
+
+    <a data-href="" data-button="ShiftDetail" id="shiftTrackingDetailButton" onclick="ShiftTrackingFunc()" data-method="GET" data-show="single" class="k-button hidden"><i data-original-title='Personel Giriş Çıkış Raporu Detay' class='fa fa-info-circle'></i></a>
+    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span>Excel'e Aktar</a>
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span>PDF'e Aktar</a>
+
+</script>
+<div class="row">
+
+    <div class="form-group">
+        <div class="col-md-4" style="margin-bottom:15px;">
+            @(
+            Html.Akilli().
+            DatePicker("shiftTrackingReport").
+            Enable(true)
+            .Value(DateTime.Now)
+            .Events(x => x.Change("onChangeDate"))
+            .Format(Extensions.DateFormatShort())
+            )
+        </div>
+        <div class="col-md-4">
+
+        </div>
+    </div>
+</div>
+
+<div id="shiftTrackingGrid"></div>
+
+<script type="text/javascript">
+
+
+	var grid = {
+		data: [],
+		init: function () {
+			$("#shiftTrackingGrid").kendoGrid({
+				toolbar: kendo.template($("#template").html()),
+
+				excel: {
+					fileName: "Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
+					filterable: true,
+					allPages: true,
+				},
+				dataSource: {
+					data: $.Enumerable.From(grid.data).ToArray(),
+					pageSize: 50,
+                    sort: [
+                        { field: "UserId_Title", dir: "asc" },
+                        { field: "date", dir: "asc" }
+                    ],
+				},
+				selectable: true,
+				reorderable: true,
+				sortable: true,
+				filterable: true,
+				encoded: true,
+				height: 600,
+				change: function (e, resp) {
+
+					$('#shiftTrackingDetailButton').removeClass('hidden')
+					var grid = $("#shiftTrackingGrid").data("kendoGrid");
+					var selectedItem = grid.dataItem(grid.select());
+					$('[data-button="ShiftDetail"]').show();
+					$('[data-button="ShiftDetail"]').attr('data-href', '/SH/VWSH_ShiftTracking/LogDetail?id=' + selectedItem.userId + '&date=' + dateData+'');
+				},
+				scrollable: true,
+				resizable: true,
+				pageable: {
+					refresh: true,
+					pageSizes: ["all"],
+					buttonCount: 5,
+					messages: {
+						itemsPerPage: "",
+						display: "{0} - {1} aralığı gösteriliyor. Toplam {2:#,##} öğe var",
+						empty: "",
+						allPages: "Tümü"
+					}
+                },
+				columns: [
+					{
+						field: "userId",
+						hidden:true
+					},
+					{
+						field: "id",
+						hidden:true
+                    },
+                    {
+                        field: "date",
+                        title: "Tarih",
+                        type: "date",
+                        format: "{0:dd.MM.yyyy H:mm:ss}"
+                    },
+					{
+						field: "UserId_Title",
+						title: "Personel"
+					},
+					{
+                        field: "ShiftTrackingStatus_Title",
+                        title: "Mesai Durumu"
+
+                    }
+                ],
+			});
+
+		}
+	}
+	$(document)
+		.on('ready', function () {
+			$('#shiftTrackingReport').data('kendoDatePicker').trigger('change');
+		})
+
+
+		.on("selected:grid", "#shiftTrackingGrid", function (e, resp) {
+
+		});
+
+</script>

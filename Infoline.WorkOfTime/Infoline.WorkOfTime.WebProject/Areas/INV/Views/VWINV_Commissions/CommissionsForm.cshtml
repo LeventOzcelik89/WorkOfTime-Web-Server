@@ -1,0 +1,299 @@
+﻿@model VWINV_CommissionsForm
+@using System.Globalization
+@using Infoline.WorkOfTime.BusinessAccess
+<html>
+<head>
+    <title>&nbsp;&nbsp;</title>
+    <script src="~/Content/2048-master/js/jquery.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+
+    <style type="text/css" data-selector="modalContainer">
+        #page {
+            width: 842px !important;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        body {
+            font-family: "Calibri",Helvetica,Arial,sans-serif;
+        }
+
+        td.stil {
+            height: 28px;
+            width: 280px;
+            padding-left: 5px;
+        }
+
+        .space-left {
+            padding-left: 5px;
+        }
+
+        .demo-section {
+            position: absolute;
+            top: 11px;
+            left: 805px;
+        }
+
+        td {
+            width: 320px;
+            padding: 0px;
+            font-size: 11pt;
+        }
+
+
+        #wizard {
+            width: 100%;
+            position: relative;
+            margin-top: 50px;
+        }
+
+            #wizard img {
+                width: 100%;
+            }
+
+            #wizard .adim {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 46%;
+                z-index: 99;
+            }
+
+            #wizard .adim1 {
+                left: 3%;
+            }
+
+            #wizard .adim2 {
+                left: 28%;
+            }
+
+            #wizard .adim3 {
+                left: 52%;
+            }
+
+            #wizard .adim4 {
+                left: 77%;
+            }
+
+            #wizard .tarih {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 31%;
+                z-index: 199;
+            }
+
+            #wizard .tarih1 {
+                left: 3%;
+            }
+
+            #wizard .tarih2 {
+                left: 28%;
+                top: 62%;
+            }
+
+            #wizard .tarih3 {
+                left: 52%;
+            }
+
+            #wizard .tarih4 {
+                left: 77%;
+                top: 62%;
+            }
+
+        table#sub tr td {
+            text-align: center;
+            line-height: 20px;
+            font-size: 10pt;
+        }
+
+        table#headerTable {
+            margin-bottom: 20px;
+        }
+
+        td[colspan="3"] {
+            padding-left: 5px;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="page">
+        <table id="headerTable" class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            <thead>
+                <tr>
+                    <td class="stil" style="padding: 14px;width: 16%; border-left: 1px solid gray;border-bottom: 1px solid gray;border-top: 1px solid gray;"><img src="@(Model.LogoPath != null ? Model.LogoPath : "")" width="98" alt="" title="" /></td>
+                    <td>
+                        <table id="sub" class="m-b-sm" cellpadding="0" cellspacing="0">
+                            <tr>
+                                <td colspan="5" class="stil" style="text-align: center; border-bottom: 1px solid gray;font-size: 18px;line-height: 52px;"><b>GÖREV VE SEYAHAT FORMU</b></td>
+                            </tr>
+                            <tr>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">DOK. NO</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">YÜRÜRLÜK TARİHİ</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">REVİZYON NO</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">REVİZYON TARİHİ</td>
+                                <td class="stil" style="border-bottom: 1px solid gray;border-right: 1px solid gray">S.NO</td>
+                            </tr>
+                            <tr>
+                                <td class="stil" style="border-right: 1px solid gray">SRC-13-FRM-25</td>
+                                <td class="stil" style="border-right: 1px solid gray">20.11.2017</td>
+                                <td class="stil" style="border-right: 1px solid gray">02</td>
+                                <td class="stil" style="border-right: 1px solid gray">21.01.2019</td>
+                                <td class="stil" style="border-right: 1px solid gray">1/1</td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </thead>
+        </table>
+
+        <table class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            <tr>
+                <td colspan="4" valign="middle" class="stil" style="background: #80808033;"><strong>Katılımcı(lar)</strong></td>
+            </tr>
+            <tr>
+                <td class="stil">Personel(ler) </td>
+                <td colspan="3">
+                    @string.Join(", ", Model.Users.Select(a => a.Person_Title))
+                </td>
+            </tr>
+            <tr>
+                <td colspan="4" valign="middle" class="stil" style="background: #80808033;"><strong>Personel Bilgileri</strong></td>
+            </tr>
+            <tr>
+                <td class="stil"> Kimlik No</td>
+                <td colspan="3" class="space-left">@(Model.CurrentUser.loginname)</td>
+            </tr>
+            <tr>
+                <td class="stil">Ad - Soyad</td>
+                <td colspan="3" class="space-left">@(Model.CurrentUser.FullName)</td>
+            </tr>
+            <tr>
+                <td class="stil">Departman</td>
+                <td colspan="3" class="space-left">@Model.Departman</td>
+            </tr>
+            <tr>
+                <td class="stil">Pozisyon</td>
+                <td colspan="3" class="space-left">@Model.Position</td>
+            </tr>
+            <tr>
+                <td class="stil">İşe Giriş Tarihi</td>
+                <td colspan="3" class="space-left">@string.Format("{0:dd.MM.yyyy}", Model.CurrentUser.JobStartDate)</td>
+            </tr>
+
+            <tr>
+                <td colspan="4" valign="middle" class="stil" style="background: #80808033;"><strong>Görev ve Seyahat Bilgileri</strong></td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Türü</td>
+                <td colspan="3">@(Model.Information == (int)EnumINV_CommissionsInformation.Diger ? Model.InformationDetail : Model.Information_Title) </td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Başlangıç Tarihi</td>
+                <td colspan="3">@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate)</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Bitiş Tarihi</td>
+                <td colspan="3">@string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate)</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Süresi</td>
+                <td colspan="3">@Model.CommissionTime</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Edeceği Firma</td>
+                <td colspan="3">@Model.ToCorporation</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahat Edeceği Adres</td>
+                <td colspan="3">@Model.ToAdress</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahatin Projesi </td>
+                <td colspan="3">
+                    @string.Join(", ", Model.Projects.Select(a => a.Project_Title))
+                </td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahatin Amacı/Konusu</td>
+                <td colspan="3">@Model.CommissionSubject</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev ve Seyahatin Ulaşım Türü</td>
+                <td colspan="3"> @(Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.Diger ? Model.TravelInformationDetail : Model.TravelInformation_Title)</td>
+            </tr>
+            <tr>
+                <td class="stil">Ulaşım Türü Araç ise Araç Bilgileri</td>
+                <td colspan="3">@Model.Car_Title</td>
+            </tr>
+            <tr>
+                <td class="stil">Konaklama Talebi</td>
+                <td colspan="3">@(Model.RequestForAccommodation == (int)EnumINV_CommissionsRequestForAccommodation.Var ? "Var" : "Yok")</td>
+            </tr>
+            <tr>
+                <td class="stil">Görev Ekipmanları Var ise Yazınız</td>
+                <td colspan="3"></td>
+            </tr>
+            <tr>
+                <td class="stil">Diğer Açıklama</td>
+                <td colspan="3">@Model.Descriptions</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="stilBuyuk" valign="top" style="height:120px; padding-top:10px; text-align:center;">
+                    <font>
+                        Yukarıda ayrıntıları belirtilen görevlendirme ve iş seyehatini kabul ettiğimi bildirir, talep edilen hususların onaylanmasını saygılarımla arz ederim. <br />
+                        @Model.CurrentUser.FullName<br />
+                        Tarih/İmza : <br />
+                    </font>
+                </td>
+            </tr>
+            <tr>
+                <td align="center" colspan="2" style="background: #80808033;line-height:33px"><b>Yönetici Onayı</b></td>
+            </tr>
+
+            <tr>
+                <td align="center" colspan="2" style="line-height:33px">@Model.Manager1Approval_Title</td>
+            </tr>
+            <tr>
+                <td align="center" colspan="2" style="line-height:33px">@(Model.Manager1ApprovalDate.HasValue ? "ONAYLANDI" : "")</td>
+            </tr>
+            <tr>
+                <td align="center" colspan="2" style="line-height:33px">@(Model.Manager1ApprovalDate.HasValue ? Model.Manager1ApprovalDate.Value.ToString("d", new CultureInfo("tr-TR")) : "")</td>
+            </tr>
+        </table>
+        <div style="top: 15px; padding: 0px; float: right">
+            <div id="qrUrl"></div>
+        </div>
+        <table class="m-b-sm" cellpadding="0" cellspacing="0" data-selector="modalContainer" style="margin-top: 2px;font-size: 10px;border-top: 1px solid gray;border-bottom: 1px solid gray;border-right: none;border-left: none;">
+            <tr>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] GİZLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ ] ANONİM</td>
+                <td style="line-height:15px;text-align: center;border: none;">[ X ] DAHİLİ</td>
+                <td style="line-height:15px;text-align: center;border: none;">[   ] HARİCİ</td>
+            </tr>
+        </table>
+
+    </div>
+    <script type='text/javascript'>
+        window.print();
+
+        $("#qrUrl").kendoQRCode({
+            value: "@Model.Url",
+            errorCorrection: "M",
+            size: 100
+        });
+    </script>
+</body>
+</html>

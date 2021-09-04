@@ -1,0 +1,95 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_ProductMateriel
+@{
+    ViewBag.Title = "Ürün Materyelleri Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onChangeMaterialId(e) {
+        $('#quantityTxt').html(this.dataItem().unitId_Title)
+    }
+</script>
+
+@using (Html.BeginForm("Insert", "VWPRD_ProductMateriel", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+    if (Model.productId.HasValue)
+    {
+        @Html.HiddenFor(model => model.productId)
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="productId">Ürün</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.productId)
+                  .OptionLabel("Lütfen Ürün seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                  .Template("#=TemplateEngine('productTemplate',data)#")
+                  .Sort(x => x.Add("name").Ascending())
+                  .Validate(Validations.Required)
+                  .Execute()
+                )
+            </div>
+        </div>
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="materialId">Materyel</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.materialId)
+                  .OptionLabel("Lütfen Materyel Ürün seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                  .Template("#=TemplateEngine('productTemplate',data)#")
+                  .Sort(x => x.Add("name").Ascending())
+                  .Events(t => t.Change("onChangeMaterialId"))
+                  .Validate(Validations.Required)
+                  .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="quantity">Miktar</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.quantity)
+                    .Min(0)
+                    .Format("N0").Validate(Validations.Required)
+                )
+                <span class="input-group-addon" id="quantityTxt">Adet</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

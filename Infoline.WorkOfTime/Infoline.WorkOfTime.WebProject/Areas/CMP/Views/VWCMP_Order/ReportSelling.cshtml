@@ -1,0 +1,88 @@
+﻿@model List<VMCMP_OrderModels>
+@{
+    ViewBag.Title = "Satış Siparişleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var invoiceitems = Model.Where(a=>a.InvoiceItems!=null).SelectMany(a => a.InvoiceItems);
+    var customers = Model.Where(a => a.customerId.HasValue).GroupBy(a => a.customerId).OrderBy(a => a.Key).Select(a => new
+    {
+        id = a.Key,
+        title = a.Select(c => c.Customer_Title).FirstOrDefault(),
+        storages = a.GroupBy(c => c.customerStorageId).Select(g => new
+        {
+            id = g.Key,
+            title = g.Select(d => d.CustomerStorage_Title).FirstOrDefault() ?? "Ana Depo",
+            invoiceIds = g.Select(d => d.id).ToArray()
+        }).OrderBy(d => d.title)
+    }).OrderBy(a => a.title);
+}
+
+<style type="text/css">
+    table {
+        border: 1px #ccc solid !important;
+    }
+</style>
+
+<script type="text/javascript">
+    var tableToExcel = (function() {
+        var uri = 'data:application/vnd.ms-excel;base64,'
+          , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Satış Siparişleri</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>'
+          , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+          , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+        return function(table, name) {
+            var a = document.createElement('a');
+            document.body.appendChild(a);
+            var ctx = { worksheet: 'Worksheet', table: document.getElementById(table).innerHTML }
+            a.href = uri + base64(format(template, ctx));
+            a.download = 'Satış Siparişleri - ' + new Date().toLocaleDateString() + '.xls';
+            a.click();
+      }
+        })()
+</script>
+
+<div class="panel panel-body">
+
+    <table class="table table-bordered" id="SailTable">
+        <thead>
+            <tr>
+                <th rowspan="2" valign="middle" colspan="1">Ürünler</th>
+                @foreach (var customer in customers)
+                {
+                    <th colspan="@customer.storages.Count()">@customer.title</th>
+                }
+                <th rowspan="2" valign="middle" colspan="1">Toplam</th>
+            </tr>
+            <tr>
+                @foreach (var customer in customers)
+                {
+                    foreach (var storage in customer.storages)
+                    {
+                        <th>@storage.title</th>
+                    }
+                }
+            </tr>
+        </thead>
+        <tbody style="max-height:500px;overflow:auto;">
+            @foreach (var product in invoiceitems.Where(a => a.productId.HasValue).GroupBy(a => a.productId))
+            {
+                <tr>
+                    <td>@product.Select(c => c.Product_Title).FirstOrDefault()</td>
+                    @foreach (var customer in customers)
+                    {
+                        foreach (var storage in customer.storages)
+                        {
+
+                            <th>@invoiceitems.Where(a => a.productId == product.Key && storage.invoiceIds.Contains(a.invoiceId.Value)).Sum(a => a.quantity)</th>
+                        }
+                    }
+                    <td style="white-space:nowrap;">@invoiceitems.Where(a => a.productId == product.Key).Sum(a => a.quantity) @invoiceitems.Where(a => a.productId == product.Key).Select(a => a.Unit_Title).FirstOrDefault()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    @if (Model.Count(a => a.status == (int)EnumCMP_OrderStatus.CevapBekleniyor) > 0)
+    {
+        <button type="button" class="btn btn-primary m-t-md pull-right" data-task="Insert" data-href="/CMP/VWCMP_Order/BulkConfirm?orderIds=@string.Join(",",Model.Select(a=>a.id))" data-ask="@Model.Count() adet siparişten  @Model.Count(a => a.status == (int)EnumCMP_OrderStatus.CevapBekleniyor) adet onay bekleyen siparişi onaylamak istediğinize eminmisiniz?">@Model.Count() adet siparişten  @Model.Count(a => a.status == (int)EnumCMP_OrderStatus.CevapBekleniyor) adet onay bekleyen siparişi onayla</button>
+    }
+
+    <input class="btn btn-primary m-t-md pull-left" type="button" onclick="tableToExcel('SailTable','')" value="Excel'e Aktar" />
+</div>

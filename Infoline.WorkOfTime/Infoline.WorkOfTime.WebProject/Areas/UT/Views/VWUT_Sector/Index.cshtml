@@ -1,0 +1,64 @@
+﻿@model VWUT_Sector
+@{
+    ViewBag.Title = "Sektör Tanımları (" + Model.name + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var pid = Model.id == System.UIHelper.Guid.Null ? null : (Guid?)Model.id;
+    var card = (UT_SectorCard)ViewBag.Card;
+
+}
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Toplam Sektör Sayısı").Value(string.Format("{0:N0}", card.ToplamSektorSayisi) + " Adet").IconClass("icon-industrial-building")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("İşletmelerde En Çok Kullanılan Sektör").Value(card.IsletmelerdeEnCokKullanilanSektor).IconClass("icon-commerical-building")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("En Çok Alt Sektörü Bulunan Sektör").Value(card.EnCokAltSektoruBulunanSektor).IconClass("icon-building")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("En Çok Alt Sektörü Bulunan Sektörünün Sayısı").Value(string.Format("{0:N0}", card.EnCokAltSektoruBulunanSektorunSayisi) + " Adet ").IconClass("icon-building-filled")
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+
+                @if (pid != null)
+                {
+                    <h5>@Model.fullname '(n)in Alt Sektörleri</h5>
+                }
+                else
+                {
+                    <h5>Ana Sektörler</h5>
+                }
+
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_Sector>("VWUT_Sector")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_Sector", new { area = "UT" })).Filter(a => a.pid == Model.id).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                        x.Bound(y => y.name).Title("Sektör İsmi");
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i title='Sektör Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWUT_Sector", new { area = "UT", pid = pid }));
+                        x.Custom().Text("<i title='Sektör Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_Sector", new { area = "UT" }));
+                        x.Custom().Text("<i title='Alt Sektörler' class='fa fa-tasks'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Index", "VWUT_Sector", new { area = "UT" }));
+                        x.Custom().Text("<i title='Sektör Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_Sector", new { area = "UT" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

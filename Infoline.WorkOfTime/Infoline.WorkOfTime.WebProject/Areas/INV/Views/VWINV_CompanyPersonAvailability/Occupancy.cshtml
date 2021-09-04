@@ -1,0 +1,247 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonAvailability
+@{
+    ViewBag.Title = "PERSONEL DOLULUK ORANLARI";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+
+    $(document)
+
+        .on('success', '#VWINV_CompanyPersonAvailability', function (e, resp) {
+
+            if (resp.result == false)
+            {
+                return;
+            }
+           
+            var aylar = $.Enumerable.From(resp.Data).GroupBy(function (a) { return a.tarih; }).Select(function (a) { return a.Key() }).ToArray();
+            var personeller = $.Enumerable.From(resp.Data).GroupBy(function (a) { return a.personel; }).Select(function (a) { return a.Key() }).ToArray();
+
+            var res = '<table class="table table-bordered" style="width:100%; border:1px solid">' +
+                '<thead>' +
+                '<th>Personel</th>' +
+                '<th>Toplam Adam/Ay</th>' +
+                aylar.map(function (item, i) { return '<th style="text-align:center;">' + item + '</th>' }).join('') +
+                '</thead>' +
+                '<tbody>';
+
+            $.each(personeller, function (i, item) {
+
+                var personelToplamRate = $.Enumerable.From(resp.Data).Where(function (a) { return a.personel == item; }).Sum(function (a) { return a.rate; });
+
+                res += '<tr>' +
+                    '<td>' + item + '</td>' +
+                    '<td>' + personelToplamRate + '</td>';
+
+
+                $.each(aylar, function (a1, ay1) {
+
+                    var personelinAydakiIsleri = $.Enumerable.From(resp.Data).Where(function (a) { return a.personel == item && a.tarih == ay1 });
+
+                    if (personelinAydakiIsleri.ToArray().length == 0) {
+                        res += '<td>' + 0 + '</td>';
+                        return;
+                    }
+
+                    var toplamRate = personelinAydakiIsleri.Sum(function (a) { return a.rate; });
+                    var tooltip = personelinAydakiIsleri.Select(function (a) { return a.proje; }).ToArray();
+                    var html = "";
+
+                    $.each(personelinAydakiIsleri.ToArray(), function (index, item) {
+                        if (item.rate){
+                            html+="" + item.proje + " :  " + item.rate  ;
+                        }
+                    });
+
+
+                    var cls = '';
+                    if (toplamRate > 1) {
+                        cls = 'buyuk1';
+                    } else if (toplamRate == 1) {
+                        cls = 'esit1';
+                    } else if (toplamRate == 0) {
+                        cls = '';
+                    } else {
+                        cls = 'arasinda01';
+                    }
+
+                    res += '<td data-toggle="tooltip" data-placement="bottom" title="' + html + '" class="' + cls + '">' + toplamRate + '</td>';
+
+                });
+
+                res += '</tr>';
+
+            });
+
+            res += '</tbody>' + '</table>';
+
+            $('#table').html(res);
+
+        })
+
+    ;
+
+</script>
+
+<style type="text/css">
+    .buyuk1 {
+        background-color: red;
+        color: white;
+    }
+
+    .esit1 {
+        background-color: green;
+        color: white;
+    }
+
+    .arasinda01 {
+        background-color: pink;
+        color: white;
+    }
+</style>
+
+@using (Html.BeginForm("Occupancy", "VWINV_CompanyPersonAvailability", FormMethod.Post, new Dictionary<string, object>()
+{
+    {"class", "form-horizontal"},
+    {"role", "form"},
+    {"id", "VWINV_CompanyPersonAvailability"},
+    {"data-selector", "modalContainer"},
+    {"data-formType", "Ajax"}
+}))
+{
+    @Html.AntiForgeryToken()
+
+    <fieldset>
+        <legend>PERSONEL DOLULUK FİLTRELEME</legend>
+        <div class="row">
+
+            <div class="col-md-3">
+                <div class="form-group cleafix">
+                    <div class="col-md-12">
+                        @(
+                            Html.Akilli()
+                            .DatePickerFor(model => model.StartDate).Name("Start")
+                            .Start(CalendarView.Year)
+                            .Depth(CalendarView.Year)
+                            .Max(DateTime.Now).Format("MMMM yyyy")
+                            .Value(DateTime.Now.AddMonths(-3))
+                            .MaxDateElement("EndDate").Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group cleafix">
+                    <div class="col-md-12">
+                        @(
+                          Html.Akilli()
+                          .DatePickerFor(model => model.EndDate).Name("End")
+                          .Start(CalendarView.Year)
+                          .Depth(CalendarView.Year)
+                          .Value(DateTime.Now.AddMonths(9)).Format("MMMM yyyy").Max(DateTime.Now.AddYears(2))
+                          .Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group cleafix">
+                    <div class="col-md-12">
+                        @(Html.Akilli()
+                          .MultiSelect("IdUsers")
+                          .Placeholder("Lütfen Personel Seçiniz..")
+                          .DataTextField("FullName")
+                          .DataValueField("id")
+                           .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                           .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                           .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                          .Sort(x => x.Add("FullName").Ascending())
+                          .Execute("id")
+                          .Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="form-group cleafix">
+                    <div class="col-md-12">
+                        @(
+                              Html.Akilli().MultiSelect("IdProject")
+                              .Id("ProjectId")
+                              .Placeholder("Lütfen Proje Seçiniz")
+                              .DataTextField("ProjectName")
+                              .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                              .Sort(x => x.Add("ProjectName").Ascending())
+                              .Validate(Validations.Required)
+                              .Execute()
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-md-2 pull-right">
+                <button class="btn btn-md btn-success pull-right btn-block" data-direction="sorgu" type="submit">Sorgula</button>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
+        <legend>DOLULUK ORANLARI</legend>
+            <div class="sifirbirarasi"></div><font style="color:black">Değer 0 ile 1 arasında ise</font>
+            <div class="bir"></div><font class="eger1" style="color:black">Değer 1 ise</font>
+            <div class="birdenbuyuk"></div><font class="buyuk1den" style="color:black">Değer 1'den büyük ise</font>
+        <div id="table">
+        </div>
+    </fieldset>
+}
+
+<style type="text/css">
+           .sifirbirarasi {
+                background-color: pink;
+                width: 30px;
+                height:30px;
+            }
+
+           .bir {
+    background-color: green;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    bottom: 48px;
+    left: 238px;
+}
+
+         .birdenbuyuk {
+    background-color: red;
+    width: 30px;
+    height: 30px;
+    position: relative;
+    bottom: 96px;
+    left: 409px;
+}
+
+           font {
+            position: relative;
+            left: 40px;
+            bottom: 24px;
+          }
+
+           font.eger1 {
+    position: relative;
+    left: 282px;
+    bottom: 71px;
+}
+
+           font.buyuk1den {
+    position: relative;
+    left: 455px;
+    bottom: 119px;
+}
+</style>

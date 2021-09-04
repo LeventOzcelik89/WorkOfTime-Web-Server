@@ -1,0 +1,87 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCarKilometer
+@{
+    ViewBag.Title = "Kilometre Bildirimi Yap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+@using (Html.BeginForm("Insert", "VWCMP_CompanyCarKilometer", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    if (!Model.companyCarId.HasValue)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="customerId">Araçlarım</label>
+            </div>
+            <div class="col-md-8">
+                @(
+        Html.Akilli()
+        .DropDownListFor(model => model.companyCarId)
+        .OptionLabel("Lütfen Aracınızı Seçiniz..")
+        .DataValueField("id")
+        .DataTextField("plate")
+        //.Template("#=TemplateEngine('companyTemplate',data)#")
+        .Template("#=TemplateEngine('carKilometerTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_CompanyCars", new { area = "CMP" }))
+        .Filter<VWCMP_CompanyCarKilometer>(a => a.responsiblePersonId == userStatus.user.id)
+        //.BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+        //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+        //.Sort(x => x.Add("fullName").Ascending())
+        .Validate(Validations.Required)
+        .Execute()
+            )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.companyCarId)
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="entryDate">Giriş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.entryDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Giriş Tarihi Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            .Value(Model.entryDate != null ? Model.entryDate : DateTime.Now)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="kilometer">Kilometre</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.kilometer, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Gidilen Kilometreyi Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -1,0 +1,48 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_MonthlyTargetGroupedPersonPageReport
+@{
+    ViewBag.Title = "Personel Aylık Hedef Tablosu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Aylık Hedef").Value(Model.TotalTarget.ToString("N0") + " Adet").IconClass("fa fa-flash")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Toplam Ürün").Value(Model.TotalProduct.ToString("N0") + " Adet").IconClass("fa fa-cubes")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Toplam Focuslu Ürün").Value(Model.TotalProductFocused.ToString("N0") + " Adet").IconClass("fa fa-eye")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("Focus Dışındaki Ürün").Value(Model.TotalProductNotFocused.ToString("N0") + " Adet").IconClass("fa fa-eye-slash")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_MonthlyTargetPersonGrouped>("VWCRM_MonthlyTargetPersonGrouped")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_MonthlyTargetPersonGrouped", new { area = "CRM" })).Sort(a => a.Add(b => b.CPeriod).Descending()).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio);
+        x.Bound(y => y.CPeriod).Title("Hedef Tarihi").Width(300).Format("{0:MMMM yyyy}");
+        x.Bound(y => y.TargetUser_Title).Title("Personel").Width(300);
+        x.Bound(y => y.created).Title("Tarih").Width(180).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+        x.Bound(y => y.changedby_Title).Title("Güncelleyen");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_MonthlyTargetPerson", new { area = "CRM" }));
+
+        x.Custom().Text("Kopyala").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_MonthlyTargetPerson", new { area = "CRM", Copy = true }));
+
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-default", "" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_MonthlyTargetPerson", new { area = "CRM" }));
+
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCRM_MonthlyTargetPerson", new { area = "CRM" }));
+
+    }))
+
+

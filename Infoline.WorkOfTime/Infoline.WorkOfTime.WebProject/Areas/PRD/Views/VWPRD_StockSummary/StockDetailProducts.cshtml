@@ -1,0 +1,38 @@
+﻿@model TempModel
+@{
+    ViewBag.Title = "Ürün Stok Özeti";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style type="text/css" data-selector="modalContainer">
+    .k-grid-toolbar {
+        display: none;
+    }
+
+    .k-grid-pager {
+        display: none;
+    }
+</style>
+
+<div data-selector="modalContainer">
+
+    @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummary")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" }))
+        .Filter(a => a.stockTable == "CMP_Storage" && Model.ProductIds.Contains(a.productId)).PageSize(25))
+        .Columns(x =>
+        {
+            x.Bound(y => y.productId_Title).Title("Ürün").Width(400).Filterable(false);
+            x.Bound(y => y.stockId_Title).Title("Depo").Width(200).Filterable(false);
+            x.Bound(y => y.quantity).Title("Miktar").Filterable(false).ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+            x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true).Filterable(false);
+
+        })
+        .Scrollable(s => s.Height(350))
+        .Selectable(x => x.Mode(GridSelectionMode.Single))
+        .ToolBar(x =>
+        {
+            //x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+        }))
+</div>

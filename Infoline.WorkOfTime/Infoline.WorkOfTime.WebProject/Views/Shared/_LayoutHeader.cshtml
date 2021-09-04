@@ -1,0 +1,661 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    var db = new WorkOfTimeDatabase();
+    var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
+    var userid = userStatus.user.id;
+
+    var childPersonAsManager1 = userStatus.ChildPersons.Where(a => a.Manager1 == userid).Select(a => a.IdUser).ToArray();
+    var personIds = db.GetINV_CompanyPersonDepartments().Where(a => (a.Manager1 == userid) && a.IsBasePosition == true).Select(a => (Guid?)a.IdUser).Distinct().ToArray();
+
+
+    var query = "(accountById~eq~'" + Guid.NewGuid() + "')";
+
+    if (childPersonAsManager1.Length > 0)
+    {
+        query = "(";
+        for (int i = 0; i < childPersonAsManager1.Length; i++)
+        {
+            if (i + 1 == childPersonAsManager1.Length)
+            {
+                query += "(accountById~eq~'" + childPersonAsManager1[i] + "'))";
+            }
+            else
+            {
+                query += "(accountById~eq~'" + childPersonAsManager1[i] + "')~or~";
+            }
+        }
+    }
+
+    if (personIds.Length > 0)
+    {
+        query = "(";
+        for (int i = 0; i < personIds.Length; i++)
+        {
+            if (i + 1 == personIds.Length)
+            {
+                query += "(accountById~eq~'" + personIds[i] + "'))";
+            }
+            else
+            {
+                query += "(accountById~eq~'" + personIds[i] + "')~or~";
+            }
+        }
+    }
+
+    var issueIds = db.GetHDM_IssueUserByUserId(userStatus.user.id).Select(a => a.issueId).ToList();
+
+    var ticketQuery = "(issueId~eq~'" + Guid.NewGuid() + "')";
+
+    if (issueIds.Count() > 0)
+    {
+        ticketQuery = "(";
+        for (int i = 0; i < issueIds.Count(); i++)
+        {
+            if (i + 1 == issueIds.Count())
+            {
+                ticketQuery += "(issueId~eq~'" + issueIds[i] + "'))";
+            }
+            else
+            {
+                ticketQuery += "(issueId~eq~'" + issueIds[i] + "')~or~";
+            }
+        }
+    }
+}
+
+<style>
+    .title-action {
+        padding-right: 30px;
+    }
+
+    .notifiText {
+        font-size: 12px !important;
+    }
+
+    .li-item {
+        word-break: break-all;
+    }
+
+    .headerH3Title {
+        margin-top: 20px !important;
+        margin-bottom: 10px !important;
+        font-weight: 500 !important;
+    }
+
+    #listNotification .customHref {
+        padding: 3px 3px !important;
+    }
+
+    .text-notify {
+        color: #1c84c6;
+    }
+</style>
+
+<script>
+    $(document)
+        .on("success", '[data-counturl]', function (e, res) {
+
+            if ($(this).attr("data-selector") == "header") {
+                if (res == 0) {
+                    $(this).parents("a").addClass("hide");
+                }
+                var total = Number($('[layoutdata-count="total"]').text()) + Number(res);
+                $('[layoutdata-count="total"]').text(total);
+
+                if (total == 0) {
+                    $('[layoutdatali-info="total"]').removeClass("hide");
+                } else {
+                    $('[layoutdatali-info="total"]').addClass("hide");
+                }
+            }
+        })
+</script>
+
+<div class="row white-bg page-heading">
+    <div class="col-lg-8 col-md-8 col-sm-6 col-xs-5">
+        <h3 class="headerH3Title">@Html.Raw(String.IsNullOrEmpty(ViewBag.Path) ? ViewBag.Title : ViewBag.Path)</h3>
+    </div>
+    <div class="col-lg-4 col-md-4 col-sm-6 col-xs-7">
+        @if (userStatus != null)
+        {
+        <ul class="nav navbar-top-links navbar-right">
+
+
+            <li class="dropdown pull-right"><a href="@Url.Action("SignOut","Account",new { area=""})"><i style="color:#ce5c5c !important" class="icon-logout" data-toggle="tooltip" title="Oturumu Kapat" data-placement="bottom"></i> </a></li>
+
+            <script type="text/javascript">
+                    FavoriteMenu('@userStatus.user.id');
+            </script>
+
+            <li layoutdata-opened="true" class="dropdown  pull-right" id="listNotification">
+                <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" aria-expanded="true" data-bildirim>
+                    <i class="fa fa-bell" style="color:grey"></i><span class="label label-warning" layoutdata-count="total">0</span>
+                </a>
+                <ul class="dropdown-menu dropdown-messages">
+
+                    <li layoutdatali-info="total">
+                        <div class="dropdown-messages-box text-center">
+                            <div class="media-body"> Yeni bir bildiriminiz bulunmamaktadır. </div>
+                        </div>
+                    </li>
+
+                    <li>
+                        <div class="dropdown-messages-box">
+
+                            <a href="/INV/VWINV_Permit/MyAboutIndex" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="fa fa-plane fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınızı bekleyen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~3))"></mark>
+                                    adet izin talebi bulunmaktadır.
+                                </div>
+                            </a>
+
+                            <a href="/INV/VWINV_Permit/MyIndex" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="icon-fighter-jet fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Islak imza yüklemeniz beklenen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(IdUser~eq~'@userStatus.user.id')~and~(ApproveStatus~eq~5)"></mark>
+                                    adet izin talebiniz bulunmaktadır.
+                                </div>
+                            </a>
+
+
+                            <a href="/DOC/VWDOC_DocumentRevisionRequest/MyAboutIndex" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="icon-exchange-1 fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınız beklenen
+                                    <mark data-selector="header" data-counturl="/DOC/VWDOC_DocumentRevisionRequest/DataSourceCount?filter=(confirmationUserIds~contains~'@userStatus.user.id')~and~(lastStatus~neq~1)"></mark>
+                                    adet revizyon talebi bulunmaktadır.
+                                </div>
+                            </a>
+
+
+                            <a href="/INV/VWINV_Commissions/MyAboutIndex" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="icon-rail fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınızı bekleyen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)"></mark>
+                                    adet görevlendirme talebi bulunmaktadır.
+                                </div>
+                            </a>
+
+                            <a href="/INV/VWINV_Commissions/MyIndex" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="fa fa-car fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Islak imza yüklemeniz beklenen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=(IdUser~eq~'@userStatus.user.id')~and~(ApproveStatus~eq~1~and~Files~eq~'')"></mark>
+                                    adet görevlendirme talebiniz bulunmaktadır.
+                                </div>
+                            </a>
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.PersonelTalebi)))
+                            {
+                                <a href="/HR/VWHR_StaffNeeds/MyIndex" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-user fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Tarafınıza yönlendirilen
+                                        <mark data-selector="header"
+                                              data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~'@((Int32)EnumHR_StaffNeedsStatusStatus.CvYonlendirildi)')"></mark>
+                                        adet CV bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+                            {
+
+                                <a href="/HR/VWHR_StaffNeeds/MyIndex" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-user fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        İşlem Bekleyen
+                                        <mark data-selector="header" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~'@((Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi)')"></mark>
+                                        adet personel talebi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IsGorusmesiMulakat)))
+                            {
+
+                                <a href="/HR/VWHR_PlanPerson/MyIndex" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="flaticon-people fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Mülakat yapılacak
+                                        <mark data-selector="header" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=(UserId~eq~'@userStatus.user.id')~and~(PlanDate~gte~datetime'@string.Format("{0:yyyy-MM-ddT00-00-00}",DateTime.Now)')~and~Result~eq~4"></mark>
+                                        adet personel adayı bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            <a href="/PDS/VWPDS_FormPermitTaskUser/Index" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="icon-users fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Değerlendirme yapılabilecek
+                                    <mark data-selector="header" data-counturl="/PDS/VWPDS_FormPermitTaskUser/DataSourceCount?filter=(evaluatorId~eq~'@userStatus.user.id')~and~(status~eq~1)"></mark>
+                                    adet personel bulunmaktadır.
+                                </div>
+                            </a>
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+                            {
+                                <a href="/HR/VWHR_StaffNeeds/MyIndex" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="flaticon-people fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        CV bekleyen
+                                        <mark data-selector="header" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~@((int)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi)~or~lastStatus~eq~@((int)EnumHR_StaffNeedsStatusStatus.YeniCvTalepEdildi))"></mark>
+                                        adet personel talebi bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/INV/VWINV_CompanyPersonAssessment/IKManagerDashboard" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-user-plus fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Islak imzalı dosya yüklemeniz beklenen
+                                        <mark data-selector="header" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=(IkApproval~eq~'@userid')~and~(ApproveStatus~eq~@((int)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme))"></mark>
+                                        adet değerlendirme bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            <a href="/INV/VWINV_CompanyPersonAssessment/Index" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="flaticon-people-2 fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Değerlendirmeniz beklenen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=(Manager1Approval~eq~'@userid')~and~(ApproveStatus~eq~@((int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme))"></mark>
+                                    adet yeni personel bulunmaktadır.
+                                </div>
+                            </a>
+
+                            <a href="/INV/VWINV_CompanyPersonAssessment/Index" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="flaticon-people-1 fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınız beklenen
+                                    <mark data-selector="header" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((((Manager2Approval~eq~'@userid')~and~(ApproveStatus~eq~@((int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme))))~or~(((GeneralManagerApproval~eq~'@userid')~and~(ApproveStatus~eq~@((int)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme)))))"></mark>
+                                    adet yeni personel değerlendirmesi bulunmaktadır.
+                                </div>
+                            </a>
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)))
+                            {
+                                <a href="/FTM/VWFTM_Task/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-wrench fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Üstlenebileceğiniz
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(assignUserId~eq~'@userid'~or~(assignableUserIds~contains~'@userid'~and~assignUserId~eq~'@System.UIHelper.Guid.Null'))"></mark>
+                                        adet görev bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/FTM/VWFTM_Task/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-wrench fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        İşlem yapmanız beklenen
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)"></mark>
+                                        adet görev bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)))
+                            {
+                                <a href="/FTM/VWFTM_Task/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-wrench fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Çözüm onayı bekleyen
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(isComplete~eq~false~and~lastOperationStatus~eq~30)"></mark>
+                                        adet görev bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/FTM/VWFTM_Task/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-wrench fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Personel ataması bekleyen
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~eq~'')~and~isComplete~eq~false)"></mark>
+                                        arıza bakım görevi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaPersonel)))
+                            {
+                                <a href="/CMP/VWCMP_Request/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-up-hand fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Teklif toplamanız beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor))"></mark>
+                                        adet satın alma talebi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)))
+                            {
+                                <a href="/CMP/VWCMP_Request/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-up-hand fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Onaylamanız beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor))"></mark>
+                                        adet satın alma talebi bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/CMP/VWCMP_Request/Index" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-up-hand fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Teklifleri onaya sunulan
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor))"></mark>
+                                        adet satın alma talebi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+                            {
+                                <a href="/CMP/VWCMP_Tender/IndexSelling" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-pencil-alt fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Siparişe dönüştürülmeyi bekleyen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.MusteriOnay)~and~direction~eq~1)"></mark>
+                                        adet satış teklifi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisOnaylayici)))
+                            {
+                                <a href="/CMP/VWCMP_Tender/IndexSelling" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-pencil-alt fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Onaylamanız beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.CevapBekleniyor)~and~direction~eq~1)"></mark>
+                                        adet satış teklifi bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/CMP/VWCMP_Order/IndexSelling" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-basket fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Onaylamanız beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.CevapBekleniyor)~and~direction~eq~1)"></mark>
+                                        adet satış siparişi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeAlis)))
+                            {
+                                <a href="/CMP/VWCMP_Tender/IndexBuying" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-pencil-alt fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Faturası kesilmesi beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Tender/DataSourceCount?filter=(status~eq~@((int)EnumCMP_TenderStatus.MusteriOnay)~and~direction~eq~0)"></mark>
+                                        adet satın alma teklifi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeSatis)))
+                            {
+                                <a href="/CMP/VWCMP_Order/IndexSelling" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-basket fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Faturası kesilmesi beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.Onay)~and~direction~eq~1)"></mark>
+                                        adet satış siparişi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
+                            {
+                                <a href="/CMP/VWCMP_Order/IndexSelling" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-basket fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Stok işlemlerinin yapılması beklenen
+                                        <mark data-selector="header" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.Onay)~and~direction~eq~1)"></mark>
+                                        adet satış siparişi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaPersonel)))
+                            {
+                                <a href="/HDM/VWHDM_Ticket" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-question fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Çözümlemeniz beklenen
+                                        <mark data-selector="header" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=((assignUserId~eq~'@userid')~and~(status~eq~@((int)EnumHDM_TicketStatus.Open)~or~status~eq~@((int)EnumHDM_TicketStatus.InProgress)))"></mark>
+                                        yardım talebi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim)))
+                            {
+                                <a href="/HDM/VWHDM_Ticket" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="icon-question fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Çözüm onayı bekleyen
+                                        <mark data-selector="header" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=((@ticketQuery)~and~(status~eq~@((int)EnumHDM_TicketStatus.Done)))"></mark>
+                                        yardım talebi bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/HDM/VWHDM_Ticket" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-user-secret fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Personel atamanız beklenen
+                                        <mark data-selector="header" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=((@ticketQuery)~and~(assignUserId~eq~'99999999-1234-5678-0000-999999999999'))"></mark>
+                                        yardım talebi bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+
+                            <a href="/PA/VWPA_Transaction/IndexRequest" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="icon-money fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınızı bekleyen
+                                    <mark data-selector="header" data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((confirmationUserIds~contains~'@userStatus.user.id')~and(direction~eq~'0'~and~type~eq~'8')~and~(confirmationStatus~eq~1~or~confirmationStatus~eq~'@System.UIHelper.Int32.Null'))"></mark>
+                                    adet masraf talebi bulunmaktadır.
+                                </div>
+                            </a>
+
+                            <a href="/PA/VWPA_Advance/IndexRequest" target="_blank" class="pull-left customHref">
+                                <div class="col-md-2"><span class="fa fa-briefcase fa-2x text-notify"></span></div>
+                                <div class="col-md-10 notifiText">
+                                    Onayınızı bekleyen
+                                    <mark data-selector="header" data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((confirmationUserIds~contains~'@userStatus.user.id')~and~(confirmationStatus~eq~1~or~confirmationStatus~eq~'@System.UIHelper.Int32.Null'))"></mark>
+                                    adet avans talebi bulunmaktadır.
+                                </div>
+                            </a>
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
+                            {
+                                <a href="/FTM/VWFTM_Task/IndexCustomer" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-wrench fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Çözüm beklenen
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(isComplete~neq~true~and~customerId~eq~'@userStatus.user.CompanyId')"></mark>
+                                        adet arıza/bakım kaydı bulunmaktadır.
+                                    </div>
+                                </a>
+
+                                <a href="/FTM/VWFTM_Task/IndexCustomer" target="_blank" class="pull-left customHref">
+                                    <div class="col-md-2"><span class="fa fa-check fa-2x text-notify"></span></div>
+                                    <div class="col-md-10 notifiText">
+                                        Çözüm sağlanan
+                                        <mark data-selector="header" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(isComplete~eq~true~and~customerId~eq~'@userStatus.user.CompanyId')"></mark>
+                                        adet arıza/bakım kaydı bulunmaktadır.
+                                    </div>
+                                </a>
+                            }
+                        </div>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="dropdown  pull-right" id="fvrid">
+                <a class="dropdown-toggle count-info" data-toggle="dropdown" href="#" aria-expanded="true" title="Sayfayı favorilerime eklemek için yıldıza çift tıklayınız.">
+                    <i id="starFavorite" class="fa fa-star"></i>
+                </a>
+                <fieldset style="position: absolute;
+                      z-index: 9999;
+                      opacity: 4;
+                      background: white;
+                      padding: 10px !important;
+                      display: block;
+                      box-shadow: 2px 2px 26px black;right: 0px;display:none;" id="fieldsetFvr">
+                    <label>Ad : </label> <input style="margin-bottom: 10px !important;" type="text" id="FavoriteText" name="FavoriText" maxlength="30" /><br />
+                    <input type="submit" onclick="CloseFavorites(this)" class="pull-left" name="CloseFvr" id="CloseFvr" value="Kapat" />
+                    <input type="submit" class="pull-right" name="FavoriteSubmit" id="FavoriteSubmit" value="Kaydet" />
+                </fieldset>
+                <ul class="dropdown-menu dropdown-messages" id="Favorite" style="background:#e7eaef"></ul>
+            </li>
+
+            <li>
+                <a href="#" id="selectLanguage" data-toggle="dropdown"><i class="fa fa-globe"></i> <strong>@Configs.languages[0] </strong> <b class="caret"></b></a>
+                <ul class="dropdown-menu animated fadeInTop m-t-xs" style="min-width: 73px;background:white;right:30px;">
+                    @foreach (var item in Configs.languages.Where(x => x != "RU"))
+                    {
+                        <li><a href="#">@item</a></li>
+                    }
+                </ul>
+            </li>
+
+            @if (userStatus.user.id == Guid.Empty || (Request.Url.AbsoluteUri.IndexOf("localhost") > -1 || Request.Url.AbsoluteUri.IndexOf("developer.workoftime.com") > -1 || Request.Url.AbsoluteUri.IndexOf("demo.workoftime.com") > -1))
+            {
+                <li class="dropdown pull-right">
+                    <a class="dropdown-toggle" data-toggle="dropdown" href="#" aria-expanded="true">
+                        <i class="fa fa-user-secret" style="color:grey"></i>
+                    </a>
+                    <div class="dropdown-menu dropdown-messages" id="userroller" style="width: 370px;height:600px;overflow:auto"></div>
+                </li>
+
+                <style type="text/css">
+                    #userroller fieldset {
+                        margin: 0 0 5px 0 !important;
+                        padding: 5px 5px 0 5px !important;
+                    }
+
+                        #userroller fieldset legend {
+                            font-size: 11px !important;
+                            margin-left: 0px !important;
+                            margin-bottom: 0px !important;
+                        }
+
+                        #userroller fieldset li {
+                            float: left;
+                            width: 49%;
+                            border: 1px #ccc solid;
+                            cursor: pointer;
+                            font-size: 11px;
+                            overflow: hidden;
+                        }
+
+                            #userroller fieldset li.active, #userroller fieldset li:hover {
+                                background: #e9e9e9 !important;
+                            }
+
+                            #userroller fieldset li:nth-child(2n+1) {
+                                margin-right: 5px;
+                                margin-bottom: 5px;
+                            }
+
+                        #userroller fieldset img {
+                            width: 30px;
+                            height: 30px;
+                        }
+                </style>
+
+                <script type="text/javascript">
+
+                        GetJsonDataFromUrl("/General/GetUserRole", null, function (roles) {
+                            if (roles == null) { return; }
+
+                            roles.forEach(function (role) {
+                                var fieldset = $("<fieldset><legend>" + role.name + "</legend><ul style='max-height:80px !important; overflow:auto;padding: 0px !important;'></ul></fieldset>");
+                                role.users.forEach(function (user) {
+                                    var active = '@userStatus.user.id' == user.id ? "active" : "";
+                                    var photo = user.photo != null ? user.photo : "";
+                                    $('<li class="li-item ' + active+'"/>')
+                                        .append('<img src="' + photo + '" class="img-circle circle-border" onerror="ImageError(this,\'/Content/Custom/img/na.png\')"/>')
+                                        .append('<span>' + user.fullName + '</span>')
+                                        .on("click", function (b) {
+                                            GetJsonDataFromUrl("/General/SetUser", { id: user.id }, function (resp) {
+                                                location.href = "/Account/Index"
+                                            });
+                                        })
+                                        .appendTo(fieldset.find("ul"));
+                                });
+
+
+                                fieldset.appendTo($("#userroller"));
+                            });
+                        });
+                </script>
+            }
+
+
+
+
+
+
+
+
+
+
+        </ul>
+        }
+    </div>
+</div>
+
+<script type="text/javascript">
+    var userId = '@userStatus.user.id';
+    $(document)
+    .on('keyup', '#FavoriteText', function (event, i) {
+        if (event.keyCode == 13) {
+            $('#FavoriteSubmit').trigger('click');
+            $('#fieldsetFvr').hide();
+        }
+    })
+
+    $("#fvrid").dblclick(function () {
+        if ($('#fvrid').hasClass('aktif') == true) {
+            $('#fvrid').removeClass('aktif');
+            $('#starFavorite').css("color", "grey");
+            $('#Favorite').empty();
+            FavoriteAdd(window.location.pathname, false);
+            FavoriteMenu(userId)
+        } else {
+            $('#fvrid').addClass('aktif');
+            $('#starFavorite').css("color", "#f8ac59");
+            $('#Favorite').empty();
+            FavoriteAdd(window.location.pathname, true);
+            FavoriteMenu(userId)
+        }
+    })
+
+    $('#FavoriteSubmit').click(function (e) {
+        if ($('#fieldsetFvr')[0].classList.value != "") {
+            var id = $('#fieldsetFvr')[0].classList.value.replace('Update-', "")
+            GetJsonDataFromUrl('/General/UpdateFavoriteText', { id: id, desc: $('#FavoriteText').val() }, function (response) {
+                $('#fieldsetFvr').removeClass('Update-' + id);
+                $('#fieldsetFvr').hide();
+                $('#Favorite').empty();
+                FavoriteMenu(userId)
+            })
+        }
+        else {
+            GetJsonDataFromUrl('/General/FavoritesAdd', { data: window.location.pathname, status: null, search: window.location.search, Description: $('#FavoriteText').val() }, function (resp) {
+                if (resp.Result == true) {
+                    $('#fieldsetFvr').hide();
+                    $('#Favorite').empty();
+                    FavoriteMenu(userId)
+                }
+            })
+        }
+    });
+</script>

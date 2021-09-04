@@ -1,0 +1,528 @@
+﻿@using Infoline.WorkOfTime.WebProject.Areas.PRJ.Models
+@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.PRJ.Models.PRJ_ProjectCost[]
+
+@{
+    Layout = null;
+
+    var projectName = ViewBag.ProjectName;
+
+    var Types = Model.GroupBy(x => x.CostType).Select(x => x.Key).ToArray();
+
+    var Dates = Model.GroupBy(x => x.CostDate).OrderBy(x => x.Key).Select(x => x.Key).ToArray();
+
+    var ProjectCostMonthlyByCostType = Model.GroupBy(x => new { x.CostDate, x.CostType }).Select(x => new KeyValue
+    {
+        Key = (((ENUMPRJ_CostType)x.Key.CostType).ToDescription()),
+        Value = x.Key.CostDate,
+        Value2 = x.Sum(y => y.Cost)
+    });
+
+
+    var aa = ProjectCostMonthlyByCostType.Where(c => c.Key == "Personel Bakım Maliyeti").ToArray();
+    var ProjectCostByCostType = ProjectCostMonthlyByCostType.GroupBy(x => x.Key).Select(x => new KeyValue
+    {
+        Key = x.Key,
+        Value2 = x.Sum(y => (double)y.Value2),
+    });
+
+    var _projectData = ProjectCostMonthlyByCostType.GroupBy(x => x.Value).ToList();
+
+    var ProjectCostByMonth = _projectData.Select(x => new KeyValue
+    {
+        Key = ((DateTime)x.Key).Year.ToString() + " " + ((DateTime)x.Key).ToString("MMMM", new System.Globalization.CultureInfo("tr-TR")),  // ocak şubat yapılacak.
+        Value = x.Sum(y => (double)y.Value2),
+        Tooltip = string.Join("<br/>", x.Select(s => s.Key + " :" + ((double)s.Value2).ToString("n2") + " ₺")) + "<br/>Toplam :" + x.Sum(y => (double)y.Value2).ToString("n2") + " ₺"
+    });
+    var classlar = new string[] { "blue-bg", "red-bg", "yellow-bg" };
+}
+
+<style type="text/css">
+    #tableDivCost {
+        overflow-x: scroll;
+        overflow-y: visible;
+    }
+
+    .costColor {
+        color: #a00012;
+        text-align: right;
+        font-size: 16px;
+    }
+
+    #CostTable {
+        border-spacing: 0;
+        border-top: none;
+    }
+
+    .toplam {
+        font-weight: bold;
+    }
+
+    #CostTable tbody tr td:first-child, #CostTable thead tr th:first-child {
+        min-width: 180px;
+        max-width: 200px;
+        text-align: center;
+    }
+
+    #CostTable td, #CostTable th {
+        vertical-align: middle;
+        white-space: nowrap;
+    }
+
+    .nodata {
+        color: #a94442;
+        margin: 163px 0px;
+        text-align: center;
+    }
+
+    #CostTable tbody tr td input {
+        background-color: #f2f2f2;
+        padding: 5px !important;
+        font-family: 'Roboto', sans-serif;
+        font-size: 13px;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        border: 1px #0c0c0c solid;
+        width: 100%;
+    }
+
+    .costParent {
+        margin-bottom: 15px;
+        margin-top: 15px;
+        border: 1px solid #efebeb;
+        width: 98%;
+        margin-left: 1%;
+    }
+
+    .myBox {
+        border: 1px solid #efebeb;
+        height: 400px;
+        margin-left: 1%;
+        width: 48%;
+    }
+
+    .myTitle {
+        text-align: center;
+        color: black;
+        margin-bottom: 25px;
+        font-size: 20px;
+        font-family: sans-serif;
+    }
+
+    div#INV_Invoice2 .k-grid-top {
+        display: none;
+    }
+
+    div#INV_Invoice2 .k-grid-content {
+        height: 293px !important;
+        overflow: scroll;
+    }
+
+    .h400 {
+        height: 400px;
+        overflow: scroll;
+        margin-bottom: 0px;
+        overflow-x: hidden;
+    }
+
+    .fatura-list {
+        background: #eef7f5;
+        margin-bottom: 5px;
+    }
+
+    .shoping-cart-table {
+        width: 100% !important;
+    }
+</style>
+
+
+<script type="text/javascript">
+    var tableToExcel = (function() {
+        var uri = 'data:application/vnd.ms-excel;base64,'
+          , template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>{@projectName}</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>'
+          , base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) }
+          , format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) }
+        return function(table, name) {
+            var a = document.createElement('a');
+            document.body.appendChild(a);
+            var ctx = { worksheet: 'Worksheet', table: document.getElementById(table).innerHTML }
+            a.href = uri + base64(format(template, ctx));
+            a.download = '@(ViewData["ProjectName"].ToString())' + " - Detaylı Proje Maliyeti - " + new Date().toLocaleDateString() + '.xls';
+            a.click();
+      }
+        })()
+</script>
+
+<div class="row clearfix">
+    <div class="col-md-12">
+        <fieldset>
+            <legend><i class="fa fa-file-archive-o"></i> Proje Maliyet Özeti</legend>
+            <div style="margin-top:10px;"></div>
+            <div class="row">
+
+                @for (int i = 0; i < Types.Length; i++)
+                {
+
+                    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+                        <div class="form-group">
+                            <div class="widget border-gray style1 @classlar[i]" style="cursor: default !important; margin-bottom: 0px !important">
+                                <div class="row">
+                                    <div class="col-xs-2 hidden-md">
+                                        <i class="fa fa-user fa-4x"></i>
+                                    </div>
+                                    <div class="col-xs-10 wInformation text-right">
+                                        <strong class="cursor-feature" style="font-size: 14px;">@(((ENUMPRJ_CostType)Types[i]).ToDescription())</strong>
+                                        <h3 style="font-size: 20px;">
+                                            @ProjectCostByCostType.Where(x => x.Key == (((ENUMPRJ_CostType)Types[i]).ToDescription())).Sum(x => (double)x.Value2).ToString("N2", new System.Globalization.CultureInfo("tr-TR")) <small style="color: white">₺</small>
+                                        </h3><br>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                }
+
+                @if (Types.Length != 0)
+                {
+                    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+                        <div class="form-group">
+                            <div class="widget border-gray style1 navy-bg " style="cursor: default !important; margin-bottom: 0px !important">
+                                <div class="row">
+                                    <div class="col-xs-2 hidden-md">
+                                        <i class="fa fa-try fa-4x"></i>
+                                    </div>
+                                    <div class="col-xs-10 wInformation text-right">
+                                        <strong class="cursor-feature" style="font-size: 14px;">Projenin Toplam Maliyeti</strong>
+                                        <h3 style="font-size: 20px;">
+                                            @ProjectCostByCostType.Sum(y => (double)y.Value2).ToString("N2", new System.Globalization.CultureInfo("tr-TR")) <small style="color: white">₺</small>
+                                        </h3><br>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </fieldset>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+        <fieldset>
+            <legend><i class="fa fa-pie-chart" style="color: #004d40"></i> Maliyet Tipine Göre Dağılım</legend>
+            <div class="h400" id="CostTypePieChart"></div>
+        </fieldset>
+    </div>
+    <div class="col-lg-6 col-md-12">
+        <fieldset>
+            <legend><i class="fa fa-file-text" style="color: orange"></i> Projeye Kesilen Faturalar</legend>
+            <div class="h400" data-load="inv_invoice">
+            </div>
+        </fieldset>
+    </div>
+    <div class="col-md-12">
+        <fieldset>
+            <legend><i class="fa fa-area-chart" style="color: #5464bd"></i>  Aylara Göre Proje Maliyet Grafiği</legend>
+            <div id="costChart"></div>
+        </fieldset>
+    </div>
+    <div class="col-md-12">
+        <fieldset>
+            <legend><i class="fa fa-paste" style="color: #b03b0e"></i> Detaylı Proje Maliyeti <input type="button" onclick="tableToExcel('CostTable', 'Detaylı Proje Maliyeti')" value="Excel'e Aktar"></legend>
+            <div id="tableDivCost">
+                <table id="CostTable" style="width:100%;" class="table table-bordered">
+                    <thead>
+                        @foreach (var type in Types)
+                        {
+                            <tr style="border-right:none;font-size:13px;">
+                                <td style="font-size:16px;background-color: #0f9bbb26;font-weight:bold;">@(((ENUMPRJ_CostType)type).ToDescription())</td>
+                                @foreach (var date in Dates)
+                                {
+                                    <td style="font-size:16px;background-color: #0f9bbb26;font-weight:bold;">@date.ToString("dd.MM.yyyy")</td>
+                                }
+                                <td style="border:none"></td>
+                            </tr>
+                            var Items = Model.Where(x => x.CostType == type).GroupBy(x => x.CostItem);
+                            if (Items.Count() != 0)
+                            {
+                                foreach (var item in Model.Where(x => x.CostType == type).GroupBy(x => x.CostItem).OrderBy(x => x.Key))
+                                {
+                                    <tr>
+                                        <td>
+                                            @item.Key
+                                        </td>
+                                        @foreach (var date in Dates)
+                                        {
+                                            var Item = Model.Where(x => x.CostItem == item.Key && x.CostDate == date && x.CostType == type).FirstOrDefault();
+                                            if (Item != null)
+                                            {
+                                                <td> @string.Format("{0:N2}", Item.Cost)</td>
+                                            }
+                                            else
+                                            {
+                                                <td> - </td>
+                                            }
+                                        }
+                                        <td class="toplam">Toplam : <strong> @string.Format("{0:N2}", Model.Where(x => x.CostItem == item.Key && x.CostType == type).OrderBy(x => x.CostDate).Sum(x => x.Cost))</strong></td>
+                                    </tr>
+                                }
+                                <tr>
+                                    <td style="border:none"></td>
+                                    @foreach (var date in Dates)
+                                    {
+                                        var tutar = Model.Where(x => x.CostType == type && x.CostDate == date).Sum(a => a.Cost);
+
+                                        <td style="font-weight:bold;background-color: #79bb0f26;">Toplam : <strong> @(tutar != null ? string.Format("{0:N2}", tutar) : "-") </strong></td>
+                                    }
+
+                                    <td style="background-color: #79bb0f26;font-weight:bold;"> @(((ENUMPRJ_CostType)type).ToDescription()) Toplam : @string.Format("{0:N2}", Model.Where(x => x.CostType == type).Sum(x => x.Cost))</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td> Bulunamadı</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td style="border:none;height:25px"></td>
+                            </tr>
+                        }
+
+                        <tr style="border-right:none;font-size:13px;">
+                            <td style="font-size:16px;background-color: #0f9bbb26;font-weight:bold;">Toplam Maliyet</td>
+                            @foreach (var date in Dates)
+                            {
+                                <td style="font-size:16px;background-color: #0f9bbb26;font-weight:bold;">@date.ToString("dd.MM/yyyy")</td>
+                            }
+                            <td style="border:none"></td>
+                        </tr>
+
+                        <tr>
+                            <td style="border:none;"></td>
+                            @foreach (var date in Dates)
+                            {
+                                <td style="background-color: #79bb0f26;height: 54px;">
+                                    <strong>Toplam : @string.Format("{0:C2}", Model.Where(x => x.CostDate == date).Sum(u => u.Cost)) </strong>
+                                </td>
+                            }
+                            <td style="font-size: 15px;background-color: #79bb0f26;">
+                                <strong> Proje Toplam Maliyeti :<span style="color:#a00012;">@string.Format("{0:C2}", Model.Sum(u => u.Cost)) </span></strong>
+                            </td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </fieldset>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    var Page = {
+        ProjectMonthlyCost: @Html.Raw(Infoline.Helper.Json.Serialize(ProjectCostByMonth)),
+        ProjectCostByCostType: @Html.Raw(Infoline.Helper.Json.Serialize(ProjectCostByCostType)),
+        URL: {
+            ProjeyeKesilenFaturalar:'@Url.Action("CMP_InvoiceByProjectId", "VWCMP_Invoice", new { area = "CMP" })'
+        },
+        PKFFilter:{
+            ProjectId: '@(new Guid(ViewData["ProjeId"].ToString()))'
+        },
+        KendoLineChart:function(element){
+            element.kendoChart({
+
+                title:{
+                    text:"Aylara Göre Proje Maliyet Grafiği",
+                    font: "20px sans-serif",
+                    color: "rgba(55,55,55,0.999)"
+                },
+                legend:{
+                    visible:false
+                },
+                chartArea:{
+                    background:""
+                },
+                seriesDefaults:{
+                    type:"line",
+                    style:"smooth",
+                    overlay:{
+                        gradient:"none",
+                        format: "{0:n2} ₺"
+                    }
+                },
+                tooltip:{
+                    visible:true,
+                    template:"#= dataItem.Tooltip #",
+                },
+                valueAxis:{
+                    labels:{
+                        template: '#: value.toLocaleString() # ₺',
+                    },
+                    title:{
+                        text:"Maliyet"
+                    },
+                    visible:true
+                },
+                seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#9de219", "#1c0F7F", "#90cc38"],
+
+                categoryAxis:{
+                    //categories:$.Enumerable.From(this.ProjectMonthlyCost).Select(function(a){return a.Key}).OrderBy(function(b){return b.Key}).ToArray(),
+                    majorGridLines:{
+                        visible:true,
+                    },
+                    labels:{
+                        rotation: -45,
+                    },
+                    title:{
+                        text:"Aylar"
+                    }
+                },
+                dataSource:{
+                    // elle verilirse bu kalkacak
+                    data:this.ProjectMonthlyCost
+                },
+                series:[{
+                    name:"Maliyetler",
+                    //data:$.Enumerable.From(this.ProjectMonthlyCost).OrderBy(function(a){return a.Key}).Select(function(b){return b.Value}).ToArray(),
+                    field:"Value",
+                    categoryField:"Key"
+                }]
+            });
+        },
+        KendoPieChart:function(element){
+
+            element.empty();
+            if (this.ProjectCostByCostType.length==this.ProjectCostByCostType.filter(function(f){ return f.Value2==0}).length) {
+                element.append('<p class="alert nodata"><strong><small>HERHANGİ BİR SONUÇ BULUNAMADI</small></strong></p>');
+                return;
+            }
+
+            element.kendoChart({
+                title:{
+                    font: "20px sans-serif",
+                    color: "rgba(55,55,55,0.999)"
+                },
+                legend: {
+                    visible:true,
+                    position:"bottom"
+                },
+                render: function (e) {
+                    var loading = $(".chart-loading", e.sender.element.parent());
+                    kendo.ui.progress(loading, false);
+                },
+                seriesColors: ["#004D40", "#00695C", "#00796B", "#00897B", "#009688", "#26A69A", "#4DD0E1"],
+                seriesDefaults: {
+                    labels: {
+                        visible: true,
+                        background: "transparent",
+                        format: "{0:n2} ₺"
+                    },
+                    overlay: {
+                        gradient: "none"
+                    }
+
+                },
+                chartArea: {
+                    background: "transparent"
+                },
+                dataSource: {
+                    data: this.ProjectCostByCostType.filter(a=>a.Value2 > 0)
+                },
+                series: [{
+                    type:"pie",
+                    field:"Value2",
+                    categoryField:"Key",
+                }],
+                tooltip: {
+                    visible: true,
+                    template:"#: category #  #:value.toLocaleString() # ₺ ",
+                    format: "{0:N2}"
+                }
+            });
+        },
+        ProjeyeKesilenFaturalar: function () {
+
+            GetJsonDataFromUrl(Page.URL.ProjeyeKesilenFaturalar,Page.PKFFilter , function(data) {
+                $('[data-load="inv_invoice"]').empty();
+                if (data.length==0) {
+                    $('[data-load="inv_invoice"]').append('<p class="alert nodata"><strong><small>HERHANGİ BİR SONUÇ BULUNAMADI</small></strong></p>');
+                    return;
+                }
+
+                $.each(data, function (index, item) {
+                    var stock = item.stock;
+                    item = item.item;
+
+                    var total = "-";
+
+                    if(item.totalAmount && item.totalTax){
+                        total = item.totalAmount - item.totalTax;
+                    }
+
+                    var cnt = stock.length;
+                    var stockString = "";
+                    $.each(stock, function(j, elem){
+                        stockString += elem.quantity + " " + elem.Unit_Title + " " + elem.Product_Title;
+                        if(cnt > j && cnt > 1){
+                            stockString+=", ";
+                        }
+                    })
+                    var template= $('<div class="ibox-content fatura-list">'+
+                               '<div class="table-responsive">'+
+                                    '<table class="shoping-cart-table">'+
+                                        '<tbody>'+
+                                        '<tr>'+
+                                            '<td colspan="8">'+
+                                                '<h3>'+
+                                                    '<a href="/CMP/VWCMP_Invoice/DetailSelling?id='+item.id+'" target="_blank" class="text-navy">'+(item.serialNumber + "/" + item.rowNumber)+ ' Seri Numaralı Fatura</a>'+
+                                                '</h3>'+
+                                            '</td>'+
+                                            '<td colspan="4" style="font-size: smaller;">' +
+                                                ''+(item.expiryDate?Page.ConvertToDateTime(item.expiryDate).toLocaleDateString():"")+' <i class="fa fa-calendar"></i>'+
+                                            '</td>'+
+                                        '</tr>'+
+                                        '<tr>'+
+                                            '<td class="desc" colspan="8">'+
+                                                '<p style="padding-right: 14px;">'+(item.Project_Title?item.Project_Title:"-")+'</p>'+
+                                                '<span class="small"><strong>Fatura Kalemleri: </strong>' + (stockString != "" ? stockString : "Fatura kalemi bulunamadı.") + "</span><br>"+
+                                            '</td>'+
+                                            '<td colspan="4">'+
+                                                '<span class="small"><b class="pull-left">Tutar:</b> '+ ( total != "-" ? kendo.toString(parseFloat(total), "n2") : "-") + item.Currency_Symbol + "</span><br>"+
+                                                '<span class="small"><b class="pull-left">Toplam Vergi:</b></span><span class="small">'+(item.totalTax?kendo.toString(parseFloat(item.totalTax), "n2"):"-") + item.Currency_Symbol + '</span><br>'+
+                                                '<span class="small"><b class="pull-left">İndirim:</b> '+(item.discount?kendo.toString(parseFloat(item.discount), "n2"):"0,00")+ item.Currency_Symbol +"</span><br>"+
+                                                '<span class="small"><b class="pull-left">Toplam:</b>'+(item.totalAmount?kendo.toString(parseFloat(item.totalAmount), "n2"):"-")+ item.Currency_Symbol +'</span></td>'+
+                                        '</tr>'+
+                                        '<tr>'+
+                                            '<td colspan="10">'+
+                                                '<dl class="small m-b-none">'+
+                                                    '<dt>Fatura Adresi</dt>'+
+                                                    '<dd>(' +item.supplierTitle+ ') '+(item.supplierAdress?item.supplierAdress:"-")+'</dd>'+
+                                                '</dl>'+
+                                            '</td>'+
+                                        '</tr>'+
+                                        '<tr><td colspan="12"  style="text-align: right;"><a href="/CMP/VWCMP_Invoice/DetailSelling?id='+item.id+'" target="_blank" class="btn  btn-sm" style="margin-top: 10px;border:1px solid #80808033;">Detay</a></td></tr>'+
+                                    '</tbody>'+
+                                '</table>'+
+                            '</div>'+
+                        '</div>');
+
+                    $('[data-load="inv_invoice"]').append(template);
+
+                });
+
+            });
+        },
+        PageLoad:function(){
+            this.KendoLineChart($("#costChart"));
+            this.KendoPieChart($("#CostTypePieChart"));
+        },
+        ConvertToDateTime: function(p) {
+            return new Date(parseFloat(p.replace("/Date(", "").replace(")/", "")));
+        }
+    };
+
+    $(document).on('click','[href="#GeneralCost"]',function(e){
+        Page.PageLoad();
+        Page.ProjeyeKesilenFaturalar();
+    });
+</script>

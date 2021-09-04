@@ -1,0 +1,50 @@
+﻿@{
+	ViewBag.Title = "Satış Teklifleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var authorizedRoles = userStatus.AuthorizedRoles;
+	var satisPersonel = new Guid(SHRoles.SatisPersoneli);
+	var satisOnaylayici = new Guid(SHRoles.SatisOnaylayici);
+	var muhasebeYonetici = new Guid(SHRoles.MuhasebeSatis);
+	var bayiPersoneli = new Guid(SHRoles.BayiPersoneli);
+
+}
+
+@if (authorizedRoles.Contains(bayiPersoneli))
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/SellingMy.cshtml");
+}
+else if (authorizedRoles.Contains(satisPersonel) && !authorizedRoles.Contains(satisOnaylayici) && !authorizedRoles.Contains(muhasebeYonetici))
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/SellingMy.cshtml");
+}
+
+else if (authorizedRoles.Contains(muhasebeYonetici) && !authorizedRoles.Contains(satisPersonel) && !authorizedRoles.Contains(satisOnaylayici))
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/SellingApproved.cshtml");
+}
+else
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Tender/Shared/SellingAll.cshtml");
+}
+
+<script type="text/javascript">
+    var tenderStatusEnums = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_TenderStatus>()));
+
+    function statusTemplate(data) {
+        var status = $.Enumerable.From(tenderStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+        return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+    }
+
+    function currencyFunction(item, data, isTotal) {
+        if (!data) {
+            return "-";
+        }
+
+        if (isTotal && isTotal == true) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+        }
+        return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+    }
+</script>

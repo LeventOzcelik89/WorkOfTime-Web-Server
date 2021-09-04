@@ -1,0 +1,179 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRJ_ScopeRelation
+
+@{
+    ViewBag.Title = "Kapsam Tanımları Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script data-selector="modalContainer" type="text/javascript">
+    function onChangeCompany(e) {
+        var companyId = this.value();
+        var personElem = $('#assignableUsers').data("kendoMultiSelect");
+        var basefilter = personElem.options.dataSource.filter;
+        personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
+    }
+
+    function onBoundPerson(e) {
+        e.sender.trigger("change");
+    }
+
+    function onChangePerson(e) {
+        $('#PersonAvaibles').empty();
+        if (e.sender.value().length > 0) {
+            $.each(e.sender.value(), function (i, item) {
+                var res = $.ajax({
+                    type: "POST",
+                    url: '/FTM/VWFTM_Task/GetPermitUserAvailableStatus',
+                    data: { userid: item },
+                    async: false
+                }).responseJSON;
+                if (res.objects.permits.length > 0) {
+                    $('#PersonAvaibles').removeClass('hide');
+
+                    $.each(res.objects.permits, function (p, per) {
+                        var startdate = kendo.toString(new Date().FromJson(per.StartDate), 'dd.MM.yyyy HH:mm');
+                        var enddate = kendo.toString(new Date().FromJson(per.EndDate), 'dd.MM.yyyy HH:mm')
+                        var txt = '<div><i class="fa fa-calendar"></i> ' + per.Person_Title + ':' + startdate + ' - ' + enddate + ' Tarihleri Arası İzinli </div>';
+                        $('#PersonAvaibles').append(txt);
+
+                    })
+
+                }
+
+                if (res.objects.taskCount > 0) {
+                    $('#PersonAvaibles').removeClass('hide');
+                    var txt2 = '<h5><i class="fa fa-tasks m-r-xs"></i> ' + res.objects.userName + ' Çözüm Bildirilmemiş İş Sayısı : ' + res.objects.taskCount + ' Adet</h5>';
+
+                    $('#PersonAvaibles').append(txt2);
+                }
+            })
+        }
+
+        var values = e.sender.value();
+        $('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
+    }
+
+    function onChangeStorage(e) {
+        var customer = e.sender.dataItem();
+        if (this.value() != "") {
+            var filter = ("(lastActionDataId~eq~'" + customer.id + "')");
+            var filterJSON = kendo.filterParser(filter);
+            $('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
+            $("#fixtureIds").data("handler").enable(true);
+        } else {
+            $("#fixtureIds").data("handler").enable(false);
+            $("#fixtureIds").data("handler").value([]);
+        }
+    }
+</script>
+
+@using (Html.BeginForm("Update", "VWPRJ_ScopeRelation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.projectId)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="startDate">Geçerlilik Tarihi</label>
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().
+        DatePickerFor(model => model.startDate).
+        Placeholder("Başlangıç Tarihi").
+        Format(Extensions.DateFormatShort())
+        .Min(Model.startDate.Value)
+        .Validate(Validations.Required)
+        .MaxDateElement("endDate"))
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().
+        DatePickerFor(model => model.endDate).
+        Placeholder("Bitiş Tarihi").
+        Format(Extensions.DateFormatShort())
+        .Max(Model.endDate.Value)
+        .Validate(Validations.Required)
+        .MinDateElement("startDate"))
+        </div>
+    </div>
+
+
+    <div class="form-group disabled">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="corporateId">Cari İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.corporateId)
+                .OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                //.BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name",true)
+                //.Events(a=>a.Change("onChangeCustomer"))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Validate(Validations.Required)
+                .Enable(false)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="storageIds">Depo / Kısımlar</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.storageId)
+                    .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("onChangeStorage"))
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Enable(false)
+                    .Execute()
+                )
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[type='radio'][name='type']" data-show="0,1,2,3,4">
+        <div class="col-md-4">
+            <label class="control-label label-md" id="fixtureLabel" for="fixtureIds">Envanterler</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.inventoryId)
+                .OptionLabel("Lütfen Envanter Seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Template("#=TemplateEngine('inventoryTemplate',data)#")
+                .Enable(false)
+                .Execute()
+            )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

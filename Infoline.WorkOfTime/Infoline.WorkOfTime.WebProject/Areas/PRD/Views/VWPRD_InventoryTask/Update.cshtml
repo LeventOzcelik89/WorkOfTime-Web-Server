@@ -1,0 +1,171 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_InventoryTask
+@{
+    ViewBag.Title = "Envanter Bakım Periyodu Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    function changeCompany(e) {
+        var companyId = this.value();
+        var personElem = $('#userId').data("kendoDropDownList");
+        var basefilter = personElem.options.dataSource.filter;
+        personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
+    }
+
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+    .filterButtonActive {
+        background-color: #168a73;
+        border-color: #168a73;
+        color: white;
+    }
+
+    .filterButtonPassive {
+        background-color: #1ab394;
+        border-color: #168a73;
+        color: white;
+    }
+</style>
+
+@using (Html.BeginForm("Update", "VWPRD_InventoryTask", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4 req">
+            <label class="control-label label-md" for="envanter">Envanter</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.inventoryId)
+                .OptionLabel("Lütfen Envanter Seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Template("<span class=\"k-state-default\"><h3>#: data.fullName #</h3><p>#: data.lastActionType_Title # #: data.lastActionDataId_Title# </p></span>")
+                .Execute()
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4 req">
+            <label class="control-label label-md" for="companyId">Görevli Firma</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.companyId)
+                .OptionLabel("Lütfen Talebin Bildirileceği İşletmeyi Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Filter<VWCMP_Company>(x => x.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                .Events(e => { e.Change("changeCompany"); })
+                .Sort(x => x.Add("fullName").Ascending())
+                .Execute()
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="userId">Sorumlu Personel</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(a => a.userId)
+                .OptionLabel("Lütfen Personel Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .Action(b => b.Action("DataSourceDropDownForTaskRoles", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="startDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli()
+                 .DateTimePickerFor(model => model.startDate)
+                 .Placeholder("Lütfen Başlangıç Tarihi girin..")
+                 .Interval(15)
+                 .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="endDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.endDate)
+                .Interval(15)
+                .Validate(Validations.Required)
+                .MinDateElement("startDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4 req">
+            <label class="control-label label-md" for="period">Periyot</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(Html.Akilli().
+                    NumericTextBox("period").
+                    Id("period").
+                    Min(1).
+                    Spinners(false).
+                    Validate(Validations.Required).
+                    Format("N1"))
+
+                <input type="hidden" name="period" id="period" placeholder="Periyot giriniz." />
+                <span class="input-group-addon">Saat</span>
+
+            </div>
+        </div>
+       
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama giriniz.."}
+            }).Validate(Validations.TextEverywhere(false))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

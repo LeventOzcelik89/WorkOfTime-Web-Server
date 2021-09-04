@@ -1,0 +1,162 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRJ_ProjectTimeline
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Kayıt Detay";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+     Model.Status= Model.Status != null ? Model.Status : 0;
+}
+
+
+<style type="text/css" data-selector="modalContainer">
+    #mydetail .k-i-all {
+        display: none !important;
+    }
+
+    #mydetail .k-i-close {
+        display: none !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_0] {
+        background-color: #ff492c !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_1] {
+        background-color: #409bf9 !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_2] {
+        background-color: #ffb020 !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_3] {
+        background-color: #11b51d !important;
+    }
+</style>
+
+
+<div class="form-horizontal" data-selector="modalContainer" id="mydetail">
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Name">Çizelge Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdPersons">Sorumlu Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Kendo().MultiSelect().Name("IdPersons")
+                 .HtmlAttributes(new Dictionary<string, object>()
+                 {
+                      {"style", "width:100%"},
+                      {"class", "form-control"},
+                 })
+                .Placeholder("Lütfen Sorumlu Personelleri Seçiniz..")
+                .AutoClose(false)
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetVWSH_User_OurCompanies", "General", new { area = String.Empty });
+                    });
+                }).Filter(FilterType.Contains).Enable(false)
+                .Value(ViewBag.persons)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdProject">Proje Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Project_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Type">Proje Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Type_Title, new Dictionary<string, object>()
+        {
+            {"class", "form-control"},
+            {"readonly", "readonly"}
+        })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="status">Durum</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.Status).Readonly(true).Value((EnumPRJ_ProjectTimelineStatus)Model.Status))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.StartDate)
+                .MaxDateElement("EndDate")
+                .Enable(false)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .MinDateElement("StartDate")
+                .Enable(false)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+        {
+            {"class", "form-control"},
+            {"readonly", "readonly"}
+        })
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+</div>

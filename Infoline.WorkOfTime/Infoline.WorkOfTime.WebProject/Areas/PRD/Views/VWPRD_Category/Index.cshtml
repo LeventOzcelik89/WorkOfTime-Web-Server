@@ -1,0 +1,47 @@
+﻿@model VWPRD_Category
+@{
+    ViewBag.Title = "Ürün Kategorileri (" + Model.fullname + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var pid = Model.id == System.UIHelper.Guid.Null ? null : (Guid?)Model.id;
+}
+
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+
+                @if (pid != null)
+                {
+                    <h5>@Model.fullname Kategorisinin Alt Kategorileri</h5>
+                }
+                else
+                {
+                    <h5>Ana Kategoriler</h5>
+                }
+
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                     .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Category>("VWPRD_Category")
+                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Category", new { area = "PRD" })).Filter(a => a.pid == Model.id).PageSize(25))
+                     .Columns(x =>
+                     {
+                         x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                         x.Bound(y => y.name).Title("Kategori İsmi");
+                     })
+                     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                     .ToolBar(x =>
+                     {
+                         x.Custom().Text("<i title='Kategori Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_Category", new { area = "PRD", pid = pid }));
+                         x.Custom().Text("<i title='Kategori Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Category", new { area = "PRD" }));
+                         x.Custom().Text("<i title='Alt Kategoriler' class='fa fa-tasks'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Index", "VWPRD_Category", new { area = "PRD" }));
+                         x.Custom().Text("<i title='Kategori Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Category", new { area = "PRD" }));
+                     })
+                )
+            </div>
+        </div>
+    </div>
+</div>
+

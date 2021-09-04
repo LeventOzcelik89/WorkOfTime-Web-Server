@@ -1,0 +1,176 @@
+﻿@{
+    ViewBag.Title = "Değerlendirme Formları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css">
+    .toggle-group label {
+        line-height: 20px !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document)
+        .on("load:grid", "#VWPDS_EvaluateForm", function (e) {
+            $('[data-toggle="toggle"]').bootstrapToggle({
+                width: 90,
+                height: 20
+            });
+        })
+        .on("selected:grid", "#VWPDS_EvaluateForm", function (e, data) {
+            $('[data-process="update"]').removeClass("hide");
+
+            if (data.formResult > 0) {
+                $('[data-process="update"]').addClass("hide");
+            }
+        })
+
+        .on("change", '[data-task="makeActivePassive"]', function (e) {
+            var _this = $(this);
+            var id = _this.attr("data-id");
+
+            GetDataFromUrl('/PDS/VWPDS_EvaluateForm/MakeActivePassive', { id: id }, function (e) {
+
+            });
+        })
+
+    function fncTmp(e, param) {
+        var status = e.status;
+        return '<input data-task="makeActivePassive" type="checkbox" name="status" ' + (status ? "checked" : "") + ' data-id="' + e.id + '" data-toggle="toggle" data-size="mini" data-on="Aktif" data-off="Pasif" data-onstyle="success" data-offstyle="danger">';
+    }
+
+    function formTypeColor(data) {
+
+        if (data.formType == @((int)EnumPDS_EvaluateFormType.General)) {
+            return '<i class="fa text-success fa-bars">';
+        }
+        if (data.formType == @((int)EnumPDS_EvaluateFormType.Interview)) {
+            return '<i class="fa text-warning fa-line-chart">';
+        }
+        if (data.formType == @((int)EnumPDS_EvaluateFormType.Performance)) {
+            return '<i class="fa text-primary fa-area-chart">';
+        }
+        if (data.formType == @((int)EnumPDS_EvaluateFormType.Survey)) {
+            return '<i class="fa text-danger fa-bullhorn">';
+        }
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/PDS/VWPDS_EvaluateForm/Insert"> <i class="fa fa-plus-circle"></i> Yeni Form Ekle</a>
+                    <div class="space-25"></div>
+                    <h5>Form Tipine Göre</h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa fa-align-justify" style="color:black;"></i>  Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="0" data-query="(formType~eq~@((int)EnumPDS_EvaluateFormType.General))">
+                                <i class="fa text-success fa-bars"></i> Genel Formlar
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(formType~eq~@((int)EnumPDS_EvaluateFormType.General))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="0" data-query="(formType~eq~@((int)EnumPDS_EvaluateFormType.Performance))">
+                                <i class="fa text-primary fa-area-chart"></i>  Performans Değerlendirme
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(formType~eq~@((int)EnumPDS_EvaluateFormType.Performance))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="0" data-query="(formType~eq~@((int)EnumPDS_EvaluateFormType.Interview))">
+                                <i class="fa text-warning fa-line-chart"></i> İş Görüşmesi Değerlendirme
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(formType~eq~@((int)EnumPDS_EvaluateFormType.Interview))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="0" data-query="(formType~eq~@((int)EnumPDS_EvaluateFormType.Survey))">
+                                <i class="fa text-danger fa-bullhorn"></i> Araştırma-Anket
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(formType~eq~@((int)EnumPDS_EvaluateFormType.Survey))">0</span>
+                        </li>
+
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>Form Durumuna Göre</h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumPDS_EvaluateFormStatus.Active))">
+                                <i class="fa text-navy fa-plus-square"></i> Aktif Formlar
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(status~eq~@((int)EnumPDS_EvaluateFormStatus.Active))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPDS_EvaluateForm" data-switch="radio" data-category="1" data-query="(status~eq~@((int)EnumPDS_EvaluateFormStatus.Passive))">
+                                <i class="fa text-danger fa-minus-square"></i> Pasif Formlar
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PDS/VWPDS_EvaluateForm/DataSourceCount?filter=(status~eq~@((int)EnumPDS_EvaluateFormStatus.Passive))">0</span>
+                        </li>
+
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Değerlendirme Formları</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_EvaluateForm>("VWPDS_EvaluateForm")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_EvaluateForm", new { area = "PDS" })).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).ClientTemplate("#= formTypeColor(data) #").Width(30).Filterable(false).Title("");
+                        x.Bound(y => y.formType_Title).Title("Form Tipi").Width(150);
+                        x.Bound(y => y.created).Title("Oluşturma Tarihi").Width(120).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortTimePattern + "}");
+                        x.Bound(y => y.formName).Title("Form İsmi").Width(150);
+                        x.Bound(y => y.formCode).Title("Form Kodu").Width(160);
+                        x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+                        x.Bound(y => y.status_Title).Title("Form Yayın Durumu").Width(100).ClientTemplate("#=fncTmp(data,'status')#");
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .Scrollable(x => x.Height(650))
+                    .CellAction(cell =>
+                    {
+                        if (cell.Column.Member == "formType_Title")
+                        {
+                            cell.HtmlAttributes["data-formType"] = cell.DataItem.formType_Title;
+                        }
+                    })
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-process", "update" } }).Url(Url.Action("Update", "VWPDS_EvaluateForm", new { area = "PDS" }));
+                        x.Custom().Text("<i data-original-title='İşlem Yap' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_EvaluateForm", new { area = "PDS" }));
+                        x.Custom().Text("<i data-original-title='Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPDS_EvaluateForm", new { area = "PDS" }));
+                        x.Custom().Text("<i data-original-title='Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" } }).Url(Url.Action("Delete", "VWPDS_EvaluateForm", new { area = "PDS" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>

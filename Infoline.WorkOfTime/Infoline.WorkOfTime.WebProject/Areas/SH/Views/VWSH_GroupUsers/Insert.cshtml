@@ -1,0 +1,47 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_GroupUsersModel
+@{
+    ViewBag.Title = "Grup & Ekip Personel Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWSH_GroupUsers", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.groupId)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="groupUserIds">Personel</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .MultiSelectFor(a => a.groupUserIds)
+                .Placeholder("Lütfen personel seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

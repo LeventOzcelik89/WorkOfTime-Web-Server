@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title = "Görev Konusu Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.FTM_TaskSubject>("FTM_TaskSubject")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "FTM_TaskSubject", new { area = "FTM" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.name).Title("Görev Konu Adı");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Görev Konusu Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "FTM_TaskSubject", new { area = "FTM" }));
+        x.Custom().Text("<i data-original-title='Görev Konusu Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "FTM_TaskSubject", new { area = "FTM" }));
+        x.Custom().Text("<i data-original-title='Görev Konusu Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "FTM_TaskSubject", new { area = "FTM" }));
+        x.Custom().Text("<i data-original-title='Görev Konusu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "FTM_TaskSubject", new { area = "FTM" }));
+    }))

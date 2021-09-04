@@ -1,0 +1,58 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Schools
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWSH_Schools", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="SchoolName">Okul</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.SchoolName, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Okul Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Type">Okul Düzeyi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Type)
+              .OptionLabel("Lütfen Okul Düzeyi Seçiniz..")
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending()).Validate(Validations.Required)
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_Schools" && a.fieldName == "Type")
+              .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

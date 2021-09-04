@@ -1,0 +1,101 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_User[]
+@{
+    ViewBag.Title = "Müşteri Kişilerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on("keyup", "#searchableText", function () {
+            var _val = $(this).val();
+            var filteredModel = $.Enumerable.From($('[data-search]')).ToArray();
+            $.each(filteredModel, function () {
+
+                if ($(this).find("data-search").context.attributes["data-search"].value.toLocaleUpperCase().indexOf(_val.toLocaleUpperCase()) == -1) {
+                    $(this).addClass("hide");
+                } else {
+                    $(this).removeClass("hide");
+                }
+            });
+        })
+        .on("click", "#dowloadContacts", function (e) {
+
+            var text = "";
+
+            $('[data-search]:not(.hide)').each(function (e) {
+                text += "BEGIN:VCARD\n";
+                text += "VERSION: 3.0\n";
+                $(this).find('[data-selector]').each(function (c) {
+                    if ($(this).text().trim() != "-") {
+                        text += $(this).attr("data-selector") + ";charset=utf-8;encoding=quoted-printable;:" + $(this).text() + "\n";
+                    }
+                });
+                text += "END:VCARD\n";
+            });
+
+            saveAs(new Blob([text], { type: 'text/x-vcard;charset=utf-8;' }), "Customer-Contacts.vcf");
+
+        })
+</script>
+
+
+
+<div class="m-t-sm">
+    <div class="col-lg-12">
+        <input id="searchableText" type="text" placeholder="Aramak istediğiniz kişinin bilgilerini giriniz" name="q" class="form-control input-lg m-b">
+    </div>
+
+    @if (Model.Count() == 0)
+    {
+        <div class="col-md-12">
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;">
+                Kişi Kaydı Bulunmamaktadır.
+            </div>
+        </div>
+    }
+
+    @foreach (var item in Model.OrderBy(x => x.firstname))
+    {
+        <div class="col-lg-3" data-search="@Html.Raw(item.firstname + " " +item.lastname + " " + item.Company_Title)">
+            <div class="contact-box center-version">
+
+                <a href="#">
+                    
+                        <img alt="image" class="img-circle" src="@(item.CompanyLogo != null ? item.CompanyLogo : "/Content/Custom/img/company.png")" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+                    <h3 class="m-b-xs">
+                        <strong data-selector="FN">@item.FullName</strong>
+                        <strong class="hide" data-selector="N">@item.lastname;@item.firstname;;;</strong>
+                    </h3>
+
+                    <div class="font-bold companyTitle" data-selector="item1.ORG">@(!string.IsNullOrEmpty(item.Company_Title) ? item.Company_Title : "-")</div>
+                    <div class="font-bold" data-selector="item2.TITLE">@(!string.IsNullOrEmpty(item.title) ? item.title : "-")</div>
+                    <address class="m-t-md">
+                        <span title="Şirket (Mobil)">Şahsi (Mobil):</span> <span data-selector="TEL;TYPE=CELL">@(string.IsNullOrEmpty(item.cellphone) ? "-" : item.cellphone)</span><br>
+                        <span title="Şirket (Sabit)">Şirket (Ofis):</span> <span data-selector="TEL;TYPE=WORK">@(string.IsNullOrEmpty(item.companyOfficePhone) ? "-" : item.companyOfficePhone + "(" + item.companyOfficePhoneCode + ")")</span><br>
+                    </address>
+
+                </a>
+                <div class="contact-box-footer">
+                    <div class="m-t-xs btn-group">
+                        <a class="btn btn-xs btn-white" href="tel:@item.cellphone"><i class="fa fa-phone"></i> Ara </a>
+                        <a class="btn btn-xs btn-white" href="mailto:@item.email"><i class="fa fa-envelope"></i> Eposta</a>
+                    </div>
+                </div>
+                <span class="hide" data-selector="item1.X-ABLabel">Firma</span>
+                <span class="hide" data-selector="item2.X-ABLabel">Ünvan</span>
+                <span class="hide" data-selector="EMAIL;TYPE=INTERNET;TYPE=WORK">@item.email</span>
+                <span class="hide" data-selector="CATEGORIES">Customers</span>
+            </div>
+        </div>
+    }
+</div>
+
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed" ><i id="dowloadContacts" data-original-title="Rehberi Dışarı Aktar" class="fa-2x fa fa-download"> </i></label>
+    <div class="fix-buttons">
+
+
+
+    </div>
+</div>

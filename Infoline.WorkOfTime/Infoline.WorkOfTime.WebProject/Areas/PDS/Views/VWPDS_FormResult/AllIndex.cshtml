@@ -1,0 +1,92 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.KeyValue[]
+@{
+    ViewBag.Title = "Tüm Değerlendirmeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on("load:grid", "#VWPDS_FormResult", function (e) {
+
+            var grid = $("#VWPDS_FormResult").data("kendoGrid");
+
+            var groups = $('#VWPDS_FormResult').find('.k-grouping-row');
+
+            $.each(groups, function (index, elem) {
+                grid.collapseGroup(elem);
+            })
+        })
+
+    function imageError(element) {
+        element.onerror = '';
+        element.src = '/Content/Custom/img/na.png';
+    }
+
+</script>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <div class="space-25"></div>
+                    <h5>FORM ADINA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        @foreach (var item in Model.OrderByDescending(x => x.Color))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" style="width: 340px;" href="#" data-grid="VWPDS_FormResult" data-category="2" data-query="(formName~eq~'@item.Key')">
+                                    <i class="@item.Value" style="color:@item.Color"></i>    @item.Key
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" style="background:@item.Color" data-counturl="/PDS/VWPDS_FormResult/DataSourceCount?filter=formName~eq~'@item.Key'">0</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-9">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>DEĞERLENDİRMELER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+              .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormResult>("VWPDS_FormResult")
+              .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })).PageSize(25))
+              .Columns(x =>
+              {
+                  x.Bound(y => y.evaluator_Title).Title("Değerlendiren Personel").Width(160).ClientGroupHeaderTemplate("#=value#");
+                  x.Bound(y => y.evaluatedUser_Title).Title("Değerlendirilen Personel").Width(160).ClientGroupHeaderTemplate("#=value# (#= count # Değerlendirme)");
+                  x.Bound(y => y.created).Title("Değerlendirme Tarihi").Width(150).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                  x.Bound(y => y.score).Title("Aldığı Puan").Width(100).ClientTemplate("#= kendo.toString(score, 'n2') #");
+                  x.Bound(y => y.status_Title).Title("Durum").Width(250);
+              })
+              .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+              .Scrollable(x => x.Height(650))
+              .ToolBar(x =>
+              {
+                  //x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPDS_FormResult", new { area = "PDS" }));
+                  x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_FormResult", new { area = "PDS" }));
+              }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

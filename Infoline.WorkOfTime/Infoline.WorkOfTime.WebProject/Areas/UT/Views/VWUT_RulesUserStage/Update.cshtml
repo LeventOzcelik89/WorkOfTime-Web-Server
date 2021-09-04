@@ -1,0 +1,165 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_RulesUserStage
+@{
+    ViewBag.Title = "Kural Aşaması Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onChangeStageType(e) {
+        var val = this.value();
+        if (val == '@((Int32)EnumUT_RulesUserStage.RoleBagliSecim)') {
+            $('#userIdForm').addClass('hide');
+            $('#roleIdForm').removeClass('hide');
+            $('#userId').removeAttr('required', 'required');
+            $('#roleId').attr('required', 'required');
+        }else if (val == '@((Int32)EnumUT_RulesUserStage.SecimeBagliKullanici)' || val == '@((Int32)EnumUT_RulesUserStage.SonOnaylayici)') {
+            $('#userIdForm').removeClass('hide');
+            $('#roleIdForm').addClass('hide');
+            $('#roleId').removeAttr('required', 'required');
+            $('#userId').attr('required', 'required');
+        }else {
+            $('#userIdForm').addClass('hide');
+            $('#roleIdForm').addClass('hide');
+            $('#roleId').removeAttr('required', 'required');
+            $('#userId').removeAttr('required', 'required');
+        }
+    }
+</script>
+
+@using (Html.BeginForm("Update", "VWUT_RulesUserStage", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="rulesId">Kural</label>
+        </div>
+        <div class="col-md-8">
+            @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.rulesId)
+			      .OptionLabel("Lütfen kural seçiniz..")
+			      .DataTextField("name")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWUT_Rules", new { area = "UT" }))
+			      .Sort(x => x.Add("name").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="order">Sıra <i class="fa fa-info-circle" data-original-title="0-20 arasında değer giriniz."></i></label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Kendo().NumericTextBoxFor(model => model.order).Min(0).Max(20).Format("{0:N0}").Spinners(false)
+                      .Validate(Validations.Required)
+                      .HtmlAttributes(new Dictionary<string, object>()
+                      {
+                            { "style", "width:100%" }
+                      }))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="type">Tip</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                    Html.Akilli().
+                    DropDownListFor(model => model.type).
+                    OptionLabel("Lütfen kural aşama tipi Seçiniz..").
+                    DataTextField("enumDescription").
+                    DataValueField("Id").
+                    Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                    Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "UT_RulesUserStage" && a.fieldName == "type").
+                    Validate(Validations.Required).
+                    Events(x => x.Change("onChangeStageType").DataBound("onChangeStageType")).
+                    Sort(x => x.Add("enumKey").Ascending()).
+                    Execute("enumKey")
+                )
+        </div>
+    </div>
+
+
+
+
+    <div class="form-group hide" id="userIdForm">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userId">Kullanıcı</label>
+        </div>
+        <div class="col-md-8">
+            @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.userId)
+			      .OptionLabel("Lütfen kullanıcı seçiniz..")
+			      .DataTextField("FullName")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                  .Filter<VWSH_User>(x => x.IsWorking == true && x.status == true)
+			      .Sort(x => x.Add("FullName").Ascending())
+                  .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+    <div class="form-group hide" id="roleIdForm">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="roleId">Rol</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.roleId)
+                  .OptionLabel("Lütfen rol seçiniz..")
+                  .DataTextField("rolname")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWSH_Role", new { area = "SH" }))
+                  .Sort(x => x.Add("rolname").Ascending())
+                  .Validate(Validations.Required)
+                  .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="title">Başlık</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Başlık giriniz.."}
+            }).Validate(Validations.TextEverywhere(false))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

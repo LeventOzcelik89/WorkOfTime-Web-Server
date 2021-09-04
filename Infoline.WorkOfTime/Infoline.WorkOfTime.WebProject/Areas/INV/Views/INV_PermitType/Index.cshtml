@@ -1,0 +1,53 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_PermitType_PageReport
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "İzin Tipleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    function hasStaff(data) {
+        if (data) { return "Evet"; }
+        return "Hayır";
+    }
+</script>
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-6">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam İzin Tipleri").Value(Model.ToplamIzinTipiSayisi + " Adet").IconClass("ii-genel-isletme-ozellikleri")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-6">
+        @Html.Akilli().Card().Color("navy").Text("En Çok Kullanılan İzin Tipi").Value(Model.EnCokVerisi).IconClass("ii-hesap-kodlari-liste fa-4x")
+    </div>
+</div>
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_PermitType>("VWINV_PermitType")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "INV_PermitType", new { area = "INV" })).PageSize(25))
+    .Reorderable(reorderable => reorderable.Columns(true))
+    .Columns(x =>
+    {
+        x.Bound(y => y.Name).Title("İzin Tipi").Width(250);
+        x.Bound(y => y.IsPaidPermit_Title).Title("Ücretli İzin mi?").Width(120);
+        x.Bound(y => y.PaidPermitDay).Title("Ücretli İzin Gün Sayısı").HtmlAttributes(new Dictionary<string, object>() { { "class", "text-right" } }).Width(120);
+        x.Bound(y => y.CanHourly_Title).Title("Kullanım Şekli").Width(150);
+        x.Bound(y => y.BeDocumented_Title).Title("Belgelendirilecek mi?").Width(200);
+        x.Bound(y => y.RequestStaff).Title("Personel Talep Edebilecek mi?").ClientTemplate("#=hasStaff(data.RequestStaff)#").Width(200);
+        x.Bound(y => y.ViewStaff).Title("Personel Görüntüleyebilecek mi?").ClientTemplate("#=hasStaff(data.ViewStaff)#").Width(200);
+        x.Bound(y => y.Descriptions).Title("Açıklamalar");
+
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(a => a.Height(600))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "INV_PermitType", new { area = "INV" }));
+
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "INV_PermitType", new { area = "INV" }));
+
+        //x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "INV_PermitType", new { area = "INV" }));
+
+        //  x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "INV_PermitType", new { area = "INV" }));
+
+    })
+)

@@ -1,0 +1,47 @@
+﻿@{
+	ViewBag.Title = "Satış Siparişleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var authorizedRoles = userStatus.AuthorizedRoles;
+	var satisPersonel = new Guid(SHRoles.SatisPersoneli);
+	var satisOnaylayici = new Guid(SHRoles.SatisOnaylayici);
+	var muhasebeYonetici = new Guid(SHRoles.MuhasebeSatis);
+	var bayiPersoneli = new Guid(SHRoles.BayiPersoneli);
+
+}
+
+@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Order/Shared/SellingDealer.cshtml");
+}
+else if (authorizedRoles.Contains(muhasebeYonetici) && !authorizedRoles.Contains(satisPersonel) && !authorizedRoles.Contains(satisOnaylayici))
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Order/Shared/SellingApproved.cshtml");
+}
+else
+{
+	Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Order/Shared/SellingAll.cshtml");
+}
+
+<script type="text/javascript">
+
+    var orderStatusEnums = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_OrderStatus>()));
+
+    function statusTemplate(data){
+        var status = $.Enumerable.From(orderStatusEnums).Where(a => a.Key == data.status).FirstOrDefault();
+        return '<i style="color:'+ status.Generic.color +'" class="'+ status.Generic.icon +'">';
+    }
+
+    function currencyFunction(item, data, isTotal) {
+
+        if (!data) {
+            return "-";
+        }
+
+        if (isTotal && isTotal == true) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+        }
+        return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+    }
+</script>

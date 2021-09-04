@@ -1,0 +1,132 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_MonthlyTargetPerson
+@{
+    ViewBag.Title = "Personel Aylık Hedefleri " + ((bool?)ViewBag.Copy == true ? "Kopyala" : Request["id"] != null ? "Düzenle" : "Tanımla");
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWCRM_MonthlyTargetPerson", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    {" data-before", "beforeFunc" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.Hidden("MonthlyTargets")
+    @Html.HiddenFor(a => a.GroupId)
+    @Html.Hidden("Copy", (bool?)ViewBag.Copy)
+
+
+    <fieldset>
+        <legend>Genel Ayarlar</legend>
+
+        <div class="col-md-6">
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="CPeriod">Hedef Tarihi</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                        Html.Akilli()
+                        .DatePickerFor(model => model.CPeriod)
+                        .Value(Model.CPeriod)
+                        .Validate(Validations.Required)
+                        .Start(CalendarView.Year)
+                        .Depth(CalendarView.Year)
+                        .Format("MMMM yyyy")
+                        .HtmlAttributes(new Dictionary<string, object> {
+                            { "autocomplete", "off" },
+                            { "class", "form-control" }
+                        })
+                    )
+
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-6">
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="CPeriod">Personel(ler)</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                Html.Kendo().MultiSelect().Name("TargetUserIds")
+                .HtmlAttributes(new Dictionary<string, object>()
+                {
+                     {"style", "width:100%"},
+                     {"class", "form-control"},
+                     { "autocomplete", "off" }
+                })
+               .Placeholder("Lütfen Personel(leri) Seçiniz..")
+               .AutoClose(false)
+               .DataTextField("Name")
+               .DataValueField("Id")
+               .DataSource(source =>
+               {
+                   source.Read(read =>
+                   {
+                       read.Action("GetVWSH_User_OurCompanies", "General", new { area = String.Empty });
+                   });
+               }).Filter(FilterType.Contains)
+               .Validate(Validations.Required)
+               .Value( Model.TargetUserId )
+                    )
+                    
+                </div>
+            </div>
+
+        </div>
+
+    </fieldset>
+
+    <div class="form-group">
+
+        <div class="col-md-12">
+
+            <div data-target="TargetsContainer">
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">@Html.Raw(((bool?)ViewBag.Copy == true ? "Kopyala" : Request["id"] != null ? "Düzenle" : "Tanımla"))</button>
+    </div>
+
+}
+
+<link href="~/Content/CRMMonthlyTargetPerson/css/main.css?v=@(new Random().Next(100000,999999))" rel="stylesheet" />
+<script src="~/Content/CRMMonthlyTargetPerson/js/main.js?v=@(new Random().Next(1,1))"></script>
+<script type="text/javascript">
+
+    var Model = @Html.Raw(Json.Encode(Model));
+
+    $(document)
+
+        .on('ready', function () {
+
+            _targetPerson.init();
+
+        })
+
+    ;
+
+    function beforeFunc() {
+
+        return _targetPerson.Data.PostData();
+
+    }
+
+</script>

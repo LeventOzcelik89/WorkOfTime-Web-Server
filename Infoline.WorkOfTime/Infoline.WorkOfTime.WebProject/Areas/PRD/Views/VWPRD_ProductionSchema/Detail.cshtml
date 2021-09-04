@@ -1,0 +1,126 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWPRD_ProductionSchemaModel
+@{
+    ViewBag.Title = "Üretim Şeması Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style type="text/css">
+    .list-group.clear-list .list-group-item {
+        padding: 5px 0px !important;
+    }
+
+    .table {
+        border-top: 0px #ddd solid;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    
+    $(document)
+        .on("success", "#form-product-id", function (e, res) {
+            location.reload();
+        })
+   
+</script>
+
+<script type="text/x-kendo-template" id="dateTemplate" data-selector="modalContainer">
+    #:kendo.toString(data.created,"dd.MM.yyyy HH:mm")#
+</script>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.name
+                    </h2>
+                    <small> @Model.productId_Title </small>
+                </div>
+                <img src="~/Content/Custom/img/product.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-primary" data-href="/PRD/VWPRD_ProductionSchema/Update?id=@Model.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>ÜRÜN BİLGİLERİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+
+            <div class="ibox-content no-padding clearfix">
+                <ul class="list-group">
+
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">İsim :</div>
+                            <div class="col-md-8"><span class="badge badge-white pull-right boldText">@(Model.product.name != null ? Model.product.name : "-")</span></div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Barkod :</div>
+                            <div class="col-md-8"><span class="badge badge-white pull-right boldText">@(Model.product.barcode != null ? Model.product.barcode : "-")</span></div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Kategori :</div>
+                            <div class="col-md-8"><span class="badge badge-white pull-right boldText">@(Model.product.categoryId_Title != null ? Model.product.categoryId_Title : "-")</span> </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Marka:</div>
+                            <div class="col-md-8"><span class="badge badge-white pull-right boldText">@(Model.product.brandId_Title != null ? Model.product.brandId_Title : "-")</span> </div>
+                        </div>
+                    </li>
+
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Tür :</div>
+                            <div class="col-md-8">
+                                <span class="badge badge-white pull-right boldText">@(Model.product.type_Title != null ? Model.product.type_Title : "-")</span>
+                            </div>
+                        </div>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-9">
+      @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductionSchemaStage>("VWPRD_ProductionSchemaStage")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductionSchemaStage", new { area = "PRD" })).Sort(b => b.Add("stageNum")).Filter(a => a.productionSchemaId == Model.id).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.stageNum).Title("Aşama Sırası").Width(180);
+        x.Bound(y => y.name).Title("Aşama İsmi").Width(180);
+        x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(180).ClientTemplate("#=TemplateEngine('dateTemplate',data)#");
+        x.Bound(y => y.code).Title("Aşama Kodu").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .Scrollable(s => s.Height(650))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Üretim Şemasına Aşama Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductionSchemaStage", new { area = "PRD", productionSchemaId = Model.id }));
+        x.Custom().Text("<i data-original-title='Aşama Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductionSchemaStage", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Yukarı Taşı' class='icon-up'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" },{ "data-method", "GET" } }).Url(Url.Action("changeStageNumber", "VWPRD_ProductionSchemaStage", new { area = "PRD", isUp = true }));
+        x.Custom().Text("<i data-original-title='Aşağı Taşı' class='icon-down'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" },{ "data-method", "GET" } }).Url(Url.Action("changeStageNumber", "VWPRD_ProductionSchemaStage", new { area = "PRD", isUp = false }));
+        x.Custom().Text("<i data-original-title='Aşamayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductionSchemaStage", new { area = "PRD" }));
+    }))
+
+    </div>
+</div>

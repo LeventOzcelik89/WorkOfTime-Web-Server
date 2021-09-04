@@ -1,0 +1,280 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMHDM_TicketModel
+@{
+    ViewBag.Title = "Yardım Talebi Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var ticket = {
+        fnc: {
+            onChangeRequester: function (e) {
+                var userId = e.sender.value();
+
+                $.ajax({
+                    url: "/SH/VWSH_User/DataSourceDropDown",
+                    dataType: 'json',
+                    data: {
+                        filter: "(id~eq~'" + userId + "')"
+                    },
+                    success: function (resp) {
+                        if (resp && resp.length == 1) {
+                            var data = resp[0];
+                            $('[name="Requester.fullName"]').val(data.FullName);
+                            $('[name="Requester.phone"]').val(data.cellphone);
+                            $('[name="Requester.email"]').val(data.email);
+                            $('[name="Requester.company"]').val(data.Company_Title);
+                            $('[name="Requester.phone"]').trigger("blur");
+                        }
+                    }
+                });
+            },
+            onChangeSuggestion: function (e) {
+                var suggestionDropDown = e.sender;
+                var dataItem = suggestionDropDown.dataItem();
+
+                if (dataItem.id && dataItem.id != "" && dataItem.id != null) {
+                    $('#title').val(dataItem.title);
+                    $('#title').trigger("blur");
+                }
+
+                if (dataItem.assignUserId) {
+                    $('#assignUserId').val(dataItem.assignUserId);
+                }
+            }
+        }
+    }
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWHDM_Ticket", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWHDM_TicketInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.code)
+    @Html.HiddenFor(model => model.status)
+    @Html.HiddenFor(model => model.channel)
+    @Html.HiddenFor(model => model.assignUserId)
+    @Html.HiddenFor(model => model.priority)
+    @Html.HiddenFor(model => model.Requester.fullName)
+    @Html.HiddenFor(model => model.Requester.email)
+    @Html.HiddenFor(model => model.Requester.phone)
+    @Html.HiddenFor(model => model.Requester.company)
+
+    <input type="hidden" name="pid" id="pid" value="" />
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2"> <i class="fa fa-question-circle text-success"></i> Talep Bilgileri </a>
+                </h4>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse in">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="mainSubject"> Ana Konu </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .DropDownList("mainSubject")
+                                .OptionLabel("Lütfen bir ana konu seçiniz.")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWHDM_Issue", new { area = "HDM" }))
+                                .Filter<VWHDM_Issue>(f => f.status == (int)EnumHDM_IssueStatus.Yayında && f.pid == System.UIHelper.Guid.Null)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute("id"))
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="issueId"> Konu Başlığı </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.issueId)
+                                .OptionLabel("Lütfen bir konu başlığı seçiniz.")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWHDM_Issue", new { area = "HDM" }))
+                                .Sort(x => x.Add("title").Ascending())
+                                .Validate(Validations.Required)
+                                .CascadeFrom("mainSubject")
+                                .CascadeFromField("mainId")
+                                .Execute("id")
+                                )
+                          
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="suggestionId"> Soru Başlığı </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.suggestionId)
+                                .OptionLabel("Sorunuz listede yoksa alttaki soru kısmına yazabilirsiniz.")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWHDM_Suggestion", new { area = "HDM" }))
+                                .Filter<VWHDM_Suggestion>(f => f.status == (int)EnumHDM_SuggestionStatus.Yayında)
+                                .Sort(x => x.Add("title").Ascending())
+                                .CascadeFrom("issueId")
+                                .CascadeFromField("issueId")
+                                .Events(e => { e.Change("ticket.fnc.onChangeSuggestion"); })
+                                .Execute("id"))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="title"> Kısaca Sorununuz </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen sorununuzu giriniz.."}
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="content"> Detaylı Açıklama </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.content, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen sorununuza dair detaylı açıklama yazınız.."}
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="attachments">Ek Dosya</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("HDM_Ticket")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Yardım Talep Dosyası")
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1"> <i class="fa fa-user text-success"></i> Talep Eden Bilgileri </a>
+                </h4>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    @if (!(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaTalep)) && Model.requesterId.HasValue && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim))))
+                    {
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="requesterId"> Talep Eden</label>
+                            </div>
+                            <div class="col-md-8">
+
+                                @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.requesterId)
+                                .OptionLabel("Lütfen Talep Eden seçiniz..")
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .Template("#=TemplateEngine('userTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(f => f.CompanyId == (userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.NewGuid()))
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Events(e => { e.Change("ticket.fnc.onChangeRequester"); })
+                                .Execute("id")
+                                )
+
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.HiddenFor(model => model.requesterId)
+                    }
+
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label class="control-label label-md" for="Requester.fullName"> Talep Eden Ad-Soyad</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.Requester.fullName, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen İsim Soyisim giriniz.."},
+                                {"readonly","readonly" }
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label class="control-label label-md" for="Requester.phone"> Talep Eden Telefon</label>
+                        </div>
+                        <div class="col-sm-8">
+                            @Html.TextBoxFor(model => model.Requester.phone, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Telefon Numarası Giriniz.."},
+                                {"readonly","readonly" }
+                            }).Validate(Validations.TextProduct(false))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Requester.email"> Talep Eden Email</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.Requester.email, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Email Giriniz.."},
+                                {"readonly","readonly" }
+                            }).Validate(Validations.EMail(true))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-4">
+                            <label class="control-label label-md" for="Requester.company"> Talep Edenin İşletmesi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.Requester.company, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen İşletme Giriniz.."},
+                                 {"readonly","readonly" }
+                             }).Validate(Validations.TextProduct(false))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Talebi Gönder</button>
+    </div>
+
+}

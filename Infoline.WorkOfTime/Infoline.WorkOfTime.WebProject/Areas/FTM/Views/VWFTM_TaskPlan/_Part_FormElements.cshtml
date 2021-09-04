@@ -1,0 +1,369 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.TaskSchedulerModel
+@{
+    Layout = null;
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    function beforeFunc() {
+
+        if ($('[name="frequency"]:checked').val() == '3' && _TaskPlan.MonthDays.Value().length == 0) {
+
+            MesajWarning('Ayın günleri seçilmeden işlem yapılamaz', 'Eksik Giriş');
+            return false;
+
+        }
+
+        return true;
+
+    }
+
+    var _TaskPlan = {
+
+        Model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        init: function () {
+
+            this.MonthDays.init();
+            this.changeFrequency();
+
+        },
+        changeFrequency: function () {
+
+            var txt = '';
+            var period = $('[name="frequency"]:checked').val();
+
+            $('#TaskPlan__WeekDays').removeAttr('required');
+            if ($('#TaskPlansForm').data('bs.validator') != undefined) {
+
+                var validator = $('#TaskPlansForm').data('bs.validator');
+                var el = validator.$inputs.filter(function (i, item) { return $(item).attr('id') == 'TaskPlan__WeekDays' });
+                if (el.length == 1) {
+                    validator.clearErrors(el);
+                }
+
+            }
+
+            if (period == 1) {
+
+                if ($('#TaskPlan__Times').data('kendoMultiSelect') != undefined) {
+                    txt = 'Günde ' + $('#TaskPlan__Times').data('kendoMultiSelect').value().length + ' defa';
+                    $('#TaskPlan__Times').data('kendoMultiSelect').setOptions({ maxSelectedItems: null, autoClose: false });
+                }
+
+            } else if (period == 2) {
+
+                $('#TaskPlan__WeekDays').attr('required', 'required');
+
+                if ($('#TaskPlan__Times').data('kendoMultiSelect') != undefined && $('#TaskPlan__WeekDays').data('kendoMultiSelect') != undefined) {
+                    txt = 'Haftada ' + $('#TaskPlan__WeekDays').data('kendoMultiSelect').value().length + ' defa';
+                    $('#TaskPlan__Times').data('kendoMultiSelect').setOptions({ maxSelectedItems: 1, autoClose: true });
+                    $('#TaskPlan__Times').data('kendoMultiSelect').value($('#TaskPlan__Times').data('kendoMultiSelect').value()[0]);
+                }
+
+            } else if (period == 3) {
+
+                if ($('#TaskPlan__Times').data('kendoMultiSelect') != undefined) {
+                    txt = 'Ayda ' + _TaskPlan.MonthDays.Value().length + ' defa';
+                    $('#TaskPlan__Times').data('kendoMultiSelect').setOptions({ maxSelectedItems: 1, autoClose: true });
+                    $('#TaskPlan__Times').data('kendoMultiSelect').value($('#TaskPlan__Times').data('kendoMultiSelect').value()[0]);
+                }
+
+            }
+
+            $('[data-target="frequency"]').html(txt);
+
+        },
+
+        MonthDays: {
+            Elem: function () { return $('#MonthDaysElem'); },
+            init: function () {
+
+                if (_TaskPlan.Model.TaskPlan.monthDays != null) {
+                    _TaskPlan.MonthDays.Value(_TaskPlan.Model.TaskPlan.monthDays.split(','));
+                }
+
+                this.Elem().find('.k-link').on('click', function () {
+
+                    $(this).parent('td').toggleClass('k-state-selected');
+                    $('#TaskPlan_monthDays').val(_TaskPlan.MonthDays.Value().join(','));
+
+                    _TaskPlan.changeFrequency();
+
+                });
+
+            },
+            Value: function (_val) {
+
+                if (_val == null) {
+                    return $.Enumerable.From(_TaskPlan.MonthDays.Elem().find('td.k-state-selected .k-link')).Select(a => { return $(a).attr('data-value'); }).ToArray();
+                }
+
+                _val.forEach(function (i, item) {
+                    $('#MonthDaysElem [data-value="' + i + '"]').parent('td').addClass('k-state-selected');
+                });
+
+            }
+
+        }
+
+    }
+
+    $(document)
+
+        .on('change', '[name="frequency"]', function () {
+
+            _TaskPlan.changeFrequency();
+
+        })
+
+        .on('ready', function () {
+
+        })
+
+        .on('change', '#TaskPlan__WeekDays, #TaskPlan__Times', function () {
+
+            _TaskPlan.changeFrequency();
+
+        })
+
+        ;
+
+    _TaskPlan.init();
+
+
+
+</script>
+
+<div class="form-group" data-elem="TaskPlan.enabled">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="TaskPlan.enabled">Durumu</label>
+    </div>
+    <div class="col-md-8 radio">
+
+        <label class="">
+            @Html.Kendo().RadioButtonFor(a => a.TaskPlan.enabled).Value(true).Checked(Model.TaskPlan.enabled != false)
+            Aktif
+        </label>
+
+        <label class="">
+            @Html.Kendo().RadioButtonFor(a => a.TaskPlan.enabled).Value(false).Checked(Model.TaskPlan.enabled == false)
+            Pasif
+        </label>
+
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.name">Plan Adı</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.TextBoxFor(a => a.TaskPlan.name, new Dictionary<string, object> {
+        { "class", "form-control" },
+        { "placeholder", "Lütfen Görev Adını Girin.." },
+    }).Validate(Validations.TextProduct(true))
+    )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.frequencyStartDate">Plan Başlangıç Tarihi</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().DatePickerFor(model => model.TaskPlan.frequencyStartDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev Başlangıç Tarihini Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Min(DateTime.Now)
+            .Validate(Validations.Required)
+            )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.frequencyEndDate">Plan Bitiş Tarihi</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().DatePickerFor(model => model.TaskPlan.frequencyEndDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev Bitiş Tarihini Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Min(DateTime.Now)
+            .MinDateElement("TaskPlan_frequencyStartDate")
+            .Validate(Validations.Required)
+            )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="TaskPlan.taskCreationTime">Görevin Oluşturulacağı Zaman</label>
+    </div>
+    <div class="col-md-8">
+        @Html.Akilli().RadioButtonGroupFor(a => a.TaskPlan.taskCreationTime).Value((EnumFTM_TaskPlansTaskCreationTime)(Model.TaskPlan.frequency ?? (int)EnumFTM_TaskPlansTaskCreationTime.GunOnce))
+    </div>
+    <div class="col-md-offset-4 col-md-8" data-cascade="[name='taskCreationTime']" data-show="1">
+        <span class="badge badge-warning">
+            Hemen açılacak görevlerde Planın aktif veya pasif olması önemli değildir ! Tüm görevler hemen açılır.
+        </span>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="frequency">Planın Tekrar Sıklığı</label>
+    </div>
+    <div class="col-md-3 usel">
+
+        @Html.Akilli().RadioButtonGroupFor(a => a.TaskPlan.frequency).Value((EnumFTM_TaskPlansFrequency)(Model.TaskPlan.frequency ?? (int)EnumFTM_TaskPlansFrequency.Gunluk))
+
+    </div>
+
+    <div class="col-md-5">
+        <div class="input-group">
+
+            @(
+        Html.Akilli().NumericTextBoxFor(a => a.TaskPlan.frequencyInterval).Format("N0").Decimals(0).Placeholder("Tekrar Sıklık Periyotu").Validate(Validations.Required).HtmlAttributes(new Dictionary<string, object> { { "class", "form-control" } })
+    )
+
+            <span class="input-group-addon" data-target="frequency"></span>
+        </div>
+    </div>
+
+</div>
+
+<div class="form-group" data-cascade="[name='frequency']" data-show="3">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.monthDays">Görevin Günleri</label>
+    </div>
+    <div class="col-md-8">
+
+        <div class="k-widget k-calendar" id="MonthDaysElem">
+            <table tabindex="0" role="grid" class="k-content" cellspacing="0" style="width: 237px;">
+                <tbody>
+                    <tr role="row">
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="1" title="1">1</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="2" title="2">2</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="3" title="3">3</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="4" title="4">4</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="5" title="5">5</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="6" title="6">6</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="7" title="7">7</a></td>
+                    </tr>
+                    <tr role="row">
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="8" title="8">8</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="9" title="9">9</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="10" title="10">10</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="11" title="11">11</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="12" title="12">12</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="13" title="13">13</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="14" title="14">14</a></td>
+                    </tr>
+                    <tr role="row">
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="15" title="15">15</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="16" title="16">16</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="17" title="17">17</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="18" title="18">18</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="19" title="19">19</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="20" title="20">20</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="21" title="21">21</a></td>
+                    </tr>
+                    <tr role="row">
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="22" title="22">22</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="23" title="23">23</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="24" title="24">24</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="25" title="25">25</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="26" title="26">26</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="27" title="27">27</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="28" title="28">28</a></td>
+                    </tr>
+                    <tr role="row">
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="29" title="29">29</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="30" title="30">30</a></td>
+                        <td><a tabindex="-1" class="k-link" href="#" data-value="31" title="31">31</a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<div class="form-group" data-cascade="[name='frequency']" data-show="2">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.WeekDays">Görevin Günleri</label>
+    </div>
+    <div class="col-md-8">
+
+        @(
+                Html.Kendo().MultiSelectFor(a => a.TaskPlan._WeekDays)
+                .HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Çalışma zamanı seçin.."},
+                    { "data-custom" , "" }
+                })
+                .BindTo(Model.TaskPlan._WeekDaysData)
+                .AutoClose(false)
+            )
+
+    </div>
+</div>
+
+<div class="form-group" data-cascade="[name='frequency']" data-show="1,2,3">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.Times">Görevin Saat(ler)i</label>
+    </div>
+    <div class="col-md-8">
+
+        @(
+                Html.Kendo().MultiSelectFor(a => a.TaskPlan._Times)
+                .HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Çalışma zamanı seçin.."},
+                    { "data-custom" , "" }
+                })
+                .BindTo(Model.TaskPlan._TimesData)
+                .Validate(Validations.Required)
+                //.Events(a => a.DataBound("_TaskPlan.changeFrequency"))
+                .AutoClose(false)
+            )
+
+    </div>
+</div>
+
+<div class="form-group" data-elem="TaskPlan.templateId">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="TaskPlan.templateId">Planlanan Görev</label>
+    </div>
+    <div class="col-md-8">
+
+        @(Html.Akilli()
+     .DropDownListFor(model => model.TaskPlan.templateId)
+     .OptionLabel("Lütfen Planlanacak Görevi Seçiniz..")
+     .DataTextField("name")
+     .DataValueField("id")
+     .Action(b => b.Action("DataSourceDropDown", "VWFTM_TaskTemplate", new { area = "FTM" }))
+     .Sort(x => x.Add("name").Ascending())
+     .BasicInsert(Url.Action("Insert", "VWFTM_TaskTemplate", new { area = "FTM" }), "code", true)
+     .Execute("id")
+     .Name("TaskPlan.templateId")
+     .Id("TaskPlan_templateId")
+     .Validate(Validations.Required)
+            )
+
+    </div>
+</div>
+
+<style type="text/css" data-selector="modalContainer">
+    .input-group-addon {
+        padding: 0px 8px;
+    }
+</style>

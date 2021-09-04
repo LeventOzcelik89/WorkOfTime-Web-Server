@@ -1,0 +1,177 @@
+﻿@model VMFTM_TaskModel
+@{
+	ViewBag.Title = "Personel Atama";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var persons = Model.personUserIds.ToList();
+}
+
+
+<style type="text/css" data-selector="modalContainer">
+	.noselector .k-i-all {
+		display: none !important;
+		visibility: hidden;
+	}
+
+	.noselector .k-clear-value {
+		right: 10px !important;
+	}
+</style>
+
+
+<script data-selector="modalContainer" type="text/javascript">
+
+	function onChangePerson(e) {
+		$('#PersonAvaibles').empty();
+		if (e.sender.value().length > 0) {
+			$.each(e.sender.value(), function (i, item) {
+				var res = $.ajax({
+					type: "POST",
+					url: '/FTM/VWFTM_Task/GetPermitUserAvailableStatus',
+					data: { userid: item },
+					async: false
+				}).responseJSON;
+				if (res.objects.permits.length > 0) {
+					$('#PersonAvaibles').removeClass('hide');
+
+					$.each(res.objects.permits, function (p, per) {
+						var startdate = kendo.toString(new Date().FromJson(per.StartDate), 'dd.MM.yyyy HH:mm');
+						var enddate = kendo.toString(new Date().FromJson(per.EndDate), 'dd.MM.yyyy HH:mm')
+						var txt = '<div><i class="fa fa-calendar"></i> ' + per.Person_Title + ':' + startdate + ' - ' + enddate + ' Tarihleri Arası İzinli </div>';
+						$('#PersonAvaibles').append(txt);
+
+					})
+
+				}
+
+				if (res.objects.taskCount > 0) {
+					$('#PersonAvaibles').removeClass('hide');
+					var txt2 = '<h5><i class="fa fa-tasks m-r-xs"></i> ' + res.objects.userName + ' Çözüm Bildirilmemiş İş Sayısı : ' + res.objects.taskCount + ' Adet</h5>';
+
+					$('#PersonAvaibles').append(txt2);
+				}
+			})
+		}
+
+		var values = e.sender.value();
+		$('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
+	}
+
+	function onBoundPerson(e) {
+		e.sender.trigger("change");
+	}
+
+	function onChangeCustomer(e) {
+		var customer = e.sender.dataItem();
+		if (this.value() != "") {
+			var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
+			var filterJSON = kendo.filterParser(filter);
+			$('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
+			$("#fixtureIds").data("handler").enable(true);
+			$("#location").val(customer.location);
+			haritalar['location'].feature.remove("DrawLayer", "DrawFeature");
+			haritalar['location'].feature.add("DrawLayer", "DrawFeature", customer.location);
+		} else {
+			$("#fixtureIds").data("handler").enable(false);
+			$("#fixtureIds").data("handler").value([]);
+		}
+	}
+
+	$(document)
+		.on("change", '[name="type"][type="radio"]', function (c) {
+			$('#location,#fixtureIds').prop("required", false);
+			var type = $(this).val();
+			if (type == 6 || type == 7 || type == 5) {
+				$('#location').prop("required", true);
+			} else {
+				$("#fixtureIds").data("handler").value([]);
+			}
+		})
+
+</script>
+
+<script type="text/x-kendo-template" id="assignableUserTemplate" data-selector="modalContainer">
+	<table class="table shoping-cart-table">
+		<tbody>
+			<tr>
+				<td style="width:15%;text-align: center;">
+					<img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+				</td>
+				<td class="desc" style="width:40%;">
+					<div style="font-size:13px;">#=FullName#</div>
+					<div style="font-size:13px;">#=Company_Title#</div>
+					<div style="font-size:13px;">#=title#</div>
+				</td>
+
+			</tr>
+		</tbody>
+	</table>
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+	#insertRadio.akilliRadioGrup i {
+		font-size: 30px;
+	}
+
+	#insertRadio.akilliRadioGrup label {
+		width: 12.6%;
+		text-align: center;
+		font-size: 12px;
+		font-weight: bold;
+		max-height: 80px;
+		overflow: hidden;
+	}
+
+	.akilliRadioGrup > input:checked + label[for=priority_0] {
+		background-color: #EF5352;
+	}
+
+	.akilliRadioGrup > input:checked + label[for=priority_1] {
+		background-color: #F8AC59;
+	}
+
+	.akilliRadioGrup > input:checked + label[for=priority_2] {
+		background-color: #1ab394;
+	}
+</style>
+
+@using (Html.BeginForm("AssignStaff", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="assignableUsers">Görevlendirilecek Personeller</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .MultiSelectFor(a => a.assignableUsers)
+                .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && persons.Contains(a.id))
+                .Events(e => { e.Change("onChangePerson").Close("onChangePerson").DataBound("onBoundPerson"); })
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+            )
+		</div>
+	</div>
+
+	<div class="hide alert warning" id="PersonAvaibles"></div>
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Personel Ata</button>
+	</div>
+
+}
+
+

@@ -1,0 +1,29 @@
+﻿@model DetailInventoryModel
+@{
+    ViewBag.Title = " Envanter Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var prooductId = Model.ProductId;
+    var stockId = Model.StockId;
+}
+
+<div data-selector="modalContainer">
+    @(Html.Akilli()
+         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_InventoryTemplate")
+         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).Filter(a => a.lastActionDataId == stockId && a.productId == prooductId).PageSize(25))
+         .Scrollable(a => a.Height(600))
+         .Filterable(t => t.Mode(GridFilterMode.Row))
+         .Columns(x =>
+         {
+             x.Bound(y => y.searchField).Title("Envanter Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine    ('inventoryTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+             x.Bound(y => y.productId_Title).Title("Ürün").Width(130).Hidden(true);
+             x.Bound(y => y.code).Title("Envanter Kodu").Width(130).Hidden(true);
+             x.Bound(y => y.serialcode).Title("Envanter Seri Numarası").Width(130).Hidden(true);
+             x.Bound(y => y.lastActionType_Title).Title("Son Durumu").Width(130).Hidden(true);
+             x.Bound(y => y.lastActionDataId_Title).Title("Son Konumu").Width(130).Hidden(true);
+         })
+         .Selectable(x => x.Mode(GridSelectionMode.Single))
+         .ToolBar(x =>
+         {
+             x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" },{ "data-blank", "true" }, }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+         }))
+</div>

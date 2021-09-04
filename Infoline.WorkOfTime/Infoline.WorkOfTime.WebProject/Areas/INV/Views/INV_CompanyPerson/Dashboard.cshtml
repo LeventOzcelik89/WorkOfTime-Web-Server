@@ -1,0 +1,384 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonPageReport
+@{
+    ViewBag.Title = "Personel Raporları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@section css{
+    <link href="~/Content/Custom/css/PersonsDetail.css" rel="stylesheet" />
+}
+
+<style>
+    .fa-info-circle {
+        color: rgb(28, 132, 198);
+    }
+
+    .ovflow-height478 {
+        overflow: auto;
+        height: 430px !important;
+    }
+
+    h5 {
+        text-align: center;
+    }
+
+    .ibox-title h5 {
+        display: block;
+        font-size: 14px;
+        margin: 0 0 7px;
+        padding: 0;
+        text-overflow: ellipsis;
+        float: inherit;
+    }
+
+    small {
+        display: block;
+        float: inherit;
+        text-align: center;
+        margin-top: -12px;
+    }
+
+    div#alan {
+        color: red;
+        border: 1px solid;
+        text-align: center;
+        padding: 5px 5px 5px 5px;
+        width: 157px;
+        font-weight: bold;
+        margin-bottom: -10px;
+    }
+
+    .chart-total {
+        color: red;
+        font-size: 14px;
+        font-weight: bold;
+    }
+
+
+    .nodata {
+        color: #21B9BB;
+        text-align: center;
+        font-weight: bold;
+        padding-top: 25%;
+        font-size: 16px;
+    }
+</style>
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('ready', function () {
+
+            CreatePersonCharts();
+
+        })
+
+    function CreatePersonCharts() {
+        GetJsonDataFromUrl('/INV/INV_CompanyPerson/DashboardResult', null, function (resp) {
+            $('[data-total="PersonPositionstotal"]').html($.Enumerable.From(resp.positionType).Sum(function (s) { return s.Value }))
+            $('[data-total="PersonPositionsProjecttotal"]').html($.Enumerable.From(resp.positionproje).Sum(function (s) { return s.Value }))
+            $('[data-total="PersonAgeAreatotal"]').html($.Enumerable.From(resp.personAgeArea).Sum(function (s) { return s.Value }))
+            $('[data-total="PersonKademetotal"]').html($.Enumerable.From(resp.personNumber).Sum(function (s) { return s.Value }))
+            $('[data-total="companyPersontotal"]').html($.Enumerable.From(resp.companyPersonCounts).Sum(function (s) { return s.Value }))
+            $('[data-total="personschool"]').html($.Enumerable.From(resp.schoolPerson).Sum(function (s) { return s.Value }))
+            $('[data-total="Gendertotal"]').html($.Enumerable.From(resp.genderCounts).Sum(function (s) { return s.Value }))
+            $('[data-total="Bloodtotal"]').html($.Enumerable.From(resp.bloodCounts).Sum(function (s) { return s.Value }))
+            $('[data-total="Militarytotal"]').html($.Enumerable.From(resp.militaryCounts).Sum(function (s) { return s.Value }))
+
+            CreatePieChart($('#Gender'), resp.genderCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            //CreatePieChart($('#Blood'), resp.bloodCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            CreatePieChart($('#Military'), resp.militaryCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            CreatePieChart($('#PersonAgeArea'), resp.personAgeArea, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            CreatePieChart($('#companyPerson'), resp.companyPersonCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            CreatePieChart($('#PersonSchools'), resp.schoolPerson, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ", "bottom");
+            //CreatePieChart($('#PersonPositions'), resp.positionType, " #= category # Pozisyonunda :  #=kendo.format(\"{0:N0}\", data.value)# Personel Mevcut", "right");
+            CreatePieChart($('#PersonPositionsProject'), resp.positionproje, "#=data.value#");
+            CreatePieChart($('#PersonKademe'), resp.personNumber, "#= category # : #=data.value# Adet Personel Mevcut");
+            CreatePieChart($('#MaritalStatus'), resp.maritalCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel ");
+            CreateKendoChart($('#CompanyPersonTumu'), resp.personBy);
+        }, "Personel Grafikleri Yükleniyor...");
+    }
+
+    function CreateKendoChart(element, data) {
+
+        if (data.filter(function (v) { return v.Value == 0; }).length == 12) {
+            element.parents('div').eq(0).append('<div class="nodata fix"><div>Çalışan Bulunamadı</div></div>');
+        }
+
+        var groupedData = $.Enumerable.From(data).GroupBy(a => a.Value).ToArray();
+
+        var objData = [];
+        var categories = [];
+
+        groupedData.forEach(function (item, i) {
+            var company = item.Key();
+
+            if (i == 0) {
+                categories = $.Enumerable.From(item.source).Select(e => e.Color).ToArray();
+            }
+
+            var dataArray = [];
+            item.source.forEach(function (elem, j) {
+                dataArray.push(elem.Value2);
+            })
+            objData.push({ name: company, data: dataArray });
+        })
+
+        element.kendoChart({
+            dataSource: {
+                data: $.Enumerable.From(groupedData).ToArray()
+            },
+            series: objData,
+            categoryAxis: {
+                categories: categories
+            },
+
+            seriesDefaults: {
+                type: "line",
+            },
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            seriesColors: ["#00796B", "#ff1a1a", "#0099ff"],
+            legend: {
+                position: "bottom"
+            },
+            valueAxis: {
+                labels: {
+                    step: 2,
+                    format: "{0:N0} Personel"
+                }
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:N0}",
+                template: "#= data.value # Personel",
+                opacity: 0.7,
+                shared: true,
+                background: 'yellow'
+            }
+        });
+
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function CreatePiesChart(element, data, MyString) {
+
+        if (data.length == 0) {
+
+            element.parents('div').eq(0).append('<div class="nodata"><div>Sonuç Bulunamadı.</div></div>');
+            return;
+
+        }
+        element.kendoChart({
+            title: {},
+            legend: {
+                position: "bottom"
+            },
+            series: [{
+                type: "pie",
+                field: "Value",
+                categoryField: "Key",
+                colorField: "Color"
+
+            }],
+            categoryAxis: {
+                field: "Key"
+            },
+
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            dataSource: {
+                data: data
+            },
+            seriesDefaults: {
+                labels: {
+                    visible: true,
+                    template: " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Personel "
+                },
+                overlay: {
+                    gradient: "none"
+                },
+            },
+            chartArea: {
+                background: "transparent"
+            },
+
+            tooltip: {
+                visible: true,
+                template: " #= dataItem.Tooltip # ",
+            },
+        })
+
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function CreatePieChart(element, data, MyString, position) {
+
+        if (data.length == 0) {
+
+            element.parents('div').eq(0).append('<div class="nodata"><div>Sonuç Bulunamadı</div></div>');
+            return;
+
+        }
+        element.kendoChart({
+            title: {},
+            legend: {
+                position: position
+            },
+            series: [{
+                type: "pie",
+                field: "Value",
+                categoryField: "Key",
+                colorField: "Color"
+            }],
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            dataSource: {
+                data: data
+            },
+            seriesDefaults: {
+                labels: {
+                    visible: true,
+                    template: MyString,
+                    template: "#= kendo.format('{0:p2}', percentage)#"
+                },
+                overlay: {
+                    gradient: "none"
+                },
+            },
+            chartArea: {
+                background: "transparent"
+            },
+
+
+
+            tooltip: {
+                visible: true,
+                template: MyString,
+                format: "{0:N0}",
+            },
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+</script>
+
+<div class="row">
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("yellow").Text("Çalışan personel sayısı").Value(Model.ToplamPersonel.ToString("N0") + " Personel").IconClass("fa fa-users")
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("navy").Text("En son işe giren personel").Value(Model.SonPersonel == null ? "Bulunamadı" : Model.SonPersonel).IconClass("fa fa-user")
+    </div>
+    <div class="col-xs-12 col-sm-12 col-md-4">
+        @Html.Akilli().Card().Color("blue").Text("En çok personeli olan işletme").Value(Model.EnCokPersoneliOlanIsletme).IconClass("ii-bina-yapi")
+    </div>
+</div>
+
+<div class="row clearfix">
+    <div class="col-md-12">
+        <div class="ibox">
+            <div class="ibox-title"><h5>Personellerin Çalışma Oranı</h5><br /><small>Son bir yılda çalışan toplam personeli gösterir.</small></div>
+            <div class="ibox-content clearfix">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="CompanyPersonTumu"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Yaş Aralığı</h5><br /><small>Personellerin yaş aralıklarını gösterir.</small> <br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="PersonAgeAreatotal"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="PersonAgeArea" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Cinsiyet Dağılımı</h5><br /><small>Personellerin cinsiyetlerinin toplamını gösterir.</small><br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="Gendertotal"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="Gender" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Kademeleri</h5><br /><small>Personellerin bulunduğu kademelerin toplamlarını gösterir.</small><br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="PersonKademetotal"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="PersonKademe" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Askerlik Durumları</h5><br /><small>Personellerin askerlik durumlarını gösterir.</small><br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="Militarytotal"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="Military" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title">
+                <h5>İşletmelerde Çalışan Personeller</h5><br /><small>İşletmelerde çalışan personellerin toplamını gösterir..</small><br />
+                <small>Şuanda grafikte toplam <span class="chart-total" data-total="companyPersontotal"></span> personel bilgisi bulunmaktadır.</small>
+            </div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="companyPerson" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Eğitim Seviyeleri</h5><br /><small>Tüm personellerin eğitimlerinin seviyelerinin toplamını gösterir..</small><br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="personschool"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="PersonSchools" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 col-md-12">
+        <div class="ibox " id="iboxboyu">
+            <div class="ibox-title"><h5>Personellerin Medeni Durumu</h5><br /><small>Personellerin evli veya bekar durumuna göre listesini verir.</small><br /><small>Şuanda grafikte toplam <span class="chart-total" data-total="Maritaltotal"></span> personel bilgisi bulunmaktadır.</small></div>
+            <div class="ibox-content clearfix ">
+                <div class="col-md-12 ovflow-height478">
+                    <div id="MaritalStatus" style="height:414px"></div>
+                    <div class="chart-loading"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="fixed-button">
+    <a href="@Url.Action("Insert","VWSH_User",new {area="SH"})" class="btn btn-success btn-block text-left" title="Yeni Personel Ekleme"><i class="fa fa-plus" aria-hidden="true"></i> Yeni Personel Tanımla</a>
+    <a href="@Url.Action("Index","VWSH_User",new {area="SH"})" class="btn btn-success btn-block text-left" title="Personel Listele"><i class="fa fa-list" aria-hidden="true"></i> Tüm Personeller</a>
+</div>

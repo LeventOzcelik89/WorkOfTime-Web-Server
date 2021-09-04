@@ -1,0 +1,153 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_StockTaskPlan[]
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Abonelere Görev Ekle";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var page = {
+        Model: @Html.Raw( Json.Encode(Model) ),
+        tag: function () {
+
+            if ($('[data-item="serialCodes"]').data('tagify')) {
+                $('[data-item="serialCodes"]').data('tagify').destroy();
+                $('[data-item="serialCodes"]').removeData("tagify");
+            }
+            $('[data-item="serialCodes"]').tagify({
+                placeholder: "Abone Numarasını yazın ve Enter'a basınız.",
+                enforceWhitelist:false,
+                whitelist: $.Enumerable.From(page.Model).Select(x => x.storageCode).ToArray(),
+                maxTags: 999,
+                dropdown: {
+                    maxItems: 999,
+                    enabled: 0,
+                    closeOnSelect: false
+                }
+            }).off("add removetag invalid").on("invalid", function () { }).on("add removetag", function (e) {})
+        }
+    };
+
+
+    page.tag();
+
+
+    $(document)
+        .on('before:submit', 'form', function (e) {
+
+            $('[data-item="serialCodes"]').each(function (c) {
+                var data = $(this).data("tagify");
+                if (data && data.value) {
+                    $(this).val(data.value.map(a => a.value).join(","));
+                }
+            });
+        })
+        .on('keydown', function (c) {
+            if (c.ctrlKey == true) {
+                navigator.clipboard.readText()
+                    .then(text => {
+                        var textArea = $('<textarea/>').val(text);
+                        navigator.clipboard.writeText(textArea.val());
+                    })
+                    .catch(err => {
+                        // MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
+                    });
+            }
+        })
+        ;
+</script>
+
+@using (Html.BeginForm("InsertTask", "VWPRD_StockTaskPlan", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;">
+        <b> Bilgilendirme : </b>   Abone numaralarını excel'den kopyalarak abone numarası alanına yapıştırabilirsiniz.
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="code">Abone Numarası</label>
+        </div>
+        <div class="col-md-8">
+            <input data-item="serialCodes" data-role="tagify" name="subscriber" />
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli().
+        DateTimePicker("planStartDate").
+        Placeholder("Planlanan Başlangıç Tarihi").
+        Format(Extensions.DateFormatFull()).
+        Value(DateTime.Now).
+        //Min(DateTime.Now).
+        //MaxDateElement("dueDate").
+        Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli().
+        DateTimePicker("dueDate").
+        Placeholder("Planlanan Bitiş Tarihi").
+        Format(Extensions.DateFormatFull()).
+        Value(DateTime.Now.AddDays(+1)).
+        MinDateElement("planStartDate").
+        Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userIds">Görevlendirilecek Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli()
+        .MultiSelect("userIds")
+        .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+        .DataValueField("id")
+        .DataTextField("FullName")
+        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+        .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+        .Sort(x => x.Add("FullName").Ascending())
+        .Validate(Validations.Required)
+        .Execute()
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+
+        <button class="btn btn-md btn-success pull-right" type="submit">
+            Görev Oluştur
+        </button>
+
+    </div>
+}

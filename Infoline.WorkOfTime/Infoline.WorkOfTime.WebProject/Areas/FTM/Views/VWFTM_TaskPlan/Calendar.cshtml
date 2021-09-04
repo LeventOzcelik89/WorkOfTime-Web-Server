@@ -1,0 +1,221 @@
+﻿@{
+    ViewBag.Title = "Görevler ve Planlanmış Görevler Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <div class="col-md-6">
+                    <h5>Görev Takvimi</h5>
+                </div>
+                <div class="col-md-6">
+
+                    <div class="btn-group pull-right" style="margin-top: -5px;">
+                    </div>
+
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                <div id="TaskCalendar"></div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script id="eventTemplate2" type="text/x-kendo-template">
+
+    <div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
+
+    #=GetPriority(priority)#
+
+    #=GetType(type)#
+
+    #= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
+
+    #:title#
+
+    </div>
+
+</script>
+
+<style type="text/css">
+    .type, .priority, .operation {
+        background-color: #ffffff;
+        padding: 2px;
+        float: left;
+        margin: -4px 2px 0px 0px;
+        font-weight: bold;
+        color: #000;
+    }
+
+    .event-scheduled {
+        background-color: #f08080;
+        height: 100%;
+    }
+
+    @@media (min-width: 992px) {
+        .modal-lg {
+            width: 1200px !important;
+        }
+    }
+
+    .modal-dialog .modal-body,
+    .modal-dialog .tab-pane,
+    .modal-dialog .ibox {
+        padding: 0px;
+    }
+
+    .modal-body form {
+        padding: 15px !important;
+    }
+
+    .k-event {
+        cursor: pointer;
+    }
+
+
+    element.style {
+    }
+
+    #insertRadio label {
+        width: 9.1% !important;
+    }
+
+    #insertRadio.akilliRadioGrup i.icon-shuffle {
+        font-size: 30px !important;
+    }
+
+</style>
+
+<script type="text/javascript">
+
+    var _calendar = {
+        elem: null,
+        data: {
+            types: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>())),
+            taskOperation: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>())),
+            priority: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))
+        },
+        init: function () {
+
+            $('#TaskCalendar').kendoScheduler({
+                date: new Date(),
+                localization: 'tr-TR',
+                editable: false,
+                eventTemplate: $("#eventTemplate2").html(),
+                views: [
+                    { type: 'day' },
+                    { type: 'week', selected: true },
+                    { type: 'month' }
+                ]
+            });
+
+            this.elem = $('#TaskCalendar').data('kendoScheduler');
+
+            this.GetTasks();
+
+        },
+        GetTasks: function () {
+
+            ReadData('/FTM/VWFTM_TaskPlan/CalendarDataSource', {}, function (res) {
+
+                _calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
+                    data: res
+                }));
+
+            });
+
+        },
+        ShowTask: function (uid) {
+
+            var dataItem = _calendar.elem.occurrenceByUid(uid);
+
+            if (dataItem.IsTemplate == true) {
+                Kendo_GetRequest('/FTM/VWFTM_TaskPlan/InsertMultiple?id=' + dataItem.taskPlanId, null, $('<a data-method="GET" />'), 'type-info');
+            } else {
+                Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem._id, null, $('<a data-method="GET" />'), 'type-info');
+            }
+
+        }
+    };
+
+    function GetType(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.types).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="type"><i class="' + item.Generic.icon + '"></i></span>';
+
+    }
+
+    function GetPriority(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.priority).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="priority" style="background-color: #' + item.Generic.color + '">' + '!' + '</span>';
+
+    }
+
+    function GetOperation(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.taskOperation).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="operation">' + '<i style="color: #' + item.Generic.color + '" class="' + item.Generic.icon + '"></i>' + '</span>';
+
+    }
+
+    $(document)
+
+        .on('click', '#TaskCalendar .k-event', function () {
+
+            var uid = $(this).attr('data-uid');
+
+            _calendar.ShowTask(uid);
+
+        })
+
+        .on('shown:modal', function (e, dialog) {
+
+
+        })
+
+        .on('ready', function () {
+
+            _calendar.init();
+
+        })
+
+        .on('success', '#MultipleForm', function (e,res) {
+
+            if (res.Result == true) {
+
+                setTimeout(function () {
+
+                    _calendar.GetTasks();
+
+                }, 200);
+
+            }
+
+        })
+
+        ;
+
+</script>
+

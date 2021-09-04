@@ -1,0 +1,274 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_AccountModel
+@{
+    ViewBag.Title = "Yeni Hesap Ekle";
+    ViewBag.Title = "Yeni Hesap Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('change', '[name="type"]', function (e) {
+            var value = $('[name="type"]:checked').val();
+
+            if (value == "@((int)EnumPA_AccountType.Banka)") {
+                $('[for="iban"]').addClass("req");
+                $("#iban").attr('required', 'required');
+                $("#bankType").slideDown();
+            }
+            else if (value == "@((int)EnumPA_AccountType.Kasa)") {
+                $("#bankType").slideUp();
+                $('[for="iban"]').removeClass("req");
+                $("#iban").removeAttr('required');
+            }
+            
+            $('form').validator("validate");
+        });
+
+
+    function currencyDataBound(e) {
+        $('[name="type"]').trigger("change");
+        e.sender.trigger("change");
+    }
+
+    function currencyChange(e) {
+        var item = e.sender.dataItem()
+        if (item != undefined && item != null) {
+            var symbol = item.symbol != undefined ? item.symbol : "";
+            $("[data-id='unit']").html(symbol)
+        }
+    }
+
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWPA_Account", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    {"id","PA_AccountInsert" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.dataTable)
+
+    if (Model.dataTable == "SH_User")
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="IdUser">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                    .DropDownListFor(model => model.dataId)
+                    .OptionLabel("Lütfen Personel Seçiniz..")
+                    .DataTextField("FullName")
+                    .DataValueField("id")
+                       .Template("#=TemplateEngine('userTemplate',data)#")
+                       .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                       .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                    .Sort(x => x.Add("FullName").Ascending())
+                    .Execute("id")
+                    .Readonly(true)
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else if (Model.dataTable == "CMP_Company")
+    {
+        <div class="form-group">
+            <div class="col-lg-4">
+                <label class="control-label req">İşletme</label>
+            </div>
+            <div class="col-lg-8">
+                @(Html.Akilli()
+                            .DropDownListFor(model => model.dataId)
+                            .OptionLabel("Lütfen İşletme Seçiniz..")
+                            .DataTextField("name")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                            .Filter<VWCMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                            .Sort(x => x.Add("name").Ascending())
+                            .Template("#=TemplateEngine('companyTemplate',data)#")
+                            .ValueTemplate("<span>#=name#</span>")
+                            .Execute("id")
+                            .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Hesap Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Hesap Kodu giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Hesap Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Hesap Adı giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="priority">Hesap Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPA_AccountType.Kasa))
+        </div>
+    </div>
+
+    <div id="bankType" style="display:none;">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="bankId">Banka</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.bankId)
+                    .OptionLabel("Lütfen Banka seçiniz..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWUT_Bank", new { area = "UT" }))
+                    .Sort(x => x.Add("name").Ascending())
+                    .BasicInsert(Url.Action("Insert", "VWUT_Bank", new { area = "UT" }), "name", false)
+                    .Execute()
+                )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="iban">IBAN</label>
+            </div>
+            <div class="col-md-8">
+
+                @Html.TextBoxFor(model => model.iban, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen IBAN giriniz.."}
+                }).Validate(Validations.Text09Space(true, 0, 26))
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="currencyId">Döviz Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.currencyId)
+                .OptionLabel("Lütfen Döviz Tipi seçiniz..")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                .Sort(x => x.Add("name").Ascending())
+                .Events(a => { a.Change("currencyChange"); a.DataBound("currencyDataBound"); })
+                .Validate(Validations.Required)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="amount">Açılış Bakiyesi</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.Ledger.amount)
+                    .Name("Ledger.amount")
+                    .Min(0)
+                    .Max(999999999)
+                    .Value(0)
+                    .Format("N2")
+                )
+                <span class="input-group-addon" data-id="unit"></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Açılış Bakiyesi Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DatePickerFor(model => model.Ledger.date)
+                .Name("Ledger.date")
+                .Value(DateTime.Now)
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="col-md-8">
+                    <label class="control-label label-md req">Hesap Durumu</label>
+                </div>
+                <div class="col-md-4">
+                    <div class="radio akilliRadioGrup clearfix">
+                        <input checked="" id="status_1" name="status" type="radio" value="1">
+                        <label for="status_1" tabindex="0" class="radio-label">
+                            Aktif
+                        </label>
+                        <input id="status_0" name="status" type="radio" value="0">
+                        <label for="status_0" tabindex="0" class="radio-label">
+                            Pasif
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+
+            <div class="form-group">
+                <label class="control-label col-md-6 label-md req">Varsayılan Hesap Mı?</label>
+                <div class="col-md-6">
+
+                    <div class="radio akilliRadioGrup clearfix">
+                        <input checked="" id="isDefault_1" name="isDefault" type="radio" value="1">
+                        <label for="isDefault_1" tabindex="0" class="radio-label">
+                            Evet
+                        </label>
+                        <input id="isDefault_0" name="isDefault" type="radio" value="0">
+                        <label for="isDefault_0" tabindex="0" class="radio-label">
+                            Hayır
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

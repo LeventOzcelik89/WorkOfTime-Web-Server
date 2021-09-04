@@ -1,0 +1,570 @@
+﻿@model VMVWINV_CompanyPersonAssessment
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Personel Değerlendirme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var count = 0;
+}
+<link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" data-selector="modalContainer" />
+<style type="text/css" data-selector="modalContainer">
+    #INV_PersonAssessmentForm .wzrd {
+        margin: 90px 0px 130px 0 !important;
+    }
+
+
+    #INV_PersonAssessmentForm .funkyradio label {
+        width: 100%;
+        border-radius: 3px;
+        border: 1px solid #D1D3D4;
+        font-weight: normal;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio input[type="radio"]:empty,
+    #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:empty {
+        display: none;
+    }
+
+        #INV_PersonAssessmentForm .funkyradio input[type="radio"]:empty ~ label,
+        #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:empty ~ label {
+            position: relative;
+            line-height: 2.5em;
+            text-indent: 3.25em;
+            margin-top: 2em;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+
+            #INV_PersonAssessmentForm .funkyradio input[type="radio"]:empty ~ label:before,
+            #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:empty ~ label:before {
+                position: absolute;
+                display: block;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                content: '';
+                width: 2.5em;
+                background: #D1D3D4;
+                border-radius: 3px 0 0 3px;
+            }
+
+    #INV_PersonAssessmentForm .funkyradio input[type="radio"]:hover:not(:checked) ~ label,
+    #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:hover:not(:checked) ~ label {
+        color: #888;
+    }
+
+        #INV_PersonAssessmentForm .funkyradio input[type="radio"]:hover:not(:checked) ~ label:before,
+        #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:hover:not(:checked) ~ label:before {
+            content: '\2714';
+            text-indent: .9em;
+            color: #C2C2C2;
+        }
+
+    #INV_PersonAssessmentForm .funkyradio input[type="radio"]:checked ~ label,
+    #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:checked ~ label {
+        color: #777;
+    }
+
+        #INV_PersonAssessmentForm .funkyradio input[type="radio"]:checked ~ label:before,
+        #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:checked ~ label:before {
+            content: '\2714';
+            text-indent: .9em;
+            color: #333;
+            background-color: #ccc;
+        }
+
+    #INV_PersonAssessmentForm .funkyradio input[type="radio"]:focus ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio input[type="checkbox"]:focus ~ label:before {
+        box-shadow: 0 0 0 3px #999;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-default input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-default input[type="checkbox"]:checked ~ label:before {
+        color: #333;
+        background-color: #ccc;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-primary input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-primary input[type="checkbox"]:checked ~ label:before {
+        color: #fff;
+        background-color: #337ab7;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-success input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-success input[type="checkbox"]:checked ~ label:before {
+        color: #fff;
+        background-color: #5cb85c;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-danger input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-danger input[type="checkbox"]:checked ~ label:before {
+        color: #fff;
+        background-color: #d9534f;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-warning input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-warning input[type="checkbox"]:checked ~ label:before {
+        color: #fff;
+        background-color: #f0ad4e;
+    }
+
+    #INV_PersonAssessmentForm .funkyradio-info input[type="radio"]:checked ~ label:before,
+    #INV_PersonAssessmentForm .funkyradio-info input[type="checkbox"]:checked ~ label:before {
+        color: #fff;
+        background-color: #5bc0de;
+    }
+
+
+
+
+    @@keyframes click-wave {
+        0% {
+            height: 40px;
+            width: 40px;
+            opacity: 0.35;
+            position: relative;
+        }
+
+        100% {
+            height: 200px;
+            width: 200px;
+            margin-left: -80px;
+            margin-top: -80px;
+            opacity: 0;
+        }
+    }
+
+    #description .option-input {
+        -webkit-appearance: none;
+        position: relative;
+        top: 10px;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 30px;
+        width: 30px;
+        transition: all 0.15s ease-out 0s;
+        background: #cbd1d8;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        display: inline-block;
+        margin-right: 0.5rem;
+        outline: none;
+        position: relative;
+        z-index: 1000;
+        padding-top: 0px;
+    }
+
+    #description .optionInput1:checked {
+        background: #5cb85c;
+    }
+
+    #description .optionInput2:checked {
+        background: #f0ad4e;
+    }
+
+    #description .optionInput3:checked {
+        background: #d9534f;
+    }
+
+    #description .option-input:hover {
+        background: #9faab7;
+    }
+
+
+    #description .option-input:checked::before {
+        height: 30px;
+        width: 30px;
+        position: absolute;
+        content: '✔';
+        display: inline-block;
+        font-size: 20px;
+        text-align: center;
+        line-height: 30px;
+    }
+
+    #description .option-input:checked::after {
+        -webkit-animation: click-wave 0.65s;
+        -moz-animation: click-wave 0.65s;
+        animation: click-wave 0.65s;
+        background: #40e0d0;
+        content: '';
+        display: block;
+        position: relative;
+        z-index: 100;
+    }
+
+    #description .option-input.radio {
+        border-radius: 50%;
+    }
+
+        #description .option-input.radio::after {
+            border-radius: 50%;
+        }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+    .on("ready", function () {
+
+        if ($('#AssessmentType').val() == 6) {
+            $('#AssessmentType').val("@EnumINV_CompanyPersonAssessmentType.AltiAy.ToDescription()");
+        }
+        if ($('#AssessmentType').val() == 2) {
+            $('#AssessmentType').val("@EnumINV_CompanyPersonAssessmentType.IkiAy.ToDescription()");
+        }
+        if ($('#AssessmentType').val() == 12) {
+            $('#AssessmentType').val("@EnumINV_CompanyPersonAssessmentType.Yillik.ToDescription()");
+        }
+
+        var rating = @Html.Raw(Json.Encode(Model.Rating));
+
+        if(rating != null){
+            $.each(rating, function(i,item){
+                $("input[name='Rating[" + i +"].answer'][value="+ item.answer + "]").attr('checked','checked');
+            });
+        }
+
+        $('input[name="ConfirmStatus"]').trigger("change");
+
+    })
+        .on('change',"input[name='ConfirmStatus']:checked",function(e){
+            e.preventDefault();
+            var selectedValue = $("input[name='ConfirmStatus']:checked").val();
+
+            if(selectedValue == 1){
+                $('.descriptionSection').removeClass("show").addClass("hide");
+            }
+            else{
+                $('.descriptionSection').removeClass("hide").addClass("show");
+            }
+        })
+</script>
+
+@using (Html.BeginForm("Update", "VWINV_CompanyPersonAssessment", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "INV_PersonAssessmentForm" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.IdUser)
+    @Html.HiddenFor(model => model.Manager1Approval)
+
+    <div class="form-group wzrd">
+        <div class="col-sm-3 step red">
+            <a>
+                <span data-person="Person_Title">@Model.Person_Title</span> @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? " Değerlendiriliyor" : " Değerlendirilmiş")
+            </a>
+            <div class="content">
+                <div class="number">1.<span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong> Personel Değerlendirme </div>
+                    <div><strong>İşlem Yapan : </strong> @Model.Manager1Approval_Title</div>
+                    <div><strong>İşlem Tarihi : </strong> @(Model.Manager1ApprovalDate != null ? string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate) : string.Format("{0:dd.MM.yyyy HH:mm}", DateTime.Now))</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step orange @(Model.ApproveStatus != (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme  ? "":"disabled")">
+            <a>
+                2. Yönetici @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ? " İşlem yapıyor" :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? " Onayı Bekleniyor" :
+                                                                                                                                  " Onayladı.")
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                <div id="ccc">
+                    <div> <strong>İşlem : </strong> Onay </div>
+                    <div>
+                        <strong>
+                            İşlem @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ? " yapıyor" :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? " yapacak" :
+                                                                                                                                  " yapmış") :
+                        </strong>
+                        <span data-person="Manager1_Title">@(!string.IsNullOrEmpty(Model.Manager2Approval_Title) ? Model.Manager2Approval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme  ? "hide" : "")">
+                        <strong>İşlem Tarihi : </strong>
+                        @(Model.Manager2ApprovalDate != null ? string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager2ApprovalDate) : string.Format("{0:dd.MM.yyyy HH:mm}", DateTime.Now))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step green @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ||
+                                          (Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme && userStatus.user.id != Model.GeneralManagerApproval) ? "disabled" : "" )">
+
+            <a>
+                Genel Müdür @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme ||
+                                                    Model.Manager2Approval == Model.GeneralManagerApproval && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ? " İşlem yapıyor" :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? " Onayı Bekleniyor" :
+                                   Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ? " Onayı Bekleniyor." :
+                                  " Onayladı.")
+            </a>
+            <div class="content top">
+                <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                <div id="ccc">
+                    <div> <strong>İşlem : </strong> Onay </div>
+                    <div>
+                        <strong>
+                            İşlem @(Model.GeneralManagerApproval == Model.Manager2Approval && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme || Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme ? " yapıyor" :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme && Model.Manager2Approval != Model.GeneralManagerApproval ? " yapmış" :
+                                                                                                                                  " yapacak") :
+                        </strong>
+                        <span data-person="Manager1_Title">@(!string.IsNullOrEmpty(Model.GeneralManagerApproval_Title) ? Model.GeneralManagerApproval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@((Model.GeneralManagerApproval == Model.Manager2Approval && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme) ||
+        (Model.GeneralManagerApproval == userStatus.user.id && Model.Manager2ApprovalDate.HasValue) || (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) &&
+                                        Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? "" : "hide")">
+                        <strong>İşlem Tarihi : </strong>
+                        @(Model.GeneralManagerApprovalDate != null ? string.Format("{0:dd.MM.yyyy HH:mm}", Model.GeneralManagerApprovalDate) : string.Format("{0:dd.MM.yyyy HH:mm}", DateTime.Now))
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step blue   @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.SurecTamamlandi ||
+                                           Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? "":"disabled")">
+
+            <a>
+                İ.K. Yöneticisi @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? " Islak İmza İşlemini Yapıyor." :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ||
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ||
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme ? " Islak İmza Yüklemesi Bekleniyor" :
+                                                                                                                                  " Islak İmza yükledi.")
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">4. <span>Adım</span></div>
+                <div id="ccc">
+                    <div> <strong>İşlem : </strong> Islak İmza </div>
+                    <div>
+                        <strong>
+                            İşlem  @(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? " yapan" :
+                              Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme || Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme ? " yapacak" :
+                                                                                                                                  " yapmış") :
+                        </strong>
+                        <span data-person="Manager2_Title">@(!string.IsNullOrEmpty(Model.IkApproval_Title) ? Model.IkApproval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@(Model.GeneralManagerApprovalDate.HasValue ? "" : "hide")">
+                        <strong> İşlem Tarihi : </strong>
+                        @string.Format("{0:dd.MM.yyyy HH:mm}", DateTime.Now)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <fieldset id="information">
+        <legend> Personel Bilgileri </legend>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md" for="AssessmentCode">Değerlendirme Kodu</label>
+            </div>
+            <div class="col-md-6">
+                @Html.TextBoxFor(model => model.AssessmentCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md" for="AssessmentType">Değerlendirme Tipi</label>
+            </div>
+            <div class="col-md-6">
+                @Html.TextBoxFor(model => model.AssessmentType, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md" for="Person_Title">Personel Ad-Soyad</label>
+            </div>
+            <div class="col-md-6">
+
+                @Html.TextBoxFor(model => model.Person_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"},
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md">Görevi</label>
+            </div>
+            <div class="col-md-6">
+
+                @Html.TextBoxFor(model => model.task, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md">Bölümü</label>
+            </div>
+            <div class="col-md-6">
+
+                @Html.TextBoxFor(model => model.department, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <label class="control-label label-md">İşe Başlama Tarihi</label>
+            </div>
+            <div class="col-md-6">
+
+                @Html.TextBoxFor(model => model.jobStartDate, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+    </fieldset>
+
+    <fieldset id="questionAnswer" @(Model.Manager1ApprovalDate.HasValue ? "disabled" : "")>
+        <legend> Değerlendirmeler </legend>
+
+        @foreach (var item in Model.Rating)
+        {
+            <input type="hidden" name="Rating[@count].question" value="@item.question" />
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md" for="Rating">@item.question</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="funkyradio">
+                        <div class="col-md-4 funkyradio-success">
+                            <input type="radio" name="Rating[@count].answer" id="radio1_@count"
+                                   value="@Convert.ToInt32(EnumINV_CompanyPersonAssessmentAnswer.Basarili)" @(Model.Manager1Approval == userStatus.user.id ? "checked" : "") />
+                            <label for="radio1_@count">Başarılı</label>
+                        </div>
+                        <div class="col-md-4 funkyradio-warning">
+                            <input type="radio" name="Rating[@count].answer" id="radio2_@count"
+                                   value="@Convert.ToInt32(EnumINV_CompanyPersonAssessmentAnswer.GelismesiGerekli)" />
+                            <label for="radio2_@count">Gelişmesi Gerekli</label>
+                        </div>
+                        <div class="col-md-4 funkyradio-danger">
+                            <input type="radio" name="Rating[@count].answer" id="radio3_@count"
+                                   value="@Convert.ToInt32(EnumINV_CompanyPersonAssessmentAnswer.Basarisiz)" />
+                            <label for="radio3_@count">Başarısız</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            count++;
+        }
+
+    </fieldset>
+
+    <fieldset id="description">
+        <legend> Açıklama </legend>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="ConfirmStatus"> Personelin Şirkete Uygunluğu </label>
+            </div>
+            <div class="col-md-8">
+                <div class="@(Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.IkiAy ? "col-md-6" :
+                              Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.AltiAy ? "col-md-4" : "col-md-6") ">
+                    <label>
+                        <input type="radio" id="ConfirmStatus" class="option-input radio optionInput1" name="ConfirmStatus" @(Model.ConfirmStatus == Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.Uygun) ? "checked" : "")
+                               value="@Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.Uygun)"
+                               @(Model.ApproveStatus != (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? "disabled" : "checked") />
+                        @(EnumINV_CompanyPersonConfirmStatus.Uygun.ToDescription())
+                    </label>
+                </div>
+
+                <div class="@(Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.IkiAy ? "hide" :
+                              Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.AltiAy ? "col-md-4" : "col-md-4") ">
+                    <label>
+                        <input type="radio" id="ConfirmStatus" class="option-input radio  optionInput2" name="ConfirmStatus" @(Model.ConfirmStatus == Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.BaskaIs) ? "checked" : "")
+                               value="@Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.BaskaIs)"
+                               @(Model.ApproveStatus != (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? "disabled" : "") />
+                        @(EnumINV_CompanyPersonConfirmStatus.BaskaIs.ToDescription())
+                    </label>
+                </div>
+
+                <div class="@(Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.IkiAy ? "col-md-6" :
+                              Model.AssessmentType == (Int32)EnumINV_CompanyPersonAssessmentType.AltiAy ? "col-md-4" : "col-md-4") ">
+                    <label>
+                        <input type="radio" id="ConfirmStatus" class="option-input radio optionInput3" name="ConfirmStatus" @(Model.ConfirmStatus == Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.UygunDegil) ? "checked" : "")
+                               value="@Convert.ToInt32(EnumINV_CompanyPersonConfirmStatus.UygunDegil)"
+                               @(Model.ApproveStatus != (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? "disabled" : "") />
+                        @(EnumINV_CompanyPersonConfirmStatus.UygunDegil.ToDescription())
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group descriptionSection @((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? "" : "hide")">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Manager1ApprovalComment"> @((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) ? "1. Yönetici" : "Görüşleriniz:")</label>
+            </div>
+            <div class="col-md-8" @((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) ? "disabled" : ":")>
+                @Html.TextAreaFor(model => model.Manager1ApprovalComment, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Personel Hakkındaki Görüşlerinizi Giriniz.."},
+                    {((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? "readonly" : "unreadonly"), "true" },
+               {(Model.ApproveStatus != (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme ? "disabled" : "undisabled"), "true" }
+                })
+            </div>
+        </div>
+
+        <div class="form-group @((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? "" : "hide")">
+            <div class="col-md-4">
+                <label class="control-label label-md " for="Dosya">Islak İmzalı Değerlendirme Formu Yükleme</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().FileUpload()
+                    .DataTable("INV_CompanyPersonAssessment")
+                    .DataId(Model.id)
+                    .DataKey(x => x.fileGroup == "Islak İmzalı Değerlendirme Dosyası")
+                    .Validate(Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme ? true : false)
+                )
+            </div>
+        </div>
+
+    </fieldset>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">@(Model.Manager1Approval == userStatus.user.id ? "Kaydet" : "Onayla") </button>
+        @if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) && Model.ApproveStatus == (Int32)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme)
+        {
+        <a href="@Url.Action("AssessmentForm", "VWINV_CompanyPersonAssessment", new { area = "INV", id = Model.id })" target="_blank" class="btn btn-md  m-r-md m-l-md btn-success pull-right"><i class="fa fa-print"></i> Değerlendirme Formu Yazdır </a>
+        }
+    </div>
+
+}

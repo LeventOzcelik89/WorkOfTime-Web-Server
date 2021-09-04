@@ -1,0 +1,83 @@
+﻿@model List<Guid?>
+@{
+    ViewBag.Title = "Envanterlerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript">
+      function FilterMenuInventoryLastStatus(element) {
+        element.kendoDropDownList({
+            dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuInventoryLastStatus", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Durum Seçiniz"
+
+        })
+    }
+</script>
+
+<script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
+     #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+            </strong>
+            <strong><i class="fa fa-qrcode text-success" data-toggle="tooltip" title="Seri Numarası ve Kodu"></i> #:fullName#</strong>
+            <p class="m-b-none"><i class="fa fa-info-circle text-success" data-toggle="tooltip" title="Ürün"></i> #:(productId_Title != null ? productId_Title : "-")#</p>
+            <p class="m-b-none"><i class="icon-warehouse text-success" data-toggle="tooltip" title="Şu anki Konumu"></i> #=(lastActionType_Title ? lastActionType_Title + ' |' : '-')# #=(lastActionDataCompanyId_Title ? lastActionDataCompanyId_Title : '-')# #=(lastActionDataId_Title ? ' - '+lastActionDataId_Title : '-')#</p>
+        </div>
+    </div>
+</script>
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>Envanter Listesi</h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" }))
+            .Filter(a => a.lastActionDataCompanyId == (userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : System.UIHelper.Guid.Null))
+            .PageSize(25))
+            .Scrollable(a => a.Height(600))
+            .Columns(x =>
+            {
+                x.Bound(y => y.id).Title("Envanter Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Locked(true).Sortable(false).Width(600).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+                x.Bound(y => y.serialcode).Title("Seri No").Width(130).Hidden(false);
+                x.Bound(y => y.code).Title("Envanter Kodu").Width(150).Hidden(false);
+                x.Bound(y => y.productId_Title).Title("Ürün Bilgisi").Width(220).Hidden(false);
+                x.Bound(y => y.lastActionType_Title).Title("Durumu").Filterable(filterable => filterable.UI("FilterMenuInventoryLastStatus")).Width(130).Hidden(false);
+                x.Bound(y => y.lastActionDataCompanyId_Title).Title("Cari Konumu").Width(200).Hidden(false);
+                x.Bound(y => y.lastActionDataId_Title).Title("Depo Konumu").Width(200).Hidden(false);
+            })
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+                x.Custom().Text("<i data-original-title='Arıza Kaydı Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "fixtureId" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
+                //x.Custom().Text("<i title='Görev Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "default" }, { "data-method", "GET" },{"data-idColumnKey","fixtureIds" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
+            }))
+    </div>
+</div>
+
+
+
+
+
+

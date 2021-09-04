@@ -1,0 +1,82 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWAPM_ActivityAction
+@{
+    ViewBag.Title = "Aktivite İlişkileri Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWAPM_ActivityAction", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="activityId">İlişkili Aktivite</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.activityId)
+			      .OptionLabel("Lütfen İlişkili Aktivite seçiniz..")
+			      .DataTextField("name")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWAPM_Activity", new { area = "APM" }))
+			      .Sort(x => x.Add("name").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="type">İşlem Tipi</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			     Html.Akilli().
+			     DropDownListFor(model => model.type).
+			     OptionLabel("Lütfen İşlem Tipi seçiniz..").
+			     DataTextField("enumDescription").
+			     DataValueField("Id").
+			     Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			     Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "APM_ActivityAction" && a.fieldName == "type").
+			     Sort(x => x.Add("enumDescription").Ascending()).
+			     Validate(Validations.Required).
+			     Execute("enumKey")
+			 )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">İşlem Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.description, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen İşlem Açıklaması giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

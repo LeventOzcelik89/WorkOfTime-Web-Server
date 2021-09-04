@@ -1,0 +1,162 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Mülakatlar";
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+<script type="text/javascript">
+    $(document)
+        .on('load:grid', '#VWHR_PlanPerson', function (e, item) {
+            $.each($('#VWHR_PlanPerson [role="row"] [data-event="GridSelector"]'), function (i, item) {
+                var deger = $(item).attr('data-Result');
+                if (deger == '0') {
+                    $(item).parents("td").css('background-color', '#1ab394');
+                } else if (deger == '1') {
+                    $(item).parents("td").css('background-color', '#ed5565');
+                } else if (deger == '2') {
+                    $(item).parents("td").css('background-color', '#d1dade');
+                } else if (deger == '3') {
+                    $(item).parents("td").css('background-color', '#1ab394');
+                }
+                else if (deger == '4') {
+                    $(item).parents("td").css('background-color', '#ed5565');
+                }
+                else if (deger == '5') {
+                    $(item).parents("td").css('background-color', '#f8ac59');
+                }
+                else {
+                    $(item).parents("td").css('background-color', 'red');
+                }
+            })
+        })
+
+        .on('selected:grid', '#VWHR_PlanPerson', function (e, item) {
+            if ($(this).data('kendoGrid').dataSource.filter().filters.length > 0) {
+                var control = $.Enumerable.From($(this).data('kendoGrid').dataSource.filter().filters).Where(x => x.field == "Result" && x.operator == "eq" && x.value == "4").Count();
+                if (control > 0) {
+                    $('[data-go=""]').addClass('hide');
+                } else {
+                    $('[data-go=""]').removeClass('hide')
+                }
+            }
+            $('[data-go=""]').attr("data-href", '/HR/VWHR_PlanPerson/Update?id=' + item.id);
+        })
+</script>
+
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+
+                    <a class="btn btn-sm btn-block btn-info" data-task="Insert" data-modal="true" data-href="/HR/VWHR_Person/ManagerInsert"><i class="fa fa-plus-circle"></i> Mülakat Yap </a>
+
+                    <div class="space-25"></div>
+
+                    <h5> DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa text-success fa-list"></i>  Tümü
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left " href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="(Result~eq~4)">
+                                <i class="fa w3-text-black fa-bell"></i>  Henüz Görüşülmeyenler
+                            </a>
+                            <span class="badge badge-black pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=(Result~eq~4)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="(Result~eq~5)">
+                                <i class="fa  text-warning fa-spinner"></i>   Daha Sonra Karar Verilecekler
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=(Result~eq~5)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="((Result~eq~0))">
+                                <i class="fa  text-navy fa-check"></i>  Olumlu
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=((Result~eq~0))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="((Result~eq~1))">
+                                <i class="fa  text-danger fa-times-circle"></i>  Olumsuz
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=((Result~eq~1))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="0" data-query="(Result~eq~2)">
+                                <i class="fa  text-gray fa-backward"></i>   Tekrar Görüşülecekler
+                            </a>
+                            <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/HR/VWHR_PlanPerson/DataSourceCount?filter=(Result~eq~2)">0</span>
+                        </li>
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5> MÜLAKAT TARİHİNE GÖRE </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query=""> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWHR_PlanPerson" data-switch="radio" data-category="2" data-query="((PlanDate~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~PlanDate~lte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Mülakatlar</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                     .Grid<Infoline.WorkOfTime.BusinessData.VWHR_PlanPerson>("VWHR_PlanPerson").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "HrPlanId" } })
+                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_PlanPerson", new { area = "HR" })).PageSize(25))
+                     .Columns(x =>
+                     {
+                         x.Bound(y => y.Result_Title).Title("").ClientTemplate("#=TemplateEngine('planpersongrid',data)#").Filterable(false).Width(60);
+                         x.Bound(y => y.PlanDate).Title("Mülakat Tarihi").Format(Extensions.DateFormatFull(true)).Width(170);
+                         x.Bound(y => y.HRPerson_Title).Title("Mülakat Gerçekleştirilecek Kişi").Width(250);
+                         x.Bound(y => y.UserId_Titles).Title("Mülakata Katılacaklar").Width(420);
+                         x.Bound(y => y.Description).Title("Açıklama");
+                         x.Bound(y => y.HrPlanId).Visible(false);
+                     })
+                     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                     .Scrollable(x => x.Height(650))
+                     .ToolBar(x =>
+                     {
+                         x.Custom().Text("<i class='fa fa-edit' data-original-title='Mülakat Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-method", "GET" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Insert", "VWHR_PlanPerson", new { area = "HR" }));
+                         //x.Custom().Text("DEVAM ET").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" }, { "data-go", "" } }).Url(Url.Action("Update", "VWHR_PlanPerson", new { area = "HR" }));
+                         x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Mülakat DETAYI'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWHR_Plan", new { area = "HR" }));
+                     }))
+            </div>
+        </div>
+    </div>
+</div>

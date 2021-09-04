@@ -1,0 +1,97 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_Category
+@{
+    ViewBag.Title = "Ürün Kategorileri Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on("before:submit", '#VWPRD_CategoryInsertForm', function (e) {
+            var ms = $('#CategoryNames').data("kendoMultiSelect");
+            if (ms && ms != undefined && ms != null) {
+                var value = ms.value();
+                if (value.length > 0) {
+                    $('#Names').val(value.join(","));
+                }
+            }
+        })
+
+</script>
+
+
+@using (Html.BeginForm("Insert", "VWPRD_Category", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWPRD_CategoryInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    if (!Model.pid.HasValue && !String.IsNullOrEmpty(Model.name))
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="pid">Üst Kategori </label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.pid)
+                  .OptionLabel("Lütfen Kategori Seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+                  .Sort(x => x.Add("name").Ascending())
+                  .Execute("id")
+                )
+            </div>
+        </div>
+    }
+
+    else
+    {
+        @Html.HiddenFor(model => model.pid)
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="name">Kategori İsmi</label>
+        </div>
+        <div class="col-md-8">
+
+            @if (!String.IsNullOrEmpty(Model.name))
+            {
+                @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+                {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Kategori İsmi Giriniz.."}
+                }).Validate(Validations.TextEverywhere(true))
+            }
+            else
+            {
+                @(Html.Akilli()
+                    .Tagged("CategoryNames").Placeholder("Lütfen eklemek istediğiniz kategori isimlerini enter tuşuna basarak ekleyiniz.").HtmlAttributes(new Dictionary<string, object>()
+                    {
+                        {"data-role", "taggedInput" },
+                        {"style", "width:100%"},
+                        {"class", "form-control"},
+                    })
+                    .DataTextField("name")
+                    .DataValueField("name")
+                )
+
+                @Html.Hidden("Names")
+            }
+
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

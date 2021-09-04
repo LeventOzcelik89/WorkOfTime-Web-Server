@@ -1,0 +1,150 @@
+﻿@model VWPRJ_ProjectServiceLevel[]
+@{
+    var index = 0;
+}
+
+<style>
+    table.table-custom {
+        table-layout: fixed;
+    }
+
+    .toggle.btn {
+        border-color: #ccc !important;
+        border-radius: 0px !important;
+    }
+</style>
+
+<script type="text/javascript">
+    function changeResolutionType(e) {
+        var id = $(e).attr("id").replace("Fake", "");
+        $('#' + id).val($(e).is(":checked") ? 0 : 1);
+        $(e).parents("td").find('[data-hourindex]')[$(e).is(":checked") ? "hide" : "show"]();
+    }
+
+</script>
+
+
+@using (Html.BeginForm("Upsert", "VWPRJ_ProjectServiceLevel", FormMethod.Post, new Dictionary<string, object>() {
+    { "style", "padding:0px;" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+
+    <table class="table table-bordered table-custom">
+        <thead>
+            <tr>
+                <th style="width:75px;">Seviyesi</th>
+                <th style="width:100px;">Görev Tipi</th>
+                @foreach (var scope in Model.GroupBy(a => a.scopeLevelId_Title).OrderBy(a => a.Key))
+                {
+                    <th>@scope.Key</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+
+            @foreach (var subject in Model.GroupBy(x => new { x.type_Title , x.Level_Title }).OrderBy(x => x.Key.Level_Title))
+            {
+                <tr>
+                    <td>@subject.Select(x => x.Level_Title).FirstOrDefault()</td>
+                    <td>@subject.Select(x => x.type_Title).FirstOrDefault()</td>
+                    @foreach (var scope in Model.GroupBy(a => a.scopeLevelId).OrderBy(a => a.Select(c => c.scopeLevelId_Title).FirstOrDefault()))
+                    {
+
+                        var item = Model.Where(a => a.scopeLevelId == scope.Key && a.type_Title == subject.Key.type_Title && a.Level_Title == subject.Key.Level_Title).FirstOrDefault();
+
+                <td>
+                    @Html.Hidden("items[" + index + "].projectId", item.projectId)
+                    @Html.Hidden("items[" + index + "].typeLevelId", item.typeLevelId)
+                    @Html.Hidden("items[" + index + "].scopeLevelId", item.scopeLevelId)
+                    @Html.Hidden("items[" + index + "].taskType", item.taskType)
+
+
+
+
+                    <div class="clearfix" style="margin-bottom:2px;">
+                        @Html.CheckBox("items[" + index + "].isWorkingTime", item.isWorkingTime == true, new Dictionary<string, object> {
+                            {"type","checkbox" },
+                            {"data-toggle","toggle" },
+                            {"data-width","100%" },
+                            {"data-on","İş Günü" },{"data-off","Takvim Günü" },{"data-offStyle","default" },{"data-onStyle","default" },
+                        })
+                    </div>
+
+                    <div class="clearfix" style="margin-bottom:2px;">
+                        <div style="width:50%;float:left;margin-right:1%;">
+                            @Html.TextBox("items[" + index + "].resolutionTime", item.resolutionTime, new Dictionary<string, object> {
+                                {"class","form-control" },
+                                {"data-original-title","Süre" },
+                                {"type","number" },
+                                {"style","width:100%; padding: 15px 10px;" },
+                            })
+                        </div>
+                        <div style="width:49%;float:left;">
+                            @Html.Hidden("items[" + index + "].resolutionType", item.resolutionType)
+                            @Html.CheckBox("items[" + index + "].resolutionTypeFake", item.resolutionType == (int)EnumPRJ_ProjectServiceLevelResolutionType.Gun, new Dictionary<string, object> {
+                               {"type","checkbox" },
+                               {"data-toggle","toggle" },
+                               {"data-width","100%" },
+                               {"data-on","Gün" },
+                               {"data-off","Saat" },
+                               {"data-offStyle","default" },
+                               {"data-onStyle","default" },
+                               {"onchange","changeResolutionType(this)" }
+                           })
+                        </div>
+                    </div>
+
+
+                    <div class="clearfix" style="margin-bottom:2px;display:@(item.resolutionType==0 ? "none" : "black");" data-hourindex>
+                        <div style="width:49%;float:left;margin-right:1%;">
+                            @Html.TextBox("items[" + index + "].startTime", item.startTime, new Dictionary<string, object> {
+                                {"class","form-control" },
+                                {"type","number" },
+                                {"data-original-title","Başlangıç Saati" },
+                                {"min","0" },
+                                {"max","23" },
+                                {"style","width:100%; padding: 15px 10px;" },
+                            })
+                        </div>
+                        <div style="width:50%;float:left;">
+                            @Html.TextBox("items[" + index + "].endTime", item.endTime, new Dictionary<string, object> {
+                                {"class","form-control" },
+                                {"type","number" },
+                                {"data-original-title","Bitiş Saati" },
+                                {"min","0" },
+                                {"max","23" },
+                                {"style","width:100%; padding: 15px 10px;" },
+                            })
+                        </div>
+                    </div>
+
+                    <div class="input-group" style="margin-bottom:2px;">
+                        @Html.TextBox("items[" + index + "].amercement", item.amercement, new Dictionary<string, object> {
+                            {"class","form-control" },
+                            {"type","number" },
+                            {"data-original-title","Ceza Tutarı" },
+                            {"style","width:100%; padding: 15px 10px;" },
+                        })
+                        <span class="input-group-addon" data-original-title="Ceza"> TL</span>
+                    </div>
+
+
+                </td>
+
+                        index = index + 1;
+                    }
+                </tr>
+            }
+
+
+        </tbody>
+
+
+    </table>
+    <div class="buttons"><button type="submit" class="btn btn-success btn-md pull-right"><i class="fa fa-save"></i> Kaydet</button></div>
+}

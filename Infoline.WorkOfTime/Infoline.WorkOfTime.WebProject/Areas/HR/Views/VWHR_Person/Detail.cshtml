@@ -1,0 +1,339 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@using Infoline.Helper
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.WMHR_Person
+@{
+    ViewBag.Title = "CV Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+      var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('selected:grid', '#VWHR_Plan', function (e, item) {
+            if (item.Result != 4) {
+                $('[data-href="/HR/VWHR_Plan/Update"]').addClass('hide');
+                $('[data-href="/HR/VWHR_PlanPerson/Insert"]').addClass('hide');
+            }
+            else {
+                $('[data-href="/HR/VWHR_Plan/Update"]').removeClass('hide');
+                $('[data-href="/HR/VWHR_PlanPerson/Insert"]').removeClass('hide');
+            }
+
+            if (item.Result == 5) {
+                $('[data-planPerson=""]').addClass('hide')
+            }
+
+            GetJsonDataFromUrl("/HR/VWHR_Plan/GetHrPlanPersonId", { PlanId: item.id }, function (resp) {
+                if (resp.Result == true) {
+                    $('[data-planPerson=""]').removeClass('hide');
+                    $('[data-planPerson=""]').attr("data-href", '/HR/VWHR_PlanPerson/Update?id=' + resp.Object);
+                } else {
+                    $('[data-planPerson=""]').addClass('hide')
+                }
+
+            })
+        })
+
+        // .on("change", "#SalaryRangeMax", function (e) {
+        //    var maxPoint = parseInt(this.value);
+        //    if ($('#SalaryRangeMin').val() != "") {
+        //        var minPoint = parseInt($('#SalaryRangeMin').val());
+        //        if (minPoint > maxPoint) {
+        //            $('#SalaryRangeMax').val(minPoint);
+        //        }
+        //    }
+        // })
+
+        // .on("change", '#SalaryRangeMin', function () {
+        //     var minPoint = this.value;
+        //     if ($('#SalaryRangeMax').val() != "") {
+        //          var maxPoint =  parseInt($('#SalaryRangeMax').val());
+        //        if (minPoint>maxPoint) {
+        //         $('#SalaryRangeMin').val(maxPoint);
+        //        }
+        //     }
+        //})
+</script>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <img src="@(Model.ProfilePhoto  != null ? Model.ProfilePhoto : "/Content/Custom/img/na.png")" alt="image" class="img-circle m-t-xs img-responsive" style="width:110px;height: 110px;margin: auto;margin-top: 10px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/na.png')">
+                <div class="m-t-md m-b-sm">
+                    <h2 class="font-bold no-margins">
+                        @Model.Name @Model.SurName
+                    </h2>
+                    <div>
+                        <small> </small>
+                    </div>
+                    <a class="btn btn-xs btn-primary m-t-xs" data-task="Insert" data-href="/HR/VWHR_Person/Update?id=@Model.id"> <i class="fa fa-edit"></i> Düzenle </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>KİŞİ BİLGİLERİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Name</span>
+                        Ad :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.SurName</span>
+                        Soyad :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white"><a href="mailto:@Model.Email">@Model.Email</a></span>
+                        E-Posta :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white"><a href="tel:@Model.Phone">@Model.Phone</a></span>
+                        Telefon :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <p class="text-warning">
+                            Pozisyonlar
+                        </p>
+                        <p>
+                            @(!string.IsNullOrEmpty(Model.HrPosition_Title) ?
+                            Html.Raw(string.Join("", Model.HrPosition_Title.Split(',').Select(c => "<span style='margin: 1px;background-color: #ffffff;color: #9a9797;border: 1px solid;' class='badge badge-warning'>" + c + "</span>").ToArray())) : Html.Raw(""))
+                        </p>
+                    </li>
+                    <li class="list-group-item clearfix">
+                        <p class="text-warning">
+                            Bilgi/Beceriler
+                        </p>
+                        <p>
+                            @(!string.IsNullOrEmpty(Model.HrKeywords_Title) ?
+                           Html.Raw(string.Join("", Model.HrKeywords_Title.Split(',').Select(c => "<span style='margin: 1px;background-color: #ffffff;color: #9a9797;border: 1px solid;' class='badge badge-warning'>" + c + "</span>").ToArray())) : Html.Raw(""))
+                        </p>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+        <div class="ibox  collapsed">
+            <div class="ibox-title">
+                <h5>DİĞER BİLGİLER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.IdentifyNumber != null ? Model.IdentifyNumber : "-")</span>
+                        Kimlik Numarası :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.Gender_Title != null ? Model.Gender_Title : "-")</span>
+                        Cinsiyet :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.MaritalStatus_Title != null ? Model.MaritalStatus_Title : "-")</span>
+                        Medeni Durum :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.Birthday.HasValue ? Model.Birthday.Value.ToShortDateString() : "-")</span>
+                        Doğum Tarihi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.LocationId_Title</span>
+                        Konum :
+                    </li>
+                    <li class="list-group-item clearfix">
+                        <span class="pull-right" style="width: 65%;text-align: right;">@Model.Adress</span>
+                        <span class="pull-left"> Açık Adres :</span>
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.ReferenceId_Title</span>
+                        Şirket İçi Referans :
+                    </li>
+
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.ArrivalType_Title</span>
+                        CV Geliş Tipi :
+                    </li>
+
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Education_Title</span>
+                        Eğitim Düzeyi :
+                    </li>
+
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.SchoolName</span>
+                        Okul Adı :
+                    </li>
+
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Branch</span>
+                        Bölümü :
+                    </li>
+                    @if (Model.Gender != (int)EnumHR_PersonGender.Kadin)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@Model.MilitaryStatus_Title</span>
+                            Askerlik Durumu :
+                        </li>
+                        if (Model.MilitaryStatus == (int)EnumHR_PersonMilitaryStatus.Tecilli)
+                        {
+                            <li class="list-group-item">
+                                <span class="badge badge-white">@Model.RetirementDate</span>
+                                Tecil Tarihi :
+                            </li>
+                        }
+                        if (Model.MilitaryStatus == (int)EnumHR_PersonMilitaryStatus.Muaf)
+                        {
+                            <li class="list-group-item">
+                                <span class="badge badge-white">@(Model.MilitaryExemptDetail != null ? Model.MilitaryExemptDetail : "Belirtilmemiş") </span>
+                                Muafiyet Nedeni :
+                            </li>
+                        }
+                        if (Model.MilitaryStatus == (int)EnumHR_PersonMilitaryStatus.Yapildi)
+                        {
+                            <li class="list-group-item">
+                                <span class="badge badge-white">@Model.RetirementDate</span>
+                                Terhis Tarihi :
+                            </li>
+                        }
+                    }
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.DriverLicense_Title != null ? Model.DriverLicense_Title : "-")</span>
+                        Sürücü Belgesi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.ExprienceYear</span>
+                        İş Tecrübesi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.SalaryRangeMin</span>
+                        Min Maaş Talep :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.SalaryRangeMax</span>
+                        Max Maaş Talep :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <span class="pull-right" style="width: 65%;text-align: right;">@(Model.Description != null ? Model.Description : "-")</span>
+                        <span class="pull-left"> Açıklama :</span>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-lg-9">
+            <div class="row">
+                @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PlanResult>())
+                {
+                    var desc = item.Generic["EnumDesc"];
+
+                    var count = (desc == "Olumlu" ? Model.cards.Olumlu
+                                            : desc == "Olumsuz" ? Model.cards.Olumsuz
+                                            : desc == "Tekrar" ? Model.cards.Tekrar
+                                            : desc == "Gorusulmedi" ? Model.cards.Gorusulmedi
+                                            : desc == "DahaSonra" ? Model.cards.DahaSonra
+                                            : desc == "Diger" ? Model.cards.Diger
+                                            : 0);
+                    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-2">
+                        <div id="Card_1ff55a9c" class="widget style1 " style="background:@item.Generic["color"];min-height: 85px;">
+                            <div class="row">
+                                <div class="col-xs-2 hidden-md wHeader">
+                                    <i class="fa @item.Generic["icon"] fa-2x" style="color:white;"></i>
+                                </div>
+                                <div class="col-xs-10 text-right wInformation">
+                                    <span style="color:white;">@item.Value</span>
+                                    <h2>
+                                        <span style="color:white;">
+                                           @count Adet
+                                        </span><br>
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active" data-href="@Url.Action("DataSource", "VWHR_Plan", new { area = "HR" })" data-toggle="tooltip" data-placement="top" title="Mülakatlar">
+                        <a data-toggle="tab" href="#VWHR_Plans" aria-expanded="false"><i class="fa fa-users text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("Preview", "Files", new { area = "" })" data-toggle="tooltip" data-placement="top" title="Dosyalar">
+                        <a data-toggle="tab" href="#VWHR_Plan2s" aria-expanded="false"><i class="fa fa-files-o text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="VWHR_Plans" data-href="@Url.Action("DataSource", "VWHR_Plan", new { area = "HR" })">
+                        <h4><i class="fa text-building fa-users"></i> MÜLAKATLAR </h4>
+                        @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWHR_Plan>("VWHR_Plan")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_Plan", new { area = "HR" })).PageSize(25).Filter(c => c.HrPersonId == Model.id))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.Result_Title).Title("").Width(55).ClientTemplate("#=TemplateEngine('planpersongrid',data)#").Filterable(false);
+                            x.Bound(y => y.PlanDate).Title("Mülakat Tarihi").Format(Extensions.DateFormatFull(true)).Width(170);
+                            x.Bound(y => y.InterviewUser_Title).Title("Sonuç Bildiren").Width(200);
+                            x.Bound(y => y.UserId_Titles).Title("Mülakata Katılacak Personeller").Width(260);
+                            x.Bound(y => y.Description).Title("Açıklama");
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .Scrollable(x => x.Height(450))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='MÜLAKAT PLANINI DÜZENLE' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHR_Plan", new { area = "HR" }));
+                            x.Custom().Text("<i data-original-title='MÜLAKAT DETAYI' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWHR_Plan", new { area = "HR" }));
+
+                            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) { 
+                            x.Custom().Text("<i data-original-title='DEĞERLENDİRME EKLE' class='fa fa-list'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-method", "GET" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Insert", "VWHR_PlanPerson", new { area = "HR" }));
+                            }
+                            x.Custom().Text("<i data-original-title='İŞLEM YAP' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" }, { "data-planPerson", "" } }).Url(Url.Action("Update", "VWHR_PlanPerson", new { area = "HR" }));
+
+                        }))
+                    </div>
+                    <div class="tab-pane" id="VWHR_Plan2s" data-href="@Url.Action("Preview", "Files", new { area = "" })" style="padding:0px;">
+                        <div class="ibox" >
+                            <div class="ibox-title">
+                                <h4><i class="fa text-building fa-file" style="margin-top: 5px;"></i> DOSYALAR </h4>
+                            </div>
+                            <div class="ibox-content" style="  height: 570px;">
+                                @Html.Action("Preview", "Files", new { area = "", DataId = Model.id, DataTable = "HR_Person",Filter=false })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<div class="fixedStart" id="mainMaterial">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+    <div class="fix-buttons">
+        
+        <a data-modal="true" data-task="Insert" data-href="/HR/VWHR_Plan/Insert?hrPersonId=@Model.id"><i data-original-title="Yeni Mülakat Planla" class="fa fa-users" aria-hidden="true"></i> </a>
+        <a data-href="/HR/VWHR_Person/ManagerInsertToDetail?id=@Model.id" data-task="Insert"><i class="fa fa-edit" data-original-title="Mülakat Yap"></i></a>
+        <a data-modal="true" data-task="Insert" data-href="/SH/VWSH_User/Insert?hrPersonId=@Model.id"><i data-original-title="İşe Alımı Gerçekleştir" class="fa fa-user-plus" aria-hidden="true"></i> </a>
+    </div>
+</div>

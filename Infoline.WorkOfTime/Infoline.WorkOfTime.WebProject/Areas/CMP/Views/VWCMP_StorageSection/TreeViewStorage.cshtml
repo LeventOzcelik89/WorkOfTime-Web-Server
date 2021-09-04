@@ -1,0 +1,194 @@
+﻿@model Infoline.WorkOfTime.BusinessData.CMP_Storage
+@{
+    Layout = ViewBag.LayoutPage == true ? "~/Views/Shared/_Layout.cshtml" : null;
+    ViewBag.Title = "(" + Model.name + ") Şube/Deposu Alt Birim Detayları";
+}
+
+<div class="form" data-selector="modalContainer">
+    <fieldset>
+        <legend>TÜM BİRİMLER </legend>
+        <div class="fieldInner">
+            <div id="treeview">
+            </div>
+        </div>
+    </fieldset>
+
+    <div class="form-group">
+        @if(ViewBag.LayoutPage == true) {
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
+        }
+        <button class="btn btn-md btn-success pull-right" id="sectionAddButton" type="submit" data-href="/CMP/VWCMP_StorageSection/Insert?storageId=@Model.id" data-task="Insert" data-method="GET" data-show="always">Ekle</button>
+        <button class="btn btn-md btn-success pull-right" id="sectionUpdateButton" style="margin-right: 5px;display:none;" type="submit" data-href="/CMP/VWCMP_StorageSection/Insert?storageId=" data-task="Insert" data-method="GET" data-show="single">Düzenle</button>
+        <button class="btn btn-md btn-warning pull-right" id="sectionDeleteButton" style="margin-right: 10px;display:none;" type="submit" data-href="/CMP/VWCMP_StorageSection/Insert?storageId=" data-method="Post" data-task="Insert" data-ask="" data-show="single">Sil</button>
+    </div>
+
+    <script id="treeview-template" type="text/kendo-ui-template">
+        #: item.FullName #
+        # if (!item.items) { #
+
+        # } #
+    </script>
+
+    <script type="text/javascript" data-selector="modalContainer">
+        var storageTreeview = {
+            storageId: '@Model.id',
+            url: "/CMP/VWCMP_StorageSection/GetDataSourceTreeViewByPidId?storageId=" + '@Model.id',
+            CreateTreeView: function () {
+                homogeneous = new kendo.data.HierarchicalDataSource({
+                    transport: {
+                        read: {
+                            url: storageTreeview.url,
+                            dataType: "json"
+                        }
+                    },
+                    schema: {
+                        model: {
+                            id: "SectionId",
+                            hasChildren: "HasChilds",
+                            spriteCssClass: "pdf"
+                        }
+                    }
+                })
+                $("#treeview").kendoTreeView({
+                    template: kendo.template($("#treeview-template").html()),
+                    dataSource: homogeneous,
+                    dataTextField: ["FullName"],
+                    dataValueField: ["SectionId"],
+                    select: function (e) {
+
+                        storageTreeview.TreeViewSelected(e);
+                    }
+                })
+            },
+            TreeViewDataSource: function () {
+                $('#treeview').data('kendoTreeView').dataSource.read();
+                storageTreeview.ClearSelected();
+            },
+            ClearSelected: function () {
+                $('#sectionUpdateButton').hide();
+                $('#sectionUpdateButton').removeAttr('data-href');
+
+                $('#sectionDeleteButton').hide();
+                $('#sectionDeleteButton').removeAttr('data-href');
+
+                $('#sectionAddButton').removeAttr('data-href');
+                $('#sectionAddButton').attr('data-href', '/CMP/VWCMP_StorageSection/Insert?storageId=' + storageTreeview.storageId);
+            },
+            TreeViewSelected: function (e) {
+                var treeView = e.sender;
+                var text = treeView.text(e.node);
+                var parentId = treeView.dataItem(e.node);
+                $('#sectionAddButton').removeAttr('data-href');
+                $('#sectionAddButton').attr('data-href', '/CMP/VWCMP_StorageSection/Insert?id=' + parentId.id);
+
+                $('#sectionUpdateButton').show();
+                $('#sectionUpdateButton').removeAttr('data-href');
+                $('#sectionUpdateButton').attr('data-href', '/CMP/VWCMP_StorageSection/Update?id=' + parentId.id);
+
+
+                $('#sectionDeleteButton').show();
+                $('#sectionDeleteButton').removeAttr('data-href');
+                $('#sectionDeleteButton').attr('data-href', '/CMP/VWCMP_StorageSection/Delete?id=' + parentId.id);
+            },
+        }
+
+        storageTreeview.CreateTreeView();
+
+        $(document)
+        .on("click", "body:not(#treeview)", function (e) {
+            if ($(e.target).parent('.k-top,.k-bot').length == 0) {
+
+                if ($($(e.target).context).parent('.k-mid').length == 0) {
+                    var tree = $('#treeview').data('kendoTreeView');
+                    if (tree != undefined) {
+                        if (tree.dataSource.data().length > 0) {
+                            tree.select($())
+                            storageTreeview.ClearSelected();
+                        }
+                    }
+                }
+            }
+        })
+
+        .on('success', "#storageSectionForm", function () {
+            storageTreeview.TreeViewDataSource();
+        })
+
+        .on('success', '#storageSectionFormUpdate', function () {
+            storageTreeview.TreeViewDataSource();
+        })
+
+        .on('click', '#sectionDeleteButton', function (e) {
+             var _this = $(this);
+             var _ask = typeof (_this.attr('data-ask')) != 'undefined';
+             if (_ask) {
+                 swal({
+                     title: "Devam Et ?",
+                     text: _this.attr('data-ask').length < 1 ? "Seçmiş olduğunuz birimi silmek istediğinize emin misiniz ?" : _this.attr('data-ask'),
+                     type: "warning",
+                     content: "input",
+                     showCancelButton: true,
+                     confirmButtonColor: "#DD6B55",
+                     confirmButtonText: "Evet",
+                     cancelButtonText: "Hayır",
+                     closeOnConfirm: false,
+                     closeOnCancel: false
+                 }, function (isConfirm) {
+
+                     if (isConfirm) {
+
+                         $.ajax({
+                             type: "POST",
+                             url: "/CMP/VWCMP_StorageSection/Delete",
+                             data: { id: $('#sectionDeleteButton').attr('data-href').slice(36) },
+                             success: function (response) {
+                                 if (response.Result) {
+                                     storageTreeview.TreeViewDataSource();
+                                 }
+                                 feedback(response.FeedBack);
+                             },
+                             error: function () {
+                                 feedback("SERVER");
+                             }
+                         });
+
+
+                     } else { }
+                     swal.close();
+                 });
+             }
+         })
+    </script>
+</div>
+
+<style type="text/css" data-selector="modalContainer">
+    #storageAdd {
+        position: absolute;
+        right: 53px;
+        top: 115px;
+        cursor: pointer;
+        border-radius: 17px;
+    }
+
+    #RefreshButton {
+        position: absolute;
+        right: 55px;
+        cursor: pointer;
+        top: 24px;
+        background: white;
+    }
+
+    #treeview .k-sprite {
+        background-image: url("/Content/Custom/img/coloriconsstorage.png");
+    }
+
+    .pdf {
+        background-position: -2px -18.6px;
+        padding: 4px;
+    }
+
+    .fieldInner {
+        height: 450px;
+        overflow: auto;
+    }
+</style>

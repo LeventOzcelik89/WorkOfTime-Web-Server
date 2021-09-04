@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title = "Pozisyonlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.HR_Position>("HR_Position")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "HR_Position", new { area = "HR" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.Name).Title("Pozisyon Adı");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "HR_Position", new { area = "HR" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "HR_Position", new { area = "HR" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "HR_Position", new { area = "HR" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "HR_Position", new { area = "HR" }));
+    }))

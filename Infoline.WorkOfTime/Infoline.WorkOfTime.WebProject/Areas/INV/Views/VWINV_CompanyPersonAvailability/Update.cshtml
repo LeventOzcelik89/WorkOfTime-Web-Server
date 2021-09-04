@@ -1,0 +1,102 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonAvailability
+@{
+    ViewBag.Title = "Personel Müsaitlik Düzenleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWINV_CompanyPersonAvailability", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdProject">Proje</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                    .DropDownListFor(model => model.IdProject)
+                    .OptionLabel("Lütfen Proje Seçiniz..")
+                    .DataTextField("ProjectName")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                    .Sort(x => x.Add("ProjectName").Ascending())
+                    .Validate(Validations.Required)
+                    .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdCompanyPerson">Personel</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                  .DropDownListFor(model => model.IdUser)
+                   .OptionLabel("Lütfen Satış Personelini Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                   .Template("#=TemplateEngine('userTemplate',data)#")
+                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                   .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Execute("id")
+                  .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="rate">Oran</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @Html.Kendo().NumericTextBoxFor(model => model.rate).Min(0).Max(1).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"style", "width:100%"},
+                                {"class", "text-right form-control" }
+                            }).Spinners(false).Format("n0").Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                    <span class="input-group-addon" id="rate"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="StartDate">Başlangıç Tarihi ve Saati</label>
+            </div>
+            <div class="col-md-8">
+                @(
+              Html.Akilli()
+              .DateTimePickerFor(model => model.StartDate).Min(DateTime.Today.AddHours(8).AddMinutes(30))
+              .Value(DateTime.Today.AddHours(8).AddMinutes(30))
+              .MaxDateElement("EndDate").Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="EndDate">Bitiş Tarihi ve Saati</label>
+            </div>
+            <div class="col-md-8">
+                @(
+              Html.Akilli()
+              .DateTimePickerFor(model => model.EndDate).Value(DateTime.Today.AddDays(7))
+              .MinDateElement("StartDate").Validate(Validations.Required)
+                )
+            </div>
+        </div>
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        </div>
+
+}

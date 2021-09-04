@@ -1,0 +1,820 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_MonthlyTargetPerson
+@{
+    ViewBag.Title = "Personel Aylık Hedef Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .header {
+        font-size: 9px;
+        text-align: center;
+        background-color: #808080 !important;
+        color: #fff;
+    }
+
+    .bg-white {
+        background-color: #fff;
+    }
+
+    .table-custom .label-xs, #TargetPresentations .label-xs, #TargetChart .label-xs {
+        margin-right: 4px;
+    }
+
+    .panel-heading {
+        background-color: #ffffff !important;
+        text-align: center;
+        padding: 10px 15px;
+        border-bottom: 1px solid transparent;
+        border-bottom: 1px solid #ddd;
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+
+        .panel-heading > h4 {
+            font-weight: bold;
+        }
+
+    .panel-footer {
+        padding: 10px 15px;
+        background-color: #f5f5f5;
+        border-top: 1px solid #ddd;
+        border-bottom-right-radius: 3px;
+        border-bottom-left-radius: 3px;
+        background-color: #fff;
+        -webkit-box-shadow: 0 1px 1px rgba(0,0,0,.05);
+        box-shadow: 0 1px 1px rgba(0,0,0,.05);
+        overflow: auto;
+        height: 91px;
+    }
+
+        .panel-footer > ul {
+            list-style-type: none;
+            margin: 0px;
+            padding: 0px;
+            font-size: 10px;
+        }
+
+            .panel-footer > ul > li > divc {
+                float: right !important;
+            }
+
+    #QualityMultiplierTable .bg-primary, #BaseBountyTable .bg-primary {
+        font-weight: bold;
+        text-align: center;
+    }
+
+    .detailLink {
+        color: #f00 !important;
+        font-size: 12px;
+        margin: 5px 0px;
+        float: left;
+        clear: left;
+    }
+
+    .prim .panel-heading h4 {
+        font-size: 20px;
+        text-align: center;
+    }
+
+    .prim .panel-body {
+        font-size: 40px;
+        text-align: center;
+        color: #f00;
+        font-weight: bold;
+    }
+
+    .primGain .panel-heading {
+        background-color: green !important;
+        color: #fff;
+    }
+
+    .tableBaseData td {
+        font-weight: bold;
+    }
+
+    .group {
+        margin-right: 10px;
+        margin-left: 4px;
+        color: #f00;
+    }
+
+    td[data-table] {
+        cursor: pointer;
+    }
+
+    .group:before {
+        content: "\f078";
+    }
+
+    .atv .group:before {
+        content: "\f077";
+    }
+</style>
+
+<fieldset class="bg-white">
+    <legend>Filtre</legend>
+
+    <div class="col-md-4">
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="CPeriod">Hedef Tarihi</label>
+            </div>
+            <div class="col-md-8">
+
+                @(
+                        Html.Akilli()
+                        .DatePickerFor(model => model.CPeriod)
+                        .Value(Model.CPeriod)
+                        .Validate(Validations.Required)
+                        .Start(CalendarView.Year)
+                        .Depth(CalendarView.Year)
+                        .Format("MMMM yyyy")
+                )
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-6">
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="CPeriod">Personel</label>
+            </div>
+            <div class="col-md-8">
+
+                @(
+                Html.Kendo().DropDownListFor(a => a.TargetUserId)
+                .HtmlAttributes(new Dictionary<string, object>()
+                {
+                     {"style", "width:100%"},
+                     {"class", "form-control"},
+                })
+               .OptionLabel("Lütfen Satış Personeli Seçiniz..")
+               .DataTextField("Name")
+               .DataValueField("Id")
+               .DataSource(source =>
+               {
+                   source.Read(read =>
+                   {
+                       read.Action("GetVWSH_User_OurCompanies", "General", new { area = String.Empty });
+                   });
+               })
+               .Filter(FilterType.Contains)
+               .Events(a => { a.DataBound("_targetReport.Func.DataBoundTargetUser"); })
+               .Validate(Validations.Required)
+                )
+
+            </div>
+        </div>
+
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-md btn-success btn-block pull-right" data-type="submit">Sorgula</button>
+    </div>
+
+    <div class="col-md-12">
+        <div data-target="Targets"></div>
+    </div>
+
+</fieldset>
+
+
+<div class="row" id="TargetPrims" style="display: none;"></div>
+
+<fieldset class="bg-white" id="TargetTableContainer" style="display: none;">
+
+    <legend>Aylık Hedefler ve Tamamlanma Oranları ( <span data-target="Date"></span> )</legend>
+
+    <div class="row">
+
+        <div class="col-md-12">
+
+            <table class="table table-bordered table-custom" id="TargetTable">
+
+                <thead>
+                    <tr>
+                        <th class="header">Ürün / Ürün Grubu</th>
+                        <th class="header" width="100">Hedef Puan</th>
+                        <th class="header" width="100">Hedef Oran</th>
+                        <th class="header" width="100">Hediye Oran</th>
+                        <th class="header" width="140">Gerçekleşen Puan</th>
+                        <th class="header" width="140">Gerçekleşen Oran</th>
+                        <th class="header" width="120">Toplam Puan</th>
+
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+        </div>
+
+    </div>
+
+</fieldset>
+
+<div class="row" id="TargetChart"></div>
+
+<fieldset class="bg-white" id="TargetPresentationsContainer" style="display: none;">
+    <legend>Potansiyel/Fırsat Listesi</legend>
+    <div id="TargetPresentations"></div>
+</fieldset>
+
+<div id="PanelTemplate" class="panel panel-default" style="display: none;">
+    <div class="panel-heading">
+        <h4>
+            <span data-target="IsFocus" style="float: left;" class="label label-xs label-info"></span>
+            <span data-target="IsMultipleFocus" style="float: left;" class="label label-xs label-warning"></span>
+            <span data-target="Product_Title"></span> ( <span data-target="CalculatedPercent"></span> % )
+        </h4>
+        <small class="text-muted block">
+            Toplanan Puan / Hedeflenen Puan :
+            <span data-target="CalculatedPoint"></span> / <b><span data-target="TargetPoint"></span></b>
+        </small>
+    </div>
+    <div class="panel-body">
+        <div id="Chart"></div>
+    </div>
+    <div class="panel-footer">
+        <ul>
+            <li>
+                Ürün / Ürün Grubu
+                <divc><span data-target="Product_Title"></span></divc>
+            </li>
+            <li>
+                Aylık Hedef
+                <divc><span data-target="Date"></span></divc>
+            </li>
+            <li>
+                Gerçekleşen Puan / Hedeflenen Puan
+                <divc>
+                    <span data-target="CalculatedPoint"></span> /
+                    <span data-target="TargetPoint"></span>
+                </divc>
+            </li>
+            <li>
+                Gerçekleşen Oran / Hedeflenen Oran
+                <divc>
+                    <span data-target="CalculatedPercent"></span> /
+                    <divc><span data-target="TargetPercent"></span></divc>
+                </divc>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<script src="~/Content/Plugins/newHighCharts/highcharts.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/highcharts-more.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/solid-gauge.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/exporting.js"></script>
+<script type="text/javascript">
+
+    var Model = @Html.Raw(Json.Encode(Model));
+
+    var _targetReport = {
+
+        Model: null,
+        Data: null,
+
+        container: {
+            table: null,
+            chart: null,
+            presentationTable: null
+        },
+        Func: {
+            CategoryName: function (Category_Title) {
+
+                if (Category_Title == null || Category_Title == '') { return ''; }
+
+                var cats = Category_Title.split(' > ');
+
+                var res = '';
+
+                $.each(cats, function (cati, catitem) {
+
+                    var _cls = '';
+
+                    if (cati % 3 == 0) {
+                        _cls = 'warning';
+                    } else if (cati % 3 == 1) {
+                        _cls = 'info';
+                    } else if (cati % 3 == 2) {
+                        _cls = 'primary';
+                    }
+
+                    res += '<label class="label label-' + _cls + ' label-xs">' + catitem + '</label>';
+
+                });
+
+                return res == '' ? Category_Title : res;
+
+            },
+            Presentations: function (presentations) {
+
+                var res = '';
+
+                $.each(presentations, function (i, item) {
+
+                    res += '<a href="/CRM/VWCRM_Presentation/Detail?id=' + item.id + '" target="_blank">' +
+                        '<span class="label label-xs label-warning">' + item.Name.substring(0, 30) + (item.Name.length > 30 ? '...' : '') + '</span>' +
+                        '</a>';
+
+                });
+
+                return res;
+
+            },
+            MakeTable: function () {
+
+                var res = '';
+
+                $.each(_targetReport.Data.Products, function (i, item) {
+
+                    res += '<tr class="tableBaseData">' +
+                        '<td data-table="' + item.id + '">' +
+                        '<i class="group fa"></i>';
+
+                    if (item.IsMultipleFocus == true) {
+                        res += '<span class="label label-xs label-warning">Toplu Focus</span>' + '<br />';
+                    }
+
+                    if (item.IsMultipleFocus == false && item.IsFocus == true) {
+                        res += '<span class="label label-xs label-info">Focus</span>';
+                    }
+
+                    if (item.IsMultipleFocus) {
+                        $.each(item.Product, function (pi, pitem) {
+                            res += _targetReport.Func.CategoryName(item.Category_Title[pi]) + item.Product_Title[pi] + '<br />';
+                        });
+                    } else {
+                        res += _targetReport.Func.CategoryName(item.Category_Title[0]) + item.Product_Title[0];
+                    }
+
+                    res += '</td>';
+
+                    res += '<td class="text-right">' + kendo.toString(item.TargetPoint, 'N0') + '</td>' +
+                        '<td class="text-right">' + kendo.toString(item.TargetPercent, 'N0') + ' %' + '</td>' +
+                        '<td class="text-right">' + kendo.toString(item.BonusPercent, 'N1') + ' %' + '</td>' +
+                        '<td class="text-right">' + kendo.toString(item.CalculatedPoint, 'N1') + '</td>' +
+                        '<td class="text-right">' + kendo.toString(item.CalculatedPercent, 'N1') + ' %' + '</td>' +
+                        '<td class="text-right">' +
+
+                        (item.IsFocus == true
+
+                                ? kendo.toString((item.CalculatedTotalPoint * _targetReport.Data.FocusProdCount), 'N0') + ' / ' +
+                                  kendo.toString(_targetReport.Data.FocusProdCount, 'N0') + ' = ' +
+                                  '<b class="text-danger">' + kendo.toString(item.CalculatedTotalPoint, 'N1') + '</b>'
+
+                                : '<b class="text-danger">' + kendo.toString(item.CalculatedTotalPoint, 'N1') + '</b>'
+
+                        )
+
+                         + '</td>';
+
+                    res += '</tr>' ;
+
+                    $.each(item.ChildPersonSales, function(ci,citem){
+
+                        res += '<tr data-row="' + item.id + '" style="display: none;">' +
+                            '<td>' + citem.ChildPersonName + '</td>' +
+                            '<td colspan="4" class="text-right">' + kendo.toString(citem.CalculatedPoint, 'N1') + '</td>' +
+                            '<td colspan="2">' + '</td>' +
+                            '</tr>'
+                        ;
+
+                    });
+
+                });
+
+                var _enumData = $.Enumerable.From(_targetReport.Data.Products);
+
+                res += '<tr>' +
+                        '<td>' + '<b>' + 'TOPLAM' + '</b>' + '</td>' +
+                        '<td class="text-right">' + '<b>' + kendo.toString(_enumData.Sum(function (a) { return a.TargetPoint; }), 'N1') + '</b>' + '</td>' +
+                        '<td colspan="2">' + '</td>' +
+                        '<td class="text-right">' + '<b>' + kendo.toString(_enumData.Sum(function (a) { return a.CalculatedPoint; }), 'N1') + '</b>' + '</td>' +
+                        '<td>' + '</td>' +
+                        '<td class="text-right">' + '<b class="text-danger">' + kendo.toString(_enumData.Sum(function (a) { return a.CalculatedTotalPoint; }), 'N1') + '</b>' + '</td>' +
+                        '</tr>'
+                ;
+
+                _targetReport.container.table.html(null).html(res);
+
+            },
+            MakeCharts: function () {
+
+                _targetReport.container.chart.html(null);
+
+                $.each(_targetReport.Data.Products, function (i, item) {
+
+                    var _id = 'Chart_' + item.id.replace(/\-/gi, '');
+
+                    var _temp = $('#PanelTemplate').clone(false, false);
+                    _temp.removeAttr('id').removeAttr('style');
+                    _temp.find('#Chart').attr('id', _id);
+
+                    $.each(item, function (pi, pitem) {
+
+                        var value = pitem;
+
+                        if (pi == 'Date') {
+                            value = kendo.toString(new Date(pitem), 'MMMM yyyy');
+                        } else if (['CalculatedPoint', 'CalculatedTotalPoint', 'TargetPoint'].indexOf(pi) > -1) {
+                            value = kendo.toString(pitem, 'N0');
+                        } else if (['CalculatedPercent', 'BonusPercent', 'TargetPercent'].indexOf(pi) > -1) {
+                            value = kendo.toString(pitem, 'N1');
+                        } else if (pi == 'Product_Title') {
+
+                            if (item.IsMultipleFocus == true) {
+
+                                value = pitem.join(', ');
+
+                                $.each(pitem, function (pii, piitem) {
+                                    //  value += _targetReport.Func.CategoryName(item.Category_Title[pii]) + pitem[pii] + '<br />';
+                                    //  value += pitem.join(', ');
+                                });
+
+                            } else {
+                                value = _targetReport.Func.CategoryName(item.Category_Title[0]) + pitem[0];
+                            }
+
+                        } else if (pi == 'IsFocus') {
+                            value = 'Focus';
+                            if (pitem == false || (pitem == true && item.IsMultipleFocus == true)) {
+                                _temp.find('[data-target="' + pi + '"]').hide();
+                            }
+                        } else if (pi == 'IsMultipleFocus') {
+                            value = 'Toplu Focus';
+                            if (pitem == false) {
+                                _temp.find('[data-target="' + pi + '"]').hide();
+                            }
+                        }
+
+                        _temp.find('[data-target="' + pi + '"]').html(value);
+
+                    });
+
+                    _targetReport.container.chart.append('<div class="col-md-4">' + _temp[0].outerHTML + '</div>');
+
+                    Highcharts.chart(_id, {
+                        exporting: {
+                            enabled: false
+                        },
+                        chart: {
+                            height: 400,
+                            margin: [0, 0, -200, 0],
+                            type: 'solidgauge'
+                        },
+                        title: null,
+                        pane: {
+                            startAngle: -90,
+                            endAngle: 90,
+                            background: {
+                                backgroundColor: (Highcharts.theme && Highcharts.theme.background2) || '#EEE',
+                                innerRadius: '60%',
+                                outerRadius: '100%',
+                                shape: 'arc'
+                            }
+                        },
+                        tooltip: {
+                            enabled: false
+                        },
+                        credits: {
+                            enabled: false
+                        },
+                        yAxis: {
+                            stops: [
+                                [0, '#DF5353'],
+                                [0.35, '#DF5353'],
+                                [0.36, '#ffff00'],
+                                [0.49, '#ffff00'],
+                                [0.5, '#55BF3B'],
+                                [0.51, '#55BF3B']
+                            ],
+                            lineWidth: 0,
+                            minorTickInterval: null,
+                            tickAmount: 2,
+                            labels: {
+                                y: 16
+                            },
+                            min: 0,
+                            max: 200,
+                            title: {
+                                y: -100,
+                                text: null
+                            }
+                        },
+
+                        plotOptions: {
+                            solidgauge: {
+                                dataLabels: {
+                                    y: 5,
+                                    borderWidth: 0,
+                                    useHTML: true
+                                }
+                            }
+                        },
+                        series: [{
+                            dataLabels: {
+                                format: '{y} %'
+                            },
+                            name: _id.substring(0, 10),
+                            data: [parseInt(item.CalculatedPercent)],
+                            dataLabels: {
+                                format: '<div style="text-align: center; margin-top: -38px;"><span style="font-size: 25px; color: #000;">{y}</span>' +
+                                       '<span style="font-size: 12px; color: silver;">%</span></div>'
+                            },
+                            tooltip: {
+                                valueSuffix: ' %'
+                            }
+                        }]
+                    });
+
+                });
+
+            },
+            MakePresentationsTable: function () {
+
+                _targetReport.container.presentationTable.html(null);
+
+                products = [];
+                $.each(_targetReport.Data.Products, function (i, item) {
+
+                    $.each(item.Presentations, function (pi, pre) {
+
+                        products.push({
+                            Category_Title: item.Category_Title,
+                            ProductGroup_Title: item.Product_Title,
+                            Product_Title: pre.Product_Title,
+                            CalculatedPoint: pre.CalculatedPoint,
+                            id: pre.id,
+                            Name: pre.Name
+                        });
+
+                    });
+
+                });
+
+                _targetReport.container.presentationTable.kendoGrid({
+
+                    toolbar: [
+                        { template: '<a class="k-button" data-show="single" data-method="GET" data-href="/CRM/VWCRM_Presentation/Detail" data-modal="false" data-blank="true" >Detay</a>' },
+                        { name: "excel", text: "Excel'e aktar" },
+                        { name: 'pdf', text: "PDF'e aktar" }
+                    ],
+
+                    dataSource: {
+                        serverPaging: false,
+                        serverSorting: false,
+                        serverFiltering: false,
+                        serverGrouping: false,
+                        serverAggregates: false,
+                        data: products,
+                        schema: {
+                            model: {
+                                fields: {
+                                    id: { type: 'string' },
+                                    Category_Title: { type: 'string' },
+                                    ProductGroup_Title: { type: 'string' },
+                                    Product_Title: { type: 'string' },
+                                    Name: { type: 'string' },
+                                    CalculatedPoint: { type: 'number' }
+                                }
+                            }
+                        },
+                        pageSize: 25
+                    },
+                    navigatable: true,
+                    mobile: true,
+                    scrollable: {
+                        height: '380px'
+                    },
+                    resizable: true,
+                    excel: {
+                        fileName: 'Hedef_icindeki_Potansiyeller_Listesi.xlsx'
+                    },
+                    pdf: {
+                        proxyURL: "http://demos.telerik.com/kendo-ui/service/export",
+                        fileName: 'Hedef_icindeki_Potansiyeller_Listesi.pdf'
+                    },
+                    filterable: {
+                        operators: {
+                            string: {
+                                contains: 'İçeriyor',
+                                startswith: 'İle Başlar',
+                                eq: 'Eşit',
+                                neq: 'Eşit Değil',
+                                endswith: 'İle Biter',
+                                doesnotcontain: 'İçermiyor'
+                            }
+                        }
+                    },
+                    sortable: true,
+                    selectable: 'Single, Row',
+                    pageable: {
+                        refresh: true,
+                        pageSizes: [5, 10, 25, 50, 100, 250],
+                        buttonCount: 10,
+                        messages: {
+                            allPages: 'Tümünü getir',
+                            itemsPerPage: 'Sayfa başına ürün',
+                            first: 'İlk sayfaya git',
+                            previous: 'Bir önceki sayfaya git',
+                            next: 'Bir sonraki sayfaya git',
+                            last: 'Son sayfaya git',
+                            refresh: 'Yenile'
+                        }
+                    },
+
+                    excelExport: Kendo_ExcelExport,
+                    dataBound: Kendo_GridLoad,
+                    change: Kendo_GridChange,
+
+                    messages: {
+                        noRecords: 'Gösterilecek Kayıt Bulunamadı'
+                    },
+                    columns: [
+                        {
+                            "attributes": {
+                                "style": "max-width: 45px !important;"
+                            },
+                            "headerAttributes": {
+                                "style": "max-width: 45px !important;",
+                                "data-field": "id",
+                                "data-title": ""
+                            },
+                            "width": "45px",
+                            "template": "\u003cinput type=\"radio\" data-event=\"GridSelector\" /\u003e",
+                            "field": "id",
+                            "sortable": false,
+                            "filterable": false,
+                            "encoded": true,
+                            title: ' '
+                        },
+                        {
+                            field: 'Name',
+                            title: 'Potansiyel',
+                            width: "400px"
+                        },
+                        { field: "CalculatedPoint", title: "Toplam Puan", format: '{0:N1}', width: "150px" },
+                        {
+                            field: 'ProductGroup_Title',
+                            title: 'Hedef Ürün',
+                            template: function (dataItem) {
+                                return _targetReport.Func.CategoryName(dataItem.Category_Title) + dataItem.ProductGroup_Title;
+                            }
+                        },
+                        {
+                            field: 'Product_Title',
+                            title: 'Satışı Gerçekleşen Ürün(ler)',
+                            template: function (dataItem) {
+                                return _targetReport.Func.CategoryName(dataItem.Category_Title) + dataItem.Product_Title;
+                            }
+                        },
+                    ],
+
+                });
+
+            },
+            DataBoundTargetUser: function(e){
+                var $this = this;
+                var value = $this.value();
+
+                if(value && value != null && value != ""){
+                    $('[data-type="submit"]').trigger("click");
+                }
+            }
+        },
+        GetData: function (_userId, _date) {
+
+            GetJsonDataFromUrl('/CRM/VWCRM_MonthlyTargetPerson/GetPersonTargetReport', { userId: _userId, date: _date.toLocaleString('tr-TR') }, function (res) {
+
+                if (res.result == false) {
+                    $('#TargetTableContainer, #TargetChart, #TargetPresentationsContainer, [data-target="Targets"]').hide();
+                    feedback(res.objects);
+                    return;
+                }
+
+                $('#TargetTableContainer, #TargetChart, #TargetPresentationsContainer, [data-target="Targets"]').show();
+
+                res.objects.Products = $.Enumerable.From(res.objects.Products)
+                    .Where(function (a) { return a.Product_Title != null; })
+                    .GroupBy(function (a) { return a.RowId; })
+                    .Select(function (a) {
+                        return {
+                            CalculatedPercent: a.Max(function (b) { return b.CalculatedPercent; }),
+                            BonusPercent: a.Max(function (b) { return b.BonusPercent; }),
+                            CalculatedPoint: a.Sum(function (b) { return b.CalculatedPoint; }),
+                            CalculatedTotalPoint: a.Max(function (b) { return b.CalculatedTotalPoint; }),
+                            Category_Title: $.Enumerable.From(a.source).Select(function (a) { return a.Category_Title; }).ToArray(),
+                            ChildPersonSales: $.Enumerable.From(a.source).SelectMany(function (a) { return a.ChildPersonSales; }).ToArray(),
+                            Presentations: $.Enumerable.From(a.source).SelectMany(function (a) { return a.Presentations; }).ToArray(),
+                            Product: $.Enumerable.From(a.source).Select(function (a) { return a.Product; }).ToArray(),
+                            Product_Title: $.Enumerable.From(a.source).Select(function (a) { return a.Product_Title; }).ToArray(),
+                            Date: a.Max(function (b) { return b.Date; }),
+                            IsFocus: a.Max(function (b) { return b.IsFocus; }),
+                            IsMultipleFocus: a.Max(function (b) { return b.IsMultipleFocus; }),
+                            TargetPercent: a.Max(function (b) { return b.TargetPercent; }),
+                            TargetPoint: a.Max(function (b) { return b.TargetPoint; }),
+
+                            id: a.Max(function (b) { return b.id; })
+                        }
+                    }).ToArray();
+
+                _targetReport.Data = res.objects;
+
+                $('[data-target="Targets"]')
+                    .html(null)
+                    .append('<hr />')
+                    .append(
+                            '<a href="/CRM/VWCRM_MonthlyTargetPerson/Insert?id=' +
+                            _targetReport.Data.MonthlyTargetId +
+                            '" class="detailLink" target="_blank">Aylık Hedef Tablosuna gitmek için tıklayın</a>'
+                        )
+                    .append(
+                            '<a href="/CRM/VWCRM_PerformanceMultiplier/Insert?id=' +
+                            _targetReport.Data.PerformanceMultiplierId +
+                            '" class="detailLink" target="_blank">Performans Çarpanları tablosuna gitmek için tıklayın</a>'
+                        );
+
+                var date = $.Enumerable.From(_targetReport.Data.Products).Where(function (a) { return a.Date != null; }).Select(function (a) { return a.Date; }).FirstOrDefault();
+
+                $('[data-target="Date"]').html(kendo.toString(new Date(date), 'MMMM yyyy'));
+
+                _targetReport.Func.MakeTable();
+                _targetReport.Func.MakeCharts();
+                _targetReport.Func.MakePresentationsTable();
+
+            });
+
+        },
+
+        init: function () {
+
+            this.container.chart = $('#TargetChart');
+            this.container.table = $('#TargetTable tbody');
+            this.container.presentationTable = $('#TargetPresentations')
+
+            $('[data-type="submit"]')
+
+                .on('click',function(){
+
+                    var _date = $('#CPeriod').data('kendoDatePicker').value();
+                    var _userId = $('#TargetUserId').data('kendoDropDownList').value();
+
+                    if(_date == null){
+
+                        $('#TargetTableContainer, #TargetChart, #TargetPresentationsContainer, [data-target="Targets"]').hide();
+
+                        MesajWarning('Hedef Tarihi seçilmeden devam edilemez !..');
+                        return;
+                    }
+
+                    if(_userId == null || _userId == ''){
+
+                        $('#TargetTableContainer, #TargetChart, #TargetPresentationsContainer, [data-target="Targets"]').hide();
+
+                        MesajWarning('Satış Personeli seçilmeden devam edilemez !..');
+                        return;
+                    }
+
+                    _targetReport.GetData(_userId, _date);
+
+                })
+
+            ;
+
+        }
+
+    };
+
+    $(document)
+
+        .on('ready', function () {
+
+            _targetReport.Model = Model;
+
+            _targetReport.init();
+
+        })
+
+        .on('click', 'td[data-table]', function(){
+
+            var rows = $('[data-row="' + $(this).attr('data-table') + '"]');
+
+            if($(this).hasClass('atv')){
+                rows.hide();
+                $(this).removeClass('atv');
+            }else{
+                rows.show();
+                $(this).addClass('atv');
+            }
+
+        })
+
+    ;
+
+</script>

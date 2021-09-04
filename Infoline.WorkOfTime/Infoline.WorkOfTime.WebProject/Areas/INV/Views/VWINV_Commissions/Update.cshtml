@@ -1,0 +1,373 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.VWINV_Commissions
+@{
+    ViewBag.Title = "Görevlendirme Onay İşlemleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var Projects = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsProjects[])ViewBag.Projects;
+    var Persons = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsPersons[])ViewBag.Persons;
+}
+
+@section Css{
+
+    <link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" data-selector="modalContainer" />
+    <style type="text/css" data-selector="modalContainer">
+        .akilliRadioGrup > #ApproveStatus_0:checked + label {
+            background-color: #dc8528;
+            color: #fff;
+        }
+    </style>
+}
+
+
+@section Javascript{
+
+    <script type="text/javascript">
+        window.setTimeout(function () {
+            $('form').validator("validate");
+        }, 300);
+    </script>
+}
+
+
+
+
+@using (Html.BeginForm("Update", "VWINV_Commissions", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.TravelInformation)
+
+
+    <div class="form-group wzrd">
+        <div class="col-sm-4 step red" style="height: 48px;">
+            <a>
+                Görevlendirme Talebi Yapıldı
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number">1. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) - @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) | Görevlendirme Talebi</div>
+                    <div><strong>İşlem Yapan : </strong>@(Model.createdby_Title)</div>
+                    <div><strong>İşlem Tarihi : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 step orange @(Model.Manager1ApprovalDate.HasValue ? "" : "disabled")">
+            <a>
+                1. Yönetici Yanıtlayacak
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi  ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>@(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi ? "Red" : "Onay") : "Onay/Red")</div>
+                    <div><strong>İşlem @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak")  : </strong>@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</div>
+                    <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate))</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 step green @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "" : "disabled")">
+            <a>
+                Islak imza yüklenecek
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi  ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>Islak İmza Yükleme</div>
+                    <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                        <strong>İşlem Yapmış: </strong>@(string.Join(" , ", Persons.Where(c => !string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                    </div>
+                    <div class="@(Persons.Count(c => string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                        <strong>İşlem Yapacak: </strong>@(string.Join(" , ", Persons.Where(c => string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                    </div>
+                    <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                        <strong>Son İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.changed))
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CommissionCode">Görevlendirme Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.CommissionCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="idCompanyPerson">Personel(ler)</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBox("person", string.Join(" , ", Persons.Select(a => a.Person_Title)), new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdProject">Proje</label>
+        </div>
+        <div class="col-md-8 disabled">
+            @Html.TextBox("project", Projects.Count() > 0 ? string.Join(" , ", Projects.Select(a => a.Project_Title)) : "Yok", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Görevlendirme Başlangıç / Bitiş Tarihi ve Saati</label>
+        </div>
+        <div class="col-md-4">
+            @Html.TextBoxFor(model => model.StartDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+        <div class="col-md-4">
+            @Html.TextBoxFor(model => model.EndDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md">Görevlendirme Süresi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.TotalHoursText, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","Görevlendirme Süresi(Gün/Saat)"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ToCorporation">Görev ve Seyahat Edeceği Firma</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ToCorporation, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahat Edeceği Firma.."},
+                {"readonly","readonly" }
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ToAdress">Görev ve Seyahat Edeceği Adres</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.ToAdress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahat Edeceği Adres.."},
+                {"readonly","readonly" }
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CommissionSubject">Görev ve Seyahatin Amacı/Konusu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.CommissionSubject, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahatin Amacı/Konusu.."},
+                {"readonly","readonly" }
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Information">Görevlendirme Tipi</label>
+        </div>
+        <div class="col-md-8" data-control="gorev">
+            @Html.TextBoxFor(model => model.Information_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group  @Html.Raw(Model.Information == (Int32)Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsInformation.Diger ? "" : "hide" )">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="InformationDetail">Görevlendirme Tipi Detayı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.InformationDetail, new Dictionary<string, object>()
+            {
+               {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="RequestForAccommodation">Konaklama Talebi</label>
+        </div>
+        <div class="col-md-3" data-control="seyahat">
+            @Html.Akilli().RadioButtonGroupFor(model => model.RequestForAccommodation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsRequestForAccommodation.Yok).Readonly(true)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="TravelInformation">Görevlendirme Seyahat Bilgileri</label>
+        </div>
+        <div class="col-md-8" data-control="seyahat">
+            @Html.Akilli().RadioButtonGroupFor(model => model.TravelInformation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Arac).Readonly(true)
+        </div>
+    </div>
+
+
+    <div class="form-group" data-cascade="[name='TravelInformation']" data-show="3">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="TravelInformationDetail">Görevlendirme Seyahat Detayı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.TravelInformationDetail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group @Html.Raw(Model.TravelInformation == (Int32)Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Arac ? "" : "hide")">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdCompanyCar">Araç</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Car_Title, new Dictionary<string, object>()
+            {
+               {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Descriptions">Görevlendirme Diğer Açıklamalar</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Descriptions, new Dictionary<string, object>()
+            {
+              {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+
+    if (Model.Manager1Approval == userStatus.user.id && Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor)
+    {
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md " for="ApproveStatus">Onay Durumu</label>
+            </div>
+            <div class="col-md-8 radio">
+                <div class="row">
+                    <label>
+                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Checked(true).Value((Int32)EnumINV_CommissionsApproveStatus.Onaylandi)
+                        <span style="color:#26cb04;" class="radio-stil"> Onayla</span>
+
+                    </label>
+                    <label>
+                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Checked(false).Value((Int32)EnumINV_CommissionsApproveStatus.Reddedildi)
+                        <span style="color:#e8164c;" class="radio-stil"> Reddet</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+    }
+
+
+    if (Persons.Count(a => a.IdUser == userStatus.user.id && string.IsNullOrEmpty(a.Files)) > 0 && Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md " for="Dosya">Islak İmzalı Görevlendirme Formu Yükleme</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().FileUpload()
+                    .DataTable("INV_CommissionsPersons")
+                    .DataId(Persons.Where(a => a.IdUser == userStatus.user.id).Select(a => a.CommissionsPersonsId).FirstOrDefault())
+                    .DataKey(x => x.fileGroup == "Islak İmzalı Görev Dosyası")
+                    .Validate(true)
+                )
+
+
+            </div>
+        </div>
+    }
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        @if ((Model.Manager1Approval == userStatus.user.id && Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor))
+        {
+            <button class="btn btn-md btn-success pull-right" id="ccc" type="submit">Devam Et</button>
+        }
+        @if ((Persons.Count(a => a.IdUser == userStatus.user.id && string.IsNullOrEmpty(a.Files)) > 0 && Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi))
+        {
+            <button class="btn btn-md btn-success pull-right" id="ccc" type="submit">Devam Et</button>
+            <a href="@Url.Action("CommissionsForm", "VWINV_Commissions",new {area="INV",id=Model.id })" target="_blank" class="btn btn-md  m-r-md m-l-md btn-success pull-right"><i class="fa fa-print"></i> Görevlendirme Formu Yazdır</a>
+        }
+    </div>
+
+}
+

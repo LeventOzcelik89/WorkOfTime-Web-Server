@@ -1,0 +1,1116 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_OrderModels
+@{
+    ViewBag.Title = Model.Customer_Title + " İşletmesine Satış Siparişi Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+
+    var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
+
+    var requestIds = Model.TransformTo.Where(a => a.typeTo == (int)EnumCMP_InvoiceType.Talep).Select(a => a.invoiceIdTo).ToList();
+    var invoiceIds = Model.TransformTo.Where(a => a.typeTo == (int)EnumCMP_InvoiceType.IrsaliyeliFatura || a.typeTo == (int)EnumCMP_InvoiceType.IrsaliyesizFatura)
+        .Select(a => a.invoiceIdTo).ToList();
+
+
+    var createdOrder = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.YeniSiparis).FirstOrDefault();
+    var approveOrder = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.SiparisOnay).FirstOrDefault();
+    var rejectOrder = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.SiparisRed).FirstOrDefault();
+    var invoiceOrder = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.SiparisFatura).FirstOrDefault();
+}
+
+<style type="text/css" data-selector="modalContainer">
+    #VWCMP_InvoiceItem .k-grid-toolbar {
+        display: none;
+    }
+
+    #calendar .party {
+        color: #ff4081;
+        font-weight: bold;
+    }
+
+    #VWCMP_InvoiceItem .fileupload-container {
+        background: #fff !important;
+    }
+
+    #detailInvoice .list-group {
+        margin-bottom: 0px !important;
+    }
+
+    .photoWidth img {
+        width: 100%;
+        height: auto;
+    }
+
+    .modal-dialog.modal-lg {
+        width: 90% !important;
+    }
+
+    #timeline-wrap {
+        margin: 10% 10%;
+        position: relative;
+    }
+
+    #timeline {
+        height: 1px;
+        width: 100%;
+        background-color: #aabbc4;
+        position: relative;
+    }
+
+    .marker {
+        color: #fff;
+        width: 50px;
+        height: 50px;
+        line-height: 50px;
+        font-size: 1.4em;
+        text-align: center;
+        position: absolute;
+        margin-left: -25px;
+        background-color: #999999;
+        border-radius: 50%;
+    }
+
+        .marker:hover {
+            -moz-transform: scale(1.2);
+            -webkit-transform: scale(1.2);
+            -o-transform: scale(1.2);
+            -ms-transform: scale(1.2);
+            transform: scale(1.2);
+            -webkit-transition: all 300ms ease;
+            -moz-transition: all 300ms ease;
+            -ms-transition: all 300ms ease;
+            -o-transition: all 300ms ease;
+            transition: all 300ms ease;
+        }
+
+    .mfirst {
+        top: -25px;
+    }
+
+    .m2 {
+        top: -25px;
+        left: 32.5%
+    }
+
+    .m3 {
+        top: -25px;
+        left: 66%
+    }
+
+
+    .mlast {
+        top: -25px;
+        left: 100%
+    }
+
+    .timeline-panel {
+        margin-top: 20%;
+        width: 500px;
+        height: 200px;
+        background-color: #cbd0df;
+        border-radius: 2px;
+        position: relative;
+        text-align: left;
+        padding: 10px;
+        font-size: 20px;
+        font-weight: bold;
+        line-height: 20px;
+        float: left;
+    }
+
+        .timeline-panel:after {
+            content: '';
+            position: absolute;
+            margin-top: -12%;
+            left: 10%;
+            width: 0;
+            height: 0;
+            border: 12px solid transparent;
+            border-bottom: 15px solid #cbd0df;
+        }
+
+    .pulseicon {
+        display: inline-block;
+        -moz-animation: pulse 2s infinite linear;
+        -o-animation: pulse 2s infinite linear;
+        -webkit-animation: pulse 2s infinite linear;
+        animation: pulse 2s infinite linear;
+    }
+
+    @@-webkit-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-moz-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-o-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@-ms-keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var orderDetail = {
+        dfn: {
+            model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
+            exchangeRates: $.ajax({
+                url: '/General/GetExchangeRatesByDate',
+                data: { date: new Date().toLocaleString() },
+                type: "POST",
+                dataType: "JSON",
+                async: false
+            }).responseJSON,
+        },
+        events: {
+            addNote: function (_this) {
+                var note = $('#note').val();
+
+                if (!note || note == null || note == "") {
+                    MesajWarning("Lütfen önce not giriniz.")
+                    return;
+                }
+
+                $.ajax({
+                    type: "POST",
+                    url: '/CMP/VWCMP_Order/InsertNote',
+                    data: { orderId: orderDetail.dfn.model.id, note: note },
+                    success: function (response) {
+                        if (response.result) {
+                            var html = orderDetail.fnc.getNoteHtml(response.objects);
+                            $('#vertical-timeline').prepend(html);
+                            $('#note').val("");
+                        }
+                    }
+                });
+            },
+            updateStatus: function (_this) {
+                var type = $(_this).attr("data-type");
+
+                $.ajax({
+                    type: "POST",
+                    url: '/CMP/VWCMP_Order/UpdateStatus',
+                    data: { orderId: orderDetail.dfn.model.id, type: type },
+                    success: function (response) {
+                        if (response.Result) {
+                            location.reload();
+                        }
+                    },
+                    beforeSend: function () {
+                        $('body').loadingModal({ text: "İşlem gerçekleştiriliyor, lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "black" });
+                    },
+                    complete: function () {
+                        $('body').loadingModal('destroy');
+                    },
+                });
+            }
+        },
+        fnc: {
+            getNoteHtml: function (note) {
+                return `<div class="vertical-timeline-block">
+                            <div class="vertical-timeline-icon gray-bg">
+                                <i class="fa fa-bolt"></i>
+                            </div>
+                            <div class="vertical-timeline-content">
+                                <p style="margin:0 !important;"> ${ note.description} </p>
+                                <span class="vertical-date small text-muted"> ${ new Date(note.created).toLocaleString() } </span>
+                                <span class="vertical-date small text-muted"> İşlemi Yapan : ${ note.createdby_Title} </span>
+                            </div>
+                        </div>`;
+            },
+            showCurrency: function () {
+                var curEx = orderDetail.dfn.exchangeRates[orderDetail.dfn.model.Currency_Code].BanknoteSelling;
+                var title = '<p>Fatura Eklendiğinde Kur : ' + kendo.toString(orderDetail.dfn.model.rateExchange, "N2") + ' ₺</p>'+
+                    '<p>Şu Anki Kur : ' + kendo.toString(curEx, "N2") + ' ₺</p>';
+
+                $('#contentTooltip').append('<span class="fa fa-info-circle" rel="tooltip" data-original-title="' + title + '"></span>');
+
+                $("[rel=tooltip]").tooltip({
+                    html:true
+                });
+            },
+        },
+        templates: {
+            descriptionTemp: function(data) {
+                if (data.description && data.description != null && data.description != "") {
+                    return `<i class="fa fa-info-circle" data-original-title="${ data.description }" data-placement="bottom"></i>`;
+                }
+
+                return "";
+            },
+            quantityTemp: function (item) {
+                var unit = !item.Unit_Title ? "" : item.Unit_Title;
+                if(unit == "ADET"){
+                    return kendo.toString(item.quantity, "N0") + " " + unit;
+                }
+
+                return kendo.toString(item.quantity, "N2") + " " + unit;
+            },
+            currencyTemp: function (item, data) {
+                if (!data) {  return "-"; }
+
+                return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+            },
+            discountTemp: function (data) {
+                if (data.discountType == '@((int)EnumCMP_InvoiceItemDiscountType.Tutar)') {
+                    return kendo.toString(data.discount, "N2") + ' ' + data.Currency_Symbol;
+                }
+
+                var price = data.quantity * data.price;
+                var subTotal = ((price * data.discount) / 100);
+                return kendo.toString(subTotal, "N2") + " " + data.Currency_Symbol;
+            },
+            stockTemp: function (data) {
+                if (data.stockType!=0) {
+                    if (data.stockCount && data.stockCount != null) {
+                        return data.stockCount + " Adet";
+                    }
+                    else {
+                        return "Stokta Yok"
+                    }
+                }
+
+                return "Stoksuz Ürün/Hizmet";
+            },
+            requestStatusTemp: function (data) {
+                if(data.status == '@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)'){
+                    return '<i class="text-warning fa fa-edit"></i>';
+                }
+                if(data.status == '@((int)EnumCMP_RequestStatus.TalepReddedildi)'){
+                    return '<i class="text-danger fa fa-times-circle"></i>';
+                }
+                if(data.status == '@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor)'){
+                    return '<i class="text-warning fa fa-spinner"></i>';
+                }
+                if(data.status == '@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor)'){
+                    return '<i class="text-success fa fa-hand-o-right"></i>';
+                }
+                if(data.status == '@((int)EnumCMP_RequestStatus.TeklifOnaylandi)'){
+                    return '<i class="text-success fa fa-check"></i>';
+                }
+                if(data.status == '@((int)EnumCMP_RequestStatus.FaturasiAlindi)'){
+                    return '<i class="text-primary fa fa-check-square-o"></i>';
+                }
+                if(data.status == null){
+                    return '<i class="fa text-warning fa-warning">';
+                }
+            },
+        }
+    }
+
+    $(document)
+        .on("ready", function () {
+            if (orderDetail.dfn.model.Currency_Code != "TL") {
+                orderDetail.fnc.showCurrency();
+            }
+        })
+        .on("load:grid", '#VWCMP_InvoiceItem', function (e) {
+            $(this).find('table').toggleClass("k-selectable");
+
+            var productIds = orderDetail.dfn.model.InvoiceItems.map(a => a.productId).join(",");
+            $('[data-button="stock"]').attr("data-href", "/PRD/VWPRD_StockSummary/StockDetailProducts?productIds=" + productIds);
+            $('[data-button="stock"]').removeClass("hide");
+        })
+        .on("success", '#VWCMP_InvoiceInsertForm, #VWCMP_RequestInsertForm', function (e, res) {
+            if (res.Result) {
+                location.reload();
+            }
+        })
+
+</script>
+
+<div class="row" id="detailInvoice">
+    <div class="col-lg-12">
+        <div class="wrapper wrapper-content">
+            <div class="col-lg-9">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5> <i class="fa fa-hand-o-right"></i> Sipariş Gelen İşletmem </h5>
+                                <div class="ibox-tools">
+                                    <span class=""> @(Model.Supplier_Title)</span>
+                                    <span class="pull-right">
+                                        <a href="/CMP/VWCMP_Company/Detail?id=@(Model.supplierId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="ibox ">
+                            <div class="ibox-title">
+                                <h5> <i class="fa fa-hand-o-right"></i> Müşteri </h5>
+                                <div class="ibox-tools">
+                                    <span class=""> @(Model.Customer_Title)</span>
+                                    <span class="pull-right">
+                                        <a href="/CMP/VWCMP_Company/Detail?id=@(Model.customerId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5> <i class="fa fa-info-circle"></i> Sipariş Bilgileri </h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <ul class="list-group clear-list">
+                                    <li class="list-group-item fist-item">
+                                        <i class="fa fa-calendar"></i> Düzenleme Tarihi :
+                                        <strong>
+                                            @String.Format("{0:dd.MM.yyyy HH:mm}", Model.issueDate)
+                                        </strong>
+                                    </li>
+                                    <li class="list-group-item fist-item">
+                                        <i class="fa fa-code"></i> Sipariş Kodu :
+                                        <strong>
+                                            @(Model.rowNumber)
+                                        </strong>
+                                    </li>
+                                    <li class="list-group-item fist-item">
+                                        <i class="fa fa-user"></i> Düzenleyen :
+                                        <strong>
+                                            @(Model.createdby_Title)
+                                        </strong>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-lg-6" style="border-left: 1px solid #e7eaec;">
+                                <ul class="list-group clear-list">
+                                    <li class="list-group-item fist-item">
+                                        <i class="fa fa-calendar"></i> Tahmini Teslim Tarihi :
+                                        <strong>
+                                            @String.Format("{0:dd.MM.yyyy}", Model.sendingDate)
+                                        </strong>
+                                    </li>
+                                    <li class="list-group-item fist-item">
+                                        <i class="fa fa-credit-card"></i>  Ödeme Tipi :
+                                        <strong>
+                                            @Model.paymentType_Title @(Model.paymentType == (int)EnumCMP_InvoicePaymentType.Taksitli ? "(" + Model.installmentCount.ToString() + " Taksit)" :
+Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Format("{0:dd.MM.yyyy}", Model.expiryDate) + ")" : "")
+                                        </strong>
+                                    </li>
+									<li class="list-group-item fist-item">
+										<i class="fa fa-warning"></i>  Siparişin Durumu :
+										@if (Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor)
+										{
+											<strong class="text-warning">
+												<i class="fa fa-spinner"></i> @(Model.status_Title)
+											</strong>
+										}
+										else if (Model.status == (int)EnumCMP_OrderStatus.Onay)
+										{
+											<strong class="text-navy">
+												<i class="fa fa-check"></i> @(Model.status_Title)
+											</strong>
+										}
+										else if (Model.status == (int)EnumCMP_OrderStatus.SurecTamamlandi)
+										{
+											<strong class="text-success">
+												<i class="fa fa-check"></i> @(Model.status_Title)
+											</strong>
+										}
+										else if (Model.status == (int)EnumCMP_OrderStatus.IrsaliyeKesildi)
+										{
+											<strong class="text-info">
+												<i class="fa fa-file"></i> @(Model.status_Title)
+											</strong>
+										}
+
+										else
+										{
+											<strong class="text-danger">
+												<i class="fa fa-times-circle"></i> @(Model.status_Title)
+											</strong>
+										}
+									</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5> <i class="fa fa-puzzle-piece"></i> Sipariş Ürün Kalemleri</h5>
+                        <div class="ibox-tools">
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisOnaylayici)))
+                            {
+                                <a class="btn btn-xs btn-success hide" style="color:white;" data-href="/PRD/VWPRD_StockSummary/StockDetailProducts" data-button="stock" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="">
+                                    <i class="fa fa-align-justify"></i> Ürün Stok Özeti
+                                </a>
+                            }
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding">
+                        @(Html.Akilli()
+                           .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItem>("VWCMP_InvoiceItem")
+                           .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_InvoiceItem", new { area = "CMP" })).Sort(s => s.Add(a => a.itemOrder).Descending())
+                           .Filter(a => a.invoiceId == Model.id).PageSize(999))
+                           .Columns(x =>
+                           {
+                               x.Bound(y => y.Product_Title).Title("Ürün/Hizmet").Width(250).Filterable(false);
+                               x.Bound(y => y.price).Title("Birim Fiyat").Width(100).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.price)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.quantity).Title("Miktar").Width(120).Filterable(false).ClientTemplate("#=orderDetail.templates.quantityTemp(data)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+
+                               x.Bound(y => y.discount).Title("İndirim").Width(120).Filterable(false).ClientTemplate("#=orderDetail.templates.discountTemp(data)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+
+
+                               x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(120).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalTax)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+
+                               x.Bound(y => y.totalAmount).Title("Toplam Fiyat").Width(100).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalAmount)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.id).Title("").Width(30).Filterable(false).ClientTemplate("#=orderDetail.templates.descriptionTemp(data)#");
+                           })
+                           .Selectable(x => x.Mode(GridSelectionMode.Single))
+                           .Scrollable(s => s.Height(250))
+                        )
+                    </div>
+                </div>
+                <div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
+                    <div class="ibox-title">
+                        <h5> <i class="fa fa-line-chart"></i> Ürün Kalemleri Raporu</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding">
+                        @(Html.Akilli()
+                           .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
+                           .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
+                           .Filter(a => a.invoiceId == Model.id).PageSize(999))
+                           .Columns(x =>
+                           {
+                               x.Bound(y => y.quantity).Title("Miktar").Width(60).Filterable(false).ClientTemplate("#=orderDetail.templates.quantityTemp(data)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+
+                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
+
+                               x.Bound(y => y.Product_Title).Title("Ürün/Hizmet").Width(150).Filterable(false);
+
+                               x.Bound(y => y.price).Title("Birim Fiyatı").Width(70).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.price)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.discountTotal).Title("İndirim").Width(70).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.discountTotal)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.totalSubAmount).Title("Ara Toplam").Width(80).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalSubAmount)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(80).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalTax)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.totalAmount).Title("Toplam Satış Fiyatı").Width(90).Filterable(false).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalAmount, true)#")
+                               .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                               x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
+
+                               x.Bound(y => y.stockCount).Title("Stok Miktarı").Width(70).Filterable(false).ClientTemplate("#=orderDetail.templates.stockTemp(data)#");
+                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
+                           })
+                           .Selectable(x => x.Mode(GridSelectionMode.Single))
+                           .Scrollable(s => s.Height(200))
+                        )
+                    </div>
+                </div>
+
+                @if (Model.status == (int)EnumCMP_OrderStatus.Onay || Model.status == (int)EnumCMP_OrderStatus.IrsaliyeKesildi || Model.status == (int)EnumCMP_OrderStatus.SurecTamamlandi)
+                {
+
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
+                    {
+                        <div class="ibox  collapsed">
+                            <div class="ibox-title">
+                                <h5> <i class="fa fa-clipboard"></i> İrsaliyeler</h5>
+                                <div class="ibox-tools">
+                                    @if (Model.status == (int)EnumCMP_OrderStatus.Onay)
+                                    {
+                                        <a class="btn btn-xs btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_Transaction",new { area="PRD", type=(int)EnumPRD_TransactionType.GidenIrsaliye, orderId= Model.id })">
+                                            <i class="fa fa-plus-circle"></i> İrsaliye Oluştur
+                                        </a>
+                                    }
+
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content no-padding">
+
+
+                                @(Html.Akilli()
+                                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_Transaction")
+                                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })).Filter(a => a.type == (int)EnumPRD_TransactionType.GidenIrsaliye && a.orderId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
+                                    .Scrollable(a => a.Height(300))
+                                    .Filterable(t => t.Mode(GridFilterMode.Row))
+                                    .Columns(x =>
+                                    {
+                                        x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                                        x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                                        x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                                        x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                                        x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                                        x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                                        x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                                        x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                                        x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                                    })
+                                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                    .ToolBar(x =>
+                                    {
+                                        x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+                                        x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+                                        x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+                                        x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+                                    }))
+                            </div>
+                        </div>
+
+                    }
+
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeSatis)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisFatura)))
+                    {
+
+                        <div class="ibox  collapsed">
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-file-text"></i> Faturaları</h5>
+                                <div class="ibox-tools">
+
+                                    @if (Model.status == (int)EnumCMP_OrderStatus.Onay)
+                                    {
+                                        <a style="color:white;" class="btn btn-success btn-xs" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Invoice/InsertSelling?id=@Model.id&transform=true">
+                                            <i class="fa fa-plus-circle"></i> Fatura Oluştur
+                                        </a>
+                                    }
+
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content no-padding">
+
+                                @if (invoiceIds.Count() > 0)
+                                {
+                                    @(Html.Akilli()
+                                      .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_Invoice")
+                                      .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                                      .Filter(a => invoiceIds.Contains(a.id)).PageSize(25))
+                                      .Columns(x =>
+                                      {
+                                          x.Bound(y => y.SerialNumber_Title).Title("Seri-Sıra No").Width(180);
+                                          x.Bound(y => y.type_Title).Title("Tipi");
+                                          x.Bound(y => y.issueDate).Title("Fatura Tarihi").Format(Extensions.DateFormatShort(true));
+                                          x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                                      })
+                                      .Scrollable(s => s.Height(200))
+                                      .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                      .ToolBar(x =>
+                                      {
+                                          x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP", IsCopy = true }));
+                                          x.Custom().Text("<i data-original-title='Fatura Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                                      }))
+                                }
+                                else
+                                {
+                                    @(Html.Akilli()
+                                     .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_Invoice")
+                                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                                     .Filter(a => a.id == Guid.NewGuid()).PageSize(25))
+                                     .Columns(x =>
+                                     {
+                                         x.Bound(y => y.SerialNumber_Title).Title("Seri-Sıra No").Width(180);
+                                         x.Bound(y => y.type_Title).Title("Tipi");
+                                         x.Bound(y => y.issueDate).Title("Fatura Tarihi").Format(Extensions.DateFormatShort(true));
+                                         x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(150).ClientTemplate("#=orderDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+                                     })
+                                     .Scrollable(s => s.Height(200))
+                                     .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                     .ToolBar(x =>
+                                     {
+                                         x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP", IsCopy = true }));
+                                         x.Custom().Text("<i data-original-title='Fatura Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
+                                     }))
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaTalebi)))
+                    {
+                        <div class="ibox  collapsed">
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-hand-o-up"></i> Satın Alma Talepleri </h5>
+                                <div class="ibox-tools">
+                                    <a style="color:white;" class="btn btn-success btn-xs" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Request/Insert?id=@Model.id&transform=true">
+                                        <i class="fa fa-plus-circle"></i> Satın Alma Talebi Yap
+                                    </a>
+                                    <a class="collapse-link">
+                                        <i class="fa fa-chevron-up"></i>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="ibox-content no-padding">
+
+                                @if (requestIds.Count() > 0)
+                                {
+                                    @(Html.Akilli()
+                                         .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
+                                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
+                                         .Filter(a => requestIds.Contains(a.id)).PageSize(25))
+                                         .Columns(x =>
+                                         {
+                                             x.Bound(y => y.id).ClientTemplate("#= orderDetail.templates.requestStatusTemp(data) #").Width(30).Filterable(false).Title("");
+                                             x.Bound(y => y.status_Title).Title("Talep Durumu").Width(180);
+                                             x.Bound(y => y.rowNumber).Title("Talep Kodu").Width(180);
+                                             x.Bound(y => y.created).Title("Talep Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                             x.Bound(y => y.createdby_Title).Title("Talep Eden Personel").Width(180);
+                                         })
+                                         .Scrollable(s => s.Height(200))
+                                         .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                         .ToolBar(x =>
+                                         {
+                                             x.Custom().Text("<i data-original-title='Talebi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", IsCopy = true }));
+                                             x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
+
+                                         }))
+                                }
+                                else
+                                {
+                                    @(Html.Akilli()
+                                        .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
+                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
+                                        .Filter(a => a.id == Guid.NewGuid()).PageSize(25))
+                                        .Columns(x =>
+                                        {
+                                            x.Bound(y => y.id).ClientTemplate("#= orderDetail.templates.requestStatusTemp(data) #").Width(30).Filterable(false).Title("");
+                                            x.Bound(y => y.status_Title).Title("Talep Durumu").Width(180);
+                                            x.Bound(y => y.rowNumber).Title("Talep Kodu").Width(180);
+                                            x.Bound(y => y.created).Title("Talep Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                            x.Bound(y => y.createdby_Title).Title("Talep Eden Personel").Width(180);
+                                        })
+                                        .Scrollable(s => s.Height(200))
+                                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                                        .ToolBar(x =>
+                                        {
+                                            x.Custom().Text("<i data-original-title='Talebi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", IsCopy = true }));
+                                            x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
+
+                                        }))
+                                }
+
+
+
+                            </div>
+                        </div>
+                    }
+                }
+
+                <div class="ibox  collapsed">
+                    <div class="ibox-title">
+                        <h5><i class="fa fa-folder-open-o"></i> Sipariş Dosyası</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content photoWidth">
+                        @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_Invoice", FileGroup = "Sipariş Dosyası" })
+                    </div>
+                </div>
+
+                <div class="ibox  collapsed">
+                    <div class="ibox-title">
+                        <h5> <i class="fa fa-comment-o"></i>  Sipariş Açıklaması</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content photoWidth">
+                        <span>@Model.description</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-3">
+
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <div style="font-size: 18px;" class="text-center @(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "text-warning" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.Onay ? "text-navy" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.Red ? "text-danger" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.SurecTamamlandi ? "text-navy" : "text-navy")">
+
+                            <i class="fa pulseicon @(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "fa-spinner text-warning" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.Onay ? "fa-thumbs-up text-navy" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.Red ? "fa-times-circle text-danger" :
+                                                               Model.status == (int)EnumCMP_OrderStatus.SurecTamamlandi ? "fa-check-circle text-navy" : "text-navy")">
+
+                                @(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "Siparişin onaylanması bekleniyor." :
+                                  Model.status == (int)EnumCMP_OrderStatus.Onay ? "Sipariş onaylandı, faturasının girilmesi bekleniyor." :
+                                  Model.status == (int)EnumCMP_OrderStatus.Red ? "Sipariş Reddedildi." :
+                                  Model.status == (int)EnumCMP_OrderStatus.SurecTamamlandi ? "Sipariş süreci tamamlandı." : "")
+                            </i>
+                        </div>
+                        <div id="timeline-wrap">
+                            <div id="timeline"></div>
+                            <div class="marker mfirst" data-html="true" data-original-title="@(createdOrder != null ? string.Format("Sipariş oluşturuldu.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", createdOrder.createdby_Title, createdOrder.created) : "İşlem yapılmadı.")" style="background-color:#1ab394;">
+                                <i class="fa fa-pencil"></i>
+                            </div>
+
+                            @if (rejectOrder != null)
+                            {
+                                <div class="marker m2" style="background-color:#ed5565;" data-html="true"
+                                     data-original-title="@(string.Format("Sipariş reddedildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", rejectOrder.createdby_Title, rejectOrder.created))">
+                                    <i class="fa fa-thumbs-up"></i>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="marker m2" style="background-color:@(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "" : "#1ab394");" data-html="true"
+                                     data-original-title="@(approveOrder != null ? string.Format("Sipariş onaylandı.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", approveOrder.createdby_Title, approveOrder.created) : "Siparişin onaylanması bekleniyor.")">
+                                    <i class="fa fa-thumbs-up"></i>
+                                </div>
+                            }
+
+                            <div class="marker m3" style="background-color:@(invoiceOrder != null ? "#1ab394" : "");" data-html="true"
+                                 data-original-title="@(invoiceOrder != null ? string.Format("Siparişin faturası kesildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", invoiceOrder.createdby_Title, invoiceOrder.created) : "Siparişin faturasının girilmesi bekleniyor.")">
+                                <i class="fa fa-file-text"></i>
+                            </div>
+                            <div class="marker mlast" style="background-color:@(invoiceOrder != null ? "#1ab394" : "");" data-html="true"
+                                 data-original-title="@(invoiceOrder != null ? "Süreç tamamlandı." : invoiceOrder != null ? "Siparişin faturası kesildi, süreç tamamlandı." : "Sipariş sürecinin tamamlanması bekleniyor.")">
+                                <i class="fa fa-check"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ibox ">
+                    <div class="ibox-title" style="text-align:center;">
+                        <a style="color: #ffffff;" class="btn btn-md btn-danger" data-task="Insert" data-blank="true" data-method="GET" data-modal="false" data-show="single" data-href="/CMP/VWCMP_Order/InsertSelling?&id=@Model.id&IsCopy=true">
+                            <i class="fa fa-edit"></i> Kopyala
+                        </a>
+                        <button class="btn btn-md btn-warning" data-selector="share" data-formUrl="/CMP/VWCMP_Order/Print?id=@Model.id" data-formElemId="page" data-hastemplate="true"
+                                data-formMessage="@Model.Supplier_Title işletmesine @Model.Customer_Title işletmesinden gelen sipariş ekte sunulmuştur." data-formEmail="" data-formSubject="Sipariş Özeti" data-original-title="Siparişi Mail Olarak Paylaş">
+                            <i class="fa fa-send"></i> Paylaş
+                        </button>
+                        <a data-method="GET" data-show="single" data-task="Insert" data-blank="true" data-modal="false" data-href="/CMP/VWCMP_Order/Print?id=@Model.id&type=1"
+                           class="btn btn-md btn-primary">
+                            <i class="fa fa-print"></i> Yazdır
+                        </a>
+                        <a data-method="GET" data-show="single" data-task="Insert" data-blank="true" data-modal="false" data-href="/CMP/VWCMP_Order/Print?id=@Model.id&type=0"
+                           class="btn btn-md btn-info">
+                            <i class="fa fa-download"></i> İndir
+                        </a>
+                    </div>
+                </div>
+
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Özet</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding clearfix">
+                        <table class="table" style="margin-bottom: 0px !important;">
+							<tbody>
+								@if (Model.discount != 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>Ara Toplam İndirimi</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N2}", Model.discount))   @(Model.discountType_Title)
+												</h3>
+											</div>
+										</td>
+									</tr>
+								}
+
+								<tr>
+									<td>
+										<div class="col-md-6"><h4>Brüt Toplam</h4></div>
+										<div class="col-md-6">
+											<h3 class="font-bold text-right">
+												@(string.Format("{0:N2}", Model.totalSubAmount))   @(Model.Currency_Symbol)
+											</h3>
+										</div>
+									</td>
+								</tr>
+								@if (Model.stopaj != 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>Stopaj</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N0}", Model.stopaj))   %
+												</h3>
+											</div>
+										</td>
+									</tr>
+								}
+
+								@if (Model.totalTax != 0)
+								{
+									<tr>
+										<td>
+											<div id="totalOTVDiv">
+												<div class="col-md-6"><h4>Toplam Vergi</h4></div>
+												<div class="col-md-6">
+													<h3 class="font-bold text-right">
+														@(string.Format("{0:N2}", Model.totalTax))   @(Model.Currency_Symbol)
+													</h3>
+												</div>
+											</div>
+										</td>
+									</tr>
+								}
+
+								@if (Model.tevkifat != 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>KDV Tevkifat</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N0}", Model.tevkifat)) / 10
+												</h3>
+											</div>
+										</td>
+									</tr>
+
+								}
+
+								<tr>
+									<td>
+										<div class="col-md-6"><h4>Genel Toplam</h4></div>
+										<div class="col-md-6">
+											<h2 class="font-bold text-right" style="color:#ff6a00;">
+												@(string.Format("{0:N2}", Model.totalAmount))   @(Model.Currency_Symbol)
+											</h2>
+										</div>
+									</td>
+								</tr>
+
+								@if (Model.Currency_Symbol != "₺")
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>TL Karşılığı <span id="contentTooltip"></span></h4></div>
+											<div class="col-md-6" data-result="TLequality">
+												<h3 class="font-bold text-right" style="color:#ff6a00;">@(string.Format("{0:N2}", Model.totalAmountAsTL) + " ₺")</h3>
+											</div>
+										</td>
+									</tr>
+								}
+
+								@if (Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisOnaylayici)))
+								{
+									<tr>
+										<td style="padding-top: 20px;">
+											<div class="col-md-6" style="text-align:center;">
+												<button onclick="orderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_OrderStatus.Onay)" class="btn btn-md btn-primary"><i class="fa fa-check"></i> Onayla </button>
+											</div>
+											<div class="col-md-6" style="text-align:center;">
+												<button onclick="orderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_OrderStatus.Red)" class="btn btn-md btn-danger"><i class="fa fa-times"></i> Reddet </button>
+											</div>
+										</td>
+									</tr>
+								}
+
+
+								@if (Model.status == (int)EnumCMP_OrderStatus.Onay)
+								{
+									<tr>
+										<td style="text-align:center;">
+											<a data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Invoice/InsertSelling?id=@Model.id&transform=true" class="btn btn-md btn-success">
+												<i class="fa fa-refresh"></i> Faturaya Dönüştür
+											</a>
+										</td>
+									</tr>
+									<tr>
+										<td style="text-align:center;">
+											<a data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/PRD/VWPRD_Transaction/Upsert?type=@((int)EnumPRD_TransactionType.GidenIrsaliye)&orderId=@Model.id" class="btn btn-md btn-success">
+												<i class="fa fa-refresh"></i> İrsaliyeye Dönüştür
+											</a>
+										</td>
+									</tr>
+								}
+
+								@if (Model.TransformFrom != null)
+								{
+									<tr>
+										<td style="text-align:center;">
+											<a href="/CMP/VWCMP_Tender/DetailSelling?id=@Model.TransformFrom.invoiceIdFrom&transform=true" target="_blank" class="btn btn-md btn-success">
+												<i class="fa fa-arrow-right"></i> İlgili Teklife Git
+											</a>
+										</td>
+									</tr>
+								}
+
+
+							</tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Siparişe Not Ekleme</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content clearfix">
+                        <div class="form-group">
+                            <input type="text" id="note" class="form-control" />
+                        </div>
+                        <button type="button" onclick="orderDetail.events.addNote(this)" class="btn btn-md btn-primary pull-right">Ekle</button>
+                    </div>
+                </div>
+
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>Sipariş Geçmişi</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content">
+                        <div id="vertical-timeline" class="vertical-container dark-timeline">
+                            @foreach (var item in Model.InvoiceActions.OrderByDescending(a => a.created))
+                            {
+                                var statusProps = EnumProperties.Where(a => Convert.ToInt32(a.Key) == item.type.Value).FirstOrDefault();
+
+                                <div class="vertical-timeline-block">
+                                    <div class="vertical-timeline-icon gray-bg">
+                                        <i class="fa fa-bolt"></i>
+                                    </div>
+                                    <div class="vertical-timeline-content" style="background-color:@statusProps.Generic["color"];">
+                                        <p style="margin:0 !important;word-break: break-word;">
+                                            @(item.description)
+                                        </p>
+                                        <span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span> <br />
+                                        <span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
+
+                                        @if (item.transformInvoiceId != null)
+                                        {
+                                            if (item.type == (int)EnumCMP_InvoiceActionType.SiparisFatura)
+                                            {
+                                                <a href="/CMP/VWCMP_Invoice/DetailSelling?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Faturaya Git">
+                                                    <i class="fa fa-arrow-right"></i>
+                                                </a>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

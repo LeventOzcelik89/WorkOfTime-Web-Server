@@ -1,0 +1,271 @@
+﻿@{
+	ViewBag.Title = "Tüm Üretim Emirleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var now = DateTime.Now;
+}
+
+<style>
+	.active {
+		font-weight: bold;
+	}
+</style>
+
+<script type="text/javascript">
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+
+		function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+		}
+
+
+
+</script>
+
+
+<style type="text/css">
+	.k-grid-content i {
+		font-size: 13px;
+	}
+</style>
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="ibox m-b-none">
+			<div class="ibox-title">
+				<div class="col-md-9">
+					<h5>Üretim Emirleris Listesi</h5>
+				</div>
+				<div class="col-md-3">
+
+					@*<div class="btn-group pull-right">
+							<a class="btn btn-sm btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert?multiple=true"> <i class="fa fa-plus-square-o"></i> Yeni Çoklu Görev </a>
+						</div>*@
+					<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/PRD/VWPRD_Production/Insert"> <i class="fa fa-plus-circle"></i> Yeni Üretim Emri </a>
+
+				</div>
+			</div>
+			<div class="ibox-content">
+				@(Html.Akilli()
+		.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Production>("VWPRD_Production")
+		.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Production", new { area = "PRD" }))
+		.PageSize(25).Sort(a => a.Add(c => c.created).Descending()))
+		.Scrollable(a => a.Height(650))
+		.Columns(x =>
+		{
+			//x.Bound(y => y.id).Title("").Width(800).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+
+			x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+			{
+
+				b.Clear();
+				b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+				b.IsLessThanOrEqualTo("Bitiş Tarihi");
+			}
+
+			))).Width(180).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.name).Title("Üretim Adı").Width(180);
+			x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+		})
+		.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+		.ToolBar(x =>
+		{
+
+			x.Custom().Text("<i data-original-title='Toplu Onay' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" }, { "data-check", "all" } }).Url(Url.Action("ApproveAll", "VWFTM_Task", new { area = "FTM" }));
+			x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+			x.Custom().Text("<i class='icon-money' data-original-title='Masraf Girişi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "ftmtask" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" }));
+			x.Custom().Text("<i class='fa fa-th-list' data-original-title='Memnuniyet Anketi Doldur'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "satisfactionSurvey" } }).Url(Url.Action("Insert", "VWFTM_TaskOperation", new { area = "FTM", status = (int)EnumFTM_TaskFormType.Anket }));
+			x.Custom().Text("<i data-original-title='Görev Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_Task", new { area = "FTM" }));
+		}))
+
+			</div>
+		</div>
+	</div>
+</div>
+
+@*<div class="theme-config">
+	<div class="theme-config-box">
+		<div class="spin-icon">
+			<i class="fa fa-filter"></i>
+		</div>
+		<div class="skin-setttings">
+			<div class="title">FİLTRELEME</div>
+			<div class="file-manager">
+				<h5> GÖREV DURUMU </h5>
+				<ul class="folder-list" style="padding: 0">
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~eq~'')~and~isComplete~eq~false)">
+							<i class="icon-user-add"></i>  Personel Ataması Bekleyenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~neq~'')~and~isComplete~eq~false)">
+							<i class="icon-users"></i>  Üstlenilmeyi Bekleyenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~neq~'99999999-1234-5678-0000-999999999999'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30~and~lastOperationStatus~neq~26)">
+							<i class="icon-clock"></i>  Devam Edenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(planLater~eq~'@((int)EnumFTM_TaskPlanLater.Evet)')">
+							<i class="fa fa-tasks"></i>  Planlanmayı Bekleyenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~neq~'99999999-1234-5678-0000-999999999999'~and~isComplete~eq~false)~and~lastOperationStatus~eq~26)">
+							<i class="fa fa-pause"></i>  Durdurulanlar
+						</a>
+					</li>
+
+					<li class="clearfix">
+						<a class="pull-left" href="#" id="pendingApprove" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~eq~false~and~lastOperationStatus~eq~30)">
+							<i class="icon-arrows-cw"></i>  Çözüm Onayı Bekleyenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~eq~true)">
+							<i class="fa fa-check"></i>  Çözümlenmiş Görevler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(MemnuniyetAnketiDoldurulmaSayisi~eq~1)">
+							<i class="fa fa-th-list"></i>  Memnuniyet Anketi Doldurulanlar
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(createdby~eq~'@userStatus.user.id')">
+							<i class="fa fa-user"></i>  Benim Oluşturduklarım
+						</a>
+					</li>
+
+				</ul>
+
+
+
+				<div class="space-25"></div>
+				<h5> GÖREV ÖNCELİĞİ </h5>
+				<ul class="folder-list" style="padding: 0">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>())
+					{
+						<li class="clearfix">
+							<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key')">
+								<i style="color:#@item.Generic["color"]" class="fa fa-circle"></i>  @item.Value
+							</a>
+
+						</li>
+					}
+				</ul>
+
+				<div class="space-25"></div>
+				<h5> SLA DURUMUNA GÖRE </h5>
+				<ul class="folder-list" style="padding: 0">
+
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskSLAStatus>())
+					{
+
+
+						<li class="clearfix">
+							<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(SLAStatus~eq~'@item.Key')">
+								<i style="color:@item.Generic["color"]" class="fa fa-circle"></i>  @item.Value
+							</a>
+
+						</li>
+					}
+				</ul>
+
+
+
+				<div class="space-25"></div>
+				<h5> PLANLANAN BİTİŞ TARİHİ </h5>
+				<ul class="category-list" style="padding: 0">
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~dueDate~lte~datetime'@now.AddDays(30).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yaklaşanlar(30 günden az) </a>
+					</li>
+
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~dueDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+					</li>
+				</ul>
+				<div class="space-25"></div>
+				<h5> OLUŞTURULMA TARİHİ </h5>
+				<ul class="category-list" style="padding: 0">
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+					</li>
+				</ul>
+				<div class="space-25"></div>
+				<h5> GÖREV TİPİNE GÖRE </h5>
+				<ul class="tag-list" style="padding: 0">
+
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+					{
+						<li class="clearfix">
+							<a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="4" data-query="(type~eq~'@item.Key')">
+								<i data-original-title="" class="@item.Generic["icon"]"></i>  @item.Value
+							</a>
+						</li>
+					}
+				</ul>
+
+
+
+
+			</div>
+		</div>
+	</div>
+</div>*@
+
+
+<link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
+<script src="~/Content/Custom/js/filter.js"></script>

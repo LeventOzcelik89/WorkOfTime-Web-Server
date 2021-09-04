@@ -1,0 +1,127 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+
+<div class="row hide" data-type="2">
+    <div class="hr-line-dashed"></div>
+    <div class="col-md-6">
+        <div class="form-group req">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="startDate2">Sözleşme Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().
+                    DatePickerFor(model => model.startDate).
+                    Id("startDate2").
+                    Enable(false).
+                    Value(DateTime.Now).
+                    Placeholder("Lütfen Başlangıç Tarihi girin..").
+                    Format("dd.MM.yyyy").
+                    MaxDateElement("endDate2")
+                )
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group ">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="endDate2">Sözleşme Bitiş Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().
+                    DatePickerFor(model => model.endDate).
+                    Id("endDate2").
+                    Enable(false).
+                    Value(DateTime.Now.AddYears(1)).
+                    Placeholder("Lütfen Bitiş Tarihi girin..").
+                    Format("dd.MM.yyyy").
+                    MaxDateElement("startDate2")
+                )
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row hide" data-type="2">
+    <div class="hr-line-dashed"></div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="outputCompanyId2">Tedarikci Cari</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.outputCompanyId)
+                    .Id("outputCompanyId2")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.outputCompanyChange"))
+                    .AddAttribute("data-change","true")
+                    .Sort(x => x.Add("name").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="outputId2">Tedarikci Gönderici Şube/Depo</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.outputId)
+                    .Id("outputId2")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.outputChange"))
+                    .AddAttribute("data-change", "true")
+                    .Sort(x => x.Add("name").Ascending())
+                    .CascadeFrom("outputCompanyId2")
+                    .CascadeFromField("companyId")
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+                @Html.Hidden("outputTable", "CMP_Storage", new { id = "outputTable0", disabled = "true" })
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="inputId2">Giriş Yapılacak Depo</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputId)
+                    .Id("inputId2")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.inputChange"))
+                    .Filter<VWCMP_Storage>(a => a.myStorage == true)
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+                @Html.Hidden("inputTable", "CMP_Storage", new { id = "inputTable2", disabled = "true" })
+            </div>
+        </div>
+    </div>
+
+</div>

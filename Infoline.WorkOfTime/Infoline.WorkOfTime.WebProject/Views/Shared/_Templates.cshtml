@@ -1,0 +1,1105 @@
+﻿<script type="text/x-kendo-template" id="CMP_CompanyGridTemplate" data-selector="modalContainer">
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="" src="#:(logo ? logo : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+                #:(phone != null ? phone : "-")# - <i class="fa fa-phone text-success" data-toggle="tooltip" title="Telefon" data-placement="left"></i><br>
+                #:(email != null ? email : "-")# - <i class="fa fa-envelope text-success" data-toggle="tooltip" title="Email" data-placement="left"></i><br>
+                #:(taxOffice != null ? taxOffice : "-")# - <i class="fa fa-institution text-success" data-toggle="tooltip" title="Vergi Dairesi" data-placement="left"></i><br>
+                #:(taxNumber != null ? taxNumber : "-")# - <i class="fa fa-navicon text-success" data-toggle="tooltip" title="Vergi Numarası" data-placement="left"></i> <br>
+                #:(isActive_Title != null ? isActive_Title : "-")# - <i class="#:(isActive_Title == 'Aktif' ? 'fa fa-check' : isActive_Title == 'Pasif' ? 'fa fa-times' : 'fa fa-question')#" data-toggle="tooltip" title="Cari Durumu" data-placement="left"></i>
+
+            </strong>
+            <strong>#:fullName#</strong>
+            <p class="m-b-xs">#:(commercialTitle != null ? commercialTitle : "-")#</p>
+
+            <p class="m-b-xs"> #=(SplitDataReturnBadge(CMPTypes_Title ?? ''))#  </p>
+            <p class="m-b-xs">
+                #:(openAddress != null ? openAddress : "-")#
+            </p>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="userTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+        <div style="width:calc(100% - 70px);height:60px;float:right;">
+            <div class="template-item">#:FullName#</div>
+            <div class="template-item"><small>#:(Company_Title ? Company_Title : '-')#</small></div>
+            <div class="template-item">
+                <small>#:(title ? title : '')#</small>
+                #if(IsWorking == false){#
+                <div class="pull-right"><span class="badge badge-danger" style="" data-original-title="#:JobLeavingDescription#"> İşten ayrıldı. </span></div>
+                #}#
+
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="activityRelationTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <span data-original-title="Türü" class="badge badge-success" style="background-color:#:color#">#:description#</span>
+        #:Name#
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="storageTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(companyId_Image ? companyId_Image : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
+        <div style="width:calc(100% - 70px);height:60px;float:right;">
+            <div class="template-item">#:(companyId_Title ? companyId_Title : '-')#</div>
+            <div class="template-item">#:name# | #:code#</div>
+            <div class="template-item"><small>#:(locationId_Title ? locationId_Title : '-')#</small></div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="companyTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(logo ? logo : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png' )" />
+        <div style="width:calc(100% - 70px);height:60px;float:right;">
+            <div class="template-item">#:name#  #:(code ? ' | ' + code : '')#</div>
+            <div class="template-item"><small>#:(openAddressLocationId_Title ? openAddressLocationId_Title : '-')#</small></div>
+            <div class="template-item"> <small>#:taxOffice ? taxOffice : '-'# | #:taxNumber ? taxNumber : '-'#</small></div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="carKilometerTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="('/Content/Custom/img/car-km.png')" onerror="ImageError(this, '/Content/Custom/img/car-km.png' )" />
+        <div style="width:calc(100% - 70px);height:60px;float:right;">
+            <div class="template-item">#:plate#</div>
+            <div class="template-item"><small>#:(brand ? brand : '-')# #:(model ? model : '-')#</small></div>
+        </div>
+    </div>
+</script>
+<script type="text/x-kendo-template" id="productTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding: 8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width: 40px;height: 40px;" src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
+        <div style=" width: calc(100% - 50px); height: 40px; float: right;">
+            <div class="template-item">
+                <strong>#:name#</strong>
+            </div>
+            <div class="template-item">
+                <small>
+                    #:code !=null ? code+' | ' : ''#
+                    #:barcode !=null ? barcode+' | ' : ''#
+                    #:brandId_Title !=null ? brandId_Title+' | ' : ''#
+                </small>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="productListTemplate" data-selector="modalContainer">
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td width="90">
+                    <img src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" style="width:70px;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
+                </td>
+                <td class="desc">
+                    <h4 class="m-b-xs">
+                        #:fullName#
+                    </h4>
+                    <p class="small m-b-sm">
+                        #:(description ? description : 'Açıklama bilgisi girilmemiş.')#
+                    </p>
+                    <p class="small">
+                        #if(type_Title!=null){#
+                        <span data-original-title="Türü" class="badge badge-success">#:type_Title#</span>
+                        #}#
+                        #if(stockType_Title!=null){#
+                        <span data-original-title="Stok Tipi" class="badge badge-success">#:stockType_Title#</span>
+                        #}#
+                    </p>
+                </td>
+                <td width="150" style="vertical-align: middle;">
+                    #if(stockType==0){#
+                    <h5 data-placement="right" class="m-b-xs">
+                        Stok Takibi<br /> Yapılmıyor
+                    </h5>
+                    #}else{#
+                    <h5 data-original-title="Depolardaki Stok Miktarı" data-placement="right" class="m-b-xs">
+                        <i class="icon-home-4  m-r-xs"></i> #=stockStorage#
+                        #if(unitId_Title != null){#
+                        #=unitId_Title#
+                        #}#
+                    </h5>
+                    <h5 data-original-title="Personeldeki Stok Miktarı" data-placement="right" class="m-b-xs">
+                        <i class="icon-adult  m-r-xs"></i> #=stockPerson#
+                        #if(unitId_Title != null){#
+                        #=unitId_Title#
+                        #}#
+                    </h5>
+                    <h5 data-original-title="Toplam Stok Miktarı" data-placement="right" class="m-b-xs">
+                        <i class="icon-cubes m-r-xs"></i> #=stockTotal#
+
+                        #if(unitId_Title != null){#
+                        #=unitId_Title#
+                        #}#
+
+                    </h5>
+                    #}#
+                </td>
+                <td style="vertical-align: middle;">
+                    #if(currentBuyingPrice!=null){#
+                    <h4 data-original-title="Birim Maliyet (Vergiler Hariç)" data-placement="left" class="m-t-md m-b-xs">
+                        #=kendo.toString(currentBuyingPrice, "N2")# #=currentBuyingCurrencyId_Title#
+                    </h4>
+                    #}#
+                    #if(currentSellingPrice!=null){#
+                    <h4 data-original-title="Birim Fiyat (Vergiler Hariç)" data-placement="left">
+                        #=kendo.toString(currentSellingPrice, "N2")# #=currentSellingCurrencyId_Title#
+                    </h4>
+                    #}#
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</script>
+
+<script type="text/x-kendo-template" id="inventoryCustomerTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="width:60px;height:60px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <h4>#=fullName# </h4>
+            <div>#=productId_Title#</div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="width:60px;height:60px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <span class="pull-right text-right">
+                <span class="badge badge-warning" data-original-title="Stoğa Giriş Şekli" data-placement="left"><i class="#:types.filter(a=>parseInt(a.Key) == firstActionType).map(a=>a.Generic['icon'])#"></i>  #=firstActionType_Title#</span><br />
+                <span class="badge badge-primary" data-original-title="Şu anki Konumu : #=(lastActionDataCompanyId_Title ? lastActionDataCompanyId_Title : '-')# #=(lastActionDataId_Title ? ' - '+lastActionDataId_Title : '-')#" data-placement="left"><i class="#:types.filter(a=>parseInt(a.Key) == lastActionType).map(a=>a.Generic['icon'])#"></i>  #=lastActionType_Title#</span><br />
+            </span>
+            <h4>#=fullName# </h4>
+            <div>#=productId_Title#</div>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="PRD_TransactionTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_TransactionType>()))#
+    <div class="chat-element">
+        #var color = (status==0 ? "rgb(248, 172, 89)" : "rgb(11, 152, 124)")#
+        <span class="pull-left text-center" style="width:150px;color:#:color#">
+            <i style="font-size: 40px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></i><br />
+            #=type_Title#
+        </span>
+        <div class="media-body">
+            <small class="pull-right text-right">
+                <i class="fa fa-calendar"></i> #:kendo.toString(created,"dd.MM.yyyy HH:mm")#<br />
+                <i class="fa fa-user"></i> #=createdby_Title#<br />
+            </small>
+            <div>
+                <strong>#=code# #=(description != null ? ' | '+description : '')#</strong>
+                <div class="clearfix">
+                    <p class="btn-block">
+                        <span data-original-title="Çıkış">#=(outputCompanyId_Title ? outputCompanyId_Title : '')#  #=(outputId_Title ? ' - ' +outputId_Title : '')# </span><br />
+                        <span data-original-title="Giriş">#=(inputCompanyId_Title ? inputCompanyId_Title : '')#  #=(inputId_Title ? ' - ' +inputId_Title : '')#</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+
+<script type="text/x-kendo-template" id="PRD_TransactionTenderTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_TransactionType>()))#
+    <div class="chat-element">
+        #var color = (status==0 ? "rgb(248, 172, 89)" : "rgb(11, 152, 124)")#
+        <span class="pull-left text-center" style="width:150px;color:#:color#">
+            <i style="font-size: 40px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></i><br />
+            #=type_Title#
+        </span>
+        <div class="media-body">
+            <small class="pull-right text-right">
+                <i class="fa fa-calendar"></i> #:kendo.toString(created,"dd.MM.yyyy HH:mm")#<br />
+            </small>
+            <div>
+                <div class="clearfix">
+                    <p class="btn-block">
+                        <span data-original-title="Çıkış">#=(outputCompanyId_Title ? outputCompanyId_Title : '')#  #=(outputId_Title ? ' - ' +outputId_Title : '')# </span><br />
+                        <span data-original-title="Giriş">#=(inputCompanyId_Title ? inputCompanyId_Title : '')#  #=(inputId_Title ? ' - ' +inputId_Title : '')#</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="PRD_ActionStockTemplate" data-selector="modalContainer">
+    <div class="chat-element">
+        <span class="pull-left text-center">
+            <img alt="image" style="width:50px;height:50px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </span>
+        <div class="media-body">
+            <div class="m-t-sm">
+                <span class="pull-right text-right">
+                    <span class="badge badge-info" data-original-title="Miktar">
+                        #=kendo.toString(quantity, "n0")# #:unitId_Title#
+                    </span>
+                </span>
+                <strong>#=productId_Title# </strong>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="personelTemplate" data-selector="modalContainer">
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+                #:(cellphone != null ? cellphone : "Bulunamadı")# - <i class="fa fa-phone text-success" data-toggle="tooltip" title="Telefon" data-placement="left"></i><br>
+                #:(email != null ? email : "Bulunamadı")# - <i class="fa fa-envelope text-success" data-toggle="tooltip" title="Email"></i><br>
+                İşe Giriş Tarihi #:(JobStartDate != null ? kendo.toString(JobStartDate,"dd.MM.yyyy") : "Bulunamadı")# - <i class="fa fa-navicon text-success" data-toggle="tooltip" title="Vergi Numarası"></i><br>
+                #:(address != null ? address : "-")# - <i class="fa fa-institution text-success" data-toggle="tooltip" title="Adres"></i>
+            </strong>
+            <strong>#:FullName#</strong>
+            #if(IsWorking == false){#
+            <div><span class="badge badge-danger" data-original-title="#:JobLeavingDescription#">#:kendo.toString(JobEndDate,'dd.MM.yyyy')# Tarihinde işten ayrıldı.#:(JobLeaving_Title != null ? "(" + JobLeaving_Title + ")" : "")# </span></div>
+            #}else{#
+            <p class="m-b-none">#:(Company_Title != null ? Company_Title : "-")#</p>
+            <p class="m-b-none">#:(Department_Title != null ? Department_Title : "Bilinmiyor")#</p>
+            #}#
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="VWSH_TicketTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <small class="pull-left" data-original-title="Oturum Başlangıç Tarihi" data-placement="right"><i class="fa fa-calendar"></i> #:kendo.toString(createtime,'dd:MM:yyyy HH:mm')# </small>
+        <small class="pull-left" data-original-title="Cihaz" data-placement="right">#:(DeviceId_Title!=null ? '('+DeviceId_Title+')' : '')#</small>
+        <small class="badge badge-primary pull-right" data-original-title="Oturum Süresi" data-placement="left"><i class="fa fa-clock-o"></i> #:TotalMinute# dakika</small>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="departmentsTemplate" data-selector="modalContainer">
+    <div class="timeline-item">
+        <div class="row">
+            <div class="col-xs-3 date">
+                <i class="fa fa-building"></i>
+                #:(Title ? Title : '-')#
+                <br>
+                <small class="text-navy"> #:(StartDate != null ? kendo.toString(StartDate,"dd.MM.yyyy") : "Bulunamadı")#</small>
+            </div>
+            <div class="col-xs-7 content">
+                <p class="m-b-xs"><strong>Departman : #:(Department_Title ? Department_Title : '-')#</strong></p>
+                <p><i class="fa fa-user"></i><small> 1. Yönetici :  #:(Manager1_Title ? Manager1_Title : '-')#</small></p>
+                <p><i class="fa fa-user"></i><small> 2. Yönetici :  #:(Manager2_Title ? Manager2_Title : '')#</small> </p>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="projectTemplate" data-selector="modalContainer">
+    <div class="timeline-item">
+        <div class="row">
+            <div class="col-xs-3 date">
+                <i class="fa fa-briefcase"></i>
+                #:(Title != null ? Title : "-")#
+                <br>
+                <small class="text-navy"> #:(StartDate != null ? kendo.toString(StartDate,"dd.MM.yyyy") : "Bulunamadı")#</small> <small class="text-navy">   #:(EndDate != null ? kendo.toString(EndDate,"dd.MM.yyyy") : "Bulunamadı")#</small>
+            </div>
+            <div class="col-xs-7 content">
+                <p class="m-b-xs"><strong>Proje : #:(Project_Title != null ? Project_Title : "-")#</strong></p>
+                <p>Proje Departmanı : #:(Department_Title != null ? Department_Title : "-")# </p>
+                <p><i class="fa fa-user"></i><small> 1. Yönetici :  #:(Manager1_Title ? Manager1_Title : '-')#</small></p>
+                <p><i class="fa fa-user"></i><small> 2. Yönetici :  #:(Manager2_Title ? Manager2_Title : '')#</small> </p>
+            </div>
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="hrpersongrid" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHR_PlanResult>()))#
+    <div class="chat-element">
+        <a class="pull-left">
+            #if(Result==null){#
+            <i class="fa-2x fa fa-child" style="width: 30px;color:rgb(32, 189, 41)" data-original-title="Yeni CV" data-placement="right"></i>
+            #}else{#
+            <i class="fa-2x fa #:types.filter(function(e){return e.Key == Result}).map(a=>a.Generic['icon'])#" style="width: 30px;color:#:types.filter(function(e){return e.Key == Result}).map(a=>a.Generic['color'])#" data-original-title="#:Result_Title#" data-placement="right"></i>
+            #}#
+
+            <img alt="image" style="height:80px;width:80px;" class="" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+                #:(Phone != null ? Phone : "-")# - <i class="fa fa-phone text-success" data-toggle="tooltip" title="Telefon" data-placement="left"></i><br>
+                #:(Email != null ? Email : "-")# - <i class="fa fa-envelope text-success" data-toggle="tooltip" title="Email" data-placement="left"></i><br>
+                #:(LocationId_Title != null ? LocationId_Title : "-")# - <i class="fa fa-location-arrow text-success" data-toggle="tooltip" title="Adres" data-placement="left"></i><br>
+                #:(Education_Title != null ? Education_Title : "-")# - <i class="fa fa-navicon text-success" data-toggle="tooltip" title="Eğitim Düzeyi" data-placement="left"></i>
+            </strong>
+            <strong>#:Name #</strong> <strong>#:SurName #</strong>
+            <p class="m-b-xs"><strong>Çalışabileceği Pozisyonlar</strong> : #=(SplitDataReturnBadge(data.HrPosition_Title))# </p>
+            <p class="m-b-xs"> <strong> Bilgi ve Becerileri</strong> :  #=(SplitDataReturnBadge(data.HrKeywords_Title))#  </p>
+            <p class="m-b-xs"> #:PlanFunction(Result_Titles)#</p>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="hrpersondropdown" data-selector="modalContainer">
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:50px;width:50px;" class="" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+                #:(Phone != null ? Phone : "-")# - <i class="fa fa-phone text-success" data-toggle="tooltip" title="Telefon" data-placement="left"></i><br>
+                #:(Email != null ? Email : "-")# - <i class="fa fa-envelope text-success" data-toggle="tooltip" title="Email" data-placement="left"></i>
+            </strong>
+            <strong>#:Name #</strong> <strong>#:SurName #</strong>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="needTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHR_StaffNeedsStatusStatus>()))#
+    <a class="pull-left">
+        <i class="fa-2x fa #:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['icon'])#" style="width: 40px;margin-top: 20px;color:#:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['color'])#" data-placement="right" data-original-title="#:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['desc'])#"></i>
+    </a>
+
+    <div class="media-body">
+        <small class="pull-right">
+            <span style="font-size:10px;" data-original-title="Talep Tarihi" data-placement="left"> <i class="fa fa-calendar"></i>  #:(RequestDate != null ? kendo.toString(RequestDate,"dd.MM.yyyy HH:mm") : "Bulunamadı")#</span><br>
+            <span style="font-size:10px;" data-original-title="Talep Kodu" data-placement="left"><i class="fa fa-sort-numeric-asc"></i>  #:(NeedCode != null ? NeedCode : "-")#</span>
+            <br>
+            <span style="font-size:10px;" data-original-title="Yönlendirilen Cv" data-placement="left"><i class="text-primary fa fa-file"></i>  #:TotalYonlendirme# CV Mevcut</span>
+        </small>
+        <span style="font-size:13px;"><strong>İstihdam Bölgesi : </strong>#:(LocationId_Title != null ? LocationId_Title : "-")#</span>
+        <br>
+        <span style="font-size:13px;"><strong>Öncelik Durumu: </strong>#:(priority_Title != null ? priority_Title : "-")#</span>
+        <br>
+        <span style="font-size:13px;"><strong>Çalışacağı Pozisyon  :</strong> #=(SplitDataReturnBadge(data.HrPosition_Title))# </span>
+        <br>
+        <span style="font-size:13px;"><strong>İstenilen Bilgi-Beceriler : </strong>#=(SplitDataReturnBadge(data.HrKeywords_Title))#</span>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="yonlendirilenler" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        #if(status == 0){#
+        <i class="text-warning fa fa-2x fa-spinner" data-original-title="#:status_Title#" data-placement="right"></i>
+        #}#
+        #if(status == 1){#
+        <i class="text-navy fa fa-2x fa-check" data-original-title="#:status_Title#" data-placement="right"></i>
+        #}#
+        #if(status == 2){#
+        <i class="text-danger fa fa-2x fa-close" data-original-title="#:status_Title#" data-placement="right"></i>
+        #}#
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="planpersongrid" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHR_PlanResult>()))#
+    <div class="media-body ">
+        <i class="fa-2x fa #:types.filter(function(e){return e.Key == Result}).map(a=>a.Generic['icon'])#" style="width: 30px;color:#:types.filter(function(e){return e.Key == Result}).map(a=>a.Generic['color'])#" data-placement="right"></i>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="needaboutTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHR_StaffNeedsStatusStatus>()))#
+    <a class="pull-left">
+        <i class="fa-2x fa #:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['icon'])#" style="width: 40px;margin-top: 25px;color:#:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['color'])#" data-placement="right" data-original-title="#:types.filter(function(e){return e.Key == lastStatus}).map(a=>a.Generic['desc'])#"></i>
+    </a>
+
+    <div class="media-body">
+        <small class="pull-right">
+            <span style="font-size:10px;" data-original-title="Talep Tarihi" data-placement="left"> <i class="fa fa-calendar"></i>  #:(RequestDate != null ? kendo.toString(RequestDate,"dd.MM.yyyy HH:mm") : "Bulunamadı")#</span><br>
+            <span style="font-size:10px;" data-original-title="Talep Kodu" data-placement="left"><i class="fa fa-sort-numeric-asc"></i>  #:(NeedCode != null ? NeedCode : "-")#</span>
+
+            <span style="font-size:10px;" data-original-title="Yönlendirilen Cv" data-placement="left"><i class="text-primary fa fa-file"></i>  #:TotalYonlendirme# CV Mevcut</span>
+        </small>
+
+        <span style="font-size:13px;"><strong>Öncelik Durumu: </strong>#:(priority_Title != null ? priority_Title : "-")#</span>
+        <br />
+        <span style="font-size:13px;"><strong>Çalışacağı Pozisyon  :</strong>#=(SplitDataReturnBadge(data.HrPosition_Title))# </span>
+        <br>
+        <span style="font-size:13px;"><strong>İstenilen Bilgi-Beceriler : </strong>#=(SplitDataReturnBadge(data.HrKeywords_Title))#</span>
+        <br>
+        <span style="font-size:13px;"><strong>İstihdam Bölgesi : </strong>#:(LocationId_Title != null ? LocationId_Title : "-")#</span>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="timelineTemplate" data-selector="modalContainer">
+    <div class="vertical-timeline-block">
+        <div class="vertical-timeline-icon navy-bg">
+            <i class="fa fa-briefcase"></i>
+        </div>
+
+        <div class="vertical-timeline-content">
+            <p>
+                #:description#
+            </p>
+            <span class="vertical-date">
+                <small>#:(created != null ? kendo.toString(created,"dd.MM.yyyy HH:mm") : "Bulunamadı")#</small>
+            </span>
+        </div>
+    </div>
+</script>
+
+
+
+
+<script type="text/x-kendo-template" id="accountTemplate" data-selector="modalContainer">
+    <div class="clearfix" style="padding:8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(companyId_Image ? companyId_Image : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
+        <div style="width:calc(100% - 70px);height:65px;float:right;">
+            <div class="template-item">
+                #:(dataId_Title ? dataId_Title : '-')#
+                #if(isDefault==true){#
+                <span class="badge badge-warning">Varsayılan Hesap</span>
+                #}#
+            </div>
+            <div class="template-item">#:account_Title#</div>
+            <div class="template-item"> <small>Döviz Tipi : #:(currencyId_Title ? currencyId_Title : '')#</small></div>
+            #if(balance > 0){#
+            <div class="template-item"><small>Bakiye : </small><span class="text-primary"> #: kendo.toString(balance, "n2") # #:(Currency_Symbol ? Currency_Symbol : '')# </span></div>
+            #}#
+            #if(balance == 0){#
+            <div class="template-item"><small>Bakiye :</small> <span class="text-warning"> 0 #:(Currency_Symbol ? Currency_Symbol : '')# </span></div>
+            #}#
+            #if(balance < 0){#
+            <div class="template-item"><small>Bakiye :</small> <span class="text-danger"> #: kendo.toString(balance, "n2") # #:(Currency_Symbol ? Currency_Symbol : '')# </span></div>
+            #}#
+            <br />
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="VWPA_AdvanceExpense" data-selector="modalContainer">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_AdvanceType>()))#
+
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+
+
+
+            #if(confirmationStatus ==null){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==1 && confirmationUserIds == null){#
+            <i style="font-size: 38px; color:rgb(9, 137, 111)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==0){#
+            <i style="font-size: 38px; color:rgb(237,85,101)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(direction ==0 && confirmationUserIds != null && confirmationStatus != null){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(debt==0){#
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-placement="left" class="text-primary"> <i class="fa fa-check text-primary"></i> Ödendi</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span>
+                #}else{#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Kalan : #=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span>
+                #}#
+            </small>
+            #if(type_Title!=null){#
+            <span style="font-size:13px;"><strong> Tipi : </strong>#=type_Title#</span>
+            <br />
+            #}#
+            #if(createdby_Title!=null){#
+            <span style="font-size:13px;"><strong> Talep Eden : </strong>#=createdby_Title#</span>
+            <br />
+            #}#
+            #if(progressDate!=null){#
+            <span style="font-size:13px;"> <strong> Avans Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+
+            #if(confirmationUser_Title != null){#
+            <span style="font-size:13px;"> <strong>Onayı Beklenen </strong> #=(SplitDataReturnBadge(confirmationUser_Title))# </span><br />
+            #}#
+
+            #if(direction==-1){#
+            <span class="badge badge-primary" style="font-size:13px;"> <i class="fa fa-check"></i> Onaylandı </span>
+            #}#
+            #if(direction==2){#
+            <span class="badge badge-danger" style="font-size:13px;"> <i class="fa fa-times"></i> Reddedildi </span>
+            #}#
+            #if(direction==3){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-refresh"></i> Düzeltme Bekleniyor </span>
+            #}#
+            #if(direction==0){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-spinner"></i> Onay Bekleniyor </span>
+            #}#
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="VWPA_AdvanceTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_AdvanceType>()))#
+
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+
+            #if(confirmationStatus ==null){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==1){#
+            <i style="font-size: 38px; color:rgb(9, 137, 111)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==0){#
+            <i style="font-size: 38px; color:rgb(237,85,101)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(direction ==3){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(debt==0){#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span><br />
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-placement="left" class="text-primary"> <i class="fa fa-check text-primary"></i> Ödendi</span>
+                #}else{#
+                #if(direction==1){#
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-original-title="Tutar" data-placement="left" class="text-primary">#=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span><br />
+                #}else{#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">#=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span>
+                #}#
+                #if(direction==-1){#
+                <br /> <a data-modal="true" data-href="/PA/VWPA_Ledger/Insert?advanceId=#:id#&type=0" data-task="Insert" class="btn btn-xs btn-success pull-right"> <i class="fa fa-money"></i> Ödeme Yap</a>
+                #}#
+                #}#
+            </small>
+            #if(type_Title!=null){#
+            <span style="font-size:13px;"><strong> Tipi : </strong>#=type_Title#</span>
+            <br />
+            #}#
+
+            #if(invoiceId_Title!=null){#
+            #if(direction==1){#
+            <span style="font-size:13px;"><strong> İlişkili Fatura: </strong>#=invoiceId_Title# <a class="btn btn-xs btn-info" href="/CMP/VWCMP_Invoice/DetailSelling?id=#=invoiceId#" target="_blank"> Faturaya Git</a>  </span> <br />
+            #}else{#
+            <strong> İlişkili Fatura: </strong> #=invoiceId_Title# <a class="btn btn-xs btn-info" href="/CMP/VWCMP_Invoice/DetailBuying?id=#=invoiceId#" target="_blank"> Faturaya Git</a> <br />
+            #}#
+            #}#
+
+            #if(createdby_Title!=null){#
+            <span style="font-size:13px;"><strong> Talep Eden : </strong>#=createdby_Title#</span>
+            <br />
+            #}else{#
+            #if(accountId_Title!=null){#
+            <span style="font-size:13px;"><strong> İlişkili Hesap: </strong>#=accountDataId_Title#</span> <br />
+            #}#
+            #}#
+
+            <span style="font-size:13px;"> <strong>Avans Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+
+            #if(date!=null){#
+            <span style="font-size:13px;"> <strong> Ödeme Tarihi : </strong>  #:kendo.toString(date,"dd.MM.yyyy")#</span><br />
+            #}#
+
+            #if(confirmationUser_Title != null){#
+            <span style="font-size:13px;"> <strong>Onayı Beklenen </strong> #=(SplitDataReturnBadge(confirmationUser_Title))# </span><br />
+            #}#
+
+            #if(confirmUser_Titles != null){#
+            <span style="font-size:13px;"> <strong>Onaylayanlar </strong> #=(SplitDataReturnBadge(confirmUser_Titles))# </span><br />
+            #}#
+
+            #if(rejectedUser_Titles != null){#
+            <span style="font-size:13px;"> <strong>Reddedenler </strong> #=(SplitDataReturnBadge(rejectedUser_Titles))# </span><br />
+            #}#
+
+            #if(direction==-1){#
+            <span class="badge badge-primary" style="font-size:13px;"> <i class="fa fa-check"></i> Onaylandı </span>
+            #}#
+            #if(direction==2){#
+            <span class="badge badge-danger" style="font-size:13px;"> <i class="fa fa-times"></i> Reddedildi </span>
+            #}#
+            #if(direction==3){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-refresh"></i> Düzeltme Bekleniyor </span>
+            #}#
+            #if(direction==0){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-spinner"></i> Onay Bekleniyor </span>
+            #}#
+        </div>
+    </div>
+</script>
+
+
+
+
+<script type="text/x-kendo-template" id="VWPA_TransactionExpense" data-selector="modalContainer">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_TransactionType>()))#
+
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+            <i style="font-size: 38px;" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(debt==0){#
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-placement="left" class="text-primary"> <i class="fa fa-check text-primary"></i> Ödendi</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span>
+                #}else{#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Kalan : #=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span>
+                #}#
+            </small>
+
+
+            #if(dataTable=='FTM_Task'){#
+            <span style="font-size:15px;" class="text-navy">
+                <a target="_blank" href="/FTM/VWFTM_Task/Detail?id=#:dataId#" data-original-title="Görev detayına gitmek için tıklayın" data-placement="right"> <i class="fa fa-wrench"></i> Saha Görevi</a>
+
+            </span><br />
+            #}#
+            #if(dataId_Title!=null){#
+            <span style="font-size:13px;"><strong> Proje : </strong>#=dataId_Title#</span>
+            <br />
+            #}#
+            #if(type_Title!=null){#
+            <span style="font-size:13px;"><strong> Tipi : </strong>#=type_Title#</span>
+            <br />
+            #}#
+            #if(createdby_Title!=null){#
+            <span style="font-size:13px;"><strong> Talep Eden : </strong>#=createdby_Title#</span>
+            <br />
+            #}#
+            #if(progressDate!=null){#
+            <span style="font-size:13px;"> <strong> Masraf Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+
+            #if(confirmationUser_Title != null){#
+            <span style="font-size:13px;"> <strong>Onayı Beklenen : </strong> #=(SplitDataReturnBadge(confirmationUser_Title))# </span><br />
+            #}#
+
+            #if(direction==-1){#
+            <span class="badge badge-primary" style="font-size:13px;"> <i class="fa fa-check"></i> Onaylandı </span>
+            #}#
+            #if(direction==2){#
+            <span class="badge badge-danger" style="font-size:13px;"> <i class="fa fa-times"></i> Reddedildi </span>
+            #}#
+            #if(direction==3){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-refresh"></i> Düzeltme Bekleniyor </span>
+            #}#
+            #if(direction==0){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-spinner"></i> Onay Bekleniyor </span>
+            #}#
+        </div>
+    </div>
+</script>
+
+
+
+<script type="text/x-kendo-template" id="VWPA_TransactionExpenseTask" data-selector="modalContainer">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_TransactionType>()))#
+
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+            <i style="font-size: 38px;" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(debt==0){#
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-placement="left" class="text-primary"> <i class="fa fa-check text-primary"></i> Ödendi</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span>
+                #}else{#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span><br />
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Kalan : #=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span>
+                #}#
+            </small>
+            #if(dataId_Title!=null){#
+            <span style="font-size:13px;"><strong> Proje : </strong>#=dataId_Title#</span>
+            <br />
+            #}#
+            #if(type_Title!=null){#
+            <span style="font-size:13px;"><strong> Tipi : </strong>#=type_Title#</span>
+            <br />
+            #}#
+            #if(createdby_Title!=null){#
+            <span style="font-size:13px;"><strong> Talep Eden : </strong>#=createdby_Title#</span>
+            <br />
+            #}#
+            #if(progressDate!=null){#
+            <span style="font-size:13px;"> <strong> Masraf Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+            #if(direction==-1){#
+            <span class="badge badge-primary" style="font-size:13px;"> <i class="fa fa-check"></i> Onaylandı </span>
+            #}#
+            #if(direction==2){#
+            <span class="badge badge-danger" style="font-size:13px;"> <i class="fa fa-times"></i> Reddedildi </span>
+            #}#
+            #if(direction==3){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-refresh"></i> Düzeltme Bekleniyor </span>
+            #}#
+            #if(direction==0){#
+            <span class="badge badge-warning" style="font-size:13px;"> <i class="fa fa-spinner"></i> Onay Bekleniyor </span>
+            #}#
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="VWPA_TransactionTemplate" data-selector="modalContainer">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_TransactionType>()))#
+
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+
+            #if(confirmationStatus ==null){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+       #if(confirmationStatus ==3){#
+            <i style="font-size: 38px; color:rgb(248 172 89)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==1){#
+            <i style="font-size: 38px; color:rgb(9, 137, 111)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+            #if(confirmationStatus ==0){#
+            <i style="font-size: 38px; color:rgb(237,85,101)" class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#" data-original-title="#:type_Title#" data-placement="right"></i><br />
+            #}#
+
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(debt==0){#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger">Tutar : #=kendo.toString((amount + tax), "n2")#  #= Currency_Symbol #</span><br />
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-placement="left" class="text-primary"> <i class="fa fa-check text-primary"></i> Ödendi</span>
+                #}else{#
+                #if(direction==1){#
+                <span style="font-size:17px; color:rgb(9, 137, 111)" data-original-title="Tutar" data-placement="left" class="text-primary">#=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span><br />
+                #}else{#
+                <span style="font-size:17px;color:rgb(237,85,101)" class="text-danger pull-right">#=kendo.toString(debt, "n2")#  #= Currency_Symbol #</span>
+                <br />
+                <span style="font-size:15px;" class="text-navy">
+
+                    #if(dataTable=='FTM_Task'){#
+                    #if(Project_Title!=null){#
+                    <a target="_blank" href="/PRJ/VWPRJ_Project/Detail?id=#:ProjectId#" data-original-title="Proje detayına gitmek için tıklayın"> <i class="fa fa-briefcase"></i> #=Project_Title#</a><br />
+                    #}#
+                    <a href="/FTM/VWFTM_Task/Detail?id=#:dataId#" target="_blank" data-original-title="Görev detayına gitmek için tıklayın"> <i class="fa fa-wrench"></i> Saha Görevi</a>
+                    #}
+                    else if(dataTable=='CRM_Presentation')
+                    {#
+                    <a href="/CRM/VWCRM_Presentation/Detail?id=#:dataId#" target="_blank" data-original-title="Potansiyel gitmek için tıklayın"><i class="fa fa-dollar"></i> Potansiyel </a>
+                    #}
+                    else if(dataTable=='PRJ_Project')
+                    {#
+                    <a href="/PRJ/VWPRJ_Project/Detail?id=#:dataId#" target="_blank" data-original-title="Proje detayına gitmek için tıklayın"><i class="fa fa-briefcase"></i> Proje </a>
+                    #}
+                    else if(dataTable=='INV_Commissions')
+                    {#
+                    #if(Project_Title!=null){#
+                    <a target="_blank" href="/PRJ/VWPRJ_Project/Detail?id=#:ProjectId#" data-original-title="Proje detayına gitmek için tıklayın"> <i class="fa fa-briefcase"></i> #=Project_Title#</a><br />
+                    #}#
+                    <a href="/INV/VWINV_Commissions/Detail?id=#:dataId#" target="_blank" data-original-title="Görevlendirme detayına gitmek için tıklayın"><i class="fa fa-car"></i> Görevlendirme </a>
+                    #}
+                    else{#
+
+                    #}#
+
+
+                </span>
+
+                #}#
+                #if(direction==-1){#
+                <br /> <a data-modal="true" data-href="/PA/VWPA_Ledger/Insert?transactionId=#:id#&type=0" data-task="Insert" class="btn btn-xs btn-success pull-right"> <i class="fa fa-money"></i> Ödeme Yap</a>
+                #}#
+                #}#
+            </small>
+
+            #if(dataId_Title!=null){#
+            <span style="font-size:13px;"><strong> Proje : </strong>#=dataId_Title#</span>
+            <br />
+            #}#
+
+            #if(type_Title!=null){#
+            <span style="font-size:13px;"><strong> Tipi : </strong>#=type_Title#</span>
+            <br />
+            #}#
+
+            #if(invoiceId_Title!=null){#
+            #if(direction==1){#
+            <span style="font-size:13px;"><strong> İlişkili Fatura: </strong>#=invoiceId_Title# <a class="btn btn-xs btn-info" href="/CMP/VWCMP_Invoice/DetailSelling?id=#=invoiceId#" target="_blank"> Faturaya Git</a>  </span> <br />
+            #}else{#
+            <strong> İlişkili Fatura: </strong> #=invoiceId_Title# <a class="btn btn-xs btn-info" href="/CMP/VWCMP_Invoice/DetailBuying?id=#=invoiceId#" target="_blank"> Faturaya Git</a> <br />
+            #}#
+            #}#
+
+                        #if(accountId_Title!=null){#
+            <span style="font-size:13px;"><strong> İlişkili Hesap: </strong>#=accountDataId_Title#</span> <br />
+            #}#
+
+
+            #if(type == parseInt(types.filter(a=>a.EnumKey == 'Vergi')[0].Key)){#
+            <span style="font-size:13px;"> <strong>Vergi Dönemi </strong> #:kendo.toString(progressDate,"MMM yyyy")# </span><br />
+            #}#
+
+            #if(type == parseInt(types.filter(a=>a.EnumKey == 'Masraf')[0].Key)){#
+            <span style="font-size:13px;"> <strong>Masraf Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+
+            #if(type == parseInt(types.filter(a=>a.EnumKey == 'BankaGideri')[0].Key)){#
+            <span style="font-size:13px;"> <strong>Düzenlenme Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+
+
+            #if(type == parseInt(types.filter(a=>a.EnumKey == 'FisFatura')[0].Key) || type == parseInt(types.filter(a=>a.EnumKey == 'AlisFatura')[0].Key) || type == parseInt(types.filter(a=>a.EnumKey == 'SatisFatura')[0].Key)){#
+            #if(progressDate!=null){#
+            <span style="font-size:13px;"> <strong>Fiş/Fatura Tarihi </strong> #:kendo.toString(progressDate,"dd.MM.yyyy")# </span><br />
+            #}#
+            #}#
+
+            #if(date!=null){#
+            <span style="font-size:13px;"> <strong> Ödeme Tarihi : </strong>  #:kendo.toString(date,"dd.MM.yyyy")#</span><br />
+            #}#
+
+            #if(confirmationUser_Title != null){#
+            <span style="font-size:13px;"> <strong>Onayı Beklenen : </strong> #=(SplitDataReturnBadge(confirmationUser_Title))# </span><br />
+            #}#
+
+            #if(confirmUser_Titles != null){#
+            <span style="font-size:13px;"> <strong>Onaylayanlar </strong> #=(SplitDataReturnBadge(confirmUser_Titles))# </span><br />
+            #}#
+
+            #if(rejectedUser_Titles != null){#
+            <span style="font-size:13px;"> <strong>Reddedenler </strong> #=(SplitDataReturnBadge(rejectedUser_Titles))# </span><br />
+            #}#
+
+
+
+        </div>
+    </div>
+</script>
+
+
+<script type="text/x-kendo-template" id="VWPA_AccountTemplate" data-selector="modalContainer">
+    #var color = (balance < 0 ? "rgb(237,85,101)" : "rgb(9, 137, 111)")#
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td width="90">
+                    <img src="#:(companyId_Image ? companyId_Image : '/Content/Custom/img/company.png')#" style="width:70px;" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
+                </td>
+                <td class="desc">
+                    <h4 class="m-b-xs">
+                        <span data-placement="bottom" data-original-title="Hesap Adı">#:name#</span>  | <span data-placement="bottom" data-original-title="İşletme Adı">#:dataId_Title#</span>
+                    </h4>
+                    <p class="small">
+                        #if(type_Title != null){#
+                        <span style="font-size:12px;">
+                            #if(type=='0'){#
+                            <i data-original-title="Kasa" style="color:rgb(9, 137, 111);font-size: 15px;" class="icon-money-1 text-primary"></i>  #=type_Title#
+                            #}
+                            else{#
+                            <i data-original-title="Banka" style="font-size: 12px;" class="icon-credit-card text-warning"></i>  #=type_Title#
+                            #if(bankId_Title!=null){#
+                            | <span data-original-title="Banka">#:bankId_Title#</span>
+                            #}#
+                            #if(iban!=null){#
+                            | <span data-original-title="IBAN">#:iban#</span>
+                            #}#
+                            #}#
+                        </span>
+                        #}#
+                    </p>
+                    <p class="small">
+                        #if(status==1){#
+                        <span class="badge badge-primary">Aktif</span>
+                        #}else{#
+                        <span class="badge badge-danger">Pasif</span>
+                        #}#
+                        #if(isDefault==true){#
+                        <span class="badge badge-warning">Varsayılan Hesap</span>
+                        #}#
+                    </p>
+                </td>
+                <td style="width: 120px !important;">
+                    <small class="pull-right">
+                        <strong style="font-size:16px;color:#:color#;" data-original-title="Bakiye" data-placement="left">#=kendo.toString(balance, "n2")# #=Currency_Symbol#</strong>
+                    </small>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
+
+<script type="text/x-kendo-template" id="photoTemplate" data-selector="modalContainer">
+    <img src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" style="width:40px;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
+</script>
+
+
+<script type="text/x-kendo-template" id="APM_ActivityTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumAPM_ActivityType>()))#
+    #var color = types.filter(function(e){return e.Key == type}).map(a=>a.Generic['color'])#
+    <div class="chat-element">
+        <span class="pull-left m-t-xs text-center" style="width:75px;color:#:color#">
+            <i style="font-size: 40px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></i><br />
+            #=type_Title#
+        </span>
+        <div class="media-body">
+            <small class="pull-right text-right">
+                <i class="fa fa-calendar"></i> #:kendo.toString(created,"dd.MM.yyyy HH:mm")#<br />
+                <i class="fa fa-user"></i> #=createdby_Title#<br />
+            </small>
+            <h4 class="m-b-xs">#=name# (<span>#:priority_Title#</span>)</h4>
+            <p class="m-b-none"> <i class="fa fa-calendar"></i> #:kendo.toString(startDate,"dd.MM.yyyy HH:mm")# -  #:kendo.toString(endDate,"dd.MM.yyyy HH:mm")# / #:status_Title#</p>
+            <p class="m-b-none"> <i class="fa fa-info-circle"></i> #:(description!=null ? description : '-')#</p>
+        </div>
+    </div>
+</script>
+
+
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplateCustomer" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+    #var color ="text-primary"#
+
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1)
+    {#
+    #color = "text-warning"#
+    #}else if(priority==2)
+    {#
+    #color = "text-primary"#
+    #}#
+
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:40px;">
+            <i style="font-size: 25px;" class="icon-circle #:color#" data-original-title="#:priority_Title#"></i><br />
+        </a>
+        <div class="media-body" style="margin-left:50px;">
+            <small class="pull-right">
+                <span style="font-size:10px;" data-original-title="Oluşturulma Tarihi" data-placement="left"> <i class="fa fa-calendar" style="font-size:10px"></i>  #:kendo.toString(created,"dd.MM.yyyy HH:mm")#</span><br />
+                <span style="font-size:10px;" data-original-title="Görevi Oluşturan" data-placement="left"><i class="fa fa-user" style="font-size:10px"></i>  #=createdby_Title#</span><br />
+                #if(isComplete==true){#
+                <span class="badge badge-primary" data-original-title="Son Durum" data-placement="left"><i class="fa fa-check"></i> Çözüm Sağlandı </span>
+                #}else{#
+                <span class="badge badge-warning" data-original-title="Son Durum" data-placement="left"><i class="icon-clock"></i> Çözüm Bekleniyor </span>
+                #}#
+            </small>
+            <span style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</span>
+
+            #if(fixture_Title != null){#
+            <br />
+            <span style="font-size:13px;">
+                <strong>
+                    Envanter  :
+                </strong>
+                <span style="font-size:13px;" data-placement="right">#= fixture_Title #</span>
+            </span>
+            #}#
+            <br />
+
+            #if(description!=null){#
+            <span style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</span>
+            #}else{#
+            <span style="font-size:13px;"><strong>Görev Açıklaması : </strong>Açıklama bulunamadı.</span>
+            #}#
+            <br />
+
+            #if(lastOperationStatus_Title!=null){#
+            <span style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</span>
+            #}#
+            <br />
+            #if(taskSubjectType_Title != null){# <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span> #}#
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="HDM_TicketTemplate" data-selector="modalContainer">
+    #var channelTypes = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHDM_TicketChannel>()))#
+    #var priorityTypes = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHDM_TicketPriority>()))#
+    #var statusTypes = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumHDM_TicketStatus>()))#
+
+    #var color ="text-primary"#
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1){#
+    #color = "text-warning"#
+    #}#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width:10%;text-align: center;">
+                    <span style="color:#:statusTypes.filter(function(e){return e.Key == status}).map(a=>a.Generic['color'])#">
+                        <i class="fa-3x #:statusTypes.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></i><br />
+                        #=status_Title#
+                    </span>
+                </td>
+                <td class="desc" style="width:55%;">
+                    <h4 class="m-b-xs">#: title #</h4>
+                    <div><strong>Konu :</strong> #=issueId_Title#</div>
+                    <div><strong>Talep Kodu : </strong>#=code#</div>
+                    #if(priority_Title){#
+                    <div><strong>Öncelik : </strong>#= priority_Title #</div>
+                    #}#
+                </td>
+                <td style="width:10%;">
+                    <h5 data-original-title="Mesaj Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="icon-mail-3 m-r-xs"></i> #=replyCount# Adet
+                    </h5>
+                    <h5 data-original-title="İletilen Mail Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="icon-forward-3  m-r-xs"></i> #=forwardCount# Adet
+                    </h5>
+                    <h5 data-original-title="Not Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="icon-chat-5 m-r-xs"></i> #=noteCount# Adet
+                    </h5>
+                </td>
+                <td style="width:25%;">
+                    <strong><i class="fa fa-calendar"></i> Talep Tarihi : </strong>#:kendo.toString(created,"dd.MM.yyyy HH:mm")#<br />
+                    <strong><i class="fa fa-user"></i> Talebi Oluşturan : </strong>#=createdby_Title#<br />
+                    #if(requesterId_Title){#
+                    <strong><i class="fa fa-user"></i> Talep Eden : </strong>#=requesterId_Title#<br />
+                    #}#
+                    #if(assignUserId_Title){#
+                    <strong><i class="fa fa-user"></i> Görevli : </strong>#=assignUserId_Title#<br />
+                    #}#
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>

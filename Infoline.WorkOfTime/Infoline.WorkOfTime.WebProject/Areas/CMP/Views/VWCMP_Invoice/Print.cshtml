@@ -1,0 +1,162 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.InvoiceFormTemplateModels
+@{
+	ViewBag.Title = "Yazdır";
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var logo = "https://" + Request.Url.Authority + "" + TenantConfig.Tenant.Config.Logo;
+
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(Model.type == (int)EnumCMP_InvoiceType.IrsaliyeliFatura ? "İRSALİYELİ FATURA" : "FATURA") </title>
+
+
+    <link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Themes/font-awesome/css/font-awesome.css" rel="stylesheet">
+    <link href="/Content/Themes/css/style.css" rel="stylesheet">
+    <script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+    <script src="/Content/Themes/js/bootstrap.min.js"></script>
+
+    <script src="/Content/Plugins/html2canvas/html2canvas.min.js"></script>
+    <script src="/Content/Plugins/html2canvas/jspdf.debug.js"></script>
+    <style type="text/css">
+        span, td, strong {
+            font-size: 10px;
+        }
+
+        canvas {
+            height: 100vh;
+            width: 100vw;
+            display: block;
+        }
+    </style>
+    <script type='text/javascript'>
+          function ImageError(element, image) {
+                element.onerror = '';
+                element.src = image;
+            }
+    </script>
+</head>
+
+<body class="white-bg">
+        <div class="row">
+            <div class="col-lg-3 col-md-3 col-sm-3 col-xs-3">
+                <img src="@logo style="width:120px;" alt="image" onerror="ImageError(this,'@logo')">
+            </div>
+            <div class="col-lg-9 text-right col-md-9 col-sm-9  col-xs-9">
+                <h4>@(Model.type == (int)EnumCMP_InvoiceType.IrsaliyeliFatura ? "İRSALİYELİ FATURA" : "FATURA")</h4>
+                <p>
+                    <strong style="font-size:11px;">Seri/Sıra No : </strong> <span class="text-navy" style="font-size:11px;">@(Model.rowNumber != null ? Model.serialNumber + "/" + Model.rowNumber : "Eklenmemiş")</span><br />
+                    <span><strong>Fatura Tarihi:</strong> @(Model.issueDate.HasValue ? Model.issueDate.Value.ToString("dd.MM.yyyy") : "")</span><br>
+                    <span><strong>Düzenleyen:</strong> @(Model.createdby_Title)</span>   <br />
+                    <span><strong>Fatura Tipi:</strong>  @(Model.type_Title != null ? Model.type_Title : "Bilinmiyor")</span><br>
+                </p>
+            </div>
+        </div>
+        <hr />
+        <div class="row">
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-left">
+                <h5>@(Model.Supplier_Title)</h5>
+                <div> @(Model.supplierAdress)</div>
+                <div><strong> Vergi Dairesi: </strong>@(Model.supplierTaxOffice != null ? Model.supplierTaxOffice : "-")/@(Model.supplierTaxNumber != null ? Model.supplierTaxNumber : "-")</div>
+            </div>
+
+            <div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-right">
+                <h5>@(Model.Customer_Title)</h5>
+                <div> @(Model.customerAdress)</div>
+                <div><strong> Vergi Dairesi: </strong>@(Model.customerTaxOffice != null ? Model.customerTaxOffice : "-")/@(Model.customerTaxNumber != null ? Model.customerTaxNumber : "-")</div>
+            </div>
+        </div>
+        <hr />
+        <div class="table-responsive m-t">
+            <table class="table invoice-table">
+                <thead>
+                    <tr>
+                        <th>Hizmet/Ürün</th>
+                        <th>Miktar</th>
+                        <th>Birim Fiyat</th>
+                        <th>Vergi (KDV)</th>
+                        <th>Satır Toplamı</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div><strong>@(item.Product_Title != null ? item.Product_Title : "Ürün sistemden silinmiş.")</strong></div>
+                                <small>@item.description</small>
+                            </td>
+                            <td>@String.Format("{0:N2}", item.quantity) @(item.Unit_Title != null ? item.Unit_Title : "-")</td>
+                            <td>@String.Format("{0:N2}", item.price) @(item.Currency_Symbol != null ? item.Currency_Symbol : "-")</td>
+                            <td>% @(item.KDV)</td>
+                            <td>@String.Format("{0:N2}", item.totalSubAmount) @(item.Currency_Symbol != null ? item.Currency_Symbol : "-")</td>
+                        </tr>
+                    }
+
+
+
+                </tbody>
+            </table>
+        </div>
+        <table class="table invoice-total">
+            <tbody>
+                <tr>
+                    <td><strong>Ara Toplam:</strong></td>
+                    <td>@String.Format("{0:N2}", Model.totalSubAmount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+                </tr>
+                @if (Model.discount != null && Model.discount != 0)
+                {
+                    <tr>
+                        <td><strong>Ara Toplam İndirimi:</strong></td>
+                        <td>@String.Format("{0:N2}", Model.discount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+                    </tr>
+                }
+                <tr>
+                    <td><strong>Toplam Vergi :</strong></td>
+                    <td>@String.Format("{0:N2}", Model.totalTax) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+                </tr>
+                @if (Model.stopaj != null && Model.stopaj != 0)
+                {
+                    <tr>
+                        <td><strong>Stopaj:</strong></td>
+                        <td>@String.Format("{0:N2}", Model.stopaj) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+                    </tr>
+                }
+                <tr>
+                    <td><strong>Toplam :</strong></td>
+                    <td>@String.Format("{0:N2}", Model.totalAmount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+                </tr>
+            </tbody>
+        </table>
+        <div class="well m-t">
+            <strong>Açıklama :</strong>
+            @Html.Raw(Model.description)
+        </div>
+        @if (Model.type == (int)EnumCMP_InvoiceType.IrsaliyeliFatura)
+        {
+            <table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                <tbody>
+                    <tr>
+                        <td style="font-weight: bold;border-color: gray; border-style: solid; border-width: 1px 0px 0px 1px;" align="center" class="stil">Teslim Eden (İmza)</td>
+                        <td style="font-weight: bold;border-color: gray; border-style: solid; border-width: 1px 1px 0px 1px;padding-left: 5px;" align="center">Teslim Alan (İmza)</td>
+                    </tr>
+                    <tr>
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 0px 1px 1px;" align="center" height="50px"></td>
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;" align="center" height="50px"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <p>Bu belgenin sevk edilen malla birlikte bulunması halinde ayrıca sevk irsaliyesi aranmaz.</p>
+        }
+        <table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+            <tr>
+                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">BİZİMLE ÇALIŞTIĞINIZ İÇİN TEŞEKKÜR EDERİZ</td>
+            </tr>
+        </table>
+</body>
+</html>

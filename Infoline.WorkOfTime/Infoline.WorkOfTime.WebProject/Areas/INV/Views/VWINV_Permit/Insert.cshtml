@@ -1,0 +1,621 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWINV_PermitForm
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Yeni İzin Talebi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    if (userStatus != null)
+    {
+        userStatus.user = new WorkOfTimeDatabase().GetVWSH_UserById(userStatus.user.id);
+    }
+}
+
+@section css{
+    <link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" data-selector="modalContainer" />
+
+    <style type="text/css" data-selector="modalContainer">
+        .wzrd {
+            margin: 90px 0px 130px 0 !important;
+        }
+
+        .input-group {
+            position: relative;
+            display: table;
+            border-collapse: separate;
+            margin: 2px;
+            height: 26px !important;
+        }
+
+        .btn-eye:hover {
+            color: white;
+        }
+    </style>
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var workingTimes = @Html.Raw(Infoline.Helper.Json.Serialize(TenantConfig.Tenant.Config.WorkingTimes));
+
+    var permitPage = {
+        defines: {
+            WorkingTimes: workingTimes,
+            WeekDays:{"0":"Sunday","1":"Monday","2":"Tuesday","3":"Wednesday","4":"Thursday","5":"Friday","6":"Saturday"},
+            OfficalPermit: $.ajax({
+                url: "/INV/VWINV_Permit/GetOfficalPermit",
+                type: "GET",
+                dataType: "JSON",
+                async: false
+            }).responseJSON,
+        },
+        functions: {
+            SetHours: function (e) {
+                var startDate = $("#StartDate").data("kendoDateTimePicker");
+                var endDate = $("#EndDate").data("kendoDateTimePicker");
+                var typeDrop = $("#PermitTypeId").data("kendoDropDownList");
+
+                var canHourly = typeDrop && typeDrop.dataItem().CanHourly;
+
+                if (startDate && startDate.value()) {
+                    var date = startDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.Start).sort()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+                    if(canHourly==false || parseInt(workingtime.replace(":",""))>parseInt(currenttime.replace(":",""))){
+                        startDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),workingtime.split(":")[0],workingtime.split(":")[1], 0, 0));
+                    }else{
+                        startDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),currenttime.split(":")[0],currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+                if (endDate && endDate.value()) {
+                    var date = endDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.End).sort().reverse()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+                    if(canHourly==false || parseInt(workingtime.replace(":",""))<parseInt(currenttime.replace(":",""))){
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),workingtime.split(":")[0],workingtime.split(":")[1], 0, 0));
+                    }else{
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),currenttime.split(":")[0],currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+                if (startDate && startDate.value() && e && e.sender && e.sender.element.attr("id") == "StartDate") {
+
+                    var date = startDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.End).sort().reverse()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+                    endDate.min(startDate.value());
+                    if(canHourly==false || parseInt(workingtime.replace(":",""))<parseInt(currenttime.replace(":",""))){
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),workingtime.split(":")[0],workingtime.split(":")[1], 0, 0));
+                    }else{
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(),currenttime.split(":")[0],currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+            },
+            SetCommencementDate: function (e) {
+                permitPage.functions.SetHours(e);
+                GetJsonDataFromUrl('/INV/VWINV_Permit/GetPermitDetails', $("form").serializeArray(), function (res) {
+                    if(res.TotalDay > 4000){
+                        permitPage.functions.SetCommencementDate();
+                    }
+                    if(res.Text == "false"){
+                        $('#StartDate').data('kendoDateTimePicker').value(new Date());
+                        $('#EndDate').data('kendoDateTimePicker').value(new Date());
+                        $('form').validator('validate');
+                        permitPage.functions.SetCommencementDate();
+                    }
+                    if (res && res.CommencementDate) {
+                        $("#CommencementDate").val(new Date(res.CommencementDate).toLocaleString("tr-TR").replace(":00", ""));
+                    }
+                    if (res) {
+                        $("#CalculateDay").val(res.Text != "" ? res.Text : "0 saat");
+                    }
+                });
+            },
+            SetDisableDates: function (e) {
+                if (e.sender.timeView.ul) {
+                    e.sender.timeView.list.find("li").each(function (i, c) {
+                        var _this = $(this);
+                        _this.addClass("hide");
+                        var day = permitPage.defines.WeekDays[e.sender.value().getDay()];
+                        var workingTime = permitPage.defines.WorkingTimes[day];
+                        var date =  kendo.parseDate("01.01.2001 "+$(this).text(),"dd.mm.yyyy HH:mm");
+
+                        workingTime.allowTimes.forEach(function(b){
+                            var start = kendo.parseDate("01.01.2001 "+b.Start,"dd.mm.yyyy HH:mm:ss");
+                            var end = kendo.parseDate("01.01.2001 "+b.End,"dd.mm.yyyy HH:mm:ss");
+                            if(start<=date && end >=date){
+                                _this.removeClass("hide");
+                            }
+                        });
+                    });
+                }
+
+                if (e.sender.dateView.calendar) {
+
+                    //e.sender.dateView.calendar.element.find(".k-weekend").empty();
+
+                    if (e.sender.dateView.calendar.element.find(".k-weekend").length > 0) {
+                        e.sender.dateView.calendar.element.find('[data-value]').each(function (e) {
+                            var element = $(this);
+                            var dateArr = element.data("value").split("/");
+                            var date = new Date(dateArr[0], dateArr[1], dateArr[2], 12, 30);
+
+                            var day = permitPage.defines.WeekDays[date.getDay()];
+                            var workingTime = permitPage.defines.WorkingTimes[day];
+
+                            if(workingTime.isWorking == false){
+                                element.remove();
+                            }else{
+                                permitPage.defines.OfficalPermit.forEach(function (item) {
+                                    if (new Date(item.StartDate) <= date && new Date(item.EndDate) >= date) {
+                                        element.remove();
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (!e.sender.dateView.calendar.element.attr("data-control")) {
+                        e.sender.dateView.calendar.element.attr("data-control", true);
+                        e.sender.dateView.calendar.element.find(".k-link").bind("click", function (e) {
+                            var id = $(this).parents(".k-calendar").attr("id");
+                            permitPage.functions.exec($("#" + id));
+                        });
+                    }
+                };
+            },
+            SetPersonYearlyPermit: function (e) {
+                $("#personPermitCount").hide();
+                $("#personPermitExcuseCount").hide();
+                $("#personPermitPriceHour").hide();
+                $("#personPermitPriceDay").hide();
+                var type = $("#PermitTypeId").data("kendoDropDownList").dataItem();
+                var persondrop = $("#IdUser").data("kendoDropDownList")
+                var yillikIzin = "F8547488-3215-1235-5126-EF2323CBBCB2";
+                var mazeretIzin = "AF40ADF4-9963-4790-A9DE-1D74C32B61C1";
+                var ucretsizSaat = "1F754A6F-2AD5-48B4-B366-DA7ACA0BBD08";
+                var ucretsizGun = "1EE30BC4-5BEC-44AD-A7FD-BF2880EA12D3";
+                var ik = $("#IkApproval").val();
+                if (type.id && type.id.toUpperCase() == yillikIzin) {
+                    $("#personPermitCount").show();
+
+                }
+
+                if (type.id && type.id.toUpperCase() == mazeretIzin) {
+                    $("#personPermitExcuseCount").show();
+                }
+
+                if (type.id && type.id.toUpperCase() == ucretsizSaat) {
+                    $("#personPermitPriceHour").show();
+                }
+
+                if (type.id && type.id.toUpperCase() == ucretsizGun) {
+                    $("#personPermitPriceDay").show();
+                }
+
+                $('[aria-controls="EndDate_timeview"]')[type.CanHourly ? "show" : "hide"]();
+                $('[aria-controls="StartDate_timeview"]')[type.CanHourly ? "show" : "hide"]();
+
+
+                if (persondrop && persondrop.dataItem().id && persondrop.dataItem().id != "") {
+                    $("#personPermitCount strong").text(persondrop.dataItem().PermitYearlyUsable)
+                    $("#personPermitExcuseCount strong").text(persondrop.dataItem().PermitExcuseUsable)
+
+                    GetJsonDataFromUrl('/INV/VWINV_Permit/GetManager', { IdUser: persondrop.dataItem().id }, function (res) {
+                        $('[data-person="Person_Title"]').text(res["Person_Title"])
+                        $('[data-person="Manager1_Title"]').text(res["Manager1_Title"] == null ? "1. yönetici yok" : res["Manager1_Title"]);
+                        $('[data-person="Manager2_Title"]').text(res["Manager2_Title"] == null ? "2. yönetici yok" : res["Manager2_Title"]);
+                    });
+                }
+
+                if (e.sender.element.attr("name") == "PermitTypeId") {
+                    permitPage.functions.SetCommencementDate();
+                }
+            },
+            exec: function (elem) {
+
+                window.setTimeout(function () {
+                    if (elem.find(".k-weekend").length > 0) {
+                        elem.find('[data-value]').each(function () {
+                            var element = $(this);
+                            var dateArr = element.data("value").split("/");
+                            var date = new Date(dateArr[0], dateArr[1], dateArr[2], 12, 30);
+                            var day = permitPage.defines.WeekDays[date.getDay()];
+                            var workingTime = permitPage.defines.WorkingTimes[day];
+
+                            if(workingTime.isWorking == false){
+                                element.remove();
+                            }else{
+                                permitPage.defines.OfficalPermit.forEach(function (item) {
+                                    if (new Date(item.StartDate) <= date && new Date(item.EndDate) >= date) {
+                                        element.remove();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }, 650);
+            }
+        }
+    }
+
+    $(document).on("click", ".k-calendar .k-link", function (e) {
+        var id = $(this).parents(".k-calendar").attr("id");
+        permitPage.functions.exec($("#" + id));
+    })
+
+
+    .on('ready', function () {
+        var olc = $('#stepIna').text().length;
+        if (olc > 85) {
+            $('#lastdescAnd1').hide();
+        }
+    });
+</script>
+
+
+
+
+
+@using (Html.BeginForm("Insert", "VWINV_Permit", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.IkApproval)
+
+
+    <div class="form-group wzrd">
+        <div class="col-sm-3 step red" style="height: 48px;">
+            <a id="stepIna">
+                <span data-person="Person_Title">@Model.Person_Title</span> <span id="lastdescAnd1">@(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin ? "Geçmiş İzin" : "İzin Talebi Yapılıyor")</span>
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.TalepEdildi ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number">1.<span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong> İzin Talebi
+                    </div>
+                    <div><strong>İşlem Yapan : </strong> @Model.createdby_Title</div>
+                    <div><strong>İşlem Tarihi : </strong> @Model.created.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step orange  @(Model.Manager1ApprovalDate.HasValue ? "":"disabled")">
+            <a class="stepIna">
+                1. Yönetici @(Model.Manager1ApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Onay ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong>
+                        @(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Red ? "Red" : Model.Manager1Approval.HasValue ? "Onay" : "Otomatik Onay") : "Onay/Red")
+                    </div>
+                    <div>
+                        <strong>İşlem  @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        <span data-person="Manager1_Title">@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step green  @(Model.Manager2ApprovalDate.HasValue ? "":"disabled")">
+            <a class="stepIna">
+                2. Yönetici @(Model.Manager2ApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Onay ? "" : "hide")"></i>
+            </a>
+            <div class="content top">
+                <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong>
+                        @(Model.Manager2ApprovalDate.HasValue ? (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Red ? "Red" : Model.Manager2Approval.HasValue ? "Onay" : "Otomatik Onay") : "Onay/Red")
+                    </div>
+                    <div>
+                        <strong>İşlem  @(Model.Manager2ApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        <span data-person="Manager2_Title">@(Model.Manager2Approval.HasValue ? Model.Manager2Approval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@(Model.Manager2ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager2ApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step blue @(Model.IkApprovalDate.HasValue ? "":"disabled")">
+            <a class="stepIna">
+                İ.K. Yönetici @(Model.IkApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrol || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ucrenk">4. <span>Adım</span></div>
+                <div id="ccc">
+
+                    @if (Model.IkApprovalDate.HasValue)
+                    {
+                        if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrol || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IslakImzaYuklendi)
+                        {
+                            <div><strong>İşlem : </strong>Onay</div>
+                        }
+                        else if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrolRed)
+                        {
+                            <div><strong>İşlem : </strong>Red</div>
+                        }
+                        else if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin)
+                        {
+                            <div><strong>İşlem : </strong> Otomatik Onay</div>
+                        }
+                    }
+                    else
+                    {
+                        <div><strong>İşlem : </strong> Onay/Red</div>
+                    }
+
+                    <div>
+                        <strong>İşlem  @(Model.IkApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        <span data-person="IkApproval_Title">@(Model.IkApproval.HasValue ? Model.IkApproval_Title : "Sistem")</span>
+                    </div>
+                    <div class="@(Model.IkApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.IkApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+
+    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+    {   //&& (a.PermitYearlyUsable == 0 || a.id == Model.IdUser)
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="IdUser">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                    .DropDownListFor(model => model.IdUser)
+                    .OptionLabel("Lütfen Personel Seçiniz..")
+                    .DataTextField("FullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('userTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                    .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && (a.PermitYearlyUsable <= 0 || a.id == Model.IdUser))
+                    .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
+                    .Sort(x => x.Add("FullName").Ascending())
+                    .Execute("id")
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.IdUser)
+    }
+
+    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+    {
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="PermitTypeId">İzin Tipi</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @(
+                        Html.Akilli()
+                        .DropDownListFor(model => model.PermitTypeId)
+                        .OptionLabel("Lütfen İzin Tipi Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("Name")
+                        .Action(b => b.Action("DataSourceDropDown", "INV_PermitType", new { area = "INV" }))
+                        .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
+                        .Sort(a => a.Add("created"))
+                        .Validate(Validations.Required)
+                        .Filter("contains")
+                        .Execute()
+                    )
+                    <div class="input-group-addon">
+                        <a target="_blank" href="@Url.Action("MyIndex", "VWINV_Permit", new { area = "INV"})" title="İzin geçmişine git" style="line-height: 14px;" class="btn btn-eye">
+                            <i class="fa fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    }
+
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="PermitTypeId">İzin Tipi</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @(
+                        Html.Akilli()
+                        .DropDownListFor(model => model.PermitTypeId)
+                        .OptionLabel("Lütfen İzin Tipi Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("Name")
+                        .Action(b => b.Action("DataSourceDropDown", "INV_PermitType", new { area = "INV" }))
+                        .Filter<INV_PermitType>(x => x.RequestStaff == true)
+                        .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
+                        .Sort(a => a.Add("created"))
+                        .Validate(Validations.Required)
+                        .Filter("contains")
+                        .Execute()
+                    )
+                    <div class="input-group-addon">
+                        <a target="_blank" href="@Url.Action("MyIndex", "VWINV_Permit", new { area = "INV"})" title="İzin geçmişine git" style="line-height: 14px;" class="btn btn-eye">
+                            <i class="fa fa-eye"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PermitCode">İzin Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.PermitCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                 {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="StartDate">Başlangıç Tarihi ve Saati</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.StartDate)
+                .Min(Model.StartDate.Value.AddDays(-1))
+                .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+                .Interval(15)
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EndDate">İzin Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .MinDateElement("StartDate")
+                .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+                .Interval(15)
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="isbasi">İşbaşı Tarihi ve Saat'i / İzin Süresi</label>
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CommencementDate", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İşbaşı Tarihi ve Saat'i"}
+            })
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CalculateDay", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İzin Süresi(Gün/Saat)"}
+            })
+        </div>
+        <div class="col-md-8 col-md-offset-4">
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;display:none;" id="personPermitCount">
+                Kalan yıllık izin hakkınız <strong>@String.Format("{0:N0}", userStatus.user.PermitYearlyUsable)</strong> gündür.
+            </div>
+
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;display:none;" id="personPermitExcuseCount">
+                Kalan yıllık mazeret izin hakkı <strong>@String.Format("{0:N0}", userStatus.user.PermitExcuseUsable) </strong> saatdir.
+            </div>
+
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;display:none;" id="personPermitPriceHour">
+                Bilgilendirme <strong> Ücretsiz saatlik izinler toplamda 9 saati doldurulduğunda, 1 günlük ücretsiz izin olarak ücretinize kesinti uygulanır. </strong>
+            </div>
+
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;display:none;" id="personPermitPriceDay">
+                Bilgilendirme : <strong> Kullanılan ücretsiz izin gün sayısına tekabül eden fiili işyeri çalışma günü kadar ücretinize kesinti uygulanır.</strong>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="AccessPhone">Ulaşılacak Telefon</label>
+        </div>
+        <div class="col-md-8">
+            @Html.Kendo().MaskedTextBoxFor(a => a.AccessPhone).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width: 100%"},
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Telefon Numarası Giriniz.."},
+            }).Mask("0 (000) 000 00 00").UnmaskOnPost(true).Validate(Validations.Required)
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="ArriveAdress">Bulunacağınız Adres</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.ArriveAdress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Adresi Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Detail">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Detail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Girin..(İsteğe Bağlı)"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">İzin Talep Dosyası</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_Permit")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "İzin Talep Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Onaya Gönder</button>
+    </div>
+
+}
+
+

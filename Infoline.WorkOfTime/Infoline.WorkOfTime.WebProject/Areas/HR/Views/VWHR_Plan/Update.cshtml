@@ -1,0 +1,151 @@
+﻿@using Infoline.WorkOfTime.BusinessData
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMHR_PlanAndPerson
+@{
+    ViewBag.Title = "Mülakatı Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWHR_Plan", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.hrPlan.id)
+    @Html.HiddenFor(model => model.hrPlan.HrPersonId)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="HrPersonId">Mülakat Gerçekleştirilecek Kişi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.hrPlan.HrPersonId_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen ad giriniz.."},
+                {"disabled", "true"},
+            }).Validate(Validations.TextTurkceSpace(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="PdsEvulateFormId">Mülakat Değerlendirme Formu</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .DropDownListFor(model => model.hrPlan.PdsEvulateFormId)
+            .OptionLabel("Lütfen Mülakat Değerlendirme Formu Seçimi Yapınız..")
+            .DataTextField("formName").DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWPDS_EvaluateForm", new { area = "PDS" }))
+            .Sort(x => x.Add("formName").Ascending())
+            .Execute()
+            )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="CompanyId">Mülakat Gerçekleşecek İşletme <i class="fa fa-info-circle" data-original-title="Lokasyonu olmayan işletmelerde işletme konumu olmadığından mail gönderim işlemi gerçekleştirilmeyecektir."></i></label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .DropDownListFor(model => model.hrPlan.CompanyId)
+            .OptionLabel("Mülakat Gerçekleştirilecek İşletme Seçimi Yapınız..")
+            .DataTextField("fullName").DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" })).Filter<Infoline.WorkOfTime.BusinessData.CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+            .Template("#=TemplateEngine('companyTemplate',data)#")
+            .ValueTemplate("<span>#=name#</span>")
+            .Sort(x => x.Add("fullName").Ascending()).Validate(Validations.Required)
+            .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userList">Mülakata Katılacak Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+           .MultiSelect("userList").Name("userList")
+           .Placeholder("Mülakat Gerçekleştirilecek İşletme Seçimi Yapınız..")
+           .DataTextField("FullName")
+           .DataValueField("id")
+           .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" })).Filter<Infoline.WorkOfTime.BusinessData.SH_User>(c => c.type == (int)EnumSH_UserType.MyPerson)
+            .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+          .Sort(x => x.Add("FullName").Ascending())
+          .Value(Model.persons)
+          .Validate(Validations.Required)
+          .Execute()
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="PlanDate">Mülakat Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DateTimePickerFor(model => model.hrPlan.PlanDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Mülakat Tarihi Girin.."},
+            })
+            .Format(Extensions.DateFormatFull())
+            .Min(DateTime.Now).Max(DateTime.Now.AddMonths(2))
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="contactLink">Toplantı Linki</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.hrPlan.contactLink, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Toplantı Linki Girin.."},
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.hrPlan.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Girin.."},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md">Adaya Mail gönderilsin mi?</label>
+        </div>
+        <div class="col-md-8 radio">
+            <label> @Html.Kendo().RadioButtonFor(a => a.hrPlan.mailSend).Checked(Model.hrPlan.mailSend == true).Value(true) Evet </label>
+            <label> @Html.Kendo().RadioButtonFor(a => a.hrPlan.mailSend).Checked(Model.hrPlan.mailSend == false || Model.hrPlan.mailSend == null).Value(false) Hayır </label>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Ayarla</button>
+    </div>
+
+}

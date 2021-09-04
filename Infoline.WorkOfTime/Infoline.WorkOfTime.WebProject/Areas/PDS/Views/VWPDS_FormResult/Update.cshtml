@@ -1,0 +1,297 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPDS_FormResultModel
+@{
+    ViewBag.Title = "Değerlendirmeyi Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var i = 0;
+    var Score = String.Format("{0:N2}", Model.score);
+
+}
+
+<style type="text/css" data-selector="modalContainer">
+    group + group {
+        margin-top: 20px;
+    }
+
+    group input {
+        cursor: pointer;
+    }
+
+    .inline-radio {
+        display: flex;
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid #b6b6b6;
+    }
+
+        .inline-radio div {
+            position: relative;
+            flex: 1;
+        }
+
+        .inline-radio input {
+            width: 100%;
+            height: 30px;
+            opacity: 0;
+        }
+
+        .inline-radio label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #b6b6b6;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            font-size: 0.6vw;
+            border-right: 1px solid #b6b6b6;
+        }
+
+        .inline-radio div:last-child label {
+            border-right: 0;
+        }
+
+        .inline-radio input:checked + label {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .inline-radio div:nth-child(5) input:checked + label {
+            background: #007900;
+        }
+
+        .inline-radio div:nth-child(4) input:checked + label {
+            background: #FFC200;
+        }
+
+        .inline-radio div:nth-child(3) input:checked + label {
+            background: #FF6A00;
+        }
+
+        .inline-radio div:nth-child(2) input:checked + label {
+            background: #FF2C2C;
+        }
+
+        .inline-radio div:nth-child(1) input:checked + label {
+            background: #84002F;
+        }
+
+        .inline-radio div:nth-child(6) input:checked + label {
+            background: #000;
+        }
+
+    .modal-lg {
+        width: 85%;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    function post(_this, status) {
+        $('#status').val(status == true ? 2 : 1);
+        $('[type="submit"]').trigger("click");
+    }
+
+</script>
+
+@using (Html.BeginForm("Update", "VWPDS_FormResult", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id", "VWPDS_FormResultInsert" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+    @Html.HiddenFor(model => model.formPermitTaskUserId)
+    @Html.HiddenFor(model => model.evaluateFormId)
+    @Html.HiddenFor(model => model.evaluatedUserId)
+    @Html.HiddenFor(model => model.evaluatorId)
+    @Html.HiddenFor(model => model.status)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formType">Form Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Form.formType_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formName">Formun İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Form.formName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formCode">Form Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Form.formCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="evaluator_Title">Değerlendirme Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.created, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="evaluator_Title">Değerlendiren Personel</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.FormPermitTaskUser.evaluator_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="evaluatedUser_Title">Değerlendirilecek Personel</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.FormPermitTaskUser.evaluatedUser_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="score">Aldığı Puan</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => Score, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly" },
+            })
+        </div>
+    </div>
+
+    <div class="panel-group" id="accordion">
+
+        @foreach (var group in Model.QuestionFormResults.GroupBy(a => a.QuestionForm.groupName).Select(c => new { Key = c.Key, Data = c.ToArray() }).ToArray())
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h4 class="panel-title">
+                        <a data-toggle="collapse" data-parent="#accordion" href="#collapse1_@group.Data[0].QuestionForm.groupOrder">
+                            <i class="fa fa-user text-success"></i> @group.Key
+                        </a>
+                    </h4>
+                </div>
+                <div id="collapse1_@group.Data[0].QuestionForm.groupOrder" class="panel-collapse collapse">
+                    <div class="panel-body">
+                        @foreach (var questionFormResult in Model.QuestionFormResults.Where(a => a.QuestionForm.groupName == group.Key).ToArray())
+                        {
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.id" value="@(questionFormResult.QuestionForm.id)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.factor" value="@(questionFormResult.QuestionForm.factor)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.questionOrder" value="@(questionFormResult.QuestionForm.questionOrder)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.groupName" value="@(questionFormResult.QuestionForm.groupName)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.groupOrder" value="@(questionFormResult.QuestionForm.groupOrder)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.questionId" value="@(questionFormResult.QuestionForm.questionId)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionForm.evaluateFormId" value="@(Model.Form.id)" />
+
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionResult.questionFormId" value="@(questionFormResult.QuestionForm.id)" />
+                            <input type="hidden" name="QuestionFormResults[@i].QuestionResult.formResultId" value="@(Model.id)" />
+                            <div class="form-group">
+                                <div class="col-md-6">
+                                    <label>@questionFormResult.QuestionForm.question </label>
+                                    <group class="inline-radio">
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 1 ? "checked" : "") readonly value="1" type="radio" autocomplete="off"><label>Çok Kötü</label></div>
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 2 ? "checked" : "") readonly value="2" type="radio" autocomplete="off"><label>Kötü</label></div>
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 3 ? "checked" : "") readonly value="3" type="radio" autocomplete="off"><label>Orta</label></div>
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 4 ? "checked" : "") readonly value="4" type="radio"><label>İyi</label></div>
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 5 ? "checked" : "") readonly value="5" type="radio"><label>Çok İyi</label></div>
+                                        <div><input name="QuestionFormResults[@i].QuestionResult.score" @(questionFormResult.QuestionResult.score == 0 ? "checked" : "") readonly value="0" type="radio"><label>Değerlendirme Dışı</label></div>
+                                    </group>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="col-md-12" style="text-align:left;">
+                                        <label>Varsa Yorumunuz</label>
+                                    </div>
+                                    <div class="col-md-12">
+                                        <textarea name="QuestionFormResults[@i].QuestionResult.comment" style="width:100%;">@(questionFormResult.QuestionResult.comment)</textarea>
+                                    </div>
+                                </div>
+                            </div>
+                            i++;
+                        }
+
+                    </div>
+                </div>
+            </div>
+        }
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse3"> <i class="fa fa-user text-success"></i> Ek Düşünceler </a>
+                </h4>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Genel Yorumunuz</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.comment, new Dictionary<string, object>() {
+                                 {"class", "form-control" }
+                            })
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+
+        @if (Model.status != Convert.ToInt32(EnumPDS_FormResultStatus.NotUpdate))
+        {
+            <button class="btn btn-md btn-warning pull-right" onclick="post(this, false)" type="button">Güncelle ve İleride Düzenle</button>
+            <button class="btn btn-md btn-success pull-right" title="Kaydet ve Tamamla seçeneğini kullanırsanız bu form üzerinde artık değişiklik yapamazsınız."
+                    style="margin-left: 5px;" onclick="post(this, true)" type="button">
+                Güncelle ve Tamamla
+            </button>
+            <button type="submit" class="hide"></button>
+        }
+
+    </div>
+
+}

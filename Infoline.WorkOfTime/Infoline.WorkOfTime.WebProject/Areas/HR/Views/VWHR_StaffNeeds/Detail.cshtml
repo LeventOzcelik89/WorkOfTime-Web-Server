@@ -1,0 +1,416 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@using Infoline.Framework
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMStaffNeedsAndSearch
+@{
+	ViewBag.Title = "Talep Detayı";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css">
+	.yellow-bg {
+		background-color: #b1a89e;
+		color: #ffffff;
+	}
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    var statusControlforTry = false;
+    $(document)
+        .on('selected:grid', '#VWHR_StaffNeedsPerson', function (e, item) {
+            if (item.status == null || item.status == 0) {
+                $('[data-href="/HR/VWHR_StaffNeedsPerson/Update"]').removeClass('hide')
+            } else {
+                $('[data-href="/HR/VWHR_StaffNeedsPerson/Update"]').addClass('hide')
+            }
+            $('[data-plan="true"]').attr("data-href", '/HR/VWHR_Plan/Insert?hrPersonId=' + item.HrPersonId + '&staffNeedId='+'@(Model.id)');
+
+            $('[data-hr="true"]').attr("data-href", '/HR/VWHR_Person/Detail?id=' + item.HrPersonId);
+
+        })
+
+    function updateStatus(_this) {
+        if (statusControlforTry) {
+            return false;
+        }
+        var type = $(_this).attr("data-type");
+        var desc = $('[data-description=""]').val();
+        $.ajax({
+            type: "POST",
+            url: '/HR/VWHR_StaffNeeds/UpdateStatus',
+            data: { id: '@Model.id', lastStatus: type, description : desc },
+            success: function (response) {
+                if (response.Result) {
+                    MesajSuccess(response.FeedBack.message, "İşlem başarılı");
+                    statusControlforTry = true;
+                    window.setTimeout(function () {
+                    location.reload();
+                    },500)
+                } else {
+                }
+            },
+            beforeSend: function () {
+                $('body').loadingModal({ text: "İşlem gerçekleştiriliyor, lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "black" });
+            },
+            complete: function () {
+                $('body').loadingModal('destroy');
+            },
+        });
+    }
+</script>
+
+<script type="text/x-kendo-template" id="needplanTemplate" data-selector="modalContainer">
+	<div class="clearfix" style="padding:8px 0;">
+		#if(Result==0){#
+		<a class="pull-left">
+			<i style="font-size: 25px;" class="fa fa-check text-navy"></i><br>
+		</a>
+		#}else if(Result==1){#
+		<a class="pull-left">
+			<i style="font-size: 25px;" class="fa fa-close text-danger"></i><br>
+		</a>
+		#}else if(Result==2){#
+		<a class="pull-left">
+			<i style="font-size: 25px;" class="fa fa-spinner text-warning"></i><br>
+		</a>
+		#}else if(Result==3){#
+		<a class="pull-left">
+			<i style="font-size: 25px;" class="fa fa-spinner text-info"></i><br>
+		</a>
+		#}
+		else{#
+		<a class="pull-left">
+			<i style="font-size: 25px;" class="fa fa-spinner text-warning"></i><br>
+		</a>
+		#}#
+
+		<div style="width:calc(100% - 70px);height:60px;float:right;">
+			<span class="pull-right text-right">
+				<span class="template-item"><small data-original-title="Mülakat Tarihi" data-placement="left">#:kendo.toString(PlanDate,"dd.MM.yyyy HH:mm")#</small></span>
+			</span>
+			<div class="template-item">Katılımcılar : #:UserId_Titles#</div>
+			<div class="template-item">Mülakat Gerçekleştirilecek Kişi : #:UserId_Title#</div>
+			<div class="template-item">Mülakat Gerçekleştiren : #:(InterviewUser_Title != null ? InterviewUser_Title : '-')#</div>
+			<div class="template-item">Açıklama : #:(Description != null ? Description: "-")#</div>
+
+		</div>
+	</div>
+</script>
+
+<script type="text/x-kendo-template" id="formTemplate" data-selector="modalContainer">
+	<div class="chat-element">
+		<div class="media-body ">
+			<strong class="pull-right text-warning" data-original-title="Puan" data-placement="left">#:score# Puan</strong>
+			<strong>Değerlendiren : #:Evaluator_Title#</strong><br />
+
+			<small class="text-muted">Form Adı : #:FormName#</small>
+		</div>
+	</div>
+</script>
+
+<div class="row">
+
+
+	<div class="col-lg-3">
+		@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)) && Model.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi)
+		{
+			<div class="ibox ">
+				<div class="ibox-title">
+					<h5>İŞLEM YAP</h5>
+				</div>
+				<div class="ibox-content no-padding clearfix">
+					<table class="table" style="margin-bottom: 0px !important;">
+						<tbody>
+							<tr>
+								<td style="padding-top: 20px;">
+									<div class="col-md-8">
+										@Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+									{
+										{"class", "form-control"},
+										{"placeholder", "Lütfen Açıklama Girin.."},
+										{ "style", "min-height: 70px;height: 70px;"},
+										{ "data-description",""}
+									})
+									</div>
+									<div class="col-md-4" style="text-align:center;">
+										<button onclick="updateStatus(this)" data-type="@((int)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi)" class="btn btn-md btn-primary"><i class="fa fa-check"></i> Onayla </button>
+										<button onclick="updateStatus(this)" data-type="@((int)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti)" class="btn btn-md btn-danger"><i class="fa fa-times"></i> Reddet </button>
+									</div>
+
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		}
+
+		@if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.PersonelTalebi)) ||
+			userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))) && (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi && Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepEdenReddetti && Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))
+		{
+			<div class="ibox ">
+				<div class="ibox-title">
+					<h5>TALEBİ İPTAL ET</h5>
+				</div>
+				<div class="ibox-content no-padding clearfix">
+					<table class="table" style="margin-bottom: 0px !important;">
+						<tbody>
+							<tr>
+								<td style="padding-top: 20px;">
+									<div class="col-md-8">
+										@Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+									{
+										{"class", "form-control"},
+										{"placeholder", "Lütfen Açıklama Girin.."},
+										{ "style", "min-height: 70px;height: 70px;"},
+										{ "data-description",""}
+									})
+									</div>
+									<div class="col-md-4" style="text-align:center;margin-top: 16px;
+">
+										<button onclick="updateStatus(this)" data-type="@((int)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)" class="btn btn-md btn-danger"><i class="fa fa-ban"></i> İptal Et </button>
+									</div>
+
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		}
+
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>TALEP BİLGİLERİ</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content no-padding">
+				<ul class="list-group">
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.requesters</span>
+						Talep Gerçekleştiren :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.ReasonForStaffDemand_Title</span>
+						Talep Sebebi :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.EmploymentStatus_Title</span>
+						Personel İstihdam Durumu :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.LocationId_Title</span>
+						İstihdam Bölgesi :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.priority_Title</span>
+						Öncelik Durumu :
+					</li>
+
+					<li class="list-group-item clearfix">
+						<p class="text-warning">
+							Pozisyon/lar
+						</p>
+						<p>
+							@(!string.IsNullOrEmpty(Model.HrPosition_Title) ?
+                                Html.Raw(string.Join(" ", Model.HrPosition_Title.Split(',').Select(c => "<span style='background-color: #ffffff;color: #9a9797;border: 1px solid;' class='badge badge-warning'>" + c + "</span>").ToArray())) : Html.Raw(""))
+						</p>
+					</li>
+					<li class="list-group-item clearfix">
+						<p class="text-warning">
+							Bilgi/Beceriler
+						</p>
+						<p>
+							@(!string.IsNullOrEmpty(Model.HrKeywords_Title) ?
+                               Html.Raw(string.Join(" ", Model.HrKeywords_Title.Split(',').Select(c => "<span style='background-color: #ffffff;color: #9a9797;border: 1px solid;' class='badge badge-warning'>" + c + "</span>").ToArray())) : Html.Raw(""))
+						</p>
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.Gender_Title</span>
+						Cinsiyet :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@(Model.MaritalStatus_Title)</span>
+						Medeni Hali :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.Travelability_Title</span>
+						Seyahat Edebilirlik :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.Education_Title</span>
+						Eğitim Düzeyi :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.MilitaryStatus_Title</span>
+						Askerlik Durumu :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.DriverLicense_Title</span>
+						Sürücü Belgesi :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.ExprienceYear</span>
+						Tecrübe(Yıl) :
+					</li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Model.SalaryRangeMin - @Model.SalaryRangeMax</span>
+						Talep Edilen Maaş Aralığı :
+					</li>
+					<li class="list-group-item clearfix">
+						<span class="pull-right" style="width: 80%;text-align: right;">@(Model.Description!=null? Model.Description : "-")</span>
+						<span class="pull-left"> Açıklama :</span>
+					</li>
+
+				</ul>
+			</div>
+		</div>
+
+
+	</div>
+
+	<div class="col-lg-9">
+		<div class="ibox">
+			<div class="row">
+				@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_PlanResult>())
+				{
+					var desc = item.Generic["EnumDesc"];
+
+					var count = (desc == "Olumlu" ? Model.cards.Olumlu
+											: desc == "Olumsuz" ? Model.cards.Olumsuz
+											: desc == "Tekrar" ? Model.cards.Tekrar
+											: desc == "Gorusulmedi" ? Model.cards.Gorusulmedi
+											: desc == "DahaSonra" ? Model.cards.DahaSonra
+											: desc == "Diger" ? Model.cards.Diger
+											: 0);
+					<div class="colmd3Cards col-xs-12 col-sm-12 col-md-2">
+						<div id="Card_1ff55a9c" class="widget style1 " style="background:@item.Generic["color"];min-height: 85px;">
+							<div class="row">
+								<div class="col-xs-2 hidden-md wHeader">
+									<i class="fa @item.Generic["icon"] fa-2x" style="color:white;"></i>
+								</div>
+								<div class="col-xs-10 text-right wInformation">
+									<span style="color:white;">@item.Value</span>
+									<h2>
+										<span style="color:white;">
+											@count Adet
+										</span><br>
+									</h2>
+								</div>
+							</div>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+
+		<section style="margin-bottom: 20px;">
+			<div class="tabs-container">
+				<ul class="nav nav-tabs">
+					<li class="active" data-href="@Url.Action("DataSource", "VWHR_StaffNeedsPerson", new { area = "HR" })" data-toggle="tooltip" data-placement="top" title="Yönlendirilen CV'ler">
+						<a data-toggle="tab" href="#VWHR_StaffNeedsPersons" aria-expanded="false"><i class="fa fa-file text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWHR_Plan", new { area = "HR" })" data-toggle="tooltip" data-placement="top" title=" Talep Mülakatları">
+						<a data-toggle="tab" href="#VWHR_Plan2ss" aria-expanded="false"><i class="fa fa-users text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("Timeline", "VWHR_StaffNeeds", new { area = "HR" })" data-toggle="tooltip" data-placement="top" title=" Talep İşlemleri">
+						<a data-toggle="tab" href="#Timelines" aria-expanded="false"><i class="fa fa-exchange text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane active" id="VWHR_StaffNeedsPersons" data-href="@Url.Action("DataSource", "VWHR_StaffNeedsPerson", new { area = "HR" })">
+						<h4><i class="fa text-building fa-file"></i> Yönlendirilen CV'ler </h4>
+						@(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeedsPerson>("VWHR_StaffNeedsPerson")
+							 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeedsPerson", new { area = "HR" }))
+							 .Sort(c => c.Add(v => v.created).Descending())
+							 .PageSize(25)
+							 .Filter(c => c.HrStaffNeedsId == Model.id))
+							 .Columns(x =>
+							 {
+								 x.Bound(y => y.status_Title).Title("").ClientTemplate("#=TemplateEngine('yonlendirilenler',data)#").Filterable(false).Width(60);
+								 x.Bound(y => y.created).Title("Yönlendirme Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+								 x.Bound(y => y.HrPersonId_Title).Title("Adı Soyadı");
+							 })
+							 .Scrollable(c => c.Height(500))
+							 .ToolBar(x =>
+							 {
+
+								 if (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)
+								 {
+
+								 x.Custom().Text("<i data-toggle='tooltip' title='Yeni Mülakat Planla' class='fa fa-users'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" },{ "data-method", "get" }, { "data-show", "single" }, { "data-default", "" }, { "data-plan", "true" }  }).Url(Url.Action("Insert", "VWHR_Plan", new { area = "HR" }));
+								 if (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir)
+								 {
+									 x.Custom().Text("<i data-toggle='tooltip' title='KONTROL ET VE ONAYLA' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-method", "get" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Update", "VWHR_StaffNeedsPerson", new { area = "HR" }));
+								 }
+
+								 x.Custom().Text("<i data-toggle='tooltip' title='CV Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-blank", "" }, { "data-show", "single" }, { "data-default", "" }, { "data-hr", "true" } }).Url(Url.Action("Detail", "VWHR_Person", new { area = "HR" }));
+								 if(Model.lastStatus !=(int)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir)
+								 {
+									 x.Custom().Text("<i data-toggle='tooltip' title='Yeni CV Talep Et' class='fa fa-newspaper-o'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-ask", "" } }).Url(Url.Action("ReturnRequest", "VWHR_StaffNeeds", new { area = "HR", id = Model.id }));
+								 }
+								 }
+							 }))
+					</div>
+					<div class="tab-pane" id="VWHR_Plan2ss" data-href="@Url.Action("DataSource", "VWHR_Plan", new { area = "HR" })">
+						<h4><i class="fa text-building fa-users"></i> Talep Mülakatları </h4>
+						@(Html.Akilli()
+					 .Grid<Infoline.WorkOfTime.BusinessData.VWHR_Plan>("VWHR_Planss")
+					 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_Plan", new { area = "HR" })).PageSize(25).Filter(c => c.StaffNeedsId == Model.id))
+					 .Columns(x =>
+					 {
+						 x.Bound(y => y.Result_Title).Title("").Width(60).ClientTemplate("#=TemplateEngine('planpersongrid',data)#").Filterable(false);
+						 x.Bound(y => y.HrPersonId_Title).Title("Mülakat Yapılacak Kişi").Width(220);
+						 x.Bound(y => y.PlanDate).Title("Mülakat Tarihi").Format(Extensions.DateFormatFull(true)).Width(180);
+						 x.Bound(y => y.InterviewUser_Title).Title("Sonuç Bildiren").Width(220);
+						 x.Bound(y => y.UserId_Titles).Title("Mülakata Katılacak Personeller").Width(600);
+						 x.Bound(y => y.Description).Title("Açıklama");
+					 })
+					 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+					 .Scrollable(x => x.Height(500))
+					 .ToolBar(x =>
+					 {
+						 if (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)
+						 {
+							 if (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir)
+							 {
+								 if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+								 {
+									 x.Custom().Text("<i data-original-title='Mülakat Planını Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHR_Plan", new { area = "HR" }));
+								 }
+								 x.Custom().Text("<i data-original-title='Değerlendirme Ekle' class='fa fa-list'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-method", "GET" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Insert", "VWHR_PlanPerson", new { area = "HR" }));
+							 }
+						 }
+						 x.Custom().Text("<i data-original-title='Mülakat Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWHR_Plan", new { area = "HR" }));
+					 }))
+					</div>
+
+					<div class="tab-pane" id="Timelines" data-href="@Url.Action("Timeline", "VWHR_StaffNeeds", new { area = "HR" })">
+						@Html.Action("Timeline", "VWHR_StaffNeeds", new { area = "HR", id = Model.id })
+					</div>
+
+				</div>
+			</div>
+		</section>
+	</div>
+
+</div>
+
+@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)) && (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir && Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))
+{
+	<div class="fixedStart">
+		<input type="checkbox" id="fixed">
+		<label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+		<div class="fix-buttons">
+			<a data-modal="true" data-task="Insert" data-href="/HR/VWHR_Plan/Insert?staffNeedId=@Model.id"><i data-original-title="Yeni Mülakat Planla" class="fa fa-users" aria-hidden="true"></i> </a>
+
+		</div>
+	</div>
+
+}

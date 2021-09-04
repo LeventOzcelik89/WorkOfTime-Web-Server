@@ -1,0 +1,43 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_PermitOfficialPageReport
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Resmi İzin Günleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="row">
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Resmi İzin Sayısı").Value(Model.ToplamResmiİzinSayisi + " Adet").IconClass("ii-misafirler")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Toplam İzin Tipi Sayısı").Value(Model.ToplamİzinTipiSayisi + " Adet").IconClass("ii-genel-isletme-ozellikleri")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Toplam İzin Sayısı").Value(Model.ToplamİzinSayisi + " Adet").IconClass("ii-hesap-kodlari-liste fa-4x")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("En Uzun Resmi İzin").Value(Model.Gun + " Gün ile Kurban Bayramı" ).IconClass("ii-toplu-islemler fa-4x")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_PermitOffical>("VWINV_PermitOffical")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_PermitOffical", new { area = "INV" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.Type_Title).Title("Resmi İzin Tipi").Width(500);
+        x.Bound(y => y.StartDate).Title("İzin Başlangıç Tarihi").Width(500).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.EndDate).Title("İzin Bitiş Tarihi").Width(500).Format(Extensions.DateFormatFull(true));
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_PermitOffical", new { area = "INV" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_PermitOffical", new { area = "INV" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_PermitOffical", new { area = "INV" }));
+        x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_PermitOffical", new { area = "INV" }));
+    }))

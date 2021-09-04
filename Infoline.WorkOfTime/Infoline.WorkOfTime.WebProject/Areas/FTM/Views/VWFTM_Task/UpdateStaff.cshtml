@@ -1,0 +1,67 @@
+﻿@model VMFTM_TaskModel
+@{
+    ViewBag.Title = "Göreve Personel Ata";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Model.customerId = Model.customerId ?? Guid.NewGuid();
+    var persons = Model.personUserIds.ToList();
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onChangeCompany(e) {
+        var companyId = this.value();
+        var personElem = $('#assignableUsers').data("kendoMultiSelect");
+        var basefilter = personElem.options.dataSource.filter;
+        personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
+    }
+    function onBoundPerson(e) {
+        e.sender.trigger("change");
+    }
+
+    function onChangePerson(e) {
+        var values = e.sender.value();
+        $('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
+    }
+</script>
+
+@using (Html.BeginForm("UpdateStaff", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.code)
+
+    if (Model.assignUserId == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="assignableUsers">Sorumlu Personeller</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                Html.Akilli()
+                .MultiSelectFor(a => a.assignableUsers)
+                .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && persons.Contains(a.id))
+                .Events(e => { e.Change("onChangePerson").Close("onChangePerson").DataBound("onBoundPerson"); })
+                .Validate(Validations.Required)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+            )
+            </div>
+        </div>
+    }
+  
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Personel Ataması Yap</button>
+    </div>
+
+}

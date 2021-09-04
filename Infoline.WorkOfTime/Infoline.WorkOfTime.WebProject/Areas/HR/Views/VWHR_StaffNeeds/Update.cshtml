@@ -1,0 +1,307 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMStaffNeedsAndSearch
+@{
+    ViewBag.Title = "Personel İhtiyacı İşlem Sayfası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .form-control.k-widget {
+        padding: 1px !important;
+    }
+
+    .k-radio:checked + .k-radio-label:after {
+        top: 3.8px !important;
+        left: 4px !important;
+    }
+</style>
+
+@using (Html.BeginForm("Update", "VWHR_StaffNeeds", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+        TALEP KODU : <strong> @Model.NeedCode </strong><br />
+        TALEP TARİHİ : <strong> @Model.created.Value.ToShortDateString()  @Model.created.Value.ToShortTimeString()   </strong>
+
+    </div>
+
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#updateneed"> <i class="fa fa-home text-success"></i> Genel Bilgiler </a>
+                        </h4>
+                    </div>
+                    <div id="updateneed" class="panel-collapse collapse in">
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="ReasonForStaffDemand">Personel Talep Nedeni</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.ReasonForStaffDemand).Value(EnumHR_StaffNeedsReasonForStaffDemand.IstenAyrilanPersonelYerine).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="EmploymentStatus">Personel İstihdam Durumu</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.EmploymentStatus).Value(EnumHR_StaffNeedsEmploymentStatus.BelirsizSureli).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="priority">Öncelik Durumu</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.priority).Value(EnumHR_StaffNeedsPriority.Dusuk).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="LocationId_Title">İstihdam Bölgesi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.LocationId_Title, new Dictionary<string, object>()
+                                               {
+                                                   {"class", "form-control"},
+                                                  {"readonly", "readonly"},
+                                               })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Position">Pozisyon</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(Html.Akilli()
+                                         .MultiSelect("Position")
+                                         .Placeholder("Lütfen Pozisyon Seçiniz..")
+                                         .DataTextField("Name")
+                                         .DataValueField("id")
+                                         .Action(b => b.Action("DataSourceDropDown", "HR_Position", new { area = "HR" }))
+                                         .Sort(x => x.Add("Name").Ascending())
+                                         .BasicInsert(Url.Action("Insert", "HR_Position", new { area = "HR" }), "Name")
+                                         .Execute("id")
+                                         .Value(Model.personPosition)
+                                         .TagMode(TagMode.Multiple)
+                                        .Readonly(true)
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Keywords">Bilgi ve Beceriler</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(Html.Akilli()
+                                         .MultiSelect("Keywords")
+                                         .Placeholder("Lütfen Bilgi ve Beceriler Seçiniz..")
+                                         .DataTextField("Name")
+                                         .DataValueField("id")
+                                         .Action(b => b.Action("DataSourceDropDown", "HR_Keywords", new { area = "HR" }))
+                                         .Sort(x => x.Add("Name").Ascending())
+                                         .BasicInsert(Url.Action("Insert", "HR_Keywords", new { area = "HR" }), "Name")
+                                         .Execute("id")
+                                         .Value(Model.personKeywords)
+                                         .TagMode(TagMode.Multiple)
+                                                  .Readonly(true)
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#updateneed1"> <i class="fa fa-info-circle text-success"></i> Diğer Bilgiler</a>
+                        </h4>
+                    </div>
+                    <div id="updateneed1" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Gender">Cinsiyet</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.Gender).Value(EnumHR_StaffNeedsGender.OnemliDegil).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="MaritalStatus">Medeni Hali</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.MaritalStatus).Value(EnumHR_StaffNeedsMaritalStatus.OnemliDegil).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Travelability">Seyahat Edebilirlik</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.Travelability).Value(EnumHR_StaffNeedsTravelability.Evet).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Education">Eğitim Düzeyi <i class="fa fa-info-circle" title="Minimum istenilen düzeyin seçimini gerçekleştirin." data-toggle="tooltip" data-placement="top"></i></label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.Education_Title, new Dictionary<string, object>()
+                                               {
+                                                   {"class", "form-control"},
+                                                  {"readonly", "readonly"},
+                                               })
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-cascade="[name='Gender']" data-show="0">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="MilitaryStatus">Askerlik Durumu</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.MilitaryStatus).Value(EnumHR_StaffNeedsMilitaryStatus.Yapildi).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="DriverLicense">Sürücü Belgesi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.DriverLicense).Value(EnumHR_StaffNeedsDriverLicense.OnemliDegil).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group clearfix">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="ExprienceYear">Tecrübe</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        @Html.Kendo().NumericTextBoxFor(model => model.ExprienceYear).Min(0).Max(100).Spinners(false).Decimals(0).Format("N0").HtmlAttributes(new Dictionary<string, object>()
+                                                {
+                                                    {"style", "width:100%"},
+                                                    {"class","text-right form-control" },
+                                                    {"readonly","readonly" }
+                                                })
+                                        <span class="input-group-addon" id="ExprienceYear">Yıl</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group clearfix">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="SalaryRangeMin">Talep Edilen Maaş Aralığı</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        @Html.Kendo().NumericTextBoxFor(model => model.SalaryRangeMin).Min(0).Spinners(false).Decimals(0).Format("N0").Placeholder("Minimum Talep Edilen Maaş").HtmlAttributes(new Dictionary<string, object>()
+                                                {
+                                                    {"style", "width:100%"},
+                                                    {"class","text-right form-control" },
+                                                    { "readonly","readonly"}
+                                                })
+                                        <span class="input-group-addon" id="SalaryRangeMin">Min</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        @Html.Kendo().NumericTextBoxFor(model => model.SalaryRangeMax).Min(0).Spinners(false).Decimals(0).Format("N0").Placeholder("Maksimum Talep Edilen Maaş").HtmlAttributes(new Dictionary<string, object>()
+                                                {
+                                                    {"style", "width:100%"},
+                                                    {"class","text-right form-control" },
+                                                    { "readonly","readonly"}
+                                                })
+                                        <span class="input-group-addon" id="SalaryRangeMax">Max</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)) && Model.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi) { 
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#updateneed2"> <i class="fa fa-check text-success"></i> Durumu</a>
+                        </h4>
+                    </div>
+                    <div id="updateneed2" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="status">Onay Durumu</label>
+                                </div>
+                                <div class="col-md-8 radio">
+                                    <div class="row">
+                                        <label>
+                                            @Html.Kendo().RadioButton().Name("lastStatus").Checked(true).Value((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi)
+                                            <span class="radio-stil"> Onayla</span>
+
+                                        </label>
+                                        <label>
+                                            @Html.Kendo().RadioButton().Name("lastStatus").Checked(false).Value((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti)
+                                            <span style="color:#e8164c;" class="radio-stil"> Reddet</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Description">Açıklama</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Açıklama Girin.."},
+                                })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                }
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)) &&  Model.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi)
+        {
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        }
+    </div>
+
+}

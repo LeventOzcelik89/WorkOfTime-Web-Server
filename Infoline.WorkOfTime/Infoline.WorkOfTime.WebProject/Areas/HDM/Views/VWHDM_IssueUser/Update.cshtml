@@ -1,0 +1,44 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWHDM_IssueUser
+@{
+    ViewBag.Title = "Sorumlu Yöneticiyi Değiştir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWHDM_IssueUser", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.issueId)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="userId">Sorumlu Yönetici</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.userId)
+                .OptionLabel("Lütfen Sorumlu Yönetici Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

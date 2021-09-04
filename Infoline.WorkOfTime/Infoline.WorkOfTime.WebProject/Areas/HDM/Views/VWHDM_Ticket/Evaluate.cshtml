@@ -1,0 +1,201 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMHDM_TicketModel
+@{
+    ViewBag.Title = "Değerlendirme";
+}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Değerlendirme</title>
+
+    <link href="~/content/themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="~/Content/Custom/css/custom.css" rel="stylesheet" />
+    <link href="~/Content/Themes/css/plugins/toastr/toastr.min.css" rel="stylesheet" />
+    <link href="~/content/themes/font-awesome/css/font-awesome.css" rel="stylesheet" />
+
+    <script src="~/content/themes/js/jquery-2.1.1.js"></script>
+    <script src="~/Content/Themes/js/jquery-ui-1.10.4.min.js"></script>
+    <script src="~/content/themes/js/bootstrap.min.js"></script>
+    <script src="~/content/themes/js/plugins/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="~/Content/Themes/js/plugins/toastr/toastr.min.js"></script>
+    <script src="~/content/themes/js/plugins/pace/pace.min.js"></script>
+    <script src="~/Content/Themes/js/plugins/linq/jquery.linq.min.js"></script>
+    <script src="~/Content/Themes/js/jquery.livequery.min.js"></script>
+    <script src="~/Content/Plugins/Loading/js/jquery.loadingModal.min.js"></script>
+    <script src="~/Content/Plugins/Bootstrap-Dialog/dist/js/bootstrap-dialog.min.js"></script>
+    <script src="~/Content/Plugins/Validator/js/Validator.js"></script>
+    <script src="~/Content/Plugins/sweetAlert/js/sweetalert.min.js"></script>
+
+    <!--Kendo-->
+    <link lang="tr" href="~/Content/Kendo/css/kendo.common-material.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Kendo/css/kendo.mobile.all.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Kendo/css/kendo.dataviz.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Kendo/css/kendo.material.min.css" rel="stylesheet" type="text/css" />
+    <link href="~/Content/Kendo/css/kendo.dataviz.material.min.css" rel="stylesheet" type="text/css" />
+    <!--Kendo-->
+    <!--Kendo-->
+    <script src="~/Content/Kendo/js/jszip.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.aspnetmvc.min.js"></script>
+
+    <script src="~/Content/Kendo/js/messages/kendo.messages.en-US.min.js"></script>
+    <script src="~/Content/Kendo/js/messages/kendo.messages.tr-TR.min.js"></script>
+    <script src="~/Content/Kendo/js/cultures/kendo.culture.tr-TR.min.js"></script>
+    <script src="~/Content/Kendo/js/cultures/kendo.culture.en-US.min.js"></script>
+    <!--Kendo-->
+
+    <script src="~/Content/Custom/js/master.js"></script>
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+
+        @if (Model.evaluation.HasValue)
+        {
+            <div class="alert alert-warning alert-dismissable">
+                Bu talebin değerlendirmesi başarı ile gerçekleştirdi. Talebin değerlendirmesini yalnızca bir kez yapabilirsiniz.
+            </div>
+        }
+        else
+        {
+            <div id="formEvaluate" class="form-horizontal" style="width:50%;margin-left:25%;margin-top: 5%;">
+
+                <div class="form-group">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" for="issueId_Title"> Konu </label>
+                    </div>
+                    <div class="col-md-8">
+                        @Html.TextBoxFor(model => model.issueId_Title, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                        })
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" for="issueId_Title"> Sorun </label>
+                    </div>
+                    <div class="col-md-8">
+                        @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                        })
+                    </div>
+                </div>
+
+                @if (Model.Messages.Count() > 0)
+                {
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="issueId_Title"> Son Verilen Cevap </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Model.Messages.OrderByDescending(a => a.created).Select(a => a.content).FirstOrDefault())
+                        </div>
+                    </div>
+                }
+
+                <hr />
+
+                <div class="form-group">
+                    <div class="col-md-4">
+                        <label class="control-label label-md req" for="content"> Değerlendirme Puanı </label>
+                    </div>
+                    <div class="col-md-8">
+                        <span class="pull-right" data-original-title="Değerlendirme Puanı" data-placement="top" style="cursor:pointer">
+                            <i data-evaluate="1" class="fa fa-star-o" style="font-size:20px;"></i>
+                            <i data-evaluate="2" class="fa fa-star-o" style="font-size:20px;"></i>
+                            <i data-evaluate="3" class="fa fa-star-o" style="font-size:20px;"></i>
+                            <i data-evaluate="4" class="fa fa-star-o" style="font-size:20px;"></i>
+                            <i data-evaluate="5" class="fa fa-star-o" style="font-size:20px;"></i>
+                        </span>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" for="content"> Açıklama </label>
+                    </div>
+                    <div class="col-md-8">
+                        @Html.TextAreaFor(model => model.evaluateDescription, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen varsa açıklama yazınız.."}
+                        })
+                    </div>
+                </div>
+
+                <div class="buttons">
+                    <button class="btn btn-md btn-success pull-right" type="button" onclick="evaluation(this, 2)">Değerlendirmeyi Gönder</button>
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <style type="text/css">
+        #formEvaluate .fa-star {
+            color: #ffcc00 !important;
+        }
+
+        #formEvaluate .fa-star-o {
+            color: #ffcc00 !important;
+        }
+    </style>
+
+    <script type="text/javascript">
+    var model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+    function fillStar(value) {
+        $('[data-evaluate]').addClass("fa-star-o");
+        for (var i = 1; i <= value; i++) {
+            $('[data-evaluate="' + i + '"]').removeClass("fa-star-o").addClass("fa-star");
+        }
+    }
+
+    function evaluation(_this) {
+        if (model.evaluation && model.evaluation != null) {
+            model.evaluateDescription = $('#evaluateDescription').val();
+
+            GetJsonDataFromUrl('/HDM/VWHDM_Ticket/UpdateCustom', { item: model, actionType: '@((int)EnumHDM_TicketActionType.Degerlendirme)' }, function (resp) {
+                if (resp.Result) {
+                    MesajSuccess(resp.FeedBack.message, "İşlem başarılı");
+                    setTimeout(function () {
+                        location.reload();
+                    }, 500)
+                } else {
+                    MesajWarning(resp.FeedBack.message, "İşlem eksik gerçekleşti.");
+                }
+            })
+        }
+        else {
+            MesajWarning("Lütfen değerlendirme için seçim yapınız.");
+            return false;
+        }
+    }
+
+    $(document)
+        .on("mouseenter", '[data-evaluate]', function (e) {
+            var value = $(this).attr("data-evaluate");
+            fillStar(value);
+        })
+        .on("mouseleave", '[data-evaluate]', function (e) {
+            fillStar(model.evaluation);
+        })
+        .on("click", '[data-evaluate]', function (e) {
+            var value = $(this).attr("data-evaluate");
+            model.evaluation = value;
+        })
+
+    </script>
+
+</body>
+
+</html>

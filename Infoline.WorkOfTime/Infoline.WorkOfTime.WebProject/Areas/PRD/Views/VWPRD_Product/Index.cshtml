@@ -1,0 +1,123 @@
+﻿@{
+    ViewBag.Title = "Ürün&Hizmet Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-method="GET" data-href="@Url.Action("Insert","VWPRD_Product",new { area="PRD" })"><i class="fa fa-plus-circle"></i> Yeni Ürün&amp;Hizmet</a>
+                    <a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den Ürün Ekle" class="btn btn-block btn-primary"
+                       data-properties="@ExcelHelper.GetSchema(typeof(PRD_ProductExcel), "PRD_Product")" data-gridRefresh="VWPRD_Product"
+                       data-post="@Url.Action("Import","VWPRD_Product",new { area="PRD"})">
+                        <i class="fa fa-file-excel-o"></i> Excel'den Ürün Ekle
+                    </a>
+                    <a download href="~/Content/SampleExcels/product_template.xlsx" class="btn btn-block btn-info" data-original-title="Örnek Excel İndir">
+                        <i class="fa fa-download"></i> Örnek Excel İndir
+                    </a>
+                    <div class="space-25"></div>
+                    <h5>TÜRÜNE GÖRE </h5>
+                    <ul class="folder-list" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductType>().OrderBy(a => a.Key))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWPRD_Product" data-category="0" data-query="(type~eq~@item.Key)">
+                                    <i class="fa @item.Generic["icon"]"></i>  @item.Value
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PRD/VWPRD_Product/DataSourceCount?filter=(type~eq~@item.Key)">0</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5>TAKİP TİPİNE GÖRE </h5>
+                    <ul class="folder-list" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductStockType>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWPRD_Product" data-category="1" data-query="(stockType~eq~@item.Key)">
+                                    <i class="fa @item.Generic["icon"]"></i>  @item.Value
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PRD/VWPRD_Product/DataSourceCount?filter=(stockType~eq~@item.Key)">0</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5>STOK DURUMUNA GÖRE</h5>
+                    <ul class="folder-list" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPRD_Product" data-category="2" data-query="(stockTotal~lt~0)">
+                                <i class="fa fa-warning"></i> Eksi Stoklar
+                            </a>
+                            <span class="badge badge-white pull-right m-l-md  m-t-xs" data-counturl="/PRD/VWPRD_Product/DataSourceCount?filter=(stockTotal~lt~0)">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPRD_Product" data-category="2" data-query="(criticalStockAlert~eq~1)">
+                                <i class="fa fa-info-circle"></i> Kritik Stoklar
+                            </a>
+                            <span class="badge badge-white pull-right m-l-md  m-t-xs" data-counturl="/PRD/VWPRD_Product/DataSourceCount?filter=(criticalStockAlert~eq~1)">0</span>
+                        </li>
+                    </ul>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Ürün&amp;Hizmet Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Product>("VWPRD_Product")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Product", new { area = "PRD" })).PageSize(25))
+                    .Filterable(a => a.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.fullName).Title("Ürün Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).ClientTemplate("#=TemplateEngine('productListTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        x.Bound(y => y.code).Title("Kod").Width(200).Hidden(true);
+                        x.Bound(y => y.barcode).Title("Barkod").Width(200).Hidden(true);
+                        x.Bound(y => y.name).Title("İsim").Width(200).Hidden(true);
+                        x.Bound(y => y.brandId_Title).Title("Marka").Width(200).Hidden(true);
+                        x.Bound(y => y.categoryId_Title).Title("Kategori").Width(200).Hidden(true);
+                        x.Bound(y => y.type_Title).Title("Türü").Width(200).Hidden(true);
+                        x.Bound(y => y.stockType_Title).Title("Takip tipi").Width(200).Hidden(true);
+                        x.Bound(y => y.description).Title("Açıklama").Width(200).Hidden(true);
+                        x.Bound(y => y.currentBuyingPrice).Title("Birim Maliyet").Format("{0:N2}").Width(200).Hidden(true);
+                        x.Bound(y => y.currentBuyingCurrencyId_Title).Title("Birim Maliyet Kur").Width(200).Hidden(true);
+                        x.Bound(y => y.currentSellingPrice).Title("Birim Fiyat").Format("{0:N2}").Width(200).Hidden(true);
+                        x.Bound(y => y.currentSellingCurrencyId_Title).Title("Birim Fiyat Kur").Width(200).Hidden(true);
+                        x.Bound(y => y.stockPerson).Title("Personeldeki Stok Miktarı").Width(200).Hidden(true);
+                        x.Bound(y => y.stockStorage).Title("Depolardaki Stok Miktarı").Width(200).Hidden(true);
+                        x.Bound(y => y.stockTotal).Title("Toplam Stok Miktarı").Width(200).Hidden(true);
+                        x.Bound(y => y.unitId_Title).Title("Birim").Width(200).Hidden(true);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .Scrollable(a => a.Height(630))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Ürün Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_Product", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Ürün Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Product", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Ürün Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWPRD_Product", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Ürün Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_Product", new { area = "PRD" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+

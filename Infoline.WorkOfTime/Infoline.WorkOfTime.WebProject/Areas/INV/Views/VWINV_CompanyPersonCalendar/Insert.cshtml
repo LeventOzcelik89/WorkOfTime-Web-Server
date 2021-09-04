@@ -1,0 +1,219 @@
+﻿@using Infoline.WorkOfTime.BusinessData
+@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonCalendar
+@{
+    ViewBag.Title = "Takvim Etkinliği Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
+    var IsMine = ViewBag.Ismine;
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var control = false;
+
+    function onChangeType(e) {
+        var val = this.dataItem().Id;
+
+        if (val == 100 || val == 101 || val == 103 || val == 104) {
+            $('#EndComplete').hide();
+        } else {
+            $('#EndComplete').show();
+        }
+
+        if (val == 102) {
+            GetJsonDataFromUrl('/INV/VWINV_CompanyPersonCalendar/DescriptionTypeGroup', null, function (resp) {
+                resp.forEach(function (e, i) {
+                    $("#Descriptions").append('<option value="' + e + '"> ' + e + ' </option>')
+                })
+            })
+
+            $('#descrip #Description').attr("disabled", "disabled");
+            $('#toplanti').attr("disabled", false);
+
+
+        }
+        else {
+            $('#descrip #Description').attr("disabled", false);
+            $('#toplanti').attr("disabled", "disabled");
+        }
+    }
+
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWINV_CompanyPersonCalendar", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWINV_CompanyPersonCalendar" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    <style type="text/css" data-selector="modalContainer">
+        [data-select] {
+            line-height: 30px;
+        }
+
+        .input-group-addon > .btn {
+            color: #FFFFFF !important;
+            line-height: 2.4 !important;
+            display: block;
+        }
+
+        .input-group-addon {
+            padding: 0px;
+            background: none;
+            min-width: 40px;
+            text-align: center;
+        }
+    </style>
+
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IdUsers">Kişiler</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli()
+                 .MultiSelect("IdUsers")
+                 .Placeholder("Lütfen Kişi Seçiniz..")
+                 .DataValueField("id")
+                 .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.status == true)
+                 .Sort(x => x.Add("FullName").Ascending()).Validate(Validations.Required)
+                 .Filter("contains")
+                 .Execute("id")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Type">Tip</label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Type)
+              .OptionLabel("Lütfen Etkinlik Tipi seçin")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending()).Validate(Validations.Required)
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "INV_CompanyPersonCalendar" && a.fieldName == "Type" && a.enumKey >= 100 && a.enumKey < 200)
+              .Events(e => e.Change("onChangeType"))
+              .Validate(Validations.Required)
+              .Execute("enumKey")
+            )
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.StartDate)
+                .Placeholder("Lütfen etkinlik başlangıç tarihini girin")
+                .MaxDateElement("EndDate")
+                .Min(new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 08, 30, 0))
+                .Validate(Validations.Required)
+            )
+
+        </div>
+    </div>
+
+    <div class="form-group" id="EndComplete">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .Placeholder("Lütfen etkinlik bitiş tarihini girin")
+                .MinDateElement("StartDate")
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Title">Başlık</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen başlığı girin"},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group" id="descrip">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen açıklama bilgisini girin"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Takvim Dosyaları</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CompanyPersonCalendar")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Takvim Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[name='Type']" data-show="102">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Descriptions">Toplantı Salonu</label>
+        </div>
+        <div class="col-md-8">
+            <input list="Descriptions" name="Description" class="form-control" value="@Model.Description" required="required" id="toplanti">
+            <datalist id="Descriptions"></datalist>
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Mail ile bilgilendirme</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().CheckBox().Name("mailForParticipants").Checked(true).Label("Katılımcılara mail gönderilsin mi?"))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+

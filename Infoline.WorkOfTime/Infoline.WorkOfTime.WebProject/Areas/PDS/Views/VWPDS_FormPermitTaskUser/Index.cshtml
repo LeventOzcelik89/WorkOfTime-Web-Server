@@ -1,0 +1,127 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.VWPDS_FormPermitTaskUser[]
+@{
+    ViewBag.Title = "Değerlendirmelerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript">
+    $(document)
+        .on("load:grid", "#VWPDS_FormPermitTaskUser", function (e) {
+
+            $.each($('#VWPDS_FormPermitTaskUser .k-grid-content [role="row"]').find('[data-event="GridSelector"]'), function (i, item) {
+
+                var count = $(item).attr('data-evaluatecount');
+                var color = "#1ab394";
+
+                if (count == 0) {
+                    color = "#df2317";
+                }
+
+                $(item).parent('td').css('background-color', (color + ' !important'));
+            });
+        })
+        .on("selected:grid", "#VWPDS_FormPermitTaskUser", function (e, res) {
+            $('[data-id="evaluate"]').attr("data-href", "/PDS/VWPDS_FormResult/Insert?formPermitTaskUserId=" + res.id);
+            if (res.lastId == null) {
+                $('[data-update="btn"]').hide();
+            } else {
+                $('[data-update="btn"]').show();
+                $('[data-update="btn"]').attr("data-href", "/PDS/VWPDS_FormResult/Update?id=" + res.lastId);
+            }
+          
+        })
+
+    function imageError(element) {
+        element.onerror = '';
+        element.src = '/Content/Custom/img/na.png';
+    }
+
+</script>
+
+
+<div class="row">
+
+    @if (Model.Count() > 0)
+    {
+        <div class="col-md-3">
+
+            @foreach (var item in Model.GroupBy(a => a.formName))
+            {
+                <div class="ibox ">
+                    <div class="ibox-title">
+                        <h5>@item.Key</h5>
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-up"></i>
+                            </a>
+                        </div>
+                    </div>
+                    <div class="ibox-content no-padding clearfix">
+                        <ul class="list-group">
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-md-4">Başlangıç </div>
+                                    <div class="col-md-8"><span class="pull-right boldText">@(item.Select(s => s.startDate).FirstOrDefault() != null ? string.Format("{0:dd.MM.yyyy}", item.Select(s => s.startDate).FirstOrDefault()) : "-")</span></div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-md-4">Bitiş </div>
+                                    <div class="col-md-8"><span class="pull-right boldText">@(item.Select(s => s.endDate).FirstOrDefault() != null ? string.Format("{0:dd.MM.yyyy}", item.Select(s => s.endDate).FirstOrDefault()) : "-")</span></div>
+                                </div>
+                            </li>
+                            <li class="list-group-item">
+                                <div class="row">
+                                    <div class="col-md-4">Değerlendirme </div>
+                                    <div class="col-md-8"><span class="pull-right boldText">@(item.Sum(s => s.evaluateCount).ToString()) Adet</span></div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            }
+
+        </div>
+    }
+
+
+    <div class="@(Model.Count() > 0 ? "col-lg-9" : "col-lg-12")">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>DEĞERLENDİRME YAPABİLECEĞİM FORMLAR</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormPermitTaskUser>("VWPDS_FormPermitTaskUser")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormPermitTaskUser", new { area = "PDS" })).PageSize(100)
+                    .Filter(a => a.status == 1 && a.evaluatorId == userStatus.user.id)
+                    .Group(g => g.Add(c => c.formName)).Aggregates(g => g.Add(c => c.formName).Count()))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.ProfilePhoto).ClientTemplate("<img src='" + "#=ProfilePhoto#' onerror='imageError(this)' alt='#=evaluatedUser_Title #' Title='#=evaluatedUser_Title #' class='photos' style='width:48px; overflow:hidden'/>").Title("Profil Resmi").Filterable(false).Sortable(false).Width(70);
+                        x.Bound(y => y.evaluatedUser_Title).Title("Değerlendirilecek Personel").Width(120);
+                        x.Bound(y => y.formName).Title("Form İsmi").Width(150).ClientGroupHeaderTemplate("Form : #=value# ").Hidden(true);
+                        x.Bound(y => y.endDate).Title("Form Son Tarih").Width(180).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                        x.Bound(y => y.evaluateCount).Title("Kaç Kez Değerlendirildi?").Width(120);
+                        x.Bound(y => y.lastEvaluateDate).Title("Son Değerlendirme Tarihi").Width(150).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortTimePattern + "}");
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .Scrollable(x => x.Height(550))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Yeni Değerlendirme Yap' class='fa fa-area-chart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "evaluate" } }).Url(Url.Action("Insert", "VWPDS_FormResult", new { area = "PDS" }));
+                        x.Custom().Text("<i data-original-title='Değerlendirmeyi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } , { "data-update", "btn"} }).Url(Url.Action("Update", "VWPDS_FormResult", new { area = "PDS" }));
+                        x.Custom().Text("<i data-original-title='Personel Değerlendirme Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-blank", "true" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Index", "VWPDS_FormResult", new { area = "PDS" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+

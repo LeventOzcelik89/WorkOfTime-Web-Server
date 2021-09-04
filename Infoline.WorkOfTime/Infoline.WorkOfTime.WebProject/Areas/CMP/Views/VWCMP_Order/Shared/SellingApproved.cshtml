@@ -1,0 +1,71 @@
+﻿<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <div class="space-25"></div>
+                    <h5>İşlem Yapılma Durumuna Göre</h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+						<li>
+							<a class="active" data-grid="VWCMP_Order" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_OrderStatus.Onay)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')" href="#">
+								<i class="text-warning fa fa-spinner"></i> Faturası Kesilecek Siparişler
+								<span class="label label-success pull-right" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.Onay)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')"></span>
+							</a>
+						</li>
+						<li>
+							<a data-grid="VWCMP_Order" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_OrderStatus.SurecTamamlandi)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')" href="#">
+								<i class="text-primary fa fa-check-circle"></i> Faturası Kesilen Siparişler
+								<span class="label label-success pull-right" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.SurecTamamlandi)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')"></span>
+							</a>
+						</li>
+						<li>
+							<a data-grid="VWCMP_Order" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_OrderStatus.IrsaliyeKesildi)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')" href="#">
+								<i class="text-info fa fa-file"></i> İrsaliyesi Kesilen Siparişler
+								<span class="label label-success pull-right" data-counturl="/CMP/VWCMP_Order/DataSourceCount?filter=(status~eq~@((int)EnumCMP_OrderStatus.IrsaliyeKesildi)~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Satis)')"></span>
+							</a>
+						</li>
+					</ul>
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>TÜM SATIŞ SİPARİŞLERİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Order>("VWCMP_Order")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Order", new { area = "CMP" }))
+                .Filter(a => (a.status == (int)EnumCMP_OrderStatus.Onay || a.status == (int)EnumCMP_OrderStatus.IrsaliyeKesildi) && a.direction == (int)EnumCMP_InvoiceDirectionType.Satis).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).ClientTemplate("#= statusTemplate(data) #").Width(40).Filterable(false).Title("");
+                    x.Bound(y => y.status_Title).Title("Sipariş Durumu");
+                    x.Bound(y => y.rowNumber).Title("Sipariş Kodu");
+                    x.Bound(y => y.issueDate).Title("Sipariş Tarihi").Format(Extensions.DateFormatShort(true)).Width(150);
+                    x.Bound(y => y.Supplier_Title).Title("Siparişi Alan İşletmem");
+                    x.Bound(y => y.Customer_Title).Title("Müşteri");
+                    x.Bound(y => y.createdby_Title).Title("Siparişi Giren Personel");
+                    x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(180).ClientTemplate("#=currencyFunction(data, data.totalAmount, true)#");
+                    x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .Scrollable(s => s.Height(650))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Siparişi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Order", new { area = "CMP" }));
+                    x.Custom().Text("<i data-original-title='Sipariş Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Order", new { area = "CMP" }));
+                }))
+
+            </div>
+        </div>
+    </div>
+</div>

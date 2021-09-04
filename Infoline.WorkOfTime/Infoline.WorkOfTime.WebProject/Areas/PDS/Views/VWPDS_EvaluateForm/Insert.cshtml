@@ -1,0 +1,523 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPDS_EvaluateFormModel
+@{
+    ViewBag.Title = "Yeni Form Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 65%;
+    }
+
+    #VWPDS_EvaluateFormForm .ibox-title {
+        background-color: #cfcfcf;
+        padding-top: 7px;
+    }
+
+    #VWPDS_EvaluateFormForm .ibox {
+        border: 1px solid #ccccdd;
+    }
+
+
+    #VWPDS_EvaluateFormForm .panel-heading {
+        cursor: move;
+        background-color: aliceblue !important;
+        padding: 8px 0 !important;
+    }
+
+    #VWPDS_EvaluateFormForm .panel-default {
+        margin-bottom: 5px !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var page = {
+        questionList: [],
+        dfn: {
+            model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        },
+        form: {
+            postControl: function () {
+                var control = 0;
+                var formType = $('#formType').data("kendoDropDownList").value();
+                var formName = $('#formName').val();
+                var formCode = $('#formCode').val();
+
+                if(formType == "" || formType == null){
+                    MesajWarning("Lütfen form tipi giriniz.");
+                    control++;
+                }
+
+                if(formName == "" || formName == null){
+                    MesajWarning("Lütfen form ismi giriniz.");
+                    control++;
+                }
+
+                if(formCode == "" || formCode == null){
+                    MesajWarning("Lütfen form kodu giriniz.");
+                    control++;
+                }
+
+                if($('#content').find('[data-group="true"]').length == 0){
+                    MesajWarning("Grup eklemeden form kaydedemezsiniz.");
+                    control++;
+                }
+
+                return control;
+            },
+            post: function () {
+                var control = page.form.postControl();
+                if (control > 0) { return false; }
+
+                page.beforeSubmit();
+                $('#VWPDS_EvaluateFormForm').trigger("submit");
+            },
+        },
+        events: {
+            onDataBoundType: function (e) {
+                page.init();
+            },
+        },
+        autocomplete: {
+            add: function (container) {
+                $(container).find('[data-name="addQuestion"]').kendoAutoComplete({
+                    dataSource: page.questionList,
+                    dataTextField: "Question",
+                    filter: "contains",
+                });
+            }
+        },
+        beforeSubmit: function () {
+
+            var indexQuestion = 0;
+
+            $.each($('[data-group]'), function (i, groupContent) {
+                var questions = $(groupContent).find('[data-question]');
+                var groupName = $(groupContent).find('[data-name="groupName"]').val();
+
+                $.each(questions, function (index, question) {
+                    var panel = $(question).parents(".panel");
+                    var elements = panel.find('[data-id]');
+                    var questionId = panel.find('[data-name="addQuestion"]').attr("data-questionId");
+                    var factor = panel.find('[data-name="factor"]').val();
+
+                    $.each(elements, function (z, elem) {
+                        var name = $(elem).attr("data-id");
+
+                        $(elem).attr("name", 'QuestionForms[' + indexQuestion + '].' + name);
+
+                        switch (name) {
+                            case "questionOrder":
+                                $(elem).val(index + 1);
+                                break;
+                            case "groupOrder":
+                                $(elem).val(i + 1);
+                                break;
+                            case "groupName":
+                                $(elem).val(groupName);
+                                break;
+                            case "questionId":
+                                $(elem).val(questionId);
+                                break;
+                            case "factor":
+                                $(elem).val(factor);
+                                break;
+                            default:
+                        }
+                    })
+
+                    indexQuestion++;
+                })
+            })
+        },
+        group: {
+            getTemplate: function () {
+                var cloneQuestion = page.question.getTemplate();
+                var cloneGroup = $('#templateGroup').clone(true).removeClass("hide").removeAttr("id");
+                $(cloneGroup).attr("id", "clone");
+                $(cloneGroup).find('[data-id="questions"]').append(cloneQuestion);
+                return $(cloneGroup);
+            },
+            addControl: function (ibox) {
+                var quest = ibox.find('[data-name="groupName"]');
+                var questions = ibox.find('.panel');
+
+                var control = 0;
+
+                if (questions.length < 2) {
+                    MesajWarning("Soru eklemeden grup ekleyemezsiniz.");
+                    control++;
+                }
+
+                if (quest.val() == "" || quest.val() == null) {
+                    MesajWarning("Lütfen grup ismi giriniz.");
+                    control++;
+                }
+
+                var groupNames = $('#content').find('[data-name="groupName"]');
+
+                $.each(groupNames, function (index, name) {
+                    if (name != quest[0] && $(name).val().trim().toLowerCase().localeCompare(quest.val().trim().toLowerCase()) == 0) {
+                        MesajWarning("Lütfen var olmayan grup ismi giriniz.");
+                        control++;
+                    }
+                })
+
+                return control;
+            },
+            add: function (_this) {
+                var cloneGroup = page.group.getTemplate();
+
+                var guid = newGuid();
+                $(cloneGroup).find('[data-content="draggableList"]').removeAttr("id").attr("id", guid);
+
+                if (_this) {
+                    var ibox = $(_this).parents('[data-content="group"]');
+                    ibox.removeAttr("id");
+
+                    var control = page.group.addControl(ibox);
+                    if (control > 0) { return false; }
+
+                    ibox.addClass("collapsed");
+                    ibox.find('.add-link').addClass("hide");
+                    ibox.find('.close-link').removeClass("hide");
+                    $(ibox).attr("data-group", "true");
+                }
+
+                $('#content').prepend(cloneGroup);
+                page.autocomplete.add(cloneGroup);
+                $('#' + guid).sortable({ handle: '.panel-heading', items: '.panel:not(:first)' });
+            },
+        },
+        question: {
+            getTemplate: function () {
+                return $('#templateQuestion').clone(true).removeClass("hide").removeAttr("id");
+            },
+            addTemplate: function (_this) {
+                var panel = $(_this).parents(".panel");
+                var questionContent = $(_this).parents('[data-id="questions"]');
+                var cloneQuestion = page.question.getTemplate();
+                $(cloneQuestion).find('[data-name="addQuestionButton"]').removeClass("hide");
+                $(cloneQuestion).find('[data-name="removeQuestionButton"]').addClass("hide");
+
+                $(panel).find('[data-name="addQuestionButton"]').addClass("hide");
+                $(panel).find('[data-name="removeQuestionButton"]').removeClass("hide");
+                $(panel).find('[data-name="addQuestion"]').attr("readonly", "readonly");
+                $(panel).find('[data-name="addQuestion"]').attr("style", "opacity: 0.5");
+                $(panel).find('[data-name="addQuestion"]').attr("data-question", "true");
+
+                $(questionContent).prepend(cloneQuestion);
+                page.autocomplete.add(cloneQuestion);
+            },
+            post: function (panel, questionText) {
+                GetJsonDataFromUrl('/PDS/VWPDS_Question/Insert', { item: {question: questionText} }, function (resp) {
+                    if (resp.Result == true) {
+                        panel.find('[data-name="addQuestion"]').attr("data-questionId", resp.Object.id);
+
+                        page.questionList.push({
+                            Id: resp.Object.id,
+                            Question: resp.Object.question
+                        });
+
+                        $.each($('[data-name="addQuestion"]'), function(i,item){
+                            var dataSource = $(item).getKendoAutoComplete().dataSource;
+                            dataSource.read();
+                        })
+                    }
+                });
+            },
+            addControl: function (panel) {
+                var control = 0;
+
+                var questionText = panel.find('[data-name="addQuestion"]').val();
+                var factor = panel.find('[data-name="factor"]').val();
+                var ibox = panel.parents('[data-content="group"]');
+                var questions = ibox.find('[data-name="addQuestion"]:not(:first)');
+
+                $.each(questions, function(q, elm){
+                    if($(elm).val().trim().toLowerCase().localeCompare(questionText.trim().toLowerCase()) == 0){
+                        MesajWarning("Lütfen eklenmemiş soru giriniz.");
+                        control++;
+                    }
+                })
+
+                if (questionText == "" || questionText == null) {
+                    MesajWarning("Lütfen soru giriniz.");
+                    control++;
+                }
+
+                if (factor == "" || factor == null) {
+                    MesajWarning("Lütfen katsayı giriniz.");
+                    control++;
+                }
+
+                return control;
+            },
+            add: function (_this) {
+
+                var panel = $(_this).parents(".panel");
+                var questionText = panel.find('[data-name="addQuestion"]').val();
+                var ibox = panel.parents('[data-content="group"]');
+
+                var control = page.question.addControl(panel);
+
+                if (control > 0) { return false; }
+
+                if (page.questionList.length == 0 || !page.questionList.find(a => a.Question.trim().toLowerCase().localeCompare(questionText.trim().toLowerCase()) == 0)) {
+                    page.question.post(panel, questionText);
+                } else {
+                    var question = $.Enumerable.From(page.questionList).Where(a => a.Question.trim().toLowerCase().localeCompare(questionText.trim().toLowerCase()) == 0).FirstOrDefault();
+                    panel.find('[data-name="addQuestion"]').attr("data-questionId", question.Id);
+                }
+
+                page.question.addTemplate(_this);
+            },
+            remove: function (_this) {
+                $(_this).parents('.panel').remove();
+                page.calculatePercent();
+            },
+        },
+        calculatePercent: function () {
+            var factors = $('#content').find('[data-name="factor"]');
+            var sum = 0;
+
+            $.each(factors, function (i, item) {
+                var value = $(item).val();
+                sum += Number(value);
+            })
+
+            var groups = $('[data-content="group"]');
+
+            $.each(groups, function(j, group){
+                var factors = $(group).find('[data-name="factor"]');
+                var groupSum = 0;
+                $.each(factors, function(x, xg){
+                    groupSum+=Number($(xg).val());
+                })
+
+                var res = sum != 0 ? groupSum * 100 / Number(sum) : 0;
+                $(group).find('[data-name="groupPercent"]').parents("label").removeClass("hide");
+                $(group).find('[data-name="groupPercent"]').text(res.toFixed(2));
+            })
+
+            $.each(factors, function (i, item) {
+
+                if ($(item).val() != null && $(item).val() != "") {
+                    var value = Number($(item).val());
+                    var percent = (value * 100) / Number(sum);
+                    $(item).parents('.panel').find('[data-name="percentQuestion"]').text(percent.toFixed(2));
+                }
+                else {
+                    $(item).parents('.panel').find('[data-name="percentQuestion"]').text("");
+                }
+            })
+        },
+        init: function () {
+            page.questionList = $.Enumerable.From(page.dfn.model.Questions).Select(function (a) {
+                return {
+                    Id: a.id,
+                    Question: a.question
+                }
+            }).ToArray();
+
+            page.group.add();
+
+            $('[data-name="addQuestion"]').kendoAutoComplete({
+                dataSource: page.questionList,
+                dataTextField: "Question",
+                filter: "contains",
+            });
+
+            $('#content').sortable({ handle: '.sortableibox', items: '.ibox:not(:first)' });
+
+            if (page.dfn.model.QuestionForms != null && page.dfn.model.QuestionForms.length > 0) {
+                page.load();
+            }
+        },
+        load: function () {
+             var arr = $.Enumerable.From(page.dfn.model.QuestionForms).GroupBy(a=>a.groupOrder).ToArray();
+
+            $.each(arr, function(i,item){
+                var lengthSource = item.source.length;
+
+                $.each(item.source, function(j, obj){
+
+                    var q = page.questionList.find(a=>a.Id == obj.questionId);
+                    var factor = obj.factor;
+
+                    var content = $('#clone').find('.panel-heading')[0];
+
+                    $(content).find('[data-name="addQuestion"]').val(q.Question);
+                    $(content).find('[data-name="factor"]').val(factor);
+
+                    $(content).find('[data-name="addQuestionButton"]').trigger("click");
+
+                    if(j == lengthSource - 1){
+                        $('#clone').find('[data-name="groupName"]').val(obj.groupName);
+                        $('#clone').find('.add-link').trigger("click");
+                        $('[data-name="factor"]').trigger("keyup");
+                    }
+                })
+            })
+        }
+    }
+
+    $(document)
+        .on("keyup input", '[data-name="factor"]', function (e) {
+            var _this = $(this);
+            var value = _this.val();
+
+            if(value < 0 || value > 100){
+                _this.val("");
+            }
+
+            page.calculatePercent();
+        })
+        .on("click", ".close-link", function () {
+            page.calculatePercent();
+        })
+
+</script>
+
+
+@using (Html.BeginForm("Insert", "VWPDS_EvaluateForm", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "VWPDS_EvaluateFormForm"}
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+    @Html.HiddenFor(model => model.status)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="formType">Form Tipi</label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Akilli()
+                      .DropDownListFor(model => model.formType)
+                      .OptionLabel("Lütfen Form Tipini Seçiniz..")
+                      .DataValueField("Id")
+                      .DataTextField("enumDescription")
+                      .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                      .Events(e => e.DataBound("page.events.onDataBoundType"))
+                      .Sort(x => x.Add("enumDescription").Ascending())
+                      .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PDS_EvaluateForm" && a.fieldName == "formType")
+                      .Validate(Validations.Required)
+                      .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="formCode">Form Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.formCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Form Kodu Giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="formName">Form İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.formName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Form İsmi Giriniz.."}
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+
+    <div id="content"></div>
+
+    <div class="ibox hide" id="templateGroup" data-content="group">
+        <div class="sortableibox">
+            <div class="ibox-title">
+                <div class="row">
+                    <div class="col-md-5">
+                        <input type="text" class="form-control" style="font-size: 20px;border-radius: 6px !important;" data-name="groupName" placeholder="Soru grubu ismi giriniz." autocomplete="off" />
+                    </div>
+                    <div class="col-md-4" style="text-align:right;">
+                        <label class="control-label label-md hide">Grubun yüzdelik değeri : <span data-name="groupPercent"></span></label>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="ibox-tools">
+                            <a class="collapse-link">
+                                <i class="fa fa-chevron-down fa-3x text-success"></i>
+                            </a>
+                            <a class="close-link hide">
+                                <i class="fa fa-times fa-3x text-danger"></i>
+                            </a>
+                            <a class="add-link" onclick="page.group.add(this)">
+                                <i class="fa fa-plus fa-3x text-primary"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="ibox-content">
+                <div class="contentGroup">
+                    <table id="headerPanel" class="table" style="margin-bottom: 0px;border: 1px solid #ddd;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: center;width: 58%;">Soru</th>
+                                <th style="text-align: center;width: 16%;">Katsayı</th>
+                                <th style="text-align: center;width: 17%;">Yüzdelik Değeri</th>
+                                <th style="text-align: center;width: 9%;"></th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div style="border: 1px solid #ddd;padding: 10px;">
+                        <ul id="questions" data-id="questions" data-content="draggableList" class="list-unstyled draggableList"></ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <li id="templateQuestion" class="panel panel-default hide">
+        <div class="panel-heading clearfix">
+            <div class="col-md-7">
+                <input type="text" data-name="addQuestion" class="form-control" style="height: 33px;" placeholder="Soru arayınız veya yeni soru giriniz." value="" />
+                <input type="hidden" data-id="questionId" />
+            </div>
+            <div class="col-md-2">
+                <input type="number" data-name="factor" data-id="factor" class="form-control" placeholder="" min="0.1" max="100" step="0.1" value="" />
+            </div>
+            <div class="col-md-2 text-center">
+                <label class="control-label label-md" data-name="percentQuestion"></label>
+            </div>
+            <input type="hidden" data-id="questionOrder" />
+            <input type="hidden" data-id="groupOrder" />
+            <input type="hidden" data-id="groupName" />
+            <div class="col-md-1">
+                <button type="button" data-name="addQuestionButton" class="btn btn-primary btn-block" title="Ekle" onclick="page.question.add(this)"><i class="fa fa-plus"></i> </button>
+                <button type="button" data-name="removeQuestionButton" class="btn btn-danger btn-block hide" title="Çıkar" onclick="page.question.remove(this)"><i class="fa fa-minus"></i></button>
+            </div>
+        </div>
+    </li>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="button" onclick="page.form.post(this)">Kaydet</button>
+    </div>
+}

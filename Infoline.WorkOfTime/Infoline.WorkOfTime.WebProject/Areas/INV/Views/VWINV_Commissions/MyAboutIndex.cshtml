@@ -1,0 +1,174 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Görevlendirme Talepleri (Onay İşlemleri)";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+     function statusTemplate(data) {
+        if(data.IsOwner == true){
+            if(data.ApproveStatus == 0){
+                return '<i class="fa text-warning fa-spinner">';
+            }else if(data.ApproveStatus == 1 || data.ApproveStatus == 3){
+                return '<i class="fa text-success fa-check"></i>';
+            }else{
+                return '<i class="fa text-danger fa-times-circle"></i>';
+            }
+        }
+     }
+
+    $(document)
+       .on("selected:grid", "#VWINV_CommissionsPersons", function (e, resp) {
+          $('[data-href="/INV/VWINV_Commissions/Delete"]').addClass('hide');
+          if ('@userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))' == 'True') {
+              $('[data-href="/INV/VWINV_Commissions/Delete"]').removeClass('hide');
+          }
+      })
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <h5> DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWINV_CommissionsPersons" data-switch="radio" data-category="0" data-query="((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)~or~((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1)~and~IsOwner~eq~true))~or~((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2)~and~IsOwner~eq~true))">
+                                <i class="fa fa-align-justify" style="color:black;"></i>  Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)~or~((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1)~and~IsOwner~eq~true))~or~((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2)~and~IsOwner~eq~true))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left " href="#" data-grid="VWINV_CommissionsPersons" data-switch="radio" data-category="0" data-query="((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)">
+                                <i class="fa text-warning fa-spinner"></i>  Onayımı Bekleyen
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_CommissionsPersons" data-switch="radio" data-category="0" data-query="((Manager1Approval~eq~'@userStatus.user.id'~and~IsOwner~eq~true)~and~(ApproveStatus~eq~1~or~ApproveStatus~eq~3))">
+                                <i class="fa  text-navy fa-check"></i>   Onayladıklarım
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((Manager1Approval~eq~'@userStatus.user.id'~and~IsOwner~eq~true)~and~(ApproveStatus~eq~1~or~ApproveStatus~eq~3))">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_CommissionsPersons" data-switch="radio" data-category="0" data-query="((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2)~and~IsOwner~eq~true)">
+                                <i class="fa text-danger fa-times-circle"></i>  Reddettiklerim
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2)~and~IsOwner~eq~true)">0</span>
+                        </li>
+
+                    </ul>
+
+                    <div class="space-25"></div>
+
+                    <h5>GÖREV TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CommissionsInformation>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_CommissionsPersons" data-category="1" data-query="(Information~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+
+                    <h5>SEYAHAT TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CommissionsTravelInformation>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_CommissionsPersons" data-category="2" data-query="(TravelInformation~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Görevlendirme Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CommissionsPersons>("VWINV_CommissionsPersons")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CommissionsPersons", new { area = "INV" }))
+                .Filter(a =>
+                (a.Manager1Approval == userStatus.user.id && a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor && a.IsOwner == true) ||
+                (a.Manager1Approval == userStatus.user.id && a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi && a.IsOwner == true) ||
+                (a.Manager1Approval == userStatus.user.id && a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi && a.IsOwner == true)
+                )
+                //.Filter(a => a.Manager1Approval == userStatus.user.id && a.IsOwner == true && (a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi))
+                //.Filter(a => a.Manager1Approval == userStatus.user.id && a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi && a.IsOwner == true)
+                .PageSize(25))
+                .Scrollable(a => a.Height(600))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.ApproveStatus_Title).Title("").ClientTemplate("#=statusTemplate(data)#").Filterable(a => a.Enabled(false)).Width(40);
+                    x.Bound(y => y.created).Title("Talep Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.createdby_Title).Title("Talep Eden").Width(150);
+                    x.Bound(y => y.CommissionCode).Title("Görevlendirme Kodu").Width(180);
+                    x.Bound(y => y.Information_Title).Title("Görevlendirme Tipi").Width(170);
+                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.TotalHoursText).Title("Süresi").Width(140);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i class='fa fa-edit' data-original-title='İşlem Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWINV_Commissions", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görvenlendirme detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" } }).Url(Url.Action("Detail", "VWINV_Commissions", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Görvenlendirme Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Delete", "VWINV_Commissions", new { area = "INV" }));
+                }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

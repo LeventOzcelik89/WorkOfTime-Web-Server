@@ -1,0 +1,182 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.TenderFormTemplateModels
+@{
+	ViewBag.Title = "Yazdır";
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var logo = "~/Content/Customers/" + TenantConfig.Tenant.TenantCode + "/images/logo.png";
+}
+<!DOCTYPE html>
+<html>
+
+<head>
+
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+	<title>&nbsp;</title>
+
+
+	<link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/Content/Themes/font-awesome/css/font-awesome.css" rel="stylesheet">
+	<link href="/Content/Themes/css/style.css" rel="stylesheet">
+	<script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+	<script src="/Content/Themes/js/bootstrap.min.js"></script>
+
+	<script src="/Content/Plugins/html2canvas/html2canvas.min.js"></script>
+	<script src="/Content/Plugins/html2canvas/jspdf.debug.js"></script>
+
+	<style type="text/css">
+		span, strong {
+			font-size: 11px;
+		}
+
+		canvas {
+			height: 100vh;
+			width: 100vw;
+			display: block;
+		}
+	</style>
+
+
+	<script type='text/javascript'>
+		function ImageError(element, image) {
+			element.onerror = '';
+			element.src = image;
+		}
+	</script>
+
+</head>
+
+<body class="white-bg">
+	@if (Model.CMP_InvoiceDocumentTemplate != null)
+	{
+		<div style="page-break-after: always">
+			@Html.Raw(Model.CMP_InvoiceDocumentTemplate.cover)
+		</div>
+	}
+	
+	<hr />
+	<div class="row">
+		<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-left">
+			<h5>@(Model.supplierTitle)</h5>
+			<div> @(Model.supplierAdress)</div>
+			<div><strong> Vergi Dairesi: </strong>@(Model.supplierTaxOffice != null ? Model.supplierTaxOffice : "-")/@(Model.supplierTaxNumber != null ? Model.supplierTaxNumber : "-")</div>
+		</div>
+
+		<div class="col-lg-6 col-md-6 col-sm-6 col-xs-6 text-right">
+			<h5>@(Model.customerTitle)</h5>
+			<div> @(Model.customerAdress)</div>
+			<div><strong> Vergi Dairesi: </strong>@(Model.customerTaxOffice != null ? Model.customerTaxOffice : "-")/@(Model.customerTaxNumber != null ? Model.customerTaxNumber : "-")</div>
+		</div>
+	</div>
+	<hr />
+	<div class="table-responsive m-t">
+		<table class="table invoice-table">
+			<thead>
+				<tr>
+					<th>Hizmet/Ürün</th>
+					<th>Miktar</th>
+					<th>Birim Fiyat</th>
+					<th>Vergi (KDV)</th>
+					<th>Satır Toplamı</th>
+				</tr>
+			</thead>
+			<tbody>
+
+				@foreach (var item in Model.Items)
+				{
+					<tr>
+						@if (item.Product_Title != null)
+						{
+							<td style="word-break: break-word; white-space:normal;"> @(item.Product_Title) | @item.description</td>
+						}
+						else
+						{
+							<td style="word-break: break-word; white-space:normal;">Ürün sistemden silinmiş</td>
+						}
+						
+						<td>@String.Format("{0:N2}", item.quantity) @(item.Unit_Title != null ? item.Unit_Title : "-")</td>
+						<td>@String.Format("{0:N2}", item.price) @(item.Currency_Symbol != null ? item.Currency_Symbol : "-")</td>
+						<td>% @(item.KDV)</td>
+						<td>@String.Format("{0:N2}", item.totalSubAmount) @(item.Currency_Symbol != null ? item.Currency_Symbol : "-")</td>
+					</tr>
+				}
+
+
+
+			</tbody>
+		</table>
+	</div>
+	<table class="table invoice-total">
+		<tbody>
+			<tr>
+				<td><strong>Ara Toplam:</strong></td>
+				<td>@String.Format("{0:N2}", Model.totalSubAmount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+			</tr>
+			@if (Model.discount != null && Model.discount != 0)
+			{
+				<tr>
+					<td><strong>Ara Toplam İndirimi:</strong></td>
+					<td>@String.Format("{0:N2}", Model.discount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+				</tr>
+			}
+			<tr>
+				<td><strong>Toplam Vergi :</strong></td>
+				<td>@String.Format("{0:N2}", Model.totalTax) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+			</tr>
+			@if (Model.stopaj != null && Model.stopaj != 0)
+			{
+				<tr>
+					<td><strong>Stopaj:</strong></td>
+					<td>@String.Format("{0:N2}", Model.stopaj) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+				</tr>
+			}
+			<tr>
+				<td><strong>Toplam :</strong></td>
+				<td>@String.Format("{0:N2}", Model.totalAmount) @(Model.Currency_Symbol != null ? Model.Currency_Symbol : "-")</td>
+			</tr>
+		</tbody>
+	</table>
+	<div class="well m-t">
+		@if (!String.IsNullOrEmpty(Model.description) && (Model.CMP_InvoiceDocumentTemplate == null || String.IsNullOrEmpty(Model.CMP_InvoiceDocumentTemplate.description)))
+		{
+			<strong>Açıklama :</strong>@Html.Raw(Model.description)
+		}
+		else
+		{
+			if (Model.CMP_InvoiceDocumentTemplate != null)
+			{
+				<strong>Açıklama :</strong>@Html.Raw(Model.CMP_InvoiceDocumentTemplate.description)
+			}
+			else
+			{
+				<strong>Açıklama :</strong>
+			}
+		}
+	</div>
+	<div class="well m-t">
+		@if (!String.IsNullOrEmpty(Model.tenderConditions) && (Model.CMP_InvoiceDocumentTemplate == null || String.IsNullOrEmpty(Model.CMP_InvoiceDocumentTemplate.tenderConditions)))
+		{
+			<strong>Teklif Koşulları :</strong>@Html.Raw(Model.tenderConditions)
+		}
+		else
+		{
+			if (Model.CMP_InvoiceDocumentTemplate != null)
+			{
+				<strong>Teklif Koşulları :</strong>@Html.Raw(Model.CMP_InvoiceDocumentTemplate.tenderConditions)
+			}
+			else
+			{
+				<strong>Teklif Koşulları :</strong>
+			}
+		}
+	</div>
+
+	<hr />
+
+	<br />
+
+	<span>Bu teklifi kabul etmek için burayı imzalayın : _____________________</span>  <br />
+
+
+</body>
+</html>

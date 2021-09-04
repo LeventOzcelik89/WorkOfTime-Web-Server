@@ -1,0 +1,28 @@
+﻿
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    ViewBag.Title =  "Tüm Revizyon Talepleri";
+}
+
+@(Html.Akilli()
+             .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_DocumentRevisionRequest>("VWDOC_DocumentRevisionRequest")
+             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_DocumentRevisionRequest", new { area = "DOC" })).Sort(a => a.Add("created").Descending()).PageSize(25).Group(f => f.Add(t => t.documentTitle)))
+             .Scrollable(a => a.Height(650))
+             .Columns(x =>
+             {
+                 x.Bound(y => y.lastStatus_Title).Title("Talep Durumu").Width(160);
+                 x.Bound(y => y.created).Title("Talep Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+                 x.Bound(y => y.createdby_Title).Title("Talep Gerçekleştiren").Width(180);
+                 x.Bound(y => y.documentCode).Title("Doküman Kodu").Width(160);
+                 x.Bound(y => y.documentTitle).Title("Doküman Başlığı").Width(180);
+                 x.Bound(y => y.documentSubject).Title("Doküman Konusu").Width(180);
+                 x.Bound(y => y.confirmationUserTitles).Title("Onaylayacak/lar").Width(180);
+             })
+             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+             .ToolBar(x =>
+             {
+                 x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='icon-edit' data-original-title='Approve/Decline Request'></i>" : "<i class='icon-edit' data-original-title='Talebi Onayla/Reddet'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                 x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-trash' data-original-title='Delete Revision Request'></i>" : "<i class='fa fa-trash' data-original-title='Revizyon Talebini Sil'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+
+             }))

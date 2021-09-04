@@ -1,0 +1,124 @@
+﻿@{
+    ViewBag.Title = "Görev Listesi Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+    @(Html.Akilli()
+  .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskGrid>("VWFTM_TaskGrid")
+  .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskGrid", new { area = "FTM" })).Filter(a =>a.createdby == new Guid("DCEAA584-35B7-4637-AF55-48CCF013C9D3") )
+
+  .PageSize(25).Sort(a => a.Add(c => c.lastOperationDate).Descending())).Scrollable(a => a.Height(700))
+  .Groupable(g => g.ShowFooter(false))
+  .ColumnMenu()
+  .Columns(x =>
+  {
+      x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+      x.Bound(y => y.type_Title).Title("Görev Tipi").Width(180);
+      x.Bound(y => y.company_Title).Title("Görevli Firma").Width(180);
+      x.Bound(y => y.customer_Title).Title("Müşteri").Width(180);
+      x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(200);
+      x.Bound(y => y.groupName).Title("Grup/Ekip").Width(180);
+      x.Bound(y => y.assignUser_Title).Title("Görevli Personel").Width(180);
+      x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+      x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+      x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180);
+      x.Bound(y => y.lastOperationStatus_Title).Title("Son Operasyon").Width(180);
+      x.Bound(y => y.GorevAtamaTarihi).Title("Görev Atanma Tarihi").Format(Extensions.DateFormatFull(true)).Width(180);
+      x.Bound(y => y.GorevUstlenilmeTarihi).Title("Görev Üstlenilme Tarihi").Format(Extensions.DateFormatFull(true)).Width(180);
+      x.Bound(y => y.GorevBaslangicTarihi).Title("Görev Başlama Tarihi").Format(Extensions.DateFormatFull(true)).Width(180);
+      x.Bound(y => y.GorevBitisTarihi).Title("Görev Çözüm Tarihi").Format(Extensions.DateFormatFull(true)).Width(200);
+      x.Bound(y => y.CevapSure).Title("Cevap Süresi").Width(180);
+      x.Bound(y => y.GecenSure).Title("Tamamlama Süresi").Width(180);
+      x.Bound(y => y.planStartDate).Title("Planlanmış Başlangıç Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+      x.Bound(y => y.dueDate).Title("Planlanmış Bitiş Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+      x.Bound(y => y.city).Title("İl").Width(150);
+      x.Bound(y => y.town).Title("İlçe").Width(150);
+      x.Bound(y => y.openAddressLocationId_Title).Title("Açık Adres").Width(180);
+      x.Bound(y => y.DosyaSayisi).Title("Resim Adedi").Width(180);
+      x.Bound(y => y.DoldurulanGorevFormSayisi).Title("Form Adedi").Width(180);
+  }).
+
+  Selectable(x => x.Mode(GridSelectionMode.Multiple))
+     .ToolBar(x =>
+     {
+
+         x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+     }))
+
+<div class="theme-config">
+    <div class="theme-config-box">
+        <div class="spin-icon">
+            <i class="fa fa-filter"></i>
+        </div>
+        <div class="skin-setttings">
+            <div class="title">FİLTRELEME</div>
+            <div class="file-manager">
+                <h5> GÖREV DURUMU </h5>
+                <ul class="folder-list" style="padding: 0">
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~eq~'')~and~isComplete~eq~false~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3')">
+                            <i class="icon-user-add"></i>  Personel Ataması Bekleyenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="0" data-query="((assignUserId~neq~'99999999-1234-5678-0000-999999999999'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30~and~lastOperationStatus~neq~26~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3')">
+                            <i class="icon-clock"></i>  Devam Edenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" id="pendingApprove" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="0" data-query="(isComplete~eq~false~and~lastOperationStatus~eq~30~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3')">
+                            <i class="icon-arrows-cw"></i>  Çözüm Onayı Bekleyenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="0" data-query="(isComplete~eq~true~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3'))">
+                            <i class="fa fa-check"></i>  Çözümlenmiş Görevler
+                        </a>
+                    </li>
+                </ul>
+
+
+
+                <div class="space-25"></div>
+                <h5> GÖREV ÖNCELİĞİ </h5>
+                <ul class="folder-list" style="padding: 0">
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key'~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3'))">
+                                <i style="color:#@item.Generic["color"]" class="fa fa-circle"></i>  @item.Value
+                            </a>
+
+                        </li>
+                    }
+                </ul>
+
+
+                <div class="space-25"></div>
+                <h5> GÖREV TİPİNE GÖRE </h5>
+                <ul class="tag-list" style="padding: 0">
+
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_TaskGrid" data-switch="radio" data-category="4" data-query="(type~eq~'@item.Key'~and~createdby~eq~'DCEAA584-35B7-4637-AF55-48CCF013C9D3'))">
+                                <i data-original-title="" class="@item.Generic["icon"]"></i>  @item.Value
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+    
+
+<link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
+<script src="~/Content/Custom/js/filter.js"></script>

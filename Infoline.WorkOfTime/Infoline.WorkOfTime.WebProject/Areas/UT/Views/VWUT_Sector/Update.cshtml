@@ -1,0 +1,63 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_Sector
+@{
+    ViewBag.Title = "Sektör Tanımları Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWUT_Sector", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+    if (Model.pid != null)
+    {
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Üst Sektör">Üst Sektör</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+                Html.Akilli()
+                .DropDownListFor(model => model.pid)
+                .OptionLabel("Lütfen Üst Sektör seçiniz..")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Id("pidSector")
+                .Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" }))
+                .Sort(x => x.Add("name").Ascending())
+                .Validate(Validations.Required)
+                .Readonly(true)
+                .Execute("id")
+			)
+        </div>
+    </div>
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Sektör İsmi">Sektör İsmi</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Sektör İsmi giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

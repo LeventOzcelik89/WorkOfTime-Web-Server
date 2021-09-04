@@ -1,0 +1,137 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWHDM_Suggestion
+@{
+    ViewBag.Title = "Çözüm Önerisi Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 60%;
+    }
+</style>
+
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+    var readyControl = false;
+
+    function onDataBoundIssue(e) {
+
+        if (readyControl == false) {
+
+            CKEDITOR.replace('content', {
+                height: '120px',
+                removeButtons: 'CustomImageUploader',
+                removePlugins: 'about'
+            });
+
+            CKEDITOR.instances.content.setData(model.content, function () {
+                this.checkDirty();
+            });
+
+            readyControl = true;
+        }
+    }
+
+    CKEDITOR.config.entities_latin = !0;
+    CKEDITOR.config.entities_latin = false;
+    CKEDITOR.config.extraAllowedContent = false;
+
+    $(document)
+        .on("before:submit", "#VWHDM_SuggestionUpdateForm", function (e, res) {
+            $("#content").val(CKEDITOR.instances['content'].getData());
+        })
+
+</script>
+
+@using (Html.BeginForm("Update", "VWHDM_Suggestion", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWHDM_SuggestionUpdateForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group hide">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IssueIds">İlişkili Sorunlar ve Konular </label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.issueId)
+                .OptionLabel("Lütfen bir konu seçiniz.")
+                .DataTextField("title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWHDM_Issue", new { area = "HDM" }))
+                .Filter<VWHDM_Issue>(f => f.status == (int)EnumHDM_SuggestionStatus.Yayında)
+                .Events(e => { e.DataBound("onDataBoundIssue"); })
+                .Sort(x => x.Add("title").Ascending())
+                //.BasicInsert(Url.Action("Insert", "VWHDM_Issue", new { area = "HDM" }), "title", true)
+                .Execute("id")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="title">Sorun</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Başlık giriniz.."}
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="content">Çözüm</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.content, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group" id="usersContent">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="assignUserId">Sorumlu Personel</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.assignUserId)
+                .OptionLabel("Lütfen Seçim Yapınız.")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="type">Durumu</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.status).Value(EnumHDM_SuggestionStatus.Yayında))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Güncelle</button>
+    </div>
+
+}

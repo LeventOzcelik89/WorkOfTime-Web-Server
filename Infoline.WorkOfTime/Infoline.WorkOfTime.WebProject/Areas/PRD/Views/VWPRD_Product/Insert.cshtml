@@ -1,0 +1,421 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductModel
+@{
+    ViewBag.Title = "Yeni Ürün&Hizmet Tanımı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    #opponent .k-multiselect:not(.k-state-disabled) :hover > .k-i-all {
+        display: none !important;
+    }
+
+    .modal-lg {
+        width: 60%;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on("click", '[for="type_0"]', function (e) {
+            $('[for="stockType_0"]').trigger("click");
+            $('[for="isCriticalStock_0"]').trigger("click");
+        })
+        .on("click", '[for="stockType_0"]', function () {
+            $('[for="isCriticalStock_0"]').trigger("click");
+            $('[name="criticalStock"]').val(0);
+        });
+
+
+    function changeUnit(e) {
+        var item = e.sender.dataItem();
+        if (item && item != null && item != "") {
+            $('[data-id="unit"]').text(item.name);
+        }
+    }
+    $('[data-toggle="check"]').livequery(function (c) {
+        $(this).bootstrapToggle({ width: 120 });
+    });
+
+
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWPRD_Product", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWPRD_ProductInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+
+    <div class="panel-group" id="accordionProduct" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordionProduct" href="#generalInfo" aria-expanded="true" aria-controls="collapseOne">
+                        <i class="text-success icon-info-4"></i> Genel Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="generalInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="Kodu">Kodu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen Kodu Giriniz.."}
+                             }).Validate(Validations.TextEverywhere(true))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="İsmi">İsmi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen İsmi Giriniz.."}
+                             }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="unitId">Birimi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.unitId)
+                                .OptionLabel("Lütfen Birim Seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "UT_Unit", new { area = "UT" }))
+                                .BasicInsert(Url.Action("Insert", "UT_Unit", new { area = "UT" }), "name", false)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Events(e => { e.Change("changeUnit"); })
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="type">Türü</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_ProductType.Diger))
+                        </div>
+                    </div>
+
+
+                    <div class="form-group" data-cascade="[type='radio'][name='type']" data-show="1,2,3,4,5,6">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="stockType">Stok Takip Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.stockType).Value(EnumPRD_ProductStockType.Stoksuz))
+                        </div>
+                    </div>
+
+                    <div class="form-group" data-cascade="[name='stockType']" data-show="1,2">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="isCriticalStock">Kiritik Stok Uyarısı ?</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.isCriticalStock).Value(EnumPRD_ProductIsCriticalStock.Hayir))
+                        </div>
+                    </div>
+
+                    <div class="form-group" data-cascade="[name='isCriticalStock']" data-show="1">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="criticalStock">Kritik Stok Miktarı</label>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="input-group">
+                                @(
+                                    Html.Akilli()
+                                    .NumericTextBoxFor(a => a.criticalStock)
+                                    .Min(0)
+                                    .Format("N0")
+                                )
+                                <span class="input-group-addon" data-id="unit">ADET</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group" data-cascade="[type='radio'][name='type']" data-show="1,2,3,4,5,6">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="barcode">Barkod / Barkod Tipi</label>
+                        </div>
+                        <div class="col-md-5">
+                            @Html.TextBoxFor(model => model.barcode, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Ürün barkodunu giriniz."}
+                            })
+                        </div>
+
+                        <div class="col-md-3">
+                            @(
+                                Html.Akilli().
+                                DropDownListFor(model => model.barcodeType).
+                                OptionLabel("Barkod Tipi").
+                                DataTextField("enumDescription").
+                                DataValueField("Id").
+                                Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                                Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRD_Product" && a.fieldName == "barcodeType").
+                                Sort(x => x.Add("enumKey")).
+                                Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordionProduct" href="#detailInfo" aria-expanded="true" aria-controls="collapseOne">
+                        <i class="text-success icon-info-4"></i> Diğer Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="detailInfo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="currentBuyingPrice">Birim Maliyet (Vergiler Hariç)</label>
+                        </div>
+                        <div class="col-md-5">
+                            @(
+                                Html.Akilli()
+                                .NumericTextBoxFor(a => a.currentBuyingPrice)
+                                .Placeholder("Birim Maliyet (Vergiler Hariç)")
+                                .Min(0)
+                                .Format("N2")
+                            )
+                        </div>
+                        <div class="col-md-3">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.currentBuyingCurrencyId)
+                                .OptionLabel("Para Birimi")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="currentSellingPrice">Birim Fiyat (Vergiler Hariç)</label>
+                        </div>
+                        <div class="col-md-5">
+                            @(
+                                Html.Akilli()
+                                .NumericTextBoxFor(a => a.currentSellingPrice)
+                                .Placeholder("Birim Fiyat (Vergiler Hariç)")
+                                .Min(0)
+                                .Format("N2")
+                            )
+                        </div>
+                        <div class="col-md-3">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.currentSellingCurrencyId)
+                                .OptionLabel("Para Birimi")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Marka">Marka</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.brandId)
+                                .OptionLabel("Lütfen Marka Seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Brand", new { area = "PRD" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .BasicInsert(Url.Action("Insert", "VWPRD_Brand", new { area = "PRD" }), "name", false)
+                                .Execute("id")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Kategori">Kategori</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.categoryId)
+                                .OptionLabel("Lütfen Kategori seçiniz..")
+                                .DataTextField("fullname")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+                                //.Filter<VWPRD_Category>(a => a.generation > 0)
+                                .Sort(x => x.Add("fullname").Ascending())
+                                .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
+                                .Execute("id")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="supplierCompanyIds">Tedarikçi Firma(lar)</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .MultiSelectFor(model => model.supplierCompanyIds)
+                                .Placeholder("Lütfen Tedarikçi Firma(lar) Seçiniz..")
+                                .DataTextField("fullName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Açıklaması">Açıklama</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen Açıklaması Giriniz.."}
+                             })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya2">Ürün Görseli</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("PRD_Product")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Ürün Görseli")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya2">Ürün Dokümanları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("PRD_Product")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Ürün Dökümanları")
+                            )
+                        </div>
+                    </div>
+
+
+
+                </div>
+            </div>
+        </div>
+
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordionProduct" href="#productSettings" aria-expanded="true" aria-controls="collapseThree">
+                        <i class="text-success icon-cogs"></i> Gösterim Ayarları
+                    </a>
+                </h4>
+            </div>
+            <div id="productSettings" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingThree">
+                <div class="panel-body">
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductStatus>().Select((elem, index) => new { index = index, elem = elem }))
+                    {
+
+                        var enumm = (EnumPRD_ProductStatus)Convert.ToInt32(item.elem.Key);
+                        var check = Model.status != null && ((EnumPRD_ProductStatus)Model.status).HasFlag(enumm) ? "checked" : "";
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="status">@item.elem.Value</label>
+                            </div>
+                            <div class="col-md-8">
+                                <input data-toggle="check" data-on="Evet" data-off="Hayır" @check type="checkbox" name="status[]" value="@item.elem.Key" />
+                            </div>
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+
+        @if (TenantConfig.Tenant.Config.CustomProperty.ContainsKey("PRD_Product") && TenantConfig.Tenant.Config.CustomProperty["PRD_Product"].Length > 0)
+        {
+            <div class="panel panel-default">
+                <div class="panel-heading" role="tab">
+                    <h4 class="panel-title">
+                        <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionProduct" href="#otherInfo" aria-expanded="false" aria-controls="collapseFour">
+                            <i class="text-success icon-star-1"></i> Ek Bilgileri
+                        </a>
+                    </h4>
+                </div>
+                <div id="otherInfo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingFour">
+                    <div class="panel-body">
+                        @Html.Action("Index", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "PRD_Product" })
+                    </div>
+                </div>
+            </div>
+        }
+
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

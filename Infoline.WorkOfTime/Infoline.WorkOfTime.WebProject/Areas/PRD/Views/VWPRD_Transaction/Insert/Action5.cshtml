@@ -1,0 +1,33 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+
+<div class="row hide" data-type="5">
+    <div class="hr-line-dashed"></div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="inputId5">Giriş Yapılacak Depo</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputId)
+                    .Id("inputId5")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .AddAttribute("data-change", "true")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.inputChange"))
+                    .Filter<VWCMP_Storage>(a => a.myStorage == true)
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+                @Html.Hidden("inputTable", "CMP_Storage", new { id = "inputTable5", disabled = "true" })
+            </div>
+        </div>
+    </div>
+</div>

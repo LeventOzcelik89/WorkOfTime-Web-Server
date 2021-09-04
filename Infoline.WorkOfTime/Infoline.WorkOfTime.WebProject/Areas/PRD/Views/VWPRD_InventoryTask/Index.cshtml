@@ -1,0 +1,42 @@
+﻿@{
+    ViewBag.Title = "Envanter Bakım Periyodu Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox  m-b-none">
+            <div class="ibox-title">
+                <h5>Bakım Periyodu Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_InventoryTask>("VWPRD_InventoryTask")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_InventoryTask", new { area = "PRD" })).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.inventoryId_Title).Title("Envanter").Width(230);
+                        x.Bound(y => y.companyId_Title).Title("Görevli İşletme").Width(230);
+                        x.Bound(y => y.userId_Title).Title("Görevli Personel").Width(230);
+                        x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Width(230).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.endDate).Title("Bitiş Tarihi").Width(230).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.period_Title).Title("Periyot").Width(230);
+                        x.Bound(y => y.description).Title("Açıklama").Width(230);
+                    })
+                    .Scrollable(a => a.Height(670))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i title='Envanter Bakım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_InventoryTask", new { area = "PRD" }));
+                        x.Custom().Text("<i title='Envanter Bakım Periyodunu Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWPRD_InventoryTask", new { area = "PRD" }));
+                        x.Custom().Text("<i title='Envanter Bakım Periyodunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_InventoryTask", new { area = "PRD" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>

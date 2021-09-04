@@ -1,0 +1,200 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_TenderModels[]
+@{
+    ViewBag.Title = "Teklif Karşılaştırma";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+
+    .moneyText {
+        color: #ff6a00;
+        text-align: center;
+        font-size: 15px;
+        font-weight: 600;
+    }
+
+    .companyTitle {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .summaryTotal {
+        text-align: right;
+        font-weight: 800;
+    }
+
+    .summaryMoney {
+        background-color: #fcfce5;
+    }
+
+    .summaryMoneyTotal {
+        background-color: #dff1f2;
+    }
+
+    .rowCenter {
+        text-align: center;
+        font-size: 14px;
+        font-weight: 600;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+    $(document)
+        .on("ready", function () {
+
+            appendHeader();
+            appendProducts();
+            appendTotalAmounts("totalSubAmount", "summaryTotal", "Ara Toplam", "moneyText", "summaryMoney");
+            appendTotalAmounts("totalTax", "summaryTotal", "Toplam Vergi", "moneyText", "summaryMoney");
+            appendTotalAmounts("totalAmount", "summaryTotal", "Toplam Tutar", "moneyText", "summaryMoney");
+            appendTotalAmountAsTL();
+
+            $('#compareTable').find('tbody').append($('<tr>').css("height", "40px").append($('<td>').attr("colspan", model.length + 1).text("")));
+
+            appendTenderDates("created", "Teklif Tarihi", "summaryTotal", "rowCenter");
+            appendTenderDates("validityDate", "Teklif Geçerlilik Tarihi", "summaryTotal", "rowCenter");
+
+            appendPaymentType();
+
+            var buttonRow = $('<tr>').append($('<td>').text(""));
+            buttonRow.append($('<td>').text(''));
+            $.each(model, function (i, item) {
+                var button = '<a href="/CMP/VWCMP_Tender/DetailBuying?id='+ item.id +'" target="_blank" class="btn btn-md btn-success">Teklife Git <i class="fa fa-arrow-right"></i></a>'
+                buttonRow.append($('<td>').css("text-align", "center").append(button));
+            })
+
+            $('#compareTable').find('tbody').append(buttonRow);
+
+            var buttonRow2 = $('<tr>').append($('<td>').text(""));
+            buttonRow2.append($('<td>').text(''));
+            $.each(model, function (i, item) {
+
+                if (item.status == '@((int)EnumCMP_TenderStatus.CevapBekleniyor)') {
+                    var button1 = '<a data-task="Insert" data-show="single" data-method="POST" data-href="/CMP/VWCMP_Tender/UpdateStatus?tenderId=' + item.id +
+                        '&type=@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)" data-ask="" class="btn btn-md btn-primary"><i class="fa fa-check-circle"></i> Teklifi Onayla </a>'
+                    var button2 = '<a data-task="Insert" data-show="single" data-method="POST" style="margin-left: 5px;" data-href="/CMP/VWCMP_Tender/UpdateStatus?tenderId=' + item.id +
+                        '&type=@((int)EnumCMP_RequestStatus.TalepReddedildi)" data-ask="" class="btn btn-md btn-danger"><i class="fa fa-times-circle"></i> Teklifi Reddet </a>'
+                    buttonRow2.append($('<td>').css("text-align", "center").append(button1).append(button2));
+                }
+                else {
+                    buttonRow2.append($('<td>').css("text-align", "center").append(item.status_Title));
+                }
+            })
+
+            $('#compareTable').find('tbody').append(buttonRow2);
+        })
+        .on("success:swal", '[data-ask]', function (e) {
+            setTimeout(function () {
+                location.reload();
+            }, 250)
+        })
+
+
+    function appendHeader() {
+
+        var rowHead = $('<tr>');
+        rowHead.append($('<td>').text(''));
+        rowHead.append($('<td>').text(''));
+
+        $.each(model, function (i, item) {
+            rowHead.append($('<td>').addClass("companyTitle").text(item.Supplier_Title));
+        })
+
+        $('#compareTable').find('thead').append(rowHead);
+    }
+
+    function appendProducts() {
+        for (var i = 0; i < model[0].InvoiceItems.length; i++) {
+            var row = $('<tr>');
+            row.append($('<td>').text(model[0].InvoiceItems[i].Product_Title));
+            row.append($('<td>').text(model[0].InvoiceItems[i].quantity + " " + model[0].InvoiceItems[i].Unit_Title));
+
+            $.each(model, function (j, item) {
+                row.append($('<td>').addClass("moneyText").text(kendo.toString(item.InvoiceItems[i].totalSubAmount, "N2") + " " + item.Currency_Symbol));
+            })
+
+            $('#compareTable').find('tbody').append(row);
+        }
+    }
+
+    function appendTotalAmounts(field, className, text, textClassName, textClassName2) {
+        var row = $('<tr>');
+        row.append($('<td>').text(''));
+        row.append($('<td>').addClass(className).text(text));
+
+        $.each(model, function (i, item) {
+            row.append($('<td>').addClass(textClassName).addClass(textClassName2).text(kendo.toString(item[field], "N2") + " " + item.Currency_Symbol));
+        })
+
+        $('#compareTable').find('tbody').append(row);
+    }
+
+    function appendTotalAmountAsTL() {
+        var min = getMinObjectByProperty(model, 'totalAmountAsTL');
+
+        var row = $('<tr>');
+        row.append($('<td>').text(''));
+        row.append($('<td>').addClass("summaryTotal").text("Toplam Tutar (TL)"));
+
+        $.each(model, function (i, item) {
+            var text = kendo.toString(item.totalAmountAsTL, "N2") + " " + "₺";
+
+            if (item.id == min.id) {
+                text = '<i class="fa fa-circle text-primary" data-original-title="En Uygun"></i> ' + text;
+            }
+
+            row.append($('<td>').addClass("moneyText").addClass("summaryMoneyTotal").append(text));
+        })
+
+        $('#compareTable').find('tbody').append(row);
+    }
+
+    function appendTenderDates(field, text, className, textClassname) {
+        var row = $('<tr>');
+        row.append($('<td>').text(''));
+        row.append($('<td>').addClass(className).text(text));
+
+        $.each(model, function (i, item) {
+            row.append($('<td>').addClass(textClassname).text(new Date(item[field]).toLocaleDateString()));
+        })
+
+        $('#compareTable').find('tbody').append(row);
+    }
+
+    function appendPaymentType() {
+        var row = $('<tr>');
+        row.append($('<td>').text(''));
+        row.append($('<td>').addClass("summaryTotal").text("Ödeme Tipi"));
+
+        $.each(model, function (i, item) {
+            var payment = item.paymentType_Title;
+
+            if (item.paymentType == '@((int)EnumCMP_InvoicePaymentType.Taksitli)') {
+                payment += " (" + item.installmentCount + ")";
+            }
+
+            if (item.paymentType == '@((int)EnumCMP_InvoicePaymentType.Vadeli)') {
+                payment += " (" + new Date(item.expiryDate).toLocaleDateString() + ")";
+            }
+
+            row.append($('<td>').addClass("rowCenter").text(payment));
+        })
+
+        $('#compareTable').find('tbody').append(row);
+    }
+
+</script>
+
+<div class="ibox " data-selector="modalContainer">
+    <div class="ibox-content table-responsive">
+        <table class="table table-bordered" id="compareTable" cellpadding="0" cellspacing="0">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+

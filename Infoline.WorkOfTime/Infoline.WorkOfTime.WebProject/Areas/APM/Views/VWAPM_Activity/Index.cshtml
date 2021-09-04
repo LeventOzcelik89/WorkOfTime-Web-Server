@@ -1,0 +1,196 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<link href="~/Content/plugins/fullcalendar/fullcalendar.css" rel="stylesheet" />
+<script src="~/Content/plugins/fullcalendar/moment.min.js"></script>
+<script src="~/Content/plugins/fullcalendar/fullcalendar.min.js"></script>
+<script src="~/Content/Plugins/fullcalendar/fc_event.js"></script>
+<script src="~/Content/plugins/fullcalendar/locale-all.js"></script>
+<script type="text/javascript">
+
+    var calendar = {
+        dfn: {
+            generalType : '@Model',
+            userId : '@userStatus.user.id',
+            fileId: null,
+            insertUrl: "/APM/VWAPM_Activity/Insert?generalType=@Model",
+            updateUrl: "/APM/VWAPM_Activity/Update",
+            detailUrl: "/APM/VWAPM_Activity/Detail",
+            dataSourceUrl: "/APM/VWAPM_Activity/DataSourceCalendar?generalType=@Model",
+            dataSourceOtherUrl :  "/APM/VWAPM_ActivityOthers/DataSourceCalendar",
+        },
+        fnc: {
+            PastDayControl: function (date) {
+                return date.isBefore(moment()) && new Date(date).toDateString() != new Date().toDateString();
+            },
+            GetInsertUrlWithParameters: function (start, end) {
+                var insertUrl = new URL(location.origin + calendar.dfn.insertUrl);
+                insertUrl.searchParams.append("startDate", new Date(start.local()).addHours(8).addMinutes(30).toLocaleString("tr-TR"));
+                insertUrl.searchParams.append("endDate", new Date(new Date(end.local()).setHours(18)).addDays(-1).toLocaleString("tr-TR"));
+                return insertUrl.href;
+            },
+            GetUpdateUrl: function (elemId) {
+                var updateUrl = new URL(location.origin + calendar.dfn.updateUrl);
+                updateUrl.searchParams.append("id", elemId);
+                return updateUrl.href;
+            },
+            GetDetailUrl: function (elemId) {
+                var updateUrl = new URL(location.origin + calendar.dfn.detailUrl);
+                updateUrl.searchParams.append("id", elemId);
+                return updateUrl.href;
+            }
+        }
+    }
+
+    $(document)
+        .on("ready", function () {
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,listWeek,listDay'
+                },
+                windowResize: function (view) {
+                    var height = $(window).height() - 120;
+                    $('#calendar').fullCalendar('option', 'height', height);
+                },
+                height: $(window).height() - 120,
+                timeZone: 'local',
+                defaultDate: new Date(),
+                locale: 'tr',
+                selectable: true,
+                allDaySlot: false,
+                eventLimit: true,
+                timezone: "local",
+                select: function (start, end, jsEvent) {
+                    if (calendar.fnc.PastDayControl(start)) {
+                        $('#calendar').fullCalendar('unselect');
+                        MesajWarning("Geçmiş tarih ile işlem yapamazsınız.", "Bilgilendirme !");
+                        return false;
+                    }
+                    var url = calendar.fnc.GetInsertUrlWithParameters(start, end);
+                    $('button[data-task="Insert"]')
+                        .clone()
+                        .attr("data-href", url)
+                        .hide()
+                        .appendTo($("body"))
+                        .trigger("click")
+                        .remove();
+                },
+                events: function (start, end, timezone, callback) {
+
+                    var start = kendo.toString(new Date(start.local()), "yyyy-MM-ddT00-00-00");
+                    var end = kendo.toString(new Date(end.local()), "yyyy-MM-ddT00-00-00");
+
+                    var filter = "(createdby~eq~'" + calendar.dfn.userId + "'~or~activityUserIds~contains~'" + calendar.dfn.userId + "')"
+                    filter += "~and~(" + "startDate~gt~datetime'" + start + "'~and~endDate~lt~datetime'" + end + "')";
+
+                    if (calendar.dfn.generalType != "")
+                    {
+                        filter += "~and~generalType~eq~" + calendar.dfn.generalType;
+                    }
+
+                    var filterOther = "(activityUserIds~contains~'" + calendar.dfn.userId + "'~or~activityUserIds~contains~'" + "All" + "')"
+                    filterOther += "~and~(" + "startDate~gt~datetime'" + start + "'~and~endDate~lt~datetime'" + end + "')";
+
+                    var filterMenu = $.map($('[data-calendar="VWAPM_Activity"][data-query].active'), function (e) { return $(e).data(); })
+                    $.Enumerable.From(filterMenu).GroupBy(a => a.category).ForEach(function (c) {
+                        var query = c.source.map(function (e) { return e.query; }).join("~or~");
+                        if (filter == "") {
+                            filter = "(" + query + ")";
+                        } else {
+                            filter = "(" + filter + "~and~(" + query + "))"
+                        }
+                    });
+
+
+
+                    $.ajax({
+                        url: calendar.dfn.dataSourceUrl,
+                        dataType: 'json',
+                        data: {
+                            filter: "("+filter+")"
+                        },
+                        success: function (doc) {
+                            callback(doc);
+                        }
+                    });
+                },
+                timeFormat: 'HH:mm',
+                eventRender: function (event, element) {
+
+                    $(element).find('.fc-content').prepend("<i class='"+event.icon+"'></i>  ");
+
+                    calendar.dfn.fileId = event.id;
+                    if (new Date().getDay() == event.start._d.getDay()) {
+                        if ($('.fc-listWeek-button').hasClass('fc-state-active') == true) {
+                            $(element).css("background-color", "#ece69a");
+                        }
+                    }
+
+                    element.attr('href', 'javascript:void(0);');
+                    element.click(function () {
+
+                        var url = calendar.fnc.GetDetailUrl(event.id);
+                        if (calendar.dfn.userId == event.createdby) {
+                            url = calendar.fnc.GetUpdateUrl(event.id);
+                        }
+
+                        $('button[data-task="Insert"]')
+                            .clone()
+                            .attr("data-href", url)
+                            .hide()
+                            .appendTo($("body"))
+                            .trigger("click")
+                            .remove();
+
+                    });
+                },
+                viewRender: function () {
+                    //calendar.fnc.GridRequestEnd();
+                },
+            });
+        })
+        .on("success", "#VWAPM_ActivityInsert, #VWAPM_ActivityUpdate", function (event, response) {
+            $('#calendar').fullCalendar('refetchEvents');
+        })
+        .on('click', '[data-calendar="VWAPM_Activity"]', function (c) {
+            $(this).toggleClass("active");
+            $('#calendar').fullCalendar('refetchEvents');
+        })
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <button class="btn btn-block btn-success" data-task="Insert" data-href="/APM/VWAPM_Activity/Insert?generalType=@Model" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yeni Aktivite Ekle</button>
+                    <div class="space-25"></div>
+                    <h5>AKTİVİTE TİPİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumAPM_ActivityType>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-calendar="VWAPM_Activity" data-category="1" data-query="(type~eq~'@item.Key')">
+                                    <i class="@item.Generic["icon"]" style="color:@item.Generic["color"]"></i>  @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div style="padding:15px;background:#fff;">
+            <div id="calendar"></div>
+        </div>
+    </div>
+</div>
+
+
+

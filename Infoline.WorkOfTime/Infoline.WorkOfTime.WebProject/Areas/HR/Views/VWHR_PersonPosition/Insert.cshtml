@@ -1,0 +1,134 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWHR_PersonPosition
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWHR_PersonPosition", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="HrPersonId">HrPersonId</label>
+        </div>
+        <div class="col-md-8">
+          @(Html.Kendo().DropDownListFor(model => model.HrPersonId).HtmlAttributes(new Dictionary<string, object>() 
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen HrPersonId seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="HrPositionId">HrPositionId</label>
+        </div>
+        <div class="col-md-8">
+          @(Html.Kendo().DropDownListFor(model => model.HrPositionId).HtmlAttributes(new Dictionary<string, object>() 
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen HrPositionId seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen createdby_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen changedby_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="HrPersonId_Title">HrPersonId_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.HrPersonId_Title, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen HrPersonId_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="HrPositionId_Title">HrPositionId_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.HrPositionId_Title, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen HrPositionId_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

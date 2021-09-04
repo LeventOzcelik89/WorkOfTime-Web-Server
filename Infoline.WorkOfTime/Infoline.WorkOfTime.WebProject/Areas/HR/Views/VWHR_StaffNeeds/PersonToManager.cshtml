@@ -1,0 +1,56 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMPersonToManager
+@{
+    ViewBag.Title = "CV Yönlendirme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onDataBoundReq(e){
+         $('#requestUsers').trigger('change');
+    }
+</script>
+
+@using (Html.BeginForm("PersonToManager", "VWHR_StaffNeeds", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "PersonToManagerForm"}
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.staffNeedPersonId)
+    @Html.HiddenFor(model => model.needId)
+
+
+    <div class="row">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="requestUsers">Yönlendirilecek Kişiler <i class="fa fa-info-circle" data-original-title="Seçmiş olduğunuz kişilere ilgili cv yönlendirilecektir.!!"></i></label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                                      .MultiSelect("requestUsers")
+                                      .Placeholder("Lütfen Yönlendirilecek Kişileri Seçiniz..")
+                                      .DataTextField("User_Title")
+                                      .DataValueField("userid")
+                                      .Action(b => b.Action("DataSourceDropDown", "VWSH_UserRole", new { area = "SH" }))
+                                      .Filter<VWSH_UserRole>(x => x.roleid == new Guid(SHRoles.PersonelTalebi))
+                                      .Sort(x => x.Add("User_Title").Ascending())
+                                      .Value(Model.requestUsers)
+                                      .Events(a => a.DataBound("onDataBoundReq"))
+                                      .Execute("userid")
+                                      .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">YÖNLENDİR</button>
+    </div>
+}

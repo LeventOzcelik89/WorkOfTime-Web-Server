@@ -1,0 +1,47 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCarKilometer
+@{
+    ViewBag.Title = "Araç Kilometre Bilgilerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<script type="text/x-kendo-template" id="projectTemplate" data-selector="modalContainer">
+    #:(kilometer != null ? kilometer : '-')# km
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="text-success  icon-road"></i> Kilometre Bildirimi </h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCarKilometer>("VWCMP_CompanyCarKilometers")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_CompanyCarKilometer", new { area = "CMP" })).Filter(c => c.responsiblePersonId == userStatus.user.id).PageSize(25).Sort(s => s.Add(a => a.entryDate).Descending()))
+    .Columns(x =>
+    {
+        x.Bound(y => y.carPlate).Title("Plaka").Width(180);
+        x.Bound(y => y.carBrand).Title("Marka").Width(180);
+        x.Bound(y => y.carModel).Title("Model").Width(180);
+        x.Bound(y => y.entryDate).Title("Bildirim Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.kilometer).Title("Kilometre").ClientTemplate("#=TemplateEngine('projectTemplate',data)#").Width(180);
+        x.Bound(y => y.createdby_Title).Title("Bildiren Personel").Width(180);
+
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-plus' data-original-title='My Car Km'></i>" : "<i class='fa fa-plus' data-original-title='Kilometre Bildirimi'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+
+    }))
+
+            </div>
+        </div>
+    </div>
+</div>
+

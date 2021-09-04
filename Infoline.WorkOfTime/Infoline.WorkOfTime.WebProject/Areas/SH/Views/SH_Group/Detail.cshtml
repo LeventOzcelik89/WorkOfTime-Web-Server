@@ -1,0 +1,102 @@
+﻿@model Infoline.WorkOfTime.BusinessData.SH_Group
+@{
+    ViewBag.Title = Model.name+" grubu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+
+}
+
+
+<style type="text/css">
+    .list-group.clear-list .list-group-item {
+        padding: 5px 0px !important;
+    }
+
+    .table {
+        border-top: 0px #ddd solid;
+    }
+
+    .mywidget {
+        border-radius: 10px !important;
+        padding: 10px 15px !important;
+        margin-bottom: 10px !important;
+        margin-top: 0px !important;
+        min-height: 70px !important;
+    }
+
+    .dl-horizontal dt {
+        text-align: left !important;
+    }
+
+    .toggle-group label {
+        line-height: 20px !important;
+    }
+
+    .breadcrumb {
+        padding: 0px 0px !important;
+        margin-bottom: 0px !important;
+        border-radius: 4px !important;
+    }
+</style>
+
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.name
+                    </h2>
+                </div>
+                <img src="" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/group-Users.png')">
+
+
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-primary" data-href="/SH/SH_Group/Update?id=@Model.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+                </div>
+
+            </div>
+            <div class="widget-text-box">
+                <ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-qrcode"></i> <strong> Grup Kodu : </strong> @Model.code
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <div class="tab-content">
+                    <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWSH_GroupUsers", new { area = "SH" })" id="VWSH_GroupUsers">
+                        <h4><i class="fa fa-group text-success"></i> GRUP / EKİP PERSONEL TANIMLARI </h4>
+                        @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_GroupUsers>("VWSH_GroupUser")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_GroupUsers", new { area = "SH" })).Filter(a=>a.groupId == Model.id).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.userId_Title).Title("Personel Adı");
+        x.Bound(y => y.createdby_Title).Title("Atama Yapan");
+        x.Bound(y => y.created).Title("Atama Tarihi").Format(Extensions.DateFormatFull(true));
+
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_GroupUsers", new { area = "SH", groupId = Model.id }));
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_GroupUsers", new { area = "SH" }));
+    }))
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+    </div>
+</div>
+

@@ -1,0 +1,44 @@
+﻿@using Infoline.WorkOfTime.BusinessData
+@model Guid
+@{
+    ViewBag.Title = "Talebe CV'yi Yönlendir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("PersonToManager", "VWHR_StaffNeeds", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+
+    <input type="text" name="id" value="@Model" hidden/>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="NeedId">Personel Talebi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .DropDownList("NeedId")
+            .OptionLabel("Lütfen Talep Seçimi Yapınız..")
+            .DataTextField("RequestId_Title").DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWHR_StaffNeeds", new { area = "HR" }))
+            .Sort(x => x.Add("RequestId_Title").Ascending())
+            .Template("#=TemplateEngine('needaboutTemplate',data)#")
+            .Validate(Validations.Required)
+            .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Kapat</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Yönlendir</button>
+    </div>
+
+}

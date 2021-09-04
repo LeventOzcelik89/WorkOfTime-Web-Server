@@ -1,0 +1,161 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+@{
+    ViewBag.Title = "Print";
+    var logo = "/Content/Customers/1139/images/logo.png";
+}
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&nbsp;</title>
+    <link rel="shortcut icon" href="@TenantConfig.Tenant.Config.Favicon">
+    <link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Themes/css/style.css" rel="stylesheet">
+    <script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+    <script src="/Content/Themes/js/bootstrap.min.js"></script>
+
+    <script type='text/javascript'>
+        function ImageError(element, image) {
+            element.onerror = '';
+            element.src = image;
+        }
+    </script>
+    <style type="text/css">
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 5px;
+            text-align: left;
+            height: 2vh;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 50px; 
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .boldText {
+            color: black;
+            font-weight: bold;
+        }
+
+        .fontblack {
+            color: black;
+        }
+    </style>
+</head>
+<body class="white-bg">
+    <div class="p-md">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-lg-12 col-xs-12 text-left">
+                <img src="@logo" style="width:120px;" alt="image" onerror="ImageError(this,'@logo')">
+            </div>
+        </div>
+
+        <div class="clearfix">
+            <h2 class="text-center boldText"><b>ZİMMET FORMU</b></h2>
+        </div>
+
+        <div class="table-responsive clearfix">
+            <table style="width:100%;">
+                <tr>
+                    <th colspan="4" class="text-center boldText">Zimmet Yapılacak Personelin</th>
+                </tr>
+                <tr>
+                    <th colspan="1" width="15%" class="boldText">İsim</th>
+                    <td colspan="1" width="35%" class="fontblack">@(Model.printInfo.user.FullName ?? "")</td>
+                    <th colspan="1" width="15%" class="boldText">Sicil No</th>
+                    <td colspan="1" width="35%"></td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="15%" class="boldText">Bölümü</th>
+                    <td colspan="1" width="35%" class="fontblack">@Model.printInfo.user.Department_Title</td>
+                    <th colspan="1" width="15%" class="boldText">Görev</th>
+                    <td colspan="1" width="35%" class="fontblack">@(Model.printInfo.user.title)</td>
+                </tr>
+            </table>
+        </div>
+        <br />
+        <div class="table-responsive clearfix">
+            <table style="width:100%;">
+                <tr>
+                    <th colspan="4" class="text-center boldText">Zimmet Yapılacak Demirbaş</th>
+                </tr>
+                <tr>
+                    <th colspan="1" width="20%" class="boldText">Zimmet Türü</th>
+                    <td colspan="3" width="80%" class="fontblack">Demirbaş</td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="20%" class="boldText">Demirbaş Adı</th>
+                    <td colspan="3" width="80%" class="fontblack">@Html.Raw(string.Join("<br/>", Model.items.Where(x => !string.IsNullOrEmpty(x.categoryId_Title)).Select(x => x.categoryId_Title).ToArray()))</td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="10%" class="boldText">Demirbaş Markası</th>
+                    <td colspan="1" width="40%" class="fontblack">  @Html.Raw(string.Join("<br/>", Model.items.Where(x => !string.IsNullOrEmpty(x.brand_Title)).Select(x => x.brand_Title).ToArray()))</td>
+                    <th colspan="1" width="10%" class="boldText">Modeli</th>
+                    <td colspan="1" width="40%" class="fontblack">    @Html.Raw(string.Join("<br/>", Model.items.Where(x => !string.IsNullOrEmpty(x.productId_Title)).Select(x => x.productId_Title.Split('|').FirstOrDefault()).ToArray())) </td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="10%" class="boldText">Seri No</th>
+                    <td colspan="1" width="40%" class="fontblack" style="word-break: break-word; white-space:normal;"> @Html.Raw(string.Join("<br/>", Model.items.Where(x => !string.IsNullOrEmpty(x.serialCodes)).Select(x => string.Join(" , ", x.serialCodes.Split(','))).ToArray()))</td>
+                    <th colspan="1" width="10%" class="boldText">Miktarı</th>
+                    <td colspan="1" width="40%" class="fontblack"> @Html.Raw(string.Join("<br/>", Model.items.Where(x => !string.IsNullOrEmpty(x.productId_Title)).Select(x => x.quantity + " " + x.unitId_Title).ToArray())) </td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="20%" class="boldText">Verilen aparat ve aksesuar</th>
+                    <td colspan="3" width="80%" class="fontblack"> @Html.Raw(string.Join("-", Model.items.Where(x => !string.IsNullOrEmpty(x.categoryId_Title)).Select(x => x.categoryId_Title + " " + x.description).ToArray()))</td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="20%" class="boldText">Kullanım Amacı</th>
+                    <td colspan="3" width="80%" class="fontblack"> KURUM İÇİ KULLANIMI İÇİN</td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="10%" class="boldText">Zimmet Tarihi</th>
+                    <td colspan="1" width="40%" class="fontblack"> @(Model.date.HasValue ? string.Format("{0:dd.MM.yyyy HH:mm}", Model.date) : string.Format("{0:dd.MM.yyyy HH:mm}",DateTime.Now)) </td>
+                    <th colspan="1" width="10%" class="boldText">Zimmet Süresi</th>
+                    <td colspan="1" width="40%" class="fontblack"> BELİRSİZ SÜRELİ </td>
+                </tr>
+                <tr>
+                    <th colspan="1" width="20%" class="boldText">Açıklama</th>
+                    <td colspan="3" width="80%" class="fontblack">Kurum içi kullanım için tahsis edilmiştir.</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="fontblack">
+            <p style="text-align:justify;">Yukarıda bilgileri bulunan zimmet tarafımca teslim alınmış olup, zimmet süresi içinde herhangi bir şekilde kendi çıkar veya özel amaçlarım için kullanmayacağımı, kullanımımdan kaynaklanan arıza ve hasarların tarafımca karşılanacağını ve işten ayrılmam durumunda yetkililere teslim edeceğimi beyan ve taahhüt ederim.</p>
+            <br /> <br /><br />
+            <div class="row">
+                <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+                    <div class="boldText">Teslim Eden</div>
+                    <div class="text-center boldText">
+                        <div>@(Model.createdby_Title)</div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+                    <div class="boldText">Teslim Alan</div>
+                    <div class="boldText">@Model.printInfo.user.title</div>
+                    <div class="text-center boldText">
+                        <div>@Model.printInfo.user.FullName </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>
+                İş Bu formun bir nüshası İnsan Kaynakları Müdürlüğüne teslim edilecek olup,
+                İK tarafından personel dosyasında muhafaza edilecektir.
+            </p>
+        </footer>
+    </div>
+</body>
+</html>

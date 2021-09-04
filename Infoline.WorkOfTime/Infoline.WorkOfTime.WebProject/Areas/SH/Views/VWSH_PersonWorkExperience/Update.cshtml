@@ -1,0 +1,95 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonWorkExperience
+@{
+    ViewBag.Title = "İş Deneyimi Düzenleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWSH_PersonWorkExperience", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.UserId)
+
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="CompanyName">Şirket Adı</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.CompanyName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Şirket Adı Giriniz.."},
+            }).Validate(Validations.TextTurkceSpace09(true,5,200))
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="WorkingPosition">Çalışma Pozisyonu</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.WorkingPosition, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Çalışma Pozisyonu Giriniz.."},
+            }).Validate(Validations.TextTurkceSpace09(true, 2, 200))
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="JobStartDate">İş Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+              Html.Akilli()
+              .DatePickerFor(model => model.JobStartDate)
+              .MaxDateElement("JobEndDate")
+              .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="JobEndDate">İş Bitiş Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+               Html.Akilli()
+               .DatePickerFor(model => model.JobEndDate)
+               .MinDateElement("JobStartDate")
+               .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="JobDescription">İş Tanımı</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextAreaFor(model => model.JobDescription, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen İş Tanımı Giriniz.."},
+            }).Validate(Validations.Adres(false))
+            </div>
+        </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

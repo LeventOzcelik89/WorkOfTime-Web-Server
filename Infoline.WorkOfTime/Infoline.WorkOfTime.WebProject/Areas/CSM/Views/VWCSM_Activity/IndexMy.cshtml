@@ -1,0 +1,213 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCSM_StudentModel
+@{
+    ViewBag.Title = "Görüşmeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+
+}
+
+<script type="text/javascript">
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+    function colorFunction(data) {
+        return '<i class="fa fa-certificate" style="color:' + data.color + '"></i>';
+    }
+
+    function LastStageFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetCSM_StageName", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Aşama Seçiniz--"
+        });
+    }
+
+    function LastStageTemplate(data) {
+        var dataStateColor = data.stageId_Color == "#ffffff" ? "#000000" : data.stageId_Color;
+        var template = '<button type="button" data-task="Insert" data-method="GET" data-show="single" data-href="/CSM/VWCSM_Activity/UpdateStage?id=' + data.id + '"' +
+                        '        class="btn btn-outline" style="box-shadow:inset 0 0 0 ' + data.stageId_Color + ', 0 5px 0 0  ' + data.stageId_Color + ', 0 10px 5px #999999;color:' + dataStateColor + ';border-color:' + data.stageId_Color + '">' +
+                        '    <i class="fa fa-check"></i>' +
+                         data.stageId_Title +
+                        '</button>';
+        return template;
+    }
+
+
+
+    $(document)
+        .on("load:grid", '#VWCSM_Activity', function () {
+            if (_model == null) {
+                return false;
+            }
+            if (_model.isAddContact == true) {
+                var button = $('[data-id="insertActivity"]');
+                var href = button.attr("data-href");
+                var url = new URL(location.origin + href);
+                url.searchParams.append("type", '@((int)EnumCSM_ActivityType.Cagri)');
+                $('[data-id="insertActivity"]').attr("data-href", url.pathname + url.search);
+                setTimeout(function () {
+                    _model.isAddContact = false;
+                    $('[data-id="insertActivity"]').trigger("click");
+                }, 50);
+            }
+        })
+
+        .on('success', '#InsertCSM_ActivityForm', function () {
+            setTimeout(function () {
+                var win = window.open("about:blank", "_self");
+				win.close();
+            }
+            ,500)
+        })
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    @if (Model != null)
+                    {
+                        <a class="btn btn-block btn-success" data-task="Insert" data-id="insertActivity" data-href="/CSM/VWCSM_Activity/Insert?studentId=@Model.id" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yeni Görüşme Oluştur</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-block btn-success" data-task="Insert" data-href="/CSM/VWCSM_Activity/Insert" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yeni Görüşme Oluştur</a>
+                    }
+                    <div class="space-25"></div>
+                    <h5>RANDEVU TARİHİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="2" data-query="(createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-align-justify"></i>  Tümü
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=createdby~eq~'@userStatus.user.id'">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="2" data-query="(contactDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i> Bugün
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(contactDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="2" data-query="(contactDate~gt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i> Bu Hafta
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(contactDate~gt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="2" data-query="(contactDate~gt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i> Bu Ay
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(contactDate~gt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~contactDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>GÖRÜŞME TARİHİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="1" data-query="(createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-align-justify"></i>  Tümü
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=createdby~eq~'@userStatus.user.id'">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="1" data-query="(date~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i> Bugün
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(date~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="1" data-query="(date~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i>  Dün
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(date~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="1" data-query="(date~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i>  Geçen Hafta
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(date~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-switch="radio" data-category="1" data-query="(date~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">
+                                <i class="fa text-success fa-clock-o"></i>  Geçen Ay
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(date~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~date~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                        </li>
+                    </ul>
+
+
+                    <div class="space-25"></div>
+                    <h5> Görüşme TİPİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCSM_ActivityType>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWCSM_Activity" data-category="0" data-query="(type~eq~'@item.Key'~and~createdby~eq~'@userStatus.user.id')">
+                                    <i class="fa fa-circle"></i>  @item.Value
+                                </a>
+                                <span style="color:#fff;" class="badge  pull-right m-l-md  m-t-xs" data-counturl="/CSM/VWCSM_Activity/DataSourceCount?filter=(type~eq~'@item.Key'~and~createdby~eq~'@userStatus.user.id')">0</span>
+                            </li>
+                        }
+                    </ul>
+
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Görüşme Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCSM_Activity>("VWCSM_Activity")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCSM_Activity", new { area = "CSM" })).PageSize(25).Filter(b => b.createdby == userStatus.user.id))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.studentId_Title).Title("Öğrenci").Width(180);
+                        x.Bound(y => y.type_Title).Title("Görüşme Tipi").Width(130);
+                        x.Bound(y => y.stageId_Title).Title("Görüşme Aşaması").Width(180).Filterable(filterable => filterable.UI("LastStageFilter")).ClientTemplate("#=LastStageTemplate(data)#");
+                        x.Bound(y => y.contactDate).Title("Varsa Randevu Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.date).Title("Görüşme Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.duration).Title("Görüşme Süresi (dk)").Width(130);
+                        x.Bound(y => y.description).Title("Görüşme Notları").Width(250);
+
+                    })
+                    .Scrollable(x => x.Height(700))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Görüşme Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCSM_Activity", new { area = "CSM" }));
+                        x.Custom().Text("<i data-original-title='Görüşme Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCSM_Activity", new { area = "CSM" }));
+                        x.Custom().Text("<i data-original-title='Görüşme Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCSM_Activity", new { area = "CSM" }));
+                    }))
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

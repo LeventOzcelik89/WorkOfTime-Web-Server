@@ -1,0 +1,174 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+@{
+	ViewBag.Title = "Print";
+	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
+	var totalPrice = 0;
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var logo = "https://" + Request.Url.Authority + "" + TenantConfig.Tenant.Config.Logo;
+
+}
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>&nbsp;</title>
+	<link rel="shortcut icon" href="@TenantConfig.Tenant.Config.Favicon">
+	<link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+	<link href="/Content/Themes/css/style.css" rel="stylesheet">
+	<script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+	<script src="/Content/Themes/js/bootstrap.min.js"></script>
+	<script src="~/Content/Plugins/formBuilder/form-render.min.js"></script>
+	<link href="~/Content/Custom/css/print.css" rel="stylesheet" />
+	<style type="text/css">
+		span, strong, div {
+			font-size: 11px;
+		}
+
+		canvas {
+			height: 100vh;
+			width: 100vw;
+			display: block;
+		}
+	</style>
+
+	<script type='text/javascript'>
+        var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+          function ImageError(element, image) {
+                element.onerror = '';
+                element.src = image;
+            }
+	</script>
+</head>
+
+<body class="white-bg">
+	<div id="page1" class="p-md">
+		<div class="row">
+			<div class="col-md-3 col-sm-3 col-lg-3 col-xs-3 text-left">
+				<img src="@logo" style="width:120px;" alt="image" onerror="ImageError(this,'@logo')">
+			</div>
+			<div class="col-md-9 col-sm-9 col-lg-9 col-xs-9 text-right">
+				<h4 class="">TRANSFER FİŞİ</h4>
+				<div><strong>Evrak Kodu : </strong><span> @(Model.code != null ? Model.code : "Eklenmemiş")</span></div>
+				<div><strong>Evrak Tarihi (Fiil'i) : </strong><span>  @string.Format("{0:dd.MM.yyyy HH:MM}", Model.date)</span></div>
+				<div><strong>Evrak Kayıt Tarihi : </strong><span>  @string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</span></div>
+				<div><strong>Düzenleyen : </strong><span>  @Model.createdby_Title </span></div>
+			</div>
+		</div>
+		<hr />
+		<div class="row">
+			<div class="col-lg-6 text-left col-md-6 col-sm-6 text-left col-xs-6">
+				<p style="margin-left:10px;">
+					<br />
+					<strong>Çıkış Yapılacak Depo/Şube :</strong><br /> <span>@(Model.outputCompanyId_Title != null ? Model.outputCompanyId_Title : "Ünvan girilmemiş.") - @(Model.outputId_Title != null ? Model.outputId_Title : "Ünvan girilmemiş.")</span>
+				</p>
+			</div>
+			<div class="col-lg-6 text-right col-md-6 col-sm-6 text-right col-xs-6">
+				<p style="margin-left:10px;">
+					<br />
+					<strong>Giriş Yapılacak Depo/Şube :</strong><br />
+					<span>@(Model.inputCompanyId_Title != null ? Model.inputCompanyId_Title : "Ünvan girilmemiş.") - @(Model.inputId_Title != null ? Model.inputId_Title : "Ünvan girilmemiş.")</span>
+				</p>
+			</div>
+		</div>
+		<hr />
+
+		<div class="table-responsive m-t">
+			<table class="table invoice-table">
+				<thead>
+					<tr>
+						<th>Ürün</th>
+						<th style="text-align:left;">Seri Numaraları</th>
+						<th>Miktar</th>
+						<th>Birim Fiyat</th>
+						<th>Satır Toplamı</th>
+
+					</tr>
+				</thead>
+				<tbody>
+
+					@foreach (var action in Model.items.Select((item, index) => new { item = item, index = index }))
+					{
+						<tr>
+							<td>
+								<div><strong>@action.item.productId_Title</strong></div>
+								<small></small>
+							</td>
+							@if (action.item.serialCodes != null)
+							{
+								<td style="word-break: break-word; text-align:left;"> @(action.item.serialCodes.Count() > 0 ? string.Join(", ", action.item.serialCodes) : "-")</td>
+							}
+							else
+							{
+								<td style="word-break: break-word; text-align:center;"> -</td>
+							}
+
+							<td> @String.Format("{0:N2}", action.item.quantity) @(action.item.unitId_Title != null ? action.item.unitId_Title : "")</td>
+
+							<td>
+								@String.Format("{0:N2}", action.item.unitPrice == null ? 0 : action.item.unitPrice) ₺
+							</td>
+							<td>@String.Format("{0:N2}", (action.item.unitPrice * action.item.quantity) == null ? 0 : action.item.unitPrice * action.item.quantity) ₺ </td>
+						</tr>
+
+						<span style="display:none"> @(action.item.unitPrice != null ? totalPrice += (int)(action.item.unitPrice * action.item.quantity) : totalPrice += 0)</span>
+					}
+
+				</tbody>
+			</table>
+		</div>
+		<table class="table invoice-total">
+			<tbody>
+				<tr>
+					<td><strong>Toplam:</strong></td>
+					<td>@String.Format("{0:N2}", totalPrice) ₺</td>
+				</tr>
+		</table>
+		<div class="well m-t">
+			<strong>Açıklama :</strong>
+			@(Model.description != null ? Model.description : " - ")
+		</div>
+
+		<hr />
+		<div class="row">
+			<div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+				<strong>Depo Personeli</strong>
+				<hr />
+				<div class="text-left">
+					<div>İsim Soyisim : </div>
+					<div>Tarih : </div>
+					<div>İmza : </div>
+				</div>
+			</div>
+
+			<div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+				<strong>Yönetici</strong>
+				<hr />
+				<div class="text-left">
+					<div>İsim Soyisim : </div>
+					<div>Tarih : </div>
+					<div>İmza : </div>
+				</div>
+			</div>
+		</div>
+
+		<hr />
+
+		<table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;margin-top: 2px;font-size: 10px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;">
+			<tr>
+				<td style="text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+				<td style="text-align: center;border: none;">[ ] GİZLİ</td>
+				<td style="text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+				<td style="text-align: center;border: none;">[ ] ANONİM</td>
+				<td style="text-align: center;border: none;">[ X ] DAHİLİ</td>
+				<td style="text-align: center;border: none;">[   ] HARİCİ</td>
+			</tr>
+		</table>
+
+	</div>
+</body>
+</html>
+

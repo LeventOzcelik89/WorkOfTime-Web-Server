@@ -1,0 +1,61 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+
+<div class="row hide" data-type="1">
+    <div class="hr-line-dashed"></div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="outputId1">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.outputId)
+                    .Id("outputId1")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .Template("#=TemplateEngine('userTemplate',data)#")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .AddAttribute("data-change", "true")
+                    .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                    .Events(a => a.Change("page.events.outputChange"))
+                    .Filter<VWSH_User>(a => a.IsWorking == true)
+                    .Sort(x => x.Add("firstname").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+                @Html.Hidden("outputTable", "SH_User", new { id = "outputTable1", disabled = "true" })
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="inputId1">Giriş Yapılacak Depo</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputId)
+                    .Id("inputId1")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.inputChange"))
+                    .Filter<VWCMP_Storage>(a => a.myStorage == true)
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+                @Html.Hidden("inputTable", "CMP_Storage", new { id = "inputTable1", disabled = "true" })
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,31 @@
+﻿@model VWHDM_Issue
+@{
+    ViewBag.Title = "Çözüm Önerileri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="ibox m-b-none">
+    <div class="ibox-title">
+        <h5>Çözüm Önerileri Listesi</h5>
+    </div>
+    <div class="ibox-content">
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Suggestion>("VWHDM_Suggestion")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Suggestion", new { area = "HDM" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.title).Title("Başlık").Width(130);
+                //x.Bound(y => y.content).Title("Ortalama Çözüm Süresi (dk)").Width(100);
+                x.Bound(y => y.status_Title).Title("Durumu").Width(130);
+            })
+            .Scrollable(s => s.Height(650))
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("<i data-original-title='Yeni Öneri Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWHDM_Suggestion", new { area = "HDM" }));
+                x.Custom().Text("<i data-original-title='Öneri Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHDM_Suggestion", new { area = "HDM" }));
+                x.Custom().Text("<i data-original-title='Öneri Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWHDM_Suggestion", new { area = "HDM" }));
+                x.Custom().Text("<i data-original-title='Öneri Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWHDM_Suggestion", new { area = "HDM" }));
+            }))
+    </div>
+</div>

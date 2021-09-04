@@ -1,0 +1,298 @@
+﻿@{
+    ViewBag.Title = "Ürün Değişimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on('selected:grid', '#VWPRD_StockTaskPlanOpen', function (e, item) {
+            if (item.taskId == null) {
+                $('[data-visible="true"]').hide();
+            } else {
+                $('[data-visible="true"]').show();
+                $('[data-visible="true"]').attr('data-href', '/FTM/VWFTM_Task/Detail?id=' + item.taskId);
+            }
+
+            $('[data-subs="true"]').attr('data-href', '/CMP/VWCMP_Storage/Detail?id=' + item.storageId);
+
+            var grid = $('#VWPRD_StockTaskPlanOpen').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?ids=" + _selectedRows.ToArray().join(","));
+        })
+        .on('selected:grid', '#VWPRD_StockTaskPlanClose', function (e, item) {
+            if (item.taskId == null) {
+                $('[data-visible="true"]').hide();
+            } else {
+                $('[data-visible="true"]').show();
+                $('[data-visible="true"]').attr('data-href', '/FTM/VWFTM_Task/Detail?id=' + item.taskId);
+            }
+
+            $('[data-subs="true"]').attr('data-href', '/CMP/VWCMP_Storage/Detail?id=' + item.storageId);
+
+            var grid = $('#VWPRD_StockTaskPlanClose').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?ids=" + _selectedRows.ToArray().join(","));
+        })
+        .on('selected:grid', '#VWPRD_StockTaskPlanFinish', function (e, item) {
+            if (item.taskId == null) {
+                $('[data-visible="true"]').hide();
+            } else {
+                $('[data-visible="true"]').show();
+                $('[data-visible="true"]').attr('data-href', '/FTM/VWFTM_Task/Detail?id=' + item.taskId);
+            }
+
+            $('[data-subs="true"]').attr('data-href', '/CMP/VWCMP_Storage/Detail?id=' + item.storageId);
+
+            var grid = $('#VWPRD_StockTaskPlanFinish').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?ids=" + _selectedRows.ToArray().join(","));
+        })
+
+        .on("load:grid", "#VWPRD_StockTaskPlanOpen", function (e, data) {
+            $.each($(this).find('[role="row"] [data-event="GridSelector"]'), function (i, item) {
+                var deger = $(item).attr('data-status');
+                if (deger == "0") {
+                    $(item).parents("td").css('background-color', '#b8b3ae');
+                } else if (deger == "1") {
+                    $(item).parents("td").css('background-color', '#f8ac59');
+                } else {
+                    $(item).parents("td").css('background-color', '#23c6c8');
+                }
+
+            })
+
+            var grid = $("#VWPRD_StockTaskPlanOpen").data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key()).ToArray().join(",");
+            var filter = grid.dataSource.transport.parameterMap({ filter: grid.dataSource.filter() }).filter;
+
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?filter=" + filter + "&ids=" + _selectedRows);
+        })
+        .on("load:grid", "#VWPRD_StockTaskPlanClose", function (e, data) {
+            $.each($(this).find('[role="row"] [data-event="GridSelector"]'), function (i, item) {
+                var deger = $(item).attr('data-status');
+                if (deger == "0") {
+                    $(item).parents("td").css('background-color', '#b8b3ae');
+                } else if (deger == "1") {
+                    $(item).parents("td").css('background-color', '#f8ac59');
+                } else {
+                    $(item).parents("td").css('background-color', '#23c6c8');
+                }
+
+            })
+
+            var grid = $("#VWPRD_StockTaskPlanClose").data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key()).ToArray().join(",");
+            var filter = grid.dataSource.transport.parameterMap({ filter: grid.dataSource.filter() }).filter;
+
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?filter=" + filter + "&ids=" + _selectedRows);
+        })
+        .on("load:grid", "#VWPRD_StockTaskPlanFinish", function (e, data) {
+            $.each($(this).find('[role="row"] [data-event="GridSelector"]'), function (i, item) {
+                var deger = $(item).attr('data-status');
+                if (deger == "0") {
+                    $(item).parents("td").css('background-color', '#b8b3ae');
+                } else if (deger == "1") {
+                    $(item).parents("td").css('background-color', '#f8ac59');
+                } else {
+                    $(item).parents("td").css('background-color', '#23c6c8');
+                }
+
+            })
+
+            var grid = $("#VWPRD_StockTaskPlanFinish").data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key()).ToArray().join(",");
+            var filter = grid.dataSource.transport.parameterMap({ filter: grid.dataSource.filter() }).filter;
+
+            $('[data-selector="SendData"]').attr("data-href", "/PRD/VWPRD_StockTaskPlan/SendData?filter=" + filter + "&ids=" + _selectedRows);
+        })
+</script>
+<script type="text/x-kendo-template" id="VWPRD_StockTaskPlanTemplate" data-selector="modalContainer">
+     <div class="feed-element" style="font-size:15px;">
+     <a class="pull-left" style="margin-top:40px; margin-left:17px;">
+
+         #if(status == 1){#
+         <i style="font-size: 25px;" class="icon-tasks"></i><br />
+         #}#
+    #if(status == 0){#
+         <i style="font-size: 25px;" class="icon-back-in-time"></i><br />
+         #}#
+
+         #if(status == 2){#
+         <i style="font-size: 25px;" class="icon-check-1"></i><br />
+         #}#
+     </a>
+    <div class="media-body" style="margin-left:85px;">
+     #if(storageCode != null){#
+                    <div style="font-size:13px;"><strong>Abone Numarası : </strong>#=storageCode#</div>
+                    #}#
+
+                    #if(storageId_Title!=null){#
+                    <div style="font-size:13px;"><strong>Abone Adı Soyadı : </strong>#=storageId_Title#</div>
+                    #}#
+
+                    #if(product_Title!=null){#
+                    <div style="font-size:13px;"><strong>Cihaz : </strong>#=product_Title#</div>
+                    #}#
+
+                    #if(serialNumber!=null){#
+                    <div style="font-size:13px;"><strong>Seri Numarası : </strong>#=serialNumber#</div>
+                    #}#
+
+                    #if(lastOperationStatus_Title !=null){#
+                    <div style="font-size:13px;"><strong>Görev Durumu: </strong>#=lastOperationStatus_Title#</div>
+                    #}#
+
+    </div>
+    </div>
+</script>
+
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <section style="margin-bottom: 20px;">
+                <div class="tabs-container">
+                    <ul class="nav nav-tabs">
+
+                        <li class="active" data-toggle="tooltip" data-placement="top" title="Görevi Açılan">
+                            <a data-toggle="tab" href="#Open_Task" aria-expanded="false"><i class="icon-tasks text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
+                        <li data-toggle="tooltip" data-placement="top" title="Görevi Açılmayan">
+                            <a data-toggle="tab" href="#Close_Task" aria-expanded="false"><i class="icon-back-in-time text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                        <li data-toggle="tooltip" data-placement="top" title="Görevi Biten">
+                            <a data-toggle="tab" href="#Finish_Task" aria-expanded="false"><i class="icon-check-1 text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="Open_Task">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <h4><i class="text-success icon-tasks"></i> Görevi Açılan Ürün/Abone/Cihaz Listesi </h4>
+                                </div>
+                                <div class="col-md-9">
+                                    <a class="btn-sm pull-right btn-success " style="margin-top: -8px;" data-modal="true" data-original-title="Abonelere Yeni Görev Ekle" data-task="Insert" data-href="/PRD/VWPRD_StockTaskPlan/InsertTask"> <i class="fa fa-plus"></i> Yeni Görev Ekle </a>
+                                    <a href="#" data-task="Insert" data-import="Excel" style="margin-top: -8px;" data-modal="true" data-original-title="Excel'den Abone Ekle" class="btn pull-right m-r-sm btn-sm btn-primary"
+                                       data-properties="@ExcelHelper.GetSchema(typeof(PRD_StockTaskPlanExcel), "PRD_StockTaskPlan")" data-gridRefresh="VWPRD_StockTaskPlan"
+                                       data-post="@Url.Action("Import","VWPRD_StockTaskPlan",new { area="PRD"})">
+                                        <i class="fa fa-file-excel-o"></i> Excel'den Abone Ekle
+                                    </a>
+
+                                    <a download href="~/Content/SampleExcels/plantask_template.xlsx" style="margin-top: -8px;" class="btn pull-right m-r-sm btn-sm btn-info" data-original-title="Örnek Excel İndir">
+                                        <i class="fa fa-download"></i> Örnek Excel İndir
+                                    </a>
+                                </div>
+
+                            </div>
+                            @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockTaskPlan>("VWPRD_StockTaskPlanOpen")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockTaskPlan", new { area = "PRD" })).PageSize(25).Filter(a => a.status == 1))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).Title("Ürün Bilgileri").Width(200).Filterable(false).Hidden(false).ClientTemplate("#=TemplateEngine('VWPRD_StockTaskPlanTemplate',data)#");
+        x.Bound(y => y.storageAddress).Title("Adresi").Width(250);
+        x.Bound(y => y.locationId_Title).Title("İlçe,İl/Ülke").Width(140);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(a => a.Height(650))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Yeni Görev Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertTask", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Seçili Kayıtlara Görev Oluştur' class='fa fa-send'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-selector", "SendData" }, { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("SendData", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+        x.Custom().Text("<i class='fa fa-user' data-original-title='Abone Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-subs", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görev Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "true" },{"data-method","GET" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+    }))
+                        </div>
+                        <div class="tab-pane" id="Close_Task">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <h4><i class="text-success icon-tasks"></i> Görevi Açılmayan Ürün/Abone/Cihaz Listesi </h4>
+                                </div>
+                                <div class="col-md-9">
+                                    <a class="btn-sm pull-right btn-success " style="margin-top: -8px;" data-modal="true" data-original-title="Abonelere Yeni Görev Ekle" data-task="Insert" data-href="/PRD/VWPRD_StockTaskPlan/InsertTask"> <i class="fa fa-plus"></i> Yeni Görev Ekle </a>
+                                    <a href="#" data-task="Insert" data-import="Excel" style="margin-top: -8px;" data-modal="true" data-original-title="Excel'den Abone Ekle" class="btn pull-right m-r-sm btn-sm btn-primary"
+                                       data-properties="@ExcelHelper.GetSchema(typeof(PRD_StockTaskPlanExcel), "PRD_StockTaskPlan")" data-gridRefresh="VWPRD_StockTaskPlan"
+                                       data-post="@Url.Action("Import","VWPRD_StockTaskPlan",new { area="PRD"})">
+                                        <i class="fa fa-file-excel-o"></i> Excel'den Abone Ekle
+                                    </a>
+
+                                    <a download href="~/Content/SampleExcels/plantask_template.xlsx" style="margin-top: -8px;" class="btn pull-right m-r-sm btn-sm btn-info" data-original-title="Örnek Excel İndir">
+                                        <i class="fa fa-download"></i> Örnek Excel İndir
+                                    </a>
+                                </div>
+
+                            </div>
+                            @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockTaskPlan>("VWPRD_StockTaskPlanClose")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockTaskPlan", new { area = "PRD" })).PageSize(25).Filter(a => a.status == 0))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).Title("Ürün Bilgileri").Width(200).Filterable(false).Hidden(false).ClientTemplate("#=TemplateEngine('VWPRD_StockTaskPlanTemplate',data)#");
+        x.Bound(y => y.storageAddress).Title("Adresi").Width(250);
+        x.Bound(y => y.locationId_Title).Title("İlçe,İl/Ülke").Width(140);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(a => a.Height(650))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Yeni Görev Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertTask", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+        x.Custom().Text("<i data-original-title='Seçili Kayıtlara Görev Oluştur' class='fa fa-send'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-selector", "SendData" }, { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("SendData", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+        x.Custom().Text("<i class='fa fa-user' data-original-title='Abone Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-subs", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görev Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "true" },{"data-method","GET" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+    }))
+                        </div>
+                        <div class="tab-pane" id="Finish_Task">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <h4><i class="text-success icon-tasks"></i> Görevi Biten Ürün/Abone/Cihaz Listesi </h4>
+                                </div>
+                                <div class="col-md-9">
+                                    <a class="btn-sm pull-right btn-success " style="margin-top: -8px;" data-modal="true" data-original-title="Abonelere Yeni Görev Ekle" data-task="Insert" data-href="/PRD/VWPRD_StockTaskPlan/InsertTask"> <i class="fa fa-plus"></i> Yeni Görev Ekle </a>
+                                    <a href="#" data-task="Insert" data-import="Excel" style="margin-top: -8px;" data-modal="true" data-original-title="Excel'den Abone Ekle" class="btn pull-right m-r-sm btn-sm btn-primary"
+                                       data-properties="@ExcelHelper.GetSchema(typeof(PRD_StockTaskPlanExcel), "PRD_StockTaskPlan")" data-gridRefresh="VWPRD_StockTaskPlan"
+                                       data-post="@Url.Action("Import","VWPRD_StockTaskPlan",new { area="PRD"})">
+                                        <i class="fa fa-file-excel-o"></i> Excel'den Abone Ekle
+                                    </a>
+
+                                    <a download href="~/Content/SampleExcels/plantask_template.xlsx" style="margin-top: -8px;" class="btn pull-right m-r-sm btn-sm btn-info" data-original-title="Örnek Excel İndir">
+                                        <i class="fa fa-download"></i> Örnek Excel İndir
+                                    </a>
+                                </div>
+
+                            </div>
+                            @(Html.Akilli()
+	.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockTaskPlan>("VWPRD_StockTaskPlanFinish")
+	.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockTaskPlan", new { area = "PRD" })).PageSize(25).Filter(a => a.status == 2))
+	.Columns(x =>
+	{
+		x.Bound(y => y.id).Title("Ürün Bilgileri").Width(400).Filterable(false).Hidden(false).ClientTemplate("#=TemplateEngine('VWPRD_StockTaskPlanTemplate',data)#");
+		x.Bound(y => y.storageCode).Title("Abone Numarası").Width(250);
+		x.Bound(y => y.inventorySerialNumber).Title("Sökülen Sayaç Seri No").Width(250);
+		x.Bound(y => y.inventoryIndexValue).Title("Sökülen Sayaç Endeks").Width(250);
+		x.Bound(y => y.serialNumber).Title("Bağlanan Sayaç Seri No").Width(250);
+		x.Bound(y => y.newInventoryBrand).Title("Bağlanan Sayaç Markası").Width(250);
+		x.Bound(y => y.newInventoryIndexValue).Title("Bağlanan Sayaç Endeks").Width(250);
+		x.Bound(y => y.newInventoryStampYear).Title("Damga Yılı").Width(150);
+		x.Bound(y => y.changed).Title("İşlem Tarihi").Width(250).Format(Extensions.DateFormatFull(true));
+		x.Bound(y => y.locationId_Title).Title("İlçe,İl/Ülke").Width(140);
+		x.Bound(y => y.storageAddress).Title("Adresi").Width(250);
+
+	})
+	.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+	.Scrollable(a => a.Height(650))
+	.ToolBar(x =>
+	{
+		x.Custom().Text("<i data-original-title='Yeni Görev Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertTask", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+		x.Custom().Text("<i data-original-title='Seçili Kayıtlara Görev Oluştur' class='fa fa-send'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-selector", "SendData" }, { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("SendData", "VWPRD_StockTaskPlan", new { area = "PRD" }));
+		x.Custom().Text("<i class='fa fa-user' data-original-title='Abone Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-subs", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+		x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görev Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "true" },{"data-method","GET" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+	}))
+                        </div>
+                            </div>
+                        </div>
+            </section>
+        </div>
+    </div>
+</div>

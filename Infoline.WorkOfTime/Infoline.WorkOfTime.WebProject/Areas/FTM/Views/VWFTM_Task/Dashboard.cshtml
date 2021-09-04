@@ -1,0 +1,1277 @@
+﻿@{
+    ViewBag.Title = "Görev Raporu";
+    Layout = null;
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+    var startDateAll = new DateTime(now.Year, now.Month, 1).AddYears(-50).Date;
+    var endDateAll = new DateTime(now.Year, now.Month, 1).AddYears(50).Date;
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<script src="~/Content/Themes/js/plugins/peity/jquery.peity.min.js"></script>
+<script src="~/Content/Themes/js/demo/peity-demo.js"></script>
+<link href="~/Content/YearCalendar/css/bootstrap-year-calendar.css" rel="stylesheet" />
+<link href="~/Content/YearCalendar/css/custom-year-calendar.css" rel="stylesheet" />
+<script src="~/Content/YearCalendar/js/custom-year-calendar.js"></script>
+
+<style type="text/css">
+
+    #CalendarContainer .calendar-header {
+        display: none;
+    }
+
+    .withTabs .customTabs:before {
+        content: 'YIL :';
+    }
+
+    .legendTable tr td {
+        padding: 4px;
+    }
+
+    .tab-content {
+        border: none !important;
+    }
+
+    .withTabs .tab-content .tab-pane {
+        padding: 0px;
+    }
+
+    .calendar {
+        padding: 0px !important;
+        margin: 20px 0px;
+    }
+
+    .popover {
+        max-width: 360px !important;
+        z-index: 2001;
+    }
+
+    .popover-content {
+        width: 320px;
+    }
+
+    .capt {
+        text-decoration: underline;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    .popover .btn-group {
+        width: 100%;
+        margin-top: 10px;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+        margin-left: -15px;
+        width: calc(30px + 100%);
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+        .popover .btn-group .btn {
+            float: right;
+        }
+
+    .popover-content h3 {
+        color: #f00;
+    }
+
+    [class^="levelLegend"] {
+        width: 30px;
+        height: 18px;
+        display: inline-block;
+        float: left;
+        margin-right: 6px;
+        margin-left: 6px;
+    }
+
+    .levelLegend1 {
+        background: #bc0101;
+        margin-left: 0px !important;
+    }
+
+    .levelLegend2 {
+        background-color: #ec7c1e;
+    }
+
+    .levelLegend3 {
+        background-color: #13a261;
+    }
+
+    .levelLegend4 {
+        background-color: #ffcc16;
+    }
+
+    .levelLegend5 {
+        background-color: #1e4dec;
+    }
+
+    .legendTable {
+        margin-bottom: 4px;
+        clear: none;
+        border: 1px solid #EBEBEB;
+    }
+
+    .calPopover .close {
+        margin-top: -12px;
+        margin-right: -8px;
+    }
+
+    [data-target="type_Title"] .badge > i {
+        margin-right: 4px;
+    }
+
+    .detailList li > i, .detailList li > strong {
+        float: left;
+    }
+
+    .detailList li > i {
+        margin-right: 5px;
+    }
+
+    .detailList li {
+        text-align: right;
+    }
+
+    #insertRadio.akilliRadioGrup label {
+        width: 8.4% !important;
+    }
+</style>
+
+<style type="text/css">
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    .filterButtonPassive {
+        background-color: #49afcd;
+        border-color: #2f96b4;
+        color: white;
+    }
+
+    ul, li {
+        list-style-type: none;
+    }
+
+    .noContent {
+        color: #21B9BB;
+        text-align: center;
+        font-weight: bold;
+        padding-top: 25%;
+        font-size: 16px;
+    }
+
+    .k-grid tr.k-state-selected {
+        color: #5d5555;
+    }
+
+    .k-grid tr.k-state-selected {
+        background-color: #ffffff;
+    }
+
+    .k state selected {
+        box-shadow: 0 1px 1px rgba(0, 0, 0, 0.075) inset;
+    }
+
+    .active {
+        color: black !important;
+    }
+
+    .btn-group .btn + .btn {
+        margin-left: -9px !important;
+    }
+</style>
+
+<div class="row clearfix">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="ibox ">
+            <div class="ibox-content clearfix">
+                <div class="row">
+                    <div>
+                        <div class="col-lg-5">
+                            <div class="clearfix" style="margin-bottom:-9px;">
+
+                                <div class="btn-group rounded" role="group" aria-label="Basic example">
+                                    <button type="button" data-id="all" data-selector="created" data-query="((created~gte~datetime'@startDateAll.ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@endDateAll.ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')" class="btn btn-rounded filterButtonPassive"><span></span> TÜMÜ</button>
+
+                                    <button type="button" data-id="lastMonth" data-query="(created~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN AY</button>
+
+                                    <button type="button" data-id="lastWeek" data-query="(created~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN HAFTA</button>
+
+                                    <button type="button" data-id="yesterday" data-selector="created" data-query="(created~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-name="filterDate" class="btn filterButtonPassive"><span></span>DÜN</button>
+
+                                    <button type="button" data-id="today" data-selector="created" data-query="(created~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-name="filterDate" class="btn filterButtonPassive"><span></span>BUGÜN</button>
+
+                                    <button type="button" data-query="(created~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-id="thisWeek" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>BU HAFTA</button>
+
+                                    <button type="button" data-id="thisMonth" data-query="(created~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lte~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~customerId~eq~'@userStatus.user.CompanyId')" data-selector="created" data-name="filterDate" class="btn btn-rounded filterButtonActive"><span class="fa fa-check"></span>BU AY</button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="col-lg-4">
+                            <div class="btn-group rounded" role="group" aria-label="Basic example">
+                                @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+                                {
+                                    if (@item.Key == "0" && item.Key == "7")
+                                    {
+                                        <button style="font-size:12px; color:#ffffff;" data-selector="type" data-type="@item.Key" data-query="(type~eq~@item.Key)" class="btn btn-rounded btn-info" href="#" data-category="1">
+                                            <i data-original-title="@item.Value" data-placement="left" style="font-size:15px;" class="@item.Generic["icon"]"></i>
+                                        </button>
+                                    }
+                                    else
+                                    {
+                                        <button style="font-size:12px; color:#ffffff;" data-selector="type" data-type="@item.Key" data-query="(type~eq~@item.Key)" class="btn btn-rounded btn-info" href="#" data-category="1">
+                                            <i data-original-title="@item.Value" data-placement="left" style="font-size:15px;" class="@item.Generic["icon"]"></i>
+                                        </button>
+                                    }
+
+                                }
+                            </div>
+                        </div>
+                        <div class="col-lg-3">
+                            <div class="clearfix" style="margin-bottom:-9px; margin-top:8px;">
+
+                                @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>())
+                                {
+                                    <a data-original-title="Görev Önceliği" data-placement="left" class="pull-left" style="margin-right:10px; color:#a2b8cb; font-size:15px;" href="#" data-selector="priority" data-type="@item.Key" data-category="3" data-query="(priority~eq~'@item.Key')">
+                                        <i style="color:#@item.Generic["color"]" class="fa fa-circle"></i><span style="margin-left:1px;">@item.Value</span>
+                                    </a>
+                                }
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <br />
+            <div class="row">
+
+                <div class="col-lg-6">
+                    <div class="ibox-title">
+                        <h5><i class="fa fa-wrench"></i> Görev Dağılımı</h5>
+                        <div class="ibox-tools">
+                        </div>
+                    </div>
+                    <div class="ibox-content" style="height: 500px;">
+                        <div id="TaskDistribution"></div>
+
+                        @*<hr />
+                            <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;  height: 162px;" id="taskAllTypes">
+                            </ul>*@
+                    </div>
+
+                    <hr />
+
+                    <div class="ibox">
+                        <div class="ibox-title text-center">
+                            <h3 class="text-center">Personel İşlem İstatistiği </h3>
+                        </div>
+                        <div class="ibox-content" style="height: 516px; overflow: auto;">
+                            <div id="personStatistics"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-6 col-md-12 col-sm-12 col-xs-12">
+                    <div class="row">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12 m-b-lg">
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-book"></i> Çağrı Konularına Göre Dağılım  </h5>
+                                <div class="ibox-tools">
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="height: 500px;">
+                                <div id="SubjectTitles"></div>
+
+                                @*<hr />
+
+                                                                <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;    height: 162px;
+                                    overflow: auto;" id="subjectList">
+                                                                </ul>*@
+                            </div>
+
+
+                            <hr />
+                            <div class="ibox-title">
+                                <h5><i class="fa fa-cogs"></i> Aylara Göre Çağrı/İş Adedi  </h5>
+                                <div class="ibox-tools">
+                                </div>
+                            </div>
+                            <div class="ibox-content" style="height: 516px;">
+
+                                <div id="dataChart"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+            <div class="row">
+
+                <div class="col-md-6">
+                    <div class="ibox ">
+                        <div class="ibox-title text-center">
+                            <h3 class="text-center">Çağrı Operatörü İşlem İstatistiği</h3>
+                        </div>
+
+                        <div class="ibox-content ibox-content_image clearfix " style="height:500px; overflow-y:scroll;">
+                            <div id="operatorStatistics"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="ibox-title">
+                        <h5><i class="fa fa-warning"></i> Aciliyet Durumları </h5>
+                        <div class="ibox-tools">
+                        </div>
+                    </div>
+                    <div class="ibox-content" style="height:500px;">
+
+                        <div id="ColumnChart"></div>
+
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="ibox-content clearfix">
+
+                        <fieldset class="withTabs" id="CalendarContainer">
+                            <legend>GÖREV ARIZA/BAKIM TAKVİMİ</legend>
+
+                            <table class="legendTable">
+                                <tbody>
+                                    <tr>
+                                        <td>Göreve <b>Başlanmadı</b> <span class="levelLegend1"></span></td>
+                                        <td>Görev <b>Devam Ediyor</b> <span class="levelLegend2"></span></td>
+                                        <td>Görev <b>Tamamlandı</b> <span class="levelLegend3"></span></td>
+                                        <td>Görev <b>Planlandı</b> <span class="levelLegend4"></span></td>
+                                        <td><b>Diğer</b> <span class="levelLegend5"></span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <ul class="nav nav-tabs customTabs usel"></ul>
+                            <div class="tab-content"></div>
+                        </fieldset>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/template" id="rowTemplate">
+    <tr>
+        <td data-elem="customer_Title"></td>
+        <td data-elem="type_Title"></td>
+        <td data-elem="lastOperationStatus_Title"></td>
+    </tr>
+</script>
+
+<script type="text/template" id="temp_Customer">
+    <a href="/CMP/VWCMP_Company/Detail?id=" target="_blank" class="block" data-target="customerTitle"></a>
+</script>
+
+<script type="text/template" id="temp">
+    <div class="calPopover">
+
+        <button class="close">×</button>
+
+        <h3 class="text-center">Toplam <span data-target="taskCount"></span> Görev</h3>
+
+        <div class="capt">Müşteriler</div>
+        <div data-target="customers"></div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="capt">Görev Tipleri</div>
+                <div data-target="type_Title"></div>
+            </div>
+            <div class="col-sm-6">
+                <div class="capt">Görev Durumları</div>
+                <div data-target="KeyStatus"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a class="btn btn-xs btn-default" target="_blank" href="/FTM/VWFTM_Task/Index?ids=" data-target="detail">Detay</a>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+    var activityTracking = {
+        Model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        StatusList: [
+            { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
+            { Key: 'Görev Devam Ediyor', Codes: [13, 20, 21, 22, 23, 24, 25, 26, 27], Color: '#ec7c1e' },
+            { Key: 'Görev Tamamlandı', Codes: [30, 31, 32, 40], Color: '#13a261' },
+            { Key: 'Görev Planlandı', Codes: [null], Color: '#ffcc16' },
+            { Key: 'Diğer', Codes: [999], Color: '#1e4dec' },
+        ],
+        Operations: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))),
+        Types: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))),
+        GetStatus: function (items) {
+
+            var its = $.Enumerable.From(items)
+                .GroupBy(a => { return a.lastOperationStatus; })
+                .Select(a => {
+
+                    var _val = a.Key();
+
+                    return $.Enumerable.From(activityTracking.StatusList).Where(a => { return a.Codes.indexOf(_val) > -1 }).FirstOrDefault() ?? activityTracking.StatusList[4];
+
+                }).ToArray();
+
+            var group = $.Enumerable.From(its).GroupBy(a => { return a.Key; });
+            var max = group.OrderByDescending(a => { return a.Count(); }).FirstOrDefault();
+
+            if (group.Count() > 1) {
+                return activityTracking.StatusList[4];   //  diğer
+            } else {
+                return max.source[0];
+            }
+        },
+        Calendar: {
+            activeYear: null,
+            POP: {
+                list: [],
+                HasValue: function (_date) {
+
+                    return $.Enumerable.From(activityTracking.Calendar.POP.list).Any(a => { return a.date == kendo.toString(_date, 'yyyy-MM-dd') });
+
+                },
+                Hide: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    activityTracking.Calendar.POP.list = $.Enumerable.From(activityTracking.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    $(item.elem).popover('hide');
+
+                },
+                HideAll: function () {
+
+                    $.each(activityTracking.Calendar.POP.list, function (i, item) {
+
+                        $(item.elem).popover('hide');
+
+                    });
+
+                    activityTracking.Calendar.POP.list = [];
+
+                },
+                Toggle: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    var _it = $.Enumerable.From(activityTracking.Calendar.POP.list).Where(a => { return a.date == item.date }).FirstOrDefault();
+
+                    if (_it == null) {
+                        activityTracking.Calendar.POP.list.push(item);
+                    } else {
+                        activityTracking.Calendar.POP.list = $.Enumerable.From(activityTracking.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    }
+
+                }
+            },
+            GetTableRow: function (item) {
+
+                var row = $($('#rowTemplate').html());
+                $.each(row.find('[data-elem]'), function (i, it) {
+
+                    var elem = $(it);
+                    var prop = $(it).attr('data-elem');
+
+                    elem.html(item[prop]);
+
+                });
+
+                return row;
+
+            },
+            Years: null,
+            init: function () {
+
+                ReadData('/FTM/VWFTM_TaskPlan/AllTaskCalendarDataSource', null, function (res) {
+
+                    $.each(res, function (e, item) {
+                        item.Data = $.Enumerable.From(item.Data).Where(x => x.customerId == '@userStatus.user.CompanyId').ToArray();
+                    })
+
+                    activityTracking.Calendar.Years = res;
+
+                    $.Enumerable.From(activityTracking.Calendar.Years)
+                        .SelectMany(a => { return a.Data; })
+                        .GroupBy(a => { return a.taskPlanId; })
+                        .Select(a => {
+
+                            $('.customList [data-plan="' + a.Key() + '"]').find('[data-target="count"]').html(kendo.toString(a.Count(), 'N0'));
+
+                        }).ToArray()
+
+                    $.each(activityTracking.Calendar.Years, function (i, item) {
+
+                        $.each(item.Data, function (id, data) {
+
+                            if (data.end == null) { return; }
+
+                            var k = kendo.toString(new Date(data.end), 'yyyy-MM-dd 00:00:00');
+
+                            data.startDate = new Date(k);
+                            data.endDate = new Date(k);
+                            data.status = $.Enumerable.From(activityTracking.StatusList).Where(a => { return a.Codes.indexOf(data.lastOperationStatus) > -1 }).FirstOrDefault()
+                                ?? activityTracking.StatusList[4];
+                            data.color = data.status.Color;
+
+                        });
+
+                    });
+
+                    activityTracking.Calendar.renderCalendars();
+
+                });
+
+            },
+            renderCalendars: function () {
+
+                $('#CalendarContainer .nav-tabs').html(null);
+                $('#CalendarContainer .tab-content').html(null);
+
+                $.each(activityTracking.Calendar.Years, function (i, item) {
+
+                    var planIds = $.Enumerable.From($('.customList > [data-show="true"]').map(function (i, item) { return $(item).attr('data-plan') }));
+
+                    $.Enumerable.From(item.Data)
+                        .Where(a => { return a.taskPlanId == null || planIds.Contains(a.taskPlanId); })
+                        .GroupBy(a => { return kendo.toString(a.startDate, 'yyyy-MM-dd'); })
+                        .Select(a => {
+
+                            var stat = activityTracking.GetStatus(a.source);
+
+                            $.each(a.source, function (i, item) {
+
+                                if (stat.ColorNextDays != undefined && new Date(a.Key() + ' 00:00:00') > new Date()) {
+                                    item.color = stat.ColorNextDays;
+                                } else {
+                                    item.color = stat.Color;
+                                }
+
+                            });
+
+                        }).ToArray();
+
+                    if (activityTracking.Calendar.activeYear == null && item.Year == new Date().getFullYear()) {
+                        activityTracking.Calendar.activeYear = item.Year;
+                    }
+
+                    activityTracking.Calendar.initCalendar(
+                        item.Year,
+                        $.Enumerable.From(item.Data).Where(a => { return a.taskPlanId == null || planIds.Contains(a.taskPlanId); }).ToArray()
+                    );
+
+                });
+
+                if ($('#CalendarContainer .nav-tabs li.active').length == 0) {
+                    $('#CalendarContainer .nav-tabs li:first-child a').trigger('click')
+                }
+
+            },
+            initCalendar: function (year, data) {
+
+                var _id = 'tab_' + newGuid().substring(0, 8);
+                var _idCalendar = 'calendar_' + newGuid().substring(0, 8);
+                var cls = (year == activityTracking.Calendar.activeYear ? 'active' : '');
+
+                var itemNav = '<li class="' + cls + '"><a data-toggle="tab" href="#' + _id + '" data-year="' + year + '">' + year + '</a></li>';
+                var elemNav = $('<div id="' + _id + '" class="tab-pane ' + cls + '"><div id="' + _idCalendar + '"></div></div>')
+
+                $('#CalendarContainer .nav-tabs').append(itemNav);
+                $('#CalendarContainer .tab-content').append(elemNav);
+
+                $('#' + _idCalendar).calendar({
+                    startYear: year,
+                    style: 'background',
+                    dataSource: data,
+                    language: "tr",
+                    minDate: new Date(year, 0, 1),
+                    maxDate: new Date(year, 11, 31),
+                    toolbar: ["pdf"],
+                    renderEnd: function (e) {
+                        //Doldurulacak
+                    },
+                    mouseOnDay: function (e) {
+
+                        if (e.events.length > 0 && !activityTracking.Calendar.POP.HasValue(e.date)) {
+
+                            var items = $.Enumerable.From(e.events);
+
+                            var temp = $($('#temp').html());
+                            temp.find('[data-target="taskCount"]').html(items.Count());
+                            temp.find('[data-target="detail"]').attr('href', temp.find('[data-target="detail"]').attr('href') + items.Select(a => { return a.id; }).ToArray().join(','));
+
+                            //  Tüm görevler planlanmış ise realde herhangi bir görev yoksa
+                            if (items.Count(a => { return a.lastOperationStatus == null; }) == items.Count()) {
+                                temp.find('[data-target="detail"]').attr('href', '#').attr('disabled', 'disabled').removeAttr('target');
+                            }
+
+                            temp.find('.close').on('click', function () {
+                                activityTracking.Calendar.POP.Hide(e.date, e.element);
+                            });
+
+                            items
+                                .GroupBy(a => { return a.customer_Title; })
+                                .Select(a => {
+
+                                    var el = $($('#temp_Customer').html());
+                                    el.html(a.Key());
+                                    el.attr('href', el.attr('href') + a.Max(b => { return b.customerId; }));
+                                    el.appendTo(temp.find('[data-target="customers"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.type_Title; })
+                                .Select(a => {
+
+                                    var _type = $.Enumerable.From(activityTracking.Types).Where(b => { return b.Value == a.Key(); }).FirstOrDefault();
+
+                                    var el = $('<div class="block"><span class="badge">' + '<i class="' + _type.Generic.icon + '"></i>' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="type_Title"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.status.Key; })
+                                .Select(a => {
+
+                                    var el = $('<div class="block"><span class="badge badge-white" style="color: ' + a.source[0].status.Color + '; border: 1px solid; ">' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="KeyStatus"]'));
+
+                                })
+                                .ToArray();
+
+                            $(e.element).popover({
+                                trigger: 'manual',
+                                container: 'body',
+                                html: true,
+                                content: temp,
+                                placement: 'top'
+                            });
+
+                            $(e.element).popover('show');
+
+                        }
+                        else {
+
+                            if (!activityTracking.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+
+                        }
+                    },
+                    clickDay: function (e) {
+
+                        activityTracking.Calendar.POP.Toggle(e.date, e.element);
+
+                    },
+                    mouseOutDay: function (e) {
+                        if (e.events.length > 0) {
+                            if (!activityTracking.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+                        }
+                    },
+                });
+
+            }
+        },
+        first: true,
+        data: {
+            taskDatas: [],
+            taskChart: [],
+            staffDatas: [],
+        },
+        fnc: {
+            loadTaskDistributionChart: function () {
+                activityTracking.data.taskChart.forEach(function (item) {
+                    switch (item.Key) {
+                        case "Personel Ataması Bekleyenler":
+                            item["ColorTask"] = "#ed5565";
+                            break;
+                        case "Üstlenilmeyi Bekleyenler":
+                            item["ColorTask"] = "#23c6c8";
+                            break;
+                        case "Devam Edenler":
+                            item["ColorTask"] = "#1c84c6";
+                            break;
+                        case "Çözüm Onayı Bekleyenler":
+                            item["ColorTask"] = "#f8ac59";
+                            break;
+                        case "Çözümlenmiş Görevler":
+                            item["ColorTask"] = "#1ab394";
+                            break;
+                        case "Görev Planlanmış":
+                            item["ColorTask"] = "#f4f89f";
+                            break;
+                        case "Görev Planlanmış Zaman Ataması Bekleyenler ":
+                            item["ColorTask"] = "#ff0000";
+                            break;
+                        default:
+                    }
+                })
+                activityTracking.fnc.createPieChart($("#TaskDistribution"), activityTracking.data.taskChart, " #= category # : #= dataItem.Value # ");
+            },
+            createPieChart: function (element, data, MyString) {
+                if (data == null || data.length == 0) {
+                    //$(element).hide();
+                    $(element).empty();
+                    $(element).append("<span style='margin-left: 40%;margin-top: 20%;font-size: 15px;' class='badge badge-danger'> Veri bulunamadı</span>")
+                    return;
+                }
+                $(element).show();
+
+                element.kendoChart({
+                    title: {},
+                    legend: {
+                        position: "right"
+                    },
+                    dataSource: {
+                        data: data
+                    },
+                    chartArea: {
+                        background: "transparent"
+                    },
+                    seriesDefaults: {
+                        labels: {
+                            visible: true,
+                            background: "transparent",
+                            template: "#= kendo.format('{0:p2}', percentage)#"
+
+                        },
+                        overlay: {
+                            gradient: "none"
+                        },
+
+                    },
+                    series: [{
+                        type: "pie",
+                        field: "Value",
+                        categoryField: "Key",
+                        colorField: "ColorTask",
+                    }],
+                    tooltip: {
+                        visible: true,
+                        template: MyString,
+                        format: "{0:N0}"
+                    },
+                    exporting: {
+                        enabled: false
+                    }
+                });
+                $(element.selector).append(kendoExportTemplate(element.selector));
+            },
+            CreateKendoPermintsChart: function (element, data) {
+                if (data.filter(function (v) { return v.tum == 0; }).length == 12) {
+                    $(element).empty();
+                    $(element).append("<span style='margin-left: 40%;margin-top: 25%;font-size: 15px;' class='badge badge-danger'> Veri bulunamadı</span>");
+                    return;
+                }
+                element.kendoChart({
+                    dataSource: {
+                        data: data
+                    },
+                    chartArea: {
+
+                        height: 480
+                    },
+                    title: {
+                       // padding: { top: 50 },
+                        text: "Aylık Çağrı Adedi"
+                    },
+                    series: [{
+                        field: "tum",
+                        //field: "ToplamGun",
+                        categoryField: "Ay"
+                    }],
+                    render: function (e) {
+                        var loading = $(".chart-loading", e.sender.element.parent());
+                        kendo.ui.progress(loading, false);
+                    },
+                    seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#1c0F7F", "#9de219", "#90cc38"],
+                    legend: {
+
+                        visible: true
+                    },
+                    valueAxis: {
+                        labels: {
+                            format: "{0:N0} "
+                        }
+                    },
+                    categoryAxis: {
+                        labels: {
+                            rotation: -45
+                        },
+                        majorGridLines: {
+                            visible: true
+                        },
+                        majorTicks: {
+                            lines: {
+                                visible: true
+                            }
+                        },
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{0:N0}",
+                        template: "Toplam Görev Sayısı: #=kendo.format(\"{0:N0}\", data.dataItem.tum)# Adet",
+                        opacity: 0.7,
+                        background: 'red'
+                    }
+                });
+                $(element.selector).append(kendoExportTemplate(element.selector));
+            },
+            ColumnChart: function (element, data) {
+                if (data.filter(function (v) { return v.tum == 0; }).length == 12) {
+                    $(element).empty();
+                    $(element).append("<span style='margin-left: 40%;margin-top: 25%;font-size: 15px;' class='badge badge-danger'> Veri bulunamadı</span>");
+                    return;
+                }
+
+                element.kendoChart({
+                    title: {
+                        text: "Görev aciliyet durum dağılımı"
+                    },
+                    legend: {
+                        position: "top"
+                    },
+                    seriesDefaults: {
+                        type: "column"
+                    },
+                    series: [{
+                        name: "Yüksek",
+                        data: $.Enumerable.From(data).Select(x => x["yuksek"]).ToArray()
+                    }, {
+                        name: "Orta",
+                        data: $.Enumerable.From(data).Select(x => x["orta"]).ToArray()
+                    }, {
+                        name: "Düşük",
+                        data: $.Enumerable.From(data).Select(x => x["dusuk"]).ToArray()
+                    }],
+                    valueAxis: {
+                        labels: {
+                            format: "{0:N0} Adet"
+                        },
+                        line: {
+                            visible: false
+                        },
+                        axisCrossingValue: 0
+                    },
+                    categoryAxis: {
+                        labels: {
+                            rotation: -45
+                        },
+                        categories: $.Enumerable.From(data).Select(x => x["Ay"]).ToArray(),
+                        line: {
+                            visible: false
+                        }
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{0}%",
+                        template: "#= series.name #: #= value #"
+                    }
+
+                })
+            },
+            loadAllTasks: function () {
+
+            },
+            getDatas: function (dataQuery) {
+                GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSourceForDashboard' + dataQuery, null, function (res) {
+                    if (res.Result == false || res.Object == null || res.Object.Staff.length == 0) {
+                        $("#staffContent").html(null);
+                        $("#staffContent").append('<div class="noContent">Personel Bulunamadı.</div>')
+                        $('UserWorkToday').hide();
+                    }
+                    activityTracking.data.taskDatas = res.Object;
+                    //activityTracking.fnc.loadAllTasks()
+                    activityTracking.data.taskChart = $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key != "Tüm Görevler" && x.Value != 0).ToArray()
+                    activityTracking.fnc.loadTaskDistributionChart()
+
+                    activityTracking.fnc.createPieChart($("#SubjectTitles"), activityTracking.data.taskDatas.SubjectData, " #= category # : #= dataItem.Value # ");
+
+
+                    activityTracking.fnc.CreateKendoPermintsChart($('#dataChart'), activityTracking.data.taskDatas.ChartAylik);
+                 
+                    activityTracking.fnc.ColumnChart(
+                        $('#ColumnChart'),
+                        activityTracking.data.taskDatas.ChartWarning
+                    );
+
+                    $('#subjectList').empty();
+                    if (activityTracking.data.taskDatas.SubjectData.length > 0) {
+                        $('#subjectList').show();
+                    } else {
+                        $('#subjectList').hide();
+                    }
+
+                    $.each(activityTracking.data.taskDatas.SubjectData, function (e, item) {
+                        $('#subjectList').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>' + item.Key +
+                            '</span>' +
+                            '<span id="allTasks" class="badge badge-gray pull-right m-l-md  m-t-xs">' + item.Value + '</span>' +
+                            '</li>');
+                    })
+
+
+                    $('#taskAllTypes').empty();
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Value > 0).ToArray().length == 0) {
+                        $('#taskAllTypes').hide();
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Value > 0).ToArray().length > 0) {
+                        $('#taskAllTypes').show();
+
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Tüm Görevler</span>' +
+                            '<span id="allTasks" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#allTasks').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Tüm Görevler').Select(x => x.Value).FirstOrDefault()));
+
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Personel Ataması Bekleyenler").Select(x => x.Value).FirstOrDefault() > 0) {
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i> Personel Ataması Bekleyenler</span>' +
+                            '<span id="pendingAssigment" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#pendingAssigment').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Personel Ataması Bekleyenler').Select(x => x.Value).FirstOrDefault()));
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Üstlenilmeyi Bekleyenler").Select(x => x.Value).FirstOrDefault() > 0) {
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Üstlenilmeyi Bekleyenler</span>' +
+                            '<span id="toBeUndartaken" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#toBeUndartaken').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Üstlenilmeyi Bekleyenler').Select(x => x.Value).FirstOrDefault()));
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Devam Edenler").Select(x => x.Value).FirstOrDefault() > 0) {
+
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Devam Edenler</span>' +
+                            '<span id="continuing" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#continuing').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Devam Edenler').Select(x => x.Value).FirstOrDefault()));
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Durdurulanlar").Select(x => x.Value).FirstOrDefault() > 0) {
+
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Durdurulanlar</span>' +
+                            '<span id="stopped" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+
+                        $('#stopped').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Durdurulanlar').Select(x => x.Value).FirstOrDefault()));
+
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Çözüm Onayı Bekleyenler").Select(x => x.Value).FirstOrDefault() > 0) {
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Çözüm Onayı Bekleyenler</span>' +
+                            '<span id="waitingApproval" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#waitingApproval').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözüm Onayı Bekleyenler').Select(x => x.Value).FirstOrDefault()));
+
+                    }
+
+                    if ($.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == "Çözümlenmiş Görevler").Select(x => x.Value).FirstOrDefault() > 0) {
+                        $('#taskAllTypes').append('<li class="clearfix">' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-align-justify" style="color:gray"></i>Çözümlenmiş Görevler</span>' +
+                            '<span id="resolvedTasks" class="badge badge-gray pull-right m-l-md  m-t-xs"></span>' +
+                            '</li>');
+
+                        $('#resolvedTasks').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözümlenmiş Görevler').Select(x => x.Value).FirstOrDefault()));
+                    }
+
+
+                    $("#personStatistics").html(null);
+
+
+                    $("#personStatistics").kendoGrid({
+                        dataSource: activityTracking.data.taskDatas.StaffActivitys,
+                        pageSize: 100,
+                        height: 475,
+                        sortable: true,
+                        toolbar: [{ name: 'excel', text: '' }],
+                        excel: {
+                            title: "Test",
+                            fileName: "Personel İslem İstatigi.xlsx",
+                            filterable: true
+                        },
+                        filterable: {
+                            operators: {
+                                string: {
+                                    contains: "İçeriyor",
+                                    eq: "Eşittir",
+                                    neq: "Eşit Değil",
+                                }
+                            }
+                        },
+                        pageable: {
+                            refresh: true,
+                            pageSizes: true,
+                            buttonCount: 5
+                        },
+                        columns: [
+                            {
+                                field: "FullName",
+                                title: "Adı Soyadı"
+                            },
+                            {
+                                field: "taskCount",
+                                title: "Tamamlanma Oranı",
+                                filterable: false,
+                                template: '% #= (taskCount == 0 ? 0 : Math.floor(CompleteCount * 100 /taskCount)) #'
+
+                            },
+                            {
+                                field: "taskCount",
+                                title: "Görev Sayısı",
+                                filterable: false,
+                                width: 125,
+                                template: '#= kendo.format("{0:N0} Adet", taskCount) #'
+
+                            },
+                            {
+                                field: "CompleteCount",
+                                title: "Onaylanan Görev",
+                                filterable: false,
+                                template: '#= kendo.format("{0:N0} Adet", CompleteCount) #'
+
+                            },
+                            {
+                                field: "totalWorkingHours",
+                                filterable: false,
+                                title: "Çalışılan Süre"
+
+                            }
+                        ]
+                    });
+
+                    var grid = $("#personStatistics").data("kendoGrid");
+                    grid.dataSource.page(1);
+                    $("[class='k-input']").text("Tümü")
+
+
+                    $("#operatorStatistics").html(null);
+
+                    $("#operatorStatistics").kendoGrid({
+                        dataSource: activityTracking.data.taskDatas.TaskOperatorActivities,
+                        pageSize: 100,
+                        height: 475,
+                        sortable: true,
+                        toolbar: [{ name: 'excel', text: '' }],
+                        excel: {
+                            title: "Test",
+                            fileName: "Çağrı Operatörü İşlem İstatistiği.xlsx",
+                            filterable: true
+                        },
+                        filterable: {
+                            operators: {
+                                string: {
+                                    contains: "İçeriyor",
+                                    eq: "Eşittir",
+                                    neq: "Eşit Değil",
+                                }
+                            }
+                        },
+                        pageable: {
+                            refresh: true,
+                            pageSizes: true,
+                            buttonCount: 5
+                        },
+                        columns: [
+                            {
+                                field: "FullName",
+                                title: "Görev Operatörü"
+                            },
+                            {
+                                field: "OpenedTask",
+                                title: "Açılan Görev Sayısı",
+                                filterable: false,
+                                width: 200,
+                                template: '#= kendo.format("{0:N0} Adet", OpenedTask) #'
+
+                            },
+                            {
+                                field: "ApprovedTask",
+                                title: "Onaylanan Görev",
+                                filterable: false,
+                                width: 150,
+                                template: '#= kendo.format("{0:N0} Adet", ApprovedTask) #'
+
+                            },
+                            {
+                                field: "MyAppointmentTask",
+                                title: "Atanan Görev",
+                                filterable: false,
+                                width: 150,
+                                template: '#= kendo.format("{0:N0} Adet", MyAppointmentTask) #'
+
+                            },
+                            {
+                                field: "Id",
+                                filterable: false,
+                                title: " ",
+                                template: '<a href="/FTM/VWFTM_Task/Index?userId=#=Id#" target="_blank" class="btn btn-xs btn-info">Oluşturduğu Görevler</a></td>'
+
+
+                            }
+                        ]
+                    });
+
+                    var grid2 = $("#operatorStatistics").data("kendoGrid");
+                    grid2.dataSource.page(1);
+                    $("[class='k-input']").text("Tümü")
+
+
+
+
+
+                    $("img").on("error", function () {
+                        $(this).attr('onerror', '');
+                        $(this).attr("src", "/Content/Custom/img/na.png");
+
+                    });
+                });
+            },
+        }
+    };
+
+    $(document)
+        .on("ready", function () {
+            activityTracking.fnc.getDatas('');
+            activityTracking.Calendar.init();
+        })
+
+        .on('click', '[data-toggle="tab"]', function () {
+            activityTracking.Calendar.POP.HideAll();
+        })
+
+        .on('shown.bs.tab', '#CalendarContainer .nav li', function () {
+            activityTracking.Calendar.activeYear = parseInt($(this).find('a').attr('data-year'));
+        })
+
+        .on('click', '.customList .showhide', function () {
+            $(this).toggleClass('active');
+            $(this).parents('[data-plan]').attr('data-show', $(this).hasClass('active'));
+            activityTracking.Calendar.renderCalendars();
+        })
+
+         $('[data-query]').on("click", function (e) {
+        if ($(this).attr("data-selector") == "inventory") {
+            return;
+        }
+        else if ($(this).attr("data-selector") == "created") {
+            var _this = $(this);
+            $('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            $('.fa-check').removeClass('fa fa-check');
+            $('.fa-check').removeClass('fa fa-check');
+            _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+            _this.find('span').addClass("fa fa-check");
+            $('#check').addClass("fa fa-check");
+        } else if ($(this).attr("data-selector") == "priority") {
+            $('[data-selector="priority"]').each(function (e) {
+                $(this).addClass('text-info');
+            })
+            $(this).toggleClass("active");
+        }
+        else {
+            $('[data-selector="type"]').each(function (e) {
+                $(this).addClass('text-info');
+            })
+            $(this).toggleClass("active");
+        }
+
+        var createdquery = $('[data-selector="created"].filterButtonActive').data("query");
+        var typeQuery = [];
+        var priorityQuery = [];
+
+        $('[data-selector="type"].active').each(function (e) {
+            typeQuery.push($(this).data("query"));
+        })
+        $('[data-selector="priority"].active').each(function (e) {
+            priorityQuery.push($(this).data("query"));
+        })
+
+        if (typeQuery.length == 0 && priorityQuery.length == 0) {
+            var dataQuery = createdquery
+        }
+        else if (typeQuery.length != 0 && priorityQuery.length == 0) {
+            if (createdquery == '()') {
+                var dataQuery = "(" + typeQuery.join("~or~") + ")"
+            }
+            else {
+                var dataQuery = '(' + createdquery + "~and~" + '(' + typeQuery.join("~or~") + "))"
+            }
+        }
+        else if (typeQuery.length == 0 && priorityQuery.length != 0) {
+            if (createdquery == '()') {
+                var dataQuery = "(" + priorityQuery.join("~or~") + ")"
+            }
+            else {
+                var dataQuery = '(' + createdquery + "~and~" + '(' + priorityQuery.join("~or~") + "))"
+            }
+        }
+        else {
+            if (createdquery == '()') {
+                var dataQuery = "(" + typeQuery.join("~or~") + ")" + '~and~' + "(" + priorityQuery.join("~or~") + ")"
+            }
+            else {
+                var dataQuery = '(' + createdquery + "~and~" + '(' + typeQuery.join("~or~") + ")" + '~and~' + "(" + priorityQuery.join("~or~") + ")" + ")"
+            }
+        }
+
+
+        if (dataQuery == "()") {
+            activityTracking.fnc.getDatas('');
+        }
+        else {
+            activityTracking.fnc.getDatas('?filter=' + dataQuery);
+        }
+    })
+</script>
+

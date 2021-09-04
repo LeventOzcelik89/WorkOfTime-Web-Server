@@ -1,0 +1,144 @@
+﻿@{
+    ViewBag.Title = "Envanter Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on("selected:grid", "#VWPRD_Inventory", function (e, res) {
+            $('[data-showType]').addClass("hide");
+            if (res.firstActionType != 101) {
+                $('[data-showType="' + res.lastActionType + '"]').removeClass("hide");
+            }
+        })
+        .on("load:grid", "#VWPRD_Inventory", function (e, res) {
+            var dataSource = $("#VWPRD_Inventory").data("handler").dataSource;
+            var filter = dataSource.transport.parameterMap({ filter: dataSource.filter() }).filter;
+            $('[data-print]').each(function (c) {
+                $(this).attr("href", $(this).attr("data-print") + "&filter=" + filter);
+            });
+        });
+
+    function FilterMenuInventoryLastStatus(element) {
+        element.kendoDropDownList({
+            dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuInventoryLastStatus", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Durum Seçiniz"
+
+        })
+    }
+
+
+</script>
+
+
+<script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
+     #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+            </strong>
+            <strong><i class="fa fa-qrcode text-success" data-toggle="tooltip" title="Seri Numarası ve Kodu"></i> #:fullName#</strong>
+            <p class="m-b-none"><i class="fa fa-info-circle text-success" data-toggle="tooltip" title="Ürün"></i> #:(productId_Title != null ? productId_Title : "-")#</p>
+            <p class="m-b-none"><i class="icon-warehouse text-success" data-toggle="tooltip" title="Şu anki Konumu"></i> #=(lastActionType_Title ? lastActionType_Title + ' |' : '-')# #=(lastActionDataCompanyId_Title ? lastActionDataCompanyId_Title : '-')# #=(lastActionDataId_Title ? ' - '+lastActionDataId_Title : '-')#</p>
+        </div>
+    </div>
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <h5>Envanter Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).PageSize(25))
+                    .Scrollable(a => a.Height(650))
+                    //.Filterable(t => t.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).Title("Envanter Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Locked(true).Sortable(false).Width(600).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+                        x.Bound(y => y.serialcode).Title("Seri No").Width(130).Hidden(false);
+                        x.Bound(y => y.code).Title("Envanter Kodu").Width(150).Hidden(false);
+                        x.Bound(y => y.productId_Title).Title("Ürün Bilgisi").Width(220).Hidden(false);
+                        x.Bound(y => y.lastActionType_Title).Title("Durumu").Filterable(filterable=>filterable.UI("FilterMenuInventoryLastStatus")).Width(130).Hidden(false);
+                        x.Bound(y => y.lastActionDataCompanyId_Title).Title("Cari Konumu").Width(200).Hidden(false);
+                        x.Bound(y => y.lastActionDataId_Title).Title("Depo Konumu").Width(200).Hidden(false);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Zimmet Ver' class='icon-user-add-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-showType", "0" }, { "data-idColumnKey", "inventoryId" }, { "data-method", "GET" } }).Url(Url.Action("InsertEmbezzle", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i data-original-title='Zimmet Al' class='icon-user-delete'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-showType", "1" }, { "data-idColumnKey", "inventoryId" }, { "data-method", "GET" } }).Url(Url.Action("InsertEmbezzle", "VWPRD_Transaction", new { area = "PRD" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="theme-config">
+    <div class="theme-config-box">
+        <div class="spin-icon">
+            <i class="fa fa-filter"></i>
+        </div>
+        <div class="skin-setttings">
+            <div class="title">FİLTRELEME</div>
+			<div class="file-manager">
+				<div class="space-25"></div>
+				<h5>SON DURUMUNA GÖRE </h5>
+				<ul class="folder-list m-b-md" style="padding: 0">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20))
+					{
+						<li class="clearfix">
+							<a class="pull-left" href="#" data-grid="VWPRD_Inventory" data-category="0" data-query="(lastActionType~eq~@item.Key)">
+								<i class="fa @item.Generic["icon"]"></i>  @item.Value
+							</a>
+							<span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/PRD/VWPRD_Inventory/DataSourceCount?filter=(lastActionType~eq~@item.Key)">0</span>
+						</li>
+					}
+				</ul>
+				<div class="space-25"></div>
+				<h5 style="text-align:center;">QR YAZDIRMA İŞLEMLERİ </h5>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodes?type=4" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodes?type=4"> <i class="fa fa-qrcode pull-left"></i> 4'lü(A4) için qrcode yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodes?type=3" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodes?type=3"> <i class="fa fa-qrcode pull-left"></i> 7'li(A3) için qrcode yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodes?type=100" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodes?type=100"> <i class="fa fa-qrcode pull-left"></i> 25'li(B. Boyutlar) qrcode yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodesSizes?height=34&width=54" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodesSizes?height=34&width=54"> <i class="fa fa-qrcode pull-left"></i> 50*30(mm) logolu qrcode yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodes?type=9" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodes?type=9"> <i class="fa fa-qrcode pull-left"></i> 64*34(mm) logolu qrcode yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodes?type=9&isLogo=0" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodes?type=9&isLogo=0"> <i class="fa fa-qrcode pull-left"></i> 64*34(mm) logolu qrcode V2 yazdır </a>
+				<a class="btn btn-block btn-primary" data-print="/PRD/VWPRD_Inventory/PrintQrCodesSizes?height=10&width=45" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodesSizes?height=10&width=45"> <i class="fa fa-qrcode pull-left"></i> 40*10(mm) logolu qrcode yazdır </a>
+
+			</div>
+
+        </div>
+    </div>
+</div>
+
+
+<script src="~/Content/Custom/js/filter.js"></script>
+<link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
+
+
+
+
+

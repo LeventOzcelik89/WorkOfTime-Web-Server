@@ -1,0 +1,816 @@
+﻿@{
+    ViewBag.Title = "Tüm Görev Şablonları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+    var userId = (Guid?)ViewBag.userId;
+    var Types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskOperationStatus>().ToArray();
+}
+
+<style>
+    .active {
+        font-weight: bold;
+    }
+</style>
+
+<script type="text/javascript">
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+
+		function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+		}
+
+</script>
+
+
+
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+    #if(type_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+    #}#
+</script>
+
+
+<script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+    #if(lastOperationStatus_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+    #}#
+</script>
+
+<script type="text/javascript">
+
+    function taskPriorityResult(data) {
+
+        if (data.priority == 0) {
+
+            return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+        }
+        else if (data.priority == 1) {
+            return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+        }
+        else if (data.priority == 2) {
+            return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+        }
+
+    }
+
+    function assignStaffButton(data) {
+        return '<a class="btn btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/AssignStaff?id=' + data.id + '"> <i class="fa fa-users"></i> Personel Ata </a>';
+    }
+
+
+
+    var gridBase = {
+        items: {
+            DropDown1: null,
+            DropDown2: null
+        }
+    };
+
+    function filterMenuInit(e) {
+        if (e.field == "created") {
+            var $container = e.container;
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            logicDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[14]).html("Başlangıç Tarihi");
+            $($('.k-header')[17]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+
+        }
+        else if (e.field == "dueDate") {
+            var $container = e.container;
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            logicDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[20]).html("Başlangıç Tarihi");
+            $($('.k-header')[23]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+        }
+        else if (e.field == "lastOperationDate") {
+            var $container = e.container;
+
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            logicDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[25]).html("Başlangıç Tarihi");
+            $($('.k-header')[28]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+        }
+    }
+
+</script>
+
+
+<script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+    #if(description!=null){#
+    #if(description.length >= 25){#
+    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+    #}
+    else
+    {#
+    <div style="font-size:13px;">#=description#</div>
+    #}#
+    #}#
+</script>
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
+
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1){#
+    #color = "text-warning"#
+    #}else if(priority==2){#
+    #color = "text-primary"#
+    #}#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width:3%;text-align: center;vertical-align: inherit;">
+                    <span>
+                        #if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+                    </span>
+                </td>
+
+                <td class="desc" style="width:55%;">
+    	        #if(taskPlanId_Title!=null){#
+                    <div style="font-size:13px;"><strong>Bakım Planı : </strong>#=taskPlanId_Title#</div>
+                    #}#
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    #if(description.length >= 25){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+                    #}
+                    else
+                    {#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+                    #}#
+
+
+                    #if(code!=null){#
+                    <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(fixture_Title!=null){#
+                    <div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+                    #}#
+
+
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+
+
+                    #if(taskSubjectType_Title != null){#
+                    <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+                    #}#
+                </td>
+                <td style="width:10%;vertical-align: inherit;">
+                    <h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+                    </h5>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
+
+<style type="text/css">
+    .k-grid-content i {
+        font-size: 13px;
+    }
+</style>
+<script type="text/javascript">
+    $(document)
+        .on("selected:grid", "#VWFTM_Task", function (e, res) {
+            var grid = $('#VWFTM_Task').data("kendoGrid");
+            $('[data-check="all"]').removeClass("hide");
+
+            var ids = [];
+            $.each(grid.select(), function (i, item) {
+                ids.push(grid.dataItem(item).id);
+                if (grid.dataItem(item).lastOperationStatus != '@((int)EnumFTM_TaskOperationStatus.CozumBildirildi)') {
+                    $('[data-check="all"]').addClass("hide");
+                }
+            })
+            $('[data-check="all"]').attr("data-href", "/FTM/VWFTM_Task/ApproveAll?taskIds=" + ids.join(","));
+        })
+
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <div class="col-md-9">
+                    <h5>Görev Şablonları Listesi</h5>
+                </div>
+                <div class="col-md-3">
+
+                    <div class="btn-group pull-right" style="margin-top: -5px;">
+                        <a class="btn btn-sm btn-success" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/InsertTemplate"> <i class="fa fa-plus-square-o"></i> Yeni Görev Şablonu Tanımla </a>
+                    </div>
+
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
+        .PageSize(25).Sort(a => a.Add(c => c.lastOperationDate).Descending()))
+        .Scrollable(a => a.Height(650))
+        .Columns(x =>
+        {
+            x.Bound(y => y.id).Title("").Width(700).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+            x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+            {
+
+                b.Clear();
+                b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                b.IsLessThanOrEqualTo("Bitiş Tarihi");
+            }
+
+            ))).Width(180).Format(Extensions.DateFormatFull(true));
+            x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+            x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+            x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+            x.Bound(y => y.type_Title).Title("Görev Tipi").Width(125).Filterable(filterable=>filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+            x.Bound(y => y.taskPlanId_Title).Title("Bakım Planı").Width(180);
+            x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable=>filterable.UI("FilterMenuTaskPriority")).Width(140).ClientTemplate("#=taskPriorityResult(data)#");
+            x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+            x.Bound(y => y.assignableUserTitles).Title("Üstlenebilecek Personeller").Width(180);
+            x.Bound(y => y.helperUserTitles).Title("Yardımcı Personeller").Width(180);
+            x.Bound(y => y.plate).Title("Araç").Width(180);
+
+            x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+            x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+        })
+        .Events(ev => ev.FilterMenuInit("filterMenuInit"))
+        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+        .ToolBar(x =>
+        {
+            x.Custom().Text("<i data-original-title='Görev Şablonunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_Task", new { area = "FTM" }));
+        }))
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="theme-config">
+    <div class="theme-config-box">
+        <div class="spin-icon">
+            <i class="fa fa-filter"></i>
+        </div>
+        <div class="skin-setttings">
+            <div class="title">FİLTRELEME</div>
+            <div class="file-manager">
+                <h5> GÖREV DURUMU </h5>
+                <ul class="folder-list" style="padding: 0">
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~eq~'')~and~isComplete~eq~false)">
+                            <i class="icon-user-add"></i>  Personel Ataması Bekleyenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'99999999-1234-5678-0000-999999999999'~and~assignableUserIds~neq~'')~and~isComplete~eq~false)">
+                            <i class="icon-users"></i>  Üstlenilmeyi Bekleyenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~neq~'99999999-1234-5678-0000-999999999999'~and~isComplete~eq~false)~and~lastOperationStatus~neq~30)">
+                            <i class="icon-clock"></i>  Devam Edenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" id="pendingApprove" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~eq~false~and~lastOperationStatus~eq~30)">
+                            <i class="icon-arrows-cw"></i>  Çözüm Onayı Bekleyenler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~eq~true)">
+                            <i class="fa fa-check"></i>  Çözümlenmiş Görevler
+                        </a>
+                    </li>
+                    <li class="clearfix">
+                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="5" data-query="(createdby~eq~'@userStatus.user.id')">
+                            <i class="fa fa-tasks"></i>  Benim Oluşturduklarım
+                        </a>
+                    </li>
+
+                </ul>
+                <div class="space-25"></div>
+                <h5> GÖREV ÖNCELİĞİ </h5>
+                <ul class="folder-list" style="padding: 0">
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskPriority>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key')">
+                                <i style="color:#@item.Generic["color"]" class="fa fa-circle"></i>  @item.Value
+                            </a>
+
+                        </li>
+                    }
+                </ul>
+                <div class="space-25"></div>
+                <h5> PLANLANAN BİTİŞ TARİHİ </h5>
+                <ul class="category-list" style="padding: 0">
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~dueDate~lte~datetime'@now.AddDays(30).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yaklaşanlar(30 günden az) </a>
+                    </li>
+
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~dueDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="2" data-query="(dueDate~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+                    </li>
+                </ul>
+                <div class="space-25"></div>
+                <h5> OLUŞTURULMA TARİHİ </h5>
+                <ul class="category-list" style="padding: 0">
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+                    </li>
+                </ul>
+                <div class="space-25"></div>
+                <h5> GÖREV TİPİNE GÖRE </h5>
+                <ul class="tag-list" style="padding: 0">
+
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="4" data-query="(type~eq~'@item.Key')">
+                                <i data-original-title="" class="@item.Generic["icon"]"></i>  @item.Value
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+
+
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    // Config box
+
+    // Enable/disable fixed top navbar
+    $('#fixednavbar').click(function () {
+        if ($('#fixednavbar').is(':checked')) {
+            $(".navbar-static-top").removeClass('navbar-static-top').addClass('navbar-fixed-top');
+            $("body").removeClass('boxed-layout');
+            $("body").addClass('fixed-nav');
+            $('#boxedlayout').prop('checked', false);
+
+            if (localStorageSupport) {
+                localStorage.setItem("boxedlayout", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar", 'on');
+            }
+        } else {
+            $(".navbar-fixed-top").removeClass('navbar-fixed-top').addClass('navbar-static-top');
+            $("body").removeClass('fixed-nav');
+            $("body").removeClass('fixed-nav-basic');
+            $('#fixednavbar2').prop('checked', false);
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar2", 'off');
+            }
+        }
+    });
+
+    // Enable/disable fixed top navbar
+    $('#fixednavbar2').click(function () {
+        if ($('#fixednavbar2').is(':checked')) {
+            $(".navbar-static-top").removeClass('navbar-static-top').addClass('navbar-fixed-top');
+            $("body").removeClass('boxed-layout');
+            $("body").addClass('fixed-nav').addClass('fixed-nav-basic');
+            $('#boxedlayout').prop('checked', false);
+
+            if (localStorageSupport) {
+                localStorage.setItem("boxedlayout", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar2", 'on');
+            }
+        } else {
+            $(".navbar-fixed-top").removeClass('navbar-fixed-top').addClass('navbar-static-top');
+            $("body").removeClass('fixed-nav').removeClass('fixed-nav-basic');
+            $('#fixednavbar').prop('checked', false);
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar2", 'off');
+            }
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar", 'off');
+            }
+        }
+    });
+
+    // Enable/disable fixed sidebar
+    $('#fixedsidebar').click(function () {
+        if ($('#fixedsidebar').is(':checked')) {
+            $("body").addClass('fixed-sidebar');
+            $('.sidebar-collapse').slimScroll({
+                height: '100%',
+                railOpacity: 0.9
+            });
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixedsidebar", 'on');
+            }
+        } else {
+            $('.sidebar-collapse').slimscroll({ destroy: true });
+            $('.sidebar-collapse').attr('style', '');
+            $("body").removeClass('fixed-sidebar');
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixedsidebar", 'off');
+            }
+        }
+    });
+
+    // Enable/disable collapse menu
+    $('#collapsemenu').click(function () {
+        if ($('#collapsemenu').is(':checked')) {
+            $("body").addClass('mini-navbar');
+            SmoothlyMenu();
+
+            if (localStorageSupport) {
+                localStorage.setItem("collapse_menu", 'on');
+            }
+
+        } else {
+            $("body").removeClass('mini-navbar');
+            SmoothlyMenu();
+
+            if (localStorageSupport) {
+                localStorage.setItem("collapse_menu", 'off');
+            }
+        }
+    });
+
+    // Enable/disable boxed layout
+    $('#boxedlayout').click(function () {
+        if ($('#boxedlayout').is(':checked')) {
+            $("body").addClass('boxed-layout');
+            $('#fixednavbar').prop('checked', false);
+            $('#fixednavbar2').prop('checked', false);
+            $(".navbar-fixed-top").removeClass('navbar-fixed-top').addClass('navbar-static-top');
+            $("body").removeClass('fixed-nav');
+            $("body").removeClass('fixed-nav-basic');
+            $(".footer").removeClass('fixed');
+            $('#fixedfooter').prop('checked', false);
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixednavbar2", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixedfooter", 'off');
+            }
+
+
+            if (localStorageSupport) {
+                localStorage.setItem("boxedlayout", 'on');
+            }
+        } else {
+            $("body").removeClass('boxed-layout');
+
+            if (localStorageSupport) {
+                localStorage.setItem("boxedlayout", 'off');
+            }
+        }
+    });
+
+    // Enable/disable fixed footer
+    $('#fixedfooter').click(function () {
+        if ($('#fixedfooter').is(':checked')) {
+            $('#boxedlayout').prop('checked', false);
+            $("body").removeClass('boxed-layout');
+            $(".footer").addClass('fixed');
+
+            if (localStorageSupport) {
+                localStorage.setItem("boxedlayout", 'off');
+            }
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixedfooter", 'on');
+            }
+        } else {
+            $(".footer").removeClass('fixed');
+
+            if (localStorageSupport) {
+                localStorage.setItem("fixedfooter", 'off');
+            }
+        }
+    });
+
+    // SKIN Select
+    $('.spin-icon').click(function () {
+        $(".theme-config-box").toggleClass("show");
+    });
+
+    // Default skin
+    $('.s-skin-0').click(function () {
+        $("body").removeClass("skin-1");
+        $("body").removeClass("skin-2");
+        $("body").removeClass("skin-3");
+        window.localStorage.setItem("skin", "");
+    });
+
+    // Blue skin
+    $('.s-skin-1').click(function () {
+        $("body").removeClass("skin-2");
+        $("body").removeClass("skin-3");
+        $("body").addClass("skin-1");
+        window.localStorage.setItem("skin", "skin-1");
+    });
+
+    // Inspinia ultra skin
+    $('.s-skin-2').click(function () {
+        $("body").removeClass("skin-1");
+        $("body").removeClass("skin-3");
+        $("body").addClass("skin-2");
+        window.localStorage.setItem("skin", "skin-2");
+    });
+
+    // Yellow skin
+    $('.s-skin-3').click(function () {
+        $("body").removeClass("skin-1");
+        $("body").removeClass("skin-2");
+        $("body").addClass("skin-3");
+        window.localStorage.setItem("skin", "skin-3");
+    });
+
+    if (localStorageSupport) {
+        var collapse = localStorage.getItem("collapse_menu");
+        var fixedsidebar = localStorage.getItem("fixedsidebar");
+        var fixednavbar = localStorage.getItem("fixednavbar");
+        var fixednavbar2 = localStorage.getItem("fixednavbar2");
+        var boxedlayout = localStorage.getItem("boxedlayout");
+        var fixedfooter = localStorage.getItem("fixedfooter");
+        var skin = localStorage.getItem("skin");
+
+        if (collapse == 'on') {
+            $('#collapsemenu').prop('checked', 'checked')
+        }
+        if (fixedsidebar == 'on') {
+            $('#fixedsidebar').prop('checked', 'checked')
+        }
+        if (fixednavbar == 'on') {
+            $('#fixednavbar').prop('checked', 'checked')
+        }
+        if (fixednavbar2 == 'on') {
+            $('#fixednavbar2').prop('checked', 'checked')
+        }
+        if (boxedlayout == 'on') {
+            $('#boxedlayout').prop('checked', 'checked')
+        }
+        if (fixedfooter == 'on') {
+            $('#fixedfooter').prop('checked', 'checked')
+        }
+    }
+</script>
+
+<style type="text/css">
+    .skin-setttings {
+        width: 280px;
+        margin-left: 40px;
+        background: #f3f3f4;
+        border: solid 1px;
+        border-color: #3343a4;
+    }
+
+    .file-manager {
+        list-style: none outside none;
+        margin: 13px;
+        margin-top: -13px;
+        padding: 8px;
+        overflow: auto;
+    }
+</style>

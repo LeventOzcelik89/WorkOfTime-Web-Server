@@ -1,0 +1,17 @@
+﻿@{
+    ViewBag.Title = "Personel Giriş - Çıkışları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_ShiftTracking>("VWSH_ShiftTracking")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_ShiftTracking", new { area = "SH" })).PageSize(25)
+    .Sort(u => u.Add(i => i.timestamp).Descending()))
+    .Columns(x =>
+    {
+        x.Bound(y => y.ShiftTrackingStatus_Title).Title("Durumu").Width(250);
+        x.Bound(y => y.timestamp).Title("Tarih").Width(250).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.UserId_Title).Title("Personel");
+        x.Bound(y => y.CompanyId_Title).Title("İşletme").Width(400);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple)))

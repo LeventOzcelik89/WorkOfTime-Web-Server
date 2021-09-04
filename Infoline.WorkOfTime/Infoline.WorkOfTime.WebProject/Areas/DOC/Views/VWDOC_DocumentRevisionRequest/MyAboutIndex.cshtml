@@ -1,0 +1,34 @@
+﻿
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    ViewBag.Title = "Revizyon Talepleri (Onay)";
+    var lang = Request.Cookies.Get("language").Value == "ENG" ? true : false;
+    var request = lang == true ? "Request" : "Talep Durumu";
+    var requestDate = lang == true ? "Request Date" : "Talep Tarihi";
+    var requestBy = lang == true ? "Request by" : "Talep Gerçekleştiren";
+    var code = lang == true ? "Document Code" : "Doküman Kodu";
+    var title = lang == true ? "Document Title" : "Doküman Başlığı";
+    var subject = lang == true ? "Document Subject" : "Doküman Konusu";
+}
+
+@(Html.Akilli()
+                         .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_DocumentRevisionRequest>("VWDOC_DocumentRevisionRequest")
+                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_DocumentRevisionRequest", new { area = "DOC" })).Filter(f => f.confirmationUserIds.Contains(userStatus.user.id.ToString()) && f.lastStatus != (Int32)EnumVWDOC_DocumentRevisionRequest.talepreddedildi).Sort(a => a.Add("created").Descending()).PageSize(25))
+                         .Scrollable(a => a.Height(650))
+                         .Columns(x =>
+                         {
+                             x.Bound(y => y.lastStatus_Title).Title(request).Width(180);
+                             x.Bound(y => y.created).Title(requestDate).Width(180).Format(Extensions.DateFormatFull(true));
+                             x.Bound(y => y.createdby_Title).Title(requestBy).Width(180);
+                             x.Bound(y => y.documentCode).Title(code).Width(180);
+                             x.Bound(y => y.documentTitle).Title(title).Width(180);
+                             x.Bound(y => y.documentSubject).Title(subject).Width(180);
+                         })
+                         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                         .ToolBar(x =>
+                         {
+                             x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='icon-edit' data-original-title='Approve/Decline Request'></i>" : "<i class='icon-edit' data-original-title='Talebi Onayla/Reddet'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                             x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-trash' data-original-title='Delete Revision Request'></i>" : "<i class='fa fa-trash' data-original-title='Revizyon Talebini Sil'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+                         }))

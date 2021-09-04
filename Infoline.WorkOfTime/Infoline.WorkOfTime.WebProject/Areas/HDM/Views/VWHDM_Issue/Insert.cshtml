@@ -1,0 +1,129 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMHDM_IssueModel
+@{
+    ViewBag.Title = "Konu Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWHDM_Issue", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWHDM_IssueInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.mainId)
+
+    if (!Model.pid.HasValue || Model.pid.Value == System.UIHelper.Guid.Null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="pid">Varsa Üst Konu/Soru</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.pid)
+                    .OptionLabel("Lütfen Üst Konu seçiniz..")
+                    .DataTextField("title")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWHDM_Issue", new { area = "HDM" }))
+                    .Sort(x => x.Add("title").Ascending())
+                    .Execute()
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.pid)
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="title">Başlık</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Başlık giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    if (Model.pid.HasValue)
+    {
+        <div class="form-group hide">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="Users">Konunun Yöneticileri</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                    .MultiSelect("UserIds")
+                    .Placeholder("Lütfen Seçim Yapınız.")
+                    .DataTextField("FullName")
+                    .DataValueField("id")
+                    .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                    .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                    .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+                    .Execute("id")
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="Users">Konunun Yöneticileri</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                    .MultiSelect("UserIds")
+                    .Placeholder("Lütfen Seçim Yapınız.")
+                    .DataTextField("FullName")
+                    .DataValueField("id")
+                    .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                    .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                    .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+                    .Validate(Validations.Required)
+                    .Execute("id")
+                )
+            </div>
+        </div>
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="expiryMinute">Ortalama Çözüm Süresi (dk)</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().NumericTextBoxFor(model => model.expiryMinute)
+                                         .Min(0)
+                                         .Decimals(0)
+                                         .Format("N0")
+                                         .Spinners(false))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="type">Durumu</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.status).Value(EnumHDM_IssueStatus.Yayında))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

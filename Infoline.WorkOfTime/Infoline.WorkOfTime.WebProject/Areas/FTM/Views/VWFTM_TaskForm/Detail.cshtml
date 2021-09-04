@@ -1,0 +1,1030 @@
+﻿@model VMFTM_TaskForm
+@{
+    ViewBag.Title = "Saha Görev Formu Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script src="~/Content/Plugins/HighCharts/js/highcharts.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/highcharts-more.js"></script>
+
+<script src="~/Content/Plugins/formBuilder/form-builder.min.js" data-selector="modalContainer"></script>
+<script src="~/Content/Plugins/formBuilder/form-render.min.js" data-selector="modalContainer"></script>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var page = {
+        data: @Html.Raw(Json.Encode(Model)),
+        results : null,
+        fnc:{
+            submit: function(){
+
+                var jsonData = page.form.actions.getData("json");
+                $('#json').val(JSON.stringify(jsonData));
+
+                var json = $('#json').val();
+                var name = $('#name').val();
+                var code = $('#code').val();
+                var type = Number($('#type').val());
+
+                if(!json || json == ""){
+                    MesajWarning("En az bir tane form nesnesi eklemelisiniz.");
+                    return;
+                }
+
+                if(!name || name == ""){
+                    MesajWarning("Form ismi zorunludur.");
+                    return;
+                }
+
+                if(type == null || !type){
+                    MesajWarning("Form tipi zorunludur.");
+                    return;
+                }
+
+                var formObj = {
+                    json : json,
+                    name : name,
+                    code: code,
+                    type : type,
+                    id: $('#id').val()
+                }
+                var url = page.data.usedCount > 0 ? 'Insert' : 'Update';
+
+                GetDataFromUrl('/FTM/VWFTM_TaskForm/'+ url, {item: formObj }, function (resp) {
+                    window.location.href = "/FTM/VWFTM_TaskForm";
+                });
+
+            },
+            buildForm: function(){
+                var options = {
+                    showActionButtons: false,
+                    editable:false,
+                    disableFields: ['file'],
+                    disabledAttrs: ['access'],
+                    i18n:{
+                        locale: "tr-TR"
+                    },
+                    formData: JSON.parse(page.data.json)
+                }
+                if (options.formData.length > 0) {
+                    page.form = $('.build-wrap').formBuilder(options);
+                }
+            },
+            buildFilter: function () {
+                var sema =  page.data.json;
+
+                try {
+                    sema = JSON.parse(JSON.parse(page.data.json));
+                } catch (e) {
+                    sema = JSON.parse(page.data.json);
+                }
+
+                var col = 0;
+                sema.forEach(function (elem, index) {
+
+                    switch (elem.type) {
+                        case "date":
+                            break;
+                        case "checkbox-group":
+                            col += 3;
+                            var formItem = $('<div>').addClass("form-group");
+                            $('<div>').addClass("col-md-3").append(formItem).appendTo($('#filterArea'));
+
+                            var itemId = newGuid();
+                            var item = $('<input>').addClass("form-control").attr("id", itemId).attr("data-filter", elem.name);
+                            formItem.append(item);
+
+                            $('#' + itemId).kendoMultiSelect({
+                                placeholder: elem.label ,
+                                dataTextField: "label",
+                                dataValueField: "value",
+                                dataSource: elem.values,
+                                autoClose: false,
+                                index: 0,
+                            });
+
+                            break;
+                        case "number":
+                            col += 6;
+                            var formItem = $('<div>').addClass("form-group");
+                            $('<div>').addClass("col-md-6").append(formItem).appendTo($('#filterArea'));
+
+                            var minElemId = newGuid();
+                            var maxElemId = newGuid();
+
+                            var row = $('<div>').addClass("row").appendTo(formItem);
+                            var minElem = $('<input>').attr("id", minElemId).attr("style", "width:100%").attr("data-filter", elem.name).attr("data-type", "min");
+                            var maxElem = $('<input>').attr("id", maxElemId).attr("style", "width:100%").attr("data-filter", elem.name).attr("data-type", "max");
+
+                            $('<div>').addClass("col-md-4").append('<label class="control-label label-md">' + elem.label + '</label>').appendTo(row);
+
+                            $('<div>').addClass("col-md-4").append(minElem).appendTo(row);
+                            $('<div>').addClass("col-md-4").append(maxElem).appendTo(row);
+
+                            $('#' + minElemId).kendoNumericTextBox({
+                                format: "n2",
+                                step: 0.01,
+                                spinners: false,
+                                placeholder: "En Az"
+                            });
+
+                            $('#' + maxElemId).kendoNumericTextBox({
+                                format: "n2",
+                                step: 0.01,
+                                spinners: false,
+                                placeholder: "En Çok"
+                            });
+                            break;
+                        case "radio-group":
+                        case "select":
+                            col += 3;
+                            var formItem = $('<div>').addClass("form-group");
+                            $('<div>').addClass("col-md-3").append(formItem).appendTo($('#filterArea'));
+
+                            var itemId = newGuid();
+                            var item = $('<input>').addClass("form-control").attr("id", itemId).attr("data-filter", elem.name);
+                            formItem.append(item);
+
+                            $('#' + itemId).kendoDropDownList({
+                                optionLabel: elem.label,
+                                dataTextField: "label",
+                                dataValueField: "value",
+                                dataSource: elem.values,
+                                index: 0,
+                            });
+
+                            break;
+                        default:
+                    }
+
+                    if (col % 12 == 0) {
+                        $('<div class="clearfix"/>').appendTo($('#filterArea'));
+                    }
+
+
+                })
+
+            },
+            getResult: function (sender) {
+
+                var invMs = $('#inventories').data("kendoMultiSelect");
+                var personMs = $('#users').data("kendoMultiSelect");
+
+                var inventories = invMs ? invMs.value().join(",") : "";
+                var persons = personMs ? personMs.value().join(",") : "";
+
+                var data = {
+                    startDate : $("#startDate").val(),
+                    endDate : $("#endDate").val(),
+                    formId: '@Model.id',
+                    inventories: inventories,
+                    users: persons,
+                    customerId: $('#customerId').val(),
+                    customerStorageId: $('#customerStorageId').val(),
+                };
+
+                GetJsonDataFromUrl("/FTM/VWFTM_TaskFormResult/GetResult", data, function (resp) {
+                    if (resp == null || resp.length == 0) {
+                        $("#dashboard").empty();
+                        $("#message").removeClass("hide").text("Girmiş olduğunuz filtreye göre sonuç bulunamadı.");
+                    } else {
+                        $("#dashboard").empty();
+                        $("#message").addClass("hide");
+
+                        resp.forEach(function (e) {
+                             e.jsonResult = JSON.parse(e.jsonResult);
+                        });
+
+                        page.results = resp;
+                        page.fnc.filterData();
+
+                        if (page.results == null || page.results.length == 0) {
+                            $("#dashboard").empty();
+                            $("#message").removeClass("hide").text("Girmiş olduğunuz filtreye göre sonuç bulunamadı.");
+                        }
+                        else {
+                            page.fnc.createDashBoard();
+                        }
+                    }
+                },"Form sonuçları listeleniyor lütfen bekleyiniz.");
+            },
+            filterData: function () {
+                var data = page.results;
+                $.each($('[data-filter]'), function (i, item) {
+                    var name = $(item).attr("data-filter");
+
+                    switch ($(item).attr("data-role")) {
+                        case "dropdownlist":
+                            var dropdown = $(item).data("kendoDropDownList");
+                            var value = dropdown.value();
+                            data = data.filter(function (d) {
+                                if (value && value != null && value != "") {
+                                    var selected = $.Enumerable.From(d.jsonResult).Where(a => a.name == name).FirstOrDefault();
+                                    return selected && selected.userData && selected.userData.includes(value);
+                                }
+                                else {
+                                    return true;
+                                }
+                            });
+                            break;
+                        case "multiselect":
+                            var multiselect = $(item).data("kendoMultiSelect");
+                            var values = multiselect.value();
+                            data = data.filter(function (d) {
+                                if (values && values != null && values.length > 0) {
+                                    var selected = $.Enumerable.From(d.jsonResult).Where(a => a.name == name).FirstOrDefault();
+                                    return selected && selected.userData && $.Enumerable.From(values).Any(s => selected.userData.includes(s));
+                                }
+                                else {
+                                    return true;
+                                }
+                            });
+                            break;
+                        case "numerictextbox":
+                            var numericTextBox = $(item).data("kendoNumericTextBox");
+                            var type = $(item).attr("data-type");
+                            var value = numericTextBox.value();
+                            data = data.filter(function (d) {
+                                if (value && value != null && value != "") {
+                                    var selected = $.Enumerable.From(d.jsonResult).Where(a => a.name == name).FirstOrDefault();
+                                    if (type == "min") {
+                                        return selected && selected.userData && selected.userData[0] >= value;
+                                    } else {
+                                        return selected && selected.userData && selected.userData[0] <= value;
+                                    }
+                                }
+                                else {
+                                    return true;
+                                }
+                            });
+                            break;
+                        default:
+                    }
+                })
+                page.results = data;
+            },
+            createDashBoard: function () {
+
+                var sema =  page.data.json;
+
+                try {
+                    sema = JSON.parse(JSON.parse(page.data.json));
+                } catch (e) {
+                    sema = JSON.parse(page.data.json);
+                }
+
+                sema.forEach(function (e,index) {
+                    var label = e.label ? e.label : "Başlıksız Grup";
+                    var name = e.name+"chart";
+                    var type = e.type;
+
+                    var chartBox = $($('#chartBox').html());
+                    chartBox.find(".ibox-title h5").text(label + " Dağılımı");
+                    chartBox.find("#chart").attr("id", name);
+
+                    switch (type) {
+                        case "radio-group":
+                        case "select":
+                            chartBox.addClass("col-md-6");
+                            $("#dashboard").append(chartBox);
+                            page.fnc.charts.pie(name, index);
+                            break;
+                        case "checkbox-group":
+                            chartBox.addClass("col-md-12 piegroup");
+                            $("#dashboard").append(chartBox);
+                            page.fnc.charts.pieGroup(name, index);
+                            break;
+                        case "date":
+                            chartBox.addClass("col-md-12");
+                            $("#dashboard").append(chartBox);
+                            page.fnc.charts.dateColumn(name, index);
+                            break;
+                        case "number":
+                            chartBox.addClass("col-md-6").addClass("history");
+                            $("#dashboard").append(chartBox);
+                            page.fnc.charts.bullet(name, index);
+                        default:
+                    }
+                });
+
+                page.fnc.createGrid(page.results);
+            },
+            charts: {
+                pieGroup: function (id, index) {
+
+                    var data = page.results.map(function (e) {
+						if(e.jsonResult[index] && e.jsonResult[index].hasOwnProperty("userData")){
+							return e.jsonResult[index].userData;
+						}else{
+							return null;
+						}
+                    });
+
+                    var values = page.results[0].jsonResult[index] ?  page.results[0].jsonResult[index].values : false;
+                    if (!values) return;
+                    $.each(values, function (i, item) {
+
+                        $('<div>').attr("id", id + i).appendTo($('#' + id));
+
+                        var trueCount = $.Enumerable.From(data).Where(a=> a != null && a.includes(item.value)).Count();
+                        var falseCount = data.length - trueCount;
+
+                        var chartdata = [{
+                            category: item.label + " - EVET",
+                            value: trueCount,
+                            color:'#3366cc'
+                        }, {
+                            category: item.label + " - HAYIR",
+                            value: falseCount,
+                            color:'#dc3912'
+                            }];
+
+                        $("#" + id + i).kendoChart({
+                            title: {
+                                text: item.label + "\n ("+ trueCount +" / " + data.length + " Adet)",
+                                position: "top",
+                                font: "13px"
+                            },
+                            legend: {
+                                visible: false
+                            },
+                             series: [{
+                                overlay: {
+                                    gradient: "none"
+                                },
+                                type: "pie",
+                                startAngle: 150,
+                                data: chartdata
+                            }],
+                            tooltip: {
+                                visible: true,
+                                template: "#= category # (#= kendo.toString((percentage * 100), 'n2') #%) \n #:value# Adet"
+                            }
+                        });
+                    })
+                },
+                pie: function (id,index) {
+
+                    var data = page.results.map(function (e) {
+                        return  e.jsonResult[index] &&  e.jsonResult[index].hasOwnProperty("userData") ? e.jsonResult[index].userData[0] : null
+                    });
+                    var values = $.Enumerable.From(page.results).SelectMany(a => { return a.jsonResult; }).Where(a => { return a.values; }).ToArray();
+                    if (values.length == 0) return;
+                    var chartData = $.Enumerable.From(data).GroupBy(function (e) {
+                        return e;
+                    }).Select(function (s) {
+
+                        var ss = Math.floor(Math.random() * 100);
+                        var ll = Math.floor(Math.random() * 100);
+
+                        return {
+                            category: s.Key() == null ? "Seçilmedi" : values.filter(a => a.value == s.Key()).map(a => a.label)[0],
+                            value: s.source.length,
+                            color: 'hsl(240, ' + ss + '%, ' + ll + '%)',
+                        };
+                    }).OrderByDescending(a=>a.value).ToArray();
+
+                     $("#"+id).kendoChart({
+                        legend: {
+                            visible: false
+                        },
+                        seriesDefaults: {
+                            labels: {
+                                visible: true,
+                                background: "transparent",
+                                template: "#= category #: \n #= value# Adet \n #= kendo.toString((percentage * 100), 'n2') # %"
+                            }
+                        },
+                         series: [{
+                            overlay: {
+                                gradient: "none"
+                            },
+                            type: "pie",
+                            startAngle: 150,
+                            data: chartData
+                        }],
+                        tooltip: {
+                            visible: true,
+                            template: "#= category # (#= kendo.toString((percentage * 100), 'n2') #%) \n #:value# Adet"
+                        }
+                    });
+                },
+                dateColumn: function (id, index) {
+                    var data = page.results.map(function (e) {
+                        return e.jsonResult[index + 1].hasOwnProperty("userData") ? e.jsonResult[index + 1].userData[0] : null
+                    });
+
+                    var chartData = $.Enumerable.From(data).GroupBy(function (e) {
+                        return e;
+                    }).Select(function (s) {
+                        return {
+                            date: s.Key() == null ? "Seçilmedi" : new Date(s.Key()),
+                            value: s.source.length,
+                        };
+                    }).ToArray();
+
+                    $("#"+id).kendoChart({
+                        dataSource: {
+                            data: chartData
+                        },
+                        series: [{
+                            type: "column",
+                            aggregate: "sum",
+                            field: "value",
+                            categoryField: "date"
+                        }],
+                        categoryAxis: {
+                            labels: {
+                                rotation: -45,
+                                dateFormats:
+                                {
+                                    days: "dd.MM.yyyy",
+                                }
+                            },
+                            baseUnit: "days",
+                            majorGridLines: {
+                                visible: false
+                            }
+                        },
+                        valueAxis: {
+                            line: {
+                                visible: false
+                            }
+                        },
+                        tooltip: {
+                            visible: true,
+                            template: "#= kendo.toString(category, 'dd.MM.yyyy') # - #:value# Adet"
+                        }
+                    });
+                },
+                bullet: function (id, index) {
+
+                    var info = $('<div>').addClass("col-md-2");
+                    info.appendTo($('#' + id));
+                    $('<div>').attr("id", id + "_1").addClass("col-md-10").appendTo($('#' + id));
+
+                    var data = page.results.map(function (e) {
+
+                        if (e.jsonResult[index] && e.jsonResult[index].hasOwnProperty("userData")) {
+                            var userData = e.jsonResult[index].userData[0];
+                            return !isNaN(userData) ? Number(userData) : 0;
+                        }
+                        return 0;
+                    });
+
+                    var max = Math.max(...data);
+                    var min = Math.min(...data);
+
+                    var sum = data.reduce((c, b) => Number(c) + Number(b), 0);
+                    var avg = (sum / data.length) || 0;
+
+                    var tableBox = $($('#tableBox').html());
+                    tableBox.find('[data-type="sum"]').append('<i class="fa text-warning fa-area-chart"></i> ' + kendo.toString(sum, "n2"));
+                    tableBox.find('[data-type="max"]').append('<i class="fa text-primary fa-arrow-up"></i> ' + kendo.toString(max,"n2"));
+                    tableBox.find('[data-type="min"]').append('<i class="fa text-danger fa-arrow-down"></i> ' + kendo.toString(min,"n2"));
+
+                    info.append(tableBox);
+
+                    $("#"+id+"_1").kendoChart({
+                        legend: {
+                            visible: false
+                        },
+                        series: [{
+                            type: "bullet",
+                            data: [[avg, max]]
+                        }],
+                        chartArea: {
+                            margin: {
+                                left: 0
+                            }
+                        },
+                        categoryAxis: {
+                            baseunitstep: 1,
+                            majorGridLines: {
+                                visible: false
+                            },
+                            majorTicks: {
+                                visible: false
+                            },
+                        },
+                        valueAxis: [{
+                            majorUnit: (max - min).toString().length > 5 ? Math.round((max - min) / 15) :  Math.round((max - min) / 40),
+                            plotBands: [{
+                                from: min, to: avg, color: "#ccc", opacity: .6
+                            }, {
+                                from: avg, to: max, color: "#ccc", opacity: .3
+                            }],
+                            majorGridLines: {
+                                visible: false
+                            },
+                            min: min,
+                            max: max,
+                            minorTicks: {
+                                visible: true
+                            }
+                        }],
+                        tooltip: {
+                            visible: true,
+                            template: "Maksimum: #= kendo.toString(value.target, 'n2') # <br /> Ortalama: #= kendo.toString(value.current, 'n2') #"
+                        }
+                    });
+                }
+            },
+            createGrid: function (data) {
+                var newData = [];
+                var columns = [];
+                var fieldObj = {};
+                $.each(data, function (i, item) {
+                    if (i == 0) {
+                        fieldObj["id"] = { type: "string" };
+                        fieldObj["created"] = { type: "string" };
+                        fieldObj["createdby"] = { type: "string" };
+                        columns.push({ field: "id", title: "", width: "10px", hidden: true });
+                        columns.push({ field: "created", title: "Tarih", width: "130px" });
+                        columns.push({ field: "createdby", title: "Formu Dolduran", width: "130px" });
+                        columns.push({ field: "customer_Title", title: "Müşteri", width: "130px" });
+                        $.each(item.jsonResult, function (j, elem) {
+                            if (elem.label) {//str.replace(/[^a-zA-Z ]/g, "")
+                                fieldObj[elem.label.replace(/\s/g, '').replace(/[^a-zA-Z ]/g, "")] = { type: "string" };
+                                columns.push({ field: elem.label.replace(/\s/g,'').replace(/[^a-zA-Z ]/g, ""), title: elem.label, width: "130px" });
+                            }
+                        })
+                    }
+
+                    var dataobj = { id: item.id };
+
+                    dataobj["created"] = "-";
+                    if (item.created) {
+                        dataobj["created"] = new Date(item.created) ? new Date(item.created).toLocaleString() : new Date(parseFloat(item.created.replace("/Date(", "").replace(")/", ""))).toLocaleString();
+                    }
+
+                    dataobj["createdby"] = item.createdby_Title ? item.createdby_Title : "Bilinmeyen Kişi";
+                    dataobj["customer_Title"] = item.customer_Title ? item.customer_Title : "-";
+                    $.each(item.jsonResult, function (j, elem) {
+                        var result = null;
+                        if (elem.type == "number" || elem.type == "text") {
+                            result = elem.userData[0];
+                        } else {
+                            result = elem.userData ? $.Enumerable.From(elem.values).Where(a => elem.userData.includes(a.value)).Select(a => a.label).ToArray().join(",") : null;
+                        }
+                           //TODO : OĞUZ
+						if(elem.label){
+                        dataobj[elem.label.replace(/\s/g, '').replace(/[^a-zA-Z ]/g, "")] = result;
+						}
+                    })
+                    newData.push(dataobj);
+                })
+
+                var chartBox = $($('#chartBox').html());
+                chartBox.find(".ibox-title h5").text("Doldurulan Formlar");
+                chartBox.find("#chart").attr("id", "grid").attr("data-selection", "id");
+                chartBox.addClass("col-md-12");
+                $("#dashboard").append(chartBox);
+
+                $("#grid").kendoGrid({
+                    dataSource: {
+                        data: newData,
+                        schema: {
+                            model: {
+                                fields: fieldObj
+                            }
+                        },
+                        pageSize: 20
+                    },
+                    navigatable: true,
+                resizable: true,
+                mobile: true,
+                scrollable: {
+                    height: '500px'
+                },
+                selectable: "single",
+                sortable: true,
+                filterable: true,
+                filterable: {
+                    operators: {
+                        string: {
+                            contains: 'İçeriyor',
+                            startswith: 'İle Başlar',
+                            eq: 'Eşit',
+                            neq: 'Eşit Değil',
+                            endswith: 'İle Biter',
+                            doesnotcontain: 'İçermiyor'
+                        }
+                    }
+                },
+                pageable: {
+                    refresh: true,
+                    pageSizes: [5, 10, 25, 50, 100, 250],
+                    buttonCount: 10,
+                    messages: {
+                        allPages: 'Tümünü getir',
+                        itemsPerPage: 'Sayfa başına ürün',
+                        first: 'İlk sayfaya git',
+                        previous: 'Bir önceki sayfaya git',
+                        next: 'Bir sonraki sayfaya git',
+                        last: 'Son sayfaya git',
+                        refresh: 'Yenile'
+                    }
+                },
+                dataBound: Kendo_GridLoad,
+                excel: {
+                    allPages: true
+                },
+                change: Kendo_GridChange,
+                toolbar: kendo.template($("#template").html()),
+                    columns: columns
+                });
+            },
+        },
+    }
+
+    $(document)
+        .ready(function(){
+            page.fnc.buildForm();
+            page.fnc.buildFilter();
+            if (page.form == undefined || page.form == null) {
+                document.getElementById("dynamicForm").innerHTML = "<div id='message' class='alert alert-warning text-center' style='margin-bottom:0px !important;'>Herhangi bir form alanı ekli değil.</div>"
+            }
+
+        })
+        .on("success", '#VWFTM_TaskFormResultUpdate', function (e, res) {
+            if (res && res.Result) {
+                $('#filterButton').trigger("click");
+            }
+        })
+
+</script>
+
+<script type="text/x-kendo-template" id="template">
+    <a data-href="/FTM/VWFTM_TaskFormResult/Update" data-button="FormDetail" class="k-button k-button-icon" data-method="GET" data-show="single"><i class="fa fa-edit" data-original-title="Düzenle"></i></a>
+    <a data-href="/FTM/VWFTM_TaskFormResult/Detail" data-button="FormDetail" class="k-button k-button-icon" data-method="GET" data-show="single"><i class="fa fa-info-circle" data-original-title="Detay"></i></a>
+
+    <button class="k-button k-button-icontext k-grid-excel" type="button"><span class="k-icon k-i-excel"></span>Excele Aktar</button>
+
+    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span>PDF'e Aktar</a>
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+    #dynamicForm .frmb > li.form-field .prev-holder input[type="text"],
+    #dynamicForm .frmb > li.form-field .prev-holder input[type="date"],
+    #dynamicForm .frmb > li.form-field .prev-holder textarea {
+        height: 34px;
+        display: block;
+        width: 100%;
+        padding: 6px 12px;
+        font-size: 14px;
+        line-height: 1.42857143;
+        border-radius: 4px;
+    }
+
+    .disabledbutton {
+        pointer-events: none;
+    }
+
+    #dynamicForm .frmb > li {
+        box-shadow: 0px 0px 1px 0px;
+        margin-bottom: 9px;
+        border-radius: 0px;
+    }
+
+    #dynamicForm .cb-wrap {
+        display: none;
+    }
+
+    #dynamicForm .stage-wrap {
+        width: 100%;
+    }
+
+        #dynamicForm .stage-wrap .field-actions {
+            display: none;
+        }
+
+    .frmb li .close-field {
+        display: none;
+    }
+
+    .frmb .option-actions a, .frmb .option-actions button {
+        display: none;
+    }
+
+    .frmb .sortable-options > li .remove {
+        display: none;
+    }
+
+    .radio > label:first-child {
+        margin-left: -0px !important;
+    }
+
+    .piegroup .k-chart {
+        display: inline-block;
+        width: 120px;
+        height: 120px;
+    }
+
+    .history {
+        border-collapse: collapse;
+        width: 100%;
+        margin: 0 auto;
+    }
+
+        .history .k-chart {
+            height: 65px;
+        }
+
+        .history td.item {
+            line-height: 65px;
+            width: 20px;
+            text-align: right;
+            padding-bottom: 22px;
+        }
+</style>
+
+<template id="chartBox">
+    <div data-type="column">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>Başlık</h5>
+            </div>
+            <div class="ibox-content clearfix">
+                <div id="chart">
+                </div>
+            </div>
+        </div>
+    </div>
+</template>
+
+<template id="tableBox">
+    <table class="table small m-b-xs" style="border-top: 0px;">
+        <tbody>
+            <tr>
+                <td style="border-top: 0px;">
+                    <strong data-type="sum"></strong> Toplam
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong data-type="min"></strong> Minimum
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <strong data-type="max"></strong> Maksimum
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</template>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.code
+                    </h2>
+                    <small>  @Model.name </small>
+                </div>
+                <img src="~/Content/Custom/img/form.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/form.png')">
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-primary" data-href="/FTM/VWFTM_TaskForm/Update?id=@Model.id" data-modal="false" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+                </div>
+            </div>
+        </div>
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="fa text-success fa-info-circle"></i>  FORM BİLGİLERİ</h5>
+            </div>
+            <div class="ibox-content no-padding">
+
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.code</span>
+                        Form Kodu :
+                    </li>
+                    <li class="list-group-item ">
+                        <span class="badge badge-white">@Model.name</span>
+                        Form İsmi :
+                    </li>
+                    <li class="list-group-item ">
+                        <span class="badge badge-white">@Model.type_Title</span>
+                        Form Tipi :
+                    </li>
+
+                    <li class="list-group-item ">
+                        <span class="badge badge-white">@Model.productId_Title</span>
+                        Ürün :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <span class="badge badge-white" style="width:80%;text-align:right;white-space:normal;">@Model.inventories_Title</span>
+                        Envanter :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <span class="badge badge-white" style="width:80%;text-align:right;white-space:normal;">@Model.companyId_Title</span>
+                        İşletme :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <span class="badge badge-white" style="width:60%;text-align:right;white-space:normal;">@Model.companyStorageId_Title</span>
+                        Şube/Depo/Kısım :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <span class="badge badge-white" style="width:60%;text-align:right;white-space:normal; color:@(Model.isActive == 0 ? "red" : "green" );">@Model.isActive_Title</span>
+                        Form Durumu :
+                    </li>
+                    <li class="list-group-item clearfix">
+                        <span class="badge badge-white" style="width:60%;text-align:right;white-space:normal;">@Model.usedCount</span>
+                        Kullanılan Adet :
+                    </li>
+
+                    @*<li class="list-group-item ">
+                            Form Ön izleme :
+                        </li>
+
+                        <li class="list-group-item ">
+                            <div id="dynamicForm" name="dynamicForm" class="content">
+                                <div class="build-wrap"></div>
+                            </div>
+                        </li>*@
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Form Önizleme">
+                        <a data-toggle="tab" href="#Form_Review" aria-expanded="false"><i class="icon-eye-1 text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Form Raporu">
+                        <a data-toggle="tab" href="#Form_Report" aria-expanded="false"><i class="icon-chart-bar-1 text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+
+
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane" id="Form_Report">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5> <i class="icon-chart-bar-1 text-success"></i> FORM RAPORU</h5>
+                            </div>
+                            <div class="ibox-content clearfix">
+                                <div class="row">
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @(
+                                Html.Akilli().DateTimePicker("startDate")
+                                .Value(DateTime.Now.AddDays(-1))
+                                .Id("startDate")
+                                .Placeholder("Başlangıç Tarihi")
+                                .Validate(Validations.Required)
+                            )
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="form-group">
+                                            @(
+                                Html.Akilli().DateTimePicker("endDate")
+                                .Value(DateTime.Now)
+                                .Placeholder("Bitiş Tarihi")
+                                .Id("endDate")
+                                .MinDateElement("startDate")
+                                .Validate(Validations.Required)
+                            )
+                                        </div>
+                                    </div>
+
+                                    @if (Model.productId != null && Model.inventoryId.Count() > 1)
+                                    {
+                                        <div class="col-md-3">
+                                            <div class="form-group">
+                                                @(Html.Akilli()
+                                    .MultiSelect("inventories")
+                                    .Placeholder("Lütfen Envanter seçiniz..")
+                                    .DataTextField("searchField")
+                                    .DataValueField("id")
+                                    .ItemTemplate("#=TemplateEngine('inventoryTemplate',data)#")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                                    .Filter<VWPRD_Inventory>(f => f.productId == Model.productId)
+                                    .Sort(x => x.Add("code").Ascending())
+                                    .Execute()
+                                )
+                                            </div>
+                                        </div>
+                                    }
+
+                                    <div class="@(Model.productId != null && Model.inventoryId.Count() > 1 ? "col-md-3" : "col-md-6")">
+                                        <div class="form-group">
+                                            @(
+                                Html.Akilli()
+                                .MultiSelect("users")
+                                .Placeholder("Lütfen Personel Seçiniz..")
+                                .DataValueField("id")
+                                .DataTextField("FullName")
+                                .Action(b => b.Action("DataSourceDropDownForTaskRoles", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute()
+                            )
+                                        </div>
+                                    </div>
+
+
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            @(
+                Html.Akilli()
+                .DropDownList("customerId")
+                .OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name",true)
+                .Sort(x => x.Add("fullName").Ascending())
+                .Execute()
+            )
+                                        </div>
+
+
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            @(
+                    Html.Akilli()
+                    .DropDownList("customerStorageId")
+                    .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .CascadeFrom("customerId")
+                    .CascadeFromField("companyId")
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Execute()
+                )
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row">
+                                    <div id="filterArea"></div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-md-2 pull-right">
+                                        <button class="btn btn-md btn-block btn-success" type="button" id="filterButton" onclick="page.fnc.getResult(this)" style="line-height: 27px">Sorgula</button>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                        <div id="message" class="alert alert-warning text-center" style="margin-bottom:0px !important;">Raporları görüntülemek için sorgula butonunu kullanabilirsiniz.</div>
+
+                        <div id="dashboard" class="row"></div>
+                    </div>
+
+
+                    <div class="tab-pane active" id="Form_Review">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5> <i class="icon-eye-1 text-success"></i> FORM ÖNİZLEME</h5>
+                            </div>
+                            <div class="ibox-content clearfix">
+                                <div id="dynamicForm" name="dynamicForm" class="content">
+                                    <div class="build-wrap"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+<script>
+    $(".build-wrap").addClass("disabledbutton");
+    /*document.getElementById("dynamicForm").innerHTML = "<div id='message' class='alert alert-warning text-center' style='margin-bottom:0px !important;'>Herhangi bir form alanı ekli değil.</div>";*/
+    //var elements = document.getElementById('dynamicForm').children
+    //var nth = elements.item(3);
+    //if (nth.classList == "frmb stage-wrap pull-left ui-sortable empty") {
+    //document.getElementById("dynamicForm").innerHTML = "<div id='message' class='alert alert-warning text-center' style='margin-bottom:0px !important;'>Herhangi bir form alanı ekli değil.</div>";
+    //}
+    //document.getElementById('asdf').innerHTML = "<div id='message' class='alert alert-warning text-center' style='margin-bottom:0px !important;'>Herhangi bir form alanı ekli değil.</div>"
+    //frmb stage - wrap pull - left ui - sortable empty
+    //if (document.getElementById($(".empty").attr('id')) != null) {
+    //    document.getElementById("dynamicForm").innerHTML = "<div id='message' class='alert alert-warning text-center' style='margin-bottom:0px !important;'>Herhangi bir form alanı ekli değil.</div>"
+    //}
+    
+   
+</script>

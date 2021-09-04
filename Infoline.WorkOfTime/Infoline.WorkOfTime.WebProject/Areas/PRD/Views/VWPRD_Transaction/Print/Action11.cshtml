@@ -1,0 +1,169 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+@{
+	ViewBag.Title = "Print";
+	var sayac = 0;
+	var logo = "https://" + Request.Url.Authority + "" + TenantConfig.Tenant.Config.Logo;
+
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&nbsp;</title>
+    <link rel="shortcut icon" href="@TenantConfig.Tenant.Config.Favicon">
+    <link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Themes/css/style.css" rel="stylesheet">
+    <script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+    <script src="/Content/Themes/js/bootstrap.min.js"></script>
+    <script src="~/Content/Plugins/formBuilder/form-render.min.js"></script>
+    <style type="text/css">
+        span, strong, div {
+            font-size: 11px;
+        }
+
+        canvas {
+            height: 100vh;
+            width: 100vw;
+            display: block;
+        }
+    </style>
+    <script type='text/javascript'>
+        $(document)
+            .on("ready", function () {
+                print();
+            });
+
+        function ImageError(element, image) {
+            element.onerror = '';
+            element.src = image;
+        }
+    </script>
+</head>
+<body class="white-bg">
+	<div class="p-md">
+		<div class="row">
+			<div class="col-md-12 col-sm-12 col-lg-12 col-xs-12 text-center">
+				<img src="@logo" style="width:120px;" alt="image" onerror="ImageError(this,'@logo')">
+			</div>
+		</div>
+		<hr />
+		<h4 class="" style="text-align:center">Zimmet Verme Formu</h4>
+
+		<div class="table-responsive clearfix">
+			<table class="table table-bordered">
+				<tr>
+					<td colspan="12" align="left" valign="middle" class="stil" style="background: #80808038;"><strong>Zimmet Yapılan Personel Bilgileri</strong></td>
+				</tr>
+				<tr>
+					<td class="stil" colspan="5"> Kimlik No</td>
+					<td colspan="7" data-prop="Adress" class="space-left">@(Model.printInfo.user.IdentificationNumber)</td>
+				</tr>
+				<tr>
+					<td class="stil" colspan="5">Ad - Soyad </td>
+					<td colspan="7" data-prop="Adress" class="space-left">@Model.printInfo.user.FullName</td>
+				</tr>
+				<tr>
+					<td class="stil" colspan="5">Departman </td>
+					<td colspan="7" data-prop="Adress" class="space-left">@(Model.printInfo.user.Department_Title)</td>
+				</tr>
+				<tr>
+					<td class="stil" colspan="5">Pozisyon </td>
+					<td colspan="7" data-prop="Adress" class="space-left">@(Model.printInfo.user.title)</td>
+				</tr>
+
+			</table>
+		</div>
+
+		<div class="table-responsive clearfix">
+			<table class="table table-bordered">
+				<tr>
+					<td class="stil" colspan="5">Çıkış Yapılacak Depo/Şube </td>
+					<td colspan="7" data-prop="Adress" class="space-left">@(Model.outputCompanyId_Title ?? "-") - @(Model.outputId_Title ?? "-")</td>
+				</tr>
+
+			</table>
+		</div>
+
+		<div class="table-responsive clearfix">
+			<h4>Envanter Bilgileri</h4>
+			<table class="table table-bordered">
+				<thead>
+					<tr>
+						<th>Sıra No</th>
+						<th>Seri No</th>
+						<th>Envanter</th>
+						<th>Miktar</th>
+						<th>Tarih</th>
+						<th>Kullanım Durumu</th>
+						<th>Kusur Durumu</th>
+						<th>Kusur Açıklaması</th>
+					</tr>
+				</thead>
+				<tbody>
+
+					@foreach (var item in Model.items.ToList())
+					{
+						sayac += 1;
+						<tr>
+							<td style="text-align:center; padding:1px">@sayac</td>
+							<td style="text-align:center; padding:1px;word-break: break-word;">@(item.serialCodes != null ? item.serialCodes : "-")</td>
+							<td style="text-align:center; padding:1px">@item.productId_Title</td>
+							<td style="text-align:center; padding:1px">@item.quantity @item.unitId_Title</td>
+							<td style="text-align:center; padding:1px">@string.Format("{0:dd.MM.yyyy}", Model.date)</td>
+							<td style="text-align:center; padding:1px"></td>
+							<td style="text-align:center; padding:1px"></td>
+							<td style="text-align:center; padding:1px;word-break: break-word;  width:25%;"></td>
+						</tr>
+					}
+
+				</tbody>
+			</table>
+		</div>
+		<hr />
+		<div class="well m-t">
+			<strong>Açıklama :</strong>
+			Yukarıda belirtilen malzemeyi çalışır durumda ve eksiksiz olarak teslim aldım.
+			Envanter/Taşınabilir Cihaz, Araç ve Gereç olarak aldığım bu malzemeyi;
+			şirket içinde yayınlanan Zimmet Yönetmeliği şartlarına uygun olarak kullanmayı;
+			emeklilik, istifa veya görevden ayrılma gibi durumlarda eksiksiz, çalışır durumda
+			görevlilere teslim etmeyi ve Zimmet Yönetmeliğinden doğacak tüm sorumluluğu kabul ediyorum.<br /><br />
+			Ad-Soyad/Tarih/İmza
+		</div>
+		<hr />
+		<div class="row">
+			<div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+				<strong>Teslim Eden</strong>
+				<hr />
+				<div class="text-left">
+					<div>İsim Soyisim : @Model.createdby_Title </div>
+					<div>Tarih : </div>
+					<div>İmza : </div>
+				</div>
+			</div>
+
+			<div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center">
+				<strong>Teslim Alan</strong>
+				<hr />
+				<div class="text-left">
+					<div>İsim Soyisim : @Model.printInfo.user.FullName </div>
+					<div>Tarih : </div>
+					<div>İmza : </div>
+				</div>
+			</div>
+		</div>
+		<hr />
+		<table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;margin-top: 2px;font-size: 10px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;">
+			<tr>
+				<td style="text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+				<td style="text-align: center;border: none;">[ ] GİZLİ</td>
+				<td style="text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+				<td style="text-align: center;border: none;">[ ] ANONİM</td>
+				<td style="text-align: center;border: none;">[ X ] DAHİLİ</td>
+				<td style="text-align: center;border: none;">[   ] HARİCİ</td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>

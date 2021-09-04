@@ -1,0 +1,201 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Personel Departman Pozisyonu Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style type="text/css" data-selector="modalContainer">
+    .btn-plus:hover {
+        color: white;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onChangeIdUser(c) {
+        if (this.value() == null || this.value() == "") {
+            return false;
+        }
+        var allData = this.dataSource.data();
+        if (allData.length > 0) {
+            var userId = this.value();
+            var userData = $.Enumerable.From(allData).Where(c => c.id == userId).FirstOrDefault();
+            if (userData != null) {
+                if (userData.JobStartDate != null && userData.JobStartDate != "") {
+                    $('#departmentStartDate').data('kendoDateTimePicker').min(new Date(userData.JobStartDate));
+                }
+            }
+        }
+    }
+</script>
+
+<form class="form-horizontal"
+      role="form"
+      method="POST"
+      data-selector="modalContainer"
+      data-formType="Ajax"
+      data-loadingtitle="Departmana personel ekleniyor lütfen bekleyiniz."
+      id="VWINV_CompanyPersonDepartmentsForm"
+      action="@Url.Action("Insert", "VWINV_CompanyPersonDepartments", new { area = "INV" })">
+
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    @if (Model.DepartmentId == null)
+    {
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="DepartmentId">Departman</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @(Html.Akilli()
+                          .DropDownListFor(model => model.DepartmentId)
+                          .OptionLabel("Lütfen Departman Seçiniz..")
+                          .DataValueField("id")
+                          .DataTextField("PID_Title")
+                          .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
+                          .Sort(x => x.Add("PID_Title").Ascending())
+                          .Filter<Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments>(a => a.ProjectId == System.UIHelper.Guid.Null && a.PID != System.UIHelper.Guid.Null && a.PID_Title != System.UIHelper.String.Null)
+                          .CascadeFrom("CompanyId")
+                          .CascadeFromField("CompanyId")
+                          .Execute("id")
+                    )
+                    <div data-target="hidexTarget" class="input-group-addon hidex">
+                        <a data-target="InsertTarget" href="#" data-task="Insert" data-modal="true" title="Yeni Departman Ekle" style="line-height: 14px;" data-href="@Url.Action("Insert", "VWINV_CompanyDepartments", new {area = "INV"})" class="btn btn-primary"><i class="fa fa-plus" style="color: white"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(a => a.DepartmentId)
+    }
+
+
+
+    @if (Model.IdUser == null)
+    {
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="IdUser">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.IdUser)
+                 .OptionLabel("Lütfen Personel Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                   .Template("#=TemplateEngine('userTemplate',data)#")
+                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                   .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Events(c => c.Change("onChangeIdUser"))
+                  .Execute("id")
+                  .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.IdUser)
+    }
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Title">Personel Ünvanı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen personel ünvanı giriniz.."},
+            })
+        </div>
+    </div>
+
+
+    @if (Model.ProjectId.HasValue)
+    {
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="start" for="departmentStartDate">Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                 Html.Akilli()
+                 .DateTimePickerFor(model => model.StartDate).Id("departmentStartDate")
+                 .Min(Model.StartDate.Value)
+                 .Max(Model.EndDate.Value)
+                 .Value(Model.StartDate)
+                 .MaxDateElement("EndDate")
+                 .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="start" for="EndDate">Bitiş Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                 Html.Akilli()
+                 .DateTimePickerFor(model => model.EndDate)
+                 .Value(Model.EndDate)
+                 .Min(Model.StartDate.Value)
+                 .Max(Model.EndDate.Value)
+                 .MinDateElement("departmentStartDate")
+                 .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="start" for="departmentStartDate">Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                 Html.Akilli()
+                 .DateTimePickerFor(model => model.StartDate)
+                 .Id("departmentStartDate")
+                 .Value(DateTime.Now)
+                 .Min(DateTime.Now.AddDays(-30))
+                 .Max(DateTime.Now.AddDays(+30))
+                 .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IsBasePosition">Asli Görev mi?</label>
+        </div>
+        <div class="btn-group col-md-8 radio">
+
+            <label>
+                @Html.Kendo().RadioButtonFor(model => model.IsBasePosition).Value(true).Checked(true)
+                <span> Evet  </span>
+            </label>
+
+            <label>
+                @Html.Kendo().RadioButtonFor(model => model.IsBasePosition).Value(false).Checked(false)
+                <span> Hayır   </span>
+            </label>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+
+</form>

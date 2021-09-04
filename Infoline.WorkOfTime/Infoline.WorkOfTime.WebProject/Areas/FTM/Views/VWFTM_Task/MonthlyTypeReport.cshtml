@@ -1,0 +1,450 @@
+﻿@{
+	ViewBag.Title = "Çağrı Tipi Yıl/Ay Bazlı Rapor";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	string[] months = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+
+}
+
+<style type="text/css">
+	table {
+		border: 1px #ccc solid !important;
+	}
+
+	td {
+		text-align: center;
+	}
+
+	th {
+		text-align: center;
+	}
+</style>
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                                       Html.Akilli()
+                                       .MultiSelect("taskTypes")
+                                       .Placeholder("Lütfen Çağrı Tipi Seçiniz..")
+                                       .DataValueField("Name")
+                                       .DataTextField("Name")
+                                       .Action(b => b.Action("FilterMenuTaskType", "General", new { area = "" }))
+                                       .Sort(x => x.Add("Name").Ascending())
+                                       .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+								 Html.Akilli()
+								 .DropDownList("customerId")
+								 .OptionLabel("Lütfen Müşteri İşletmeyi Seçiniz..")
+								 .DataValueField("id")
+								 .DataTextField("fullName")
+								 .Template("#=TemplateEngine('companyTemplate',data)#")
+								 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+								 .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+								 //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+								 .Sort(x => x.Add("fullName").Ascending())
+								 .Validate(Validations.Required)
+								 .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+                              Html.Akilli()
+                              .DropDownList("customerStorageId")
+                              .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('storageTemplate',data)#")
+                              .ValueTemplate("#=fullName#)")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                              .CascadeFrom("customerId")
+                              .CascadeFromField("companyId")
+                              .Sort(x => x.Add("fullName").Ascending())
+                              .Execute()
+                              )
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .DropDownList("year")
+									   .OptionLabel("Raporlamak İstediğiniz Yılı Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(DateTime.Now.Year.ToString())
+									   .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .MultiSelect("months")
+									   .Placeholder("Lütfen Rapor Aylarını Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(months)
+									   .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-3 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+
+			<br />
+		</div>
+	</div>
+</div>
+<div class="row clearfix">
+	<div class="col-md-12">
+		<div class="col-md-6">
+			<div class="ibox">
+				<div class="ibox-title">
+					<h5>Aylara Göre Yanıtlama ve Düzeltme Süreleri Dağılımı </h5> &nbsp;   &nbsp; <i data-toggle="tooltip" title="Mevcut aylarda açılan çağrıların yanıtlama ve düzeltme sürelerini gösterir." class="fa fa-info-circle blue"></i>
+				</div>
+				<div class="ibox-content clearfix">
+					<div class="not-data" data-type="GetShipmentDateUpComing">
+						<div class="feed-activity-list" data-slide="daily">
+							<div id="AllTasks"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="ibox">
+				<div class="ibox-title">
+					<h5>Aylara Göre Çağrı Tipi ve Yanıtlama Süreleri Dağılımı </h5> &nbsp;   &nbsp; <i data-toggle="tooltip" title="Mevcut aylarda açılan çağrı tipleri ve yanıtlama sürelerini gösterir." class="fa fa-info-circle blue"></i>
+				</div>
+				<div class="ibox-content clearfix">
+					<div class="not-data" data-type="GetShipmentDateUpComing">
+						<div class="feed-activity-list" data-slide="daily">
+							<div id="allTaskType"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+<div id="grid"></div>
+
+<script type="text/javascript">
+
+	$("#DashBoardFilter").click(function () {
+
+		var months = $("#months").val();
+		var year = $('#year').val();
+		var taskTypes = $("#taskTypes").val();
+		var customer = $("#customerId").val();
+		var customerStorage = $("#customerStorageId").val();
+
+		createKendoGrid(year, months, taskTypes, customer, customerStorage)
+		CreateKendoAllTaskChart(year, months);
+		CreateKendoAllTaskTypeChart(year, months, taskTypes, customer, customerStorage);
+	})
+
+	function GetMonthlyName(data) {
+
+		var resultData = "";
+		switch (data) {
+			case 1:
+				resultData = "Ocak";
+				break;
+			case 2:
+				resultData = "Şubat";
+				break;
+			case 3:
+				resultData = "Mart";
+				break;
+			case 4:
+				resultData = "Nisan";
+				break;
+			case 5:
+				resultData = "Mayıs";
+				break;
+			case 6:
+				resultData = "Haziran";
+				break;
+			case 7:
+				resultData = "Temmuz";
+				break;
+			case 8:
+				resultData = "Ağustos";
+				break;
+			case 9:
+				resultData = "Eylül";
+				break;
+			case 10:
+				resultData = "Ekim";
+				break;
+			case 11:
+				resultData = "Kasım";
+				break;
+			case 12:
+				resultData = "Aralık";
+				break;
+			default:
+		}
+
+		return resultData;
+
+	}
+
+
+	function createKendoGrid(year, months, taskTypes, customer, customerStorage) {
+
+		ReadData('/FTM/VWFTM_Task/MonthlyTypeReportData', { year: year, months: months, taskTypes: taskTypes, customer: customer, customerStorage: customerStorage }, function (resp) {
+
+
+			var cols = [
+				{ field: 'taskTypeTitle', title: 'Çağrı Tipi', width: 200 },
+			];
+
+			$.each(months, function (m, month) {
+				month = parseInt(month);
+				var str = "data.M" + month + ".Reso";
+				cols.push(
+					{
+						title: year + ' ' + GetMonthlyName(month),
+						width: 200,
+						headerAttributes: {
+							style: "text-align: center; font-size: 14px"
+						},
+						columns:
+							[
+								{
+									field: 'M' + month + '.Count',
+									title: 'Çağrı Adedi',
+									width: 170,
+									template: "<a target='blank' class='btn btn-info' href=/FTM/VWFTM_TaskGrid/Index?taskIds=#=M" + month + ".taskIds#>#=M" + month + ".Count#</a>"
+								},
+								{
+									field: 'M' + month + '.Resp',
+									title: 'Ortalama Cevap (dk)',
+									width: 220
+								},
+								{
+									field: 'M' + month + '.Reso',
+									title: 'Ortalama Tamamlama (dk)',
+									width: 220
+								}
+							]
+					}
+				);
+			});
+
+			opts = {
+				Data: resp,
+				Column: cols,
+				groupable: false,
+				Height: 500
+			};
+
+			GridRender(opts, $('#grid'));
+		});
+
+	}
+
+
+	function CreateKendoAllTaskChart(year, months) {
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTaskReportDataSource', { year: year, months: months }, function (res) {
+			var element = $("#AllTasks");
+
+			element.kendoChart({
+				title: {
+					text: "Aylara Göre Yanıtlama ve Düzeltme Süreleri Dağılımı"
+				},
+				legend: {
+					position: "bottom"
+				},
+				chartArea: {
+					background: ""
+				},
+				seriesDefaults: {
+					type: "line",
+					style: "smooth"
+				},
+				series: [{
+					name: "Ortalama Cevap (dk)",
+					data: $.Enumerable.From(res).Select(function (x) { return kendo.format("{0:N0}", (x.responseTime)) }).ToArray()
+
+				}, {
+					name: "Ortalama Tamamlama (dk)",
+					data: $.Enumerable.From(res).Select(function (x) { return kendo.format("{0:N0}", (x.resolutionTime)) }).ToArray()
+				}
+				],
+				valueAxis: {
+					labels: {
+						format: "{0}%"
+					},
+					line: {
+						visible: false
+					},
+					axisCrossingValue: -10
+				},
+				categoryAxis: {
+					categories: $.Enumerable.From(res).Select(x => x.text).ToArray(),
+					majorGridLines: {
+						visible: false
+					},
+					labels: {
+						rotation: "auto"
+					}
+				},
+				tooltip: {
+					visible: true,
+					format: "{0}%",
+					template: "#= series.name #: #= value #"
+				}
+			});
+
+			$(element.selector).append(kendoExportTemplate(element.selector));
+		})
+	}
+
+	function CreateKendoAllTaskTypeChart(year, months, taskTypes, customer, customerStorage) {
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTypeLineChartData', { year: year, months: months, taskTypes: taskTypes, customer: customer, customerStorage: customerStorage }, function (res) {
+			var element = $("#allTaskType");
+
+			var data = $("#months").data("kendoMultiSelect");
+
+			var monthsData = $.Enumerable.From(data.dataItems()).Select(x => x.title).ToArray();
+
+			if (monthsData.length <= 0) {
+				monthsData = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+			}
+			element.kendoChart({
+				title: {
+					text: "Aylara Göre Çağrı Tipi ve Yanıtlama Süreleri Dağılımı"
+				},
+				legend: {
+					position: "bottom"
+				},
+				chartArea: {
+					background: ""
+				},
+				seriesDefaults: {
+					type: "line",
+					style: "smooth"
+				},
+				series: [
+					{
+						name: "Bakım",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Bakım").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Arıza",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Arıza").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Diğer",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Diğer").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Keşif",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Keşif").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Şikayet",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Şikayet").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Refakat",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Refakat").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Kontrol",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Kontrol").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Talep",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Talep").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Kalibrasyon",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Kalibrasyon").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Gel Al",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Gel Al").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Ürün Değişim",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Ürün Değişim").Select(x => x.Reso).ToArray()
+					},
+					{
+						name: "Parça Değişim",
+						data: $.Enumerable.From(res).Where(x => x.taskType == "Parça Değişim").Select(x => x.Reso).ToArray()
+					},
+				],
+				valueAxis: {
+					labels: {
+						format: "{0}%"
+					},
+					line: {
+						visible: false
+					},
+					axisCrossingValue: -10
+				},
+				categoryAxis: {
+					categories: monthsData,
+					majorGridLines: {
+						visible: false
+					},
+					labels: {
+						rotation: "auto"
+					}
+				},
+				tooltip: {
+					visible: true,
+					format: "{0}%",
+					template: "#= series.name #: #= value # (dk)"
+				}
+			});
+
+			$(element.selector).append(kendoExportTemplate(element.selector));
+		})
+	}
+
+
+	$(document)
+		.on('ready', function (e) {
+			var year = new Date().getFullYear();
+			var months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+			createKendoGrid(year, months);
+			CreateKendoAllTaskChart(year, months);
+			CreateKendoAllTaskTypeChart(year, months);
+		})
+</script>

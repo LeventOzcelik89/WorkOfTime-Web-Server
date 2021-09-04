@@ -1,0 +1,135 @@
+﻿@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMDetailPlanPersonAndPds
+@{
+    ViewBag.Title = "";
+    Layout = null;
+     int i = 0;
+}
+
+    <style type="text/css" data-selector="modalContainer">
+     
+
+        .form-control.k-widget {
+            padding: 1px !important;
+        }
+
+        group + group {
+            margin-top: 20px;
+        }
+
+        group input {
+            cursor: pointer;
+        }
+
+        .inline-radio {
+            display: flex;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #b6b6b6;
+        }
+
+            .inline-radio div {
+                position: relative;
+                flex: 1;
+            }
+
+            .inline-radio input {
+                width: 100%;
+                height: 30px;
+                opacity: 0;
+            }
+
+            .inline-radio label {
+                position: absolute;
+                top: 0;
+                left: 0;
+                color: #b6b6b6;
+                width: 100%;
+                height: 100%;
+                background: #fff;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                border-right: 1px solid #b6b6b6;
+            }
+
+            .inline-radio div:last-child label {
+                border-right: 0;
+            }
+
+            .inline-radio input:checked + label {
+                font-weight: 500;
+                color: #fff;
+            }
+
+            .inline-radio div:nth-child(5) input:checked + label {
+                background: #007900;
+            }
+
+            .inline-radio div:nth-child(4) input:checked + label {
+                background: #FFC200;
+            }
+
+            .inline-radio div:nth-child(3) input:checked + label {
+                background: #FF6A00;
+            }
+
+            .inline-radio div:nth-child(2) input:checked + label {
+                background: #FF2C2C;
+            }
+
+            .inline-radio div:nth-child(1) input:checked + label {
+                background: #84002F;
+            }
+
+            .inline-radio div:nth-child(6) input:checked + label {
+                background: #000;
+            }
+
+        #questionContent textarea {
+            min-height: 60px !important;
+        }
+    </style>
+
+<div class="form-horizontal" data-selector="modalContainer">
+       
+
+        @foreach (var itemOut in Model.questions.GroupBy(x => x.groupName))
+        {
+        <fieldset>
+            <legend>@itemOut.Key</legend>
+
+            <div id="questionContent">
+                @foreach (var item in Model.questions.Where(x => x.groupName == itemOut.Key).ToArray())
+                {
+                    <div class="form-group" data-content="questDiv">
+                            <div class="col-md-6">
+                                <div class="">
+                                    <label class="control-label label-md"> @Model.questions[i].question  </label>
+                                </div>
+                                <div class="" style="text-align:center;">
+                                    <group class="inline-radio" data-name="radioGroup" data-question="@Model.questions[i].question" data-qFormId="@Model.questions[i].id">
+                                        <div><input name="questionResult[@i].score" value="1" type="radio"><label>Çok Kötü</label></div>
+                                        <div><input name="questionResult[@i].score" value="2" type="radio"><label>Kötü</label></div>
+                                        <div><input name="questionResult[@i].score" value="3" checked type="radio"><label>Orta</label></div>
+                                        <div><input name="questionResult[@i].score" value="4" type="radio"><label>İyi</label></div>
+                                        <div><input name="questionResult[@i].score" value="5" type="radio"><label>Çok İyi</label></div>
+                                        <div><input name="questionResult[@i].score" value="0" type="radio"><label>D. Dışı</label></div>
+                                </div>
+                                <input type="text" hidden value="@Model.questions[i].id" name="questionResult[@i].questionFormId" />
+                                <input type="text" hidden value="@Model.questions[i].id" name="questions[@i].id" />
+                                <input type="text" hidden value="@Model.questions[i].factor" name="questions[@i].factor" />
+                            </div>
+                            <div class="col-md-6">
+                                    <label class="label-md">Varsa Yorumunuz</label>
+                                    <textarea data-name="comment" style="width:100%;" name="questionResult[@i].comment"></textarea>
+                            </div>
+                    </div>
+                      i++;
+                }
+               
+            </div>
+
+        </fieldset>
+        }
+</div>

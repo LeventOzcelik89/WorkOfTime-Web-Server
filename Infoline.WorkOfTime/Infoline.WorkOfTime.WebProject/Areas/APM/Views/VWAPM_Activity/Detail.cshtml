@@ -1,0 +1,149 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMAPM_ActivityModel
+@{
+    ViewBag.Title = "Aktivite Tablosu Detay";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="alert alert-warning">
+    Bu sayfa kullanıcıya göre düzenlenecek.
+</div>
+
+<div data-selector="modalContainer" class="form-horizontal">
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="type_Title">Aktivite Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.type_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Aktivite İsmi/Tipi</label>
+        </div>
+        <div class="col-md-6">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+        <div class="col-md-2">
+            <div class="pull-right">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.generalType).Value(EnumAPM_ActivityGeneralType.Sirket).Readonly(true))
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="startDate">Aktivite Başlangıç/Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-4">
+            @(
+            Html.Akilli().
+            DateTimePickerFor(model => model.startDate).
+            Format(Extensions.DateFormatFull()).
+            Value(Model.startDate.HasValue ? Model.startDate.Value : DateTime.Now).
+            Enable(false)
+        )
+        </div>
+        <div class="col-md-4">
+            @(
+            Html.Akilli().
+            DateTimePickerFor(model => model.endDate).
+            Format(Extensions.DateFormatFull()).
+            Value(Model.endDate.HasValue ? Model.endDate.Value : DateTime.Now.AddHours(1)).
+            Enable(false)
+        )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="communicationType">İletişim Şekli (Varsa)</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.communicationType).Value(EnumAPM_ActivityCommunicationType.Diger).Readonly(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Users">Katılımcılar</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .MultiSelect("UserIds")
+            .DataTextField("FullName")
+            .DataValueField("id")
+            .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+            .Filter<VWSH_User>(f => f.status == true || f.status == false)
+            .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+            .Execute("id")
+            .Readonly(true)
+        )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Relations">İlgililer</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .MultiSelect("RelationIds")
+            .DataTextField("Name")
+            .DataValueField("id")
+            .ItemTemplate("#=TemplateEngine('activityRelationTemplate',data)#")
+            .Action(b => b.Action("DataSourceDropDownForRelations", "VWAPM_Activity", new { area = "APM" }))
+            .Sort(x => x.Add("Name").Ascending()).TagMode(TagMode.Multiple)
+            .TagTemplate("<span class='badge badge-success' style='background-color:#:color#'>#:description#</span> #:Name# ")
+            .Execute("id")
+            .Readonly(true)
+        )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Aktivite Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Aktivite Dosyası</label>
+        </div>
+        <div class="col-md-8">
+            @(
+            Html.Akilli().FileUpload()
+            .DataTable("APM_Activity")
+            .DataId(Model.id)
+            .DataKey(x => x.fileGroup == "Aktivite Dosyası")
+            .PreviewMode(true)
+        )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+</div>

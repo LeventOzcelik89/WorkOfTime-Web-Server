@@ -1,0 +1,233 @@
+﻿@model VWINV_CompanyPersonAssessmentPageReport
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "İşe Giren Personel Değerlendirmeleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userid = userStatus.user.id;
+}
+
+<script type="text/javascript">
+
+    $(document)
+
+        .on("selected:grid", "#VWINV_CompanyPersonAssessment", function (e, data) {
+            if ((data.Manager1Approval == '@userid' && data.ApproveStatus == '@((int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme)') ||
+                (data.Manager2Approval == '@userid' && data.ApproveStatus == '@((int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme)') ||
+                (data.GeneralManagerApproval == '@userid' && data.ApproveStatus == '@((int)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme)'))
+            {
+               $('[data-taskCustom="update"]').removeClass('hide');
+            }
+            else if (('@userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))' == 'True') && data.ApproveStatus == '@((int)EnumINV_CompanyPersonAssessmentApproveStatus.IkDegerlendirme)') {
+                $('[data-taskCustom="update"]').removeClass('hide');
+            }
+            else {
+               $('[data-taskCustom="update"]').addClass('hide');
+            }
+        });
+
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <div class="space-25"></div>
+                    <h5> DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left active" href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="">
+                                    <i class="fa text-success fa-align-justify" style="color:black;"></i> Tümü
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=">0</span>
+                            </li>
+
+                            <li class="clearfix">
+                                <a class="pull-left " href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~3)">
+                                    <i class="fa text-warning fa-spinner"></i> Onay Bekleyenler
+                                </a>
+                                <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=(ApproveStatus~eq~3)">0</span>
+                            </li>
+
+                            <li class="clearfix">
+                                <a class="pull-left " href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="ApproveStatus~neq~4">
+                                    <i class="fa text-success fa-spinner"></i> Süreci Devam Edenler
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=ApproveStatus~neq~4">0</span>
+                            </li>
+
+                            <li class="clearfix">
+                                <a class="pull-left " href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~4)">
+                                    <i class="fa text-danger fa-times-circle"></i> İşlem Yaptıklarım
+                                </a>
+                                <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=(ApproveStatus~eq~4)">0</span>
+                            </li>
+                        }
+                        else
+                        {
+                            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+                            {
+                                <li class="clearfix">
+                                    <a class="pull-left active" href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="((Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1)~or~(GeneralManagerApproval~eq~'@userid'~and~ApproveStatus~eq~2))">
+                                        <i class="fa text-success fa-check"></i>   Onay Bekleyenler
+                                    </a>
+                                    <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1)~or~(GeneralManagerApproval~eq~'@userid'~and~ApproveStatus~eq~2))">0</span>
+                                </li>
+                            }
+                            else
+                            {
+                                <li class="clearfix">
+                                    <a class="pull-left active" href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="(Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)">
+                                        <i class="fa text-warning fa-spinner"></i> Değerlendirilecek Personeller
+                                    </a>
+                                    <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=(Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)">0</span>
+                                </li>
+
+                                <li class="clearfix">
+                                    <a class="pull-left " href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="((Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1)~or~(GeneralManagerApproval~eq~'@userid'~and~ApproveStatus~eq~2))">
+                                        <i class="fa text-success fa-check"></i>   Onay Bekleyenler
+                                    </a>
+                                    <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1)~or~(GeneralManagerApproval~eq~'@userid'~and~ApproveStatus~eq~2))">0</span>
+                                </li>
+                            }
+
+
+
+                            <li class="clearfix">
+                                <a class="pull-left " href="#" data-grid="VWINV_CompanyPersonAssessment" data-switch="radio" data-category="0" data-query="((((Manager2Approval~eq~'@userid'~and~((ApproveStatus~eq~2~or~ApproveStatus~eq~3)~or~ApproveStatus~eq~4))~or~(GeneralManagerApproval~eq~'@userid'~and~(ApproveStatus~eq~3~or~ApproveStatus~eq~4)))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~4))~or~(Manager1Approval~eq~'@userid'~and~ApproveStatus~neq~0))">
+                                    <i class="fa text-danger fa-times-circle"></i>  İşlem Yaptıklarım
+                                </a>
+                                <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((((Manager2Approval~eq~'@userid'~and~((ApproveStatus~eq~2~or~ApproveStatus~eq~3)~or~ApproveStatus~eq~4))~or~(GeneralManagerApproval~eq~'@userid'~and~(ApproveStatus~eq~3~or~ApproveStatus~eq~4)))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~4))~or~(Manager1Approval~eq~'@userid'~and~ApproveStatus~neq~0))">0</span>
+                            </li>
+                        }
+                    </ul>
+
+                    
+                        <div class="space-25"></div>
+                        <h5> TİPİNE GÖRE </h5>
+                        <ul class="folder-list m-b-md" style="padding: 0">
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_CompanyPersonAssessment" data-category="1" data-query="((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1))~or~(GeneralManagerApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2))~or~((IkApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~3)~and~AssessmentType~eq~2))">
+                                    <i class="fa text-success fa-plus-square"></i> 2 Aylık Değerlendirme
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1))~or~(GeneralManagerApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2))~or~((IkApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~3)~and~AssessmentType~eq~2))">0</span>
+                            </li>
+
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_CompanyPersonAssessment" data-category="1" data-query="((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1))~or~(GeneralManagerApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2))~or~((IkApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~3)~and~AssessmentType~eq~6))">
+                                    <i class="fa text-success fa-plus-square"></i>  6 Aylık Değerlendirme
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_CompanyPersonAssessment/DataSourceCount?filter=((((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~1))~or~(GeneralManagerApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~2))~or~((IkApproval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~3)~and~AssessmentType~eq~6))">0</span>
+                            </li>
+                        </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Değerlendirilecek Personel Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+                {
+                    @(Html.Akilli()
+                  .Grid<VMVWINV_CompanyPersonAssessment>("VWINV_CompanyPersonAssessment")
+                  .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonAssessment", new { area = "INV" }))
+                  .PageSize(25)
+                  .Sort(a => a.Add(c => c.created).Descending()))
+                  .Columns(x =>
+                  {
+                      x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(a => a.ApproveStatus);
+                      x.Bound(y => y.Person_Title).Title("Personel İsmi").Width(180);
+                      x.Bound(y => y.AssessmentCode).Title("Değerlendirme Kodu").Width(180);
+                      x.Bound(y => y.AssessmentType).ClientTemplate("#if(AssessmentType=='6') {#6 Aylık#} if(AssessmentType=='2') {#2 Aylık#} if(AssessmentType=='12') {#1 Yıllık#} #").Title("Değerlendirme Tipi").Width(180);
+                      x.Bound(y => y.Manager1Approval_Title).Title("1. Yönetici").Width(180);
+                      x.Bound(y => y.Manager2Approval_Title).Title("2. Yönetici").Width(180);
+                      x.Bound(y => y.GeneralManagerApproval_Title).Title("Genel Müdür").Width(180);
+                      x.Bound(y => y.IkApproval_Title).Title("İnsan Kaynakları").Width(180);
+                  })
+                  .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                  .Scrollable(x => x.Height(650))
+                  .ToolBar(x =>
+                  {
+                      x.Custom().Text("<i class='fa fa-edit' data-original-title='İşlem Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-taskCustom", "update" }, { "data-show", "single" }, { "data-modal", "false" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                      x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Değerlendirme Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                  }))
+                }
+                else
+                {
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+                    {
+                        @(Html.Akilli()
+                    .Grid<VMVWINV_CompanyPersonAssessment>("VWINV_CompanyPersonAssessment")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonAssessment", new { area = "INV" }))
+                    .Filter(a => (a.GeneralManagerApproval == userid && a.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.GenelMudurDegerlendirme) || (a.Manager1Approval == userid && a.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme) || (a.Manager2Approval == userid && a.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme))
+                    .PageSize(25)
+                    .Sort(a => a.Add(c => c.created).Descending()))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(a => a.ApproveStatus);
+                        x.Bound(y => y.Person_Title).Title("Personel İsmi").Width(180);
+                        x.Bound(y => y.AssessmentCode).Title("Değerlendirme Kodu").Width(180);
+                        x.Bound(y => y.AssessmentType).ClientTemplate("#if(AssessmentType=='6') {#6 Aylık#} if(AssessmentType=='2') {#2 Aylık#} if(AssessmentType=='12') {#1 Yıllık#} #").Title("Değerlendirme Tipi").Width(180);
+                        x.Bound(y => y.Manager1Approval_Title).Title("1. Yönetici").Width(180);
+                        x.Bound(y => y.Manager2Approval_Title).Title("2. Yönetici").Width(180);
+                        x.Bound(y => y.GeneralManagerApproval_Title).Title("Genel Müdür").Width(180);
+                        x.Bound(y => y.IkApproval_Title).Title("İnsan Kaynakları").Width(180);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .Scrollable(x => x.Height(650))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i class='fa fa-edit' data-original-title='İşlem Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-taskCustom", "update" }, { "data-show", "single" }, { "data-modal", "false" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Değerlendirme Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                    }))
+                    }
+                    else
+                    {
+                        @(Html.Akilli()
+                    .Grid<VMVWINV_CompanyPersonAssessment>("VWINV_CompanyPersonAssessment")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonAssessment", new { area = "INV" }))
+                    .Filter(a => (a.Manager1Approval == userid && a.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici1Degerlendirme) || (a.Manager2Approval == userid && a.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.Yonetici2Degerlendirme))
+                    .PageSize(25)
+                    .Sort(a => a.Add(c => c.created).Descending()))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(a => a.ApproveStatus);
+                        x.Bound(y => y.Person_Title).Title("Personel İsmi").Width(180);
+                        x.Bound(y => y.AssessmentCode).Title("Değerlendirme Kodu").Width(180);
+                        x.Bound(y => y.AssessmentType).ClientTemplate("#if(AssessmentType=='6') {#6 Aylık#} if(AssessmentType=='2') {#2 Aylık#} if(AssessmentType=='12') {#1 Yıllık#} #").Title("Değerlendirme Tipi").Width(180);
+                        x.Bound(y => y.Manager1Approval_Title).Title("1. Yönetici").Width(180);
+                        x.Bound(y => y.Manager2Approval_Title).Title("2. Yönetici").Width(180);
+                        x.Bound(y => y.GeneralManagerApproval_Title).Title("Genel Müdür").Width(180);
+                        x.Bound(y => y.IkApproval_Title).Title("İnsan Kaynakları").Width(180);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .Scrollable(x => x.Height(650))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i class='fa fa-edit' data-original-title='İşlem Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-taskCustom", "update" }, { "data-show", "single" }, { "data-modal", "false" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Değerlendirme Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonAssessment", new { area = "INV" }));
+                    }))
+                    }
+
+
+                }
+            </div>
+        </div>
+    </div>
+</div>

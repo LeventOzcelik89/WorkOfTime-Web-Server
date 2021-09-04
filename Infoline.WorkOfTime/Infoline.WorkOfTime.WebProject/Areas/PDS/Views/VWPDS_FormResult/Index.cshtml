@@ -1,0 +1,153 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMVWPDS_FormPermitTaskUserDetail
+
+@{
+    ViewBag.Title = "Geçmiş Değerlendirmelerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript">
+
+    $(document)
+        .on("selected:grid", "#VWPDS_FormResult", function (e, data) {
+            if (data.status == 2) {
+                $('[data-href="/PDS/VWPDS_FormResult/Update"]').addClass('hide');
+            } else {
+                $('[data-href="/PDS/VWPDS_FormResult/Update"]').removeClass('hide');
+            }
+        })
+
+</script>
+
+<div class="row">
+    <div class="col-md-3">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>GENEL BİLGİLER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding clearfix">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Form Tipi :</div>
+                            <div class="col-md-8"><span class="badge badge-info pull-right boldText">@(Model.formType_Title != null ? Model.formType_Title : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Formun İsmi :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.formName != null ? Model.formName : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Formun Kodu :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.formCode != null ? Model.formCode : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Son Değerlendirme Tarihi :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.lastEvaluateDate != null ? string.Format("{0:dd.MM.yyyy}", Model.lastEvaluateDate) : "Değerlendirilmedi")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Değerlendirme Başlangıç :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.startDate != null ? string.Format("{0:dd.MM.yyyy}", Model.startDate) : "-")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Değerlendirilen Personel :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.evaluatedUser_Title != null ? Model.evaluatedUser_Title : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Değerlendirme Sayısı :</div>
+                            <div class="col-md-8"><span class="badge badge-success pull-right boldText">@(Model.evaluateCount.HasValue ? Model.evaluateCount.Value.ToString() : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Formun Durumu :</div>
+                            <div class="col-md-8">
+                                @if (Model.status == 1)
+                                {
+                                    <span class="badge badge-success pull-right boldText">Aktif</span>
+                                }
+                                else
+                                {
+                                    <span class="badge badge-danger pull-right boldText">Pasif</span>
+                                }
+
+                            </div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Ortalama Puan :</div>
+                            <div class="col-md-8"><span class="badge badge-success pull-right boldText">@(Model.OrtalamaPuan.HasValue ? Model.OrtalamaPuan.Value.ToString("N2") : "-")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">En Düşük Puan :</div>
+                            <div class="col-md-8"><span class="badge badge-success pull-right boldText">@(Model.EnDusukPuan.HasValue ? Model.EnDusukPuan.Value.ToString("N2") : "-")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">En Yüksek Puan :</div>
+                            <div class="col-md-8"><span class="badge badge-success pull-right boldText">@(Model.EnYuksekPuan.HasValue ? Model.EnYuksekPuan.Value.ToString("N2") : "-")</span></div>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>DEĞERLENDİRME GEÇMİŞİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormResult>("VWPDS_FormResult")
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })).Filter(a => a.evaluatorId == userStatus.user.id && a.evaluatedUserId == Model.evaluatedUserId && a.formPermitTaskUserId == Model.id).PageSize(25))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.evaluatedUser_Title).Title("Değerlendirilen Personel").Width(180);
+                     x.Bound(y => y.created).Title("Değerlendirme Tarihi").Width(180).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                     x.Bound(y => y.status_Title).Title("Formun Durumu").Width(250);
+                     x.Bound(y => y.score).Title("Aldığı Puan").Width(120).ClientTemplate("#= kendo.toString(score, 'n2') #");
+                     x.Bound(y => y.comment).Title("Genel Sonuç Yorum").Width(300);
+                 })
+                 .Scrollable(s => s.Height(550))
+                 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                 .ToolBar(x =>
+                 {
+                     x.Custom().Text("<i data-original-title='Değerlendirmeyi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPDS_FormResult", new { area = "PDS" }));
+                     x.Custom().Text("<i data-original-title='Değerlendirme Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_FormResult", new { area = "PDS" }));
+                 }))
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+

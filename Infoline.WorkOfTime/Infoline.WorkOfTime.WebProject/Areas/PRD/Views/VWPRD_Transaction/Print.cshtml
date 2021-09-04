@@ -1,0 +1,300 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+@{
+	ViewBag.Title = "Print";
+	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
+	var totalPrice = 0;
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var logo = "https://" + Request.Url.Authority + "" + TenantConfig.Tenant.Config.Logo;
+
+}
+
+
+<html>
+<head>
+    <script src="~/Content/2048-master/js/jquery.min.js"></script>
+    <script type='text/javascript'>
+
+
+        function ImageError(element, image) {
+                element.onerror = '';
+                element.src = image;
+            }
+
+    </script>
+
+    <title>&nbsp;&nbsp;</title>
+    <style type="text/css" data-selector="modalContainer">
+
+        table {
+            width: 100%;
+        }
+
+        body {
+            font-family: "Calibri",Helvetica,Arial,sans-serif;
+        }
+
+        td {
+            width: 320px;
+            padding: 0px;
+            font-size: 11pt;
+        }
+
+        table#sub tr td {
+            text-align: center;
+            line-height: 20px;
+            font-size: 10pt;
+        }
+
+        #description img {
+            width: 100%;
+            height: auto;
+        }
+    </style>
+
+</head>
+<body>
+    <div id="page1" style="width: 842px !important;position: absolute;">
+        <div class="form-horizontal" data-selector="modalContainer">
+
+            <div style="width: 800px;margin-left: 20px;padding-top: 20px;">
+                <table id="headerTable" style="margin-bottom: 20px;" border="1" cellpadding="0" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <td style="padding-right: 5px;width: 16%;text-align: center;">
+                                <img src="@logo" style="border-radius: 50%;" width="98" alt="image" onerror="ImageError(this,'@logo')">
+
+                            </td>
+                            <td>
+                                <table cellpadding="0" cellspacing="0">
+                                    <tr>
+                                        <td colspan="3" style="text-align: center;border-bottom: 1px solid gray;font-size: 18px;line-height: 52px;">
+                                            <b>@Model.type_Title Formu</b>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        @if ((EnumPRD_TransactionType)Model.type == EnumPRD_TransactionType.AcilisFisi)
+                                        {
+                                            <td style="padding-left: 5px;border-bottom: 1px solid gray;border-right: 1px solid gray;">İrsaliye Seri/Sıra No</td>
+                                        }
+                                        else
+                                        {
+                                            <td style="padding-left: 5px;border-bottom: 1px solid gray;border-right: 1px solid gray;">Evrak Kodu</td>
+                                        }
+
+                                        <td style="padding-left: 5px;border-bottom: 1px solid gray;border-right: 1px solid gray;">Evrak Tarihi (Fiil'i)</td>
+                                        <td style="padding-left: 5px;border-bottom: 1px solid gray;height: 28px;">Evrak İşlem Tarihi</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 280px;padding-left: 5px;border-right: 1px solid gray">@Model.code</td>
+                                        <td style="width: 280px;padding-left: 5px;border-right: 1px solid gray">@string.Format("{0:dd.MM.yyyy hh:mm}", Model.date)</td>
+                                        <td style="height: 28px;width: 280px;padding-left: 5px;">@string.Format("{0:dd.MM.yyyy hh:mm}", Model.created)</td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </thead>
+                </table>
+                @switch ((EnumPRD_TransactionType)Model.type)
+                {
+                    case EnumPRD_TransactionType.AcilisFisi:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="text-align:left;height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">Giriş Yapılacak Depo</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.inputId_Title </strong> </td>
+                            </tr>
+                        </table>
+                        break;
+
+                    case EnumPRD_TransactionType.FireFisi:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 0px;background: #bbb;">Şube/Depo</td>
+                            </tr>
+                            <tr>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;"><strong> @Model.outputId_Title </strong></td>
+                            </tr>
+                            <tr>
+                                <td colspan="1" style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong>Çıkış Sebebi :</strong> @Model.description  </td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.GelenIrsaliye:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 1px;background: #bbb;">Giriş Yapılan Şube/Depo :</td>
+                                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 0px;background: #bbb;">Tedarikçi</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.inputId_Title </strong> </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: center;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;"><strong> @Model.outputId_Title </strong></td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.GidenIrsaliye:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 1px;background: #bbb;">Çıkış Yapılan Şube/Depo</td>
+                                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 0px;background: #bbb;">Giriş Yapılan Şube/Depo</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.outputId_Title </strong> </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;"><strong> @Model.inputId_Title </strong></td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.Kiralama:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 1px;background: #bbb;">Kiralamayı Yapan İşletme</td>
+                                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 0px;background: #bbb;">Tedarikçi İşletme</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.inputId_Title </strong> </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;"><strong> @Model.outputId_Title </strong></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> Sözleşme Başlangıç Tarihi :</strong>  @string.Format("{0:dd.MM.yyyy}", Model.startDate) </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;">
+                                    <strong> Sözleşme Bitiş Tarihi :</strong>
+                                    @string.Format("{0:dd.MM.yyyy}", Model.endDate)
+                                </td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.KiralayaVerme:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 1px;background: #bbb;">Kiraya Veren İşletmem</td>
+                                <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 0px 0px;background: #bbb;">Müşteri İşletme</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.outputId_Title </strong> </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;"><strong> @Model.inputId_Title </strong></td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> Çıkış Yapılacak Şube/Depo :</strong>  @Model.outputId_Title </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;">
+                                    <strong> Giriş Yapılacak Şube/Depo :</strong>
+                                    @Model.inputId_Title
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> Sözleşme Başlangıç Tarihi :</strong>  @string.Format("{0:dd.MM.yyyy}", Model.startDate) </td>
+                                <td style="height: 28px;padding-right: 5px;text-align: right;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;">
+                                    <strong> Sözleşme Bitiş Tarihi :</strong>
+                                    @string.Format("{0:dd.MM.yyyy}", Model.endDate)
+                                </td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.SayimFazlasi:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="text-align:left;height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">Giriş Yapılacak Depo</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.inputId_Title </strong> </td>
+                            </tr>
+                        </table>
+                        break;
+                    case EnumPRD_TransactionType.SayimEksigi:
+                        <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                            <tr>
+                                <td style="text-align:left;height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">Giriş Yapılacak Depo</td>
+                            </tr>
+                            <tr>
+                                <td style="text-align: left; padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;"><strong> @Model.outputId_Title </strong> </td>
+                            </tr>
+                        </table>
+                        break;
+                    default:
+                        break;
+                }
+
+                <table id="sub" cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                    <tr>
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">ÜRÜN</td>
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">SERİ NUMARALARI</td>
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;background: #bbb;">MİKTAR</td>
+
+                        <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;background: #bbb;">BİRİM FİYAT</td>
+                        <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 0px;background: #bbb;">SATIR TOPLAMI</td>
+
+
+                    </tr>
+                    @foreach (var action in Model.items.Select((item, index) => new { item = item, index = index }))
+                    {
+                        <tr>
+                            <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 1px;">@action.item.productId_Title</td>
+                            @if (action.item.serialCodes != null)
+                            {
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 0px;"> @(action.item.serialCodes.Count() > 0 ? string.Join(", ", action.item.serialCodes) : "-")</td>
+                            }
+                            else
+                            {
+                                <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 0px;"> -</td>
+                            }
+
+                            <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 0px;"> @String.Format("{0:N2}", action.item.quantity)</td>
+
+                            <td style="text-align: right;padding-right: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 0px;">
+                                @String.Format("{0:N2}", action.item.unitPrice == null ? 0 : action.item.unitPrice) ₺
+                            </td>
+                            <td style="height: 28px;text-align: right;padding-right: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 0px;">@String.Format("{0:N2}", (action.item.unitPrice * action.item.quantity) == null ? 0 : action.item.unitPrice * action.item.quantity) ₺ </td>
+
+                        </tr>
+                        <span style="display:none"> @(action.item.unitPrice != null ? totalPrice += (int)(action.item.unitPrice * action.item.quantity) : totalPrice += 0)</span>
+
+                    }
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+
+                        <td style="text-align: right;padding-right: 5px;">TOPLAM</td>
+                        <td style="height: 28px;text-align: right;padding-right: 5px;border-color: gray; border-style: solid; border-width: 0px 1px 1px 1px;">@String.Format("{0:N2}", totalPrice) ₺</td>
+                    </tr>
+                </table>
+
+                <p><strong>İşlemi düzenleyen </strong> : @Model.createdby_Title</p>
+
+                <div id="description">
+                    <table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;">
+                        <tr>
+                            <td style="height: 28px;padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;background: #bbb;">AÇIKLAMALAR</td>
+                        </tr>
+                        <tr>
+                            <td style="padding-left: 5px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;">
+                                <strong>İşlem Açıklaması:</strong> @(Model.description != null ? Model.description : " - ")
+                            </td>
+                        </tr>
+                    </table>
+
+                    <table cellpadding="0" cellspacing="0" style="width: 100% !important;margin-bottom: 20px;margin-top: 2px;font-size: 10px;border-color: gray; border-style: solid; border-width: 1px 1px 1px 1px;">
+                        <tr>
+                            <td style="text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+                            <td style="text-align: center;border: none;">[ ] GİZLİ</td>
+                            <td style="text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+                            <td style="text-align: center;border: none;">[ ] ANONİM</td>
+                            <td style="text-align: center;border: none;">[ X ] DAHİLİ</td>
+                            <td style="text-align: center;border: none;">[   ] HARİCİ</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

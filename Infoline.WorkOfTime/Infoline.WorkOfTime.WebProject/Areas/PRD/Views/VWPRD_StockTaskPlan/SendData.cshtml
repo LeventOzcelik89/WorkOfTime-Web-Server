@@ -1,0 +1,128 @@
+﻿@model Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers.SendDataViewModel
+@{
+    ViewBag.Title = "Ürün Değişim Görevi Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('click', '#SendData [type="submit"]', function (e, item) {
+            e.preventDefault();
+            if ($(this).hasClass('disabled')) {
+                return false;
+            }
+            var text = "";
+
+            if ($('#ids').val() != "") {
+                text = $('#ids').val().split(',').length;
+            } else {
+                text = $('#VWPRD_StockTaskPlan').data('kendoGrid').dataSource._pristineTotal;
+            }
+
+            swal({
+                title: "Devam Et ?",
+                text: kendo.format("{0:N0}", text) + " adet ürün/cihaz değişim görevi eklemek istediğinize emin misiniz?",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Evet",
+                cancelButtonText: "Hayır",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $("#SendData").attr("data-loadingtitle", "Ürün değişim görevleri oluşturuluyor.");
+                    $("#SendData").trigger("submit");
+                } else {
+
+                }
+                swal.close();
+            });
+
+        })
+
+</script>
+
+@using (Html.BeginForm("SendData", "VWPRD_StockTaskPlan", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "SendData" },
+    { "data-loadingtitle", "Lütfen bekleyiniz.." },
+}))
+{
+    @Html.HiddenFor(a => a.ids)
+    @Html.HiddenFor(a => a.filter)
+
+
+    <div class="alert alert-warning text-center">
+        Seçmiş olduğunuz kayıtlara ürün değişimi görevi oluşturmak için görev oluştur butonuna basınız.
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="planStartDate">Planlanan Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli().
+        DateTimePicker("planStartDate").
+        Placeholder("Planlanan Başlangıç Tarihi").
+        Format(Extensions.DateFormatFull()).
+        Value(DateTime.Now).
+        //Min(DateTime.Now).
+        //MaxDateElement("dueDate").
+        Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="dueDate">Planlanan Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli().
+        DateTimePicker("dueDate").
+        Placeholder("Planlanan Bitiş Tarihi").
+        Format(Extensions.DateFormatFull()).
+        Value(DateTime.Now.AddDays(+1)).
+        MinDateElement("planStartDate").
+        Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userIds">Görevlendirilecek Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli()
+        .MultiSelect("userIds")
+        .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+        .DataValueField("id")
+        .DataTextField("FullName")
+        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+        .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+        .Sort(x => x.Add("FullName").Ascending())
+        .Validate(Validations.Required)
+        .Execute()
+            )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Görev Oluştur</button>
+    </div>
+}

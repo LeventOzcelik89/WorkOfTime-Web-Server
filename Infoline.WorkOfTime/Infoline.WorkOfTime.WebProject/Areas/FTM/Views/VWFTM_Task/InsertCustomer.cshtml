@@ -1,0 +1,141 @@
+﻿@model VMFTM_TaskModel
+@{
+    ViewBag.Title = "Arıza Kaydı Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<style type="text/css" data-selector="modalContainer">
+    .akilliRadioGrup > input:checked + label[for=priority_0] {
+        background-color: #EF5352;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=priority_1] {
+        background-color: #F8AC59;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=priority_2] {
+        background-color: #1ab394;
+    }
+
+    #insertRadio.akilliRadioGrup i {
+        font-size: 27px;
+    }
+
+    #insertRadio.akilliRadioGrup label {
+        height: 50px;
+        width: 52px;
+        font-size: x-small;
+        font-weight: bolder;
+        display: flex;
+        align-items: center;
+    }
+</style>
+
+@using (Html.BeginForm("InsertCustomer", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id","VWFTM_TaskInsertForm" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.type)
+
+    <div class="hide">
+        @(Html.Akilli().MapInputFor(a => a.lastOperationLocation).Navigation(true))
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="code">Kod</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
+        </div>
+        <div class="col-md-8">
+            @(
+            Html.Akilli()
+            .DropDownListFor(model => model.customerStorageId)
+            .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+            .DataTextField("fullName")
+            .DataValueField("id")
+            .Template("#=TemplateEngine('storageTemplate',data)#")
+            .ValueTemplate("#=fullName#)")
+            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+            .Filter<VWCMP_Storage>(x => x.companyId == userStatus.user.CompanyId)
+            .Sort(x => x.Add("fullName").Ascending())
+            .Execute()
+                )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" id="fixtureLabel" for="fixtureId">Envanter</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.fixtureId)
+                .OptionLabel("Lütfen Envanter Seçiniz..")
+                .DataTextField("searchField")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                .Filter<VWPRD_Inventory>(a => a.lastActionDataCompanyId == userStatus.user.CompanyId)
+                .Sort(x => x.Add("fullName").Ascending())
+                .Template("#=TemplateEngine('inventoryTemplate',data)#")
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Giriniz." }
+            }).Validate(Validations.TextTurkceSpace09(true, 0, 1000))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="file">Dosya</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("FTM_TaskOperation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Görev Dosyası")
+                .Validate(false)
+            )
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydı Oluştur</button>
+    </div>
+
+}
+
+

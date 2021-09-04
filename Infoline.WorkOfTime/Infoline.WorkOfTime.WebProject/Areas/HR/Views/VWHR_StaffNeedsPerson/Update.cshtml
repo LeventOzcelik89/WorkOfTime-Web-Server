@@ -1,0 +1,430 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMHR_StaffNeedsPersonAndHrPerson
+@{
+    ViewBag.Title = "İHTİYAÇ ONAY SAYFASI";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+     var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+@using(Html.BeginForm("Update", "VWHR_StaffNeedsPerson", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.HrPersonId)
+    @Html.HiddenFor(model => model.HrStaffNeedsId)
+    @Html.HiddenFor(model => model.NeedCode)
+
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#detailGeneral"> <i class="fa fa-user text-success"></i> Kişi Bilgileri </a>
+                        </h4>
+                    </div>
+                    <div id="detailGeneral" class="panel-collapse collapse in">
+                        @if(Model.HRperson != null) { 
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Name">İsim</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.Name, new Dictionary<string, object>()
+                                                {
+                                                    {"class", "form-control"},
+                                                    {"readonly", "readonly"},
+                                                })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="SurName">Soyisim</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.SurName, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                 {"readonly", "readonly"},
+                                    })
+                                </div>
+                            </div>
+
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Phone">Telefon</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.Phone, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                       {"readonly", "readonly"},
+                                    })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Email">Email</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.Email, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                          {"readonly", "readonly"},
+                                    })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Position">Pozisyon</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.HrPosition_Title, new Dictionary<string, object>()
+                                  {
+                                      {"class", "form-control"},
+                                        {"readonly", "readonly"},
+                                  })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="Keywords">Bilgi ve Beceriler</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.HrKeywords_Title, new Dictionary<string, object>()
+                               {
+                                   {"class", "form-control"},
+                                     {"readonly", "readonly"},
+                               })
+                                </div>
+                            </div>
+                        </div>
+                        }
+                    </div>
+                </div>
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#detailGeneral1"> <i class="fa fa-info-circle text-success"></i> Diğer Bilgiler</a>
+                        </h4>
+                    </div>
+                    <div id="detailGeneral1" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md " for="IdentifyNumber">Kimlik Numarası</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.IdentifyNumber, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                       {"readonly", "readonly"},
+                                    })
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Birthday">Doğum Tarihi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(Html.Akilli().DatePickerFor(model => model.HRperson.Birthday).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                       {"readonly", "readonly"},
+                                    }).Max(DateTime.Now.AddYears(-15)).Min(DateTime.Now.AddYears(-115))
+                                    .Format(Extensions.DateFormatShort())
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="LocationId_Title">Konum</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.LocationId_Title, new Dictionary<string, object>()
+                                                     {
+                                                         {"class", "form-control"},
+                                                        {"readonly", "readonly"},
+                                                     })
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Adress">Açık Adres</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextAreaFor(model => model.HRperson.Adress, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                          {"readonly", "readonly"},
+                                    })
+                                </div>
+                            </div>
+
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="ArrivalType">CV Geliş Tipi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.ArrivalType_Title, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="ReferenceId">Şirket İçi Referans</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.ReferenceId_Title, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Education">Eğitim Düzeyi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.Education_Title, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="SchoolName">Okul Adı</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.SchoolName, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Branch">Bölümü</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.Branch, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="MilitaryStatus">Askerlik Durumu</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.Akilli().RadioButtonGroupFor(model => model.HRperson.MilitaryStatus).Value(EnumHR_PersonMilitaryStatus.Yapildi).Readonly(true)
+                                </div>
+                            </div>
+
+                            <div class="form-group" data-cascade="[name='MilitaryStatus']" data-show="1">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="RetirementDate">Tecil Tarihi </label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(Html.Akilli().DatePickerFor(model => model.HRperson.RetirementDate).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                             {"readonly", "readonly"},
+                                    }))
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="DriverLicense">Sürücü Belgesi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @Html.TextBoxFor(model => model.HRperson.DriverLicense_Title, new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                      {"readonly", "readonly"},
+                                                   })
+                                </div>
+                            </div>
+
+                            <div class="form-group clearfix">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="ExprienceYear">İş Tecrübesi</label>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        @Html.Kendo().NumericTextBoxFor(model => model.HRperson.ExprienceYear).Min(0).Max(100).Spinners(false).Decimals(0).Format("N0").HtmlAttributes(new Dictionary<string, object>()
+                                                    {
+                                                        {"style", "width:100%"},
+                                                        {"class","text-right form-control" },
+                                                       {"readonly" , "readonly" }
+                                                    })
+                                        <span class="input-group-addon" id="ExprienceYear">Yıl</span>
+                                    </div>
+                                </div>
+                            </div>
+
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Foto">Fotoğraf</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(
+                                        Html.Akilli().FileUpload()
+                                        .DataTable("HR_Person")
+                                        .DataId(Model.id)
+                                        .DataKey(x => x.fileGroup == "Fotoğraf").PreviewMode(true)
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Cv">CV</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(
+                                        Html.Akilli().FileUpload()
+                                        .DataTable("HR_Person")
+                                        .DataId(Model.id)
+                                        .DataKey(x => x.fileGroup == "CV").PreviewMode(true)
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="Ek">Ek</label>
+                                </div>
+                                <div class="col-md-8">
+                                    @(
+                                        Html.Akilli().FileUpload()
+                                        .DataTable("HR_Person")
+                                        .DataId(Model.id)
+                                        .DataKey(x => x.fileGroup == "Ek").PreviewMode(true)
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group clearfix">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="SalaryRangeMin">Talep Edilen Maaş Aralığı</label>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        @Html.Akilli().NumericTextBox("SalaryRangeMin").Min(0).Spinners(false).Decimals(0).Format("N2").MaxElement("SalaryRangeMax").HtmlAttributes(new Dictionary<string, object>
+                                       {
+                                                 {"style", "width:100%"},
+                                                        {"class","text-right form-control" },
+                                           {"readonly","readonly" }
+                                       })
+                                        <span class="input-group-addon" id="SalaryRangeMin">Min</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="input-group">
+                                        @Html.Akilli().NumericTextBox("SalaryRangeMax").Min(0).Spinners(false).Decimals(0).Format("N2").MinElement("SalaryRangeMin").HtmlAttributes(new Dictionary<string, object>
+                                       {
+                                                 {"style", "width:100%"},
+                                                        {"class","text-right form-control" },
+                                           {"readonly","readonly" }
+                                       })
+                                        <span class="input-group-addon" id="SalaryRangeMax">Max</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    if ((Model.status == null || Model.status == (Int32)EnumHR_StaffNeedsPersonstatus.Bos) && Model.reqCheckPersons.Contains(userStatus.user.id)) { 
+
+    <fieldset>
+        <legend>Durumu</legend>
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md " for="status">Onay Durumu</label>
+            </div>
+            <div class="col-md-8 radio">
+                <div class="row">
+                    <label>
+                        @Html.Kendo().RadioButtonFor(a => a.status).Checked(true).Value((int)ViewBag.Onay)
+                        <span class="radio-stil"> Onayla</span>
+
+                    </label>
+                    <label>
+                        @Html.Kendo().RadioButtonFor(a => a.status).Checked(false).Value((int)ViewBag.Red)
+                        <span style="color:#e8164c;" class="radio-stil">Reddet</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Description">Açıklama</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Girin.."},
+            })
+            </div>
+        </div>
+    </fieldset>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+    }
+    else
+    {
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        </div>
+    }
+}

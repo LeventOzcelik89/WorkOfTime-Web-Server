@@ -1,0 +1,445 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+@{
+    ViewBag.Title = "KİŞİSEL BİLGİLERİM";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    var page = {
+        userData: null,
+        insertBlock: function (type) {
+            $.ajax({
+                type: "POST",
+                url: '/SYS/VWSYS_BlockMail/UpdateBlockMail?status=1&type=' + parseInt(type),
+                async: false
+            }).responseJSON;
+        },
+        deleteBlock: function (type) {
+            $.ajax({
+                type: "POST",
+                url: '/SYS/VWSYS_BlockMail/UpdateBlockMail?status=0&type=' + parseInt(type),
+                async: false
+            }).responseJSON;
+        }
+    };
+
+    $(document)
+        .on('change', '[onChangeMail=""]', function (e, item) {
+            if (!this.checked) {
+                page.insertBlock($(this).attr('name'));
+            } else {
+                page.deleteBlock($(this).attr('name'));
+            }
+        })
+</script>
+
+<style type="text/css">
+    td#VWINV_CompanyPersonDepartmentsPosition_active_cell {
+        background: white;
+        color: black;
+    }
+
+    td#VWINV_CompanyPersonDepartmentsProject_active_cell {
+        background: white;
+        color: black;
+    }
+
+    .k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+        display: none;
+    }
+
+    #gridTemplate .k-header.k-grid-toolbar.k-grid-top {
+        display: none;
+    }
+
+    #VWINV_CompanyPersonDepartmentsProject .k-grid-content {
+        overflow-x: hidden;
+    }
+
+    .k-grid-header {
+        display: none;
+    }
+
+    .fitWrap {
+        white-space: normal;
+        text-align: right;
+        word-wrap: break-word;
+        background-color: white;
+        width: 90%;
+    }
+
+    label.btn.btn-default.toggle-on {
+        color: white;
+        background-color: #00a789;
+    }
+
+    label.btn.btn-default.active.toggle-off {
+        color: white;
+        background-color: #e8164c;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document)
+        .on("selected:grid", "#VWPRD_StockSummaryPerson", function (e, res) {
+            var dataProduct = $('[data-productPerson="detail"]');
+            if (res.stockType == 2 && res.quantity != 0) {
+                $(dataProduct).show();
+                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+            }
+            else {
+                $(dataProduct).hide();
+            }
+        });
+</script>
+
+
+
+<div class="row">
+    <div id="gridTemplate">
+        <div class="col-lg-8">
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="ibox ">
+                        <div class="ibox-title">
+                            <h5><i class="text-success fa fa-user"></i> KULLANICI BİLGİLERİM</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <span class="badge badge-white"> @Html.Label("-", Model.birthday.HasValue ? Model.birthday.Value.ToShortDateString() : "-")</span>
+                                    Doğum Tarihi :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.loginname)</span>
+                                    Kullanıcı Adı :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.email)</span>
+                                    E-Posta Adresi :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="fitWrap badge badge-white">@(string.IsNullOrEmpty(Model.address) ? "-" : Model.address)</span>
+                                    Adres :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.cellphone)</span>
+                                    Şahsi Cep Telefonu :
+                                </li>
+                            </ul>
+
+                        </div>
+                    </div>
+
+                    <div class="ibox  ">
+                        <div class="ibox-title">
+                            <h5><i class="text-success fa fa-info"></i> KİŞİSEL BİLGİLERİM</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.Nationality)</span>
+                                    Uyruk :
+                                </li>
+                                <li class="list-group-item ">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IdentificationNumber)</span>
+                                    T.C. No :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.Gender_Title)</span>
+                                    Cinsiyet :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.MaritalStatus_Title)</span>
+                                    Medeni Durumu :
+                                </li>
+                                <li class="list-group-item ">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.PersonalMail)</span>
+                                    Kişisel Mail :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.Military_Title)</span>
+                                    Askerlik Durumu :
+                                </li>
+                                <li class="list-group-item ">
+                                    <span class="badge badge-white">@Html.Raw(Model.VWSH_PersonInformation.MilitaryDoneDate != null ? Model.VWSH_PersonInformation.MilitaryDoneDate.Value.ToShortDateString() : "-")</span>
+                                    Askerlik Terhis Tarihi :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.VWSH_PersonInformation.MilitaryDoneDuration != null ? Model.VWSH_PersonInformation.MilitaryDoneDuration.ToString() : "-")</span>
+                                    Askerlik Süresi :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.VWSH_PersonInformation.MilitaryProbationDate != null ? Model.VWSH_PersonInformation.MilitaryProbationDate.Value.ToShortDateString() : "-")</span>
+                                    Tecil Olduğu Tarih :
+                                </li>
+                                <li class="list-group-item ">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.MilitaryExemptDetail)</span>
+                                    Askerlik Muaf Açıklaması :
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="ibox  ">
+                        <div class="ibox-title">
+                            <h5><i class="text-success fa fa-book"></i> KİMLİK BİLGİLERİM</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <ul class="list-group">
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDSerialNumber)</span>
+                                    Seri No :
+                                </li>
+                                <li class="list-group-item ">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDFatherName)</span>
+                                    Baba Adı :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDMotherName)</span>
+                                    Ana Adı :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDBornLocation_Title)</span>
+                                    Doğum Yeri(İl) :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDBornTownLocation)</span>
+                                    Doğum Yeri :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.Religious)</span>
+                                    Dini :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDBloodGroup_Title)</span>
+                                    Kan Grubu :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDCity_Title)</span>
+                                    İl :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDTown_Title)</span>
+                                    İlçe :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDDistrict)</span>
+                                    Mahalle :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDVillage)</span>
+                                    Köy :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDVolumeNumber)</span>
+                                    Cilt No :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDFamilyNumber)</span>
+                                    Aile Sıra No :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDRowNumber)</span>
+                                    Sıra Numarası :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDDeliveryLocation)</span>
+                                    Verildiği Yer :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Label("-", Model.VWSH_PersonInformation.IDDeliveryDetail)</span>
+                                    Veriliş Nedeni :
+                                </li>
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.VWSH_PersonInformation.IDDeliveryDate != null ? Model.VWSH_PersonInformation.IDDeliveryDate.Value.ToShortDateString() : "-")</span>
+                                    Veriliş Tarihi :
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-12">
+                    <div class="ibox  ">
+                        <div class="ibox-title">
+                            <h5><i class="text-success fa fa-user-secret"></i> ACİL DURUMDA BAĞLANTI KURULACAK KİŞİ</h5>
+                            <div class="ibox-tools">
+                                <a class="collapse-link">
+                                    <i class="fa fa-chevron-up"></i>
+                                </a>
+                            </div>
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <table class="table">
+                                <tbody>
+                                    <tr>
+                                        <td> Adı Soyadı : @Html.Label("-", Model.VWSH_PersonInformation.EmergencyName)</td>
+                                        <td>  Telefonu :  @Html.Label("-", Model.VWSH_PersonInformation.EmergencyPhone)</td>
+                                    </tr>
+                                    <tr>
+                                        <td> Email : @Html.Label("-", Model.VWSH_PersonInformation.EmergencyMail)</td>
+                                        <td>  Yakınlık Derecesi :  @Html.Label("-", Model.VWSH_PersonInformation.EmergencyProximity)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="ibox  ">
+                <div class="ibox-title">
+                    <h5><i class="text-success icon-mail"></i>&nbsp; EMAİL AYARLARI </h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding" style="padding: 10px !important; height: 580px; overflow: auto;">
+                    <table class="table table-bordered">
+                        @{
+                            foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EmailSendTypes>().Where(x => x.Generic["group"] != "Zorunlu").GroupBy(x => x.Generic["group"]))
+                            {
+                                var datas = item.Where(x => x.Generic["group"] == item.Key).ToArray();
+                                <thead>
+                                    <tr>
+                                        <td class="text-center">@item.Key </td>
+                                        <td class="text-center">Durum</td>
+                                    </tr>
+                                </thead>
+                                foreach (var data in datas)
+                                {
+                                    var control = Model.blockMailList.Where(x => x.type == Convert.ToInt32(data.Key)).FirstOrDefault();
+                                    <tr>
+                                        <td>
+                                            @data.Generic["name"] <i class="fa fa-info-circle" data-original-title="@data.Generic["title"]"></i>
+                                        </td>
+                                        <td>
+                                            @Html.CheckBox(data.Key, control != null ? false : true, new Dictionary<string, object> {
+                                                  {"type","checkbox" },
+                                                  {"data-toggle","toggle" },
+                                                  {"data-width","100%" },
+                                                  {"data-on","Açık" },
+                                                  {"data-off","Kapalı" },
+                                                  {"data-offStyle","default" },
+                                                  {"data-onStyle","default" },
+                                                  { "onChangeMail", "" }
+                                              })
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        }
+                    </table>
+                </div>
+            </div>
+
+            <div class="ibox  colapse">
+                <div class="ibox-title">
+                    <h5><i class="text-success fa fa-cubes"></i> ZİMMETLİ ÜRÜNLER</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link collapsed">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding" style="display:none;">
+                    @(Html.Akilli()
+                       .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>
+                        ("VWPRD_StockSummaryPerson")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "SH_User" && a.stockId == Model.id && a.quantity!=0).PageSize(500))
+                        .Scrollable(a => a.Height(200))
+                        .Columns(x =>
+                        {
+                        x.Bound(y => y.productId_Title).ClientTemplate("#=TemplateEngine('PRD_ActionStockTemplate',data)#").Title("Ürün");
+                        x.Bound(y => y.quantity).Hidden(true).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? ' red' : 'green' )#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+                        x.Bound(y => y.unitId_Title).Hidden(true).Title("Birim");
+                        })
+                        .Scrollable(x => x.Height(215))
+                        .ToolBar(x =>
+                        {
+                        x.Custom().Text("<i class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>
+                            () { { "data-show", "single" },{ "data-productPerson", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+            }))
+                </div>
+            </div>
+            <div class="ibox  ">
+                <div class="ibox-title">
+                    <h5><i class="text-success fa fa-building"></i> DEPARTMAN GEÇMİŞİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding"  style="display:none;">
+                    @(Html.Akilli()
+                     .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartmentsPosition")
+                     .DataSource(x =>
+                         x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" })).Sort(g => g.Add(v => v.created)).PageSize(500)
+                         .Filter(a => a.IdUser == Model.id && a.ProjectId == System.UIHelper.Guid.Null)
+                         )
+                     .Columns(x =>
+                     {
+                         x.Bound(y => y.Department_Title).Title("Departman").ClientTemplate("#=TemplateEngine('departmentsTemplate',data)#").Width(180);
+                         x.Bound(y => y.Title).Title("Ünvanı").Hidden(true).Width(180);
+                         x.Bound(y => y.Manager1_Title).Title("1. Yönetici").Hidden(true).Width(180);
+                         x.Bound(y => y.Manager2_Title).Title("2. Yönetici").Hidden(true).Width(180);
+                         x.Bound(y => y.StartDate).Title("Pozisyon Başlangıç Tarihi").Width(180).Hidden(true).Format(Extensions.DateFormatShort(true));
+                     })
+                     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .Scrollable(x => x.Height(215))
+                    )
+                </div>
+            </div>
+            <div class="ibox  ">
+                <div class="ibox-title">
+                    <h5><i class="text-success fa fa-briefcase"></i> PROJE GEÇMİŞİ</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content no-padding"  style="display:none;">
+                    @(Html.Akilli()
+                   .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartmentsProject").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "ProjectId" } })
+                   .DataSource(x =>
+                       x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" })).PageSize(500)
+                       .Filter(a => a.IdUser == Model.id && a.ProjectId != System.UIHelper.Guid.Null)
+                   )
+                   .Columns(x =>
+                   {
+                       x.Bound(y => y.Project_Title).Title("Proje").ClientTemplate("#=TemplateEngine('projectTemplate',data)#").Width(600);
+                       x.Bound(y => y.Department_Title).Hidden(true).Title("Projedeki Departmanı");
+                       x.Bound(y => y.Title).Hidden(true).Title("Projedeki Ünvanı");
+                       x.Bound(y => y.Manager1_Title).Hidden(true).Title("Projedeki 1. Yöneticisi");
+                       x.Bound(y => y.Manager2_Title).Hidden(true).Title("Projedeki 2. Yöneticisi");
+                       x.Bound(y => y.StartDate).Title("Görev Başlangıç Tarihi").Hidden(true).Format(Extensions.DateFormatShort(true));
+                   })
+                      .Scrollable(x => x.Height(215))
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

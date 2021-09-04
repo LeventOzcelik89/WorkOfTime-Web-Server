@@ -1,0 +1,179 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMAPM_ActivityModel
+@{
+    ViewBag.Title = "Aktivite Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumAPM_ActivityType>();
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var activity = {
+        type: null,
+        model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
+        events: {
+            deleteActivity: function () {
+                GetJsonDataFromUrl('/APM/VWAPM_Activity/Delete', { id: activity.model.id }, function (res) {
+                    feedback(res.FeedBack);
+                    if (res.Result) {
+                        $('[data-task="modalClose"]').trigger("click");
+                        $('#VWAPM_ActivityUpdate').trigger("success");
+                    }
+                })
+            },
+            dataBoundUser: function (e) {
+                $('form').validator("validate");
+            }
+        }
+    }
+
+
+</script>
+
+@using (Html.BeginForm("Update", "VWAPM_Activity", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWAPM_ActivityUpdate" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.type)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Aktivite İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Aktivite İsmi giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="startDate">Aktivite Başlangıç/Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-4">
+            @(
+                Html.Akilli().
+                DateTimePickerFor(model => model.startDate).
+                Placeholder("Başlangıç Tarihi").
+                Format(Extensions.DateFormatFull()).
+                Value(Model.startDate.HasValue ? Model.startDate.Value : DateTime.Now).
+                Validate(Validations.Required)
+            )
+        </div>
+        <div class="col-md-4">
+            @(
+                Html.Akilli().
+                DateTimePickerFor(model => model.endDate).
+                Placeholder("Bitiş Tarihi").
+                Format(Extensions.DateFormatFull()).
+                Value(Model.endDate.HasValue ? Model.endDate.Value : DateTime.Now.AddHours(1)).
+                Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="communicationType">İletişim Şekli (Varsa)</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.communicationType).Value(EnumAPM_ActivityCommunicationType.Diger))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Users">Katılımcılar</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .MultiSelect("UserIds")
+                .Placeholder("Lütfen Seçim Yapınız.")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Events(e => { e.DataBound("activity.events.dataBoundUser"); })
+                .Filter<VWSH_User>(f => f.status == true || f.status == false)
+                .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+                .Execute("id")
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Relations">İlgililer</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .MultiSelect("RelationIds")
+                .Placeholder("Lütfen Seçim Yapınız.")
+                .DataTextField("Name")
+                .DataValueField("id")
+                .ItemTemplate("#=TemplateEngine('activityRelationTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDownForRelations", "VWAPM_Activity", new { area = "APM" }))
+                .Sort(x => x.Add("Name").Ascending()).TagMode(TagMode.Multiple)
+                .TagTemplate("<span class='badge badge-success' style='background-color:#:color#'>#:description#</span> #:Name# ")
+                .Execute("id")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Aktivite Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Aktivite Açıklaması giriniz.."}
+            }).Validate(Validations.TextEverywhere(false))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Aktivite Dosyası</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("APM_Activity")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Aktivite Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="status">Bildirim </label>
+            <i data-original-title="Seçim yapmanız durumunda katılımcılara seçim yaptığınız türde bildirim yapılacaktır." class="fa fa-info-circle"></i>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.notification).Value(EnumAPM_ActivityNotification.istemiyorum))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        <button type="button" class="btn btn-md btn-danger pull-right" style="margin-right: 10px;" onclick="activity.events.deleteActivity(this)"><i class="fa fa-trash"></i> Aktivite Sil </button>
+    </div>
+
+}

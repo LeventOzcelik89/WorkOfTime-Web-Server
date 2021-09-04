@@ -1,0 +1,127 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonCertificate
+@{
+    ViewBag.Title = "Sertifika/Eğitim/Dosya Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <div class="form-horizontal" data-selector="modalContainer">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="User_Title">Personel Adı</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.User_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="CertificateType_Title">Tipi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.CertificateType_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="CertificateName">Alındığı Kurum</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.CertificateName, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="CertificateTime">Süresi</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @Html.Kendo().NumericTextBoxFor(model => model.CertificateTime).HtmlAttributes(new Dictionary<string, object>()
+                    {
+                        {"style", "width:100%"},
+                        {"class", "text-right form-control" },
+                        {"readonly","readonly"}
+                    }).Spinners(false).Format("n0").Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                    <span class="input-group-addon" id="CertificateTime">Saat</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="StartDate">Eğitim Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.StartDate, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+				<label class="control-label label-md" for="EndDate">Eğitim Bitiş Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.EndDate, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="point">Puan</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group">
+                    @Html.Kendo().NumericTextBoxFor(model => model.point).HtmlAttributes(new Dictionary<string, object>()
+                                {
+                                      {"class", "form-control"},
+                                      {"readonly", "readonly"}
+                                }).Spinners(false).Format("n0").Max(100).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name).Validate(Validations.NumberOnly(false, 0, 3))
+                    <span class="input-group-addon" id="CertificateTime">Puan</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Dosya">Dosyası</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().FileUpload()
+                    .DataTable("SH_PersonCertificate")
+                    .DataId(Model.id).PreviewMode(true)
+                    .DataKey(x => x.fileGroup == "Sertifika Dosyası")
+                )
+            </div>
+        </div>
+
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        </div>
+
+    </div>

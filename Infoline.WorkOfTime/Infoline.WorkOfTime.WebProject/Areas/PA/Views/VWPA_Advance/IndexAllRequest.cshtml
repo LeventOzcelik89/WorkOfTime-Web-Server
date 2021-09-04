@@ -1,0 +1,116 @@
+﻿@{
+	ViewBag.Title = "Tüm Avans Talepleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var userId = userStatus.user.id;
+
+	var childPersonAsManager1 = userStatus.ChildPersons.Where(a => a.Manager1 == userId).Select(a => a.IdUser).ToArray();
+
+	var query = "(accountById~eq~'" + Guid.NewGuid() + "')";
+
+	if (childPersonAsManager1.Length > 0)
+	{
+		query = "(";
+		for (int i = 0; i < childPersonAsManager1.Length; i++)
+		{
+			if (i + 1 == childPersonAsManager1.Length)
+			{
+				query += "(accountById~eq~'" + childPersonAsManager1[i] + "'))";
+			}
+			else
+			{
+				query += "(accountById~eq~'" + childPersonAsManager1[i] + "')~or~";
+			}
+		}
+	}
+
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+		.on("selected:grid", "#VWPA_Advance", function (e, res) {
+            $('[data-id="approve"]').removeClass("hide");
+
+            if (res.direction == '@((int)EnumPA_AdvanceDirection.Cikis)' || res.direction == '2') {
+                $('[data-id="approve"]').addClass("hide");
+            }
+		})
+</script>
+
+<div class="row">
+	<div class="col-md-2">
+		<div class="ibox ">
+			<div class="ibox-content mailbox-content">
+				<div class="file-manager">
+					<div class="space-25"></div>
+					<h5>DURUMA GÖRE</h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Advance" data-switch="radio" data-category="1" data-query="">
+                                <i class="fa fa-list"></i>  Tümü
+                                <span data-counturl="/PA/VWPA_Advance/DataSourceCount" class="badge badge-success pull-right">0</span>
+                            </a>
+                            <a href="#" data-grid="VWPA_Advance" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_AdvanceDirection.Talep)))">
+                                <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
+                                <span data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((direction~eq~@((int)EnumPA_AdvanceDirection.Talep)))" class="badge badge-warning pull-right">0</span>
+                            </a>
+                            <a href="#" data-grid="VWPA_Advance" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_AdvanceDirection.Cikis)))">
+                                <i class="fa fa-check text-primary"></i>  Onaylananlar
+                                <span data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((direction~eq~-1))" class="badge badge-primary pull-right">0</span>
+                            </a>
+
+                            <a href="#" data-grid="VWPA_Advance" data-switch="radio" data-category="1" data-query="((direction~eq~3))">
+                                <i class="fa fa-refresh text-warning"></i>  Düzeltme Bekleyenler
+                                <span data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((direction~eq~3))" class="badge badge-warning pull-right">0</span>
+                            </a>
+
+                            <a href="#" data-grid="VWPA_Advance" data-switch="radio" data-category="1" data-query="((direction~eq~2))">
+                                <i class="fa fa-times text-danger"></i>  Reddedilenler
+                                <span data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((direction~eq~2))" class="badge badge-danger pull-right">0</span>
+                            </a>
+                        </li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-10">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>Tüm Avans Talepleri Listesi</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content no-padding">
+				@(Html.Akilli()
+                      .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Advance>("VWPA_Advance")
+                      .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Advance", new { area = "PA" }))
+                      .PageSize(25)).Columns(x =>
+                      {
+                          x.Bound(y => y.searchField).Title("Avans Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Locked(true).Sortable(false).Width(600).ClientTemplate("#=TemplateEngine('VWPA_AdvanceTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                          x.Bound(y => y.type_Title).Title("Tipi").Width(150).Hidden(true);
+                          x.Bound(y => y.createdby_Title).Title("Talep Eden").Width(150).Hidden(false);
+                          x.Bound(y => y.progressDate).Title("Avans Tarihi").Format(Extensions.DateFormatFull(true)).Width(135).Hidden(false);
+                          x.Bound(y => y.date).Title("Ödeme Tarihi").Format(Extensions.DateFormatFull(true)).Width(135).Hidden(false);
+                          x.Bound(y => y.confirmationUser_Title).Title("Onayı Beklenen").Hidden(false).Width(150);
+                          x.Bound(y => y.confirmUser_Titles).Title("Onaylayanlar").Hidden(false).Width(130);
+                          x.Bound(y => y.rejectedUser_Titles).Title("Reddedenler").Hidden(false).Width(130);
+                          x.Bound(y => y.amount).Title("Tutar").ClientTemplate("#=kendo.toString(debt, 'n2')#  #= Currency_Symbol #").Hidden(false).Width(130);
+                          x.Bound(y => y.currencyId_Title).Title("Para Birimi").Hidden(true).Width(130);
+                      })
+                      .ToolBar(x =>
+                      {
+                          //x.Custom().Text("<i data-original-title='Avans Onayla-Reddet' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "approve" }, { "data-method", "GET" } }).Url(Url.Action("UpdateExpense", "VWPA_Advance", new { area = "PA" }));
+                          x.Custom().Text("<i data-original-title='Avans Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" },  { "data-id", "detail" } }).Url(Url.Action("Detail", "VWPA_Advance", new { area = "PA" }));
+                      })
+                      .Scrollable(s => s.Height(650)))
+			</div>
+		</div>
+	</div>
+</div>
+

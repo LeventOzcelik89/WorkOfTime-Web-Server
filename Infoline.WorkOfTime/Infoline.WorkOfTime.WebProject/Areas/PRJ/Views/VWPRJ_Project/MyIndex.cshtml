@@ -1,0 +1,155 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Görev Aldığım Projeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+
+    var Types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRJ_ProjectProjectType>().ToArray();
+    var TechnicalTypes = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRJ_ProjectProjectProjectTechnicalType>().ToArray();
+}
+
+<style type="text/css">
+    .project-status {
+        padding: 15px 10px;
+        vertical-align: middle;
+    }
+</style>
+
+<script type="text/x-kendo-template" id="projectTemplate" data-selector="modalContainer">
+
+    <div class="col-md-1 project-status">
+        <span class="label label-primary">#:ProjectType_Title#</span>
+    </div>
+    <div class="col-md-4 project-title">
+        <strong>#:ProjectName# (#: ProjectCode# )</strong>
+        <br>
+        <small>Başlangıç : #:kendo.toString(ProjectStartDate,"dd.MM.yyyy")#  </small>
+        <small>Bitiş : #:kendo.toString(ProjectEndDate,"dd.MM.yyyy")# </small>
+    </div>
+    <div class="col-md-3 project-completion">
+        #var remainingCalc = (ProjectStarEndArea-ProjectRemainingDay);#
+        #var result = (remainingCalc/ProjectStarEndArea)*100;#
+        <small>
+            #:(remainingCalc >= 0  ? (result> 100 ? 'Proje Tamamlandı' : ('Geçen Süre : ' + kendo.toString(result,"N2")) + ' %') : 'Proje Başlangıcına Kalan Süre : ' + (ProjectRemainingDay-ProjectStarEndArea) + ' Gün' )#
+        </small>
+        <div class="progress progress-mini">
+            #if(remainingCalc < 0)
+            {#
+            <div style="width:0%;" class="progress-bar progress-bar"></div>
+            #}
+            else{#
+            <div style="width:#:(result)#%;" class="progress-bar"></div>
+            #}#
+        </div>
+    </div>
+    <div class="col-md-1">
+        <span>#:ProjectPersonCount# Personel </span>
+    </div>
+    <div class="col-md-1">
+        <span>#:ProjectScope#</span>
+    </div>
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-href="/PRJ/VWPRJ_Project/Insert" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yeni Proje</a>
+                    <div class="space-25"></div>
+                    <h5>PROJE TİPİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        @foreach (var item in Types)
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWPRJ_Project" data-category="0" data-query="(ProjectType~eq~'@item.Key)">
+                                    <i class="fa fa-th-list"></i>  @item.Value
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/PRJ/VWPRJ_Project/DataSourceCount?filter=(ProjectType~eq~'@item.Key'~and~projectPersonIds~contains~'@userStatus.user.id')~or~(ProjectType~eq~'@item.Key'~and~createdby~eq'@userStatus.user.id')">0</span>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>PROJE TEKNİK TİPİNE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRJ_ProjectProjectProjectTechnicalType>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWPRJ_Project" data-category="1" data-query="(ProjectTechnicalType~contains~'@item.Key')">
+                                    <i class="fa fa-code"></i>  @item.Value
+                                </a>
+                            </li>
+                        }
+
+
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>Durumuna Göre </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPRJ_Project" data-category="1" data-query="(IsActive~eq~'true')">
+                                <i class="fa fa-check-circle"></i>  Aktif
+
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/PRJ/VWPRJ_Project/DataSourceCount?filter=(IsActive~eq~'true'~and~createdby~eq'@userStatus.user.id')">0</span>
+
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWPRJ_Project" data-category="1" data-query="(IsActive~eq~'true'~and~projectPersonIds~contains~'@userStatus.user.id')~or~(IsActive~eq~'true'~and~createdby~eq'@userStatus.user.id')">
+                                <i class="fa fa-close"></i>  Pasif
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/PRJ/VWPRJ_Project/DataSourceCount?filter=(IsActive~eq~'false'~and~projectPersonIds~contains~'@userStatus.user.id')~or~(IsActive~eq~'false'~and~createdby~eq'@userStatus.user.id')">0</span>
+
+                        </li>
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Proje Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                   .Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_Project>("VWPRJ_Project")
+                   .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_Project", new { area = "PRJ" })).PageSize(25).Filter(c => (c.projectPersonIds.Contains(userStatus.user.id.ToString()) || c.createdby == userStatus.user.id)).Sort(factory => factory.Add("ProjectStartDate").Descending()))
+                   .Filterable(a => a.Mode(GridFilterMode.Row))
+                   .Columns(x =>
+                   {
+                        x.Bound(y => y.searchField).Title("Proje Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).ClientTemplate("#=TemplateEngine('projectTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                       //x.Bound(y => y.id).Title("Proje Bilgileri").ClientTemplate("#=TemplateEngine('projectTemplate',data)#");
+                       x.Bound(y => y.ProjectType_Title).Title("Proje Tipi").Width(120).Hidden(true);
+                       x.Bound(y => y.ProjectCode).Title("Proje Kodu").Width(180).Hidden(true);
+                       x.Bound(y => y.ProjectName).Title("Proje Adı").Width(250).Hidden(true);
+                       x.Bound(y => y.ProjectScope).Title("Proje Alanı").Hidden(true);
+                       x.Bound(y => y.ProjectStartDate).Title("Başlangıç Tarihi").Width(200).Format(Extensions.DateFormatShort(true)).Hidden(true);
+                       x.Bound(y => y.ProjectEndDate).Title("Bitiş Tarihi").Width(200).Format(Extensions.DateFormatShort(true)).Hidden(true);
+                       x.Bound(y => y.ProjectPersonCount).Title("Çalışan Sayısı").Width(140).Format("{0:N0} Personel").Hidden(true);
+                   })
+                   .Scrollable(s => s.Height(600))
+                   .Selectable(x => x.Mode(GridSelectionMode.Single))
+                   .ToolBar(x =>
+                   {
+                       x.Custom().Text("<i data-original-title='İşlem Yap' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Update", "VWPRJ_Project", new { area = "PRJ" }));
+                       x.Custom().Text("<i data-original-title='Proje Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRJ_Project", new { area = "PRJ" }));
+                       x.Custom().Text("<i data-original-title='Proje Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRJ_Project", new { area = "PRJ" }));
+                   }))
+
+            </div>
+        </div>
+    </div>
+</div>
+

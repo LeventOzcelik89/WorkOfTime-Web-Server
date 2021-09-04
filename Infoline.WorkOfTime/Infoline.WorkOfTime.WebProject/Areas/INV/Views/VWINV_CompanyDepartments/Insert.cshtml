@@ -1,0 +1,70 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Şirket Departmanı Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWINV_CompanyDepartments", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "data-loadingTitle","Departman ekleniyor lütfen bekleyiniz." },
+    { "id", "VWINV_CompanyDepartmentsInsertForm" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    if (Model.PID != null)
+    {
+        @Html.HiddenFor(model => model.PID)
+    }
+    else
+    {
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="DepartmentId">Bağlı Bulunacağı Departman</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                              .DropDownListFor(model => model.PID)
+                              .OptionLabel("Lütfen Bağlı Bulunacağı Departman Seçiniz..")
+                              .DataValueField("id")
+                              .DataTextField("PID_Title")
+                              .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
+                              .Sort(x => x.Add("PID_Title").Ascending())
+                              .Filter<Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments>(a => a.ProjectId == System.UIHelper.Guid.Null && a.PID != System.UIHelper.Guid.Null && a.PID_Title != System.UIHelper.String.Null && a.Type == 0)
+                              .Execute().Validate(Validations.Required)
+                    )
+            </div>
+        </div>
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Name">Departman Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Departman Adı Giriniz.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+

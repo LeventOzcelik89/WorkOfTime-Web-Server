@@ -1,0 +1,457 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMKeywordAndPositions
+@{
+	ViewBag.Title = "Personel Talep İşlemleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript">
+	$(document)
+		.on('selected:grid', '#VWHR_StaffNeeds', function (e, item) {
+			if (item.lastStatus == 99 || item.lastStatus == 26) {
+				$('[data-work=""]').hide();
+				$('[data-request=""]').hide();
+				$('[data-requestcv=""]').hide();
+			} else {
+				$('[data-work=""]').show();
+				$('[data-request=""]').show();
+				$('[data-cv=""]').show();
+			}
+		})
+
+		.on('selected:grid', '#VWHR_StaffNeedsRequester', function (e, item) {
+			if (item.lastStatus == 99 || item.lastStatus == 26) {
+				$('[data-work=""]').hide();
+				$('[data-request=""]').hide();
+				$('[data-requestcv=""]').hide();
+			} else {
+				$('[data-work=""]').show();
+				$('[data-request=""]').show();
+				$('[data-cv=""]').show();
+			}
+		})
+
+</script>
+
+<div class="row">
+	<div class="col-md-2">
+		<div class="ibox ">
+			<div class="ibox-content mailbox-content">
+				<div class="file-manager">
+					<a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-href="/HR/VWHR_StaffNeeds/Insert"> <i class="fa fa-plus-circle"></i> Yeni Talep </a>
+
+					@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+					{
+						<div class="space-25"></div>
+						<h5>CV YÖNLENDİRME DURUMUNA GÖRE </h5>
+						<ul class="folder-list m-b-md" style="padding: 0">
+							<li class="clearfix">
+								<a class="pull-left active" href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~0~or~lastStatus~eq~5~or~lastStatus~eq~10~or~lastStatus~eq~26)">
+									<i class="fa fa-align-justify" style="color:black;"></i>   Tümü
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~0~or~lastStatus~eq~5~or~lastStatus~eq~10~or~lastStatus~eq~26)">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~0)">
+									<i class="fa fa-bullhorn" style="color:rgb(248, 172, 89)"></i>   Onay Bekleyenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(248, 172, 89);"
+									  data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~0)">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~5)">
+									<i class="fa fa-check" style="color:rgb(26, 179, 148)"></i>   Onaylananlar
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(26, 179, 148);"
+									  data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~5)">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~10)">
+									<i class="fa fa-times" style="color:rgb(237, 85, 101)"></i>   Reddedilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(237, 85, 101);"
+									  data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~10)">1</span>
+							</li>
+							
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">
+									<i class="fa fa-ban" style="color:rgb(255 0 0);"></i>   İptal Edilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="		background: rgb(255 0 0);" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">1</span>
+							</li>
+						</ul>
+
+					}
+					else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+					{
+						<div class="space-25"></div>
+						<h5>CV YÖNLENDİRME DURUMUNA GÖRE </h5>
+						<ul class="folder-list m-b-md" style="padding: 0">
+							<li class="clearfix">
+								<a class="pull-left active" href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="((((((((lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17~or~lastStatus~eq~26)~or~lastStatus~eq~99)">
+									<i class="fa fa-align-justify" style="color:black;"></i>   Tümü
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=((((((((lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17~or~lastStatus~eq~26)~or~lastStatus~eq~99)">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(((((((lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17)">
+									<i class="fa fa-clock-o" style="color:rgb(57, 114, 244);"></i>   Süreci Devam Edenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(57, 114, 244);" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(((((((lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17)">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir))">
+									<i class="fa fa fa-check-square-o" style="color:rgb(255, 109, 0);"></i>   Sonlandırılanlar
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(255, 109, 0);" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir))">1</span>
+							</li>
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti))">
+									<i class="fa fa-times-circle" style="color:rgb(220 68 68);"></i>   Reddedilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="		background: rgb(220 68 68);" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti))">1</span>
+							</li>
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="0" data-query="(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">
+									<i class="fa fa-ban" style="color:rgb(255 0 0);"></i>   İptal Edilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="		background: rgb(255 0 0);" data-counturl="/HR/VWHR_StaffNeeds/DataSourceCount?filter=(lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">1</span>
+							</li>
+						</ul>
+					}
+					else
+					{
+						<div class="space-25"></div>
+						<h5>SON DURUMUNA GÖRE </h5>
+						<ul class="folder-list m-b-md" style="padding: 0">
+							<li class="clearfix">
+								<a class="pull-left active" href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="0" data-query="(RequestId~eq~'@userStatus.user.id'~and~(((((((((lastStatus~eq~0~or~lastStatus~eq~5)~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17)~or~lastStatus~eq~99))">
+									<i class="fa fa-align-justify" style="color:black;"></i>   Tümü
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~(((((((((lastStatus~eq~0~or~lastStatus~eq~5)~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17)~or~lastStatus~eq~99))">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="0" data-query="(RequestId~eq~'@userStatus.user.id'~and~(((((((lastStatus~eq~0~or~lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17))">
+									<i class="fa fa-clock-o" style="color:rgb(57, 114, 244);"></i>   Süreci Devam Edenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(57, 114, 244);" data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~(((((((lastStatus~eq~0~or~lastStatus~eq~5~or~lastStatus~eq~15)~or~lastStatus~eq~20)~or~lastStatus~eq~21)~or~lastStatus~eq~22)~or~lastStatus~eq~25)~or~lastStatus~eq~16)~or~lastStatus~eq~17))">1</span>
+							</li>
+
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="0" data-query="(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir))">
+									<i class="fa fa fa-check-square-o" style="color:rgb(255, 109, 0);"></i>   Tamamlananlar
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:rgb(255, 109, 0);" data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir))">1</span>
+							</li>
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="0" data-query="(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti))">
+									<i class="fa fa-times-circle" style="color:rgb(220 68 68);"></i>   Reddedilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="		background: rgb(220 68 68);" data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti))">1</span>
+							</li>
+							<li class="clearfix">
+								<a class="pull-left " href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="0" data-query="(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">
+									<i class="fa fa-ban" style="color:rgb(255 0 0);"></i>   İptal Edilenler
+								</a>
+								<span class="badge badge-warning pull-right m-l-md  m-t-xs" style="		background: rgb(255 0 0);" data-counturl="/HR/VWHR_StaffNeedsRequester/DataSourceCount?filter=(RequestId~eq~'@userStatus.user.id'~and~lastStatus~eq~@((Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi))">1</span>
+							</li>
+						</ul>
+					}
+
+					<div class="space-25"></div>
+					<h5>ÇALIŞMA SÜRESİNE GÖRE </h5>
+					<ul class="tag-list clearfix m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_StaffNeedsEmploymentStatus>())
+						{
+							<li class="clearfix">
+								@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+								{
+
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="2" data-query="(EmploymentStatus~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+								else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+								{
+
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="2" data-query="(EmploymentStatus~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+								else
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeedsRequester" data-category="2" data-query="(EmploymentStatus~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+
+							</li>
+						}
+					</ul>
+					<div class="space-25"></div>
+
+					<h5>EĞİTİM DURUMUNA GÖRE </h5>
+					<ul class="tag-list clearfix m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_StaffNeedsEducation>())
+						{
+							<li class="clearfix">
+								@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="1" data-query="(Education_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+								else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="1" data-query="(Education_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+								else
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeedsRequester" data-category="1" data-query="(Education_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+
+
+							</li>
+						}
+					</ul>
+
+					<div class="space-25"></div>
+
+					<h5>TALEP NEDENİNE GÖRE </h5>
+					<ul class="tag-list clearfix m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_StaffNeedsReasonForStaffDemand>())
+						{
+							<li class="clearfix">
+								@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="3" data-query="(ReasonForStaffDemand_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+								else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="3" data-query="(ReasonForStaffDemand_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+								else
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeedsRequester" data-category="3" data-query="(ReasonForStaffDemand_Title~eq~'@item.Value')">
+										@item.Value
+									</a>
+								}
+
+							</li>
+						}
+					</ul>
+					<div class="space-25"></div>
+
+					<h5>ÖNCELİK DURUMUNA GÖRE </h5>
+					<ul class="tag-list clearfix m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHR_StaffNeedsPriority>())
+						{
+							<li class="clearfix">
+								@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+								else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+								else
+								{
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeedsRequester" data-switch="radio" data-category="1" data-query="(priority~eq~'@item.Key')">
+										@item.Value
+									</a>
+								}
+							</li>
+						}
+					</ul>
+
+					@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+					{
+						<div class="space-25"></div>
+						<h5>BİLGİ VE BECERİLERE GÖRE </h5>
+						<ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+							@foreach (var item in Model.keywords.OrderBy(a => a.Name))
+							{
+								<li class="clearfix">
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="4" data-query="(HrKeywords_Title~contains~'@item.Name')">
+										@item.Name
+									</a>
+								</li>
+							}
+						</ul>
+
+						<div class="space-25"></div>
+						<h5>POZİSYONA GÖRE </h5>
+						<ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+							@foreach (var item in Model.positions.OrderBy(a => a.Name))
+							{
+								<li class="clearfix">
+									<a class="pull-left" href="#" data-grid="VWHR_StaffNeeds" data-category="5" data-query="(HrPosition_Title~contains~'@item.Name')">
+										@item.Name
+									</a>
+								</li>
+							}
+						</ul>
+					}
+
+					<div class="clearfix"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-10">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>Personel Talep İşlemleri</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content">
+				@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+				{
+					@(
+						 Html.Akilli()
+						.Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeeds>("VWHR_StaffNeeds")
+						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeeds", new { area = "HR" })).PageSize(25)
+						.Filter(v =>
+						v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi ||
+						v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi ||
+						v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti ||
+						v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)
+						)
+						.Columns(x =>
+						{
+							x.Bound(y => y.lastStatus_Title).Title("Talep Bilgileri").ClientTemplate("#=TemplateEngine('needaboutTemplate',data)#").Width(180);
+							x.Bound(y => y.RequestDate).Title("Talep Tarihi").Hidden(true).Width(180).Format(Extensions.DateFormatFull(true));
+							x.Bound(y => y.NeedCode).Title("Talep Kodu").Hidden(true).Width(200);
+							x.Bound(y => y.TotalYonlendirme).Title("Toplam Yönlendirilen CV").Hidden(true).Format("{0:N0} Adet").Width(200);
+							x.Bound(y => y.ReasonForStaffDemand_Title).Title("Personel Talep Nedeni").Hidden(true).Width(200);
+							x.Bound(y => y.HrPosition_Title).Title("Pozisyonlar").Hidden(true).Width(220);
+							x.Bound(y => y.HrKeywords_Title).Title("Bilgi ve Beceriler").Hidden(true).Width(220);
+							x.Bound(y => y.LocationId_Title).Title("İstihdam Bölgesi").Hidden(true).Width(180);
+							x.Bound(y => y.DriverLicense_Title).Title("Sürücü Belgesi").Hidden(true).Width(180);
+							x.Bound(y => y.Education_Title).Title("Minimum Eğitim Kategorisi").Hidden(true).Width(250);
+						})
+						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.Scrollable(x => x.Height(650))
+						.ToolBar(x =>
+						{
+							x.Custom().Text("<i data-toggle='tooltip' title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-default", "" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_StaffNeeds", new { area = "HR" }));
+						})
+                    )
+				}
+
+				else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+				{
+					@(Html.Akilli()
+		 .Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeeds>("VWHR_StaffNeeds")
+		 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeeds", new { area = "HR" })).PageSize(25)
+		 .Filter(v =>
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.CvYonlendirildi ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.MulakatAyarlandi ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.MulakatGerceklesti ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YeniCvTalepEdildi ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepEdenOnayladi ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepEdenReddetti ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir ||
+		 v.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)
+		 )
+		 .Columns(x =>
+		 {
+
+			 x.Bound(y => y.lastStatus_Title).Title("Talep Bilgileri").ClientTemplate("#=TemplateEngine('needaboutTemplate',data)#").Width(180);
+			 x.Bound(y => y.createdby_Title).Title("Talebi Gerçekleştiren").Hidden(true).Width(220);
+			 x.Bound(y => y.RequestDate).Title("Talep Tarihi").Hidden(true).Width(180).Format(Extensions.DateFormatFull(true));
+			 x.Bound(y => y.NeedCode).Title("Talep Kodu").Hidden(true).Width(200);
+			 x.Bound(y => y.TotalYonlendirme).Title("Toplam Yönlendirilen CV").Hidden(true).Format("{0:N0} Adet").Width(200);
+			 x.Bound(y => y.ReasonForStaffDemand_Title).Title("Personel Talep Nedeni").Hidden(true).Width(200);
+			 x.Bound(y => y.HrPosition_Title).Title("Pozisyonlar").Hidden(true).Width(220);
+			 x.Bound(y => y.HrKeywords_Title).Title("Bilgi ve Beceriler").Hidden(true).Width(220);
+			 x.Bound(y => y.LocationId_Title).Title("İstihdam Bölgesi").Hidden(true).Width(180);
+			 x.Bound(y => y.DriverLicense_Title).Title("Sürücü Belgesi").Hidden(true).Width(180);
+			 x.Bound(y => y.Education_Title).Title("Minimum Eğitim Kategorisi").Hidden(true).Width(250);
+		 })
+		 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+		 .Scrollable(x => x.Height(650))
+		   .ToolBar(x =>
+		   {
+			   x.Custom().Text("<i data-original-title='İşlem Yap' class='fa fa-edit'>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-default", "" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-blank", "" }, { "data-work", "" } }).Url(Url.Action("DetailFor", "VWHR_StaffNeeds", new { area = "HR" }));
+			   x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_StaffNeeds", new { area = "HR" }));
+			   x.Custom().Text("<i data-original-title='Talep Formu Yazdır' class='fa fa-print'>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-blank", "" } }).Url(Url.Action("NeedForm", "VWHR_StaffNeeds", new { area = "HR" }));
+			   x.Custom().Text("<i data-toggle='tooltip' title='Talebi Sonlandır' class='fa fa-check-square-o'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-work", "" } }).Url(Url.Action("FinishRead", "VWHR_StaffNeeds", new { area = "HR" }));
+		   })
+                    )
+				}
+
+				else
+				{
+
+					@(Html.Akilli()
+							 .Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeedsRequester>("VWHR_StaffNeedsRequester")
+							 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeedsRequester", new { area = "HR" })).PageSize(25)
+							 .Filter(c => c.RequestId == userStatus.user.id &&
+							 (c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiOnaylandi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YoneticiReddetti ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.CvYonlendirildi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.MulakatAyarlandi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.MulakatGerceklesti ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.YeniCvTalepEdildi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepEdenOnayladi ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepEdenReddetti ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir ||
+							 c.lastStatus == (Int32)EnumHR_StaffNeedsStatusStatus.TalepIptalEdildi)
+							 ))
+							 .Columns(x =>
+							 {
+								 x.Bound(y => y.lastStatus_Title).Title("Talep Bilgileri").ClientTemplate("#=TemplateEngine('needTemplate',data)#").Width(180);
+								 x.Bound(y => y.RequestDate).Title("Talep Tarihi").Hidden(true).Width(180).Format(Extensions.DateFormatFull(true));
+								 x.Bound(y => y.NeedCode).Title("Talep Kodu").Hidden(true).Width(200);
+								 x.Bound(y => y.TotalYonlendirme).Title("Toplam Yönlendirilen CV").Hidden(true).Format("{0:N0} Adet").Width(200);
+								 x.Bound(y => y.ReasonForStaffDemand_Title).Title("Personel Talep Nedeni").Hidden(true).Width(200);
+								 x.Bound(y => y.HrPosition_Title).Title("Pozisyonlar").Hidden(true).Width(220);
+								 x.Bound(y => y.HrKeywords_Title).Title("Bilgi ve Beceriler").Hidden(true).Width(220);
+								 x.Bound(y => y.LocationId_Title).Title("İstihdam Bölgesi").Hidden(true).Width(180);
+								 x.Bound(y => y.DriverLicense_Title).Title("Sürücü Belgesi").Hidden(true).Width(180);
+								 x.Bound(y => y.Education_Title).Title("Minimum Eğitim Kategorisi").Hidden(true).Width(250);
+							 })
+							 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+							 .Scrollable(x => x.Height(650))
+							 .ToolBar(x =>
+							 {
+								 x.Custom().Text("<i data-toggle='tooltip' title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-default", "" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_StaffNeeds", new { area = "HR" }));
+								 x.Custom().Text("<i data-toggle='tooltip' title='Yeni CV Talep Et' class='fa fa-newspaper-o'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-request", "" }, { "data-ask", "" }, {"data-requestcv","" } }).Url(Url.Action("ReturnRequest", "VWHR_StaffNeeds", new { area = "HR" }));
+								 x.Custom().Text("<i data-toggle='tooltip' title='Talebi Sonlandır' class='fa fa-check-square-o'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-work", "" } }).Url(Url.Action("FinishRead", "VWHR_StaffNeeds", new { area = "HR" }));
+							 })
+                    )
+				}
+			</div>
+		</div>
+	</div>
+</div>
+

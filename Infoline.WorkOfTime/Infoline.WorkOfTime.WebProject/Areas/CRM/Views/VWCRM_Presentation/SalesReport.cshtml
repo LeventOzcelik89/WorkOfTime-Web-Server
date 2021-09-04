@@ -1,0 +1,465 @@
+﻿@{
+	ViewBag.Title = "Satış ve Müşteri Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+	$(document)
+		.on("click", '[data-name="filterDate"]', function (e) {
+
+			var _this = $(this);
+
+			$('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+			$('.fa-check').removeClass('fa fa-check');
+			_this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+			_this.find('span').addClass("fa fa-check");
+			var attr = _this.attr("data-id");
+
+			var newDate = new Date().addDays(-parseInt(attr));
+
+			$('#startDate').data("kendoDatePicker").value(newDate);
+
+
+		})
+</script>
+
+
+
+
+<link href="~/Content/Areas/CMP/VWCMP_Invoice/css/invoice.css" data-selector="modalContainer" rel="stylesheet" />
+
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-11">
+						<div class="row">
+							<div class="col-md-4">
+								@(
+                                       Html.Akilli()
+                                       .MultiSelect("userIds")
+                                       .Placeholder("Lütfen Personel Seçiniz..")
+                                       .DataValueField("id")
+                                       .DataTextField("FullName")
+                                       .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                                       .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                       .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && (a.RoleIds.Contains(SHRoles.CRMYonetici) || a.RoleIds.Contains(SHRoles.SatisPersoneli)))
+                                       .Sort(x => x.Add("FullName").Ascending())
+                                       .Execute()
+                                   )
+							</div>
+							<div class="col-sm-2">
+								@(
+                             Html.Akilli().
+                                      DatePicker("startDate").
+                                      Placeholder("Başlangıç Tarihi").
+                                      Format(Extensions.DateFormatShort()).
+                                      Value(DateTime.Now.AddDays(-7)).
+                                      Validate(Validations.Required)
+                        )
+
+							</div>
+
+							<div class="col-md-2">
+								@(
+                                      Html.Akilli().
+                                      DatePicker("endDate").
+                                      Placeholder("Bitiş Tarihi").
+                                      Format(Extensions.DateFormatShort()).
+                                      Value(DateTime.Now).
+                                      MinDateElement("startDate").
+                                      Validate(Validations.Required)
+                                  )
+							</div>
+							<div class="col-md-2" style="margin-top: 4px;">
+								@(Html.Kendo().NumericTextBox<int>()
+                                   .Name("rangeStart")
+                                   .Spinners(false)
+                                   .Placeholder("Bitme Olasılığı %")
+                                   .Min(0)
+                                   .Max(100)
+                                   .Step(1)
+                                   .HtmlAttributes(new { style = "width: 100%"})
+                                 )
+							</div>
+
+							<div class="col-md-2" style="margin-top: 4px;">
+								@(Html.Kendo().NumericTextBox<int>()
+                                   .Name("rangeEnd")
+                                   .Spinners(false)
+                                   .Placeholder("Bitme Olasılığı %")
+                                   .Min(0)
+                                   .Max(100)
+                                   .Step(1)
+                                   .HtmlAttributes(new { style = "width: 100%" })
+                                 )
+							</div>
+							<div class="col-md-4" style="margin-top: 6px;">
+								<div class="btn-group" role="group" aria-label="Basic example" style="width:100%;">
+									<button type="button" data-id="0" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"> <span></span>BUGÜN</button>
+									<button type="button" data-id="7" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonActive"><span class="fa fa-check"></span>7 GÜN</button>
+									<button type="button" data-id="14" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>14 GÜN</button>
+									<button type="button" data-id="30" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>30 GÜN</button>
+									<button type="button" data-id="90" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>90 GÜN</button>
+								</div>
+							</div>
+
+						</div>
+					</div>
+					<div class="col-md-1">
+						<button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px;"><i class="fa fa-search"></i> Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+		<div>
+			<div class="col-md-6">
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-borclar fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında yeni eklenmiş müşterilerin toplamını gösterir."></i> Yeni Eklenen Müşteri </span>
+								<h2 class="font-bold" id="totalNewCustomer">0</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-raporlar fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçmiş olduğunuz tarihler arasında ki potansiyellerin müşteri toplamını gösterir."></i> Potansiyel Müşteri  </span>
+								<h2 class="font-bold" id="totalCustomer">0 Adet</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-kullanicilar fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Tarih farketmeksizin tüm müşterilerin toplamını gösterir."></i> Tüm Müşteri </span>
+								<h2 class="font-bold" id="allTotalCustomer">0</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-kisiler fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçmiş olduğunuz tarihler arasında müşteriler ile gerçekleştirilmiş ziyaretlerin toplamını gösterir.."></i> Ziyaret Sayısı </span>
+								<h2 class="font-bold" id="totalVisit">0 Adet</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-destekler fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçmiş olduğunuz tarihler arasında yeni eklenen müşterilere yapılan ziyaretlerin toplamını gösterir.."></i> Yeni Müşteri Ziyaret Sayısı</span>
+								<h2 class="font-bold" id="totalNewCustomerVisit">0 Adet</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="widget style1 white-bg">
+						<div class="row">
+							<div class="col-xs-4">
+								<i class="ii-sermayeuretim fa-5x text-navy"></i>
+							</div>
+							<div class="col-xs-8 text-right">
+								<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Tüm potansiyellerin toplamını gösterir."></i> Potansiyel Fırsat Toplamı</span>
+								<h2 class="font-bold" id="allPresentationCount">0 Adet</h2>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-4">
+					<div class="ibox">
+						<div class="ibox-content">
+							<h5><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki potansiyellerin tahmini cirolarının toplamını gösterir.."></i> Potansiyel F. Toplam TL Değeri</h5>
+							<h1 class="no-margins" id="presentationTotalValue">0,00 ₺</h1>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="ibox">
+						<div class="ibox-content">
+							<h5><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki satışı gerçekleşmiş potansiyellerin cirolarının toplamını gösterir."></i> Satış Ciro Toplamı Direkt</h5>
+							<h1 class="no-margins" id="totalEndorsement">0,00 ₺</h1>
+						</div>
+					</div>
+				</div>
+				<div class="col-lg-4">
+					<div class="ibox">
+						<div class="ibox-content">
+							<h5><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki tüm teklıflerin toplamını gösterir."></i> Teklif Tutarı</h5>
+							<h1 class="no-margins" id="totalBid">0,00 ₺</h1>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-md-12">
+					<div class="ibox">
+						<div class="ibox-title text-center">
+							<h3 class="text-center">Potansiyel aşamalarına göre dağılım </h3>
+						</div>
+						<div class="ibox-content">
+							<div id="CompanyChart"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div class="col-md-6">
+				<div class="ibox">
+					<div class="ibox-title text-center">
+						<h3 class="text-center">Potansiyel Ürün Adetleri </h3>
+					</div>
+					<div class="ibox-content" style="height: 464px; overflow: auto;">
+						<div id="productAndQuantity"></div>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+
+
+
+		<div class="col-md-6">
+
+
+			<div class="ibox">
+				<div class="ibox-title text-center">
+					<h3 class="text-center"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Potansiyeldeki ürünlere verilmiş tekliflerin toplam fiyatları."></i> Ürün Fiyat Dağılımı </h3>
+				</div>
+				<div class="ibox-content" style="height: 464px; overflow: auto;">
+					<div id="ProductPrice"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<style>
+	.k-widget .k-numeric-wrap > input {
+		padding-right: 0px;
+	}
+</style>
+
+<script type="text/javascript">
+	var salesReports = {
+		data: {
+			reportData: []
+		}
+	}
+
+
+	$(document)
+		.on("ready", function () {
+
+			$("#DashBoardFilter").trigger("click");
+
+
+		})
+
+
+	$("#DashBoardFilter").click(function () {
+		var startDate = $("#startDate").val();
+		var endDate = $("#endDate").val();
+		var rangeStart = $("#rangeStart").val();
+		var rangeEnd = $("#rangeEnd").val();
+		var userIds = $("#userIds").val();
+
+
+
+		GetJsonDataFromUrl('/CRM/VWCRM_Presentation/GetSalesReportData', { startDate: startDate, endDate: endDate, rangeStart: rangeStart, rangeEnd: rangeEnd, userIds: userIds }, function (res) {
+			if (res.Result == false || res.Object == null) {
+				$("#customerReportData").append('<div class="alert alert-warning text-center"><strong>Bilgilendirme</strong> : Yukarıdan verileri seçerek sorgula butonuna basınız....</div>');
+				$("#salesReportData").append('<div class="alert alert-warning text-center"><strong>Bilgilendirme</strong> : Yukarıdan verileri seçerek sorgula butonuna basınız....</div>');
+			}
+
+			salesReports.data.reportData = res.Object;
+
+			CreateAllPieCharts($('#CompanyChart'), res.Object.stageList, " #= category # : #= data.value# Adet ", "bottom");
+
+
+			$("#ProductPrice").kendoGrid({
+				dataSource: salesReports.data.reportData.tenderProductPrices,
+				pageSize: 100,
+				height: 420,
+				sortable: true,
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "Key",
+						title: "Ürün"
+					},
+					{
+						field: "Value",
+						title: "Toplam Fiyatı",
+						template: '#= kendo.format("{0:N2} ₺", Value) #'
+					}]
+			});
+
+			var grid = $("#ProductPrice").data("kendoGrid");
+			grid.dataSource.page(1);
+
+
+			$("#productAndQuantity").kendoGrid({
+				dataSource: salesReports.data.reportData.productAndQuantity,
+				pageSize: 100,
+				height: 420,
+				sortable: true,
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "Key",
+						title: "Ürün Adı"
+					},
+					{
+						field: "Value",
+						title: "Adet",
+						template: '#= kendo.format("{0:N0} Adet", Value) #'
+					}]
+			});
+
+			var grid2 = $("#productAndQuantity").data("kendoGrid");
+			grid2.dataSource.page(1);
+
+			$("[class='k-input']").text("Tümü")
+
+
+			$("#totalNewCustomer").html(null);
+			$("#totalNewCustomer").append((kendo.toString(salesReports.data.reportData.totalNewCustomer, "N0") + " Adet"))
+
+			$("#allTotalCustomer").html(null);
+			$("#allTotalCustomer").append((kendo.toString(salesReports.data.reportData.allTotalCustomer, "N0") + " Adet"))
+
+			$("#totalCustomer").html(null);
+			$("#totalCustomer").append((kendo.toString(salesReports.data.reportData.totalCustomer, "N0") + " Adet"))
+
+			$("#totalVisit").html(null);
+			$("#totalVisit").append((kendo.toString(salesReports.data.reportData.totalVisit, "N0") + " Adet"))
+
+			$("#totalNewCustomerVisit").html(null);
+			$("#totalNewCustomerVisit").append((kendo.toString(salesReports.data.reportData.totalNewCustomerVisit, "N0") + " Adet"))
+
+
+			$("#presentationTotalValue").html(null);
+			$("#presentationTotalValue").append((kendo.toString(salesReports.data.reportData.presentationTotalValue, "N2") + " ₺"))
+
+			$("#totalEndorsement").html(null);
+			$("#totalEndorsement").append((kendo.toString(salesReports.data.reportData.totalEndorsement, "N2") + " ₺"))
+
+			$("#totalBid").html(null);
+			$("#totalBid").append((kendo.toString(salesReports.data.reportData.totalBid, "N2") + " ₺"))
+
+			$("#allPresentationCount").html(null);
+			$("#allPresentationCount").append((kendo.toString(salesReports.data.reportData.allPresentationCount, "N0") + " Adet"))
+		});
+	});
+</script>
+
+<script type="text/javascript">
+	function CreateAllPieCharts(element, data, MyTemplatePie, position) {
+		if (data == null || data.length == 0) {
+			$("#CompanyChart").html(null);
+			$("#CompanyChart").append('<div class="alert alert-warning text-center">Seçili filtrede görüntülenecek kayıt bulunamadı.</div>');
+			return;
+		}
+
+		element.kendoChart({
+			title: {},
+			legend: {
+				position: position
+			},
+			dataSource: {
+				data: data
+			},
+
+			render: function (e) {
+				var loading = $(".chart-loading", e.sender.element.parent());
+				kendo.ui.progress(loading, false);
+			},
+			series: [{
+				type: "pie",
+				field: "count",
+				color: "color",
+				categoryField: "name"
+			}],
+
+			seriesDefaults: {
+				overlay: { gradient: "none" },
+
+				labels: {
+					visible: true,
+					background: "transparent",
+					template: "#= kendo.format('{0:p2}', percentage)#"
+
+				}
+			},
+			chartArea: {
+				background: "transparent"
+			},
+			tooltip: {
+				visible: true,
+				template: MyTemplatePie,
+				format: "{0:N0}"
+			}
+		});
+		$(element.selector).append(kendoExportTemplate(element.selector));
+	}
+</script>

@@ -1,0 +1,318 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.CRM_ManagerStage[]
+@{
+    ViewBag.Title = "Potansiyel Fırsatlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+
+
+<style type="text/css">
+    .butonlar:nth-last-of-type(2) {
+        background: #3C80F6 url("/Content/Custom/img/get-money.png") right no-repeat;
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox m-b-none">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-href="/CRM/VWCRM_Presentation/Insert"> <i class="fa fa-plus-circle"></i>Yeni Potansiyel/Fırsat </a>
+                    <div class="space-25"></div>
+                    <h5>AŞAMA </h5>
+                    <ul class="folder-list" style="padding: 0;">
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa fa-align-justify" style="color:black;"></i>  Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/CRM/VWCRM_Presentation/DataSourceCount">0</span>
+                        </li>
+                        @foreach (var item in Model.OrderBy(x => x.Code))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="0" data-query="(PresentationStageId~eq~'@item.id')">
+                                    <i class="fa text-danger fa-certificate" style="color:@item.color"></i>  @item.Name
+                                </a>
+                                <span class="badge badge-danger pull-right m-l-md  m-t-xs" style="background-color:@item.color" data-counturl="/CRM/VWCRM_Presentation/DataSourceCount?filter=PresentationStageId~eq~'@item.id'">0</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5>ÖNEM DERECESİ </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li class="clearfix" style="cursor:pointer;">
+                            <i data-selector="PriorityLevel" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="(PriorityLevel~eq~1)" class="fa fa-star-o" style="float:left;color:#ffcc00;font-size:20px;"></i>
+                            <i data-selector="PriorityLevel" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="(PriorityLevel~eq~2)" class="fa fa-star-o" style="float:left;color:#ffcc00;font-size:20px;"></i>
+                            <i data-selector="PriorityLevel" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="(PriorityLevel~eq~3)" class="fa fa-star-o" style="float:left;color:#ffcc00;font-size:20px;"></i>
+                            <i data-selector="PriorityLevel" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="(PriorityLevel~eq~4)" class="fa fa-star-o" style="float:left;color:#ffcc00;font-size:20px;"></i>
+                            <i data-selector="PriorityLevel" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="(PriorityLevel~eq~5)" class="fa fa-star-o" style="float:left;color:#ffcc00;font-size:20px;"></i>
+                            <i data-selector="PriorityLevelReset" data-grid="VWCRM_Presentation" data-switch="radio" data-category="1" data-query="" class="fa fa-times-circle" style="color:#ff0000;font-size:20px;float:right;margin-right:0px;display:none;"></i>
+                        </li>
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5> SON İŞLEM TARİHİ</h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="()"> <i class="fa fa-clock-o"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWCRM_Presentation" data-switch="radio" data-category="2" data-query="(LastActivityDate~gt~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~LastActivityDate~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-clock-o"></i> Geçen Ay </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <h5>Potansiyel Fırsat Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+					.Grid<Infoline.WorkOfTime.BusinessData.VWCRM_Presentation>("VWCRM_Presentation")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" }))
+					.PageSize(25)
+					.Sort(c => c.Add(g => g.LastActivityDate)
+					.Descending()))
+					.Sortable(a => a.SortMode(GridSortMode.MultipleColumn))
+					.Columns(x =>
+					{
+
+						x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(c => c.Stage_Color).Locked(true).Lockable(false);
+						x.Bound(y => y.CustomerCompany_Title).Title("Müşteri").Width(180).Locked(true);
+						x.Bound(y => y.Name).Title("Potansiyel Fırsat Adı").Width(220);
+						x.Bound(a => a.LastActivityDate).Title("Son İşlem Tarihi").Width(160).Format(Extensions.DateFormatFull(true));
+						x.Bound(y => y.Stage_Title).Title("Potansiyel Fırsat Aşaması").Width(250).Filterable(filterable => filterable.UI("LastStageFilter")).ClientTemplate("#=LastStageTemplate(data)#");
+						x.Bound(a => a.VodafoneOffer).Title("Tahmini Beklenen Ciro").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.VodafoneOffer)#");
+						x.Bound(a => a.lastTenderTotalAmount).Title("Son Teklif").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.lastTenderTotalAmount)#");
+						x.Bound(a => a.CompletionRate).Title("Tahmini Kapanma Yüzdesi (%)").Width(180).ClientTemplate("#=CompletionType(data.CompletionRate)#");
+						x.Bound(a => a.EstimatedCompletionDate).Title("Tahmini Sonuçlanma Tarihi").Width(200).Format(Extensions.DateFormatShort(true));
+						x.Bound(a => a.PriorityLevel).Title("Önem Derecesi").Width(180).ClientTemplate("#=GetStars(data.PriorityLevel)#");
+						x.Bound(y => y.TotalContact).Title("Toplam Aktivite/Randevu").Width(220);
+						x.Bound(y => y.LastStatus).Title("Son Aktivite/Randevu Durumu").Width(220).Filterable(filterable => filterable.UI("LastStatusFilter"));
+						x.Bound(y => y.LastDescription).Title("Son Aktivite/Randevu Notu").Width(220).ClientTemplate("#=First50Char(data.LastDescription)#");
+						x.Bound(a => a.DaysSinceVisit).Title("Son Aktiviteden Bugüne Geçen Süre").Format("{0:N0}").Width(250);
+						if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CagriMerkezi)))
+						{
+							x.Bound(y => y.ChannelCompany_Title).Title("Bayi").Width(180);
+						}
+						else
+						{
+							x.Bound(y => y.ChannelCompany_Title).Title("Kanal").Width(180);
+						}
+						x.Bound(y => y.SalesPerson_Title).Title("Satış Personeli").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
+						x.Bound(y => y.createdby_Title).Title("Oluşturan").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
+						x.Bound(a => a.created).Title("Oluşturma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+						x.Bound(a => a.Product_Titles).Title("Potansiyel Ürün/Hizmetler").Width(200);
+					})
+					.Scrollable(s => s.Enabled(true).Height(670))
+					.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+					.ToolBar(x =>
+					{
+						x.Custom().Text("<i class='fa fa-edit' data-toggle='tooltip' title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWCRM_Presentation", new { area = "CRM"}));
+						x.Custom().Text("<i class='fa fa-info-circle' data-toggle='tooltip' title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWCRM_Presentation", new { area = "CRM" }));
+						x.Custom().Text("<i class='fa fa-calendar' data-toggle='tooltip' title='Aktivite/Randevu Tanımla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "PresentationId" } }).Url(Url.Action("Insert", "VWCRM_Contact", new { area = "CRM" }));
+						x.Custom().Text("<i class='icon-money' data-original-title='Masraf Girişi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "expense" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" }));
+						x.Custom().Text("<i class='fa fa-trash' data-toggle='tooltip' title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" } }).Url(Url.Action("Delete", "VWCRM_Presentation", new { area = "CRM" }));
+					}))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+
+    var _selectedRows = [];
+
+    function moneyFunction(data) {
+
+        if (data && data != "" && data != null) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + ' ₺</span>';
+        }
+        else {
+            return "";
+        }
+    }
+
+    function hasContactFunc(data)
+    {
+        if (data == true) {
+                 return '<span style="color:#20b2aa;font-weight:700;"><i class="fa fa-check"></i></span>';
+        } else {
+               return '<span style="color:pink;font-weight:700;"><i class="fa fa-times"></i></span>';
+        }
+    }
+
+    function PersonFilterWithRoles(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetVWSH_User_WithRoles", "General", new { area = string.Empty })"
+                }
+            },
+            optionLabel: "-Personel Seçiniz-"
+        });
+    }
+
+    function PriceStatus(data){
+         if (data && data != "" && data != null) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + '  ₺</span>';
+        }
+        else {
+            return "";
+        }
+    }
+
+    function CompletionType(data){
+        return '<span style="font-weight:700;">%'  +data + '</span>';
+    }
+
+    function LastStageTemplate(data) {
+        var dataStateColor = data.Stage_Color;
+        if (dataStateColor == "#ffffff") {
+            dataStateColor = "#000000";
+        }
+        var template = '<button type="button" data-task="Insert" data-method="GET" data-show="single" data-href="/CRM/VWCRM_Presentation/UpdateState?id=' + data.id + '"' +
+                        '        class="btn btn-outline" style="box-shadow:inset 0 0 0 ' + data.Stage_Color + ', 0 5px 0 0  ' + data.Stage_Color + ', 0 10px 5px #999999;color:' + dataStateColor + ';border-color:' + data.Stage_Color + '">' +
+                        '    <i class="fa fa-check"></i>' +
+                         data.Stage_Title +
+                        '</button>';
+        return template;
+    }
+
+    function LastStageFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetCRM_ManagerStageName", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Aşama Seçiniz--"
+        });
+    }
+
+    function LastStatusFilter(element) {
+        element.kendoDropDownList({
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetCRM_ContactStatusForFilter", "General", new {area = string.Empty,ForFilter = true})"
+                }
+            },
+            optionLabel: "--Durum Seçiniz--"
+        });
+    }
+
+    function SectorFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetCRM_SectorName", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Sektör Seçiniz--"
+        });
+    }
+
+    function Kendo_ExcelExport(e) {
+
+        e.preventDefault();
+        $.each(e.workbook.sheets, function (i, b) {
+            b.rows[0].cells.forEach(function (h, hi) {
+                if (h.value == "id") {
+                    b.columns.splice(hi, 1);
+                    b.rows.forEach(function (r, ir) {
+                        r.cells.splice(hi, 1);
+                    });
+                }
+            });
+
+            b.rows.forEach(function (row, r) {
+                if (r == 0) return;
+                var color = e.data[r - 1].Stage_Color;
+                row.cells.forEach(function (cell, c) {
+                    cell.background = color;
+                });
+            });
+        });
+        var c = new kendo.ooxml.Workbook(e.workbook);
+        var blob = dataURLtoBlob(c.toDataURL());
+        saveAs(blob, e.sender.options.excel.fileName + ".xlsx");
+        $('body').loadingModal('destroy');
+    }
+
+
+    function GetStars(priorityLevel) {
+        var star = "";
+        for (var i = 1; i <= 5; i++) {
+            star += "<i class='fa fa-" + (i <= priorityLevel ? "star" : "star-o")+"' style='color:#ffcc00;font-size:15px;'></i>";
+        }
+        return star;
+    }
+
+    var index = 0;
+    $(document)
+        .on("selected:grid", "#VWCRM_Presentation", function (e, data) {
+            var grid = $('#VWCRM_Presentation').data("kendoGrid");
+            var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
+            $('[data-id="expense"]').attr("data-href", '/PA/VWPA_Transaction/InsertExpense?hasTask=1&type=@((int)EnumPA_TransactionType.Masraf)&dataTable=CRM_Presentation&dataId=' + _selectedRows.FirstOrDefault());
+        })
+        .on("load:grid", "#VWCRM_Presentation", function (e, data) {
+            $.each($(this).find('[role="row"] [data-event="GridSelector"]'), function (i, item) {
+                $(item).parents("td").css('background-color', ($(item).attr('data-Stage_Color')));
+            })
+        })
+        .on("click", '[data-selector="PriorityLevelReset"]', function (e) {
+            index = 0;
+            $('[data-selector="PriorityLevel"]').removeClass("fa-star").addClass("fa-star-o");
+            $(this).hide();
+        })
+        .on("click", '[data-selector="PriorityLevel"]', function (e) {
+            index = $(this).index() + 1;
+            $('[data-selector="PriorityLevel"]').removeClass("fa-star").addClass("fa-star-o");
+            $('[data-selector="PriorityLevelReset"]').show();
+            for (var i = 0; i < index; i++) {
+                $(this).parent().find('[data-selector="PriorityLevel"]').eq(i).addClass("fa-star").removeClass("fa-star-o");
+            }
+        })
+        .on("mouseover", '[data-selector="PriorityLevel"]', function () {
+            $('[data-selector="PriorityLevel"]').removeClass("fa-star").addClass("fa-star-o");
+            for (var i = 0; i < $(this).index() + 1; i++) {
+                $(this).parent().find('[data-selector="PriorityLevel"]').eq(i).addClass("fa-star").removeClass("fa-star-o");
+            }
+        })
+        .on("mouseout", '[data-selector="PriorityLevel"]', function () {
+            $('[data-selector="PriorityLevel"]').removeClass("fa-star").addClass("fa-star-o");
+
+            for (var i = 0; i < index; i++) {
+                $(this).parent().find('[data-selector="PriorityLevel"]').eq(i).addClass("fa-star").removeClass("fa-star-o");
+            }
+        })
+</script>
+

@@ -1,0 +1,117 @@
+﻿@{
+    ViewBag.Title = "Bakım Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/x-kendo-template" id="FrequencyInterval_Template" data-selector="modalContainer">
+
+    # if(data.frequency == 1){ #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Günde 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Günün Her #=data.times# Saatlerinde</b>
+        </div>
+
+    # } else if (data.frequency == 2) { #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Haftada 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Her Haftanın #=data.weekDays# Günlerinde</b>
+        </div>
+        <div>
+            <b class="badge">Saat #=data.times#</b>
+        </div>
+
+    # } else if (data.frequency == 3) { #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Ayda 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Her Ayın #=data.monthDays# Günlerinde</b>
+        </div>
+        <div>
+            <b class="badge">Saat #=data.times#</b>
+        </div>
+
+    # } else { #
+
+        <span class="text-error text-bold">#= data.frequencyInterval #</span>
+
+    # } #
+
+</script>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+
+        .on('load:grid', '#VWFTM_TaskPlan', function (e, row) {
+
+            $.each($('#VWFTM_TaskPlan [data-enabled]'), function (i, item) {
+
+                $(item).parent('td').css('background-color', $(item).attr('data-enabled') == 'true' ? '#1ab394' : '#ed5565');
+
+            });
+
+        })
+
+        ;
+
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox m-b-none">
+            <div class="ibox-title">
+                <div class="col-md-3">
+                    <h5>Bakım Yönetimi Listesi</h5>
+                </div>
+                <div class="col-md-9">
+
+                    <div class="btn-group pull-right" style="margin-top: -5px;">
+                        <a class="btn btn-sm btn-success" style="margin-right: 10px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_TaskPlan/InsertMultiple"> <i class="fa fa-plus-circle"></i> Yeni Planlanmış Görev ve Şablon Tanımla </a>
+                        <a class="btn btn-sm btn-success" style="margin-right: 10px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_TaskPlan/Insert"> <i class="fa fa-plus-square-o"></i> Yeni Planlanmış Görev Tanımla </a>
+                        <a class="btn m-r-sm btn-sm btn-success" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_TaskTemplate/Insert"> <i class="fa fa-plus-circle"></i> Hızlı Görev Şablonu Tanımla </a>
+                    </div>
+
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskPlan>("VWFTM_TaskPlan")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskPlan", new { area = "FTM" })).Sort(a => a.Add(b => b.created).Descending()).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(a => a.enabled);
+        x.Bound(y => y.created).Title("Tarih").Width(180).Format(Extensions.DateFormatFull(true));
+        //  x.Bound(y => y.enabled).Title("Durumu").Width(180).ClientTemplate("#=enabled == true ? 'Aktif' : 'Pasif'#");
+        x.Bound(y => y.frequencyStartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.frequencyEndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.frequency_Title).Title("Tekrar Sıklığı").Width(180);
+        x.Bound(y => y.taskCreationTime_Title).Title("Görev Açılışı").Width(180);
+        x.Bound(y => y.task_Count).Title("Açılmış Görevler").Format("{0:N0} Adet").Width(180);
+        x.Bound(y => y.frequencyInterval).Title("Tekrar Sıklık Periyotu").ClientTemplate("#=TemplateEngine('FrequencyInterval_Template', data)#");
+        x.Bound(y => y.templateId_Title).Title("Görev Şablon Adı").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+
+        x.Custom().Text("<i data-original-title='Planlanmış Görevi Düzenle' class='fa fa-pencil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-method", "GET" }, { "data-blank", "" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWFTM_TaskPlan", new { area = "FTM" }));
+
+        x.Custom().Text("<i data-original-title='Planlanmış Görevi Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-method", "GET" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("TaskDetail", "VWFTM_TaskPlan", new { area = "FTM" }));
+
+        x.Custom().Text("<i data-original-title='Planlanmış Görevi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_TaskPlan", new { area = "FTM" }));
+
+    }))
+
+            </div>
+        </div>
+    </div>
+</div>

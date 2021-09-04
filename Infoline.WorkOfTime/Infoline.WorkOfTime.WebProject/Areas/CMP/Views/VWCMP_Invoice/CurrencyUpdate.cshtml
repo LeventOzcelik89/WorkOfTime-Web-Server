@@ -1,0 +1,49 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_InvoiceModels
+@{
+    ViewBag.Title = "Döviz Düzenleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Areas/CMP/VWCMP_Invoice/js/invoice.js" data-selector="modalContainer"></script>
+
+@using (Html.BeginForm("CurrencyUpdate", "VWCMP_Invoice", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWCMP_InvoiceInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    <div class="form-group">
+
+        <label class="control-label col-md-4 req"><i class="fa fa-refresh"></i> Fatura Dövizi</label>
+        <div class="col-md-3">
+            @(Html.Akilli().DropDownListFor(model => model.currencyId).HtmlAttributes(new Dictionary<string, object>()
+                 {
+                     {"style", "width:100%"},
+                     {"class", "form-control"},
+                 })
+                 .Filter(FilterType.Contains)
+                 .DataTextField("name")
+                 .DataValueField("id")
+                 .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                 .Events(e => { e.Change("_invoice.Events.changeCurrency"); e.DataBound("_invoice.Events.onDataBoundCurrency"); })
+                 .Sort(x => x.Add("name").Ascending())
+                 .Validate(Validations.Required)
+                 .Execute()
+             )
+
+        </div>
+        <div class="col-md-5 hide" id="liveExchange">
+            <label class="control-label col-md-3"><i class="fa fa-refresh"></i>  Kur </label>
+            <div class="col-md-9">
+                @(Html.Kendo().NumericTextBoxFor(model => model.rateExchange).Min(0).Value(1).Spinners(false).Decimals(4).Format("N4").Validate(Validations.Required)
+              .HtmlAttributes(new Dictionary<string, object>()
+              {
+                {"data-calculate", "keyup" }
+              }))
+            </div>
+        </div>
+
+    </div>
+}

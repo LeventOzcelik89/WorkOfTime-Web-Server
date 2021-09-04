@@ -1,0 +1,261 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_AccountModel
+@{
+    var titleType = Model.type == (int)EnumPA_AccountType.Banka ? "Banka" : "Kasa";
+    ViewBag.Title = Model.name + " Hesap Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var accountDetail = {
+        dfn: {
+            ledgerTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
+        },
+        templates: {
+            totalAmountFunction: function (data) {
+                var amount = data.amount ? data.amount : 0;
+                var tax = data.tax ? data.tax : 0;
+                var total = amount + tax
+                if (total == 0) {
+                    return '<span class="pull-right" style="font-size:18px">' + kendo.toString(total, "n2") +" " + data.Currency_Symbol +  '</span>';
+                }
+
+                if (data.direction == -1) {
+                    return '<span class="text-danger pull-right" style="font-size:18px; color:#c30909;">' + kendo.toString(total, "n2") +" " + data.Currency_Symbol + '</span>';
+                }
+
+                return '<span class="text-primary pull-right" style="font-size:18px; color:#087962;">' + kendo.toString(total, "n2") + " " + data.Currency_Symbol + '</span>';
+            },
+            taxTemp: function (data) {
+                var tax = data.tax && data.tax != null ? data.tax : 0;
+                return '<span class="pull-right" style="font-size:18px">' + kendo.toString(tax, "n2") + " " + data.Currency_Symbol + '</span>';
+            },
+            rateTemp: function (data) {
+                if (!data.rateExchange) {
+                    return "-"
+                }
+
+                return '<span class="pull-right" style="font-size:18px">' + kendo.toString(data.rateExchange, "n2") + " ₺" + '</span>';
+            },
+            balanceTemp: function (data) {
+                var balance = data.balance && data.balance != null ? data.balance : 0;
+                if (data.balance > 0) {
+                    return '<span class="pull-right" style="color:#087962;font-size:18px">' + kendo.toString(balance, "n2") + " " + data.Currency_Symbol + '</span>';
+                }
+                else if (data.balance < 0) {
+                  return '<span class="pull-right" style="color:#c30909;font-size:18px">' + kendo.toString(balance, "n2") + " " + data.Currency_Symbol + '</span>';
+                }
+                else {
+                     return '<span class="pull-right" style="color:#d08216;font-size:18px">' + kendo.toString(balance, "n2") + " " + data.Currency_Symbol + '</span>';
+                }
+            },
+            typeTemp: function (data) {
+                if (data.type == null) {
+                    return '<i class="text-warning fa-2x fa fa-warning">';
+                }
+                var type = $.Enumerable.From(accountDetail.dfn.ledgerTypes).Where(a => a.Key == data.type).FirstOrDefault();
+                var color = data.direction == -1 ? "#c30909" : "#087962";
+                return '<i style="color:'+color+'" class=" fa-2x '+ type.Generic.icon +'">';
+            }
+        }
+    }
+
+    $(document)
+        .on("success", "#VWPA_LedgerInsertForm", function (e, resp) {
+            if (resp.Result) {
+                location.reload();
+            }
+        })
+
+</script>
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.Company.fullName
+                    </h2>
+                    <small> <i class="fa fa-location-arrow"></i> @(Model.Company.openAddressLocationId_Title != null ? Model.Company.openAddressLocationId_Title : "Lokasyon bulunamadı")</small>
+                </div>
+                <img src="@(Model.Company.logo != null ? Model.Company.logo : "")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+
+                @if (Model.type == (int)EnumCMP_CompanyType.Diger)
+                {
+                    <div style="margin-top: 15px;">
+                        <a class="btn btn-xs btn-primary" href="/CMP/VWCMP_Company/Detail?id=@Model.Company.id" target="_blank"> <i class="fa fa-info-circle"></i> İşletme Detay </a>
+                        <a class="btn btn-xs btn-primary" href="mailto:@Model.Company.email"> <i class="fa fa-envelope"></i> Mail Gönder </a>
+                        <a class="btn btn-xs btn-primary" href="tel:@Model.Company.phone"> <i class="fa fa-phone"></i> Ara </a>
+                    </div>
+                }
+                else
+                {
+                    <div style="margin-top: 15px;">
+                        <a class="btn btn-xs btn-primary" href="/CMP/VWCMP_Company/Detail?id=@Model.Company.id" target="_blank"> <i class="fa fa-info-circle"></i> İşletme Detay </a>
+                    </div>
+                }
+
+            </div>
+            <div class="widget-text-box">
+                <ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-building"></i> <strong> Firma Kodu : </strong> @Model.Company.code
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-envelope"></i> <strong> E-Posta : </strong> <a href="mailto:@Model.Company.email"> @Model.Company.email </a>
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-phone"></i><strong> Telefon : </strong> <a href="tel:@Model.Company.phone"> @Model.Company.phone </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>HESAP BİLGİLERİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.name</span>
+                        Hesap Adı :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.code</span>
+                        Hesap Kodu:
+                    </li>
+                    <li class="list-group-item ">
+                        <span class="badge badge-success">@Model.type_Title</span>
+                        Hesap Tipi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.currencyId_Title</span>
+                        Döviz Cinsi :
+                    </li>
+
+                    @if (Model.type == (int)EnumPA_AccountType.Banka)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white"> @(Model.bankId_Title != null ? Model.bankId_Title : "-")</span>
+                            Banka Adı :
+                        </li>
+                        <li class="list-group-item">
+                            <span class="badge badge-white">@(Model.iban) </span>
+                            IBAN :
+                        </li>
+                    }
+
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.created.HasValue ? String.Format("{0:dd.MM.yyyy HH:mm}", Model.created) : "-")</span>
+                        Hesap Oluşturulma Tarihi :
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <div class="row">
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div class="widget style1 navy-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-plus-circle fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Toplam Para Girişi</span>
+                            <h2><span>@string.Format("{0:n2}", Model.Summary.SumInput) @Model.Currency_Symbol</span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div class="widget style1 red-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-minus-circle fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Toplam Para Çıkışı</span>
+                            <h2><span>@string.Format("{0:n2}", Model.Summary.SumOutput) @Model.Currency_Symbol</span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div id="Card_e2a97d72" class="widget style1 yellow-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-exchange-1 fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Bakiye</span>
+                            <h2><span>@string.Format("{0:n2}", Model.Summary.Balance) @Model.Currency_Symbol</span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="fa fa-file-text-o"></i> Hesaba Ait İşlem Hareketleri</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                    .Sort(a =>
+                            {
+                                a.Add(b => b.date).Descending();
+                                a.Add(b => b.created).Descending();
+                            })
+                    .Filter(a => a.accountId == Model.id).PageSize(999))
+                    .Columns(x =>
+                     {
+                         x.Bound(y => y.id).ClientTemplate("#= accountDetail.templates.typeTemp(data) #").Width(40).Filterable(false).Title("");
+                         x.Bound(y => y.type_Title).Title("İşlem Türü").Width(150);
+                         x.Bound(y => y.date).Title("İşlem Tarihi").Width(120).Format(Extensions.DateFormatShort(true));
+                         x.Bound(y => y.accountRelatedCompanyId_Title).Title("İlgili Hesap").Width(250);
+
+                         if (Model.Currency_Code != "TL")
+                         {
+                             x.Bound(y => y.rateExchange).Title("Kur").Width(100).ClientTemplate("#=accountDetail.templates.rateTemp(data)#")
+                             .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                         }
+
+                         x.Bound(y => y.tax).Title("Vergi").Width(150).ClientTemplate("#=accountDetail.templates.taxTemp(data)#")
+                             .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                         x.Bound(y => y.totalAmount).Title("İşlem Tutarı").ClientTemplate("#= accountDetail.templates.totalAmountFunction(data)#").Width(200)
+                             .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                         x.Bound(y => y.balance).Title("İşlem Sırasındaki Bakiye").Width(200).ClientTemplate("#=accountDetail.templates.balanceTemp(data)#")
+                             .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                             .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+
+                         x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
+                     })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .Scrollable(s => s.Height(500))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Ledger", new { area = "PA", accountId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Ledger", new { area = "PA" }));
+                    }
+                 ))
+            </div>
+        </div>
+    </div>
+</div>
+

@@ -1,0 +1,85 @@
+﻿@{
+    ViewBag.Title = "Alış Faturaları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Invoice/InsertBuying"> <i class="fa fa-plus-circle"></i> Yeni Alış Faturası </a>
+                    <div class="space-25"></div>
+                    <h5> FATURA TARİHİNE GÖRE </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="(direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWCMP_Invoice" data-switch="radio" data-category="2" data-query="((issueDate~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~issueDate~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~'@((int)EnumCMP_InvoiceDirectionType.Alis)')"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Tüm Alış Faturaları</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_Invoice")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                    .Filter(a => a.direction == (int)EnumCMP_InvoiceDirectionType.Alis).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.SerialNumber_Title).Title("Seri-Sıra No").Width(130);
+                        x.Bound(y => y.Customer_Title).Title("Fatura Kesilen İşletmem").Width(250);
+                        x.Bound(y => y.Supplier_Title).Title("Tedarikçi").Width(250);
+                        x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(120).ClientTemplate("#=currencyFunction(data, data.totalAmount, true)#");
+                        x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
+                    })
+                    .Scrollable(s => s.Height(650))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP", IsCopy = true }));
+                        x.Custom().Text("<i data-original-title='Fatura Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+
+    function currencyFunction(item, data, isTotal) {
+
+        if (!data) {
+            return "-";
+        }
+
+        if (isTotal && isTotal == true) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+        }
+
+        return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+    }
+</script>
+

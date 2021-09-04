@@ -1,0 +1,106 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonCompetencies
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Personel Yeterliliği Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWSH_PersonCompetencies", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <style type="text/css" data-selector="modalContainer">
+        .btn-plus:hover {
+            color: white !important;
+        }
+    </style>
+
+    if (Model.UserId == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="UserId">Personel Adı</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.UserId)
+                  .OptionLabel("Lütfen Personel Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                  .Template("#=TemplateEngine('userTemplate',data)#")
+                  .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                  .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Execute("id")
+                  .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.UserId)
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="CompetenciesId">Yeterlilik Alanları</label>
+        </div>
+        <div class="col-md-8">
+                @(
+                Html.Akilli()
+                .DropDownListFor(model => model.CompetenciesId)
+                .OptionLabel("Lütfen Yeterlilik Alanı Seçiniz..")
+                .DataTextField("CompetenciesName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "SH_Competencies", new { area = "SH" }))
+                .BasicInsert(Url.Action("Insert", "SH_Competencies", new { area = "SH"}), "CompetenciesName", false)
+                .Sort(x => x.Add("CompetenciesName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req">Yeterlilik Seviyesi</label>
+        </div>
+        <div class="col-md-8 radio">
+            <div class="row">
+                <label>
+                    @Html.Kendo().RadioButtonFor(a => a.CompetenciesLevel).Checked(Model.CompetenciesLevel == (Int32)EnumSH_PersonCompetenciesLevel.Baslangic || Model.CompetenciesLevel == null).Value((Int32)EnumSH_PersonCompetenciesLevel.Baslangic)
+                    @EnumSH_PersonCompetenciesLevel.Baslangic.ToDescription()
+                </label>
+                <label>
+                    @Html.Kendo().RadioButtonFor(a => a.CompetenciesLevel).Checked(Model.CompetenciesLevel == (Int32)EnumSH_PersonCompetenciesLevel.Temel).Value((Int32)EnumSH_PersonCompetenciesLevel.Temel)
+                    @EnumSH_PersonCompetenciesLevel.Temel.ToDescription()
+                </label>
+                <label>
+                    @Html.Kendo().RadioButtonFor(a => a.CompetenciesLevel).Checked(Model.CompetenciesLevel == (Int32)EnumSH_PersonCompetenciesLevel.Orta).Value((Int32)EnumSH_PersonCompetenciesLevel.Orta)
+                    @EnumSH_PersonCompetenciesLevel.Orta.ToDescription()
+                </label>
+                <label>
+                    @Html.Kendo().RadioButtonFor(a => a.CompetenciesLevel).Checked(Model.CompetenciesLevel == (Int32)EnumSH_PersonCompetenciesLevel.Iyi).Value((Int32)EnumSH_PersonCompetenciesLevel.Iyi)
+                    @EnumSH_PersonCompetenciesLevel.Iyi.ToDescription()
+                </label>
+                <label>
+                    @Html.Kendo().RadioButtonFor(a => a.CompetenciesLevel).Checked(Model.CompetenciesLevel == (Int32)EnumSH_PersonCompetenciesLevel.Ileri).Value((Int32)EnumSH_PersonCompetenciesLevel.Ileri)
+                    @EnumSH_PersonCompetenciesLevel.Ileri.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

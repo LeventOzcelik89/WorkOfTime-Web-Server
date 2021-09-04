@@ -1,0 +1,117 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@using Infoline.Helper
+@model Infoline.WorkOfTime.BusinessData.HR_StaffNeedsStatus[]
+@{
+    ViewBag.Title = "Talep İşlemleri";
+}
+
+@if (Model.Count() == 0)
+{
+    <form data-selector="modalContainer" class="form-horizontal" style="padding:0 !important;">
+        <fieldset>
+            <legend>Talep İşlemleri</legend>
+            <div class="col-md-12 text-center"> Herhangi bir işlem bulunamadı.</div>
+        </fieldset>
+    </form>
+}
+else
+{
+    <link rel="stylesheet" href="~/Content/Plugins/vertical-timeline/css/style.css" data-selector="modalContainer">
+    <style type="text/css" data-selector="modalContainer">
+        .flaticon {
+            height: 2px;
+            margin-top: -3px;
+        }
+
+
+        .cd-timeline-content {
+            background: #d7e4ed;
+        }
+
+            .cd-timeline-content > h2 {
+                font-size: 14px !important;
+            }
+
+            .cd-timeline-content > p {
+                font-size: 12px !important;
+            }
+
+            .cd-timeline-content > span {
+                font-size: 12px !important;
+            }
+
+        .cd-timeline-block > a {
+            color: black !important;
+        }
+
+        .cd-timeline-content > h2 {
+            font-weight: bold;
+        }
+
+        .cd-timeline-img i {
+            color: white;
+            font-size: 25px;
+            position: absolute;
+            transform: translate(-50%,-50%);
+            left: 50%;
+            top: 50%;
+        }
+
+        .yaziRenk > a {
+            color: white !important;
+        }
+
+        .table {
+            font-size: 11px;
+        }
+
+
+        .widget.style1 h2 {
+            font-size: 21px;
+        }
+    </style>
+
+    <section id="cd-timeline">
+        @foreach (var item in Model)
+        {
+            if (item.status == (int)EnumHR_StaffNeedsStatusStatus.TalepGerceklestirildi)
+            {
+                <div class="cd-timeline-block">
+                    <div class="cd-timeline-img cd-picture">
+
+                        <div style="position:relative;width:100%;height:100%; background-color:@EnumsProperties.GetGenericFromEnumValue((EnumHR_StaffNeedsStatusStatus)item.status)["color"]; border-radius: 50px;">
+                            <i class="fa fa-spinner"></i>
+                        </div>
+
+                    </div>
+                    <div class="cd-timeline-content">
+                       Bir idari yönetici tarafından talebin onaylanması bekleniyor.
+                        <span class="cd-date font-bold" style="font-size:14px !important">
+                            @(item.created.HasValue ? item.created.Value.ToShortDateString() : "")
+                            @(item.created.HasValue ? item.created.Value.ToShortTimeString() : "")
+                        </span>
+                    </div>
+                </div>
+            }
+            <div class="cd-timeline-block">
+                <div class="cd-timeline-img cd-picture">
+
+                    <div style="position:relative;width:100%;height:100%; background-color:@EnumsProperties.GetGenericFromEnumValue((EnumHR_StaffNeedsStatusStatus)item.status)["color"]; border-radius: 50px;">
+                        <i class="fa @EnumsProperties.GetGenericFromEnumValue((EnumHR_StaffNeedsStatusStatus)item.status)["icon"]"></i>
+                    </div>
+
+                </div>
+                <div class="cd-timeline-content">
+                    @Html.Raw(!string.IsNullOrEmpty(item.description) ? item.description.ToString() + "" : " - ")
+                    <span class="cd-date font-bold" style="font-size:14px !important">
+                        @(item.created.HasValue ? item.created.Value.ToShortDateString() : "")
+                        @(item.created.HasValue ? item.created.Value.ToShortTimeString() : "")
+                    </span>
+
+                </div>
+            </div>
+        }
+    </section>
+
+
+}

@@ -1,0 +1,286 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMDOC_DocumentModel
+@{
+    ViewBag.Title = "Doküman Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script type="text/javascript">
+    $(document)
+        .on("before:submit", "#VWDOC_DocumentFormUpdate", function (e, res) {
+            $("#content").val(CKEDITOR.instances['content'].getData());
+        })
+
+    $('table [type="radio"]').change(function (e, item) {
+        if (this.value == "0") {
+            $($($($(this).closest('td')).next().find('div'))[1]).addClass('hide');
+            $($($($(this).closest('td')).next().find('div'))[0]).removeClass('hide');
+        } else {
+            $($($($(this).closest('td')).next().find('div'))[0]).addClass('hide');
+            $($($($(this).closest('td')).next().find('div'))[1]).removeClass('hide');
+        }
+    })
+</script>
+
+@using (Html.BeginForm("Update", "VWDOC_Document", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    {"id","VWDOC_DocumentFormUpdate" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.documentVersion.id)
+
+    <div class="panel-group" id="accordionCompany" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordionCompany" href="#generalInfo" aria-expanded="true" aria-controls="collapseOne">
+                        <i class="text-success icon-info-4"></i> Doküman Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="generalInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="code">Doküman Numarası</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Doküman Numarası Girin.."},
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="versionNumber">Versiyon</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.versionNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Versiyon Girin.."},
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="type">Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumDOC_DocumentType.Document))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="title">Başlık</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlık Girin.."},
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="subject">Konu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.subject, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Konu Girin.."},
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="content">İçerik</label>
+                        </div>
+                        <div class="col-md-8">
+                            <textarea class="form-control" name="content" id="content" data-item="content"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="responsibleUserId">Sorumlu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                .DropDownListFor(model => model.responsibleUserId)
+                .OptionLabel("Lütfen Sorumlu Personel Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Filter<VWSH_User>(x=> x.IsWorking == true && !string.IsNullOrEmpty(x.FullName))
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+             )
+                        </div>
+                    </div>
+
+                    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;">
+                        Revizyon talebi bulunan dokümanlar için versiyon güncellemesi gerekmektedir.Versiyon güncellemesi yaparken yeni dokümanı yüklemeniz gerekmektedir.Aşağıda bulunan doküman geçmiş versiyonun dokümanı olarak kalacaktır.
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req">Doküman</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                 Html.Akilli().FileUpload()
+                 .DataTable("DOC_DocumentVersion")
+                 .DataId(Model.documentVersion.id)
+                 .DataKey(x => x.fileGroup == "Doküman Dosyası").PreviewMode(false).Validate(true)
+            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req">Kapsamı</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                .MultiSelectFor(model => model.documentScopeOrganizationUnitIds)
+                .Placeholder("Lütfen Organizasyon Birimi Seçiniz..")
+                .DataTextField("PID_Title")
+                .DataValueField("id")
+                .Filter<VWINV_CompanyDepartments>(x=> x.Type == (int)EnumINV_CompanyDepartmentsType.Organization)
+                .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
+                .Sort(x => x.Add("PID_Title").Ascending())
+                .Execute("id")
+             )
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordionCompany" href="#contactInfo" aria-expanded="false">
+                        <i class="text-success icon-map-signs"></i> Onay Akışı
+                    </a>
+                </h4>
+            </div>
+            <div id="contactInfo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th style="width:16%">Onay Sırası</th>
+                                <th style="width:30%">Tip</th>
+                                <th style="width:64%">Kişi/Organizasyon</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                            @foreach (var item in Model.flowList.Select((data, index) => new { data = data, index = index }))
+                            {
+                                <tr>
+                                    <td>
+                                        @item.index
+                                        @Html.Hidden("flowList[" + item.index + "].order", item.index)
+                                        @Html.Hidden("flowList[" + item.index + "].documentId", Model.id)
+                                    </td>
+                                    <td>
+                                        @(Html.Akilli().RadioButtonGroupFor(a => a.flowList[item.index].type).Name("flowList[" + item.index + "].type").Value(item.data.type == (Int16)EnumDOC_DocumentFlowType.OrganizationUnit ? EnumDOC_DocumentFlowType.OrganizationUnit : EnumDOC_DocumentFlowType.User))
+                                    </td>
+                                    <td>
+                                        <div class="@(item.data.type == (Int16)EnumDOC_DocumentFlowType.OrganizationUnit ? "" : "hide")">
+                                            @(Html.Akilli()
+                                 .DropDownList("flowList[" + item.index+ "].organizationUnitId")
+                                  .Value(item.data.organizationUnitId.HasValue ? item.data.organizationUnitId.Value.ToString() : "")
+                                 .OptionLabel("Lütfen Organizasyon Birimi Seçiniz..")
+                                 .DataTextField("PID_Title")
+                                 .DataValueField("id")
+                                 .Filter<VWINV_CompanyDepartments>(x=> x.Type == (int)EnumINV_CompanyDepartmentsType.Organization)
+                                 .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
+                                 .Sort(x => x.Add("PID_Title").Ascending())
+                                 .Execute("id")
+                              )
+                                        </div>
+                                        <div class="@(item.data.type == (Int16)EnumDOC_DocumentFlowType.User ? "" : "hide")">
+                                            @(Html.Akilli()
+                                          .DropDownList("flowList[" + item.index + "].userId")
+                                          .OptionLabel("Lütfen Personel Seçiniz..")
+                                           .Value(item.data.userId.HasValue ? item.data.userId.Value.ToString() : "")
+                                          .DataTextField("FullName")
+                                          .DataValueField("id")
+                                          .Filter<VWSH_User>(x=> x.IsWorking == true && !string.IsNullOrEmpty(x.FullName))
+                                          .Template("#=TemplateEngine('userTemplate',data)#")
+                                          .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                          .Sort(x => x.Add("FullName").Ascending())
+                                          .Execute("id")
+                                       )
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+      var page = {
+        content: `@Html.Raw(Model.content)`,
+        loadEditor: function (content) {
+            if ($('#' + content).length == 0) {
+                return;
+            }
+            var form = $('#' + content).parents('.form-horizontal');
+            var idElem = form.find('[name="id"]');
+
+            var id = newGuid();
+
+            if (idElem && idElem != null && idElem != "") {
+                id = idElem.val();
+            }
+
+            CKEDITOR.replace(content, {
+                extraPlugins: 'image2',
+                height: '120px',
+                removeButtons: 'CustomImageUploader',
+                filebrowserImageUploadUrl: '/HDM/VWHDM_TicketMessage/EditorUploadFile?id=' + id,
+                removePlugins: 'about'
+            });
+
+            $('#content').val(page.content);
+        }
+    };
+
+    CKEDITOR.config.entities_latin = !0;
+    CKEDITOR.config.entities_latin = false;
+    CKEDITOR.config.extraAllowedContent = false;
+    page.loadEditor('content');
+</script>

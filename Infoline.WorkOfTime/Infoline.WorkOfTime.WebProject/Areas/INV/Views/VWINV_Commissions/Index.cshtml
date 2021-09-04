@@ -1,0 +1,177 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Tüm Görevlendirmeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+@section Javascript{
+    <script type="text/javascript">
+     function statusTemplate(data) {
+        if(data.ApproveStatus == 0){
+            return '<i class="fa text-warning fa-spinner">';
+        }else if(data.ApproveStatus == 1){
+            return '<i class="fa text-success fa-upload"></i>';
+        }else if(data.ApproveStatus == 3){
+            return '<i class="fa text-navy fa-check">';
+        }else{
+            return '<i class="fa text-danger fa-times-circle"></i>';
+        }
+     }
+
+        $(document)
+            .on("selected:grid", "#VWINV_Commissions", function (e, resp) {
+                $('[data-href="/INV/VWINV_Commissions/Update"],[data-href="/INV/VWINV_Commissions/Delete"]').addClass('hide');
+                if ('@userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici))' == 'True') {
+                    $('[data-href="/INV/VWINV_Commissions/Delete"]').removeClass('hide');
+                }
+                if (resp.ApproveStatus == 0 && resp.createdby == '@userStatus.user.id') {
+                    $('[data-href="/INV/VWINV_Commissions/Delete"]').removeClass('hide');
+                }
+            })
+    </script>
+}
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+
+                    <div class="space-25"></div>
+
+
+                    <h5>DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa fa-align-justify" style="color:black;"></i>  Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/INV/VWINV_Commissions/DataSourceCount">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left " href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~0)">
+                                <i class="fa text-warning fa-spinner"></i>  Onayda Bekleyen
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Commissions/DataSourceCount?filter=(ApproveStatus~eq~0)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~1)">
+                                <i class="fa text-success fa-upload"></i> Imzalı Dosya Beklenen
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Commissions/DataSourceCount?filter=(ApproveStatus~eq~1)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~3)">
+                                <i class="fa  text-navy fa-check"></i>   Süreci Tamamlanmış
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Commissions/DataSourceCount?filter=(ApproveStatus~eq~3)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~2)">
+                                <i class="fa text-danger fa-times-circle"></i>  Reddedilmiş
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Commissions/DataSourceCount?filter=(ApproveStatus~eq~2)">0</span>
+                        </li>
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>  BAŞLANGIÇ TARİHİNE GÖRE </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query=""> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWINV_Commissions" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+                    </ul>
+
+                    <div class="space-25"></div>
+
+                    <h5>GÖREV TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CommissionsInformation>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_Commissions" data-category="1" data-query="(Information~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+                    <div class="space-25"></div>
+
+                    <h5>SEYAHAT TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix  m-b-md" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CommissionsTravelInformation>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_Commissions" data-category="2" data-query="(TravelInformation~eq~'@item.Key')">
+                                    @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+
+
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Görevlendirme Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_Commissions>("VWINV_Commissions")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_Commissions", new { area = "INV" }))
+                .PageSize(25))
+                .Scrollable(a => a.Height(600))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.ApproveStatus_Title).Title("").ClientTemplate("#=statusTemplate(data)#").Filterable(a => a.Enabled(false)).Width(40);
+                    x.Bound(y => y.created).Title("Talep Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.createdby_Title).Title("Talep Eden").Width(150);
+                    x.Bound(y => y.CommissionCode).Title("Görevlendirme Kodu").Width(180);
+                    x.Bound(y => y.Information_Title).Title("Görevlendirme Tipi").Width(170);
+                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.TotalHoursText).Title("Süresi").Width(140);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Single))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görevlendirme detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_Commissions", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-trash' data-original-title='Görevlendirme Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Delete", "VWINV_Commissions", new { area = "INV" }));
+                }))
+            </div>
+        </div>
+    </div>
+</div>

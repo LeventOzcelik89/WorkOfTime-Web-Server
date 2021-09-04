@@ -1,0 +1,129 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+@{
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Firma Personel Bilgisi Düzenle";
+}
+
+
+@using (Html.BeginForm("Update", "VWSH_User", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{"id","UpdateCustomer" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+	}))
+{
+
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(c => c.id)
+	@Html.HiddenFor(c => c.CompanyId)
+	@Html.HiddenFor(c => c.type)
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="firstname">Ad/Soyad</label>
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(model => model.firstname, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen ad giriniz.."},
+			}).Validate(Validations.TextTurkceSpace(true))
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(model => model.lastname, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen soyad giriniz"},
+			}).Validate(Validations.TextTurkceSpace(true))
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="title">Departman / Ünvan</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Departman/Ünvan giriniz.."},
+			})
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="email">Eposta Adresi</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+			{
+				{"placeholder","Email adresi(test@test.com)"},
+				{"class","form-control"},
+			}).Validate(Validations.EMail(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="phone">Sabit Telefon</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
+                {
+                    { "style", "width: 100%"},
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Sabit Telefonu Giriniz."},
+                })
+                .Mask("0 (000) 000 00 00")
+                .UnmaskOnPost(true)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="cellphone">Cep Telefonu</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
+                {
+                    { "style", "width: 100%"},
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Cep Telefonu Giriniz."},
+                })
+                .Mask("0 (000) 000 00 00")
+                .UnmaskOnPost(true)
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Roles">Roller</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
+				.MultiSelect("Roles")
+				.DataTextField("rolname")
+				.DataValueField("id")
+				.Action(b => b.Action("DataSourceDropDown", "VWSH_Role", new { area = "SH" }))
+				.Filter<VWSH_Role>(f => f.id == new Guid(SHRoles.SahaGorevMusteri) || f.id == new Guid(SHRoles.YardimMasaTalep) || f.id == new Guid(SHRoles.BayiPersoneli) || f.id == new Guid(SHRoles.YukleniciPersoneli) || f.id == new Guid(SHRoles.BayiGorevPersoneli) || f.id == new Guid(SHRoles.SahaGorevPersonel))
+				.Sort(x => x.Add("rolname").Ascending())
+				.Value(Model.Roles)
+				.TagMode(TagMode.Multiple)
+				.Execute("id")
+            )
+		</div>
+	</div>
+
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+
+}

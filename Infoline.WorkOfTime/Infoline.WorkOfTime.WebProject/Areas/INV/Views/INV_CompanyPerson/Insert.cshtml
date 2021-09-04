@@ -1,0 +1,100 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPerson
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Personel İşletme Bilgisi Ekleme";
+}
+
+
+@using (Html.BeginForm("Insert", "INV_CompanyPerson", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "data-loadingtitle","Personel işletme bilgisi düzenleme işleminiz kaydediliyor.Lütfen bekleyiniz.."}
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.Hidden("id", new Dictionary<string, object> { { "id", Model.id } })
+    @Html.HiddenFor(a => a.IdUser)
+
+
+    <div class="alert alert-warning text-center">
+        @Html.Raw(ViewBag.Warning)
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="CompanyId">İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.CompanyId)
+                .Id("personCompanyId")
+                .OptionLabel("Lütfen seçim yapınız")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                .Sort(x => x.Add("name").Ascending())
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Title"> Ünvanı</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Ünvanı Giriniz.."},
+                })
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="JobStartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.JobStartDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen işletme başlangıç tarihi seçiniz.."},
+            })
+            .Value(Model.JobEndDate.HasValue ? Model.JobEndDate.Value : (Model.JobStartDate.HasValue ? Model.JobStartDate.Value : DateTime.Now.AddYears(-1)))
+            .Min(Model.JobEndDate.HasValue ? Model.JobEndDate.Value : (Model.JobStartDate.HasValue ? Model.JobStartDate.Value : DateTime.Now.AddYears(-1)))
+            .Format(Extensions.DateFormatShort()).Validate(Validations.Required))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Level">Personel Kademesi</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.Level).Min(0).Max(20).Format("D2").HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"style", "width:100%"},
+                    {"class", "text-right form-control"},
+                    {"placeholder", "Lütfen personel kademesi giriniz.."},
+                }).Step(1).Max(24).Min(1).Spinners(false)
+                <span class="input-group-addon" id="Level">Kademe</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+

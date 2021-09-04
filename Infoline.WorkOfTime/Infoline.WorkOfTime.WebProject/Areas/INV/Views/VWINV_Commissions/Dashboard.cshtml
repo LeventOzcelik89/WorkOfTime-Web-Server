@@ -1,0 +1,320 @@
+﻿@model VWINV_CommissionsPageReport
+
+@{
+    ViewBag.Title = "Görevlendirme Raporları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+@section Css{
+    <link href="~/Content/Custom/css/INV_Commissions_Dashboard.css" rel="stylesheet" />
+}
+
+<script type="text/javascript">
+
+    function ChartLoaded(element) {
+
+        if (element.sender.dataSource.data().filter(function (v) { return v.Sayisal == 0 }).length != 12) {
+            $('[data-becontrol="' + element.sender.element.attr('data-control') + '"]').hide();
+        }
+    }
+
+    $(document)
+    .on('ready', function () {
+        CreateAllCharts();
+    })
+
+    function CreateAllCharts() {
+        GetJsonDataFromUrl('/INV/VWINV_Commissions/DashboardResult', null, function (resp) {
+            $('[data-total="gorevlendirmebilgisi"]').html($.Enumerable.From(resp.informationType).Sum(function (s) { return s.Value }))
+            $('[data-total="personel"]').html($.Enumerable.From(resp.commissionsMostPersons).Sum(function (s) { return s.Value }))
+            $('[data-total="seyahattipi"]').html($.Enumerable.From(resp.commissionsTravelCounts).Sum(function (s) { return s.Value }))
+            $('[data-total="aracsayisi"]').html($.Enumerable.From(resp.commissionsCar).Sum(function (s) { return s.Value }))
+            $('[data-total="devamedenisletme"]').html($.Enumerable.From(resp.projectCommission).Sum(function (s) { return s.Value }))
+            CreateAllPieCharts($('#AllCommissionsInformation'), resp.informationType, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Adet ", "bottom");
+            CreateAllPieCharts($('#AllCommissionsMostPersons'), resp.commissionsMostPersons, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Görevlendirme Mevcut");
+            CreateAllPieCharts($('#AllCommissionsTravel'), resp.commissionsTravelCounts, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)# Adet ", "bottom");
+            CreateAllPieCharts($('#AllCommissionsCars'), resp.commissionsCar, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Defa Görevlendirmesi Mevcut ", "bottom");
+         // CreateAllPieCharts($('#AllCommissionProject'), resp.projectCommission, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Görevlendirme Mevcut", "bottom");
+            CreateLineChart($('#AllCommissionLastOneYear'), resp.lastoneyearCommissionsPerson);
+            CreateKendoChart($('#CommissionsPersons'), resp.CommissionsPerson, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)#  ", "{0:N0} Personel", "{0:N0} Personel");
+            CreateKendoChart($('#CommissionsProjects'), resp.CommissionsProject, " #= category # :  #=kendo.format(\"{0:N0}\", data.value)#  ", "{0:N0} Proje", "{0:N0} Proje");
+        }, "Görevlendirme Grafikleri Yükleniyor...");
+    }
+    function CreateAllPieCharts(element, data, MyTemplatePie, position) {
+
+        if (data.length == 0) {
+
+            element.parents('div').eq(0).append('<div class="nodata "><div>Kayıt Bulunamadı</div></div>');
+            return;
+        }
+
+        $.each(data, function (ind, el) {
+            el.Key = el.Key == null ? "Bilinmiyor" : el.Key;
+        })
+
+        element.kendoChart({
+            title: {},
+            legend: {
+                position: position
+            },
+            dataSource: {
+                data: data
+            },
+
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            series: [{
+                type: "pie",
+                field: "Value",
+                colorField: "Color",
+                categoryField: "Key"
+            }],
+
+            seriesDefaults: {
+                overlay: { gradient: "none" },
+
+                labels: {
+                    visible: true,
+                    background: "transparent",
+                    template: "#= kendo.format('{0:p2}', percentage)#"
+
+                }
+            },
+            chartArea: {
+                background: "transparent"
+            },
+            tooltip: {
+                visible: true,
+                template: MyTemplatePie,
+                format: "{0:N0}"
+            }
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function CreateKendoChart(element, data, mytem, format) {
+
+        if (!data || data.filter(function (v) { return v.Value == 0; }).length == 12) {
+            element.parents('div').eq(0).append('<div class="nodata fix  text-center"><div>Sonuç Bulunamadı</div></div>');
+            return;
+        }
+
+        element.kendoChart({
+            dataSource: {
+                data: data
+            },
+            series: [{
+                field: "Value",
+                categoryField: "Key"
+            }],
+            seriesDefaults: {
+                type: "line",
+            },
+
+            legend: {
+                position: "bottom"
+            },
+            valueAxis: {
+                labels: {
+                    step: 4,
+                    format: format
+                }
+            },
+            categoryAxis: {
+                labels: {
+                    rotation: -45
+
+                },
+                majorGridLines: {
+                    visible: true
+                },
+                majorTicks: {
+                    lines: {
+                        visible: true
+                    }
+                },
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:N0}",
+                template: " #= dataItem.Tooltip # </br> Toplam #=dataItem.Value# Adet",
+                opacity: 0.7,
+                shared: true,
+                background: 'red'
+            }
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function CreateLineChart(element, data) {
+
+
+        if (!data || data.filter(function (v) { return v.Value == 0; }).length == 12) {
+            element.parents('div').eq(0).append('<div class="nodata fix  text-center"><div>Sonuç Bulunamadı</div></div>');
+            return;
+        }
+
+        element.kendoChart({
+            dataSource: {
+                data: data
+            },
+            series: [{
+                field: "Value",
+                categoryField: "Key"
+            }],
+            seriesDefaults: {
+                type: "line",
+            },
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            seriesColors: ["#1c0F7F", "#90cc38", "#4CAF50", "#3F51B5"],
+            legend: {
+                position: "bottom"
+            },
+            valueAxis: {
+                labels: {
+                    step: 2,
+                    format: "{0:N0} Görevlendirme"
+                }
+            },
+            categoryAxis: {
+                labels: {
+                    rotation: -45
+                },
+                majorGridLines: {
+                    visible: true
+                },
+                majorTicks: {
+                    lines: {
+                        visible: true
+                    }
+                },
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:N0}",
+                template: "#= data.value # Görevlendirme",
+                opacity: 0.7,
+                shared: true,
+                background: 'red'
+            }
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+</script>
+
+<div class="form-horizontal">
+    <div class="row">
+        <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+            @Html.Akilli().Card().Color("yellow").Text("Bu Hafta Görevlendirilen Personel Sayısı").Value(string.Format("{0:N0} Adet", Model.BuHaftaGorevlendirilmeSayisi)).IconClass("fa fa-calendar-o")
+        </div>
+        <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+            @Html.Akilli().Card().Color("blue").Text("Bu Ay Görevlendirilen Personel Sayısı").Value(string.Format("{0:N0} Adet", Model.BuAyGorevlendirilmeSayisi)).IconClass("fa fa-calendar")
+        </div>
+        <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+            @Html.Akilli().Card().Color("navy").Text("Bu Yıl Görevlendirilen Personel Sayısı").Value(string.Format("{0:N0} Adet", Model.BuYilGorevlendirilmeSayisi)).IconClass("fa fa-calendar-o")
+        </div>
+        <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+            @Html.Akilli().Card().Color("red").Text("Bu Yıl En Çok Görevlendirilen Personel").Value(!string.IsNullOrEmpty(Model.BuYilEnCokGorevlendirilenPersonel) ? Model.BuYilEnCokGorevlendirilenPersonel : "Bulunamadı").IconClass("fa fa-user")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Personellerin Onaylanan Görevlendirme Adetlerine Göre Dağılımı</h5><br />
+                    <small>Personellerin yaptıkları görevlendirmeler grafiğidir.</small><br />
+                    <small>
+                        Grafikte bulunan <span class="chart-total" data-total="personel"></span>  kayıt bilgisi vardır.
+                    </small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllCommissionsMostPersons"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Onaylanan Seyahatin Taşıt Tipine Göre Dağılımı</h5><br />
+                    <small>Personellerin seyehat için kullandıkları taşıtların grafiğini gösterir.</small><br />
+                    <small>Toplam <span class="chart-total" data-total="seyahattipi"></span>  adet seyehat tipi bulunmaktadır.</small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllCommissionsTravel"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="row">
+     
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Şirket Araçlarının Onaylanan Görevlendirmelerinin Adetlerine Göre Dağılımı</h5><br />
+                    <small>Şirket araçlarının görevlendirme sayısını tuttuğumuz grafiktir.</small><br />
+                    <small>Toplam <span class="chart-total" data-total="aracsayisi"></span>  adet şirket aracı bulunmaktadır.</small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllCommissionsCars"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Seyahat Amacına Göre Onaylanan Görevlendirmelerin Dağılımı</h5><br />
+                    <small>Görevlendirme bilgilerinin tipine göre listelendiği grafiktir.</small><br />
+                    <small>Şuanda grafikte toplam <span class="chart-total" data-total="gorevlendirmebilgisi"></span> adet görevlendirme bilgisi bulunmaktadır.</small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllCommissionsInformation"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Son 12 Ayda Onaylanan Görevlendirme Sayıları</h5><br />
+                    <small>Ay bazında kaç sefer görevlendirmeye gidildiğini gösterir.</small><br />
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllCommissionLastOneYear"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<div class="fixed-button">
+    <a href="@Url.Action("Index","VWINV_Commissions",new {area="INV"})" class="btn btn-success btn-block text-left" title="Görevlendirmeleri Listele"><i class="fa fa-list" aria-hidden="true"></i> Görevlendirmeleri Listele</a>
+</div>

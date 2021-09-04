@@ -1,0 +1,56 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartmentsPageReport
+@{
+    ViewBag.Title = "Organizasyon Şeması Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Css{
+    <style type="text/css">
+        .widget {
+            margin-top: 0px !important;
+        }
+    </style>
+}
+
+@section Javascript{
+    <script type="text/javascript">
+        $(".k-grid-content").height($(window).height() - 380);
+    </script>
+}
+
+<div class="row m-b-sm">
+    <div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Departman Sayısı").Value(Model.ToplamDepartman + " Adet").IconClass("fa fa-sitemap")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Toplam Pozisyon Sayısı").Value(Model.ToplamPozisyon + " Adet").IconClass("fa fa-arrow-up")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Departmanı En Fazla Olan Pozisyon").Value(Model.DepartmanEnFazlaPozisyon).IconClass("fa fa-building")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("En Son Eklenen Departman Adı").Value(Model.SonEklenenDepartment).IconClass("fa fa-list-alt")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments>("VWINV_CompanyDepartments")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyDepartments", new { area = "INV" }))
+    .Sort(a => a.Add(c => c.Type).Ascending())
+    .Filter(a => a.PID == System.UIHelper.Guid.Null)
+    .Group(a => a.Add(c => c.Type_Title))
+    .PageSize(100))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Width(25);
+        x.Bound(y => y.Type_Title).Title("Tip").Width(200);
+        x.Bound(y => y.Project_Title).Title("Proje İsmi").Width(200);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("ORGANİZASYON ÖNİZLEME").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Preview", "VWINV_CompanyDepartments", new { area = "INV" }));
+        x.Custom().Text("ORGANİZASYON DÜZENLEME").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Upsert", "VWINV_CompanyDepartments", new { area = "INV" }));
+    })
+)

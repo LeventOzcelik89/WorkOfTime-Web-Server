@@ -1,0 +1,566 @@
+﻿@using System.Globalization
+@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMHR_StaffNeedsAndReview
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Personel Talep Formu</title>
+</head>
+@{
+    ViewBag.Title = "Personel Talep Formu";
+}
+
+<body>
+    <link href="~/Content/Custom/css/print.css" rel="stylesheet" />
+    <style>
+        p {
+            font-size: 12px;
+        }
+
+        .bgColorGrey {
+            background: #f1f1f1;
+        }
+
+        em {
+            font-style: normal;
+        }
+
+        .bgColorGreytextWhite {
+            background: #8d8d8d;
+            color: #ffffff;
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 2px;
+        }
+
+        .lineHeightOption {
+            line-height: 0px;
+        }
+        footer {
+    display: none;
+}
+        body {
+    margin: 17px !important;
+}
+    </style>
+    <script type="text/javascript">
+           window.print();
+    </script>
+
+    <table border="1" cellspacing="0" cellpadding="0" class="lineHeightOption" style="margin-left: 6px;">
+        <tbody>
+            <tr>
+                <td width="194" rowspan="3">
+                    <p align="center">
+                        <strong>
+                            <img width="99"
+                                 height="71"
+                                 src="@(Model.Logo != null ? Model.Logo : "/Content/Custom/img/infolineform.png")" />
+                        </strong>
+                    </p>
+                </td>
+                <td colspan="5">
+                    <p align="center">
+                        <strong>PERSONEL TALEP FORMU</strong>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td width="100">
+                    <p align="center">
+                        DOK. NO
+                    </p>
+                </td>
+                <td width="124">
+                    <p align="center">
+                        YÜRÜRLÜK TARİHİ
+                    </p>
+                </td>
+                <td width="110">
+                    <p align="center">
+                        REVİZYON NO
+                    </p>
+                </td>
+                <td width="116">
+                    <p align="center">
+                        REVİZYON TARİHİ
+                    </p>
+                </td>
+                <td width="67">
+                    <p align="center">
+                        S. NO
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td width="125" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    SRC-13-FRM-05
+                </td>
+                <td width="124" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    20.11.2017
+                </td>
+                <td width="100" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    01
+                </td>
+                <td width="116" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    12.03.2018
+                </td>
+                <td width="67">
+                    <p align="center" style="font-size: 10px; font-weight: bold; text-align: center;">
+                        1 / 2
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+
+    <table style="border-collapse: collapse; border: none; margin-left: 4.8pt; margin-right: 4.8pt;">
+        <tbody>
+            <tr>
+                <td style="border-top: 0px !important; border: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="5" width="662">
+                    <p><strong><span style="font-family: 'Calibri',sans-serif;">Talep Tarihi : </span></strong><span>@(Model.VWHR_StaffNeeds.created.HasValue ? Model.VWHR_StaffNeeds.created.Value.ToShortDateString() + " " + Model.VWHR_StaffNeeds.created.Value.ToShortTimeString() : "")</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 496.2pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="5" width="662">
+                    <p><strong><span style="font-family: 'Calibri',sans-serif;">Talep Nedeni: </span></strong><span>@(Model.VWHR_StaffNeeds.ReasonForStaffDemand != null ? Model.VWHR_StaffNeeds.ReasonForStaffDemand_Title : "")</span> </p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Personel Talep Nedeni</span></p>
+                </td>
+                <td style="width: 226.55pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="302">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İşten Ayrılan Personel Yerine&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.ReasonForStaffDemand == (int)EnumHR_StaffNeedsReasonForStaffDemand.IstenAyrilanPersonelYerine ? "✓" : "☐") </span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Organizasyon İhtiyacı&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.ReasonForStaffDemand == (int)EnumHR_StaffNeedsReasonForStaffDemand.OrganizasyonIhtiyaci ? "✓" : "☐") </span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İstihdam Edilecek B&ouml;lge</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Ankara&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;"> </span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İstanbul&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;"></span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Diğer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;"></span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Personel İstihdam Durumu</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Belirsiz S&uuml;reli&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.EmploymentStatus == (int)EnumHR_StaffNeedsEmploymentStatus.BelirsizSureli ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Belirli S&uuml;reli &hellip; ay/yıl <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.EmploymentStatus == (int)EnumHR_StaffNeedsEmploymentStatus.BelirliSureli ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İhale Kapsamında&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.EmploymentStatus == (int)EnumHR_StaffNeedsEmploymentStatus.IhaleKapsaminda ? "✓" : "☐")</span></span></p>
+                </td>
+            </tr>
+
+            <tr>
+                <td style="width: 496.2pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="5" width="662">
+                    <p><strong><span style="font-family: 'Calibri',sans-serif;">PERSONELDE ARANILAN &Ouml;ZELLİKLER</span></strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Cinsiyet</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Bay&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Gender == (int)EnumHR_StaffNeedsGender.Erkek ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Bayan&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Gender == (int)EnumHR_StaffNeedsGender.Kadin ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ouml;nemli Değil&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Gender == (int)EnumHR_StaffNeedsGender.OnemliDegil ? "✓" : "☐")</span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Medeni Hali</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Evli&nbsp;&nbsp;<span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.MaritalStatus == (int)EnumHR_StaffNeedsMaritalStatus.Evli ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Bekar&nbsp;&nbsp;&nbsp;<span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.MaritalStatus == (int)EnumHR_StaffNeedsMaritalStatus.Bekar ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ouml;nemli Değil&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.MaritalStatus == (int)EnumHR_StaffNeedsMaritalStatus.OnemliDegil ? "✓" : "☐")</span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Yaş</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Askerlik Durumu</span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp; @(Model.VWHR_StaffNeeds.MilitaryStatus_Title != null ? Model.VWHR_StaffNeeds.MilitaryStatus_Title : "")</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Eğitim</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Doktora&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.Doktora ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Y&uuml;ksek Lisans&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.YuksekLisans ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 67.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Lisans&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.Lisans ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 67.45pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Diğer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.Doktora || Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.YuksekLisans || Model.VWHR_StaffNeeds.Education == (int)EnumHR_StaffNeedsEducation.Lisans ? "☐" : "✓")</span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Okul adı </span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">B&ouml;l&uuml;m&uuml;</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+
+
+            <tr style="height: 14.4pt;">
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.4pt;" rowspan="3" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Yabancı Dil</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İngilizce&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.4pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ccedil;ok İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.4pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.45pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.4pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Orta&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+            </tr>
+            <tr style="height: 14.3pt;">
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Almanca&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ccedil;ok İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.45pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Orta&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+            </tr>
+            <tr style="height: 14.3pt;">
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Diğer&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ccedil;ok İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İyi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+                <td style="width: 67.45pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 14.3pt;" width="90">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Orta&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">☐</span></span></p>
+                </td>
+            </tr>
+            <tr style="height: 6.75pt;">
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" rowspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">S&uuml;r&uuml;c&uuml; Belgesi</span></p>
+                </td>
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Evet&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.DriverLicense == (int)EnumHR_StaffNeedsDriverLicense.Evet ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 113.3pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" rowspan="2" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Seyahat Edebilirlik</span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Evet&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Travelability == (int)EnumHR_StaffNeedsTravelability.Evet ? "✓" : "☐")</span></span></p>
+                </td>
+            </tr>
+            <tr style="height: 6.75pt;">
+                <td style="width: 113.25pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" width="151">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Hayır&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.DriverLicense == (int)EnumHR_StaffNeedsDriverLicense.Hayir ? "✓" : "☐")</span></span></p>
+                </td>
+                <td style="width: 134.85pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt; height: 6.75pt;" colspan="2" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Hayır&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <span style="font-family: 'Segoe UI Symbol',sans-serif;">@(Model.VWHR_StaffNeeds.Travelability == (int)EnumHR_StaffNeedsTravelability.Hayir ? "✓" : "☐")</span></span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 496.2pt; border: solid windowtext 1.0pt;  padding: 0cm 5.4pt 0cm 5.4pt;" colspan="5" width="662">
+                    <p><strong><span style="font-family: 'Calibri',sans-serif;">BİLGİSAYAR BİLGİSİ</span></strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Ofis Programı</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Programlama Dili</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;@(Model.Keywords)</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Veri Tabanı</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ouml;nceki &ccedil;alışma yerlerinden beklenen İş Deneyimi Konusu, S&uuml;re, Sekt&ouml;r</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Diğer Beklenen &Ouml;zellikler</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table class="m-b-sm" cellpadding="0" cellspacing="0" data-selector="modalContainer" style="margin-bottom:40px; font-size: 10px;border-top: 1px solid gray;border-bottom: 1px solid gray;border-right: none;border-left: none;" width="750">
+        <tr>
+            <td style="line-height:15px;text-align: center;border: none;">[ ] ÇOK GİZLİ</td>
+            <td style="line-height:15px;text-align: center;border: none;">[ ] GİZLİ</td>
+            <td style="line-height:15px;text-align: center;border: none;">[ X ] HİZMETE ÖZEL</td>
+            <td style="line-height:15px;text-align: center;border: none;">[ ] ANONİM</td>
+            <td style="line-height:15px;text-align: center;border: none;">[ X ] DAHİLİ</td>
+            <td style="line-height:15px;text-align: center;border: none;">[   ] HARİCİ</td>
+        </tr>
+    </table>
+
+    <table border="1" cellspacing="0" cellpadding="0" class="lineHeightOption" style="margin-left: 6px;">
+        <tbody>
+            <tr>
+                <td width="194" rowspan="3">
+                    <p align="center">
+                        <strong>
+                            <img width="99"
+                                 height="71"
+                                 src="@(Model.Logo != null ? Model.Logo : "/Content/Custom/img/infolineform.png")" />
+                        </strong>
+                    </p>
+                </td>
+                <td  colspan="5">
+                    <p align="center">
+                        <strong>PERSONEL TALEP FORMU</strong>
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td width="100">
+                    <p align="center">
+                        DOK. NO
+                    </p>
+                </td>
+                <td width="124">
+                    <p align="center">
+                        YÜRÜRLÜK TARİHİ
+                    </p>
+                </td>
+                <td width="110">
+                    <p align="center">
+                        REVİZYON NO
+                    </p>
+                </td>
+                <td width="116">
+                    <p align="center">
+                        REVİZYON TARİHİ
+                    </p>
+                </td>
+                <td width="67">
+                    <p align="center">
+                        S. NO
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td width="125" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    SRC-13-FRM-05
+                </td>
+                <td width="124" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    20.11.2017
+                </td>
+                <td width="100" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    01
+                </td>
+                <td width="116" style="font-size: 10px; font-weight: bold; text-align: center;">
+                    12.03.2018
+                </td>
+                <td width="67">
+                    <p align="center" style="font-size: 10px; font-weight: bold; text-align: center;">
+                        1 / 2
+                    </p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <table style=" border-collapse: collapse; border: none; margin-left: 4.8pt; margin-right: 4.8pt;" >
+        <tbody>
+
+
+            <tr>
+                <td style=" border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="5">
+                    <p><strong><span style="font-family: 'Calibri',sans-serif;">İŞ İLE İLGİLİ BİLGİLERİ</span></strong></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 171pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Unvan</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 140pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Kademe</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 140pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Departman</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Bağlı Olacağı Kişi</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&Ccedil;alışacağı Proje/Projeler</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">İşe Başlama Tarihi</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td style="width: 134.8pt; border: solid windowtext 1.0pt; border-top: none; padding: 0cm 5.4pt 0cm 5.4pt;" width="180">
+                    <p><span style="font-family: 'Calibri',sans-serif;">Detaylı G&ouml;rev Tanımı</span></p>
+                </td>
+                <td style="width: 361.4pt; border-top: none; border-left: none; border-bottom: solid windowtext 1.0pt; border-right: solid windowtext 1.0pt; padding: 0cm 5.4pt 0cm 5.4pt;" colspan="4" width="482">
+                    <p><span style="font-family: 'Calibri',sans-serif;">&nbsp;</span></p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <p style="margin: 0cm;margin-bottom: .0001pt;">&nbsp;</p>
+    <table style="width: 560.1pt; margin-left: 3.75pt;
+    border-collapse: collapse;
+    border: none;
+    margin-top: -16px;">
+        <tbody>
+            <tr style="height: 4.35pt;">
+                <td style="width: 147.25pt; border: solid #A6A6A6 1.0pt; background: #BFBFBF; padding: 0cm 3.5pt 0cm 3.5pt; height: 4.35pt;" width="170">
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">Birim Y&ouml;neticisi</span></strong></p>
+                </td>
+                <td style="width: 198.05pt; border: solid #A6A6A6 1.0pt; border-left: none; background: #BFBFBF; padding: 0cm 3.5pt 0cm 3.5pt; height: 4.35pt;" width="264">
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">İnsan Kaynakları Direkt&ouml;rl&uuml;ğ&uuml;</span></strong></p>
+                </td>
+                <td style="width: 200.8pt; border: solid #A6A6A6 1.0pt; border-left: none; background: #BFBFBF; padding: 0cm 3.5pt 0cm 3.5pt; height: 4.35pt;" width="230">
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">Genel M&uuml;d&uuml;r Yardımcısı</span></strong></p>
+                </td>
+            </tr>
+            <tr style="height: 49.45pt;">
+                <td style="width: 127.25pt; border: solid #A6A6A6 1.0pt; border-top: none; padding: 0cm 3.5pt 0cm 3.5pt; height: 49.45pt;" width="170">
+                    <p style="text-align: center;"><em><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif; color: #595959;">Adı Soyadı / Tarih/ İmza</span></em></p>
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;@(Model.VWHR_StaffNeeds.createdby_Title)</span></strong></p>
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;</span></strong></p>
+                    <p><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;</span></strong></p>
+                </td>
+                <td style="width: 198.05pt; border-top: none; border-left: none; border-bottom: solid #A6A6A6 1.0pt; border-right: solid #A6A6A6 1.0pt; padding: 0cm 3.5pt 0cm 3.5pt; height: 49.45pt;" width="264">
+                    <p style="text-align: center;"><em><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif; color: #595959;">Adı Soyadı / Tarih/ İmza</span></em></p>
+                    <p style="text-align: center;"><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;</span></strong></p>
+                    <p><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;</span></strong></p>
+                    <p><strong><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif;">&nbsp;</span></strong></p>
+                </td>
+                <td style="width: 172.8pt; border-top: none; border-left: none; border-bottom: solid #A6A6A6 1.0pt; border-right: solid #A6A6A6 1.0pt; padding: 0cm 3.5pt 0cm 3.5pt; height: 49.45pt;" width="230">
+                    <p style="text-align: center;"><em><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif; color: #595959;">Adı Soyadı / Tarih/ İmza</span></em></p>
+                    <p style="text-align: center;"><em><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif; color: #595959;">&nbsp;</span></em></p>
+                    <p style="text-align: center;"><em><span style="font-size: 10.0pt; font-family: 'Calibri',sans-serif; color: #595959;">&nbsp;</span></em></p>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <table class="m-b-sm" cellpadding="0" cellspacing="0" data-selector="modalContainer" style="font-size: 10px;border-top: 1px solid gray;border-bottom: 1px solid gray;border-right: none;border-left: none;" width="662">
+        <tr>
+            <td style="line-height:15px;text-align:center;border: none;">[ ] ÇOK GİZLİ</td>
+            <td style="line-height:15px;text-align:center;border: none;">[ ] GİZLİ</td>
+            <td style="line-height:15px;text-align:center;border: none;">[ X ] HİZMETE ÖZEL</td>
+            <td style="line-height:15px;text-align:center;border: none;">[ ] ANONİM</td>
+            <td style="line-height:15px;text-align:center;border: none;">[ X ] DAHİLİ</td>
+            <td style="line-height:15px;text-align:center;border: none;">[   ] HARİCİ</td>
+        </tr>
+    </table>
+
+</body>
+</html>
+
+

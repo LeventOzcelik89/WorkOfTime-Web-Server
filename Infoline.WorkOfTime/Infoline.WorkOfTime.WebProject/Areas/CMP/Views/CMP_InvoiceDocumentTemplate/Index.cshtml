@@ -1,0 +1,24 @@
+﻿@{
+    ViewBag.Title = "Satış Teklif Şablonları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+	.Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceDocumentTemplate>("CMP_InvoiceDocumentTemplate")
+	.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "CMP_InvoiceDocumentTemplate", new { area = "CMP" })).PageSize(25))
+	.Columns(x =>
+	{
+		x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Width(50);
+		x.Bound(y => y.name).Title("Şablon Adı").Width(180);
+		x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+		x.Bound(y => y.created).Title("Oluşturulan Tarih").Format(Extensions.DateFormatShort(true)).Width(180);
+
+		x.Bound(y => y.templateVisibleAllUser_Title).Title("Herkes Görebilir").Width(180);
+	})
+	.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+	.ToolBar(x =>
+	{
+		x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Şablon Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "CMP_InvoiceDocumentTemplate", new { area = "CMP" }));
+		x.Custom().Text("<i class='fa fa-edit' data-original-title='Şablon Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "CMP_InvoiceDocumentTemplate", new { area = "CMP" }));
+		x.Custom().Text("<i class='fa fa-trash' data-original-title='Şablon Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "CMP_InvoiceDocumentTemplate", new { area = "CMP" }));
+	}))

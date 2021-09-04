@@ -1,0 +1,210 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMPDS_FormPermitTaskModel
+@{
+    ViewBag.Title = "Görev Kayıt Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    #grouping .center-on-page {
+        position: sticky;
+        padding-bottom: 30px;
+    }
+
+    #grouping input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        z-index: -1;
+    }
+
+    #grouping label {
+        position: relative;
+        display: inline-block;
+        margin-right: 10px;
+        margin-bottom: 10px;
+        padding-left: 30px;
+        padding-right: 10px;
+        line-height: 36px;
+        cursor: pointer;
+    }
+
+        #grouping label::before {
+            content: " ";
+            position: absolute;
+            top: 6px;
+            left: 0;
+            display: block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #da2c5b;
+            border-radius: 4px;
+            z-index: -1;
+        }
+
+    #grouping input[type="radio"] + label::before {
+        border-radius: 18px;
+    }
+    #grouping input[type="radio"]:checked + label {
+        padding-left: 10px;
+        color: #fff;
+    }
+
+        #grouping input[type="radio"]:checked + label::before {
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #da2c5b;
+        }
+    #grouping label,
+    #grouping label::before {
+        -webkit-transition: .25s all ease;
+        -o-transition: .25s all ease;
+        transition: .25s all ease;
+    }
+
+    .modal-lg {
+        width: 50%;
+    }
+
+    #eval1, #eval2, #eval3 {
+        height: 36px;
+        width: 100%;
+        padding-left: 10px;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(window).keydown(function (event) {
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            return false;
+        }
+    });
+
+    var model = @Html.Raw(Json.Encode(Model));
+
+    function dataBound(e) {
+        var evaluatorTitleArr = $.Enumerable.From(model.TaskUsers).Select(a=>a.evaluator_Title).Distinct().ToArray();
+                var evaluatedTitleArr = $.Enumerable.From(model.TaskUsers).Select(a=>a.evaluatedUser_Title).Distinct().ToArray();
+
+                if(model.filterType == "0"){
+                    $('#rb1').prop('checked', true);
+                    $('#eval1').val(evaluatorTitleArr.join(", "));
+                    $('#eval2').val(evaluatedTitleArr.join(", "));
+                }
+
+                if(model.filterType == "3"){
+                    $('#rb2').prop('checked', true);
+                    $('#eval1').val(evaluatedTitleArr.join(", "));
+                    $('#own').addClass("hide");
+            }
+    }
+
+</script>
+
+@using (Html.BeginForm("Update", "VWPDS_FormPermitTask", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formName_title">Form Adı</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.evaluateFormId)
+                .DataValueField("id")
+                .OptionLabel("Lütfen form ismi Seçiniz")
+                .DataTextField("formName")
+                .Action(b => b.Action("DataSourceDropDown", "VWPDS_EvaluateForm", new { area = "PDS" }))
+                .Events(e => { e.DataBound("dataBound"); })
+                .Sort(x => x.Add("formName").Ascending())
+                .Validate(Validations.Required)
+                .Readonly(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formName_title">Değerlendirme Aralığı</label>
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen startDate Girin.."},
+                {"readonly", "readonly" }
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            .Value(DateTime.Now.AddYears(-1)))
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen endDate Girin.."},
+                {"readonly", "readonly" }
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            .Value(DateTime.Now))
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+    <div id="grouping">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="formName_title">Gruplama</label>
+            </div>
+            <div class="col-md-8">
+                <div class="center-on-page">
+                    <input disabled type="radio" name="filterType" id="rb1" value="@(Convert.ToInt32(EnumPDS_FormPermitTaskFilterType.Personel))" />
+                    <label for="rb1">Kişi Bazlı Seçim</label>
+                    <input disabled type="radio" name="filterType" id="rb2" value="@(Convert.ToInt32(EnumPDS_FormPermitTaskFilterType.Own))" />
+                    <label for="rb2">Herkes Kendini Değerlendirsin</label>
+                </div>
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+
+        <div id="personel">
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="formName_title">Değerlendirme Yapabilecek Personeller</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextArea("eval1", null, new Dictionary<string, object>() {
+                        { "readonly", "readonly" }
+                    })
+                </div>
+            </div>
+
+            <div class="form-group" id="own">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="formName_title">Değerlendirilecek Personeller</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextArea("eval2", null, new Dictionary<string, object>() {
+                        { "readonly", "readonly" }
+                    })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+
+}

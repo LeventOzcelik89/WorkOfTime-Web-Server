@@ -1,0 +1,208 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.INV_PermitType[]
+@{
+    ViewBag.Title = "Tüm İzinler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var hasHr = userStatus.AuthorizedRoles.Count(a => a == new Guid(SHRoles.IKYonetici)) > 0;
+    var now = DateTime.Now;
+    var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
+    var endOfWeek = startOfWeek.AddDays(7).Date;
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = startOfMonth.AddMonths(1).Date;
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+}
+
+
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    function PersonFilter(element) {
+        element.kendoDropDownList({
+            filter: "contains",
+            dataTextField: "Name",
+            dataValueField: "Name",
+            dataSource: {
+                transport: {
+                    read: "@Url.Action("GetVWSH_User_OurCompanies", "General", new {area = string.Empty})"
+                }
+            },
+            optionLabel: "--Personel Seçiniz--"
+        });
+    }
+
+
+     function statusTemplate(data) {
+        if(data.ApproveStatus == 0 || data.ApproveStatus == 1 || data.ApproveStatus == 3){
+            return '<i class="fa text-warning fa-spinner">';
+        }else if(data.ApproveStatus == 5){
+            return '<i class="fa text-success fa-upload"></i>';
+        }else if(data.ApproveStatus == 7 || data.ApproveStatus == 8 || data.ApproveStatus == 9 || data.ApproveStatus == 10){
+            return '<i class="fa text-navy fa-check">';
+        }else{
+            return '<i class="fa text-danger fa-times-circle"></i>';
+        }
+     }
+
+
+    $(document)
+        .on("selected:grid", "#VWINV_Permit", function (e, resp) {
+            $('[data-href="/INV/VWINV_Permit/Update"]').addClass('hide');
+            if ((resp && (resp.ApproveStatus == 8 || resp.ApproveStatus == 10) && '@hasHr' == 'True')) {
+                $('[data-href="/INV/VWINV_Permit/Update"]').removeClass('hide');
+            }
+
+            if ((resp.ApproveStatus == 5 || resp.ApproveStatus == 8 || resp.ApproveStatus == 10) && '@hasHr' == 'True') {
+                    $('[data-href="/INV/VWINV_Permit/Update"]').removeClass('hide');
+            }
+
+            if (resp.ApproveStatus != 5 && resp.ApproveStatus != 8 && resp.ApproveStatus !=10) {
+                $('[data-href="/INV/VWINV_Permit/PermitForm"]').addClass('hide');
+            }
+
+        })
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+
+                    @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IKYonetici)))
+                    {
+                        <a class="btn btn-sm btn-block btn-success" data-task="Insert" data-method="GET" data-href="@Url.Action("EveryDayPermitInsert", "VWINV_Permit", new { area = "INV" })"><i class="fa fa-plus-circle"></i> Tüm Günlere İzin Ekle </a>
+                    }
+
+                    <a class="btn btn-sm btn-block btn-info" data-task="Insert" data-method="GET" data-href="@Url.Action("PastYearlyPermits", "VWINV_Permit", new { area = "INV" })"><i class="fa fa-plus-circle"></i> Geçmiş İzin Ekle </a>
+                    <a class="btn btn-sm btn-block btn-warning" data-task="Insert" data-method="GET" data-href="@Url.Action("AllowancePermit", "VWINV_Permit", new { area = "INV" })"><i class="fa fa-plus-circle"></i> Avans İzin Ekle</a>
+                    <a class="btn btn-sm btn-block btn-danger" data-task="Insert" data-method="GET" data-href="@Url.Action("HealthPermit", "VWINV_Permit", new { area = "INV" })"><i class="fa fa-plus-circle"></i> Sağlık İzni Ekle</a>
+
+
+                    <div class="space-25"></div>
+
+                    <h5>DURUMUNA GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+
+                        <li class="clearfix">
+                            <a class="pull-left active" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="">
+                                <i class="fa fa-align-justify" style="color:black;"></i>  Tümü
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" style="background:black;" data-counturl="/INV/VWINV_Permit/DataSourceCount">0</span>
+                        </li>
+
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="((ApproveStatus~eq~0~or~ApproveStatus~eq~1)~or~ApproveStatus~eq~3)">
+                                <i class="fa text-warning fa-spinner"></i>  Onayda Bekleyen
+                            </a>
+                            <span class="badge badge-warning pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=((ApproveStatus~eq~0~or~ApproveStatus~eq~1)~or~ApproveStatus~eq~3)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="(ApproveStatus~eq~5)">
+                                <i class="fa text-success fa-upload"></i> Imzalı Dosya Beklenen
+                            </a>
+                            <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(ApproveStatus~eq~5)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="(((ApproveStatus~eq~7~or~ApproveStatus~eq~8)~or~ApproveStatus~eq~9)~or~ApproveStatus~eq~10)">
+                                <i class="fa  text-navy fa-check"></i>   Süreci Tamamlanmış
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((ApproveStatus~eq~7~or~ApproveStatus~eq~8)~or~ApproveStatus~eq~9)~or~ApproveStatus~eq~10)">0</span>
+                        </li>
+
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="0" data-query="((ApproveStatus~eq~2~or~ApproveStatus~eq~4)~or~ApproveStatus~eq~6)">
+                                <i class="fa text-danger fa-times-circle"></i>  Reddedilmiş
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=((ApproveStatus~eq~2~or~ApproveStatus~eq~4)~or~ApproveStatus~eq~6)">0</span>
+                        </li>
+                    </ul>
+
+
+                    <div class="space-25"></div>
+                    <h5> İZİN BAŞLANGIÇ TARİHİNE GÖRE </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query=""> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+                        <li><a href="#" data-grid="VWINV_Permit" data-switch="radio" data-category="2" data-query="((StartDate~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~StartDate~lte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'))"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+                    </ul>
+
+                    <div class="space-25"></div>
+                    <h5>TİPİNE GÖRE </h5>
+                    <ul class="tag-list clearfix m-b-md" style="padding: 0">
+                        @foreach (var item in Model.OrderBy(a => a.created))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWINV_Permit" data-category="2" data-query="(PermitTypeId~eq~'@item.id')">
+                                    @item.Name
+                                </a>
+                            </li>
+                        }
+                    </ul>
+
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>İzin Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_Permit>("VWINV_Permit")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_Permit", new { area = "INV" }))
+                .PageSize(25))
+                .Scrollable(a => a.Height(650))
+                .Columns(x =>
+                {
+
+                    x.Bound(y => y.ApproveStatus_Title).Title("").ClientTemplate("#=statusTemplate(data)#").Filterable(a => a.Enabled(false)).Width(40);
+                    x.Bound(y => y.created).Title("İşlem Tarihi").Width(140).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.Person_Title).Title("Personel").Filterable(filterable => filterable.UI("PersonFilter")).Width(185);
+                    x.Bound(y => y.PermitCode).Title("İzin Kodu").Width(160);
+                    x.Bound(y => y.PermitType_Title).Title("İzin Tipi").Width(180);
+                    x.Bound(y => y.StartDate).Title("İzin Başlangıç Tarihi").Width(170).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.EndDate).Title("İzin Bitiş Tarihi").Width(150).Format(Extensions.DateFormatFull(true));
+                    x.Bound(y => y.TotalHoursText).Title("İzin Süresi").Width(150).Filterable(false);
+                    x.Bound(y => y.Company_Title).Title("İşletme").Hidden(true);
+                    x.Bound(y => y.TcNo).Title("Tc Kimlik No").Hidden(true);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='İzin Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_Permit", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-upload' data-original-title='Islak imzalı dosya yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_Permit", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-print' data-original-title='Formu Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("PermitForm", "VWINV_Permit", new { area = "INV" }));
+                    x.Custom().Text("<i class='fa fa-trash' data-original-title='İzin Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, }).Url(Url.Action("Delete", "VWINV_Permit", new { area = "INV" }));
+                }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

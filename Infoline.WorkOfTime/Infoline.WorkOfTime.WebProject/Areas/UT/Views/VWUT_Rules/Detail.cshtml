@@ -1,0 +1,163 @@
+﻿@model VMUT_RulesModel
+@{
+	ViewBag.Title = "" + Model.name + " Adlı Kuralın Detay Bilgileri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+<style type="text/css">
+	.k-grid-content i {
+		font-size: 13px;
+	}
+</style>
+
+
+<style type="text/css">
+	.list-group.clear-list .list-group-item {
+		padding: 5px 0px !important;
+	}
+
+	.table {
+		border-top: 0px #ddd solid;
+	}
+
+	.mywidget {
+		border-radius: 10px !important;
+		padding: 10px 15px !important;
+		margin-bottom: 10px !important;
+		margin-top: 0px !important;
+		min-height: 70px !important;
+	}
+
+	.dl-horizontal dt {
+		text-align: left !important;
+	}
+
+	.boldText {
+		font-weight: 600;
+	}
+
+	span.k-icon.k-si-close {
+		display: none;
+	}
+</style>
+<div class="row">
+	<div class="col-lg-3">
+		<div class="ibox ">
+
+			<div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+				<div class="m-b-md">
+					<h2 class="font-bold no-margins">
+						@Model.name
+					</h2>
+				</div>
+				<img src="/Content/Custom/img/kural.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 110px;margin: auto;margin-top: 25px;border: 2px #fff solid;">
+
+				<div style="margin-top: 15px;">
+					<a class="btn btn-xs btn-info" data-href="/UT/VWUT_Rules/Update?id=@Model.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Kuralı Düzenle </a>
+				</div>
+			</div>
+		</div>
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>GENEL BİLGİLER</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content no-padding clearfix">
+				<ul class="list-group">
+					<li class="list-group-item">
+						<div class="row">
+							<div class="col-md-4">Kural Adı :</div>
+							<div class="col-md-8"><span class="badge badge-info pull-right boldText">@(Model.name != null ? Model.name : "-")</span></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row">
+							<div class="col-md-4">Kural Tipi :</div>
+							<div class="col-md-8"><span class="badge badge-info pull-right boldText">@(Model.type_Title != null ? Model.type_Title : "-")</span></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row">
+							<div class="col-md-4">Oluşturan :</div>
+							<div class="col-md-8"><span class="pull-right boldText">@(Model.createdby_Title != null ? Model.createdby_Title : "-")</span></div>
+						</div>
+					</li>
+					<li class="list-group-item">
+						<div class="row">
+							<div class="col-md-5">Varsayılan Kural mı?</div>
+							<div class="col-md-7"><span class="pull-right boldText">@(Model.isDefault == true ? "Evet" : "Hayır")</span></div>
+						</div>
+					</li>
+				</ul>
+
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-9">
+		<ul class="nav nav-tabs">
+			<li class="active" data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWUT_RulesUserStage", new {area="UT" })" data-placement="top" title="Kural Aşamaları">
+				<a data-toggle="tab" href="#Rules" aria-expanded="true">
+					<i class="icon-doc-text-2 text-success fa-2x"></i>
+				</a>
+			</li>
+			<li data-href="@Url.Action("DataSource","VWUT_RulesUser", new { area = "UT" })" data-toggle="tooltip" data-placement="top" title="Kullanıcılar">
+				<a data-toggle="tab" href="#Users" aria-expanded="true">
+					<i class="icon-users-1 text-success fa-2x"></i>
+				</a>
+			</li>
+
+
+
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane" data-href="@Url.Action("DataSource", "VWUT_RulesUser", new {area="UT" })" id="Users">
+				<h4><i class="icon-users-1 text-success"></i>  KURALA SAHİP OLAN PERSONELLER </h4>
+
+				@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_RulesUser>("VWUT_RulesUser")
+
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_RulesUser", new { area = "UT" })).Filter(c => c.rulesId == Model.id).PageSize(25))
+
+    .Columns(x =>
+    {
+        x.Bound(y => y.userId_Title).Title("Kullanıcı Adı").Width(130);
+    })
+    .Scrollable(x => x.Height(650))
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Kurala Kullanıcı Ekle' class='fa fa-user-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWUT_RulesUser", new { area = "UT", id = Model.id }));
+        x.Custom().Text("<i data-original-title='Kullanıcı Kuralları Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_RulesUser", new { area = "UT" }));
+    }))
+			</div>
+
+			<div class="tab-pane active" data-href="@Url.Action("DataSource", "VWUT_RulesUserStage", new {area="UT", id = Model.id })" id="Rules">
+				<h4><i class="icon-doc-text-2 text-success"></i>  KURALIN AŞAMALARI </h4>
+				<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -40px;margin-right: -6px;" data-modal="true" data-task="Insert" data-href="/UT/VWUT_RulesUserStage/Insert?rulesId=@Model.id"> <i class="fa fa-plus-circle"></i> Kural Aşaması Ekle </a>
+				@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_RulesUserStage>("VWUT_RulesUserStage")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_RulesUserStage", new { area = "UT" })).Filter(c =>c.rulesId == Model.id).PageSize(25).Sort(t => t.Add(y => y.order))
+    )
+    .Columns(x =>
+    {
+        x.Bound(y => y.order).Title("Sıra").Width(130);
+        x.Bound(y => y.type_Title).Title("Tip").Width(130);
+        x.Bound(y => y.userId_Title).Title("Kullanıcı").Width(130);
+        x.Bound(y => y.roleId_Title).Title("Rol").Width(130);
+        x.Bound(y => y.title).Title("Başlık").Width(130);
+    })
+    .Scrollable(x => x.Height(650))
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Kullanıcı Kural Aşamaları Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_RulesUserStage", new { area = "UT" }));
+        x.Custom().Text("<i data-original-title='Kullanıcı Kural Aşamaları Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_RulesUserStage", new { area = "UT" }));
+    }))
+			</div>
+		</div>
+	</div>
+</div>

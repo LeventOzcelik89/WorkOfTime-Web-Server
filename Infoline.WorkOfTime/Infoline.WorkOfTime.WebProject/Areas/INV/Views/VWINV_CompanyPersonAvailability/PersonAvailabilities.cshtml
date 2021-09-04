@@ -1,0 +1,96 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonAvailability[]
+@using Infoline.WorkOfTime.BusinessAccess
+
+@{
+    Layout = null;
+
+    var GroupedDataByDateDay = Model.GroupBy(x => x.StartDate).Select(x => new KeyValue
+    {
+        Key = x.Key.Value.ToString("dd.MM.yyyy"),
+        Value = x.Sum(y => y.rate)
+    }).ToArray();
+
+    var Events = Model.Select(x => new
+    {
+        color = "rgba(0,0,0,0.35)",
+        start = x.StartDate.Value.ToString("yyyy-MM-dd"),
+        end = x.StartDate.Value.AddHours(12).ToString("yyyy-MM-dd"),
+        id = new Guid(),
+        title = " ",
+        description = "Proje Adı  : " + x.Project_Title,
+        person = x.Person_Title,
+        rate = "% " + x.rate * 100,
+        projectCode = x.Project_Title.Substring(0, x.Project_Title.IndexOf("-:-") + 4),
+    });
+}
+<link href="~/Content/plugins/fullcalendar/fullcalendar.css" rel="stylesheet" />
+<script src="~/Content/plugins/fullcalendar/moment.min.js"></script>
+<script src="~/Content/plugins/fullcalendar/fullcalendar.min.js"></script>
+<script src="~/Content/Plugins/fullcalendar/fc_event.js"></script>
+<script src="~/Content/plugins/fullcalendar/locale-all.js"></script>
+
+<div id="calendar"></div>
+
+<div class="image"> <img src="~/Content/Custom/img/palet.png" style="display: block;margin-left: auto;margin-right: auto;" /></div>
+
+<script type="text/javascript">
+
+    var GropuedData= GroupedData=@Html.Raw(Infoline.Helper.Json.Serialize(GroupedDataByDateDay));
+    var Availabilities=@Html.Raw(Infoline.Helper.Json.Serialize(Events));
+
+    $(document)
+        .on('ready', function (e) {
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'title',
+                    center: '',
+                    right: 'prev,today,next'
+                },
+                height:650,
+                allDaySlot: false,
+                locale: 'tr',
+                firstDay:0,
+                //defaultView: 'agendaDay',
+                businessHours: true,
+                businessHour: [
+                    {
+                        dow: [1, 2, 3, 4, 5],
+                        start: '08:30',
+                        end:'18:00'
+                    }
+                ],
+                timeFormat: 'HH:mm',
+
+                events:Availabilities,
+
+                dayRender: function (date, cell) {
+                    var Value=  $.Enumerable.From(GropuedData).Where(function(a){return a.Key==moment(date._d).format("DD.MM.YYYY") }).Sum(function(b){return b.Value});
+                    if(Value!=undefined){
+                        if(Value>1){ cell.css("background-color","#CC0000"); }
+                        else if(Value>0.90){cell.css("background-color","#F85D05"); }
+                        else if(Value>0.80){cell.css("background-color","#FAB41C"); }
+                        else if(Value>0.70){cell.css("background-color","#F8FF30"); }
+                        else if(Value>0.60){cell.css("background-color","#A1FF6C"); }
+                        else if(Value>0.50){cell.css("background-color","#56FFCA"); }
+                        else if(Value>0.40){cell.css("background-color","#3ED8FE"); }
+                        else if(Value>0.30){cell.css("background-color","#2A77FD"); }
+                        else if(Value>0.20){cell.css("background-color","#212AFC"); }
+                        else if(Value>0.10){cell.css("background-color","#1600C3"); }
+                    }
+                },
+                eventRender:function(eventObj,$el){
+                    $el.popover({
+                        title:eventObj.person,
+                        content :  eventObj.description,
+                        trigger:'hover',
+                        placement:'top',
+                        container:'body',
+                    });
+                    var title=$el.find('.fc-title');
+                    title.html('<div style="height:50px;color:#fdfdfd;"> <span>'+eventObj.person +'</span> <br/><span> Yoğunluk :  ' +eventObj.rate+ ' </span><br/> <span> Proje Kodu : '+eventObj.projectCode+'</span> </div>');
+                }
+            }); // end full calendar
+
+        });
+</script>

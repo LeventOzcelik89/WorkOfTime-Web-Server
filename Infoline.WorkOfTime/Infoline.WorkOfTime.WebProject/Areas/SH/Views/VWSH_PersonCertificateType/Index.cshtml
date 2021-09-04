@@ -1,0 +1,24 @@
+﻿@{
+    ViewBag.Title = "Sertifika Tipi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PersonCertificateType>("VWSH_PersonCertificateType")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PersonCertificateType", new { area = "SH" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.CertificateName).Title("Sertifika Tipi").Width(1180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_PersonCertificateType", new { area = "SH" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PersonCertificateType", new { area = "SH" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_PersonCertificateType", new { area = "SH" }));
+        x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PersonCertificateType", new { area = "SH" }));
+    }))

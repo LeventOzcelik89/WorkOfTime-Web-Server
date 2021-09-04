@@ -1,0 +1,190 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonSchools
+@{
+    ViewBag.Title = "Eğitim Bilgisi Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    function onBoundLevel(e) {
+      $('#Level').data('kendoDropDownList').trigger('change');
+    }
+
+    function onChangeLevel(e) {
+        if (this.value() == 7 || this.value() == 6) {
+            $('[name="Branch"]').removeAttr('required');
+            $('[for="Branch"]').removeClass('req');
+        } else {
+            $('[name="Branch"]').attr('required','required');
+            $('[for="Branch"]').addClass('req');
+        }
+    }
+</script>
+
+@using (Html.BeginForm("Update", "VWSH_PersonSchools", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <style type="text/css" data-selector="modalContainer">
+        .btn-plus:hover {
+            color: white !important;
+        }
+    </style>
+
+    if (Model.UserId == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="UserId">Personel</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().DropDownListFor(model => model.UserId)
+                    .OptionLabel("Personel Seçiniz..")
+                    .DataValueField("id")
+                    .DataTextField("FullName")
+                    .Template("#=TemplateEngine('userTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                    .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                    .Sort(x => x.Add("FullName").Ascending())
+                    .Execute("id")
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.UserId)
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Level">Derece</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.Level)
+                .OptionLabel("Lütfen Okul Derecesi Seçiniz..")
+                .DataValueField("Id").DataTextField("enumDescription")
+                .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                .Sort(x => x.Add("enumDescription").Ascending()).Validate(Validations.Required)
+                .Events(e => e.Change("onChangeLevel").DataBound("onBoundLevel"))
+                .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonSchools" && a.fieldName == "Level")
+                .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="SchoolId">Okul</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().DropDownListFor(model => model.SchoolId).Id("SchoolId")
+                .OptionLabel("Lütfen Okul Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("SchoolName")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_Schools", new { area = "SH" }))
+                .Sort(x => x.Add("SchoolName").Ascending())
+                .BasicInsert(Url.Action("Insert", "VWSH_Schools", new { area = "SH" }), "SchoolName", true)
+                .Execute("id")
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Branch">Bölüm</label>
+        </div>
+        <div class="col-md-8">
+            <input list="Branch" name="Branch" class="form-control" value="@Model.Branch" required="required">
+            <datalist id="Branch"></datalist>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="area">Alan</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.area, new Dictionary<string, object>()
+                               {
+                                    {"class", "form-control"},
+
+                               })
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DatePickerFor(model => model.StartDate)
+                .MaxDateElement("EndDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DatePickerFor(model => model.EndDate)
+                .MinDateElement("StartDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Eğitim Dosyası</label>
+        </div>
+
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("SH_PersonSchools")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Eğitim Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    GetJsonDataFromUrl('/SH/VWSH_PersonSchools/BranchGroup', null, function (resp) {
+        if (resp == null) {
+            return false;
+        }
+        resp.forEach(function (e, i) {
+            $("#Branch").append('<option value="' + e + '"> ' + e + ' </option>')
+        })
+    });
+</script>

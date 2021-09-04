@@ -1,0 +1,225 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPDS_EvaluateFormModel
+@{
+    ViewBag.Title = Model.formName + " Form Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var sumFactor = Model.QuestionForms.Sum(a => a.factor);
+}
+
+<style type="text/css">
+    .toggle-group label {
+        line-height: 20px !important;
+    }
+</style>
+
+<script type="text/javascript">
+    var model = @Html.Raw(Json.Encode(Model));
+
+    $(document)
+        .on("keyup", '[data-name="factor"]', function (e) {
+            e.preventDefault();
+
+            page.question.calculatePercent();
+        })
+
+        .on("load:grid", "#VWPDS_FormPermitTask", function (e) {
+            $('#VWPDS_FormPermitTask').find('[data-toggle="toggle"]').bootstrapToggle({
+                width: 90,
+                height: 20
+            });
+        })
+
+        .on("load:grid", "#VWPDS_FormResult", function (e) {
+            $('#VWPDS_FormResult').find('[data-toggle="toggle"]').bootstrapToggle({
+                width: 90,
+                height: 20
+            });
+        })
+
+        .on("change", '[data-task="makeActivePassive"]', function(e){
+            GetDataFromUrl('/PDS/VWPDS_FormPermitTask/MakeActivePassive', { id: $(this).attr("data-id") }, function (e) {
+
+            });
+        })
+
+    function fncTmp(e, param) {
+        var status = e.status;
+        return '<input data-task="makeActivePassive" type="checkbox" name="status" ' + (status ? "checked" : "") + ' data-id="' + e.id + '" data-toggle="toggle" data-size="mini" data-on="Aktif" data-off="Pasif" data-onstyle="success" data-offstyle="danger">';
+    }
+
+    $(window).keydown(function (event) {
+        if (event.keyCode == 13) {
+            event.preventDefault();
+            return false;
+        }
+    });
+</script>
+
+<script type="text/template" id="groupTemplate">
+    <h2 data-name="groupName" style="color:red;"></h2>
+    <table class="table table-bordered">
+        <thead class="thead-light">
+            <tr>
+                <th style="width:60%">Soru</th>
+                <th style="width:20%">Katsayı</th>
+                <th style="width:20%">Yüzdelik</th>
+            </tr>
+        </thead>
+        <tbody data-name="questionRow"></tbody>
+    </table>
+</script>
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>FORM BİLGİLER</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content no-padding clearfix">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Form Tipi :</div>
+                            <div class="col-md-8"><span class="badge badge-info pull-right boldText">@(Model.formType_Title != null ? Model.formType_Title : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Formun İsmi :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.formName != null ? Model.formName : "")</span></div>
+                        </div>
+                    </li>
+                    <li class="list-group-item">
+                        <div class="row">
+                            <div class="col-md-4">Formun Kodu :</div>
+                            <div class="col-md-8"><span class="pull-right boldText">@(Model.formCode != null ? Model.formCode : "")</span></div>
+                        </div>
+                    </li>
+                </ul>
+
+            </div>
+        </div>
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>SORULAR</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @foreach (var group in Model.QuestionForms.GroupBy(a => a.groupName).Select(c => new { Key = c.Key, Data = c.ToArray() }).ToArray())
+                {
+                    <h2 data-name="groupName" style="color:red;">@group.Data[0].groupName</h2>
+                    <table class="table table-bordered">
+                        <thead class="thead-light">
+                            <tr>
+                                <th style="width:60%">Soru</th>
+                                <th style="width:20%">Katsayı</th>
+                                <th style="width:20%">Yüzdelik</th>
+                            </tr>
+                        </thead>
+                        <tbody data-name="questionRow">
+                            @foreach (var questionForm in Model.QuestionForms.Where(a => a.groupName == group.Key).ToArray())
+                            {
+                                <tr>
+                                    <td data-name="question">@questionForm.question</td>
+                                    <td data-name="factor">@questionForm.factor</td>
+                                    <td data-name="percent">@((questionForm.factor * 100) / sumFactor)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-9">
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    @if (Model.formType != (int)EnumPDS_EvaluateFormType.Interview)
+                    {
+                        <li class="active" data-href="@Url.Action("DataSource","VWPDS_FormPermitTask", new { area = "PDS" })" data-toggle="tooltip" data-placement="top" title="Görevler">
+                            <a data-toggle="tab" href="#Tasks" aria-expanded="true">
+                                <i class="fa fa-users text-success fa-2x"></i>
+                            </a>
+                        </li>
+
+                        <li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWPDS_FormResult", new {area="PDS" })" data-placement="top" title="Değerlendirmeler">
+                            <a data-toggle="tab" href="#Evaluations" aria-expanded="true">
+                                <i class="fa fa-area-chart text-success fa-2x"></i>
+                            </a>
+                        </li>
+                    }
+
+                    else
+                    {
+                        <li class="active" data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWPDS_FormResult", new {area="PDS" })" data-placement="top" title="Değerlendirmeler">
+                            <a data-toggle="tab" href="#Evaluations" aria-expanded="true">
+                                <i class="fa fa-area-chart text-success fa-2x"></i>
+                            </a>
+                        </li>
+                    }
+
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane @(Model.formType != (int)EnumPDS_EvaluateFormType.Interview ? "active" : "")" data-href="@Url.Action("DataSource", "VWPDS_FormPermitTask", new {area="PDS" })" id="Tasks">
+                        <h4><i class="fa fa-users text-success"></i> Görevler </h4>
+
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormPermitTask>("VWPDS_FormPermitTask")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormPermitTask", new { area = "PDS" })).Filter(a => a.evaluateFormId == Model.id).PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(150).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortTimePattern + "}");
+                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(150);
+                                x.Bound(y => y.startDate).Title("Değerlendirme Başlangıç Tarihi").Width(160).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortTimePattern + "}");
+                                x.Bound(y => y.endDate).Title("Değerlendirme İçin Son Tarih").Width(160).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortTimePattern + "}");
+                                x.Bound(y => y.status_Title).Title("Form Durumu").Width(100).ClientTemplate("#=fncTmp(data,'status')#");
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .Scrollable(s => s.Height(450))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Görev Oluştur' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPDS_FormPermitTask", new { area = "PDS", evaluateFormId = Model.id }));
+                                x.Custom().Text("<i data-original-title='Görevi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPDS_FormPermitTask", new { area = "PDS" }));
+                                x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_FormPermitTask", new { area = "PDS" }));
+                                x.Custom().Text("<i data-original-title='Görev Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPDS_FormPermitTask", new { area = "PDS" }));
+                            }))
+                    </div>
+                    <div class="tab-pane @(Model.formType == (int)EnumPDS_EvaluateFormType.Interview ? "active" : "")" data-href="@Url.Action("DataSource", "VWPDS_FormResult", new {area="PDS" })" id="Evaluations">
+                        <h4><i class="fa fa-area-chart text-success"></i> Değerlendirmeler </h4>
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPDS_FormResult>("VWPDS_FormResult")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPDS_FormResult", new { area = "PDS" })).Filter(a => a.evaluateFormId == Model.id).PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.evaluator_Title).Title("Değerlendiren Personel").Width(150);
+                                x.Bound(y => y.evaluatedUser_Title).Title("Değerlendirilen Personel").Width(150);
+                                x.Bound(y => y.created).Title("Değerlendirme Tarihi").Width(120).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                                x.Bound(y => y.comment).Title("Genel Sonuç Yorum").Width(250);
+                                x.Bound(y => y.score).Title("Aldığı Puan").Width(150).ClientTemplate("#= kendo.toString(score, 'n2') #");
+                                x.Bound(y => y.status_Title).Title("Formun Durumu").Width(120);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Değerlendirme Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPDS_FormResult", new { area = "PDS" }));
+                            }))
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+</div>
+

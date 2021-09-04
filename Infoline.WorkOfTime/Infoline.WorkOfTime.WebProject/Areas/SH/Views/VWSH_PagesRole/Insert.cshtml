@@ -1,0 +1,269 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PagesRole
+@{
+    ViewBag.Title = " ( " + ViewBag.RolName + " Rolü ) için sayfa yetkisi tanımlama ekranı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWSH_PagesRole", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-loadingtitle", "Yeni sayfa yetkisi tanımlama işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.." },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.Hidden("Status", Convert.ToBoolean(Infoline.WorkOfTime.BusinessAccess.EnumSH_PagesRoleStatus.Aktif))
+
+
+    <div class="form-group @(Model.roleid==null ? "" : "hide")">
+        <div class="col-md-2">
+            <label class="control-label label-md req " for="roleid">Yetki</label>
+        </div>
+        <div class="col-md-10">
+
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.roleid)
+                .DataValueField("id")
+                .OptionLabel("Lütfen yetki Seçiniz")
+                .DataTextField("rolname")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_Role", new { area = "SH" }))
+                .Sort(x => x.Add("rolname").Ascending())
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-2">
+            <label class="control-label label-md req" for="ActionIds">Sayfa</label>
+        </div>
+        <div class="col-md-10">
+            @Html.Hidden("ActionIds")
+            <div class="dialogContent">
+                <input id="filterText" type="text" placeholder="Sayfa ara" onkeyup="page.fn.onKeyUp()" />
+                <div class="selectAll">
+                    <input type="checkbox" id="chbAll" class="k-checkbox" onchange="page.fn.chbAllOnChange()" />
+                    <label class="k-checkbox-label" for="chbAll">Tümünü Seç</label>
+                    <span id="result">0 kategori seçildi</span>
+                </div>
+                <div id="treeview"></div>
+            </div>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+
+    <script type="text/javascript" data-selector="modalContainer">
+        var page = {
+            roleid: '@Model.roleid',
+            fn: {
+                data: function () {
+                    GetJsonDataFromUrl('/SH/VWSH_PagesRole/DataSourceTreeView', { roleId: page.roleid }, function (response) {
+                        if (response == null) {
+                            return;
+                        }
+
+                        $("#treeview").kendoTreeView({
+                            loadOnDemand: false,
+                            checkboxes: { checkChildren: true },
+                            dataSource: response.model,
+                            check: page.fn.onCheck,
+                            expand: page.fn.onExpand
+                        });
+
+                        $.each(response.pagesRole, function (index, item) {
+
+                            var treeview = $("#treeview").data("kendoTreeView");
+                            var searchColumn = item.PageDescription ? item.Action_Title + " ( " + item.PageDescription + " ) " : item.Action_Title;
+                            var c = treeview.findByText(searchColumn);
+                            try {
+                                treeview.dataItem(c).set("checked", true);
+
+                                var checkedNodes = [];
+                                page.fn.getCheckedNodes(treeview.dataSource.view(), checkedNodes);
+
+                                $("#ActionIds").val(checkedNodes.join(","));
+
+                            } catch (e) {
+                                console.log(searchColumn);
+                                console.log(c);
+                            }
+                        });
+                    })
+                },
+                checkUncheckAllNodes: function (nodes, checked) {
+                    for (var i = 0; i < nodes.length; i++) {
+                        nodes[i].set("checked", checked);
+                        if (nodes[i].hasChildren) {
+                            page.fn.checkUncheckAllNodes(nodes[i].children.view(), checked);
+                        }
+                    }
+                },
+                chbAllOnChange: function () {
+                    var treeView = $("#treeview").data("kendoTreeView");
+                    var isAllChecked = $('#chbAll').prop("checked");
+                    page.fn.checkUncheckAllNodes(treeView.dataSource.view(), isAllChecked);
+                    if (isAllChecked) {
+                        page.fn.setMessage($('#treeview input[type="checkbox"]').length);
+                        var checkedNodes = [];
+                        page.fn.getCheckedNodes(treeView.dataSource.view(), checkedNodes);
+                        $("#ActionIds").val(checkedNodes.join(","));
+                    } else {
+                        page.fn.setMessage(0);
+                        $("#ActionIds").val(null);
+                    }
+                },
+                getCheckedNodes: function (nodes, checkedNodes) {
+                    var node;
+
+                    for (var i = 0; i < nodes.length; i++) {
+                        node = nodes[i];
+                        if (node.checked) {
+                            checkedNodes.push(node.id);
+                        }
+                        if (node.hasChildren) {
+                            page.fn.getCheckedNodes(node.children.view(), checkedNodes);
+                        }
+                    }
+                },
+                setMessage: function (checkedNodes) {
+                    var message;
+
+                    if (checkedNodes > 0) {
+                        message = checkedNodes + " kategori seçildi";
+                    } else {
+                        message = "0 kategori seçildi";
+                    }
+
+                    $("#result").html(message);
+                },
+                onCheck: function () {
+                    var checkedNodes = [];
+                    var treeView = $("#treeview").data("kendoTreeView");
+
+                    page.fn.getCheckedNodes(treeView.dataSource.view(), checkedNodes);
+
+                    $("#ActionIds").val(checkedNodes.join(","));
+
+                    page.fn.setMessage(checkedNodes.length);
+                },
+                onExpand: function (e) {
+                    if ($("#filterText").val() == "") {
+                        $(e.node).find("li").show();
+                    }
+                },
+                onKeyUp: function () {
+                    var filterText = $('#filterText').val();
+                    if (filterText !== "") {
+                        $(".selectAll").css("visibility", "hidden");
+
+                        $("#treeview .k-group .k-group .k-in").closest("li").hide();
+                        $("#treeview .k-group").closest("li").hide();
+                        $("#treeview .k-in:contains(" + filterText + ")").each(function () {
+                            $(this).parents("ul, li").each(function () {
+                                var treeView = $("#treeview").data("kendoTreeView");
+                                treeView.expand($(this).parents("li"));
+                                $(this).show();
+                            });
+                        });
+                        $("#treeview .k-group .k-in").filter(function (a, item) { return $(item).text().toLowerCase().includes(filterText.toLowerCase()) }).each(function () {
+                            $(this).parents("ul, li").each(function () {
+                                $(this).show();
+                            });
+                        });
+                    } else {
+                        $("#treeview .k-group").find("li").show();
+                        var nodes = $("#treeview > .k-group > li");
+
+                        $.each(nodes, function (i, val) {
+                            if (nodes[i].getAttribute("data-expanded") == null) {
+                                $(nodes[i]).find("li").hide();
+                            }
+                        });
+
+                        $(".selectAll").css("visibility", "visible");
+                    }
+                }
+            }
+        }
+
+        $(document)
+        .on('click', 'span.k-in', function (e) {
+            $($(this).parents('[role="treeitem"]')[0]).find('[type="checkbox"]').trigger('click');
+        });
+
+        page.fn.data();
+    </script>
+    <style type="text/css" data-selector="modalContainer">
+        html .k-dialog .k-window-titlebar {
+            padding-left: 17px;
+        }
+
+        .k-dialog .k-content {
+            padding: 17px;
+        }
+
+        li[role="treeitem"] {
+            user-select: none;
+        }
+
+        #filterText {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 6px;
+            border-radius: 3px;
+            border: 1px solid #d9d9d9;
+        }
+
+        .k-treeview .k-item {
+            line-height: 36px;
+        }
+
+        .selectAll {
+            margin: 17px 0;
+        }
+
+        #result {
+            color: #9ca3a6;
+            float: right;
+        }
+
+        #treeview {
+            height: 300px;
+            overflow-y: auto;
+            border: 1px solid #d9d9d9;
+            padding: 15px;
+        }
+
+            #treeview .k-sprite {
+                background-image: url("/Content/Custom/img/coloricons.png");
+            }
+
+        .rootfolder {
+            background-position: 0 0;
+        }
+
+        .folder {
+            background-position: 0 -16px;
+        }
+
+        .pdf {
+            background-position: 0 -32px;
+        }
+
+        .html {
+            background-position: 0 -48px;
+        }
+
+        .image {
+            background-position: 0 -64px;
+        }
+    </style>
+}

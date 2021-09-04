@@ -1,0 +1,41 @@
+﻿@{
+	ViewBag.Title = "Kurallar";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="ibox">
+			<div class="ibox-title">
+				<div class="col-md-9">
+					<h5></h5>
+				</div>
+				<div class="col-md-3">
+					<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;margin-right: -6px;" data-modal="true" data-task="Insert" data-href="/UT/VWUT_Rules/Insert"> <i class="fa fa-plus-circle"></i> Yeni Kural Tanımla </a>
+				</div>
+			</div>
+			<div class="ibox-content">
+				@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_Rules>("VWUT_Rules")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_Rules", new { area = "UT" })).PageSize(25))
+    .Columns(x =>
+    {
+
+        x.Bound(y => y.name).Title("Kural").Width(130);
+        x.Bound(y => y.type_Title).Title("Tip").Width(130);
+    })
+    .Scrollable(x => x.Height(650))
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Kuralı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_Rules", new { area = "UT" }));
+        x.Custom().Text("<i data-original-title='Kural Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWUT_Rules", new { area = "UT" }));
+        //x.Custom().Text("<i data-original-title='Kurala Kullanıcı Ekle' class='fa fa-user-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWUT_RulesUser", new { area = "UT" }));
+        x.Custom().Text("<i data-original-title='Kuralı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_Rules", new { area = "UT" }));
+
+    }))
+			</div>
+		</div>
+	</div>
+</div>

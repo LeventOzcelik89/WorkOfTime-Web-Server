@@ -1,0 +1,820 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_OrderModels
+@{
+	ViewBag.Title = "Satış Siparişi Düzenleme";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+    var companyId = userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.NewGuid();
+}
+
+<link href="~/Content/Areas/CMP/VWCMP_Invoice/css/invoice.css" data-selector="modalContainer" rel="stylesheet" />
+<script src="~/Content/Areas/CMP/VWCMP_Invoice/js/invoice.js" data-selector="modalContainer"></script>
+
+@using (Html.BeginForm("Update", "VWCMP_Order", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWCMP_OrderInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.direction)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
+    @Html.HiddenFor(model => model.status)
+
+    @Html.HiddenFor(model => model.type)
+
+    @Html.HiddenFor(model => model.customerTaxNumber)
+    @Html.HiddenFor(model => model.customerTaxOffice)
+    @Html.HiddenFor(model => model.customerTitle)
+
+    @Html.HiddenFor(model => model.supplierAdress)
+    @Html.HiddenFor(model => model.supplierTaxNumber)
+    @Html.HiddenFor(model => model.supplierTaxOffice)
+    @Html.HiddenFor(model => model.supplierTitle)
+
+    @Html.HiddenFor(model => model.IsTransform)
+    @Html.HiddenFor(model => model.IsCopy)
+
+    <div id="content" class="clearfix">
+        <div class="form-group">
+            <div class="col-md-6" data-content="buysell">
+                <div class="form-group">
+                    <div class="col-sm-4">
+                        <label class="control-label req"><i class="fa fa-building-o"></i> Sipariş Alan İşletmem</label>
+                    </div>
+					<div class="col-sm-8">
+
+						@if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+						{
+							@(Html.Akilli()
+                                    .DropDownListFor(model => model.supplierId)
+                                    .OptionLabel("Lütfen İşletme Seçiniz..")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Action(b => b.Action("DataSourceDropDownSpesific", "VWCMP_Company", new { area = "CMP" }))
+                                    .Filter<VWCMP_Company>(c => c.id == companyId)
+                                    .Events(e => { e.Change("_invoice.Events.onChange"); })
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Execute("id")
+                                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                                    .ValueTemplate("<span>#=name#</span>")
+                                    .Validate(Validations.Required)
+                        )
+						}
+						else
+						{
+
+							@(Html.Akilli()
+                                    .DropDownListFor(model => model.supplierId)
+                                    .OptionLabel("Lütfen İşletme Seçiniz..")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                    .Filter<VWCMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                                    .Events(e => { e.Change("_invoice.Events.onChange"); })
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Execute("id")
+                                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                                    .ValueTemplate("<span>#=name#</span>")
+                                    .Validate(Validations.Required)
+                        )
+						}
+
+					</div>
+                </div>
+            </div>
+            <div class="col-md-6" data-content="buysell">
+                <div class="form-group">
+                    <label class="col-sm-4 control-label req"><i class="fa fa-building-o"></i> Müşteri </label>
+                    <div class="col-sm-8">
+                        @(Html.Akilli()
+                                    .DropDownListFor(model => model.customerId)
+                                    .OptionLabel("Lütfen Müşteri Seçiniz..")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Execute("id")
+                                    .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true, "customerStorageId")
+                                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                                    .ValueTemplate("<span>#=name#</span>")
+                                    .Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-top: 10px !important;" data-id="customerStorage">
+                    <label class="control-label col-sm-4"><i class="fa fa-building-o"></i> Müşteri Şube/Depo </label>
+                    <div class="col-sm-8">
+
+                        @(Html.Akilli()
+                                    .DropDownListFor(model => model.customerStorageId)
+                                    .OptionLabel("Lütfen Şube/Depo Seçiniz..")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .CascadeFrom("customerId")
+                                    .CascadeFromField("companyId")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                                    .Events(e => { e.Change("_invoice.Events.onChangeStorage"); })
+                                    .BasicInsert(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", cascadeFromField = "companyId" }), "name", true)
+                                    .Execute("id")
+                        )
+
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12" style="padding-top:10px !important;">
+                            <label class="control-label col-sm-4"><i class="fa fa-location-arrow"></i> Müşteri Adresi </label>
+                            <div class="col-sm-8">
+                                @Html.TextBoxFor(model => model.customerAdress, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Müşteri Adresi Girin.."},
+                                })
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+        <div class="form-group">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="col-sm-4">
+                        <label class="control-label req"><i class="fa fa-calendar"></i>  Düzenlenme Tarihi</label>
+                    </div>
+                    <div class="col-sm-8">
+                        @(
+                            Html.Akilli()
+                            .DatePickerFor(model => model.issueDate)
+                            .Format("dd.MM.yyyy")
+                            .MaxDateElement("expiryDate")
+                            .Value(Model.issueDate != null ? Model.issueDate : DateTime.Now)
+                            .Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-sm-4 req"><i class="fa fa-calendar"></i> Tahmini Teslim Tarihi</label>
+                    <div class="col-sm-8">
+                        @(
+                            Html.Akilli()
+                            .DatePickerFor(model => model.sendingDate)
+                            .Format("dd.MM.yyyy")
+                            .MinDateElement("issueDate")
+                            .Value(Model.sendingDate.HasValue ? Model.sendingDate.Value : DateTime.Now)
+                            .Validate(Validations.Required)
+                        )
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="col-sm-4">
+                        <label class="control-label"><i class="fa fa-credit-card"></i>  Ödeme Tipi </label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="center-on-page">
+                            <input @(Model.paymentType == null || Model.paymentType == (int)EnumCMP_InvoicePaymentType.Pesin ? "checked" : "") type="radio" name="paymentType" id="rb1" value="@(Convert.ToInt32(EnumCMP_InvoicePaymentType.Pesin))" />
+                            <label for="rb1">Peşin</label>
+                            <input @(Model.paymentType == (int)EnumCMP_InvoicePaymentType.Taksitli ? "checked" : "") type="radio" name="paymentType" id="rb2" value="@(Convert.ToInt32(EnumCMP_InvoicePaymentType.Taksitli))" />
+                            <label for="rb2">Taksitli</label>
+                            <input @(Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "checked" : "") type="radio" name="paymentType" id="rb3" value="@(Convert.ToInt32(EnumCMP_InvoicePaymentType.Vadeli))" />
+                            <label for="rb3">Vadeli</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group hide" id="installmentDiv">
+                    <label class="col-sm-4 control-label req"><i class="fa fa-bell"></i>  Taksit Sayısı</label>
+                    <div class="col-md-8 radio">
+                        <div class="row">
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 2).Value(2)
+                                2
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 3).Value(3)
+                                3
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 4).Value(4)
+                                4
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 6).Value(6)
+                                6
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 9).Value(9)
+                                9
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 12).Value(12)
+                                12
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 24).Value(24)
+                                24
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 36).Value(36)
+                                36
+                            </label>
+                            <label>
+                                @Html.Kendo().RadioButtonFor(a => a.installmentCount).Checked(Model.installmentCount == 48).Value(48)
+                                48
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group hide" id="expiryDiv">
+                    <label class="col-sm-4 control-label req"><i class="fa fa-bell"></i>  Vade Tarihi</label>
+                    <div class="col-sm-8">
+                        @(
+                            Html.Akilli()
+                            .DatePickerFor(model => model.expiryDate)
+                            .Format("dd.MM.yyyy")
+                            .MinDateElement("issueDate")
+                        )
+                    </div>
+                    <div class="col-md-8 col-md-offset-4" style="text-align:center;">
+                        <div class="btn-group" role="group" aria-label="Basic example" style="width:100%;">
+                            <button type="button" data-id="7" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>7 GÜN</button>
+                            <button type="button" data-id="14" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>14 GÜN</button>
+                            <button type="button" data-id="30" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>30 GÜN</button>
+                            <button type="button" data-id="45" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>45 GÜN</button>
+                            <button type="button" data-id="60" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>60 GÜN</button>
+                            <button type="button" data-id="90" data-name="filterDate" style="width:20%;margin-left:0px !important;" class="btn filterButtonPassive"><span></span>90 GÜN</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Sipariş Dosyası</label>
+                    </div>
+                    <div class="col-md-8">
+                        @(
+                            Html.Akilli().FileUpload()
+                            .DataTable("CMP_Invoice")
+                            .DataId(Model.id)
+                            .DataKey(x => x.fileGroup == "Sipariş Dosyası")
+                        )
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-4"><i class="fa fa-info-circle"></i> Sipariş Açıklaması </label>
+                    <div class="col-md-8">
+                        @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Açıklama Giriniz.."},
+                        })
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <div class="col-sm-4">
+                        <label class="control-label req"><i class="fa fa-file-code-o"></i> Sipariş Kodu </label>
+                    </div>
+                    <div class="col-sm-8">
+                        @Html.TextBoxFor(model => model.rowNumber, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Sipariş Kodu Girin.."},
+                            }).Validate(Validations.NumberOnly(true, 0, 15))
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="control-label col-md-4 req"><i class="fa fa-refresh"></i> Teklif Dövizi</label>
+                    <div class="col-md-3">
+                        @(Html.Akilli().DropDownListFor(model => model.currencyId).HtmlAttributes(new Dictionary<string, object>()
+                           {
+                               {"style", "width:100%"},
+                               {"class", "form-control"},
+                           })
+                           .Filter(FilterType.Contains)
+                           .DataTextField("name")
+                           .DataValueField("id")
+                           .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                           .Events(e => { e.Change("_invoice.Events.changeCurrency"); e.DataBound("_invoice.Events.onDataBoundCurrency"); })
+                           .Sort(x => x.Add("name").Ascending())
+                           .Validate(Validations.Required)
+                           .Execute()
+                        )
+
+                    </div>
+                    <div class="col-md-5 hide" id="liveExchange">
+                        <label class="control-label col-md-3"><i class="fa fa-refresh"></i>  Kur </label>
+                        <div class="col-md-9">
+                            @(Html.Kendo().NumericTextBoxFor(model => model.rateExchange).Min(0).Value(1).Spinners(false).Decimals(4).Format("N4")
+                        .HtmlAttributes(new Dictionary<string, object>()
+                        {
+                                {"data-calculate", "keyup" },
+                        }))
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+
+        <table id="productsTable" class="table" style="background-color: #f8f8f8;">
+            <thead class="table-header" style="background-color: #c5c4c2;">
+                <tr>
+                    <th width="20"></th>
+                    <th width="33%">HİZMET / ÜRÜN</th>
+                    <th width="13%">MİKTAR</th>
+                    <th width="10%">BİRİM FİYAT</th>
+                    <th width="13%">TEKLİF FİYATI</th>
+                    <th width="13%">VERGİ (KDV)</th>
+                    <th width="15%">TOPLAM</th>
+                    <th width="50"></th>
+                    <th width="70"></th>
+                </tr>
+            </thead>
+            <tbody class="table-body">
+                <tr class="table-row table-row-2lines">
+                    <td colspan="11">
+                        <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="_invoice.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ ÜRÜN EKLE </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="hr-line-dashed"></div>
+
+        <div class="clearfix">
+            <div class="col-md-6 col-md-offset-6 col-sm-8 col-sm-offset-4">
+                <table class="table" style="background-color: #d9d9d9;">
+                    <tbody>
+                        <tr>
+                            <td>
+                                <div class="clearfix">
+                                    <div class="col-md-5"><h4>Ara Toplam</h4></div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="hidden" value="0" readonly="readonly" id="subTotal" />
+                                    </div>
+                                    <div class="col-md-3" data-result="subTotal">
+                                        <h3 class="font-bold text-right">+ 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <div class="dropup">
+                                            <button class="btn btn-default dropdown-toggle btnCustom" type="button" data-toggle="dropdown">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a onclick="_invoice.Events.addDiscountSubTotalAmount(this)">Ara Toplam İndirimi Ekle</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addStopaj(this)" data-value="20">%20 Stopaj</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addStopaj(this)" data-value="17">%17 Stopaj</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addStopaj(this)" data-value="15">%15 Stopaj</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addStopaj(this)" data-value="10">%10 Stopaj</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addStopaj(this)" data-value="3">%3 Stopaj</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div id="productDiscountsDiv" class="hide">
+                                    <div class="col-md-5"><h4>Ürün İndirimleri</h4></div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="hidden" value="0" readonly="readonly" id="productDiscounts" />
+                                    </div>
+                                    <div class="col-md-3" data-result="productDiscounts">
+                                        <h3 class="font-bold text-right">- 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+
+                                    </div>
+                                </div>
+
+                                <div id="subTotalDiscountDiv" class="hide">
+                                    <div class="col-md-5"><h4>Ara Toplam İndirimi</h4></div>
+                                    <div class="col-md-3">
+                                        <div class="input-group">
+                                            <input class="form-control" type="number" name="discount" min="0" value="0" id="subTotalDiscount" data-calculate="keyup">
+                                            <div class="input-group-btn">
+                                                <button data-toggle="dropdown" style="font-size: 20px;" class="btn btn-white dropdown-toggle" type="button" aria-expanded="false">
+                                                    % <span class="caret"></span>
+                                                </button>
+                                                <ul class="dropdown-menu myDropDownMenu pull-right" style="min-width: 20px;">
+                                                    <li><a href="#">%</a></li>
+                                                    <li><a href="#" data-cur="currency">₺</a></li>
+                                                </ul>
+                                                <input id="subTotalDiscountType" type="hidden" value="@((Int32)EnumCMP_InvoiceItemDiscountType.Yuzde)" data-name="type" name="discountType" />
+                                                <input id="subTotalDiscountPercent" type="hidden" value="0" data-name="discountPercent" name="discountPercent" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3" data-result="subTotalDiscount">
+                                        <h3 class="font-bold text-right">- 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <button class="btn btn-md btn-danger btnCustom" onclick="_invoice.Events.DeleteDiscountSubTotalAmount(this)" type="button"><i class="fa fa-times"></i></button>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr style="background-color: #b8b8b8;">
+                            <td>
+                                <div class="col-md-5"><h4>Brüt Toplam</h4></div>
+                                <div class="col-md-3">
+                                    <input class="form-control" type="hidden" readonly="readonly" value="0" />
+                                </div>
+                                <div class="col-md-3" data-result="totalSubAmount">
+                                    <h3 class="font-bold text-right">0,<small>00</small> ₺</h3>
+                                </div>
+                                <div class="col-md-1"></div>
+                            </td>
+                        </tr>
+                        <tr id="stopajRow" class="hide">
+                            <td>
+                                <div class="col-md-5"><h4>Stopaj</h4></div>
+                                <div class="col-md-3">
+                                    @(Html.Akilli()
+                                        .DropDownList("StopajRate")
+                                        .DataTextField("enumDescription")
+                                        .DataValueField("Id")
+                                        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                        .Sort(x => x.Add("enumDescription").Ascending())
+                                        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CMP_Invoice" && a.fieldName == "stopaj")
+                                        .Value(((Int32)EnumCMP_InvoiceStopaj.Yuzde0).ToString())
+                                        .HtmlAttributes(new Dictionary<string, object>()
+                                        {
+                                            {"style", "width:100%"},
+                                            {"class", "hide"},
+                                        })
+                                        .Events(e => { e.Change("_invoice.Events.changeStopaj"); e.DataBound("_invoice.Events.onDataBoundStopaj"); })
+                                        .Execute("enumKey")
+                                    )
+                                    <input name="stopaj" id="stopaj" type="hidden" value="0" />
+                                </div>
+                                <div class="col-md-3" data-result="stopaj">
+                                    <h3 class="font-bold text-right">- 0,<small>00</small> ₺</h3>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-md btn-danger btnCustom" onclick="_invoice.Events.removeStopaj(this)" type="button"><i class="fa fa-times"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="allTaxRow" class="hide">
+                            <td>
+                                <div id="totalOTVDiv">
+                                    <div class="col-md-5"><h4>Toplam ÖTV</h4></div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="hidden" id="totalOTV" value="0" readonly="readonly" />
+                                    </div>
+                                    <div class="col-md-3" data-result="otv">
+                                        <h3 class="font-bold text-right">+ 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+
+                                    </div>
+                                </div>
+
+                                <div id="totalOIVDiv">
+                                    <div class="col-md-5"><h4>Toplam ÖİV</h4></div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="hidden" id="totalOIV" value="0" readonly="readonly" />
+                                    </div>
+                                    <div class="col-md-3" data-result="oiv">
+                                        <h3 class="font-bold text-right">+ 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+
+                                    </div>
+                                </div>
+
+                                <div id="totalKDVDiv">
+                                    <div class="col-md-5"><h4>Toplam KDV</h4></div>
+                                    <div class="col-md-3">
+                                        <input class="form-control" type="hidden" id="totalKDV" value="0" readonly="readonly" />
+                                    </div>
+                                    <div class="col-md-3" data-result="kdv">
+                                        <h3 class="font-bold text-right">+ 0,<small>00</small> ₺</h3>
+                                    </div>
+                                    <div class="col-md-1">
+                                        <div class="dropup">
+                                            <button class="btn btn-default btnCustom dropdown-toggle" type="button" data-toggle="dropdown">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                            <ul class="dropdown-menu">
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="2">2/10 Tevkifat Uygula</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="3">3/10 Tevkifat Uygula</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="5">5/10 Tevkifat Uygula</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="7">7/10 Tevkifat Uygula</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="9">9/10 Tevkifat Uygula</a>
+                                                </li>
+                                                <li>
+                                                    <a onclick="_invoice.Events.addTevkifat(this)" data-value="10">Tümüne Tevkifat Uygula</a>
+                                                </li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="tevkifatRow" class="hide">
+                            <td>
+                                <div class="col-md-5"><h4>KDV Tevkifat</h4></div>
+                                <div class="col-md-3">
+                                    @(Html.Akilli()
+                                    .DropDownList("TevkifatRate")
+                                    .OptionLabel("Lütfen Tevkifat Seçiniz..")
+                                    .DataTextField("enumDescription")
+                                    .DataValueField("Id")
+                                    .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                    .Sort(x => x.Add("enumDescription").Ascending())
+                                    .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CMP_Invoice" && a.fieldName == "tevkifat")
+                                    .Value(((Int32)EnumCMP_InvoiceTevkifat.Yuzde0).ToString())
+                                    .HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"style", "width:100%"},
+                                        {"class", "hide"},
+                                    })
+                                    .Events(e => { e.Change("_invoice.Events.changeTevkifat"); e.DataBound("_invoice.Events.onDataBoundTevkifat"); })
+                                    .Execute("enumKey")
+                                    )
+                                    <input name="tevkifat" id="tevkifat" type="hidden" value="0" />
+                                </div>
+                                <div class="col-md-3" data-result="tevkifat">
+                                    <h3 class="font-bold text-right">- 0,<small>00</small> ₺</h3>
+                                </div>
+                                <div class="col-md-1">
+                                    <button class="btn btn-md btn-danger btnCustom" onclick="_invoice.Events.removeTevkifat(this)" type="button"><i class="fa fa-times"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr style="background-color: #b8b8b8;">
+                            <td>
+                                <div class="col-md-5"><h4>Genel Toplam</h4></div>
+                                <div class="col-md-3">
+                                    <div class="input-group hide">
+                                        <span class="input-group-addon" data-cur="currency">₺</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" data-result="totalAmount">
+                                    <h3 class="font-bold text-right">0,<small>00</small> ₺</h3>
+                                </div>
+                                <div class="col-md-1"></div>
+                            </td>
+                        </tr>
+                        <tr data-rowType="TL" class="hide" style="background-color: #b8b8b8;">
+                            <td>
+                                <div class="col-md-5"><h4>TL Karşılığı</h4></div>
+                                <div class="col-md-3">
+                                    <div class="input-group hide">
+                                        <input class="form-control" type="text" readonly="readonly" value="0" id="TLequality" />
+                                        <span class="input-group-addon">₺</span>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" data-result="TLequality">
+                                    <h3 class="font-bold text-right">0,<small>00</small> ₺</h3>
+                                </div>
+                                <div class="col-md-1"></div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+        </div>
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        </div>
+    </div>
+}
+
+<template id="rowTemplate" data-selector="modalContainer">
+    <tbody>
+        <tr class="table-row" data-row="InvoiceItems">
+            <td>
+                <input type="hidden" data-item="itemOrder">
+                <input type="hidden" data-item="invoiceId" value="@Model.id">
+                <input type="hidden" data-item="id">
+            </td>
+            <td>
+                @(Html.Akilli()
+                        .DropDownList("Item")
+                        .OptionLabel("Lütfen Ürün Seçiniz..")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                        .Filter<VWPRD_Product>(c => !Model.InvoiceItems.Select(a => a.productId).Contains(c.id) && c.statusFlags.Contains("|" + ((int)EnumPRD_ProductStatus.satis).ToString() + "|"))
+                        .Sort(x => x.Add("Name").Ascending())
+                        .Template("#=TemplateEngine('productTemplate',data)#")
+                        .Events(e => { e.Change("_invoice.Events.changeProduct"); })
+                        .HtmlAttributes(new Dictionary<string, object>() { { "data-item", "productId" }, { "class", "form-control" } })
+                        .BasicInsert(Url.Action("Insert", "VWPRD_Product", new { area = "PRD",status = (int)EnumPRD_ProductStatus.satis }), "name", true)
+                        .Validate(Validations.Required)
+                        .Execute("id")
+                )
+            </td>
+            <td>
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="quantity" data-calculate="keyup" />
+                    <span class="input-group-addon" data-label="unit">ADET</span>
+                    <input type="hidden" data-item="unitId" />
+                </div>
+            </td>
+            <td>
+                <div class="labelUnitPrice">
+                    <span data-label="unitPrice">0</span>
+                    <span data-cur="currencyUnit"> ₺</span>
+                </div>
+            </td>
+            <td>
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="price" data-calculate="keyup" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+                <input type="hidden" data-name="totalPrice" value="0" />
+            </td>
+            <td>
+
+                @(Html.Akilli()
+                                    .DropDownList("KDVRate")
+                                    .OptionLabel("Lütfen KDV Seçiniz..")
+                                    .DataTextField("enumDescription")
+                                    .DataValueField("Id")
+                                    .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                    .Sort(x => x.Add("enumDescription").Ascending())
+                                    .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CMP_InvoiceItem" && a.fieldName == "KDV")
+                                    .Events(e => { e.Change("_invoice.Events.changeKDVRate"); e.DataBound("_invoice.Events.onDataBoundKDV"); })
+                                    .Execute("enumKey")
+                )
+                <input type="hidden" data-name="KDVAmount" value="0">
+                <input type="hidden" data-item="KDV" value="18">
+                <input type="hidden" data-item="KDVType" value="@((Int32)EnumCMP_InvoiceItemDiscountType.Yuzde)">
+            <td>
+                <div class="input-group m-b hide">
+                    <input class="form-control" type="number" readonly="readonly" />
+                    <input type="hidden" data-item="totalSubAmount">
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+                <div class="labelTotal">
+                    <span data-label="totalAmount">0</span>
+                    <span data-cur="currency"> ₺</span>
+                </div>
+            </td>
+            <td>
+                <div class="dropdown">
+                    <button class="btn btn-default dropdown-toggle" type="button" data-toggle="dropdown">
+                        <i class="fa fa-plus"></i>
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li>
+                            <a onclick="_invoice.Events.additionalButton(this)" data-name="description">Açıklama Ekle</a>
+                        </li>
+                        <li>
+                            <a onclick="_invoice.Events.additionalButton(this)" data-name="discount">İndirim Ekle</a>
+                        </li>
+                        <li>
+                            <a onclick="_invoice.Events.additionalButton(this)" data-name="otv">ÖTV Ekle</a>
+                        </li>
+                        <li>
+                            <a onclick="_invoice.Events.additionalButton(this)" data-name="oiv">ÖİV Ekle</a>
+                        </li>
+                    </ul>
+                </div>
+            </td>
+            <td>
+                <button class="btn btn-md btn-danger" onclick="_invoice.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+            </td>
+        </tr>
+        <tr class="table-row clearfix" data-id="InvoiceItems">
+            <td style="border-top: 0px !important;" class="hide" data-content="description">
+                <div class="input-group m-b">
+                    <span class="input-group-addon">AÇIKLAMA</span>
+                    <input class="form-control" type="text" data-item="description" />
+                    <span class="input-group-btn">
+                        <button type="button" style="font-size: 20px;" class="btn btn-default" onclick="_invoice.ClearAdditionalInfo(this)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </span>
+                </div>
+            </td>
+            <td colspan="2" style="border-top: 0px !important;" class="hide" data-content="discount">
+                <div class="input-group">
+                    <span class="input-group-addon">İNDİRİM</span>
+                    <input class="form-control" type="number" data-item="discount" data-calculate="keyup" />
+                    <div class="input-group-btn">
+                        <button data-toggle="dropdown" style="font-size: 20px;" class="btn btn-white dropdown-toggle" type="button" aria-expanded="false">
+                            % <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu myDropDownMenu pull-right" style="min-width: 20px;">
+                            <li><a href="#">%</a></li>
+                            <li><a href="#" data-cur="currency">₺</a></li>
+                        </ul>
+                        <input type="hidden" data-item="discountType" data-name="type" value="@((Int32)EnumCMP_InvoiceItemDiscountType.Yuzde)" />
+                        <input type="hidden" data-name="discountTL" value="0" />
+                        <button type="button" style="font-size: 20px;" class="btn btn-default" onclick="_invoice.ClearAdditionalInfo(this)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </td>
+            <td colspan="2" style="border-top: 0px !important;" class="hide" data-content="otv">
+                <div class="input-group">
+                    <span class="input-group-addon">ÖTV</span>
+                    <input class="form-control" type="number" data-item="OTV" data-calculate="keyup" />
+                    <div class="input-group-btn">
+                        <button data-toggle="dropdown" style="font-size: 20px;" class="btn btn-white dropdown-toggle" type="button" aria-expanded="false">
+                            % <span class="caret"></span>
+                        </button>
+                        <ul class="dropdown-menu myDropDownMenu pull-right" style="min-width: 20px;">
+                            <li><a href="#">%</a></li>
+                            <li><a href="#" data-cur="currency">₺</a></li>
+                        </ul>
+                        <input type="hidden" data-item="OTVType" data-name="type" value="@((Int32)EnumCMP_InvoiceItemDiscountType.Yuzde)" />
+                        <input type="hidden" data-name="otvAmount" value="0" />
+                        <button type="button" style="font-size: 20px;" class="btn btn-default" onclick="_invoice.ClearAdditionalInfo(this)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                    </div>
+                </div>
+            </td>
+            <td style="border-top: 0px !important;" class="hide" data-content="oiv">
+                <div class="input-group">
+                    <span class="input-group-addon">ÖİV</span>
+                    <input class="form-control" type="number" data-item="OIV" data-calculate="keyup" />
+                    <div class="input-group-btn">
+                        <button style="font-size: 20px;cursor:context-menu;" class="btn btn-white" type="button">
+                            %
+                        </button>
+                        <button type="button" style="font-size: 20px;" class="btn btn-default" onclick="_invoice.ClearAdditionalInfo(this)">
+                            <i class="fa fa-times"></i>
+                        </button>
+                        <input type="hidden" data-item="OIVType" value="@((Int32)EnumCMP_InvoiceItemDiscountType.Yuzde)" />
+                        <input type="hidden" data-name="oivAmount" value="0" />
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </tbody>
+</template>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+
+</script>

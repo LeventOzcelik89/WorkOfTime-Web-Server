@@ -1,0 +1,48 @@
+﻿@{
+    ViewBag.Title = "Araçlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="text-success fa fa-car"></i> Araç Listesi </h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCars>("VWCMP_CompanyCars")
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_CompanyCars", new { area = "CMP" })).PageSize(25))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.plate).Title("Plaka").Width(180);
+                     x.Bound(y => y.responsiblePersonId_Title).Title("Zimmetli Kişi").Width(180);
+                     x.Bound(y => y.chassisNumber).Title("Şase Numarası").Width(180);
+                     x.Bound(y => y.brand).Title("Marka").Width(180);
+                     x.Bound(y => y.companyStorageId_Title).Title("Depo").Width(300);
+                     x.Bound(y => y.lastKilometer).Title("Kilometre").Width(300);
+
+                 })
+                 .Selectable(x => x.Mode(GridSelectionMode.Single))
+                  .Scrollable(s => s.Height(650))
+                 .ToolBar(x =>
+                 {
+                     x.Custom().Text("<i data-original-title='Araç Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_CompanyCars", new { area = "CMP" }));
+                     x.Custom().Text("<i data-original-title='Aracı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_CompanyCars", new { area = "CMP" }));
+                     x.Custom().Text("<i data-original-title='Araç Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_CompanyCars", new { area = "CMP" }));
+                     x.Custom().Text("<i data-original-title='Kilometre Bildirimi' class='fa fa-road'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_CompanyCarKilometer", new { area = "CMP"}));
+                     x.Custom().Text("<i data-original-title='Aracı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_CompanyCars", new { area = "CMP" }));
+                 }))
+
+            </div>
+        </div>
+    </div>
+</div>

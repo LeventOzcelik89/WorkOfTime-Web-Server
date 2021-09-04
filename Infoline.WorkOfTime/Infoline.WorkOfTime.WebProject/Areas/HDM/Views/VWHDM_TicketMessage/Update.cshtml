@@ -1,0 +1,105 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWHDM_TicketMessage
+@{
+    ViewBag.Title = "Yardım Talebi Üzerinde Yazılan Mesajlar Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWHDM_TicketMessage", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ticketId">Talebin Id'si</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.ticketId)
+			      .OptionLabel("Lütfen Talebin Id'si seçiniz..")
+			      .DataTextField("title")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWHDM_Ticket", new { area = "HDM" }))
+			      .Sort(x => x.Add("title").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="type">Mesaj Tipi</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.type, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Mesaj Tipi giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="content">İçerik</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.content, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen İçerik giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="cc">Mail CC</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.cc, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Mail CC giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="bcc">Mail BCC</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.bcc, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Mail BCC giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

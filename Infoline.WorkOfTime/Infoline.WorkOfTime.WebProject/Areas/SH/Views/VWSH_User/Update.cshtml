@@ -1,0 +1,319 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+@{
+    ViewBag.Title = "Personel Kullanıcı Bilgileri Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<form action="@Url.Action("Update","VWSH_User" ,new { area = "SH" })" method="post" role="form" id="userInformation" class="form-horizontal" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+	  data-selector="modalContainer" data-formType="Ajax">
+
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.CompanyId)
+	@Html.HiddenFor(model => model.VWSH_PersonInformation.id)
+
+	<script type="text/javascript">
+		function roleDataBound(e) {
+			$("#userInformation").validator("validate");
+		}
+	</script>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="code">Personel Kodu</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+			 {
+				 {"class", "form-control"},
+				 {"placeholder", "Lütfen Personel Kodunu Giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="title">Ünvan</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Ünvan giriniz"},
+			}).Validate(Validations.Required)
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="firstname">Ad Soyad</label>
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(model => model.firstname, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen ad giriniz.."},
+			}).Validate(Validations.TextTurkceSpace(true))
+		</div>
+		<div class="col-md-4">
+			@Html.TextBoxFor(model => model.lastname, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen soyad giriniz"},
+			}).Validate(Validations.TextTurkceSpace(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="grade">Cinsiyet</label>
+		</div>
+		<div class="col-md-8">
+			<script type="text/javascript">
+				$('[name="Gender"]').attr("name", "VWSH_PersonInformation.Gender");
+			</script>
+
+			@(Html.Akilli().RadioButtonGroupFor(a => a.VWSH_PersonInformation.Gender).Value(EnumSH_PersonInformationGender.Erkek))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="birthday">Doğum Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
+            .DatePickerFor(model => model.birthday).Max(DateTime.Now.AddYears(-15))
+            .Validate(Validations.Required))
+		</div>
+	</div>
+
+	@if (Model.JobStartDate.HasValue && TenantConfig.Tenant.TenantCode == 1139)
+	{
+		<div class="form-group clearfix">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="JobStartDate">İş Giriş Tarihi</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                            Html.Akilli()
+                            .DatePickerFor(model => model.JobStartDate)
+                            .Placeholder("Lütfen İşe Giriş Tarihi Seçiniz..")
+                            .Value(Model.JobStartDate)
+                            .Max(Model.JobStartDate.Value.AddDays(30))
+                            .Format(Extensions.DateFormatShort())
+                            .Validate(Validations.Required)
+                        )
+			</div>
+		</div>
+	}
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="email">Eposta Adresi</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+			{
+				{"placeholder","Email adresi(test@test.com)"},
+				{"class","form-control"},
+			}).Validate(Validations.EMail(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="email">Kişisel Eposta Adresi</label>
+		</div>
+		<div class="col-md-8">
+			<script type="text/javascript">
+				$('[name="PersonalMail"]').attr("name", "VWSH_PersonInformation.PersonalMail");
+			</script>
+
+			@Html.TextBoxFor(model => model.VWSH_PersonInformation.PersonalMail, new Dictionary<string, object>()
+			{
+				{"placeholder","Email adresi(test@test.com)"},
+				{"class","form-control"},
+			}).Validate(Validations.EMail(false))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="cellphone">Şahsi Cep Telefonu</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
+            {
+                { "style", "width: 100%"},
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Cep Telefonunuzu Giriniz."},
+            })
+            .Mask("0 (000) 000 00 00")
+            .UnmaskOnPost(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="phone">Sabit Telefonu</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
+            {
+                { "style", "width: 100%"},
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Ev Telefonunuzu Giriniz."},
+            })
+            .Mask("0 (000) 000 00 00")
+            .UnmaskOnPost(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyCellPhone">Şirket Cep Telefonu / Kısa Kod</label>
+		</div>
+		<div class="col-md-6">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.companyCellPhone).HtmlAttributes(new Dictionary<string, object>()
+                                {
+                                    { "style", "width: 100%"},
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Şirket Cep Telefonunuzu Giriniz."},
+                                })
+                                .Mask("0 (000) 000 00 00")
+                                .UnmaskOnPost(true)
+            )
+		</div>
+		<div class="col-md-2">
+			@Html.TextBoxFor(model => model.companyCellPhoneCode, new Dictionary<string, object>()
+				{
+					{ "style", "width: 100%"},
+					{"class", "form-control"},
+					{"placeholder", "Kısa Kod"},
+				}).Validate(Validations.NumberOnly(false, 0, 4))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyOfficePhone">Şirket Ofis Telefonu / Kısa Kod</label>
+		</div>
+		<div class="col-md-6">
+			@(Html.Kendo().MaskedTextBoxFor(a => a.companyOfficePhone).HtmlAttributes(new Dictionary<string, object>()
+                                {
+                                    { "style", "width: 100%"},
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Şirket Ofis Telefonunuzu Giriniz."},
+                                })
+                                .Mask("0 (000) 000 00 00")
+                                .UnmaskOnPost(true)
+            )
+		</div>
+		<div class="col-md-2">
+			@Html.TextBoxFor(model => model.companyOfficePhoneCode, new Dictionary<string, object>()
+				{
+					{ "style", "width: 100%"},
+					{"class", "form-control"},
+					{"placeholder", "Dahili No"},
+				}).Validate(Validations.NumberOnly(false, 0, 4))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="locationId">Yaşadığı Ülke/Şehir/İlçe</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DropDownListFor(model => model.locationId)
+                .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                .DataTextField("pid_Title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                .Sort(x => x.Add("pid_Title").Ascending())
+                .Execute())
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="address">Açık Adres</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen adres giriniz.."},
+			})
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="loginname">Kullanıcı Adı</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.loginname, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Kimlik Numarasını Giriniz.."},
+			}).Validate(Validations.UserName(true))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="Roles">Roller</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
+            .MultiSelectFor(model => model.Roles)
+            .Placeholder("Lütfen kullanıcının dahil olacağı rolleri seçiniz..")
+            .DataTextField("rolname")
+            .DataValueField("id")
+            .TagTemplate("#=rolname#")
+            .TagMode(TagMode.Multiple)
+            .Action(b => b.Action("DataSourceDropDown", "VWSH_Role", new { area = "SH" }))
+            .Sort(x => x.Add("rolname").Ascending())
+            .Validate(Validations.Required)
+            .Events(a => a.DataBound("roleDataBound"))
+            .Execute())
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="firstname">Oturum Açabilir mi? </label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli().RadioButtonGroupFor(a => a.status).Value(EnumSH_UserStatus.Onaylanmis))
+		</div>
+	</div>
+
+	@if (Model.IsWorking == false && Model.JobEndDate.HasValue)
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="title">İş Çıkış Tarihi</label>
+			</div>
+			<div class="col-md-8">
+				@Html.TextBoxFor(model => model.JobEndDate, "{0:dd MM yyyy}", new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"readonly", "readonly" }
+				})
+			</div>
+		</div>
+	}
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+</form>

@@ -1,0 +1,210 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMPDS_FormPermitTaskModel
+@{
+    ViewBag.Title = "Form Değerlendirme Dönemi Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css" data-selector="modalContainer">
+    #grouping .center-on-page {
+        position: sticky;
+    }
+
+    #grouping input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        z-index: -1;
+    }
+
+    #grouping label {
+        position: relative;
+        display: inline-block;
+        margin-right: 10px;
+        padding-left: 30px;
+        padding-right: 10px;
+        line-height: 36px;
+        cursor: pointer;
+    }
+
+        #grouping label::before {
+            content: " ";
+            position: absolute;
+            top: 6px;
+            left: 0;
+            display: block;
+            width: 24px;
+            height: 24px;
+            border: 2px solid #da2c5b;
+            border-radius: 4px;
+            z-index: -1;
+        }
+
+    #grouping input[type="radio"] + label::before {
+        border-radius: 18px;
+    }
+    #grouping input[type="radio"]:checked + label {
+        padding-left: 10px;
+        color: #fff;
+    }
+
+        #grouping input[type="radio"]:checked + label::before {
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: #da2c5b;
+        }
+    #grouping label,
+    #grouping label::before {
+        -webkit-transition: .25s all ease;
+        -o-transition: .25s all ease;
+        transition: .25s all ease;
+    }
+
+    .modal-lg {
+        width: 50%;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on("change", '[name="filterType"]', function (e) {
+            var val = $("input[name='filterType']:checked").val();
+            $('#personel').addClass("hide");
+            if(val == "@Convert.ToInt32(EnumPDS_FormPermitTaskFilterType.Personel)"){
+                $('#personel').removeClass("hide");
+            }
+        })
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWPDS_FormPermitTask", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWPDS_FormPermitTaskInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.status)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formName_title">Form Adı</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.evaluateFormId)
+                .DataValueField("id")
+                .OptionLabel("Lütfen form ismi Seçiniz")
+                .DataTextField("formName")
+                .Action(b => b.Action("DataSourceDropDown", "VWPDS_EvaluateForm", new { area = "PDS" }))
+                .Sort(x => x.Add("formName").Ascending())
+                .Validate(Validations.Required)
+                .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formName_title">Değerlendirme Aralığı</label>
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen başlangıç tarihi girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .MaxDateElement("endDate")
+            .Min(DateTime.Now)
+            .Validate(Validations.Required)
+            .Value(DateTime.Now))
+        </div>
+        <div class="col-md-4">
+            @(Html.Akilli().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen bitiş tarihi girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .MinDateElement("startDate")
+            .Min(DateTime.Now)
+            .Validate(Validations.Required)
+            .Value(DateTime.Now.AddYears(1)))
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+
+    <div id="grouping">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="formName_title">Gruplama</label>
+            </div>
+            <div class="col-md-8">
+                <div class="center-on-page">
+                    <input checked type="radio" name="filterType" id="rb1" value="@(Convert.ToInt32(EnumPDS_FormPermitTaskFilterType.Personel))" />
+                    <label for="rb1">Kişi Bazlı Seçim</label>
+                    <input type="radio" name="filterType" id="rb2" value="@(Convert.ToInt32(EnumPDS_FormPermitTaskFilterType.Own))" />
+                    <label for="rb2">Herkes Kendini Değerlendirsin</label>
+                </div>
+            </div>
+        </div>
+
+        <div class="hr-line-dashed"></div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="evaluatorId">Değerlendirme Yapabilecek Personeller</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                     .MultiSelectFor(model => model.evaluatorIds)
+                     .Placeholder("Lütfen Seçim Yapınız.")
+                     .DataTextField("FullName")
+                     .DataValueField("id")
+                       .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                       .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                       .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                     .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+                     .Execute("id")
+                )
+            </div>
+        </div>
+
+        <div id="personel">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="evaluationId">Değerlendirilecek Personeller</label>
+                </div>
+                <div class="col-md-8">
+                    @(Html.Akilli()
+                         .MultiSelectFor(model => model.evaluatedUserIds)
+                         .Placeholder("Lütfen Seçim Yapınız.")
+                         .DataTextField("FullName")
+                         .DataValueField("id")
+                          .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                          .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                          .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                         .Sort(x => x.Add("FullName").Ascending()).TagMode(TagMode.Multiple)
+                         .Execute("id")
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

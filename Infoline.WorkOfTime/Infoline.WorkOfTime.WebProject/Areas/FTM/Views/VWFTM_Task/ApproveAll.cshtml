@@ -1,0 +1,37 @@
+﻿@{
+    ViewBag.Title = "Toplu Onay Sayfası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var taskIds = (String)ViewBag.TaskIds;
+}
+
+@using (Html.BeginForm("ApproveAll", "VWFTM_Task", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id", "VWFTM_TaskApproveAll" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.Hidden("taskIds", taskIds)
+    <div class="hide">
+        @(Html.Akilli().MapInput().Name("location").Navigation(true))
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="formType">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextArea("Description", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Girin.."},
+            })
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-primary pull-right" style="margin-left: 5px;" type="submit"> Hepsini Onayla </button>
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose" data-backdrop="degerlendirme">Geri</button>
+    </div>
+}

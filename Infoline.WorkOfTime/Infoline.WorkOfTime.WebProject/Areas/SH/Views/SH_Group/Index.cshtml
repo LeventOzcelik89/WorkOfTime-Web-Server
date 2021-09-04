@@ -1,0 +1,23 @@
+﻿@{
+    ViewBag.Title = "Grup & Ekip Tanımlamaları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.SH_Group>("SH_Group")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "SH_Group", new { area = "SH" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.code).Title("Grup Kodu");
+        x.Bound(y => y.name).Title("Grup Adı");
+        x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true));
+
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "SH_Group", new { area = "SH" }));
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "SH_Group", new { area = "SH" }));
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "SH_Group", new { area = "SH" }));
+        x.Custom().Text("<i data-original-title='Grup & Ekip Tanımı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "SH_Group", new { area = "SH" }));
+    }))

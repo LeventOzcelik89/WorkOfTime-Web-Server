@@ -1,0 +1,101 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments
+@{
+    ViewBag.Title = "Personel Departman Pozisyonu Düzenleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWINV_CompanyPersonDepartments", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.DepartmentId)
+    @Html.HiddenFor(model => model.IdUser)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Title">Personel Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Person_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"}
+            })
+        </div>
+    </div>
+    
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Title">Personelin Departmandaki Ünvanı</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen personel ünvanı giriniz.."},
+                })
+            </div>
+        </div>
+
+
+    if (Model.ProjectId.HasValue)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="start" for="StartDate">Başlangıç Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DateTimePickerFor(model => model.StartDate)
+                    .Value(Model.StartDate.Value)
+                    .MaxDateElement("EndDate")
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="start" for="EndDate">Bitiş Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DateTimePickerFor(model => model.EndDate)
+                    .Value(Model.EndDate.Value)
+                    .MinDateElement("StartDate")
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IsBasePosition">Asli Görev mi?</label>
+        </div>
+        <div class="btn-group col-md-8 radio">
+            <label>
+                @Html.Kendo().RadioButtonFor(model => model.IsBasePosition).Value(true).Checked(Model.IsBasePosition == true)
+                <span> Evet  </span>
+            </label>
+
+            <label>
+                @Html.Kendo().RadioButtonFor(model => model.IsBasePosition).Value(false).Checked(Model.IsBasePosition == false)
+                <span> Hayır   </span>
+            </label>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

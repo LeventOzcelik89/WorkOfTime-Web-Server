@@ -1,0 +1,471 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_TransactionReport
+@{
+    ViewBag.Title = "Nakit Akışı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Plugins/HighCharts/js/highstock.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/exporting.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/highcharts-more.js"></script>
+
+<style type="text/css">
+    .cell-table {
+        text-align: right;
+        font-weight: 800;
+        font-family: 'ubuntu mono',monospace,serif;
+        color: black;
+    }
+
+    .greyBackGround {
+        background-color: #f2f1f1;
+    }
+
+    .table-bordered-tb {
+        border-top: 1px solid #FFF;
+    }
+
+    #VWPA_Transaction .k-header {
+        display: none;
+    }
+
+    #VWPA_Transaction thead {
+        display: none;
+    }
+</style>
+
+<script type="text/javascript">
+
+    var page = {
+        model:  @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        types:  @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_TransactionType>())),
+        summaryData: {
+            balance: null,
+            input: null,
+            output: null
+        },
+        fnc: {
+            init: function () {
+                page.summaryData.input = $.Enumerable.From(page.model.Ledgers).Sum(a => a.inputAmount * a.rateExchange);
+                page.summaryData.output = $.Enumerable.From(page.model.Ledgers).Sum(a => a.outputAmount * a.rateExchange);
+                page.summaryData.balance = page.summaryData.input - page.summaryData.output;
+
+                page.fnc.createChart();
+                page.fnc.loadCompanyReport();
+            },
+            createChart: function () {
+
+                var inputData = [], outputData = [], balance = [];
+
+                var yearlyData = $.Enumerable.From(page.model.Transactions).Where(a => a.date != null).Where(a => new Date().addYears(1).getMontly().getTime() > new Date(a.date).getTime() &&
+                                                                                                                  new Date(new Date().getMontly().getTime()) <= new Date(a.date).getTime());
+
+                var outputTotal = yearlyData.Sum(a => a.outputAmount);
+                var inputTotal = yearlyData.Sum(a => a.inputAmount);
+
+                $('[data-id="inputAmount"]').text(kendo.toString(inputTotal , "N2") + " ₺");
+                $('[data-id="outputAmount"]').text(kendo.toString(outputTotal, "N2") + " ₺");
+                $('[data-id="balanceAmount"]').text(kendo.toString((inputTotal - outputTotal), "N2") + " ₺");
+
+                var categories = [];
+
+                var rowBalance = $('<tr>').append('<th>DÖNEM BAŞI BAKİYESİ</th>');
+                var rowReceipts = $('<tr>').append('<th>TAHSİLATLAR</th>');
+                var rowPayments = $('<tr>').append('<th>ÖDEMELER</th>');
+                var rowBalanceEnd = $('<tr>').append('<th>TAHMİNİ DÖNEM SONU BAKİYESİ</th>');
+
+                var balanceAmount = page.summaryData.balance;
+                var allData = $.Enumerable.From(page.model.Transactions).Where(a=>a.date != null);
+
+                for (var d = 0; d <= 11; d++) {
+                    var monthlyDate = new Date().getMontly();
+                    var startDate = new Date(monthlyDate.setMonth(monthlyDate.getMonth() + d));
+                    var endDate = new Date(monthlyDate.setMonth(monthlyDate.getMonth() + d + 1));
+                    var thisMonthData = allData.Where(a => new Date(a.date).getTime() >= new Date(startDate) && new Date(a.date) < new Date(endDate));
+                    var category = kendo.toString(startDate, "MMM yy");
+
+                    var input = thisMonthData.Sum(s => s.inputAmount);
+                    var output = thisMonthData.Sum(s => s.outputAmount);
+
+                    categories.push(category);
+                    inputData.push({ x: d, y: input, before: balanceAmount });
+                    outputData.push({ x: d, y: output * -1, after: balanceAmount + input - output  });
+                    balance.push({ x: d - 0.5, y: balanceAmount });
+
+                    rowBalance.append('<td data-category="'+ category +'" class="cell-table">' + kendo.toString(balanceAmount ,"N0") + '</td>');
+                    rowReceipts.append('<td data-category="'+ category +'" class="cell-table">' + kendo.toString(input ,"N0") + '</td>');
+                    rowPayments.append('<td data-category="' + category + '" class="cell-table">' + kendo.toString(output, "N0") + '</td>');
+
+                    balanceAmount += (input - output);
+
+                    if (d == 11) {
+                        balance.push({ x: d+0.5, y: balanceAmount });
+                    }
+
+                    rowBalanceEnd.append('<td data-category="'+ category +'" class="cell-table">' + kendo.toString(balanceAmount, "N0") + '</td>');
+                }
+
+                $('#summaryTable').append(rowBalance).append(rowReceipts).append(rowPayments).append(rowBalanceEnd);
+
+                var areaData = [
+                    { x: -0.5, y: 11690 }, { x: 0, y: 11690 }, { x: 0.5, y: 11690 }, { x: 1.5, y: 11690 }, { x: 2.5, y: 11690 }, { x: 3.5, y: 11690 },
+                    { x: 4.5, y: 11690 }, { x: 5.5, y: 11690 }, { x: 6.5, y: 11690 }, { x: 7.5, y: 11690 }, { x: 8.5, y: 11690 }, { x: 9.5, y: 11690 },
+                    { x: 9.5, y: 11690 }, { x: 10.5, y: 11690 }, { x: 11.5, y: 11690 }
+                ];
+
+                var series = [
+                    {
+                        name: "Ranges",
+                        data: areaData,
+                        type: "arearange",
+                        lineWidth: 0,
+                        color: "#22C39E",
+                        fillOpacity: 0.1,
+                        zIndex: 0,
+                        enableMouseTracking: false
+                    },
+                    {
+                        name: "Nakit Girişi",
+                        type: "column",
+                        color: "#1ab394",
+                        data: $.Enumerable.From(inputData).OrderBy(a => a.x).ToArray(),
+                    },
+                    {
+                        name: "Nakit Çıkışı",
+                        type: "column",
+                        color: "#ed5565",
+                        data: $.Enumerable.From(outputData).OrderBy(a => a.x).ToArray(),
+                    },
+                    {
+                        name: "Dönem Başı",
+                        type: "line",
+                        zIndex: 10,
+                        color: "#f8ac59",
+                        enableMouseTracking: false,
+                        data: $.Enumerable.From(balance).OrderBy(a => a.x).ToArray(),
+                    }
+                ];
+
+                Highcharts.chart('Chart', {
+                    chart: {
+                        height: 350,
+                        zoomType: "none",
+                    },
+                    credits: {
+                        enabled: false,
+                    },
+                    exporting: {
+                        enabled: false
+                    },
+                    title: {
+                        text: null
+                    },
+                    legend: {
+                        enabled: false,
+                    },
+                    xAxis: {
+                        type: "categories",
+                        categories: categories,
+                        labels: {
+                            overflow: "justify",
+                            step: 1,
+                            y: 35,
+                        },
+                        reversed: false,
+                        opposite: false,
+                        gridLineColor: "#dedddc",
+                        gridLineWidth: "1",
+                        gridZIndex: "4",
+                        tickColor: "transparent",
+                        startOnTick: false,
+                        endOnTick: false,
+                        index: 0,
+                        isX: true
+                    },
+                    yAxis: {
+                        title: {
+                            text: null
+                        },
+                        gridLineWidth: "0",
+                        showFirstLabel: false,
+                        opposite: true,
+                        labels: {
+                            align: "right",
+                            x: -5,
+                            y: 0,
+                        }
+                    },
+                    tooltip: {
+                        shared: true,
+                        useHTML: true,
+                        borderRadius: 6,
+                        borderWidth: 2,
+                        borderColor: "#F2F1F1",
+                        backgroundColor: "rgba(255,255,255,1)",
+                        crosshairs: {
+                            color: "#f2f1f1",
+                            zIndex: -1
+                        },
+                        style: {
+                            margin: "0px 0px 3px 0px",
+                            "box-shadow": "10px 10px",
+                            fontSize: "13px",
+                            padding: "1"
+                        },
+                        formatter: function () {
+
+                            var table = $('<table>').addClass("table table-bordered-tb");
+                            var tbody = $('<tbody>');
+
+                            $.each(this.points, function (i, item) {
+                                if (item.point.before) {
+                                    var elem = $('<tr>').append($('<td>').text("Dönem Başı : ")).append($('<td class="cell-table">').append('<b>' + kendo.toString(item.point.before, "N2") + " ₺" + '</b>'));
+                                    $(tbody).append(elem);
+                                }
+
+                                var elem2 = $('<tr>').append($('<td>').text(item.series.name + " : ")).append($('<td class="cell-table">').append('<b>' + kendo.toString(item.y, "N2") + " ₺" + '</b>'));
+                                $(tbody).append(elem2);
+
+                                if (item.point.after) {
+                                    var elem3 = $('<tr>').append($('<td>').text("Dönem Sonu : ")).append($('<td class="cell-table">').append('<b>' + kendo.toString(item.point.after, "N2") + " ₺" + '</b>'));
+                                    $(tbody).append(elem3);
+                                }
+                            })
+
+                            var div = $('<div>').append(table.append(tbody));
+
+                            return '<b>' + this.x + '</b><br/>' + div.html();
+                        }
+                    },
+                    plotOptions: {
+                        line: {
+                            threshold: 0,
+                            negativeColor: "transparent",
+                            zoneAxis: "x"
+                        },
+                        series: {
+                            pointPlacement: "on",
+                            pointRange: 1,
+                            stacking: "normal",
+                            borderWidth: 0,
+                            groupPadding: 0.02,
+                            marker: {
+                                enabled: false
+                            },
+                            point: {
+                                events: {
+                                    mouseOver: function (e) {
+                                        $.each($('[data-category]'), function (i, item) {
+                                            $(item).removeClass("greyBackGround");
+                                        })
+                                        $('[data-category="' + this.category + '"]').addClass("greyBackGround");
+                                    },
+                                    mouseOut: function (e) {
+                                        $.each($('[data-category]'), function (i, item) {
+                                            $(item).removeClass("greyBackGround");
+                                        })
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    series: series,
+                });
+            },
+            loadCompanyReport: function () {
+                var tbody = $('#reportByCompany').find("tbody");
+
+                var transactionByCompany = $.Enumerable.From(page.model.Transactions).Where(a => a.accountDataTable == "CMP_Company").GroupBy(s => s.accountData_Title)
+                    .Select(function (d) { return { Company: d.Key(), Sum: $.Enumerable.From(d.source).Sum(c => c.debt * c.direction) } }).Where(a=>a.Sum != 0).ToArray();
+
+                $.each(transactionByCompany, function (i, item) {
+                    var row = $('<tr>');
+                    row.append($('<td>').text(item.Company));
+                    if (item.Sum > 0) {
+                        row.append($('<td class="cell-table">').text(kendo.toString(item.Sum, "N2"))).append($('<td class="cell-table">').text(""));
+                    } else if (item.Sum < 0) {
+                        row.append($('<td class="cell-table">').text("")).append($('<td class="cell-table">').text(kendo.toString((item.Sum)*-1, "N2")));
+                    }
+
+                    tbody.append(row);
+                })
+
+            }
+        },
+    }
+
+        $(document)
+            .on("ready", function () {
+                page.fnc.init();
+            })
+
+    Highcharts.setOptions({
+        global: { useUTC: false },
+        lang: {
+            shortMonths: ['Ocak', 'Şub', 'Mart', 'Nis', 'May', 'Haz', 'Tem', 'Ağu','Eyl', 'Ekim', 'Kas', 'Ara'],
+            months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+            weekdays: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+            downloadJPEG: 'JPEG Olarak Kaydet',
+            downloadPNG: 'PNG Olarak Kaydet',
+            downloadSVG: 'SVG Olarak Kaydet',
+            downloadPDF: 'PDF Olarak Kaydet',
+            printChart: 'Yazdır',
+            resetZoom: 'Zoom Kapat',
+            decimalPoint: ',',
+            thousandsSep: '.',
+            rangeSelectorZoom: ''
+        },
+        tooltip: { valueDecimals: 2 }
+    });
+
+</script>
+
+
+
+
+
+<div class="ibox ">
+
+    <div class="ibox-title">
+        <h5>Nakit Akış Raporu</h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+
+    <div class="ibox-content clearfix">
+        <div class="row">
+            <div class="col-md-3">
+                <div class="colmd3Cards col-md-12">
+                    <div class="widget style1 navy-bg">
+                        <div class="row">
+                            <div class="col-xs-2 hidden-md wHeader">
+                                <i class="icon-plus-circle fa-4x"></i>
+                            </div>
+                            <div class="col-xs-10 text-right wInformation">
+                                <span>Toplam Tahsilat</span>
+                                <h2><span data-id="inputAmount"></span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="colmd3Cards col-md-12">
+                    <div class="widget style1 red-bg">
+                        <div class="row">
+                            <div class="col-xs-2 hidden-md wHeader">
+                                <i class="icon-minus-circle fa-4x"></i>
+                            </div>
+                            <div class="col-xs-10 text-right wInformation">
+                                <span>Toplam Ödeme</span>
+                                <h2><span data-id="outputAmount"></span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="colmd3Cards col-md-12">
+                    <div id="Card_e2a97d72" class="widget style1 yellow-bg">
+                        <div class="row">
+                            <div class="col-xs-2 hidden-md wHeader">
+                                <i class="icon-exchange-1 fa-4x"></i>
+                            </div>
+                            <div class="col-xs-10 text-right wInformation">
+                                <span>Tahmini Dönem Sonu Bakiye</span>
+                                <h2><span data-id="balanceAmount"></span></h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div id="Chart"></div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" style="padding-right: 20px !important;">
+                <table class="table table-bordered" id="summaryTable" style="width:100%;">
+                    <colgroup>
+                        <col width="26%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                        <col width="6.16%">
+                    </colgroup>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>Nakit Akış Planları</h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content no-padding">
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionTemplate',data)#");
+                x.Bound(y => y.invoiceId_Title).Title("İlişkili Fatura").Hidden(true).Width(130);
+                x.Bound(y => y.accountId_Title).Title("İlişkili Hesap").Hidden(true).Width(130);
+                x.Bound(y => y.direction_Title).Title("İşlem Yönü").Hidden(true).Width(130);
+                x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                x.Bound(y => y.currencyId_Title).Title("Para Birimi").Hidden(true).Width(130);
+                x.Bound(y => y.date).Title("Planlanan Ödeme Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+            })
+            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+        //.ToolBar(x =>
+        //{
+        //    x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Transaction", new { area = "PA" }));
+        //    x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPA_Transaction", new { area = "PA" }));
+        //    x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Transaction", new { area = "PA" }));
+        //    x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPA_Transaction", new { area = "PA" }));
+        //})
+
+        )
+    </div>
+</div>
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>İşletmelere Göre Borç - Alacak Durumu </h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+        <table class="table table-bordered" id="reportByCompany">
+            <thead>
+                <tr>
+                    <th>İşletme</th>
+                    <th style="text-align:right;">Alacak</th>
+                    <th style="text-align:right;">Borç</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+    </div>
+</div>

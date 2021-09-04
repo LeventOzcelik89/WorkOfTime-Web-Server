@@ -1,0 +1,80 @@
+﻿@model Infoline.WorkOfTime.BusinessData.UT_Currency
+@{
+    ViewBag.Title = "Para Birimi Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "UT_Currency", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="code">Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Döviz Kodu Giriniz.."},
+            }).Validate(Validations.TextTurkce(true, 0, 3))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Para Birimi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Para Birimi Giriniz.."},
+            }).Validate(Validations.TextTurkceSpace(true, 0, 20))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="symbol">Para Sembolü</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.symbol, new Dictionary<string, object>() 
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Para Sembolü Giriniz.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="subName">Para Alt Birimi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.subName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Para Alt Birimi Giriniz.."},
+            }).Validate(Validations.TextTurkce(false, 0, 10))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

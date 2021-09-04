@@ -1,0 +1,49 @@
+﻿@{
+    ViewBag.Title = "Ürün Satış Puanları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Ürün Puan Tanımları (Satış)</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductPointSelling>("VWPRD_ProductPointSelling")
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "PRD" })).PageSize(25)
+                 .Sort(c => c.Add(y => y.endDate).Descending())
+                 .Group(v => v.Add(t => t.productId_Title)))
+                 .Scrollable(a => a.Height(650))
+                 .Columns(x =>
+                 {
+                      x.Bound(y => y.productId_Title).Title("Ürün Adı").Hidden(true);
+                      x.Bound(y => y.point).Format("{0:N0}").Title("Puan");
+                      x.Bound(y => y.startDate).Title("Geçerlilik Başlangıç Tarihi").Format(Extensions.DateFormatShort(true));
+                      x.Bound(y => y.endDate).Title("Geçerlilik Bitiş Tarihi").Format(Extensions.DateFormatShort(true));
+                      x.Bound(y => y.createdby_Title).Title("Güncellemeyi gerçekleştiren");
+                 })
+                 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                 .ToolBar(x =>
+                 {
+                     x.Custom().Text("<i title='Ürün Puanı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductPointSelling", new { area = "PRD" }));
+                     x.Custom().Text("<i title='Ürün Puanı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductPointSelling", new { area = "PRD" }));
+                 }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+
+

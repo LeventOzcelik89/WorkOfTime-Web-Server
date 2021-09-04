@@ -1,0 +1,97 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Personel Talebime Gelen CV'ler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css">
+    .widget{
+        cursor:pointer !important; 
+    }
+</style>
+
+<script type="text/javascript">
+ 
+
+    $(document)
+    .on('selected:grid', '#VWHR_StaffNeedsPerson', function (e, item) {
+        if (item.status == null ||  item.status == 0) {
+            $('[data-href="/HR/VWHR_StaffNeedsPerson/Update"]').removeClass('hide')
+        } else {
+            $('[data-href="/HR/VWHR_StaffNeedsPerson/Update"]').addClass('hide')
+        }
+    })
+ 
+
+    .on('load:grid', '#VWHR_StaffNeedsPerson', function (e, item) {
+        $.each($('#VWHR_StaffNeedsPerson [role="row"] [data-event="GridSelector"]'), function (i, item) {
+            var deger = $(item).attr('data-status');
+            if (deger == '0') {
+                $(item).parents("td").css('background-color', 'orange');
+            } else if (deger == '1') {
+                $(item).parents("td").css('background-color', '#1ab394');
+            } else if (deger == '2') {
+                $(item).parents("td").css('background-color', 'red');
+            } 
+        })
+
+        var grid = $("#VWHR_StaffNeedsPerson").data("kendoGrid");
+        var groups = $('#VWHR_StaffNeedsPerson').find('.k-grouping-row');
+        var groupCount = groups.length;
+        $.each(groups, function (index, elem) {
+            if ((groupCount - 1) == index) {
+                return;
+            } else {
+                grid.collapseGroup(elem);
+            }
+        })
+
+    })
+</script>
+
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>İK Tarafından Personel Taleplerim İçin Yönlendirilen Adaylar</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeedsPerson>("VWHR_StaffNeedsPerson")
+                   .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeedsPerson", new { area = "HR" }))
+                   .Group(g => g.Add(v => v.NeedCode))
+                   .Sort(c => c.Add(v => v.created).Descending())
+                   .PageSize(25))
+                   .Columns(x =>
+                   {
+                       x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).DataColumn(c => c.status);
+                       x.Bound(y => y.status_Title).Title("Durumu").Width(250);
+                       x.Bound(y => y.created).Title("İşlem Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+                       x.Bound(y => y.NeedCode).Title("İhtiyaç Kodu").ClientGroupHeaderTemplate("<a  target='_blank' href='/HR/VWHR_StaffNeeds/NeedDetail?NeedCode=#=value#'>#=value  # - <i data-toogle='tooltip' title='İhtiyaç Detayına gitmek için tıklayınız.' class='fa fa-info-circle'></i></a>").Width(320);
+                       x.Bound(y => y.HrPersonId_Title).Title("Adı Soyadı");
+                   })
+                  .Selectable(x => x.Mode(GridSelectionMode.Multiple)).Scrollable(c => c.Height(550))
+                  .ToolBar(x =>
+                  {
+                     x.Custom().Text("<i data-toggle='tooltip' title='Kontrol Et ve Onayla' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" } }).Url(Url.Action("Update", "VWHR_StaffNeedsPerson", new { area = "HR" }));
+                     x.Custom().Text("<i class='fa fa-info-circle' data-toggle='tooltip' title='CV Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-change", "true" } }).Url(Url.Action("Detail", "VWHR_StaffNeedsPerson", new { area = "HR" }));
+                  }))
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+    <div class="fix-buttons">
+        <a target="_blank" href="/HR/VWHR_StaffNeeds/Insert"><i data-toggle="tooltip" title="Yeni Talep" class="fa fa-edit"></i></a>
+    </div>
+</div>

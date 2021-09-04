@@ -1,0 +1,444 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_Commissions
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Görevlendirme Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var Projects = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsProjects[])ViewBag.Projects;
+    var Persons = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsPersons[])ViewBag.Persons;
+}
+
+@section Css{
+    <link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" data-selector="modalContainer" />
+    <style type="text/css" data-selector="modalContainer">
+        .akilliRadioGrup > #ApproveStatus_0:checked + label {
+            background-color: #f8ac59;
+            color: #fff;
+        }
+
+        .akilliRadioGrup > #ApproveStatus_2:checked + label {
+            background-color: #ed5565;
+            color: #fff;
+        }
+
+        .wzrd {
+            margin: 90px 0px 130px 0 !important;
+        }
+
+        .bolds {
+            font-weight: bold;
+        }
+    </style>
+}
+<div class="col-lg-12">
+    <section style="margin-bottom: 20px;">
+        <div class="tabs-container">
+            <ul class="nav nav-tabs">
+
+                <li class="active" data-toggle="tooltip" data-placement="top" title="Genel Bilgiler">
+                    <a data-toggle="tab" href="#INV_Commisions" aria-expanded="false"><i class="icon-menu text-success fa-2x" aria-hidden="true"></i></a>
+                </li>
+
+                <li data-toggle="tooltip" data-placement="top" title="Masraf Talep Listesi">
+                    <a data-toggle="tab" href="#PA_Transaction" aria-expanded="false"><i class="icon-money text-success fa-2x" aria-hidden="true"></i></a>
+                </li>
+            </ul>
+            <div class="tab-content">
+                <div class="tab-pane active" id="INV_Commisions">
+                    <form class="form-horizontal" data-selector="modalContainer">
+
+                        <div class="form-group wzrd">
+                            <div class="col-sm-4 step red" style="height: 48px;">
+                                <a>
+                                    Görevlendirme Talebi Yapıldı
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number">1. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) - @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) | Görevlendirme Talebi</div>
+                                        <div><strong>İşlem Yapan : </strong>@(Model.createdby_Title)</div>
+                                        <div><strong>İşlem Tarihi : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step orange @(Model.Manager1ApprovalDate.HasValue ? "" : "disabled")">
+                                <a>
+                                    1. Yönetici Yanıtlayacak
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content bottom">
+                                    <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi ? "Red" : "Onay") : "Onay/Red")</div>
+                                        <div><strong>İşlem @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak")  : </strong>@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</div>
+                                        <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate))</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step green @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "" : "disabled")">
+                                <a>
+                                    Islak imza yüklenecek
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>Islak İmza Yükleme</div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapmış: </strong>@(string.Join(" , ", Persons.Where(c => !string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapacak: </strong>@(string.Join(" , ", Persons.Where(c => string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>Son İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.changed))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="CommissionCode">Görevlendirme Kodu</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.CommissionCode, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"readonly", "readonly"}
+                                    })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="idCompanyPerson">Personel(ler)</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBox("person", string.Join(" , ", Persons.Select(a => a.Person_Title)), new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly", "readonly"}
+                                })
+                            </div>
+                        </div>
+
+
+                        <div class="form-group clearfix">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="IdProject">Proje(ler)</label>
+                            </div>
+                            <div class="col-md-8 disabled">
+                                @Html.TextBox("project", Projects.Count() == 0 ? "Yok" : string.Join(" , ", Projects.Select(a => a.Project_Title)), new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly", "readonly"}
+                                })
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="StartDate">Görevlendirme Başlangıç / Bitiş Tarihi ve Saati</label>
+                            </div>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.StartDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly", "readonly"}
+                                })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => model.EndDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly", "readonly"}
+                                })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md">Görevlendirme Süresi</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.TotalHoursText, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"disabled", "disabled"},
+                                })
+                            </div>
+                        </div>
+
+
+                        <div class="form-group clearfix">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="ToCorporation">Görev ve Seyahat Edeceği Firma</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.ToCorporation, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly","readonly" }
+                                })
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="ToAdress">Görev ve Seyahat Edeceği Adres</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextAreaFor(model => model.ToAdress, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly","readonly" }
+                                })
+                            </div>
+                        </div>
+                        <div class="form-group clearfix">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="CommissionSubject">Görev ve Seyahatin Amacı/Konusu</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.CommissionSubject, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"readonly","readonly" }
+                                })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="Information_Title">Görevlendirme Tipi</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.Information_Title, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"readonly", "readonly"}
+                                    })
+                            </div>
+                        </div>
+
+
+                        <div class="form-group  @Html.Raw(Model.Information == (Int32)Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsInformation.Diger ? "" : "hide" )">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="InformationDetail">Görevlendirme Tipi Detayı </label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextAreaFor(model => model.InformationDetail, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"readonly", "readonly"}
+                                    })
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="RequestForAccommodation">Konaklama Talebi</label>
+                            </div>
+                            <div class="col-md-3" data-control="seyahat">
+                                @Html.Akilli().RadioButtonGroupFor(model => model.RequestForAccommodation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsRequestForAccommodation.Yok).Readonly(true)
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="TravelInformation">Görevlendirme Seyahat Bilgileri</label>
+                            </div>
+                            <div class="col-md-8" data-control="seyahat">
+                                @Html.Akilli().RadioButtonGroupFor(model => model.TravelInformation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Arac).Readonly(true)
+                            </div>
+                        </div>
+
+
+                        <div class="form-group @Html.Raw(Model.TravelInformation == (Int32)Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Diger ? "" : "hide" )">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="TravelInformationDetail">Görevlendirme Seyahat Detayı</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextAreaFor(model => model.TravelInformationDetail, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"readonly", "readonly"}
+                                    })
+                            </div>
+                        </div>
+
+                        <div class="form-group @Html.Raw(Model.TravelInformation == (Int32)Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Arac ? "" : "hide")">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="IdCompanyCar">Araç</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => model.Car_Title, new Dictionary<string, object>()
+                                    {
+                                           {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+
+                            </div>
+                        </div>
+
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="Descriptions">Görevlendirme Diğer Açıklamalar</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextAreaFor(model => model.Descriptions, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"readonly", "readonly"}
+                                    })
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md " for="ApproveStatus">Onay Durumu</label>
+                            </div>
+                            <div class="col-md-8 radio">
+                                <div class="row">
+                                    <label>
+                                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Value((Int32)EnumINV_CommissionsApproveStatus.Bekliyor).Enable(false)
+                                        <span style="color:#a7ab17" class="radio-stil bolds"> Yönetici Tarafından Onay Bekliyor</span>
+
+                                    </label>
+                                    <label>
+                                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Value((Int32)EnumINV_CommissionsApproveStatus.Onaylandi).Enable(false)
+                                        <span style="color:#26cb04;" class="radio-stil bolds"> Yönetici Tarafından Onaylandı</span>
+
+                                    </label>
+                                    <label>
+                                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Value((Int32)EnumINV_CommissionsApproveStatus.Reddedildi).Enable(false)
+                                        <span style="color:#e8164c;" class="radio-stil bolds"> Yönetici Tarafından Reddedildi</span>
+                                    </label>
+                                    <label>
+                                        @Html.Kendo().RadioButtonFor(a => a.ApproveStatus).Value((Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi).Enable(false)
+                                        <span style="color:#3ca4ff;" class="radio-stil bolds"> Süreç Tamamlandı</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md " for="Dosya">Islak İmzalı Görevlendirme Form (ları)</label>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="row">
+                                    @foreach (var item in Persons)
+                                    {
+                                        <div class="col-md-4 m-b-sm">
+                                            <a class="btn btn-md btn-info btn-block" target="_blank" href="@item.Files" @(item.Files == null ? "disabled" : "") title="@(item.Files == null ? "Henüz Islak imzalı dosya yüklenmedi" : "")"><i class="fa fa-download"></i> @item.Person_Title</a>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="buttons">
+                            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+                        </div>
+
+                    </form>
+                </div>
+                <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Transaction", new { area = "PA" })" id="PA_Transaction">
+                    <form class="form-horizontal" data-selector="modalContainer">
+                        <div class="form-group wzrd">
+                            <div class="col-sm-4 step red" style="height: 48px;">
+                                <a>
+                                    Görevlendirme Talebi Yapıldı
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number">1. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) - @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) | Görevlendirme Talebi</div>
+                                        <div><strong>İşlem Yapan : </strong>@(Model.createdby_Title)</div>
+                                        <div><strong>İşlem Tarihi : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step orange @(Model.Manager1ApprovalDate.HasValue ? "" : "disabled")">
+                                <a>
+                                    1. Yönetici Yanıtlayacak
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content bottom">
+                                    <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi ? "Red" : "Onay") : "Onay/Red")</div>
+                                        <div><strong>İşlem @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak")  : </strong>@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</div>
+                                        <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate))</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step green @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "" : "disabled")">
+                                <a>
+                                    Islak imza yüklenecek
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>Islak İmza Yükleme</div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapmış: </strong>@(string.Join(" , ", Persons.Where(c => !string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapacak: </strong>@(string.Join(" , ", Persons.Where(c => string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>Son İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.changed))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <h4><i class="text-success  icon-money"></i> MASRAF TALEPLERİ</h4>
+                        @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+                        .Filter(a => a.type == (int)EnumPA_TransactionType.Masraf && a.dataId == Model.id && a.dataTable == "INV_Commissions")
+                        .PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionExpense',data)#");
+                            x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                            x.Bound(y => y.currencyId_Title).Title("Para Birimi").Hidden(true).Width(130);
+                            x.Bound(y => y.progressDate).Title("Talep Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                            x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .Scrollable(s => s.Height(650))
+                        .ToolBar(x =>
+                        {
+                            if(Model.ApproveStatus == (Int16)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi || Model.ApproveStatus == (Int16)EnumINV_CommissionsApproveStatus.Onaylandi)
+                            {
+                                x.Custom().Text("<i class='icon-money' data-original-title='Masraf Talebi Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-id", "expense" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA", dataId = Model.id, dataTable = "INV_Commissions", type = (int)EnumPA_TransactionType.Masraf, hasTask = true }));
+                            }
+
+                            x.Custom().Text("<i data-original-title='Gider Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
+                            
+                        })
+
+                )
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

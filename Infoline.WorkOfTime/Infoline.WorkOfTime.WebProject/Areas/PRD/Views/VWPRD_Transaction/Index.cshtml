@@ -1,0 +1,108 @@
+﻿@{
+	ViewBag.Title = "Stok ve Envanter İşlemleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript">
+    $(document)
+        .on('selected:grid', '#VWPRD_Transaction', function (e, item) {
+            if (item.status == '@((Int32)EnumPRD_TransactionStatus.islendi)') {
+                $('[data-visible=""]').show();
+            } else {
+                $('[data-visible=""]').hide();
+            }
+        })
+		.on("success", "#VWCMP_CompanyInsertForm", function (e, resp) {
+			if (resp.Result) {
+				$("#outputId0").data("kendoDropDownList").dataSource.read();
+			}
+		});
+</script>
+
+
+<div class="row">
+	<div class="col-md-2">
+		<div class="ibox ">
+			<div class="ibox-content mailbox-content">
+				<div class="file-manager">
+					<a class="btn btn-block btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_Transaction",new { area="PRD",direction=1 })"><i class="fa fa-plus-circle"></i> Stok Girişi Yap</a>
+					<a class="btn btn-block btn-danger" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_Transaction",new { area="PRD",direction=-1 })"><i class="fa fa-minus-circle"></i> Stok Çıkışı Yap</a>
+					<a class="btn btn-block btn-warning" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_Transaction",new { area="PRD" ,type=99 })"><i class="icon-updown-circle"></i> Depolar Arası Transfer Yap</a>
+					<div class="space-25"></div>
+					<h5>İŞLEM DURUMUNA GÖRE </h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionStatus>())
+						{
+							<li class="clearfix">
+								<a href="#" data-grid="VWPRD_Transaction" data-category="0" data-query="(status~eq~@item.Key)">
+									<i class="@item.Generic["icon"] text-@item.Generic["color"]"></i>  @item.Value
+									<span class="label label-@item.Generic["color"] pull-right" data-counturl="/PRD/VWPRD_Transaction/DataSourceCount?filter=(status~eq~@item.Key)">0</span>
+								</a>
+							</li>
+						}
+					</ul>
+					<div class="space-25"></div>
+					<h5>İŞLEM TİPİNE GÖRE </h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>())
+						{
+							<li class="clearfix">
+								<a href="#" data-grid="VWPRD_Transaction" data-category="1" data-query="(type~eq~@item.Key)">
+									<i class="@item.Generic["icon"]"></i>  @item.Value
+									<span class="label pull-right" data-counturl="/PRD/VWPRD_Transaction/DataSourceCount?filter=(type~eq~@item.Key)">0</span>
+								</a>
+							</li>
+						}
+					</ul>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="col-md-10">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>İşlem Listesi</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content">
+
+				@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_Transaction")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })).Sort(a => a.Add("created").Descending()).PageSize(25))
+                    .Scrollable(a => a.Height(650))
+                    .Filterable(t => t.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                        x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                        x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                        x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                        x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                        x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                        x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                        x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
+                        {
+                            x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+                        }
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-upload' data-original-title='Dosya Yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" }, {"data-visible","" } }).Url(Url.Action("UploadForm", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+                    }))
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,62 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Role
+@{
+    ViewBag.Title = "Yeni Rol Tanımı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWSH_Role", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-loadingtitle", "Yeni rol ekleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.." },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="rolname">Rol İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.rolname, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen rol ismi giriniz.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="roledescription">Rol Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.roledescription, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen rol açıklaması giriniz.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on("keyup", '#rolname', function (e) {
+            if (e.which === 13) {
+                $("button[type='submit']").trigger('click');
+            }
+        });
+</script>

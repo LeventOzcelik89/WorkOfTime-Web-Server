@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "Bölümler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="ibox m-b-none">
+    <div class="ibox-title">
+        <h5>Bölüm Listesi </h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWCSM_Department>("VWCSM_Department")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCSM_Department", new { area = "CSM" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.name).Title("Bölüm İsmi");
+            })
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .Scrollable(s => s.Height(650))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("<i data-original-title='Yeni Bölüm' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCSM_Department", new { area = "CSM" }));
+                x.Custom().Text("<i data-original-title='Bölüm Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCSM_Department", new { area = "CSM" }));
+                x.Custom().Text("<i data-original-title='Bölüm Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCSM_Department", new { area = "CSM" }));
+            }))
+    </div>
+</div>

@@ -1,0 +1,95 @@
+﻿@model ShiftTracking
+@{
+	ViewBag.Title = "Personel Giriş - Çıkışları";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+	function qrCodeText(data, sayi) {
+		if (sayi == 1) {
+			if (data.tableName == "CMP_Company") {
+				return data.table_Title;
+			}
+			return "-";
+		}
+
+		if (sayi == 2) {
+			if (data.tableName == "CMP_Storage") {
+				return data.table_Title;
+			}
+			return "-";
+		}
+
+		if (sayi == 3) {
+			if (data.tableName == "PRD_Inventory") {
+				return data.table_Title;
+			}
+			return "-";
+		}
+	}
+
+
+	$(document)
+		.on("selected:grid", "#VWSH_ShiftTracking", function (e, res) {
+
+			if (haritalar.MapShift.feature.get('DrawFeature')['DrawFeature'] != undefined) {
+				haritalar.MapShift.feature.remove('DrawLayer', 'DrawFeature')
+			}
+
+			haritalar.MapShift.feature.add('DrawLayer', 'DrawFeature', res.location);
+			haritalar.MapShift.feature.panTo('DrawFeature', 16);
+
+
+		});
+</script>
+
+
+
+
+@Html.Akilli().MapInput().Name("MapShift").ReadOnly(true).OnlyMap().ZoomLevel(5)
+
+@if (Model == null || Model.userId == null || Model.date == null)
+{
+	@(Html.Akilli()
+	.Grid<Infoline.WorkOfTime.BusinessData.VWSH_ShiftTracking>("VWSH_ShiftTracking")
+	.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_ShiftTracking", new { area = "SH" })).PageSize(25)
+	.Sort(u => u.Add(i => i.timestamp).Descending()))
+	.Columns(x =>
+	{
+		x.Bound(y => y.ShiftTrackingStatus_Title).Title("Durumu").Width(250);
+		x.Bound(y => y.timestamp).Title("Tarih").Width(250).Format(Extensions.DateFormatFull(true));
+		x.Bound(y => y.UserId_Title).Title("Personel").Width(200);
+		x.Bound(y => y.tableName).Title("İşletme").ClientTemplate("#=qrCodeText(data,1)#").Width(200);
+		x.Bound(y => y.tableName).Title("Şube/Depo Kısım").ClientTemplate("#=qrCodeText(data,2)#").Width(200);
+		x.Bound(y => y.tableName).Title("Envanter").ClientTemplate("#=qrCodeText(data,3)#").Width(200);
+		x.Bound(y => y.location).Title("Lokasyon").Hidden(true);
+
+	})
+	.Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+}
+else
+{
+	@(Html.Akilli()
+	.Grid<Infoline.WorkOfTime.BusinessData.VWSH_ShiftTracking>("VWSH_ShiftTracking")
+	.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_ShiftTracking", new { area = "SH" })).PageSize(25)
+	.Filter(a=> a.timestamp >= Model.date && a.timestamp <= Model.date.AddDays(1) && a.userId == Model.userId)
+	.Sort(u => u.Add(i => i.timestamp).Descending()))
+	.Columns(x =>
+	{
+		x.Bound(y => y.ShiftTrackingStatus_Title).Title("Durumu").Width(250);
+		x.Bound(y => y.timestamp).Title("Tarih").Width(250).Format(Extensions.DateFormatFull(true));
+		x.Bound(y => y.UserId_Title).Title("Personel").Width(200);
+		x.Bound(y => y.tableName).Title("İşletme").ClientTemplate("#=qrCodeText(data,1)#").Width(200);
+		x.Bound(y => y.tableName).Title("Şube/Depo Kısım").ClientTemplate("#=qrCodeText(data,2)#").Width(200);
+		x.Bound(y => y.tableName).Title("Envanter").ClientTemplate("#=qrCodeText(data,3)#").Width(200);
+		x.Bound(y => y.location).Title("Lokasyon").Hidden(true);
+
+	})
+	.ToolBar(x =>
+	{
+		x.Custom().Text("<i data-original-title='Personel Giriş Çıkış Log Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_ShiftTracking", new { area = "SH", userId = Model.userId }));
+		x.Custom().Text("<i data-original-title='Personel Giriş Çıkış Log Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_ShiftTracking", new { area = "SH" }));
+		x.Custom().Text("<i data-original-title='Personel Giriş Çıkış Log Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_ShiftTracking", new { area = "SH" }));
+	})
+	.Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+}

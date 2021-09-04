@@ -1,0 +1,150 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPerson
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Personel İşletme Bilgisi Güncelleme";
+
+}
+
+
+@using (Html.BeginForm("Update", "INV_CompanyPerson", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "data-loadingtitle","Personel işletme bilgisi düzenleme işleminiz kaydediliyor.Lütfen bekleyiniz.."}
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(a => a.IdUser)
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="CompanyId">İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.CompanyId)
+                .Id("inputCompanyId2")
+                .OptionLabel("Lütfen seçim yapınız")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                .Sort(x => x.Add("name").Ascending())
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Title">Ünvanı</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Ünvanı Giriniz.."},
+                })
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix @(ViewBag.IsFirst == true ?  "" : "hide")">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="JobStartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.JobStartDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen işletme Giriş Tarihi Seçiniz.."},
+            })
+            .Format(Extensions.DateFormatShort()).Validate(Validations.Required)
+            .Max(Model.JobEndDate.HasValue ? Model.JobEndDate.Value : (Model.JobStartDate.HasValue ? Model.JobStartDate.Value : DateTime.Now))
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix hide">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="JobEndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().DatePickerFor(model => model.JobEndDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen işletme Çıkış Tarihi Seçiniz.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Min(Model.JobStartDate.Value)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Level">Personel Kademesi</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.Level).Min(0).Max(20).Format("D2").HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"style", "width:100%"},
+                    {"class", "text-right form-control"},
+                    {"placeholder", "Lütfen personel kademesi giriniz.."},
+                }).Step(1).Max(24).Min(1).Spinners(false)
+                <span class="input-group-addon" id="Level">Kademe</span>
+            </div>
+        </div>
+    </div>
+
+    if (Model.JobLeaving != null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="JobLeaving">Çıkarılma Sebebi</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.JobLeaving)
+                    .OptionLabel("Lütfen Çıkarılma Sebebini Seçiniz..")
+                    .DataValueField("Id")
+                    .DataTextField("enumDescription")
+                    .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                    .Sort(x => x.Add("enumDescription").Ascending())
+                    .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "INV_CompanyPerson" && a.fieldName == "JobLeaving" && a.enumKey != 23)
+                    .Execute("enumKey")
+                    .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="JobLeavingDescription">Çıkarılma Ek Bilgi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextAreaFor(model => model.JobLeavingDescription, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Çıkarılma Ek Bilgi Giriniz.."}
+                }).Validate(Validations.TextEverywhere(true, 0, 250))
+            </div>
+        </div>
+    }
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

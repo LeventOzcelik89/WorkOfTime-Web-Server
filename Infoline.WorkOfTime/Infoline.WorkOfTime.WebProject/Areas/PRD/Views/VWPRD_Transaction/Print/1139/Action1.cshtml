@@ -1,0 +1,87 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_TransactionModel
+@{
+    ViewBag.Title = "Print";
+    var logo = "/Content/Customers/1139/images/logo.png";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&nbsp;</title>
+    <link rel="shortcut icon" href="@TenantConfig.Tenant.Config.Favicon">
+    <link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Themes/css/style.css" rel="stylesheet">
+    <script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+    <script src="/Content/Themes/js/bootstrap.min.js"></script>
+    <script type='text/javascript'>
+        function ImageError(element, image) {
+            element.onerror = '';
+            element.src = image;
+        }
+    </script>
+</head>
+<body class="white-bg" style="padding:25px;padding-right:35px;">
+    <div class="p-md">
+        <div class="row">
+            <div class="col-md-12 col-sm-12 col-lg-12 col-xs-12 text-left">
+                <img src="@logo" style="width:120px;" alt="image" onerror="ImageError(this,'@logo')">
+                <br />
+                <p class="text-right" style="color:black;">@(Model.date.HasValue ? string.Format("{0:dd.MM.yyyy}", Model.date) : string.Format("{0:dd.MM.yyyy}", DateTime.Now))</p>
+            </div>
+        </div>
+
+        <div class="clearfix">
+            <h3 class="text-center"><b style="color:black;">ZİMMET TESLİM TUTANAĞI</b></h3>
+            <br />
+            <p style="font-size:14px;text-align:justify;color:black;">
+                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Callay Çağrı Merkezi’ nde kullanmakta olduğum aşağıda seri numarası, marka ve modeli yazan malzemeler aşağıda ismi geçen kişiye teslim edilmiştir.
+            </p>
+        </div>
+        <br /><br /><br /><br /><br /><br />
+        <div class="table-responsive clearfix">
+            <table class="table table-bordered" style="border:1px solid;">
+                <thead style="border:1px solid;">
+                    <tr>
+                        <th style="text-align:center;color:black;border:1px solid;"><b>SERİ NO</b></th>
+                        <th style="text-align:center;color:black;border:1px solid;"><b>MARKA / MODEL</b></th>
+                        <th style="text-align:center;color:black;border:1px solid;"><b>MİKTAR</b></th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                    @foreach (var item in Model.items.ToList())
+                    {
+                        <tr style="">
+                            <td style="padding: 5px;word-break: break-word;white-space: normal;color: black;border: 1px solid;">
+                                @(item.serialCodes != null ? string.Join(", ",item.serialCodes.Split(',')) : "-")
+                            </td>
+                            <td style="padding:5px;color:black;border:1px solid;">	&nbsp;	&nbsp;@item.productId_Title</td>
+                            <td style="padding:5px;text-align:center;color:black;border:1px solid;">@item.quantity @item.unitId_Title</td>
+                        </tr>
+                    }
+
+                </tbody>
+            </table>
+        </div>
+        <br /><br /><br /><br /><br />
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center" style="color:black;">
+                <div>Teslim Eden</div>
+                <div>@Model.printInfo.user.title</div>
+                <div class="text-center">
+                    <div>@Model.outputId_Title </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-center" style="color:black;">
+                <div>Teslim Alan</div>
+                <div class="text-center">
+                    <div>@(Model.createdby_Title)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

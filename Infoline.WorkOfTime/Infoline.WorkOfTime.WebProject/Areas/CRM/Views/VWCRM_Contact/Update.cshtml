@@ -1,0 +1,344 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_Contact
+@{
+    ViewBag.Title = "Potansiyel/Fırsat Aktivite Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWCRM_Contact", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "VWCRM_ContactUpdateForm" }
+}))
+{
+
+
+    @Html.AntiForgeryToken()
+    <input value="@Model.id" name="id" type="hidden" />
+    <input value="@Model.PresentationId" name="PresentationId" type="hidden" />
+
+    <div class="panel-group" id="accordionContact">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordionContact" href="#collapseContact1"> <i class="fa fa-info-circle text-success"></i> Aktivite/Randevu Bilgileri</a>
+                </h4>
+            </div>
+            <div id="collapseContact1" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="PresentationStageId">Potansiyel Aşaması</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.PresentationStageId)
+                                .OptionLabel("Lütfen Potansiyel Aşaması Seçiniz..")
+                                .MinLength(2)
+                                .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+                                .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+                                .DataValueField("Id")
+                                .DataTextField("Name")
+                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+                                .Sort(x => x.Add("Name").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="IdUsers">Katılımcılar</label>
+                        </div>
+                        <div class="col-md-8">
+                            <select required="required"
+                                    id="IdUsers"
+                                    name="IdUsers"
+                                    style="width: 100%"
+                                    class="form-control"
+                                    data-custom="true"
+                                    data-cascadeFrom="PresentationId"
+                                    data-cascadeFromField="id"
+                                    data-readurl="/General/GetSH_UsersForPresentationById?id=@Model.PresentationId"
+                                    data-placeholder="Lütfen Katılımcıları Seçiniz.."></select>
+
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ContactType">Aktivite/Randevu Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                   .DropDownListFor(model => model.ContactType)
+                                   .OptionLabel("Lütfen Aktivite/Randevu Tipi Seçiniz..")
+                                   .DataValueField("Id")
+                                   .DataTextField("enumDescription")
+                                   .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                   .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CRM_Contact" && a.fieldName == "ContactType")
+                                   .Sort(x => x.Add("enumKey").Ascending())
+                                   .Validate(Validations.Required)
+                                   .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ContactStatus">Aktivite/Randevu Durumu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.ContactStatus).Value(EnumCRM_ContactContactStatus.ToplantiPlanlandi))
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ContactStartDate">Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DateTimePickerFor(model => model.ContactStartDate)
+                                .Value(Model.ContactStartDate.HasValue ? Model.ContactStartDate.Value : DateTime.Now)
+                                .Interval(15)
+                                .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ContactEndDate">Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DateTimePickerFor(model => model.ContactEndDate)
+                                .Value(Model.ContactStartDate.HasValue ? Model.ContactStartDate.Value.AddHours(1) : DateTime.Now.AddHours(1))
+                                .Interval(15)
+                                .MinDateElement("ContactStartDate")
+                                .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Description">Açıklama</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Açıklama Girin.."},
+                            }).Validate(Validations.TextTurkceSpace09(false, 0))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="mailForParticipants">Mail Gönderimi</label>
+                        </div>
+                        <div class="col-md-8" style="margin-top:8px;">
+                            @(Html.Kendo().CheckBox().Name("mailForParticipants").Checked(false).Label("Katılımcılara da mail gönderilsin mi?"))
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordionContact" href="#collapseContact2"> <i class="fa fa-file text-success"></i> Aktivite/Randevu Dosyaları</a>
+                </h4>
+            </div>
+            <div id="collapseContact2" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya">Aktivite/Randevu Dosyaları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Toplantı Dosyası")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya1">Kartvizitler</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Kartvizitler")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" style="text-align:left;" for="Dosya2">Aktivite/Randevu Diğer Dosyaları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.id)
+                                .DataKey(x => x.fileGroup == "Diğer Dosyalar")
+                            )
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var _contact = {
+        control: false,
+        Model: @Html.Raw(Json.Encode(Model)),
+        channel: '@Html.Raw(Model.ChannelCompanyId)',
+        init: function (users) {
+            $('#IdUsers').kendoMultiSelect({
+                value: users,
+                autoClose: false,
+                dataTextField: 'Name',
+                dataValueField: 'Id',
+                optionLabel: $('#IdUsers').attr('placeholder'),
+                filter: 'contains',
+                dataSource: new kendo.data.DataSource({
+                    transport: {
+                        read: {
+                            url: $('#IdUsers').attr('data-readurl'),
+                            dataType: "json"
+                        }
+                    }
+                }),
+                dataBound: _contact.Events.onDataBound,
+                select: _contact.Events.onSelect,
+                template: _contact.Events.Template,
+                tagTemplate: function(dataItem){
+
+                    if(dataItem.type == 0){
+                        _cls = 'warning';
+                        _txt = 'İşletmemiz';
+                    }
+                    else if(dataItem.type == 1){
+                        _cls = 'info';
+                        _txt = 'Kanal';
+                    }else if(dataItem.type == 2){
+                        _cls = 'success';
+                        _txt = 'Müşteri';
+                    }
+
+                    return '<span class="label label-xs label-' + _cls + '">' + '' + _txt + '</span> ' + dataItem.Name;
+                }
+            });
+        },
+        Events: {
+            onDataBound: function () {
+                var $this = this;
+                var ds = $this.dataSource;
+                var newEntry = $.Enumerable.From($this.dataSource.data()).Where(function (a) { return a.Name.trim() == $this._prev.trim() }).FirstOrDefault();
+
+                if (newEntry == null && $this._prev.length > 2) {
+
+                    var items = $.Enumerable.From($this.dataSource.data()).Where(function (a) { return a.newItem != true; }).ToArray();
+                    if (items.length != $this.dataSource.data().length) {
+                        $this.dataSource.data(items);
+                        $this.open();
+                        return;
+                    }
+
+                    if (_contact.channel != "") {
+                        ds.add({ Name: $this._prev, Id: newGuid(), newItem: true, type: 1 });   //  Kanal Personeli
+                    }
+
+                    ds.add({ Name: $this._prev, Id: newGuid(), newItem: true, type: 2 });   //  Müşteri Personeli
+
+                    $this.open();
+                    setTimeout(function(){ $this.open(); }, 250);
+                }
+
+                if (_contact.control == false) {
+                    $this.trigger("change");
+                    $('#IdUsers').trigger("blur");
+                }
+            },
+            onSelect: function (e) {
+                if (e.item == null) { return; }
+                var elem = this.dataSource.view()[e.item.index()];
+                if (elem.newItem == true) {
+                    $.ajax({
+                        type: "POST",
+                        url: '/CRM/VWCRM_ContactUser/InstantInsert',
+                        data: { contactType: elem.type, name: elem.Name, id: elem.Id, ContactId: _contact.Model.id, PresentationId: _contact.Model.PresentationId  },
+                        success: function (response) {
+                            if (response.result) {
+                                elem.newItem = false;
+                            }
+                        }
+                    });
+                }
+            },
+            Template: function (dataItem) {
+                var _cls = '';
+                var _txt = '';
+
+                if(dataItem.type == 0){
+                    _cls = 'warning';
+                    _txt = 'İşletmemiz';
+                }
+                else if(dataItem.type == 1){
+                    _cls = 'info';
+                    _txt = 'Kanal';
+                }else if(dataItem.type == 2){
+                    _cls = 'success';
+                    _txt = 'Müşteri';
+                }
+
+                return '<span class="label label-xs label-' + _cls + '">' + (dataItem.newItem == true ? 'Yeni Ekle ' : '') + '( ' + _txt + ' )</span> ' + dataItem.Name;
+            }
+        },
+    };
+
+    $(document)
+        .on('change', '#ContactStartDate', function(){
+            var el = $('#ContactStartDate').data('kendoDateTimePicker');
+            if(el.value() != undefined){
+                $('#ContactEndDate').data('kendoDateTimePicker').value(el.value().addHours(1));
+            }
+        });
+
+    _contact.init(@Html.Raw(Json.Encode(ViewBag.IdUsers)));
+    $('[data-toggle="tooltip"]').tooltip();
+</script>

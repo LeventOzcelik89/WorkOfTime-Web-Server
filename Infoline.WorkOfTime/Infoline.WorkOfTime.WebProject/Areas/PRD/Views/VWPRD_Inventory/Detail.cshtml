@@ -1,0 +1,921 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_Inventory
+@{
+    ViewBag.Title = "Envanter Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/x-kendo-template" id="VWPRD_InventoryActionTemplate">
+
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>()))#
+    <div class="vertical-timeline-block">
+        <div class="vertical-timeline-icon navy-bg">
+            <i class="#:types.filter(a=>parseInt(a.Key) == type).map(a=>a.Generic['icon'])#"></i>
+        </div>
+        <div class="vertical-timeline-content navy-bg">
+            <strong>#:type_Title#</strong><br />
+										  <div>
+										  	#:(dataCompanyId_Title != null ? dataCompanyId_Title : "-")#
+										  </div>
+                                          <div>
+                                              #:(dataId_Title != null ? dataId_Title : "-")#
+                                          </div>
+            <br />
+            <small data-original-title="İşlem Tarihi" class="vertical-date pull-right" style="font-size: 9px;">
+                <i class="fa fa-calendar"></i> #=kendo.toString(kendo.parseDate(created), "dd.MM.yyyy hh:mm")#<br>
+            </small><br />
+            <small data-original-title="İşlem Yapan" class="vertical-date pull-right" style="font-size: 9px;">
+                <i class="fa fa-user"></i> #=createdby_Title#<br>
+            </small>
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+	var first = false;
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+            dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+
+		function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+		}
+
+
+	$(document).on('shown.bs.tab', 'a[href="#VWFTM_Tasks"]', function (e) {
+		if (first == false) {
+			first = true;
+			$("#VWFTM_TaskContinuing").data("kendoGrid").refresh();
+		}
+	});
+</script>
+
+
+
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+	#if(type_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+	#}#
+</script>
+
+
+<script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+	#if(lastOperationStatus_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+	#}#
+</script>
+
+<script type="text/javascript">
+
+    function taskPriorityResult(data) {
+
+        if (data.priority == 0) {
+
+            return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+        }
+        else if (data.priority == 1) {
+            return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+        }
+        else if (data.priority == 2) {
+            return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+        }
+
+    }
+
+    var gridBase = {
+        items: {
+            DropDown1: null,
+            DropDown2: null
+        }
+    };
+
+    function filterMenuInit(e) {
+        if (e.field == "created") {
+            var $container = e.container;
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            //  firstValueDropDown.parents('.k-dropdown').hide();
+            logicDropDown.parents('.k-dropdown').hide();
+            //  secondValueDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[14]).html("Başlangıç Tarihi");
+            $($('.k-header')[17]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+
+        }
+        else if (e.field == "dueDate") {
+            var $container = e.container;
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            //  firstValueDropDown.parents('.k-dropdown').hide();
+            logicDropDown.parents('.k-dropdown').hide();
+            //  secondValueDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[20]).html("Başlangıç Tarihi");
+            $($('.k-header')[23]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+        }
+        else if (e.field == "lastOperationDate") {
+            var $container = e.container;
+
+
+            e.container.find('[type="reset"]').hide();
+            e.container.find(".k-filter-help-text").remove();
+            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+            var logicDropDown = e.container.find("select:eq(1)");
+            logicDropDown.data("kendoDropDownList").value("and");
+            logicDropDown.data("kendoDropDownList").trigger("change");
+
+            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+            //  firstValueDropDown.parents('.k-dropdown').hide();
+            logicDropDown.parents('.k-dropdown').hide();
+            //  secondValueDropDown.parents('.k-dropdown').hide();
+
+            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+            $($('.k-header')[25]).html("Başlangıç Tarihi");
+            $($('.k-header')[28]).html("Bitiş Tarihi");
+
+            $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                    dt2.data('kendoDatePicker').value().addHours(23);
+                    dt2.data('kendoDatePicker').value().addMinutes(59);
+                    dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                    $container.find('[type="submit"]').removeAttr('disabled');
+
+                }
+
+            });
+
+            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                $container.find('[data-role="datepicker"]').trigger('change');
+
+            });
+        }
+    }
+
+</script>
+
+
+<script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+    #if(description!=null){#
+    #if(description.length >= 25){#
+    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+    #}
+    else
+    {#
+    <div style="font-size:13px;">#=description#</div>
+    #}#
+    #}#
+</script>
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+	#var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+	#var color ="text-primary"#
+
+	#if(priority==0){#
+	#color = "text-danger"#
+	#}else if(priority==1){#
+	#color = "text-warning"#
+	#}else if(priority==2){#
+	#color = "text-primary"#
+	#}#
+
+	<table class="table shoping-cart-table">
+		<tbody>
+			<tr>
+				<td style="width:3%;text-align: center;vertical-align: inherit;">
+					<span>
+						#if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+					</span>
+				</td>
+
+				<td class="desc" style="width:55%;">
+					#if(type_Title != null){#
+					<div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+					#}#
+
+					#if(description!=null){#
+					#if(description.length >= 25){#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+					#}
+					else
+					{#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+					#}#
+					#}#
+
+
+					#if(code!=null){#
+					<div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+					#}#
+
+					#if(customer_Title!=null){#
+					<div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+					#}#
+
+					#if(customerStorage_Title!=null){#
+					<div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+					#}#
+
+					#if(fixture_Title!=null){#
+					<div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+					#}#
+
+					<div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
+					#if(lastOperationStatus_Title!=null){#
+					<div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+					#}#
+
+					#if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+					<div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+					#}#
+
+					#if(taskSubjectType_Title != null){#
+					<span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+					#}#
+				</td>
+	             <td style="width:10%;vertical-align: inherit;">
+	             	<h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+	             				</h5>
+	             </td>
+			</tr>
+		</tbody>
+	</table>
+
+</script>
+
+<style type="text/css">
+    #Harita {
+        height: 400px !important;
+        min-height: 400px !important;
+    }
+
+    #VWPRD_InventoryAction {
+        border: 0px !important;
+    }
+
+        #VWPRD_InventoryAction .k-grid-header {
+            border-color: #fff !important;
+        }
+
+        #VWPRD_InventoryAction td {
+            border-color: #fff !important;
+        }
+
+        #VWPRD_InventoryAction .k-header.k-grid-toolbar.k-grid-top {
+            display: none;
+        }
+
+        #VWPRD_InventoryAction .k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+            display: none;
+        }
+
+        #VWPRD_InventoryAction .k-grid-header-wrap {
+            display: none;
+        }
+
+    #vertical-timeline::before {
+        left: 37px;
+    }
+
+    #slider-station .item {
+        background: #fff !important;
+        height: auto;
+        width: 350px;
+        box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+        padding: 5px 20px;
+        border-radius: 15px;
+    }
+
+        #slider-station .item .head .col-xs-12 {
+            padding-top: 10px;
+            color: #2f4050;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        #slider-station .item .head .col-xs-2 img {
+            width: 70%;
+            margin: 0 15%;
+        }
+
+    #slider-station .list-group-item {
+        color: #2f4050;
+    }
+</style>
+
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold m-t-none m-b-sm">
+
+                        @Model.code
+                    </h2>
+                    <small> <i class="icon-barcode-1"></i> @Model.serialcode <i class="icon-barcode-1"></i></small>
+                </div>
+                <img src="@(Model.productId_Image!=null ? Model.productId_Image : "/Content/Custom/img/urun-bulunamadi.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 110px;margin: auto;margin-top: 25px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png')">
+
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-method="GET" data-href="@Url.Action("Update", "VWPRD_Inventory", new { area = "PRD", id = Model.id  })">  <i class="fa fa-edit"></i> Envanter Düzenle </a>
+                </div>
+            </div>
+        </div>
+
+        @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
+        {
+            @Html.Action("Detail", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "PRD_Inventory" })
+        }
+
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>HAREKET GEÇMİŞİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_InventoryAction>("VWPRD_InventoryAction")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_InventoryAction", new { area = "PRD" })).PageSize(500).Filter(c => c.inventoryId == Model.id).Sort(a => a.Add("created").Descending()))
+                    .Selectable(a => a.Enabled(false))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Title("Hareket Geçmişi").ClientTemplate("#=TemplateEngine('VWPRD_InventoryActionTemplate',data)#");
+                    })
+                    .Scrollable(x => x.Height(800))
+                )
+            </div>
+        </div>
+    </div>
+
+
+    <div class="col-lg-9">
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <div class="col-lg-9">
+                    <div class="ibox " style="margin-bottom:0px !important;">
+                        <div class="ibox-title">
+                            <h5>GENEL BİLGİLER</h5>
+
+                        </div>
+                        <div class="ibox-content no-padding">
+                            <ul class="list-group">
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.productId_Title != null ? Model.productId_Title : "-")</span>
+                                    Ürün :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.fullName != null ? Model.fullName : "-")</span>
+                                    Adı :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.code != null ? Model.code : "-")</span>
+                                    Kodu :
+                                </li>
+
+                                <li class="list-group-item">
+                                    <span class="badge badge-white">@Html.Raw(Model.serialcode != null ? Model.serialcode : "-")</span>
+                                    Seri No :
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3">
+                    @if (TenantConfig.Tenant.TenantCode != 1139)
+                    {
+                        <div class="qrCodeWrapper" style="width:170px;">
+                            @(  Html.Kendo().QRCode()
+                             .Name("QRCode")
+                             .Value(Model.code)
+                             .Size(160)
+                        )
+                            <span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+                            <div style="text-align:center;">
+                                <a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+                                <a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.Partial("_PrintQRCode", Model)
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Envanter Konum Geçmişi">
+                        <a data-toggle="tab" href="#Location" aria-expanded="false"><i class="fa fa-map-marker text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWFTM_Task", new { area = "FTM" })" data-toggle="tooltip" id="VWFTM_TaskTab" data-placement="top" title="Geçmiş Arıza Bakım işlemleri">
+                        <a data-toggle="tab" href="#VWFTM_Tasks" aria-expanded="false"><i class="fa fa-wrench text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWPRD_InventoryTask", new { area = "" })" data-toggle="tooltip" data-placement="top" title="Envanter Bakım Periyotları">
+                        <a data-toggle="tab" href="#ProductManagers" aria-expanded="false"><i class="fa fa-cogs text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("Preview","Files", new { area = "" })" data-toggle="tooltip" data-placement="top" title="Ürün Dosyaları">
+                        <a data-toggle="tab" href="#PRD_ProductFile" aria-expanded="false"><i class="fa fa-file text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Envanter Görev Form Listesi">
+                        <a data-toggle="tab" href="#TaskForms" aria-expanded="false"><i class="fa fa-list-alt text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Eski Görev Dosyaları">
+                        <a data-toggle="tab" href="#oldFiles" aria-expanded="false"><i class="fa fa-file-text text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div class="tab-pane active" id="Location">
+                        <h4><i class="fa fa-map-marker text-success"></i> KONUM GEÇMİŞİ </h4>
+                        <div id="Harita" style="height:400px;"></div>
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWFTM_Task", new { area = "FTM" })" id="VWFTM_Tasks">
+                        <h4><i class="fa fa-wrench text-success"></i> GEÇMİŞ ARIZA BAKIM KAYITLARI </h4>
+                        @(Html.Akilli()
+							 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_TaskContinuing")
+							 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25).Filter(a => a.fixtureId == Model.id))
+							 .Columns(x =>
+							 {
+								 x.Bound(y => y.type_Title).Title("Görev Tipi").Width(150).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+								 x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(240).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+								 x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(200).ClientTemplate("#=taskPriorityResult(data)#");
+								 x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+								 x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+								 x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+								 x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+								 x.Bound(y => y.lastOperationDate).Title("Son Operasyon Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+								 x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+								 {
+									 b.Clear();
+									 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+									 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+								 }
+
+								 ))).Width(180).Format(Extensions.DateFormatFull(true));
+								 x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+								 x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+								 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+								 {
+
+									 b.Clear();
+									 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+									 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+								 }
+
+								 ))).Width(180).Format(Extensions.DateFormatFull(true));
+							 })
+							 .Events(ev => ev.FilterMenuInit("filterMenuInit"))
+							 .Selectable(x => x.Mode(GridSelectionMode.Single))
+							 .ToolBar(x =>
+							 {
+								 x.Custom().Text("<i data-original-title='" + (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)) ? "Arıza Kaydı Oluştur" : "Görev Ekle") + "' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", fixtureId = Model.id }));
+								 x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+							 }))
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("Preview","Files", new { area = "" })" id="PRD_ProductFile">
+                        <h4><i class="fa fa-file text-success"></i> ÜRÜN DOSYALARI </h4>
+                        @Html.Action("Preview", "Files", new { area = "", DataId = Model.productId, DataTable = "PRD_Product" })
+                    </div>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWPRD_InventoryTask", new { area = "PRD" })" id="ProductManagers">
+                        <h4><i class="fa fa-cogs text-success"></i> BAKIM PERİYOTLARI VE SORUMLULARI </h4>
+
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_InventoryTask>("VWPRD_InventoryTask")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_InventoryTask", new { area = "PRD" })).PageSize(25)
+                            .Filter(a => a.inventoryId == Model.id))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.inventoryId_Title).Title("Envanter").Width(130);
+                                x.Bound(y => y.companyId_Title).Title("Görevli İşletme").Width(130);
+                                x.Bound(y => y.userId_Title).Title("Görevli Personel").Width(130);
+                                x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.endDate).Title("Bitiş Tarihi").Width(130).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.period_Title).Title("Periyot").Width(130);
+                                x.Bound(y => y.description).Title("Açıklama").Width(130);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i title='Ürün Bakım Periyodu Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_InventoryTask", new { area = "PRD", inventoryId = Model.id }));
+                                x.Custom().Text("<i title='Ürün Bakım Periyodunu Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWPRD_InventoryTask", new { area = "PRD" }));
+                                //x.Custom().Text("<i title='Ürün Bakım Periyodunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_InventoryTask", new { area = "PRD" }));
+                            }))
+                    </div>
+
+                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" id="TaskForms">
+                        <h4><i class="fa fa-list-alt text-success"></i> ENVANTER GÖREV FORM LİSTESİ</h4>
+                        @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskFormRelation>("VWFTM_TaskFormRelation").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "formId" } })
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" }))
+                 .Filter(v => v.inventoryId == Model.id)
+                 .PageSize(25))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.formId_Title).Title("Form İsmi").Width(260);
+                     x.Bound(y => y.productId_Title).Title("Ürün").Width(320);
+                 })
+                 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                 .ToolBar(x =>
+                 {
+                         x.Custom().Text("<i data-original-title='Form Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
+                 }))
+                    </div>
+                    <div class="tab-pane" id="oldFiles" >
+                        <h4><i class="fa fa-file text-success"></i> Eski Görev Dosyaları </h4>
+                                @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "PRD_Product", FileGroup = "Eski Görev Dosyaları"})
+                        
+                       
+                        
+
+
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on('ready', function () {
+            $($('#VWPRD_InventoryAction').find('tbody')).attr('id', 'vertical-timeline')
+        })
+        .on("hover:feature", "#Harita", function (e, resp) {
+
+            Harita.overlay.remove('slider-station');
+
+            if (resp.type == "add") {
+                var elem = resp.element;
+                var prop = elem.get("properties");
+                var text = "";
+                if (prop) {
+                    text = inventoryDetail.getDetailForHover(prop);
+                    var geometry = resp.element.getGeometry();
+                    var coordinate = geometry.getCoordinates();
+                    var pixel = Harita.map.getPixelFromCoordinate(coordinate);
+
+                    var tooltiplocation = "";
+
+                    if (pixel[1] < 400)
+                        tooltiplocation = "top-right";
+                    else if (screen.height - pixel[1] < 400)
+                        tooltiplocation = "bottom-right";
+                    else
+                        tooltiplocation = "center-right";
+
+                    Harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                    Harita.map.updateSize();
+                }
+            }
+        });
+
+
+      var model=@Html.Raw(Infoline.Helper.Json.Serialize(Model));
+
+        var inventoryDetail = {
+        query: "(inventoryId~eq~'" + model.id + "')",
+        enumProperties: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>())),
+        svgColors: {
+            "icon-warehouse": "M475 700l-475-275 100 0 0-400c0-25 22-50 50-50l150 0 0 250c0 28 22 50 50 50l350 0c28 0 49-22 50-50l0-250 150 0c28 0 50 22 50 50l0 400 100 0-475 275c-21 12-42 25-50 25-8 0-28-12-50-25z m-125-475l0-50 350 0 0 50z m0-100l0-50 350 0 0 50z m0-100l0-50 350 0 0 50z",
+            "icon-user-6": "M0-150l0 156q0 24 58 58t159 71q99 35 137 73t37 101q0 29-27 72t-32 59q-12 35-29 135-10 52-14 93-2 22 6 50t28 60 67 52 110 20 110-20 67-52 28-60 6-50q-4-41-14-93-17-100-29-135-6-16-32-59t-27-72q0-64 37-101t137-73q217-80 217-129l0-156-1000 0z",
+            "icon-loop": "M800 540q42 0 71-29t29-71l0-290q0-40-29-70t-71-30l-700 0q-40 0-70 30t-30 70l0 290q0 42 30 71t70 29l250 0 0 110 200-180-200-180 0 110-210 0 0-210 620 0 0 210-150 0 0 140 190 0z",
+            "icon - trash": "M769 739c24 0 45-20 45-45s-21-45-45-45l-6 0-135-688-438 0-134 688-11 0c-25 0-45 20-45 45s20 45 45 45l724 0z m-396-107l-19 17-118 0-18-17 77-78z m-194-258l25-129 60 60-78 77z m39 40l77-77 78 77-78 76z m186-32l-76-77 76-77 77 77z m32 32l77-77 77 77-77 76z m-32 31l77 78-77 76-76-76z m-218 154l-43-42 17-85 26-27 78 78z m109-326l-77-78 77-76 78 76z m109-109l-76-77 57-58 38 0 58 58z m109-45l77 76-77 78-77-78z m100 118l25 128-17 17-76-77z m48 247l13 64-53 51-76-76 76-78z m-71 148l-19 17-117 0-18-17 77-78z m-457-23l40 40-48 0z m96-487l17-93 75 0z m364 12l-107-105 85 0z m91 468l10 47-59 0z",
+            "icon- question": "M405 618c-105 0-160-58-160-163l130 0c0 39 9 58 29 58 19 0 27-19 27-58 0-48-23-66-70-66-3 0-11 0-20 1l0-122 130 0 0 51c64 16 97 63 97 136 0 97-69 163-163 163z m1-405c-41 0-76-35-76-78 0-41 35-77 76-77s77 36 77 77-35 78-77 78z m0 544c224 0 407-182 407-407 0-223-183-406-407-406-225 0-406 183-406 406 0 225 181 407 406 407z",
+            "icon-plus-5": "M0 291v119q0 20 14 35t35 14h281v281q0 20 15 35t35 14h119q20 0 34-14t15-35v-281h281q20 0 35-14t14-35v-119q0-21-14-35t-35-15h-281v-282q0-20-15-34t-34-15h-119q-21 0-35 15t-15 34v282h-281q-20 0-35 15t-14 35z",
+            "icon - minus - 4": "M0 209l0 282 1000 0 0-282-1000 0z",
+            "icon-basket-4": "M2 791q8 20 27 29t38 4l150-48q32-10 35-43l10-84 686-77q23-5 35-22t10-38l-43-238q-8-43-49-43l-608 0-11-69 578 0q21 0 36-14t15-36q-2-22-17-37t-34-14l-641 0q-25 2-39 19t-12 41l28 149-41 418-119 39q-45 17-34 64z m217-839q0 32 24 56t55 23 56-23 23-56-23-55-56-24-55 24-24 55z m469 0q0 32 23 56t56 23 56-23 23-56-23-55-56-24-56 24-23 55z",
+            "icon-tag-2": "M944 830q36-106-8-199t-128-157l18-24q16-28 6-54l-48-158q-12-30-36-46l-464-328q-42-30-64 4l-210 304q-12 18-9 39t21 33l464 328q26 18 54 18l158 0q30 0 48-26l28-40q168 130 114 286-10 28 18 40 32 8 38-20z m-216-468q40 32 34 80l-32-16q-8-4-12-4-18 0-28 18-12 30 16 40l24 14q-48 34-92 0-28-18-34-51t14-61q18-26 51-32t59 12z",
+            "icon-user-delete": "M938 273l-313 0q-21 0-37 15t-15 36 15 37 37 15l313 0q21 0 36-15t16-37-16-36-36-15z m-625 520q107 0 183-77t77-183-77-184-183-76-184 76-76 184 76 183 184 77z m0-573q136 0 224-63t88-146q0-41-89-72t-223-32q-140 0-227 32t-86 72q0 83 86 146t227 63z"
+            },
+        getDetailForHover: function (data) {
+                    var dataId_Title = data.dataId_Title != null ? data.dataId_Title : "Bilinmiyor";
+                    var type_Title = data.type_Title != null ? data.type_Title : "Üstlenilmeyi Bekliyor";
+                    var createdby_Title = data.createdby_Title != null ? data.createdby_Title : "-";
+
+
+            var text =
+                        '<div class="item">                                                 ' +
+                        '  <div class="head text-center clearfix">                         ' +
+                        '      <a target="_blank" href="#">                                ' +
+                        '          <div class="col-xs-12"></div>          ' +
+                        '          <div class="col-xs-12" style="padding-top:0px;"><small></small> </div> ' +
+                        '      </a>       ' +
+                        '  </div>         ' +
+                        '<div class="widget-list-group">' +
+                        '    <ul class="list-group clear-list" style="margin-bottom: 0 !important;">' +
+                   '        <li class="list-group-item" style="text-align:center;">' +
+                        '           <span class="text-center"> ' + dataId_Title + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item">' +
+                        '            <i class="icon-cog"></i> <strong> İşlem : </strong><span class="pull-right"> ' + type_Title + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item">' +
+                        '            <i class="icon-user-add"></i> <strong> İşlemi Gerçekleştiren : </strong><span class="pull-right"> ' + createdby_Title + '</span>' +
+                        '        </li>' +
+                        '    </ul>' +
+                        '  </div>' +
+                        '  </div>';
+
+                    return text;
+                },
+    }
+
+    var icons = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>()));
+
+     var Actions = $.ajax({
+        type: "GET",
+        url: '/PRD/VWPRD_InventoryAction/DataSource?filter=' + inventoryDetail.query,
+        async: false
+     }).responseJSON;
+
+    var Harita = new AkilliHarita('Harita', {
+        zoom: 6,
+        maxZoom:18,
+        uiAltlik: false,
+        uiDefault: false,
+        uiSearch: true,
+        uiMinimap: false,
+        uiScaleLine: false,
+        uiMousePosition: false,
+        uiMesurement: false,
+        uiInfo: false
+    });
+
+    Harita.layer.addVector("Action", "Action");
+    Harita.layer.addVector("ActionPoint", "ActionPoint");
+
+
+    Harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+
+    var points = [];
+    Actions.Data.forEach(function (item, i) {
+        var icon = (item.location == '@Model.location' ? "Marker_SonKonum" : "Guncel_Konum");
+        //Harita.style.add(i + "d", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
+        //Harita.style.add(i + "c", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
+        var icon = $.Enumerable.From(icons).Where(x => x.Key == 0).FirstOrDefault();
+        var d = inventoryDetail.svgColors[icon.Generic.icon];
+        var svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="80px" height="80px" viewBox="0 0 512 512">'+
+                                  '    <path fill="#1ab394" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z"/>'+
+                                  '    <circle fill="#ededed" cx="256" cy="160" r="110"/>'+
+                                  '    <g>'+
+                                  '      <svg xmlns="http://www.w3.org/2000/svg" width="290px" height="300px" viewBox="-1000 0 1690 580">'+
+                                  '        <path transform="rotate(180, 0, 0) translate(-1050,-650)" fill="#1ab394" d="' + d + '"/>'+
+                                  '      </svg>'+
+                                  '    </g>'+
+                                  '  </svg>';
+
+         var styleCustom = new ol.style.Style({
+                            image: new ol.style.Icon({
+                                opacity: 1,
+                                src: 'data:image/svg+xml,' + escape(svg),
+                                scale: 0.8,
+                                anchor: [0.5, 64],
+                                anchorXUnits: 'fraction',
+                                anchorYUnits: 'pixels',
+                            }),
+                            zIndex: 20
+         });
+
+         var styleHover = new ol.style.Style({
+                            image: new ol.style.Icon({
+                                opacity: 1,
+                                src: 'data:image/svg+xml,' + escape(svg),
+                                scale: 0.8,
+                                anchor: [0.5, 64],
+                                anchorXUnits: 'fraction',
+                                anchorYUnits: 'pixels',
+                            }),
+                            zIndex: 20
+         });
+
+
+        Harita.style.addCustom(i + "styleCustom", styleCustom);
+        Harita.style.addCustom(i + "styleHover", styleHover);
+
+        var feature = Harita.feature.add("ActionPoint", item.id, item.location);
+        if (feature) {
+            feature.set("properties", item);
+            feature.set("style", i + "styleCustom");
+            feature.set("styleHover", i + "styleHover");
+            feature.set("styleSelected", i + "c");
+            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+        }
+    });
+    Harita.layer.panTo("ActionPoint");
+
+    var line = "LINESTRING(" + points.join(", ") + ")";
+    Harita.feature.add("Action", "linestring", line);
+
+    function imageName(item) {
+         if (item == null) { return ''; }
+                var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()));
+                var icon = types.filter(function (e) { return e.Key == item }).map(a => a.Generic['icon'])
+                return '<i class="' + icon + '" data-toggle="tooltip" data-placement="right" data-original-title="' + types[item].Value +'"></i>'
+    }
+
+    function lastStatusTemplate(isComplete) {
+        if (isComplete && isComplete == true) {
+            return '<i class="fa fa-check text-primary"> Çözüm sağlandı</i>';
+        }
+        return '<i class="icon-clock text-warning"> Çözüm bekleniyor</i>';
+	}
+
+	//$('#VWFTM_TaskTab').trigger('click');
+
+
+	//$("#VWFTM_TaskTab").click(function () {
+	//	$("#VWFTM_TaskContinuing").data("kendoGrid").refresh();
+	//	res()
+	//});
+
+	//function res() {
+	//	$("#VWFTM_TaskContinuing").data("kendoGrid").refresh();
+	//}
+
+	//$(document).ready(function () {
+	//	$("#VWFTM_Task").data("kendoGrid").refresh();
+	//});
+
+
+
+</script>
+<style>
+    .fileupload-content{
+        max-height:600px!important;
+    }
+</style>

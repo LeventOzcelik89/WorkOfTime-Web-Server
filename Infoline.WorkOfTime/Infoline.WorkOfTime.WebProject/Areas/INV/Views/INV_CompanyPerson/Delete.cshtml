@@ -1,0 +1,123 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPerson
+@{
+    ViewBag.Title = "Personeli İşten Çıkarma (" + Model.Person_Title + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("JopEndDate", "INV_CompanyPerson", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-loadingtitle", "Personel düzenleme işleminiz kaydediliyor.Lütfen Bekleyiniz.." },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group @(ViewBag.Description=="" ? "hide" : "")">
+        <div class="alert bg-danger">@Html.Raw(ViewBag.Description)</div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="JobEndDate">İş Çıkış Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli()
+                 .DateTimePickerFor(model => model.JobEndDate)
+                 .Placeholder("Lütfen Çıkış Tarihi Seçiniz..")
+                 .Value(DateTime.Now)
+                 //.Min(DateTime.Now.AddDays(-10))
+                 .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="JobLeaving">Çıkarılma Sebebi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+             Html.Akilli()
+             .DropDownListFor(model => model.JobLeaving)
+             .OptionLabel("Lütfen Çıkarılma Sebebini Seçiniz..")
+             .DataValueField("Id")
+             .DataTextField("enumDescription")
+             .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+             .Sort(x => x.Add("enumDescription").Ascending())
+             .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "INV_CompanyPerson" && a.fieldName == "JobLeaving" && a.enumKey != 23)
+             .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="JobLeavingDescription">Çıkarılma Ek Bilgi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.JobLeavingDescription, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Çıkarılma Ek Bilgi Giriniz.."}
+            }).Validate(Validations.TextEverywhere(true,0,250))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Bildirge">İşten Ayrılış Bildirgesi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+               Html.Akilli().FileUpload()
+              .DataTable("SH_User")
+              .DataId(Model.IdUser.HasValue ? Model.IdUser.Value : Guid.Empty)
+              .DataKey(x => x.fileGroup == "İşten Ayrılış Bildirgesi")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Görüşme">Personel İşten Çıkış Görüşmesi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+               Html.Akilli().FileUpload()
+              .DataTable("SH_User")
+               .DataId(Model.IdUser.HasValue ? Model.IdUser.Value : Guid.Empty)
+              .DataKey(x => x.fileGroup == "Personel İşten Çıkış Görüşmesi")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Form">Personel İşten Ayrılış Bilgi Formu</label>
+        </div>
+        <div class="col-md-8">
+            @(
+               Html.Akilli().FileUpload()
+              .DataTable("SH_User")
+               .DataId(Model.IdUser.HasValue ? Model.IdUser.Value : Guid.Empty)
+              .DataKey(x => x.fileGroup == "Personel İşten Ayrılış Bilgi Formu")
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

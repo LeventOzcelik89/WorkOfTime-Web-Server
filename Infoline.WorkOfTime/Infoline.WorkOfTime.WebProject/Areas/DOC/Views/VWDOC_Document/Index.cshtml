@@ -1,0 +1,123 @@
+﻿@{
+    ViewBag.Title = "Doküman Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@{ 
+    var lang = Request.Cookies.Get("language").Value == "ENG" ? true : false;
+    var code = lang == true ? "Code" : "Kod";
+    var type = lang == true ? "Type" : "Tipi";
+    var title = lang == true ? "Title" : "Başlık";
+    var subject = lang == true ? "Subject" : "Konu";
+    var revision = lang == true ? "Total Revision Request" : "Toplam Revizyon Talebi";
+    var responsible = lang == true ? "Responsible Person" : "Sorumlu";
+    var count = lang == true ? "Total" : "Adet";
+
+}
+
+
+
+<script type="text/x-kendo-template" id="documentListTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumDOC_DocumentType>()))#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td class="desc" style="width:55%;">
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>@type  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+                    #}#
+                    #if(code != null){#
+                    <div style="font-size:13px;"><strong>@code  : <a style="font-size: 15px;"></a></strong>#=code#</div>
+                    #}#
+                    #if(title != null){#
+                    <div style="font-size:13px;"><strong>@title  : <a style="font-size: 15px;"></a></strong>#=title#</div>
+                    #}#
+
+                    #if(title != null){#
+                    <div style="font-size:13px;"><strong>@subject  : <a style="font-size: 15px;"></a></strong>#=subject#</div>
+                    #}#
+
+                    #if(responsibleUserId_Title != null){#
+                    <div style="font-size:13px;"><strong>@responsible  : <a style="font-size: 15px;"></a></strong>#=responsibleUserId_Title#</div>
+                    #}#
+
+                </td>
+
+                <td style="width:10%;vertical-align: inherit;">
+                    <h5 data-original-title="@revision" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-mail-reply   m-r-xs"></i>#=totalRevision# @count
+                    </h5>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-method="GET" data-href="@Url.Action("Insert","VWDOC_Document",new { area="DOC" })"><i class="fa fa-plus-circle"></i> Yeni Doküman</a>
+               
+                    <div class="space-25"></div>
+                    <h5>TİPİNE GÖRE </h5>
+                    <ul class="folder-list" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumDOC_DocumentType>().OrderBy(a => a.Key))
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWDOC_Document" data-category="0" data-query="(type~eq~@item.Key)">
+                                    <i class="@item.Generic["icon"]"></i>  @(Request.Cookies["language"].Value== "ENG"?item.Generic["EN"]:item.Value)
+                                </a>
+                                <span class="badge badge-success pull-right m-l-md  m-t-xs" data-counturl="/DOC/VWDOC_Document/DataSourceCount?filter=(type~eq~@item.Key)">0</span>
+                            </li>
+                        }
+                    </ul>
+                    <div class="space-25"></div>
+                  
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Doküman Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @{ 
+                   
+                }
+                @(Html.Akilli()
+                 .Grid<Infoline.WorkOfTime.BusinessData.VWDOC_Document>("VWDOC_Document")
+                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWDOC_Document", new { area = "DOC" })).PageSize(25))
+                 .Columns(x =>
+                 {
+                     x.Bound(y => y.id).Title("").Width(600).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('documentListTemplate',data)#");
+                     x.Bound(y => y.code).Title(lang==true?"Code":"Kod").Width(200);
+                     x.Bound(y => y.type_Title).Title(lang == true ? "Type" :"Tipi").Width(180);
+                     x.Bound(y => y.title).Title(lang == true ? "Title" : "Başlık").Width(200);
+                     x.Bound(y => y.subject).Title(lang == true ? "Subject" :"Konu").Width(200);
+                     x.Bound(y => y.responsibleUserId_Title).Title(lang == true ? "Responsible Person" : "Sorumlu").Width(200);
+                     x.Bound(y => y.totalRevision).Title(lang == true ? "Total Revision Request" : "Toplam Revizyon Talebi").Width(250);
+                 })
+                 .Scrollable(h => h.Height(650))
+                 .Selectable(x => x.Mode(GridSelectionMode.Single))
+                 .ToolBar(x =>
+                 {
+                     x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Request a Revision' class='icon-exchange-1'></i>" : "<i data-original-title='Revizyon Talep Et' class='icon-exchange-1'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("RequestRevision", "VWDOC_Document", new { area = "DOC", isRequest = true }));
+                     x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Document Details' class='fa fa-info-circle'></i>" : "<i data-original-title='Doküman Detayı' class='fa fa-info-circle'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWDOC_Document", new { area = "DOC" }));
+                     x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='View the Document' class='fa fa-file'></i>" : "<i data-original-title='Dokümanı Görüntüle' class='fa fa-file'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("DetailForm", "VWDOC_Document", new { area = "DOC" }));
+                     x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i data-original-title='Delete the Document' class='fa fa-trash'></i>" : "<i data-original-title='Doküman Sil' class='fa fa-trash'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWDOC_Document", new { area = "DOC" }));
+
+                 }))
+            </div>
+        </div>
+    </div>
+</div>

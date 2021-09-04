@@ -1,0 +1,501 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_LedgerModel
+
+@{
+	ViewBag.Title = !string.IsNullOrEmpty(Model.type_Title) ? Model.type_Title : "Yeni Hesap Hareketi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPA_LedgerType>();
+
+	types = types.Where(a => a.Key != "0" && a.Key != "1" && a.Key != "2" && a.Key != "5").ToArray();
+
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var ledger = {
+        model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
+        currencyFrom : null,
+        type: null,
+        ExchangeRates: $.ajax({
+            url: '/General/GetExchangeRatesByDate',
+            data: { date: new Date().toLocaleString() },
+            type: "POST",
+            dataType: "JSON",
+            async: false
+        }).responseJSON,
+        events: {
+            dateChange: function (e) {
+                ledger.events.getExchangeRates(e.sender.value().toLocaleString());
+            },
+            getExchangeRates: function (date) {
+                GetJsonDataFromUrl('/General/GetExchangeRatesByDate', { date: date }, function (resp) {
+                    if (resp == null) { return; }
+                    else {
+                        ledger.ExchangeRates = resp;
+                    }
+                });
+            },
+            typeChange: function (e) {
+                ledger.type = $("#type").data("kendoDropDownList").value();
+
+                $('#currencyContent').addClass("hide");
+                $('#accountId').removeAttr("disabled");
+                $('#accountRealtedId').removeAttr("disabled");
+
+                $('[data-type]').each(function (c) {
+                    var attrtype = $(this).attr("data-type");
+                    var control = attrtype.split(",").indexOf(ledger.type) > -1;
+                    $(this).find(".has-error").removeClass("has-error");
+                    $(this).find(".help-block.with-errors").remove();
+                    $(this).find('.has-danger').removeClass("has-danger")
+                    $(this)[control ? "removeClass" : "addClass"]("hide");
+
+                    var accountDropDown = $('#accountId_' + attrtype).data("kendoDropDownList");
+                    var accountRelatedDropDown = $('#accountRealtedId_' + attrtype).data("kendoDropDownList");
+
+                    if (accountDropDown) {
+                        accountDropDown.options.enabled = control;
+
+                        if (control == true) {
+                            $('#accountId').attr("disabled", "disabled");
+                        }
+                    }
+
+                    if (accountRelatedDropDown) {
+                        accountRelatedDropDown.options.enabled = control;
+
+                        if (control == true) {
+                            $('#accountRealtedId').attr("disabled", "disabled");
+                        }
+                    }
+
+                    $(this).find('[data-role="dropdownlist"],[data-role="datepicker"]').each(function (elem) {
+
+                        var elem = $(this).data("kendoDropDownList") || $(this).data("kendoDatePicker");
+                        if (elem) {
+                            if (elem.element.parents(".form-group").find(".req").length > 0) {
+                                elem.element.prop("required", control);
+                            }
+                            elem.enable(control);
+                            if ($(this).attr("data-role") == "dropdownlist" && control) {
+                                if (elem._initial != elem.value()) {
+                                    elem.value("");
+                                }
+                                elem.dataSource.read();
+                                elem.dataSource.one("requestEnd", function (args) {
+                                    elem.trigger("change");
+                                });
+                            }
+                        }
+                    });
+
+                    $(this).find('[type="hidden"]').each(function (elem) {
+                        $(this).prop("disabled", !control);
+                    });
+                });
+
+                $('#description').trigger("blur");
+                $('[data-button="type"]').removeClass("active");
+                $('[data-button="type"][value="' + ledger.type + '"]').addClass("active");
+            },
+            typeLoad: function () {
+                ledger.events.typeChange();
+            },
+            typeButton: function (e) {
+                var value = $(e).attr("value");
+                $("#type").data("kendoDropDownList").value(value);
+                ledger.events.typeChange();
+            },
+            dataBoundAccount: function (e) {
+                $('[data-transaction="currency"]').text(ledger.model.Currency_Symbol);
+            },
+            changeAccount: function (e) {
+                var data = e.sender.dataItem();
+                ledger.currencyFrom = data.Currency_Code == "TL" ? "TRY" : data.Currency_Code;
+                $('[data-account="currency"]').text(data.Currency_Symbol);
+
+                if (!data.currencyId || data.currencyId == ledger.model.currencyId) {
+                    $('#currencyContent').addClass("hide");
+                } else {
+                    $('#currencyContent').removeClass("hide");
+                }
+
+                $('#amount').trigger("keyup");
+            },
+        }
+    }
+
+    $(document)
+        .on("keyup", '#amount', function (e) {
+
+            if (ledger.currencyFrom && ledger.currencyFrom != null) {
+                var to = ledger.model.Currency_Code == "TL" ? "TRY" : ledger.model.Currency_Code;
+                var rate = ledger.ExchangeRates[ledger.currencyFrom].BanknoteSelling / ledger.ExchangeRates[to].BanknoteSelling;
+
+                var accountCurrency = $('#accountCurrency').data("kendoNumericTextBox");
+                if (accountCurrency) {
+                    var value = e.target.value;
+                    var currency = Number(value.replace(",",".")) / rate;
+                    accountCurrency.value(kendo.toString(currency, "n2"));
+                }
+            }
+        })
+</script>
+
+<script type="text/x-kendo-template" id="typeTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(types))#
+    <div class="clearfix"><i style="margin-right:15px;" class="#:types.filter(function(a){return a.Key == Id}).map(a=>a.Generic['icon'])#"></i><strong>#=enumDescription#</strong></div>
+</script>
+
+@using (Html.BeginForm("Insert", "VWPA_Ledger", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "id", "VWPA_LedgerInsertForm" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id, new { @Value = Model.id })
+	@Html.HiddenFor(model => model.transactionId)
+	@Html.HiddenFor(model => model.advanceId)
+	@Html.HiddenFor(model => model.currencyId)
+	@Html.HiddenFor(model => model.Currency_Code)
+	@Html.HiddenFor(model => model.Currency_Symbol)
+	@Html.HiddenFor(model => model.direction)
+	@Html.HiddenFor(model => model.accountId)
+	@Html.HiddenFor(model => model.accountRealtedId)
+
+	<div class="@(Model.type.HasValue ? "hide" : "")">
+		<div class="visible-md visible-lg" style="width:100%">
+			@foreach (var type in types)
+			{
+				<button class="btn btn-primary btn-outline" type="button" data-button="type" onclick="ledger.events.typeButton(this)" value="@type.Key" style="width:calc((100% - @(types.Count()*4)px) / @types.Count());">
+					<i class="@type.Generic["icon"] fa-2x" aria-hidden="true"></i><br /><span style="font-size: 11px;font-weight: bold;" class="radio-tile-label">@Html.Raw(type.Value)</span>
+				</button>
+			}
+		</div>
+		<div class="form-group visible-sm visible-xs">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="type">İşlem Tipi</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli().
+                    DropDownListFor(model => model.type).
+                    OptionLabel("Lütfen Yapacağınız İşlemi Seçiniz..").
+                    DataTextField("enumDescription").
+                    DataValueField("Id").
+                    ValueTemplate("#=TemplateEngine('typeTemplate',data)#").
+                    Template("#=TemplateEngine('typeTemplate',data)#").
+                    Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                    Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PA_Ledger" && a.fieldName == "type").
+                    Sort(x => x.Add("enumKey").Ascending()).
+                    Readonly(Model.type != null).
+                    Validate(Validations.Required).
+                    Events(a => a.Change("ledger.events.typeChange").DataBound("ledger.events.typeLoad")).
+                    Execute("enumKey")
+                )
+			</div>
+		</div>
+		<div class="hr-line-dashed"></div>
+	</div>
+
+	<div class="hide" data-type="0">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountId">Ödeme Yapılacak Hesap</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountId)
+                    .Id("accountId_0")
+                    .OptionLabel("Lütfen Hesap seçiniz..")
+                    .DataTextField("searchField")
+                    .AutoBind(false)
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.myAccount == true && f.status == true)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundAccount"); e.Change("ledger.events.changeAccount"); })
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="1">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountId">Ödemenin Yapılacağı Hesap </label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountId)
+                    .Id("accountId_1")
+                    .OptionLabel("Giriş yapılacak hesabınızı seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Events(e => { e.DataBound("ledger.events.dataBoundAccount"); e.Change("ledger.events.changeAccount"); })
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Filter<VWPA_Account>(f => f.myAccount == true && f.status == true)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="2">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountRealtedId">Tahsil Edilecek Hesap</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountId)
+                    .Id("accountId_2")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Hesap Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.myAccount == true && f.status == true)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundTransfer"); e.Change("ledger.events.changeAccount"); })
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			</div>
+		</div>
+
+
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountRealtedId">Personel</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountRealtedId)
+                    .Id("accountRealtedId_2")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Personel Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.dataTable == "SH_User" && f.status == true)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Readonly(true)
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="3">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="accountRealtedId">Tahsil Edilecek Hesap</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountRealtedId)
+                    .Id("accountRealtedId_3")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Hesap Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.dataTable == "CMP_Company" && f.myAccount == false && f.status == true && f.id != Model.accountId)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundTransfer"); e.Change("ledger.events.changeAccount"); })
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="4">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="accountRealtedId">Aktarılacak Hesap</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountRealtedId)
+                    .Id("accountRealtedId_4")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Hesap Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.dataTable == "CMP_Company" && f.myAccount == false && f.status == true && f.id != Model.accountId)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundTransfer"); e.Change("ledger.events.changeAccount"); })
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="7">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountRealtedId">Diğer Hesap</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountRealtedId)
+                    .Id("accountRealtedId_7")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Transfer Edilecek Hesabı Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.myAccount == true && f.status == true && f.id != Model.accountId)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundTransfer"); e.Change("ledger.events.changeAccount"); })
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="hide" data-type="8">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="accountRealtedId">Personel</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.accountRealtedId)
+                    .Id("accountRealtedId_8")
+                    .AutoBind(false)
+                    .OptionLabel("Lütfen Personel Seçiniz..")
+                    .DataTextField("searchField")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                    .Filter<VWPA_Account>(f => f.dataTable == "SH_User" && f.status == true)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Template("#=TemplateEngine('accountTemplate',data)#")
+                    .Events(e => { e.DataBound("ledger.events.dataBoundTransfer"); e.Change("ledger.events.changeAccount"); })
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="date"> Tarih</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli().
+                DatePickerFor(model => model.date).
+                Placeholder("Lütfen Ödemenin Tarihini girin..").
+                Format(Extensions.DateFormatShort()).
+                Events(e => { e.Change("ledger.events.dateChange"); }).
+                Value(DateTime.Now).
+                Max(DateTime.Now).
+                Validate(Validations.Required)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="amount">Tutar</label>
+		</div>
+		<div class="col-md-8">
+			<div class="input-group m-b">
+
+				@if (Model.Transaction != null)
+				{
+					@Html.Akilli().NumericTextBoxFor(model => model.amount).Max(999999999).Min(0).Spinners(false).Decimals(2).Format("N2").Validate(Validations.Required).Max((double?)Model.Transaction.debt)
+					<span class="input-group-addon" data-transaction="currency">@(Model.Currency_Symbol != null ? Model.Currency_Symbol : "₺")</span>
+				}
+				else
+				{
+
+					@Html.Akilli().NumericTextBoxFor(model => model.amount).Max(999999999).Min(0).Spinners(false).Decimals(2).Format("N2").Validate(Validations.Required)
+					<span class="input-group-addon" data-transaction="currency">@(Model.Currency_Symbol != null ? Model.Currency_Symbol : "₺")</span>
+				}
+
+			</div>
+		</div>
+	</div>
+
+	<div id="currencyContent" class="hide">
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="accountCurrency">Diğer Hesaptaki Karşılığı</label>
+			</div>
+			<div class="col-md-8">
+				<div class="input-group m-b">
+					@(Html
+                        .Akilli().NumericTextBox("accountCurrency")
+                        .Min(0)
+                        .Spinners(false)
+                        .Decimals(2)
+                        .Format("N2")
+                        .HtmlAttributes(new Dictionary<string, object>() {
+                            {"readonly", "readonly" },
+                            {"style", "width:100%" }
+                        }))
+					<span class="input-group-addon" data-account="currency">₺</span>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="description">Açıklama</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Açıklama giriniz.."}
+			})
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Dosya">Dekont </label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli().FileUpload()
+                .DataTable("PA_Ledger")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Dekont Dosyası")
+            )
+		</div>
+	</div>
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+}

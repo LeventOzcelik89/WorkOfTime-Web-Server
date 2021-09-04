@@ -1,0 +1,56 @@
+﻿@model VWPRJ_ProjectScopeLevelData
+@{
+    ViewBag.Title = "Sözleşme bölgesel seviye tanımı ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWPRJ_ProjectScopeLevel", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.projectId)
+
+
+    <div class="form-group req">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="level">Seviye</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.level, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen  seviye giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="locationIds">İl,İlçe</label>
+        </div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .MultiSelectFor(model => model.locationIds)
+                .Placeholder("Lütfen İl,İlçe Seçiniz..")
+                .DataTextField("pid_Title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                .Filter<VWUT_Location>(a => a.type == (int)EnumUT_LocationType.İlce)
+                .Sort(x => x.Add("pid_Title").Ascending())
+                .Execute()
+            )
+		</div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

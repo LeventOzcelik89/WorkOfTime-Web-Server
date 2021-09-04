@@ -1,0 +1,112 @@
+﻿@model VMSYS_TableAdditionalProperty
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('success', '#TableAdditionalPropertyInsert', function (e, resp) {
+            if (resp.Result) {
+                $('#no-record').remove();
+                var listgroup = $('.tabletbody');
+                listgroup.empty();
+                var data = resp.Object;
+                var text = '';
+                $.each(data, function (i, item) {
+                    {
+                       text += '<tr class="trgroupClass">'+
+'                            <td class="project-title">'+
+'                                <a>'+item.propertyKey+'  : </a>'+
+'                            </td>'+
+''+
+'                            <td class="project-people">'+
+'                                <a>'+item.propertyValue+'</a>'+
+'                            </td>'+
+'                            <td class="project-actions">'+
+'                                <a data-href="/SYS/VWSYS_TableAdditionalProperty/Update?id='+item.id+'" data-task="Insert" class="btn btn-success btn-xs"><i class="fa fa-edit"></i> Düzenle </a>'+
+'                                <a id="deleteInfo" data-id="'+item.id+'" class="btn btn-danger btn-xs"><i class="fa fa-times"></i> Sil </a>'+
+'                            </td>'+
+'                        </tr>';
+                    }
+                })
+
+                listgroup.append(text);
+            }
+        })
+
+        .on('click', '#deleteInfo', function () {
+            var id = $(this).attr('data-id');
+            var parentList =  $(this).parent('.project-actions').parent('.trgroupClass');
+            swal({
+                title: "Devam Et ?",
+                text: "Seçmiş olduğunuz birimi silmek istediğinize emin misiniz ?",
+                type: "warning",
+                content: "input",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Evet",
+                cancelButtonText: "Hayır",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            }, function (isConfirm) {
+                if (isConfirm) {
+                    $.ajax({
+                        type: "POST",
+                        url: "/SYS/VWSYS_TableAdditionalProperty/Delete",
+                        data: { id: id },
+                        success: function (response) {
+                            parentList.remove()
+                        },
+                        error: function () {
+                        }
+                    });
+                }
+                swal.close();
+            });
+        })
+
+</script>
+
+
+<div class="ibox collapsed ">
+    <div class="ibox-title">
+        <h5>EK BİLGİLER</h5>
+        <div class="ibox-tools">
+                <a data-href="/SYS/VWSYS_TableAdditionalProperty/Insert?dataId=@Model.dataId&dataTable=@Model.dataTable" data-task="Insert" data-toggle="tooltip" title="Eklemek için tıklayınız">
+                    <i class="text-success fa fa-plus-circle"></i>
+                </a>
+                <a class="collapse-link">
+                    <i class="fa fa-chevron-up"></i>
+                </a>
+
+        </div>
+    </div>
+    <div class="ibox-content">
+        <table class="table m-b-none">
+            <tbody class="tabletbody">
+                @if (Model.properties.Count() > 0)
+                {
+                    foreach (var item in Model.properties)
+                    {
+                        <tr class="trgroupClass">
+                            <td class="project-title">
+                                <span> @item.propertyKey : </span>
+                            </td>
+
+                            <td class="project-people">
+                                <span> @item.propertyValue</span>
+                            </td>
+                            <td class="project-actions">
+                                <a data-href="/SYS/VWSYS_TableAdditionalProperty/Update?id=@item.id" data-task="Insert" class="btn btn-success btn-xs"><i class="fa fa-edit"></i> Düzenle </a>
+                                <a id="deleteInfo" data-id="@item.id" class="btn btn-danger btn-xs"><i class="fa fa-times"></i> Sil </a>
+                            </td>
+                        </tr>
+                    }
+
+                }
+                else
+                {
+                    <div id="no-record" class="alert alert-warning text-center m-b-none">Herhangi bir ek bilgi bulunmamaktadır.</div>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

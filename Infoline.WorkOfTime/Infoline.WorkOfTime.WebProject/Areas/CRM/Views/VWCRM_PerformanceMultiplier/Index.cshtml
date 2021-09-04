@@ -1,0 +1,47 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCRM_PerformanceMultiplierGroupedPageReport
+@{
+    ViewBag.Title = "Performans Çarpanları Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Performans Çarpanı").Value(Model.TotalMultiplier.ToString("N0") + " Adet").IconClass("fa fa-flash")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Toplam Ürün").Value(Model.TotalProduct.ToString("N0") + " Adet").IconClass("fa fa-cubes")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Toplam Focuslu Ürün").Value(Model.TotalProductFocused.ToString("N0") + " Adet").IconClass("fa fa-eye")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("Focus Dışındaki Ürün").Value(Model.TotalProductNotFocused.ToString("N0") + " Adet").IconClass("fa fa-eye-slash")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_PerformanceMultiplierGrouped>("VWCRM_PerformanceMultiplierGrouped")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_PerformanceMultiplierGrouped", new { area = "CRM" })).Sort(a => a.Add(b => b.StartDate).Descending()).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio);
+        x.Bound(y => y.StartDate).Title("Geçerlilik Başlangıç Tarihi").Width(300).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.EndDate).Title("Geçerlilik Bitiş Tarihi").Width(300).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.created).Title("Tarih").Width(180).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+        x.Bound(y => y.changedby_Title).Title("Güncelleyen");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_PerformanceMultiplier", new { area = "CRM" }));
+
+        x.Custom().Text("Kopyala").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_PerformanceMultiplier", new { area = "CRM", Copy = true }));
+
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-default", "" }, { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWCRM_PerformanceMultiplier", new { area = "CRM" }));
+
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCRM_PerformanceMultiplier", new { area = "CRM" }));
+
+    }))
+

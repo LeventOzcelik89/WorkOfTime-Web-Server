@@ -1,0 +1,376 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.TaskSchedulerModel
+@{
+    ViewBag.Title = "Görev Şablonu Detayı";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    #DetailForm .form-control[readonly] {
+        background: #fff !important;
+    }
+
+    .form-control[disabled] {
+        background: #fff !important;
+    }
+
+    .k-numerictextbox .k-input[disabled] {
+        background: #fff !important;
+    }
+</style>
+
+<div id="DetailForm" class="form-horizontal" data-selector="modalContainer">
+
+    <style type="text/css">
+        #DetailForm .noselector .k-i-all {
+            display: none !important;
+            visibility: hidden;
+        }
+
+        #DetailForm .noselector .k-clear-value {
+            right: 10px !important;
+        }
+
+        #DetailForm #insertRadio.akilliRadioGrup i {
+            font-size: 30px;
+        }
+
+            #DetailForm #insertRadio.akilliRadioGrup i.icon-shuffle {
+                font-size: 18px;
+            }
+
+            #DetailForm #insertRadio.akilliRadioGrup i.icon-retweet-3 {
+                font-size: 18px;
+            }
+
+        #DetailForm #insertRadio.akilliRadioGrup label {
+            width: 8.4% !important;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        #DetailForm .akilliRadioGrup > input:checked + label[for=priority_0] {
+            background-color: #EF5352;
+        }
+
+        #DetailForm .akilliRadioGrup > input:checked + label[for=priority_1] {
+            background-color: #F8AC59;
+        }
+
+        #DetailForm .akilliRadioGrup > input:checked + label[for=priority_2] {
+            background-color: #1ab394;
+        }
+    </style>
+
+    <div class="clearfix m-b-md usel">
+        <div class="radio akilliRadioGrup clearfix" id="insertRadio">
+            @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().OrderBy(x => x.Generic["order"]))
+            {
+                @(Html.RadioButton("TemplateModel._type", item.Key, new Dictionary<string, object> { { "id", "_Type" + item.Key }, { "readonly", "readonly" }, { "disabled", "disabled" }, { ((Model.TemplateModel.type.HasValue ? Model.TemplateModel.type.ToString() : "") == item.Key ? "checked" : "dt-chk"), "checked" } }))
+                <label for="_Type@(item.Key)" tabindex="0" class="radio-label">
+                    <i class="@item.Generic["icon"]"></i><br />
+                    @item.Value
+                </label>
+            }
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Şablon Adı</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.TextBoxFor(a => a.TemplateModel.name, new Dictionary<string, object> {
+        { "class", "form-control" },
+        { "placeholder", "" },
+        { "readonly", "" }
+    })
+    )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="customerId">Müşteri İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli()
+        .DropDownListFor(model => model.TemplateModel.customerId)
+        .OptionLabel("")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+        //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+        .Sort(x => x.Add("fullName").Ascending())
+        .Execute()
+        //  .Name("TemplateModel.customerId")
+        //  .Id("TemplateModel_customerId")
+        .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
+        </div>
+        <div class="col-md-8">
+            @(
+            Html.Akilli()
+            .DropDownListFor(model => model.TemplateModel.customerStorageId)
+            .OptionLabel("")
+            .DataTextField("fullName")
+            .DataValueField("id")
+            .Template("#=TemplateEngine('storageTemplate',data)#")
+            .ValueTemplate("#=fullName#)")
+            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+            //  .CascadeFrom("customerId")
+            //  .CascadeFromField("companyId")
+            .Sort(x => x.Add("fullName").Ascending())
+            .Execute()
+            //  .Name("TemplateModel.customerStorageId")
+            //  .Id("TemplateModel_customerStorageId")
+            .Readonly(true)
+                )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EstimatedTaskMinutes">Tahmini Görev Süresi</label>
+        </div>
+        <div class="col-md-8">
+
+
+            <div class="input-group">
+
+                @(
+        Html.Akilli().NumericTextBoxFor(a => a.TemplateModel.estimatedTaskMinute)
+        .Format("N0").Decimals(0).Min(0)
+        //  .Name("TemplateModel.estimatedTaskMinute")
+        //  .Id("TemplateModel_estimatedTaskMinute")
+        .HtmlAttributes(new Dictionary<string, object> { { "disabled", "" }, { "readonly", "" }, { "style", "width: 100%" } })
+    )
+
+                <span class="input-group-addon">dakika</span>
+            </div>
+
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="priority">Görev Önceliği</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.TemplateModel.priority).Value(EnumFTM_TaskPriority.Orta).Readonly(true).Name("_priority"))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CMP_Types">Görev Konuları</label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Akilli()
+     .MultiSelect("TemplateModel.FTM_TaskTemplateSubjectTypeIds_")
+     .Value(Model.TemplateModel.FTM_TaskTemplateSubjectTypeIds)
+     .Placeholder("")
+     .DataTextField("name")
+     .DataValueField("id")
+     .Action(b => b.Action("DataSourceDropDown", "FTM_TaskSubject", new { area = "FTM" }))
+     .Sort(x => x.Add("name").Ascending())
+     .BasicInsert(Url.Action("Insert", "FTM_TaskSubject", new { area = "FTM" }), "name")
+     .Execute("id")
+     // .Id("TemplateModel_FTM_TaskTemplateSubjectTypeIds__")
+     .HtmlAttributes(new Dictionary<string, object> { { "data-custom", "" } })
+     .TagMode(TagMode.Multiple)
+     .Readonly(true)
+            )
+
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[type='radio'][name='TemplateModel._type']" data-show="5,6,7">
+        <div class="col-md-4">
+            <label class="control-label label-md req" id="locationLabel" for="location">Görev Konumu</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli().MapInputFor(a => a.TemplateModel.location).
+        HelpText("Lütfen Lokasyon seçiniz.").
+        HtmlAttributes(new Dictionary<string, object>()
+        {
+            {"class", "form-control"},
+            {"placeholder", ""},
+            { "id", "TemplateModel_location" }
+        }).
+        OnlyMap()
+        //  .Name("TemplateModel.location")
+            )
+        </div>
+    </div>
+
+    <div class="form-group noselector" data-cascade="[type='radio'][name='TemplateModel._type']" data-show="0,1,2,3,4,8,9,10">
+        <div class="col-md-4">
+            <label class="control-label label-md" id="fixtureLabel" for="PRD_Inventory_Ids">Görevlendirilecek Envanter(ler)</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+        .MultiSelect("TemplateModel.PRD_Inventory_Ids__")
+        .Value(Model.TemplateModel.PRD_Inventory_Ids)
+        //  .Id("TemplateModel_PRD_Inventory_Ids")
+        .Placeholder("")
+        .DataTextField("searchField")
+        .DataValueField("id")
+        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .ItemTemplate("#=TemplateEngine('inventoryTemplate', data)#")
+        .HtmlAttributes(new Dictionary<string, object> { { "data-custom", "" } })
+        .Execute()
+        .Readonly(true)
+        .TagMode(TagMode.Multiple)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="companyId">Görevli İşletmem</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli()
+        .DropDownListFor(model => model.TemplateModel.companyId)
+        .OptionLabel("")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Filter<VWCMP_Company>(x => x.type == (int)EnumCMP_CompanyType.Benimisletmem)
+        //.Events(e => { e.Change("onChangeCompany"); })
+        .Sort(x => x.Add("fullName").Ascending())
+        .Execute()
+        //  .Name("TemplateModel.companyId")
+        //  .Id("TemplateModel_companyId")
+        .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="assignableUsers">Görevlendirilecek Personeller</label>
+        </div>
+        <div class="col-md-8">
+
+            @(Html.Akilli()
+     .MultiSelectFor(a => a.TemplateModel.assignableUsers)
+     .Placeholder("")
+     .DataValueField("id")
+     .DataTextField("FullName")
+     .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+     .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && Model.TemplateModel.personUserIds.Contains(a.id))
+     .Sort(x => x.Add("FullName").Ascending())
+     .BasicInsert(Url.Action("Insert", "FTM_TaskSubject", new { area = "FTM" }), "name")
+     .Execute("id")
+     .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+     .Id("TemplateModel_assignableUsers_")
+     .HtmlAttributes(new Dictionary<string, object> { { "data-custom", "" } })
+     .TagMode(TagMode.Multiple)
+     .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="hide alert warning" id="PersonAvaibles"></div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="helperUsers">Yardımcı Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+        Html.Akilli()
+        .MultiSelectFor(a => a.TemplateModel.helperUsers)
+        .Placeholder("")
+        .DataValueField("id")
+        .DataTextField("FullName")
+        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+        .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && Model.TemplateModel.personUserIds.Contains(a.id))
+        .Sort(x => x.Add("FullName").Ascending())
+        .Execute()
+        //  .Id("TemplateModel_helperUsers")
+        .TagMode(TagMode.Multiple)
+        .HtmlAttributes(new Dictionary<string, object> { { "data-custom", "" } })
+        .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="companyCarId">Araç</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+     .DropDownListFor(model => model.TemplateModel.companyCarId)
+     .OptionLabel("")
+     .DataTextField("plate")
+     .DataValueField("id")
+     .Action(b => b.Action("DataSourceDropDown", "VWCMP_CompanyCars", new { area = "CMP" }))
+     .Sort(x => x.Add("name").Ascending())
+     .BasicInsert(Url.Action("Insert", "VWCMP_CompanyCars", new { area = "CMP" }), "plate")
+     .Execute("id")
+     // .Name("TemplateModel.companyCarId")
+     // .Id("TemplateModel_companyCarId")
+     .Readonly(true)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Görev Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(a => a.TemplateModel.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "" },
+                { "readonly", "readonly" }
+            })
+        </div>
+    </div>
+
+    <div style="display:none;" data-selector="personSelection">
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="hasVerifyCode">Onay Kodu Doğrulaması?</label>
+            </div>
+            <div class="col-md-7 radio m-l-sm">
+                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.TemplateModel.hasVerifyCode).Value(true).Checked(Model.TemplateModel.hasVerifyCode == true).Enable(false) <span> Evet</span></label>
+                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.TemplateModel.hasVerifyCode).Value(false).Checked(Model.TemplateModel.hasVerifyCode == false).Enable(false) <span> Hayır</span></label>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="hasVerifyCode">Mail Bilgilendirmesi?</label>
+            </div>
+            <div class="col-md-7 radio m-l-sm">
+                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.TemplateModel.sendMail).Value(true).Checked(Model.TemplateModel.sendMail == true) <span> Evet</span></label>
+                <label class="checkbox-inline">@Html.Kendo().RadioButtonFor(model => model.TemplateModel.sendMail).Value(false).Checked(Model.TemplateModel.sendMail == false) <span> Hayır</span></label>
+            </div>
+        </div>
+    </div>
+
+</div>

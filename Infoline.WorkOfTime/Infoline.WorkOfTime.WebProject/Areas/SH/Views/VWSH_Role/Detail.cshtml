@@ -1,0 +1,61 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Role
+@{
+    ViewBag.Title = "Rol Detayı (" + Model.rolname + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="page-container">
+
+    <div class="tab-posts-box">
+
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="active" data-toggle="tooltip" data-placement="top" title="Kullanıcılar"><a href="#tab1" data-toggle="tab"><i class="fa fa-user"></i><span class="hidden-xs hidden-sm"> Kullanıcılar </span></a></li>
+            <li data-toggle="tooltip" data-placement="top" title="Sayfa Yetkileri"><a href="#tab2" data-toggle="tab"><i class="fa fa-backward"></i><span class="hidden-xs hidden-sm"> Sayfa Yetkileri </span></a></li>
+            <li data-toggle="tooltip" data-placement="top" title="Dosya Yetkileri"><a href="#tab3" data-toggle="tab"><i class="fa fa-file"></i><span class="hidden-xs hidden-sm"> Dosya Yetkileri </span></a></li>
+        </ul>
+
+        <div class="tab-content">
+            <div class="tab-pane active" id="tab1">
+                @(Html.Akilli()
+                      .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserRole>("VWSH_UserRole")
+                      .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_UserRole", new { area = "SH" })).Filter(a => a.Add(b => b.roleid).IsEqualTo(Model.id)).PageSize(25))
+                      .Columns(x =>
+                      {
+                          x.Bound(y => y.created).Title("Kayıt Tarihi").Width(200).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                          x.Bound(y => y.User_Title).Title("Kullanıcı");
+                      })
+                      .Scrollable(a => a.Enabled(true).Height(600))
+                )
+
+            </div>
+            <div class="tab-pane" id="tab2">
+                @(Html.Akilli()
+                      .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PagesRole>("VWSH_PagesRole")
+                      .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PagesRole", new { area = "SH" })).PageSize(25).Filter(v => v.roleid == Model.id))
+                      .Columns(x =>
+                      {
+                          x.Bound(y => y.created).Title("Kayıt Tarihi").Width(200).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                          x.Bound(y => y.action).Title("Sayfa Linki");
+                      })
+                      .Scrollable(a => a.Enabled(true).Height(600))
+                )
+            </div>
+            <div class="tab-pane" id="tab3">
+                @(Html.Akilli()
+                   .Grid<Infoline.WorkOfTime.BusinessData.SH_FilesRole>("SH_FilesRole")
+                   .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "SH_FilesRole", new { area = "SH" })).PageSize(25).Filter(v => v.roleid == Model.id))
+                   .Columns(x =>
+                   {
+                       x.Bound(y => y.created).Title("Kayıt Tarihi").Width(200).Format("{0:" + System.Globalization.DateTimeFormatInfo.CurrentInfo.ShortDatePattern + "}");
+                       x.Bound(y => y.fileGroup).Title("Dosya Adı").Width(300);
+                       x.Bound(y => y.dataTable).Title("Tablo");
+                       x.Bound(y => y.preview).Title("Göster").ClientTemplate("<span data-toggle=\"tooltip\" title=\"#=preview#\">#if (preview == true) {#   ✓ #} else {# X #} #</span>").Width(180);
+                       x.Bound(y => y.insert).Title("Ekle").ClientTemplate("<span data-toggle=\"tooltip\" title=\"#=insert#\">#if (insert == true) {#   ✓ #} else {# X #} #</span>").Width(180);
+                       x.Bound(y => y.delete).Title("Sil").ClientTemplate("<span data-toggle=\"tooltip\" title=\"#=data.delete#\">#if (data.delete == true) {#   ✓ #} else {# X #} #</span>").Width(180);
+                   })
+                   .Scrollable(a => a.Enabled(true).Height(600))
+                )
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>

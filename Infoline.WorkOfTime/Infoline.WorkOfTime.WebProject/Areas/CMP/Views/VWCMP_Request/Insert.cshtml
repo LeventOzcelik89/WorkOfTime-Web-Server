@@ -1,0 +1,434 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_RequestModels
+@{
+    ViewBag.Title = "Satın Alma Talebi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 75%;
+    }
+
+    #VWCMP_RequestInsertForm .hr-line-dashed {
+        margin: 10px 0 !important;
+    }
+
+    #VWCMP_RequestInsertForm .form-group {
+        margin-bottom: 10px !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    var _model = @(Html.Raw(Infoline.Helper.Json.Serialize(Model)));
+    var _user = @(Html.Raw(Infoline.Helper.Json.Serialize(userStatus.user)));
+
+    var request = {
+        dfn: {
+            pageLoad: false,
+            loadControl: {
+                items: false,
+                loaded: false,
+                itemLength: 0,
+            },
+        },
+        fnc: {
+            GetRowTemplate: function () {
+                var templateRow = $('#rowTemplate');
+                var field = $(templateRow)[0].content.querySelector("tbody");
+                var importNode = document.importNode(field, true);
+                return $(importNode);
+            },
+            AddRowForProduct: function (control) {
+
+                if (control == true) {
+                    var row = $('[data-row]').last();
+                    var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
+
+                    if (product && (!product.value() || product.value() == "" || product.value() == null)) {
+                        MesajWarning("Lütfen önce ürün seçiniz.");
+                        return false;
+                    }
+                }
+
+                var template = request.fnc.GetRowTemplate();
+                var length = $('#productsTable tbody tr:not(.table-row-2lines)').length;
+
+                var ids = [];
+                $(template).find("input,select").each(function (e) {
+                    var id = $(this).attr("id");
+                    if (id !== undefined) {
+                        var guid = newGuid();
+                        $(this).attr("id", id + guid);
+
+                        $(template).find("script").each(function () {
+                            var _this = $(this);
+                            var script = _this.html();
+                            if (script.indexOf(id) > -1) {
+                                script = script.split('#' + id).join('#' + id + guid);
+                                _this.after($('<script>').append(script));
+                                _this.remove();
+                            }
+                        });
+                    }
+                });
+
+                var dataItems = $(template).find('[data-item]');
+
+                $.each(dataItems, function (i, item) {
+                    var itemName = $(item).attr("data-item");
+                    $(item).attr("name", "InvoiceItems[" + length + "]." + itemName);
+                    if (item.type == "number") {
+                        $(item).attr("id", newGuid());
+                    }
+                })
+
+                var rowId = newGuid();
+                $(template).find('[data-row="InvoiceItems"]').removeAttr("data-row").attr("data-row", rowId);
+                $(template).find('[data-id="InvoiceItems"]').removeAttr("data-id").attr("data-id", rowId);
+
+                $(template).find('[data-item="itemOrder"]').val(length + 1);
+
+                $('#productsTable').find("tbody").prepend($(template).html());
+
+                $.each($('[type="number"]'), function (i, item) {
+                    var id = $(item).attr("id");
+
+                    if ($(item).attr("data-item") == "quantity") {
+                        $('#' + id).kendoNumericTextBox({
+                            format: "N2",
+                            min: 0,
+                            value: 0,
+                            step: 0.01,
+                            spinners: false,
+                        });
+                    }
+                    else {
+                        $('#' + id).kendoNumericTextBox({
+                            format: "N2",
+                            min: 0,
+                            value: 0,
+                            step: 0.01,
+                            spinners: false
+                        });
+                    }
+                })
+            },
+            RowDelete: function (_this) {
+                var row = $(_this).parents(".table-row");
+                var rowId = $(row).attr("data-row");
+
+                $('[data-id="' + rowId + '"]').remove();
+                $(row).remove();
+
+                var length = $('[data-row]').length;
+
+                $.each($('[data-row]'), function (i, mainRow) {
+                    var items = $(mainRow).find('[data-item]');
+
+                    $.each($(items), function (j, elem) {
+                        var name = $(elem).attr("name");
+                        var field = name.split('.')[1];
+
+                        $(elem).attr("name", 'InvoiceItems[' + i + '].' + field);
+
+                        if (field == "itemOrder") {
+                            $(elem).val(length - i);
+                        }
+                    })
+                })
+            },
+            LoadProducts: function () {
+                request.dfn.loadControl.loaded = true;
+
+                $.each(_model.InvoiceItems, function (i, item) {
+                    var mainRow = $('[name="InvoiceItems[' + i + '].productId"]').parents("tr");
+
+                    var quantityDropDown = $(mainRow).find('[data-item="quantity"]').data("kendoNumericTextBox");
+                    var productDropDown = $('[name="InvoiceItems[' + i + '].productId"]').data("kendoDropDownList");
+                    var descriptionBox = $(mainRow).find('[data-item="description"]');
+
+                    $('[name="InvoiceItems[' + i + '].id"]').val(item.id);
+
+                    productDropDown.value(item.productId);
+                    quantityDropDown.value(item.quantity);
+                    descriptionBox.val(item.description);
+
+                    $('[name="InvoiceItems[' + i + '].productId"]').data("kendoDropDownList").trigger("change");
+                })
+
+                $('#customerId').data("kendoDropDownList").trigger("change");
+                $('form').validator("validate");
+            },
+            Init: function () {
+                if (request.dfn.pageLoad == false) {
+                    request.dfn.pageLoad = true;
+
+                    request.fnc.AddRowForProduct(false);
+
+                    if (_model.InvoiceItems && _model.InvoiceItems.length > 0) {
+                        $.each(_model.InvoiceItems, function (i, item) {
+                            if (_model.InvoiceItems.length - 1 != i) {
+                                request.fnc.AddRowForProduct(false);
+                            }
+                        })
+                    }
+                }
+            },
+        },
+        events: {
+            onDataBoundCompany: function (e) {
+                request.fnc.Init();
+            },
+            onDataBoundProduct: function (e) {
+                request.dfn.loadControl.itemLength++;
+                if (_model.InvoiceItems && _model.InvoiceItems.length != 0 && request.dfn.loadControl.loaded == false) {
+                    if (request.dfn.loadControl.itemLength == _model.InvoiceItems.length) {
+                        setTimeout(function () {
+                            request.fnc.LoadProducts();
+                        }, 100)
+                    }
+                }
+            },
+            changeProduct: function (e) {
+                var dropdown = e.sender;
+                var row = $(dropdown.element).parents(".table-row");
+
+                $(row).find('[data-label="unit"]').text(dropdown.dataItem().unitId_Title);
+                $(row).find('[data-item="unitId"]').val(dropdown.dataItem().unitId);
+            },
+            onChangeStorage: function (e) {
+                var item = this.dataItem();
+                $('#customerAdress').val(item.locationId_Title);
+            },
+        },
+    }
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWCMP_Request", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "VWCMP_RequestInsertForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+
+    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+    @Html.HiddenFor(model => model.direction)
+    @Html.HiddenFor(model => model.status)
+    @Html.HiddenFor(model => model.type)
+    @Html.HiddenFor(model => model.customerAdress)
+    @Html.HiddenFor(model => model.IsTransform)
+    @Html.HiddenFor(model => model.IsCopy)
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label req"><i class="fa fa-building-o"></i> Talep Eden İşletmem </label>
+                </div>
+                <div class="col-sm-8">
+                    @(Html.Akilli()
+                        .DropDownListFor(model => model.customerId)
+                        .OptionLabel("Lütfen İşletme Seçiniz..")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                        .Filter<VWCMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                        .Sort(x => x.Add("name").Ascending())
+                        .Template("#=TemplateEngine('companyTemplate',data)#")
+                        .ValueTemplate("<span>#=name#</span>")
+                        .Events(e => { e.DataBound("request.events.onDataBoundCompany"); })
+                        .Execute("id")
+                        .Validate(Validations.Required)
+                    )
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group" data-id="detail">
+                <label class="control-label col-sm-4 req"><i class="fa fa-building-o"></i> Giriş Yapılacak Şube/Depo </label>
+                <div class="col-sm-8">
+                    @(Html.Akilli()
+                        .DropDownListFor(model => model.customerStorageId)
+                        .OptionLabel("Lütfen Şube/Depo Seçiniz..")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .CascadeFrom("customerId")
+                        .CascadeFromField("companyId")
+                        .Template("#=TemplateEngine('storageTemplate',data)#")
+                        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                        .Events(e => { e.DataBound("request.events.onDataBoundStorage"); e.Change("request.events.onChangeStorage"); })
+                        .BasicInsert(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP" }), "name", true)
+                        .Execute("id")
+                        .Validate(Validations.Required)
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label"><i class="icon-briefcase"></i> Satın Alma Yapılacak Proje </label>
+                </div>
+                <div class="col-sm-8">
+                    @(Html.Akilli()
+                     .DropDownListFor(model => model.projectId)
+                     .OptionLabel("Lütfen Proje Seçiniz..")
+                     .DataTextField("ProjectName")
+                     .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                     .Sort(x => x.Add("ProjectName").Ascending())
+                     .Execute()
+                     )
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="rowNumber"> <i class="fa fa-info-circle"></i> Talep Kodu </label>
+                </div>
+                <div class="col-sm-8">
+                    @Html.TextBoxFor(model => model.rowNumber, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Talep Kodu Girin.."},
+                        }).Validate(Validations.Number(true, 0, 15))
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label req"><i class="fa fa-calendar"></i> Şu Tarihe Kadar </label>
+                </div>
+                <div class="col-sm-8">
+                    @(
+                        Html.Akilli()
+                        .DatePickerFor(model => model.sendingDate)
+                        .Format("dd.MM.yyyy")
+                        .Value(DateTime.Now)
+                        .Min(DateTime.Now)
+                        .Validate(Validations.Required)
+                    )
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="control-label col-sm-4 label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Talep Dosyası</label>
+                <div class="col-md-8">
+                    @(
+                        Html.Akilli().FileUpload()
+                        .DataTable("CMP_Invoice")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Talep Dosyası")
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="hr-line-dashed"></div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="form-group">
+                <div class="col-md-2">
+                    <label class="control-label label-md" for="description"> <i class="fa fa-info-circle"></i>Talep Açıklaması </label>
+                </div>
+                <div class="col-md-10">
+                    @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Talebinize açıklama girebilirsiniz. (Ürün kalemi girmek istemiyorsanız talep edeceğiniz ürünlerle ilgili daha detaylı bilgi girişi yapınız.)"},
+                    })
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div class="hr-line-dashed"></div>
+
+    <table id="productsTable" class="table" style="background-color: #f8f8f8;">
+        <thead class="table-header" style="background-color: #c5c4c2;">
+            <tr>
+                <th width="40%">ÜRÜN</th>
+                <th width="35%">AÇIKLAMA <i class="fa fa-info-circle" data-original-title="Ürün detaylarını veya listede bulunmayan ürün kalemleri için açıklama alanını kullanabilirsiniz."></i> </th>
+                <th width="20%">MİKTAR</th>
+                <th width="50"></th>
+            </tr>
+        </thead>
+        <tbody class="table-body">
+            <tr class="table-row table-row-2lines">
+                <td colspan="11">
+                    <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="request.fnc.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ ÜRÜN EKLE </button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Talebi Gerçekleştir</button>
+    </div>
+
+}
+
+<template id="rowTemplate" data-selector="modalContainer">
+    <tbody>
+        <tr class="table-row" data-row="InvoiceItems">
+            <td>
+                @(Html.Akilli()
+                    .DropDownList("Item")
+                    .OptionLabel("Lütfen Ürün Seçiniz..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                        .Filter<VWPRD_Product>(c => c.statusFlags.Contains("|" + ((int)EnumPRD_ProductStatus.satinalma).ToString() + "|"))
+                    .Template("#=TemplateEngine('productTemplate',data)#")
+                    .Sort(x => x.Add("name").Ascending())
+                    .Events(e => { e.DataBound("request.events.onDataBoundProduct"); e.Change("request.events.changeProduct"); })
+                    .HtmlAttributes(new Dictionary<string, object>() { { "data-item", "productId" }, { "class", "form-control" } })
+                    .BasicInsert(Url.Action("Insert", "VWPRD_Product", new { area = "PRD", status = (int)EnumPRD_ProductStatus.satinalma }), "name", true)
+                    .Execute("id")
+                )
+
+                <input type="hidden" data-item="itemOrder">
+                <input type="hidden" data-item="invoiceId" value="@Model.id">
+                <input type="hidden" data-item="id">
+            </td>
+            <td>
+                @Html.TextBox("Description", "", new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},  { "data-item", "description" }, {"placeholder", "Ürün seçimi yerine açıklamada girebilirsiniz."},
+                })
+            </td>
+            <td>
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="quantity" />
+                    <span class="input-group-addon" data-label="unit">ADET</span>
+                    <input type="hidden" data-item="unitId" />
+                </div>
+            </td>
+            <td>
+                <button class="btn btn-md btn-danger" onclick="request.fnc.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+            </td>
+        </tr>
+    </tbody>
+</template>
+

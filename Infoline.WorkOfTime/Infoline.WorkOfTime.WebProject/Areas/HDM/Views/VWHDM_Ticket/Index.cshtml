@@ -1,0 +1,250 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMHDM_TicketIndexModel
+@{
+    ViewBag.Title = "Yardım Talepleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var query = "(issueId~eq~'" + Guid.NewGuid() + "')";
+
+    if (Model.IssueIds.Count() > 0)
+    {
+        query = "(";
+        for (int i = 0; i < Model.IssueIds.Count(); i++)
+        {
+            if (i + 1 == Model.IssueIds.Count())
+            {
+                query += "(issueId~eq~'" + Model.IssueIds[i] + "'))";
+            }
+            else
+            {
+                query += "(issueId~eq~'" + Model.IssueIds[i] + "')~or~";
+            }
+        }
+    }
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userId = userStatus.user.id;
+
+    var authorizedRoles = userStatus.AuthorizedRoles;
+    var managerRole = new Guid(SHRoles.YardimMasaYonetim);
+    var personelRole = new Guid(SHRoles.YardimMasaPersonel);
+}
+
+
+    <script type="text/javascript">
+     $(document)
+        .on('selected:grid','#VWHDM_Ticket', function (e, item) {
+            if (item.status == '@((Int32)EnumHDM_TicketStatus.Closed)' || item.status == '@((Int32)EnumHDM_TicketStatus.Cancelled)') {
+                $('[data-visible="update"]').addClass('hide');
+                $('[data-visible="delete"]').addClass('hide');
+            } else {
+                $('[data-visible="update"]').removeClass('hide');
+                $('[data-visible="delete"]').removeClass('hide');
+            }
+        })
+    </script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-href="/HDM/VWHDM_Ticket/Insert" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yardım Talebi Oluştur </a>
+                </div>
+
+                @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                {
+                    <ul class="category-list" style="padding:0;">
+                        <li class="clearfix">
+                            <div class="space-25"></div>
+                            <h5> TÜM TALEPLER </h5>
+                        </li>
+
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHDM_TicketStatus>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHDM_Ticket" data-switch="radio" data-category="1" data-query="(status~eq~'@item.Key')">
+                                    <i style="color:@item.Generic["color"];" class="@item.Generic["icon"]"></i>  @item.Value
+                                </a>
+                                <span style="color:#ffffff;background-color:@item.Generic["color"];" class="badge pull-right m-l-md  m-t-xs" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=(status~eq~'@item.Key')">0</span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <ul class="category-list" style="padding:0;">
+
+                        <li class="clearfix">
+                            <div class="space-25"></div>
+                            <h5> GÖREVLİ OLDUĞUM TALEPLER </h5>
+                        </li>
+
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHDM_TicketStatus>())
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHDM_Ticket" data-switch="radio" data-category="1" data-query="(assignUserId~eq~'@userId'~and~status~eq~'@item.Key')">
+                                    <i style="color:@item.Generic["color"]" class="@item.Generic["icon"]"></i>  @item.Value
+                                </a>
+                                <span style="color:#ffffff;background-color:@item.Generic["color"];" class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=(assignUserId~eq~'@userId'~and~status~eq~'@item.Key')">0</span>
+                            </li>
+                        }
+
+                        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim)))
+                        {
+                            <li class="clearfix">
+                                <div class="space-25"></div>
+                                <h5> SORUMLU OLDUKLARIM </h5>
+                            </li>
+
+                            foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHDM_TicketStatus>())
+                            {
+                                <li class="clearfix">
+                                    <a class="pull-left" href="#" data-grid="VWHDM_Ticket" data-switch="radio" data-category="1" data-query="((@query)~and~status~eq~'@item.Key')">
+                                        <i style="color:@item.Generic["color"]" class="@item.Generic["icon"]"></i>  @item.Value
+                                    </a>
+                                    <span style="color:#ffffff;background-color:@item.Generic["color"];" class="badge pull-right m-l-md  m-t-xs" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=((@query)~and~status~eq~'@item.Key')">0</span>
+                                </li>
+                            }
+                        }
+                    </ul>
+                }
+
+                <div class="space-25"></div>
+                <h5> ÖNCELİĞE GÖRE </h5>
+                <ul class="category-list" style="padding: 0">
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumHDM_TicketPriority>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWHDM_Ticket" data-switch="radio" data-category="2" data-query="(priority~eq~'@item.Key')">
+                                <i style="color:#@item.Generic["color"]" class="fa fa-circle"></i>  @item.Value
+                            </a>
+                        </li>
+                    }
+                </ul>
+
+                @if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim))) && Model.PersonelUsers.Count() > 0)
+                {
+                    <div class="space-25"></div>
+                    <h5> GÖREVLİ PERSONELE GÖRE </h5>
+                    <ul class="folder-list m-b-md" style="padding: 0;max-height:200px;overflow:auto;">
+                        @foreach (var item in Model.PersonelUsers)
+                        {
+                            <li class="clearfix">
+                                <a class="pull-left" href="#" data-grid="VWHDM_Ticket" data-category="5" data-query="(assignUserId~eq~'@item.id')">
+                                    <i class="fa fa-user text-success"></i>  @item.firstname @item.lastname
+                                </a>
+                                <span class="badge badge-success  pull-right m-l-md  m-t-xs" data-counturl="/HDM/VWHDM_Ticket/DataSourceCount?filter=(assignUserId~eq~'@item.id')">0</span>
+                            </li>
+                        }
+                    </ul>
+                }
+
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Yardım Talepleri (Ticket Listesi)</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content" style="cursor:pointer">
+
+                @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                {
+                    @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Ticket>("VWHDM_Ticket")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Ticket", new { area = "HDM" }))
+                        .PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.searchField).Title("Görev Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('HDM_TicketTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                            x.Bound(y => y.code).Title("Talep Kodu").Width(130).Hidden(true);
+                            x.Bound(y => y.status_Title).Title("Talebin Durumu").Width(130).Hidden(true);
+                            x.Bound(y => y.priority_Title).Title("Öncelik").Width(130).Hidden(true);
+                            x.Bound(y => y.channel_Title).Title("Talebin Geldiği Yer").Width(130).Hidden(true);
+                            x.Bound(y => y.issueId_Title).Title("Konu").Width(130).Hidden(true);
+                            x.Bound(y => y.title).Title("Sorun").Width(130).Hidden(true);
+                            x.Bound(y => y.requesterId_Title).Title("Talep Eden").Width(130).Hidden(true);
+                            x.Bound(y => y.assignUserId_Title).Title("Görevli").Width(130).Hidden(true);
+                        })
+                        .Filterable(a => a.Mode(GridFilterMode.Row))
+                        .Scrollable(x => x.Height(650))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Yardım Talebi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-visible","update" } }).Url(Url.Action("Update", "VWHDM_Ticket", new { area = "HDM" }));
+                            x.Custom().Text("<i data-original-title='Yardım Talebi Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHDM_Ticket", new { area = "HDM" }));
+                            x.Custom().Text("<i data-original-title='Yardım Talebini Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-visible", "delete" } }).Url(Url.Action("Delete", "VWHDM_Ticket", new { area = "HDM" }));
+                        }))
+                }
+                else
+                {
+                    if (Model.IssueIds.Count() > 0)
+                    {
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Ticket>("VWHDM_Ticket")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Ticket", new { area = "HDM" }))
+                            .PageSize(25).Filter(a => Model.IssueIds.Contains(a.issueId) || a.assignUserId == userStatus.user.id))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.searchField).Title("Görev Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('HDM_TicketTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                                x.Bound(y => y.code).Title("Talep Kodu").Width(130).Hidden(true);
+                                x.Bound(y => y.status_Title).Title("Talebin Durumu").Width(130).Hidden(true);
+                                x.Bound(y => y.priority_Title).Title("Öncelik").Width(130).Hidden(true);
+                                x.Bound(y => y.channel_Title).Title("Talebin Geldiği Yer").Width(130).Hidden(true);
+                                x.Bound(y => y.issueId_Title).Title("Konu").Width(130).Hidden(true);
+                                x.Bound(y => y.title).Title("Sorun").Width(130).Hidden(true);
+                                x.Bound(y => y.requesterId_Title).Title("Talep Eden").Width(130).Hidden(true);
+                                x.Bound(y => y.assignUserId_Title).Title("Görevli").Width(130).Hidden(true);
+                            })
+                            .Filterable(a => a.Mode(GridFilterMode.Row))
+                            .Scrollable(x => x.Height(650))
+                            .Selectable(x => x.Mode(GridSelectionMode.Single))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Yardım Talebi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-visible", "update" } }).Url(Url.Action("Update", "VWHDM_Ticket", new { area = "HDM" }));
+                                x.Custom().Text("<i data-original-title='Yardım Talebi Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHDM_Ticket", new { area = "HDM" }));
+                                x.Custom().Text("<i data-original-title='Yardım Talebini Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-visible", "delete" } }).Url(Url.Action("Delete", "VWHDM_Ticket", new { area = "HDM" }));
+                            }))
+                    }
+                    else
+                    {
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Ticket>("VWHDM_Ticket")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Ticket", new { area = "HDM" }))
+                            .PageSize(25).Filter(a => a.assignUserId == userStatus.user.id))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.searchField).Title("Görev Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('HDM_TicketTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                                x.Bound(y => y.code).Title("Talep Kodu").Width(130).Hidden(true);
+                                x.Bound(y => y.status_Title).Title("Talebin Durumu").Width(130).Hidden(true);
+                                x.Bound(y => y.priority_Title).Title("Öncelik").Width(130).Hidden(true);
+                                x.Bound(y => y.channel_Title).Title("Talebin Geldiği Yer").Width(130).Hidden(true);
+                                x.Bound(y => y.issueId_Title).Title("Konu").Width(130).Hidden(true);
+                                x.Bound(y => y.title).Title("Sorun").Width(130).Hidden(true);
+                                x.Bound(y => y.requesterId_Title).Title("Talep Eden").Width(130).Hidden(true);
+                                x.Bound(y => y.assignUserId_Title).Title("Görevli").Width(130).Hidden(true);
+                            })
+                            .Filterable(a => a.Mode(GridFilterMode.Row))
+                            .Scrollable(x => x.Height(650))
+                            .Selectable(x => x.Mode(GridSelectionMode.Single))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Yardım Talebi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-visible", "update" } }).Url(Url.Action("Update", "VWHDM_Ticket", new { area = "HDM" }));
+                                x.Custom().Text("<i data-original-title='Yardım Talebi Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHDM_Ticket", new { area = "HDM" }));
+                                x.Custom().Text("<i data-original-title='Yardım Talebini Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-visible", "delete" } }).Url(Url.Action("Delete", "VWHDM_Ticket", new { area = "HDM" }));
+                            }))
+                    }
+                }
+
+
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,45 @@
+﻿@{
+    ViewBag.Title = "Aşamalar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+    function colorFunction(data) {
+        return '<i class="icon-circle" style="color:' + data.color + '"></i>';
+    }
+
+</script>
+
+<div class="ibox m-b-none">
+    <div class="ibox-title">
+        <h5>Aşama Listesi </h5>
+        <div class="ibox-tools">
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+        @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWCSM_Stage>("VWCSM_Stage")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCSM_Stage", new { area = "CSM" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.color).Title("").ClientTemplate("#=colorFunction(data)#").Width(50).Filterable(false);
+                x.Bound(y => y.description).Title("").Width(50).ClientTemplate("#if(description){#<i class='fa fa-info-circle' data-original-title='#:description#' data-placement='right'></i>#}#").Filterable(false);
+                x.Bound(y => y.code).Width(120).Title("Kodu");
+                x.Bound(y => y.name).Title("Aşama Adı");
+                x.Bound(y => y.status_Title).Title("Durumu");
+            })
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .Scrollable(s => s.Height(650))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("<i data-original-title='Yeni Aşama' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCSM_Stage", new { area = "CSM" }));
+                x.Custom().Text("<i data-original-title='Aşama Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCSM_Stage", new { area = "CSM" }));
+                x.Custom().Text("<i data-original-title='Aşama Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWCSM_Stage", new { area = "CSM" }));
+                x.Custom().Text("<i data-original-title='Aşama Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCSM_Stage", new { area = "CSM" }));
+            }))
+    </div>
+</div>

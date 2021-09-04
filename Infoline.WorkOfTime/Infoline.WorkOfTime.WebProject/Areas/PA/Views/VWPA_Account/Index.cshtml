@@ -1,0 +1,108 @@
+﻿@{
+    ViewBag.Title = "Kasa ve Banka Hesap Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+    $(document)
+        .on("selected:grid", '#VWPA_Account', function (e, res) {
+            $('[data-id="ledger"]').attr("data-href", "/PA/VWPA_Ledger/Insert?accountId=" + res.id);
+        })
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-task="Insert" data-href="@Url.Action("Insert","VWPA_Account",new { area="PA", dataTable = "CMP_Company", type = ((short)EnumPA_AccountType.Kasa) })" data-modal="true" data-method="get">
+                        <i class="icon-money-1"></i> Kasa Hesabı Ekle
+                    </a>
+                    <a class="btn btn-block btn-primary" data-task="Insert" data-href="@Url.Action("Insert","VWPA_Account",new { area="PA", dataTable = "CMP_Company", type = ((short)EnumPA_AccountType.Banka) })" data-modal="true" data-method="get">
+                        <i class="icon-credit-card"></i> Banka Hesabı Ekle
+                    </a>
+                    <div class="space-25"></div>
+                    <h5>TİPİNE GÖRE</h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Account" data-category="0" data-switch="radio" data-query="myAccount~eq~1)">
+                                <i class="fa fa-align-justify" style="background-color:darkgrey"></i>  Tümü
+                                <span data-counturl="/PA/VWPA_Account/DataSourceCount?filter=(myAccount~eq~1)" style="background-color:darkgray" class="pull-right badge badge-inverse">0</span>
+                            </a>
+                        </li>
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Account" data-category="0" data-switch="radio" data-query="(type~eq~0~and~myAccount~eq~1)">
+                                <i class="icon-money-1 text-primary"></i>  Kasa
+                                <span data-counturl="/PA/VWPA_Account/DataSourceCount?filter=(type~eq~0~and~myAccount~eq~1)" class="badge badge-primary pull-right">0</span>
+                            </a>
+                        </li>
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Account" data-category="0" data-switch="radio" data-query="(type~eq~1~and~myAccount~eq~1)">
+                                <i class="icon-credit-card text-warning"></i>  Banka
+                                <span data-counturl="/PA/VWPA_Account/DataSourceCount?filter=(type~eq~1~and~myAccount~eq~1)" class="badge badge-warning pull-right">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <h5>DURUMA GÖRE</h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Account" data-category="1" data-query="(status~eq~1~and~myAccount~eq~1)">
+                                <i class="fa fa-check text-success"></i>  Aktif
+                                <span data-counturl="/PA/VWPA_Account/DataSourceCount?filter=(status~eq~1~and~myAccount~eq~1)" class="badge badge-success pull-right">0</span>
+                            </a>
+                        </li>
+                        <li class="clearfix">
+                            <a href="#" data-grid="VWPA_Account" data-category="1" data-query="(status~eq~0~and~myAccount~eq~1)">
+                                <i class="fa fa-times-circle text-danger"></i>  Pasif
+                                <span data-counturl="/PA/VWPA_Account/DataSourceCount?filter=(status~eq~0~and~myAccount~eq~1)" class="badge badge-danger pull-right">0</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5> Hesaplarım </h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                  .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Account>("VWPA_Account")
+                  .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Account", new { area = "PA" })).PageSize(25).Filter(d => d.myAccount == true))
+                  .Scrollable(a => a.Height(650))
+                  .Filterable(a => a.Mode(GridFilterMode.Row))
+                  .Columns(x =>
+                  {
+                      x.Bound(y => y.searchField).Title("Kasa Banka Listesi").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('VWPA_AccountTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                      x.Bound(y => y.name).Title("Hesap Adı").Width(130).Hidden(true);
+                      x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatShort(true)).Width(130).Hidden(true);
+                      x.Bound(y => y.dataId_Title).Title("Hesap Sahibi").Width(200).Hidden(true);
+                      x.Bound(y => y.code).Title("Hesap Kodu").Width(160).Hidden(true);
+                      x.Bound(y => y.currencyId_Title).Title("Döviz Cinsi").Width(160).Hidden(true);
+                      x.Bound(y => y.Currency_Symbol).Title("Döviz Sembol").Width(160).Hidden(true);
+                      x.Bound(y => y.bankId_Title).Title("Banka Adı").Width(160).Hidden(true);
+                      x.Bound(y => y.iban).Title("IBAN").Width(160).Hidden(true);
+                      x.Bound(y => y.status_Title).Title("Durumu").Width(100).Hidden(true);
+                  })
+                  .Selectable(x => x.Mode(GridSelectionMode.Single))
+                  .ToolBar(x =>
+                  {
+                      x.Custom().Text("<i data-original-title='Hesap Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPA_Account", new { area = "PA" }));
+                      x.Custom().Text("<i data-original-title='Hesap Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Account", new { area = "PA" }));
+                      x.Custom().Text("<i data-original-title='Yeni Hesap Hareketi' class='fa fa-flash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "ledger" } }).Url(Url.Action("Insert", "VWPA_Ledger", new { area = "PA" }));
+                      x.Custom().Text("<i data-original-title='Hesabı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPA_Account", new { area = "PA" }));
+                  }))
+            </div>
+        </div>
+    </div>
+</div>
+

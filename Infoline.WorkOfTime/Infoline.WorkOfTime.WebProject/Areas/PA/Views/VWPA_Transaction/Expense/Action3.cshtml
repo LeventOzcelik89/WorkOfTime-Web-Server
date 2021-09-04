@@ -1,0 +1,156 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_TransactionModel
+
+
+<style type="text/css" data-selector="modalContainer">
+
+    [for="status_2"] {
+        display: none;
+    }
+</style>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="accountId">Vergi Dönemi</label>
+    </div>
+    <div class="col-md-8">
+        @(
+            Html.Akilli()
+            .DatePickerFor(model => model.progressDate)
+            .Format("MMMM yyyy")
+            .Min(DateTime.Now)
+            .Value(Model.progressDate.HasValue ? Model.progressDate : DateTime.Now)
+            .Start(CalendarView.Year)
+            .Depth(CalendarView.Year)
+        )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="amount">Tutar</label>
+    </div>
+    <div class="col-md-8">
+        <div class="input-group m-b">
+            @Html.Akilli().NumericTextBoxFor(model => model.amount).Max(999999999).Min(0).Spinners(false).Decimals(2).Format("N2").Validate(Validations.Required)
+            <span class="input-group-addon" data-transaction="currency">@(Model.Currency_Symbol != null ? Model.Currency_Symbol : "₺")</span>
+        </div>
+    </div>
+</div>
+
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md req" for="currencyId">Para Birimi</label>
+    </div>
+    <div class="col-md-8">
+        @(
+            Html.Akilli()
+            .DropDownListFor(model => model.currencyId)
+            .OptionLabel("Lütfen Para Birimi seçiniz..")
+            .DataTextField("name")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+            .Sort(x => x.Add("name").Ascending())
+            .Events(a => { a.Change("expense.events.currencyChange"); a.DataBound("expense.events.currencyDataBound"); })
+            .Validate(Validations.Required)
+            .Execute()
+        )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="status"> <i class="fa fa-info-circle"></i> Ödeme Durumu</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.Akilli().RadioButtonGroupFor(a => a.status).Value(EnumPA_TransactionStatus.Odendi))
+    </div>
+</div>
+
+
+
+<div class="form-group hide" id="statusDiv_0" data-id="status" style="padding-top:10px;">
+    <div class="col-md-4">
+        <label class="control-label"><i class="fa fa-calendar"></i>  Ödeneceği Tarih </label>
+    </div>
+    <div class="col-sm-8">
+        @(
+            Html.Akilli()
+            .DatePickerFor(model => model.date)
+            .Format("dd.MM.yyyy")
+            .MinDateElement("progressDate")
+            .Value(Model.date.HasValue ? Model.date : DateTime.Now)
+        )
+    </div>
+</div>
+
+<div id="statusDiv_1" data-id="status" style="padding-top:10px;">
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label"><i class="fa fa-check"></i>  Ödendiği Tarih </label>
+        </div>
+        <div class="col-sm-8">
+            @(
+                Html.Akilli()
+                .DatePicker("paymentDate").Name("Ledger.date")
+                .Format("dd.MM.yyyy")
+                .MinDateElement("issueDate")
+                .Max(DateTime.Now)
+                .Value(DateTime.Now)
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label"><i class="fa fa-credit-card"></i>  Ödendiği Hesap </label>
+        </div>
+        <div class="col-sm-8">
+
+            @(Html.Akilli().DropDownList("account").Name("Ledger.accountId").HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"style", "width:100%"},
+                    {"class", "form-control"},
+                })
+                .Filter(FilterType.Contains)
+                .DataTextField("searchField")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+                .Template("#=TemplateEngine('accountTemplate',data)#")
+                //.Events(e => { e.Change("_invoice.Events.changeAccount"); })
+                .Filter<VWPA_Account>(f => f.myAccount == true && f.status == true)
+                .Sort(x => x.Add("name").Ascending())
+                .Execute()
+            )
+
+        </div>
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="Dosya">Vergi Dosyası </label>
+    </div>
+    <div class="col-md-8">
+        @(
+            Html.Akilli().FileUpload()
+            .DataTable("PA_Transaction")
+            .DataId(Model.id)
+            .DataKey(x => x.fileGroup == "Vergi Dosyası")
+        )
+    </div>
+</div>
+
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="description">Açıklama</label>
+    </div>
+    <div class="col-md-8">
+        @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+        {
+            {"class", "form-control"},
+            {"placeholder", "Lütfen Açıklama giriniz.."}
+        })
+    </div>
+</div>
+
+

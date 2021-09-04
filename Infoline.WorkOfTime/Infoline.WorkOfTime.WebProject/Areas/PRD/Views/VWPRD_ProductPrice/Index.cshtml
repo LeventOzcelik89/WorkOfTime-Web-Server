@@ -1,0 +1,23 @@
+﻿@model Infoline.WorkOfTime.BusinessData.PRD_ProductPrice
+@{
+    ViewBag.Title = "Ürün Fiyat Geçmişi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div data-selector="modalContainer">
+
+
+    @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductPrice>("VWPRD_ProductPrice")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductPrice", new { area = "PRD" })).Filter(a => a.productId == Model.productId && a.type == Model.type).PageSize(25))
+        .Columns(x =>
+        {
+            //x.Bound(y => y.productId_Title).Title("Ürün").Width(130);
+            //x.Bound(y => y.type_Title).Title("Tip").Width(130);
+            x.Bound(y => y.createdby_Title).Title("Güncelleyen").Width(130);
+            x.Bound(y => y.created).Title("Güncellenme Tarihi").Format(Extensions.DateFormatFull(true)).Width(130);
+            x.Bound(y => y.price).Title("Tutar").Format("{0:N2}").Width(130);
+            x.Bound(y => y.currencyId_Title).Title("Para birimi").Width(130);
+        })
+        .Selectable(x => x.Mode(GridSelectionMode.Single).Enabled(false)))
+</div>

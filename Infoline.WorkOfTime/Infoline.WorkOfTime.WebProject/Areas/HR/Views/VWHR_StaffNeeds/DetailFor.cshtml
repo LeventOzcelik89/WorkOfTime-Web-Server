@@ -1,0 +1,298 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMStaffNeedsAndSearch
+@{
+    ViewBag.Title = "Personel İhtiyacı İşlem Sayfası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<style type="text/css">
+    form {
+        padding: 0px !important;
+    }
+</style>
+
+<script type="text/javascript">
+    $(document)
+        .on('ready', function (e) {
+            $('#grid').hide();
+            $('#bilgi').show();
+
+            $('[type=submit]').removeClass('disabled');
+
+            window.setTimeout(function () {
+                $('[data-event="clear"]').remove();
+                $('.k-i-all').remove();
+            }, 50)
+        })
+
+        .on('success', '#searched', function (e, resp) {
+            if (resp == null || resp.Result == false) {
+                $('#grid').hide();
+                $('#bilgi').show();
+                return false;
+            }
+            $('#bilgi').hide();
+            $('#grid').show()
+
+            var dataSource = new kendo.data.DataSource({
+                data: resp.Object,
+                pageSize: 50
+            });
+
+            var grid = $("#VWHR_Person").data("kendoGrid");
+            grid.setDataSource(dataSource);
+        })
+
+
+        .on("load:grid", "#VWHR_StaffNeedsPerson", function (e, data) {
+            $.each($('#VWHR_StaffNeedsPerson [role="row"] [data-event="GridSelector"]'), function (i, item) {
+                var deger = $(item).attr('data-status');
+                if (deger == '0') {
+                    $(item).parents("td").css('background-color', 'orange');
+                } else if (deger == '1') {
+                    $(item).parents("td").css('background-color', '#1ab394');
+                } else if (deger == '2') {
+                    $(item).parents("td").css('background-color', 'red');
+                }
+            })
+        })
+</script>
+
+
+
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="fa text-success fa-info-circle"></i>  TALEP BİLGİLERİ</h5>
+            </div>
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.createdby_Title</span>
+                        Talep Gerçekleştiren :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.ReasonForStaffDemand_Title</span>
+                        Talep Sebebi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.EmploymentStatus</span>
+                        Personel İstihdam Durumu :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.LocationId_Title</span>
+                        İstihdam Bölgesi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.priority_Title</span>
+                        Öncelik Durumu :
+                    </li>
+
+                    <li class="list-group-item clearfix">
+                        <p class="text-warning">
+                            Pozisyon/lar
+                        </p>
+                        <p>
+                            @Model.HrPosition_Title
+                        </p>
+                    </li>
+                    <li class="list-group-item clearfix">
+                        <p class="text-warning">
+                            Bilgi/Beceriler
+                        </p>
+                        <p>
+                            @Model.HrKeywords_Title
+                        </p>
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Gender_Title</span>
+                        Cinsiyet :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@(Model.MaritalStatus_Title)</span>
+                        Medeni Hali :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Travelability_Title</span>
+                        Seyahat Edebilirlik :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.Education_Title</span>
+                        Eğitim Düzeyi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.MilitaryStatus_Title</span>
+                        Askerlik Durumu :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.DriverLicense_Title</span>
+                        Sürücü Belgesi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.ExprienceYear</span>
+                        Tecrübe(Yıl) :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="badge badge-white">@Model.SalaryRangeMin - @Model.SalaryRangeMax</span>
+                        Talep Edilen Maaş Aralığı :
+                    </li>
+                    <li class="list-group-item clearfix">
+                        <span class="pull-right" style="width: 65%;text-align: right;">@Model.Description</span>
+                        <span class="pull-left"> Açıklama :</span>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-9">
+
+        <div class="ibox">
+            @using (Html.BeginForm("Search", "VWHR_StaffNeeds", FormMethod.Post, new Dictionary<string, object>() {
+                { "role", "form" },
+                {"id", "searched" },
+                { "data-selector", "modalContainer" },
+                { "data-formType", "Ajax" }
+            }))
+            {
+                @Html.AntiForgeryToken()
+                @Html.ValidationSummary(true)
+                @Html.HiddenFor(model => model.id)
+
+
+                <div class="ibox-title">
+                    <h5> <i class="fa text-success fa-search"></i> CV Havuzunda Sorgulama Yap</h5>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    @(Html.Akilli()
+                             .DropDownListFor(model => model.filter.EEducation)
+                              .OptionLabel("Eğitim Düzeyi")
+                             .DataValueField("Id")
+                             .DataTextField("enumDescription")
+                             .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                             .Sort(x => x.Add("enumDescription").Ascending())
+                             .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "Education").Value(Model.Education.ToString())
+                             .Execute("enumKey")
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    @(Html.Akilli()
+                             .MultiSelectFor(model => model.filter.Position2)
+                              .Placeholder("Pozisyon")
+                             .DataTextField("Name").DataValueField("id")
+                             .Action(b => b.Action("DataSourceDropDown", "HR_Position", new { area = "HR" }))
+                             .Value(Model.personPosition)
+                             .Sort(x => x.Add("Name").Ascending())
+                             .Execute()
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-group">
+                                <div class="col-md-12">
+                                    @(Html.Akilli()
+                             .MultiSelectFor(model => model.filter.Keywords2)
+                              .Placeholder("Bilgi/Beceriler")
+                             .DataTextField("Name").DataValueField("id")
+                             .Action(b => b.Action("DataSourceDropDown", "HR_Keywords", new { area = "HR" }))
+                                 .Value(Model.personKeywords)
+                             .Sort(x => x.Add("Name").Ascending())
+                             .Execute()
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <button class="btn btn-md btn-primary pull-right" type="submit" style="width: 100%;">Sorgula</button>
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+        <div class="ibox ">
+            <div id="bilgi" class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+                Bilgilendirme : <strong> Yukarıdan istediğiniz özellikleri seçerek sorgula butonuna basınız... </strong>
+            </div>
+            <div id="grid">
+                <div class="ibox-title">
+                    <h5><i class="fa text-success fa-file"></i>  CVLER</h5>
+                </div>
+                <div class="ibox-content">
+                    @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWHR_Person>("VWHR_Person")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_Person", new { area = "HR" })).PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.Result_Title).Hidden(true).Title("En Son Mülakat Durumu").ClientTemplate("#if(Result_Title != null){# #=Result_Title# #}else{#Henüz Görüşülmedi#}#").Width(220);
+                            x.Bound(y => y.Name).ClientTemplate("#=TemplateEngine('hrpersongrid',data)#").Title("İsim").Width(180);
+                            x.Bound(y => y.SurName).Title("Soyisim").Hidden(true).Width(180);
+                            x.Bound(y => y.IdentifyNumber).Title("Kimlik No").Hidden(true).ClientTemplate("#=TcKimlikControl(IdentifyNumber)#").Width(180);
+                            x.Bound(y => y.Phone).Title("Telefon").Hidden(true).Width(180);
+                            x.Bound(y => y.Email).Title("E-mail").Hidden(true).Width(180);
+                            x.Bound(y => y.HrPosition_Title).Title("Pozisyonlar").Hidden(true).Width(220);
+                            x.Bound(y => y.HrKeywords_Title).Title("Bilgi ve Beceriler").Hidden(true).Width(220);
+                            x.Bound(y => y.LocationId_Title).Title("Konum").Hidden(true).Width(180);
+                            x.Bound(y => y.Education_Title).Title("Eğitim Düzeyi").Hidden(true).Width(180);
+                            x.Bound(y => y.MilitaryStatus_Title).Title("Askerlik").Hidden(true).Width(180);
+                            x.Bound(y => y.Description).Title("Açıklama").Hidden(true).Width(180);
+                        }).Scrollable(x => x.Height(250))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            if (Model.lastStatus != (Int32)EnumHR_StaffNeedsStatusStatus.TalebiSonlandir)
+                                    {
+                            x.Custom().Text("<i class='fa fa-mail-forward' data-original-title='Yönlendir'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("PersonToManager", "VWHR_StaffNeeds", new { area = "HR", NeedId = Model.id }));
+                            x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Cv Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_Person", new { area = "HR" }));
+                                 }
+                        }))
+                </div>
+            </div>
+        </div>
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5><i class="fa text-success fa-file"></i>  Yönlendirilen CV'ler</h5>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeedsPerson>("VWHR_StaffNeedsPerson").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "HrPersonId" } })
+                                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeedsPerson", new { area = "HR" }))
+                                .Sort(c => c.Add(v => v.created).Descending())
+                                .PageSize(25)
+                                .Filter(c => c.HrStaffNeedsId == Model.id))
+                                .Columns(x =>
+                                {
+                                  x.Bound(y => y.status_Title).Title("").ClientTemplate("#=TemplateEngine('yonlendirilenler',data)#").Filterable(false).Width(60);
+                                 x.Bound(y => y.created).Title("İşlem Tarihi").Format(Extensions.DateFormatFull(true)).Width(250);
+                                 x.Bound(y => y.HrPersonId_Title).Title("Adı Soyadı");
+                                })
+                                .Selectable(x => x.Mode(GridSelectionMode.Multiple)).Scrollable(c => c.Height(250))
+                                .ToolBar(x =>
+                                {
+                                    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Cv Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWHR_Person", new { area = "HR" }));
+                                }))
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+    <div class="fix-buttons">
+        <a data-modal="true" data-task="Insert" data-href="/HR/VWHR_Person/Insert"><i data-original-title="Yeni CV Ekle" class="fa fa-plus-circle" aria-hidden="true"></i> </a>
+    </div>
+</div>

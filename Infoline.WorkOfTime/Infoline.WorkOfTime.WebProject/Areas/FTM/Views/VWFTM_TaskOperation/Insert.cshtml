@@ -1,0 +1,658 @@
+﻿@model VMFTM_TaskOperationModel
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+	ViewBag.Title = "Görev Operasyon Ekleme (" + ((EnumFTM_TaskOperationStatus)Model.status).B_ToDescription() + ")";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var gecensure = DateTime.Now - Model.Task.created.Value;
+	var cmp = new WorkOfTimeDatabase().GetCMP_CompanyByOwner().FirstOrDefault();
+	var personUserIds = new WorkOfTimeDatabase().GetSH_UserByRoleIdList(new Guid(SHRoles.SahaGorevPersonel));
+}
+
+
+
+
+
+@using (Html.BeginForm("Insert", "VWFTM_TaskOperation", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.taskId)
+	@Html.HiddenFor(model => model.status)
+
+	<div class="hide">
+		@(Html.Akilli().MapInputFor(a => a.location).Navigation(true))
+	</div>
+
+	switch ((EnumFTM_TaskOperationStatus)Model.status)
+	{
+		case EnumFTM_TaskOperationStatus.GorevOlusturuldu:
+		case EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri:
+		case EnumFTM_TaskOperationStatus.GorevOlusturulduSistem:
+
+			break;
+		case EnumFTM_TaskOperationStatus.PersonelAtamaYapildi:
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md" for="assignableUsers">Sorumlu Personeller</label>
+				</div>
+				<div class="col-md-8">
+					@(
+                Html.Akilli()
+                .MultiSelect("userIds")
+                .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && personUserIds.Contains(a.id))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+            )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Personele Ata</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi:
+
+			<style type="text/css">
+				.k-checkbox-label {
+					margin-right: 20px;
+				}
+			</style>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label">Personeller</label>
+				</div>
+				<div class="col-md-9">
+					<div class="radio">
+						@foreach (var item in Model.Task.assignableUserIds.Split(',').Select((id, i) => new { id = id, i = i }))
+						{
+							var label = Model.Task.assignableUserTitles.Split(',')[item.i];
+							@Html.Kendo().CheckBox().Label(label).Checked(false).Name("userIds[" + item.i + "]").HtmlAttributes(new Dictionary<string, object> { { "value", item.id }, { "id", "userIds" + item.i } });
+						}
+					</div>
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Doğrulama Kodu Gönder</button>
+			</div>
+
+			break;
+		case EnumFTM_TaskOperationStatus.GorevUstlenildi:
+
+			<div class="form-group">
+				@if (Model.Task.hasVerifyCode == true)
+				{
+					<div class="col-md-3">
+						<label class="control-label">Doğrulama Kodu</label>
+					</div>
+					<div class="col-md-9">
+						@Html.TextBoxFor(model => model.verifyCode, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen doğrulama kodu giriniz.."},
+						}).Validate(Validations.Required)
+					</div>
+				}
+				else
+				{
+					<div class="alert alert-warning text-center">@Model.Task.code kodlu görevi üstlenmek istiyormusunuz ? </div>
+				}
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Görevi Üstlen</button>
+			</div>
+
+			break;
+		case EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun:
+		case EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAltUrun:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="fixtureId">Envanter</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+                        .DropDownListFor(model => model.fixtureId)
+                        .OptionLabel("Lütfen Envanter Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("searchField")
+                        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                        .Filter<VWPRD_Inventory>(a => (a.firstActionDataId == Model.Task.customerId && a.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri) || a.lastActionDataCompanyId == Model.Task.customerId)
+                        .Sort(x => x.Add("fullName").Ascending())
+                        .Template("<span class=\"k-state-default\"><h3>#: data.fullName #</h3><p>#: data.lastActionDataCompanyId_Title# </p></span>")
+                        .Execute("id")
+                        .Enable(false)
+                    )
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="description">Açıklama </label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Açıklama Giriniz." }
+						}).Validate(Validations.TextTurkceSpace09(true, 0, 1000))
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">İşlem Bildirimi Yap</button>
+			</div>
+			break;
+
+		case EnumFTM_TaskOperationStatus.UrunDegisimi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="outputFixtureId">Sökülecek Ürün</label>
+				</div>
+				<div class="col-md-9">
+					@Html.HiddenFor(model => model.fixtureId)
+
+					@Html.TextBoxFor(model => model.fixture_Title, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"readonly", "readonly"},
+						})
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="inventoryIndexValue">Endeks Değeri</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextBoxFor(model => model.taskPlan.inventoryIndexValue, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+						})
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="inventoryStampYear">Damga Yılı</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextBoxFor(model => model.taskPlan.inventoryStampYear, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+						})
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="inputFixtureId">Takılacak Ürün</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+                        .DropDownListFor(model => model.taskPlan.newInventoryId)
+                        .OptionLabel("Lütfen Takılacak Ürün Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("searchField")
+                        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                        .Sort(x => x.Add("fullName").Ascending())
+                          .Filter<VWPRD_Inventory>(a => (a.firstActionDataId == Model.Task.customerId && a.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri) || (a.lastActionDataCompanyId == (Model.Task.companyId.HasValue ? Model.Task.companyId.Value : Model.Task.customerId) && a.type == (Int16)EnumPRD_InventoryType.Diger))
+                        .Validate(Validations.Required)
+                        .Template("<span class=\"k-state-default\"><h3>#: data.fullName #</h3><p>#: data.lastActionDataCompanyId_Title# </p></span>")
+                        .Execute("id")
+                    )
+
+					<script type="text/javascript">
+						$('[name="newInventoryId"]').attr("name", "taskPlan.newInventoryId");
+					</script>
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="newInventoryIndexValue">Endeks Değeri</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextBoxFor(model => model.taskPlan.newInventoryIndexValue, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+						})
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="inventoryStampYear">Damga Yılı</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextBoxFor(model => model.taskPlan.newInventoryStampYear, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+						})
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label">Açıklama</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Varsa ek açıklama girebilirsiniz." }
+					})
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="Dosya">Dosya</label>
+				</div>
+				<div class="col-md-9">
+					@(
+                        Html.Akilli().FileUpload()
+                        .DataTable("FTM_TaskOperation")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Görev Dosyası")
+                        .Validate(false)
+                    )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Ürün Değişimi Yap</button>
+			</div>
+			break;
+
+		case EnumFTM_TaskOperationStatus.GorevBaslandi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="description">Açıklama </label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Açıklama Giriniz." }
+						})
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Göreve Başla</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun:
+		case EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun:
+
+			<script src="~/Content/Plugins/formBuilder/form-render.min.js"></script>
+			<script type="text/javascript">
+
+				var pageFormOperation = {
+					form: null,
+					fnc: {
+						submit: function (e) {
+							$('#markup').validator("validate");
+							if (!$('#markup').data('bs.validator').hasErrors()) {
+								var updatedData = $('#markup').formRender("userData");
+								$('#jsonResult').val(JSON.stringify(updatedData));
+								$(e).parents("form").trigger("submit");
+							} else {
+								MesajWarning("Lütfen formdaki zorunlu alanları doldurunuz.", "Bildilendirme");
+							}
+						},
+						onChangeForm: function () {
+							var form = this;
+							$('#formDiv').addClass("hide");
+							if (form.value() != "") {
+								var json = form.dataItem().json;
+								pageFormOperation.form = $("#markup").formRender({ formData: JSON.parse(json) });
+								$('#build-wrap').append($("#markup"));
+								$('#formDiv').removeClass("hide");
+								$('#formName').text(form.dataItem().name);
+							}
+						},
+					}
+				};
+
+			</script>
+
+
+			@Html.HiddenFor(model => model.jsonResult, new { id = "jsonResult" })
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="fixtureId">Envanter</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+                        .DropDownListFor(model => model.fixtureId)
+                        .OptionLabel("Lütfen Envanter Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("searchField")
+                        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                        .Filter<VWPRD_Inventory>(a => (a.firstActionDataId == Model.Task.customerId && a.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri) || a.lastActionDataCompanyId == Model.Task.customerId)
+                        .Sort(x => x.Add("fullName").Ascending())
+                        .Template("<span class=\"k-state-default\"><h3>#: data.fullName #</h3><p>#: data.lastActionDataCompanyId_Title# </p></span>")
+                        .Execute("id").Enable(false)
+                    )
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="formId">Form</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+						.DropDownListFor(a => a.formId)
+						.Id("formId")
+						.OptionLabel("Lütfen Form Seçiniz..")
+						.DataTextField("name")
+						.DataValueField("id")
+                        .Filter<VWFTM_TaskForm>(f => f.isActive == (int)EnumFTM_TaskFormIsActive.Aktif)
+                        .Action(b => b.Action("DataSourceDropDown", "VWFTM_TaskForm", new { area = "FTM" }))
+						.Sort(x => x.Add("name").Ascending())
+						.Events(a => { a.Change("pageFormOperation.fnc.onChangeForm").DataBound("pageFormOperation.fnc.onChangeForm"); })
+						.Validate(Validations.Required)
+						.Execute()
+                    )
+				</div>
+			</div>
+
+
+			<div class="form-group hide" id="formDiv">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="form" id="formName">Form</label>
+				</div>
+				<div class="col-md-9">
+					<div id="markup" style="border:1px #ccc solid;padding:10px;"></div>
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="button" onclick="pageFormOperation.fnc.submit(this)">Formu Kaydet</button>
+			</div>
+
+			break;
+		case EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi:
+
+			<script src="~/Content/Plugins/formBuilder/form-render.min.js"></script>
+			<script type="text/javascript">
+
+				var pageFormOperation = {
+					form: null,
+					fnc: {
+						submit: function (e) {
+							$('#markup').validator("validate");
+							if (!$('#markup').data('bs.validator').hasErrors()) {
+								var updatedData = $('#markup').formRender("userData");
+								$('#jsonResult').val(JSON.stringify(updatedData));
+								$(e).parents("form").trigger("submit");
+							} else {
+								MesajWarning("Lütfen formdaki zorunlu alanları doldurunuz.", "Bildilendirme");
+							}
+						},
+						onChangeForm: function () {
+							var form = this;
+							$('#formDiv').addClass("hide");
+							if (form.value() != "") {
+								var json = form.dataItem().json;
+								pageFormOperation.form = $("#markup").formRender({ formData: JSON.parse(json) });
+								$('#build-wrap').append($("#markup"));
+								$('#formDiv').removeClass("hide");
+								$('#formName').text(form.dataItem().name);
+							}
+						},
+					}
+				};
+
+			</script>
+
+
+			@Html.HiddenFor(model => model.jsonResult, new { id = "jsonResult" })
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="formId">Anket Form</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+						.DropDownListFor(a => a.formId)
+						.Id("formId")
+						.OptionLabel("Lütfen Form Seçiniz..")
+						.DataTextField("name")
+						.DataValueField("id")
+                        .Filter<VWFTM_TaskForm>(f => f.isActive == (int)EnumFTM_TaskFormIsActive.Aktif && f.type == (int)EnumFTM_TaskFormType.Anket)
+                        .Action(b => b.Action("DataSourceDropDown", "VWFTM_TaskForm", new { area = "FTM" }))
+						.Sort(x => x.Add("name").Ascending())
+						.Events(a => { a.Change("pageFormOperation.fnc.onChangeForm").DataBound("pageFormOperation.fnc.onChangeForm"); })
+						.Validate(Validations.Required)
+						.Execute()
+                    )
+				</div>
+			</div>
+
+
+			<div class="form-group hide" id="formDiv">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="form" id="formName">Form</label>
+				</div>
+				<div class="col-md-9">
+					<div id="markup" style="border:1px #ccc solid;padding:10px;"></div>
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="button" onclick="pageFormOperation.fnc.submit(this)">Formu Kaydet</button>
+			</div>
+
+			break;
+		case EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun:
+		case EnumFTM_TaskOperationStatus.GorevDosyaIslemiAltUrun:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="fixtureId">Envanter</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+                        .DropDownListFor(model => model.fixtureId)
+                        .OptionLabel("Lütfen Envanter Seçiniz..")
+                        .DataValueField("id")
+                        .DataTextField("searchField")
+                        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                        .Filter<VWPRD_Inventory>(a => (a.firstActionDataId == Model.Task.customerId && a.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri) || a.lastActionDataCompanyId == Model.Task.customerId)
+                        .Template("<span class=\"k-state-default\"><h3>#: data.fullName #</h3><p>#: data.lastActionDataCompanyId_Title# </p></span>")
+                        .Sort(x => x.Add("fullName").Ascending())
+                        .Execute("id").Enable(false)
+                    )
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="description">Açıklama </label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Açıklama Giriniz." }
+						}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="Dosya">Dosya</label>
+				</div>
+				<div class="col-md-9">
+					@(
+                        Html.Akilli().FileUpload()
+                        .DataTable("FTM_TaskOperation")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Görev Dosyası")
+                        .Validate(true)
+                    )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Dosyayı Kaydet</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.CozumBildirildi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Çözüm Açıklaması</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen çözüm bildirirken varsa bir açıklama giriniz." }
+					}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Görev Bitir</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.CozumOnaylandi:
+		case EnumFTM_TaskOperationStatus.CozumReddedildi:
+
+			<script type="text/javascript">
+				function changeStatus(e) {
+					var value = $(e).attr("data-value");
+					$(e).parents("form").find("#status").val(value);
+					$(e).parents("form").trigger("submit");
+				}
+			</script>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Onay/Red Açıklaması</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen Onay/Red açıklaması giriniz." }
+					}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-primary pull-right" type="button" onclick="changeStatus(this)" data-value="@((int)Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus.CozumOnaylandi)">Onayla</button>
+				<button class="btn btn-md btn-danger pull-right m-r-md" type="button" onclick="changeStatus(this)" data-value="@((int)Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus.CozumReddedildi)">Reddet</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi:
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Açıklama</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Varsa ek açıklama girebilirsiniz." }
+					})
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="Dosya">Dosya</label>
+				</div>
+				<div class="col-md-9">
+					@(
+                        Html.Akilli().FileUpload()
+                        .DataTable("FTM_TaskOperation")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Görev Dosyası")
+                        .Validate(true)
+                    )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Dosyayı Kaydet</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.GorevDurduruldu:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="subject">Durdurma Sebebi</label>
+				</div>
+				<div class="col-md-9">
+					@(Html.Akilli()
+              .DropDownListFor(model => model.subject)
+              .OptionLabel("Lütfen Durdurma Sebebini Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "FTM_TaskOperation" && a.fieldName == "subject")
+              .Execute("enumKey")
+              .Validate(Validations.Required)
+            )
+				</div>
+			</div>
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Açıklama</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen durdurma nedeninizi giriniz." }
+					}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Görevi Durdur</button>
+			</div>
+			break;
+		case EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Açıklama</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen açıklama giriniz." }
+					}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Görevi Yeniden Başlat</button>
+			</div>
+			break;
+		default:
+			break;
+	}
+}

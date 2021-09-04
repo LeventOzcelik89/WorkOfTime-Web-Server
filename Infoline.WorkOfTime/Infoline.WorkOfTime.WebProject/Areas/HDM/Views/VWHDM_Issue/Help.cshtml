@@ -1,0 +1,313 @@
+﻿@model VMHDM_IssueSuggestionModel
+@{
+    ViewBag.Title = "Yardım";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+    .listCustom {
+        padding-left: 5px;
+        list-style-type: none;
+        border-left: 1px solid #e7eaec;
+        margin-left: 10px;
+    }
+
+    .uv-hero {
+        height: 55vh;
+        width: 100%;
+        background-color: #16b589;
+    }
+
+    .uv-container {
+        width: 100%;
+        margin: 0px auto;
+        max-width: 100%;
+        padding: 0px 20px;
+    }
+
+    .searchDiv {
+        display: block;
+        width: 100%;
+        margin: 0 auto;
+        position: relative;
+        transition: all 0.4s linear;
+    }
+
+        .searchDiv > i {
+            position: absolute;
+            left: 26%;
+            top: 10px;
+            color: #9a9a9a;
+            opacity: 1;
+        }
+
+    .uv-hero article {
+        max-width: 100%;
+        padding: 15vh 0 15vh 0;
+        vertical-align: middle;
+        text-align: center;
+    }
+
+        .uv-hero article h1 {
+            font-size: 36px;
+            color: #FFFFFF;
+            margin: 0px 0px 30px 0px;
+        }
+
+        .uv-hero article .uv-kb-search-lg {
+            width: 50%;
+            height: 50px;
+            max-width: 100%;
+            background-repeat: no-repeat;
+            background-position: 0px 0px;
+            padding: 20px 20px 20px 50px;
+            border: none;
+            font-size: 17px;
+            border-radius: 5px;
+            transition: box-shadow 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+    .uv-cta-wrapper {
+        font-size: 0px;
+        padding-top: 60px;
+    }
+
+        .uv-cta-wrapper .uv-cta-lt {
+            width: 25%;
+            display: inline-block;
+            vertical-align: middle;
+            text-align: right;
+        }
+
+        .uv-cta-wrapper .uv-cta-rt {
+            width: 40%;
+            display: inline-block;
+            vertical-align: top;
+            padding-left: 20px;
+        }
+
+    #treeview .k-in {
+        cursor: pointer;
+    }
+
+    .pop-up {
+        height: auto;
+        width: 60%;
+        margin: 10vh auto;
+        background: #fff;
+        position: relative;
+        z-index: 1;
+        border-radius: 5px;
+        box-shadow: 0 0 20px #000;
+    }
+</style>
+
+<script src="~/Content/Themes/js/plugins/nestable/jquery.nestable.js"></script>
+<script type="text/javascript">
+
+    var help = {
+        dfn: {
+            model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
+            issueData: null
+        },
+        events: {
+            searchIssue: function (value) {
+                if (value && value != null && value != "") {
+                    GetJsonDataFromUrl('/General/GetSuggestionsByText', { text: value }, function (resp) {
+                        help.fnc.loadSuggestionsByData(resp);
+                    })
+                }
+            },
+            selectTreeViewItem: function (e) {
+                $('.close').trigger("click");
+                var selectedItem = e.sender.dataItem(e.node);
+                GetJsonDataFromUrl('/General/GetSuggestionsByIssueId', { issueId: selectedItem.issueId }, function (resp) {
+                    help.fnc.loadSuggestionsByData(resp);
+                    $('[data-id="insert"]').attr("data-href", "/HDM/VWHDM_Ticket/InsertBasic?pid=" + selectedItem.issueId);
+                })
+            },
+            ok: function (_this) {
+                $(_this).parents("p").empty();
+                MesajSuccess("İlginiz için teşekkür ederiz.", "Başarılı");
+            }
+        },
+        fnc: {
+            loadSuggestionsByData: function (data) {
+                $('#suggestionList').empty();
+                $('#notFind').removeClass("hide");
+                $('#info-box').addClass("hide");
+                var html = help.fnc.getHtmlSuggestionsByIssue(data);
+                $('#suggestionList').append(html);
+            },
+            decodeHtml: function (html) {
+                var txt = document.createElement("textarea");
+                txt.innerHTML = html;
+                return txt.value;
+            },
+            getHtmlSuggestionsByIssue: function (data) {
+                var html = "";
+                $.each(data, function (i, suggestion) {
+
+                    var guid = newGuid();
+
+                    html += `<div class="faq-item">
+                            <div class="">
+                                <a data-toggle="collapse" href="#${guid}" class="faq-question collapsed" aria-expanded="false">${suggestion.title}</a>
+                                <small><i class="fa fa-comments"></i> <strong> Konu : </strong> ${suggestion.issueId_Title} </small>
+                            </div>
+                            <div class="row">
+                                <div class="col-lg-12">
+                                    <div id="${guid}" class="panel-collapse collapse" aria-expanded="false" style="height: 0px;">
+                                        <div class="faq-answer">
+                                            <p>${ help.fnc.decodeHtml(suggestion.content) } </p>
+                                        </div>
+                                <div class="hr-line-dashed"></div>
+                                <p class="text-center">
+                                    <i>Bu size yardımcı oldu mu?</i>
+                                    <a class="btn btn-xs btn-primary" onclick="help.events.ok(this)" type="button"><i class="fa fa-check"></i> Evet</a>
+                                    <a data-href="/HDM/VWHDM_Ticket/InsertBasic?suggestionId=${suggestion.id}" data-task="Insert" data-method="GET" class="btn btn-xs btn-danger">
+                                        <i class="fa fa-times"></i> Hayır
+                                    </a>
+                                </p>
+                                <div class="hr-line-dashed"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                });
+                return html;
+            },
+            getIssuesData: function () {
+                var result = [];
+                function create(param) {
+                    var issues = help.dfn.model.Issues.filter(a => a.pid == param);
+
+                    var myobj = issues.map(function (issue) {
+                        var obj = { text: issue.title, issueId: issue.id };
+                        var items = create(issue.id);
+                        if (items.length > 0) {
+                            obj["items"] = items;
+                        }
+                        return obj;
+                    });
+
+                    if (param != null) {
+                        return myobj;
+                    }
+
+                    result.push(myobj);
+                };
+
+                create(null);
+                return result[0];
+            },
+            renderTreeView: function () {
+                $('#treeview').kendoTreeView({
+                    dataSource: help.dfn.issueData,
+                    select: help.events.selectTreeViewItem
+                })
+            },
+            init: function () {
+                help.dfn.issueData = help.fnc.getIssuesData();
+                help.fnc.renderTreeView();
+            }
+        }
+    }
+
+    $(document)
+        .on("keyup", "#searchIssue", function (e) {
+            if (e.keyCode == 13) {
+                help.events.searchIssue(this.value);
+            }
+        })
+
+    $(document)
+        .on("ready", function () {
+            help.fnc.init();
+        })
+
+</script>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" style="top: 25%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>
+                    KONULAR
+                    <button type="button" class="close pull-right" style="color: #b6b6b6 !important;" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </h3>
+
+
+            </div>
+            <div class="modal-body">
+                <div id="treeview"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox">
+            <div class="ibox-content no-padding clearfix">
+                <div class="uv-hero">
+                    <div class="uv-container">
+                        <article>
+                            <h1>
+                                Size nasıl yardımcı olabiliriz?
+                            </h1>
+                            <div class="searchDiv">
+                                <i class="fa fa-search fa-2x"></i>
+                                <input type="text" id="searchIssue" class="uv-kb-search-lg" placeholder="Aradığınız çözümle ilgili birkaç kelime yazın.">
+                            </div>
+                            <div class="m-lg">
+                                <a class="btn btn-default" style="margin-right:5px;" data-toggle="modal" data-target="#exampleModal"> <i class="fa fa-question-circle"></i> Sıkça Sorulan Sorular</a>
+                                <a data-href="/HDM/VWHDM_Ticket/InsertBasic" style="margin-right:5px;" data-id="insert" data-task="Insert" data-method="GET" class="btn btn-default"> <i class="fa fa-envelope"></i> Yardım Talep Edin </a>
+                                <a href="/HDM/VWHDM_Ticket/IndexMy" target="_blank" class="btn btn-default"> <i class="fa fa-arrow-right"></i> Önceki Taleplerime Git  </a>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="suggestionList"></div>
+        <div class="ibox" id="info-box">
+            <div class="ibox-content">
+                <div class="uv-cta-wrapper">
+                    <div class="uv-cta-lt">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="60px" height="60px">
+                            <path fill-rule="evenodd" fill="rgb(22, 181, 137)" d="M57.000,12.000 L51.000,12.000 L50.984,38.993 L12.000,39.000 L12.000,45.000 C12.000,46.649 13.351,48.000 15.000,48.000 L48.000,48.000 L60.000,60.000 L60.000,15.000 C60.000,13.351 58.649,12.000 57.000,12.000 ZM45.000,30.000 L45.000,3.000 C45.000,1.351 43.649,0.000 42.000,0.000 L3.000,0.000 C1.351,0.000 -0.000,1.351 -0.000,3.000 L-0.000,45.000 L12.000,33.000 L42.000,33.000 C43.649,33.000 45.000,31.649 45.000,30.000 Z"></path>
+                        </svg>
+                    </div>
+                    <div class="uv-cta-rt">
+                        <h2>Yardım / Sıkça Sorulan Sorular</h2>
+                        <p style="font-size: 13px;color: #333333;margin: 5px 0px;">
+                            Bu menüde, sıkça sorulan soru başlıkları yardımıyla ya da arama bölümüne aradığınız içerikle alakalı birkaç kelime girerek sorununuzu çözebilirsiniz. İsterseniz Bize Ulaşın butonu ile doğrudan yardım talebi de oluşturabilirsiniz.
+                        </p>
+                        <a data-href="/HDM/VWHDM_Ticket/InsertBasic" data-id="insert" data-task="Insert" data-method="GET" class="btn btn-warning"> <i class="fa fa-envelope"></i> Bize Ulaşın</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="ibox hide" id="notFind">
+            <div class="ibox-content">
+                <div class="uv-cta-wrapper">
+                    <div class="uv-cta-lt">
+                        <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="60px" height="60px">
+                            <path fill-rule="evenodd" fill="rgb(22, 181, 137)" d="M57.000,12.000 L51.000,12.000 L50.984,38.993 L12.000,39.000 L12.000,45.000 C12.000,46.649 13.351,48.000 15.000,48.000 L48.000,48.000 L60.000,60.000 L60.000,15.000 C60.000,13.351 58.649,12.000 57.000,12.000 ZM45.000,30.000 L45.000,3.000 C45.000,1.351 43.649,0.000 42.000,0.000 L3.000,0.000 C1.351,0.000 -0.000,1.351 -0.000,3.000 L-0.000,45.000 L12.000,33.000 L42.000,33.000 C43.649,33.000 45.000,31.649 45.000,30.000 Z"></path>
+                        </svg>
+                    </div>
+                    <div class="uv-cta-rt">
+                        <h2>Aradığınız cevabı bulamadınız mı?</h2>
+                        <p style="font-size: 13px;color: #333333;margin: 5px 0px;">
+                            Sorununuzun çözümünü bulamadıysanız bizimle iletişime geçerek yardım talebinde bulunabilirsiniz.
+                        </p>
+                        <a data-href="/HDM/VWHDM_Ticket/InsertBasic" data-id="insert" data-task="Insert" data-method="GET" class="btn btn-warning"> <i class="fa fa-envelope"></i> Bize Ulaşın</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

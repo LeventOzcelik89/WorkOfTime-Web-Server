@@ -1,0 +1,498 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments
+@{
+    ViewBag.Title = Model.Type_Title + " Düzenleme";
+    Layout = Request.Url.LocalPath.IndexOf("Upsert") > -1 ? "~/Views/Shared/_Layout.cshtml" : null;
+}
+
+<link href="~/Content/OrgChart/css/jquery.orgchart.min.css" rel="stylesheet" />
+<style type="text/css" data-selector="modalContainer">
+    #wrapper {
+        width: auto !important;
+        overflow-x:auto !important;
+    }
+
+    #chartContent {
+        height: calc(100vh - 135px);
+        position: relative;
+        background: #fff;
+        width: 100%;
+        padding: 15px;
+    }
+
+    #chart {
+        height: calc(100vh - 165px);
+        width: 100%;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        -khtml-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        background-image: linear-gradient(90deg,rgba(200,0,0,.15) 10%,rgba(0,0,0,0) 10%),linear-gradient(rgba(200,0,0,.15) 10%,rgba(0,0,0,0) 10%);
+        background-size: 10px 10px;
+        border: 1px solid rgba(200,0,0,.15);
+        border-top-color: transparent;
+        border-left-color: transparent;
+    }
+
+    .person {
+        text-align: center !important;
+        border: 1px solid #ccc;
+        padding: 2px 5px;
+        position: relative;
+        margin-bottom: 1px;
+    }
+
+        .person.active, .person:hover {
+            border: 1px solid red;
+        }
+
+
+
+    #buttons {
+        position: absolute;
+        right: 20px;
+        top: 20px;
+        width: 54px;
+        z-index: 99;
+        background: #fff;
+        padding: 7px;
+        border-radius: 27px;
+    }
+
+
+    .button {
+        width: 40px;
+        height: 40px;
+        display: inline-block;
+        text-align: center;
+        line-height: 34px;
+        border-radius: 20px;
+        font-size: 15px;
+        margin-bottom: 5px;
+    }
+
+        .button:focus {
+            outline: none !important;
+        }
+
+
+    .orgchart .node.matched {
+        background-color: red !important;
+    }
+
+    #edit-panel {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        z-index: 99;
+        box-shadow: 0px 0px 4px -2px #666;
+    }
+
+        #edit-panel #key-word {
+            font-size: 20px;
+            width: 200px;
+            display: inline-block;
+            text-align: center;
+            font-size: 15px;
+            float: left;
+        }
+
+    input#key-word {
+        cursor: pointer;
+    }
+    .btn-plus:hover {
+        color: white;
+    }
+</style>
+
+
+
+
+
+
+<div id="chartContent">
+    <div id="chart"></div>
+    <div id="edit-panel" class="view-state">
+        <input type="text" id="key-word" class="form-control" tabindex="1">
+        <button style="height: 42px;float: left;" class="btn btn-info" type="button" id="btn-filter-node"><i class="fa fa-search"></i></button>
+    </div>
+    <div id="buttons">
+        <div id="departmentTask" style="display:none;">
+            <button data-task="Insert" data-modal="true" data-submitField="PID" data-url="@Url.Action("Insert", "VWINV_CompanyDepartments", new { area = "INV"})" class="btn-info button" title="Seçili departmana Alt departman ekle"><i class="icon-flow-tree"></i></button>
+            <button data-task="Insert" data-modal="true" data-submitField="id" data-url="@Url.Action("Update", "VWINV_CompanyDepartments", new { area = "INV"})" class="btn-success button" title="Seçili departmanı düzenle"><i class="icon-edit"></i></button>
+            <button data-task="Insert" data-modal="true" data-method="POST" data-ask="Seçili departmanı silmek istediğinize emin misiniz?" data-submitField="id" data-url="@Url.Action("Delete", "VWINV_CompanyDepartments", new { area = "INV"})" class="btn-danger button" title="Seçili departmanı ve alt departmanları sil"><i class="icon-trash"></i></button>
+            <button data-task="Insert" data-modal="true" data-submitField="DepartmentId" data-url="@Url.Action("Insert", "VWINV_CompanyPersonDepartments", new { area = "INV"})" class="btn-plus button" style="margin-top:20px;" title="Seçili departmana personel ekle"><i class="icon-user-add-1"></i></button>
+        </div>
+        <div id="personTask" style="display:none;">
+            <button data-task="Insert" data-modal="true" data-submitField="id" data-url="@Url.Action("Update", "VWINV_CompanyPersonDepartments", new { area = "INV"})" class="btn-success button" title="Seçili personeli düzenle"><i class="icon-edit-3"></i></button>
+            <button data-task="Insert" data-target="user" data-modal="true" data-method="POST" data-ask="" data-submitField="id" data-url="@Url.Action("Delete", "VWINV_CompanyPersonDepartments", new { area = "INV"})" class="btn-danger button" title="Seçili personeli departmandan çıkar"><i class="icon-user-delete"></i></button>
+        </div>
+        <a href="/INV/VWINV_CompanyDepartments/UpsertPrint?id=@Model.id" target="_blank" class="btn-info button"><i class="fa fa-file-pdf-o"></i></a>
+    </div>
+</div>
+
+
+<script src="~/Content/OrgChart/js/jquery.min.js"></script>
+<script src="~/Content/OrgChart/js/html2canvas.min.js"></script>
+<script>var $j = jQuery.noConflict(true);</script>
+<script src="~/Content/OrgChart/js/jquery.orgchart.min.js"></script>
+
+<script type="text/javascript">
+    var oc = null;
+    var data = null;
+    var url = "@Url.Action("GetOrganization", "VWINV_CompanyDepartments", new {area="INV",id=Model.id })";
+
+    $(document)
+    $(function () {
+        setInterval(function () {
+            $(".orgchart .node.matched").fadeOut(1000).fadeIn(100);
+        }, 1000)
+    })
+   .on('ready', function () {
+       GetJsonDataFromUrl(url, null, function (resp) {
+           data = resp;
+           SetOrganizationShema();
+
+       })
+       $('#key-word').trigger('click')
+   })
+
+   .on("success:json", function (e, resp) {
+       var $node = oc.$chartContainer.find(".node.focused");
+
+       if (resp.Result) {
+           if (resp.Object) {
+               var _person = $node.find("#" + resp.Object);
+               var _content = _person.parents(".content");
+               _person.remove();
+               if (_content.find(".person").length == 0) {
+                   $('<div>Personel ataması yapılmamış.</div>').appendTo(_content);
+               }
+           } else {
+               oc.removeNodes($node);
+           }
+       }
+       $("#departmentTask,#personTask").hide();
+   })
+   .on("success", '[data-formtype="Ajax"]', function (e, resp) {
+
+       var form = $(this);
+       var action = form.attr("action");
+       var $node = oc.$chartContainer.find(".node.focused");
+
+
+       if (!resp.Result) {
+           return false;
+       }
+
+       switch (action) {
+           case "/INV/VWINV_CompanyDepartments/Update":
+               var departmentName = form.find('[name="Name"]').val();
+               $node.find(".title").text(departmentName);
+
+               break;
+           case "/INV/VWINV_CompanyDepartments/Insert":
+
+               var departmentName = form.find('[name="Name"]').val();
+               var id = form.find('[name="id"]').val();
+               var hasChild = $node.parent().attr('colspan') > 0 ? true : false;
+               if (!hasChild) {
+
+                   oc.addChildren($node,
+                   {
+                       children: [{
+                           id: id,
+                           department: departmentName,
+                           collapsed: false,
+                           color: "#fdc44e",
+                           personels: "<div>Personel ataması yapılmamış.</div>",
+                           relationship: '100'
+                       }]
+                   }, $.extend({}, oc.options, { depth: 0 }));
+
+               } else {
+                   oc.addSiblings($node.closest('tr').siblings('.nodes').find('.node:first'),
+                    {
+                        'siblings': [{
+                            id: id,
+                            department: departmentName,
+                            collapsed: false,
+                            color: "#fdc44e",
+                            personels: "<div>Personel ataması yapılmamış.</div>",
+                            relationship: '110'
+                        }]
+                    });
+
+                   $("#chart .edge:not(.bottomEdge),#chart .fa.fa-users.symbol").remove();
+               }
+
+
+               $("#" + id).attr("data-parent", $node.attr("id"));
+
+
+
+
+               break;
+           case "/INV/VWINV_CompanyPersonDepartments/Insert":
+
+
+               var userdropdown = form.find("#IdUser").data("kendoDropDownList").dataItem()
+               var username = userdropdown.FullName;
+               var userid = form.find("#id").val();
+               var title = form.find("#Title").val();
+               if ($node.find(".person").length == 0) {
+                   $node.find(".content").empty()
+               }
+
+               $('<div class="person clearfix"/>')
+                   .attr('id', userid)
+                   .append(username + (title != "" ? " <br/>(" + title + ")" : ""))
+                   .appendTo($node.find(".content"))
+
+
+
+               break;
+           case "/INV/VWINV_CompanyPersonDepartments/Update":
+
+               var username = form.find("#Person_Title").val();
+               var userid = form.find("#id").val();
+               var title = form.find("#Title").val();
+               if ($node.find(".person").length == 0) {
+                   $node.find(".content").empty()
+               }
+
+               $node.find("#" + userid).html(username + (title != "" ? " <br/>(" + title + ")" : ""))
+
+               break;
+           default:
+
+       }
+
+
+
+   });
+
+    function SetOrganizationShema() {
+
+        DrawOrganizationSchema();
+
+        $("#btn-filter-node").on("click", function () {
+            filterNodes($("#key-word").val());
+        });
+
+        $("#key-word").on("keyup", function (event) {
+            if (event.which === 13) {
+                filterNodes(this.value);
+            } else if (event.which === 8 && this.value.length === 0) {
+                clearFilterResult();
+            }
+        });
+
+        oc.$chartContainer.on('click', '.node', function (event) {
+
+
+            if (!$(event.target).hasClass("person")) {
+                $("#personTask").hide();
+                $(".person").removeClass("active");
+            }
+
+            $("#departmentTask").find('[data-submitfield="DepartmentId"]').show();
+            $("#departmentTask").show();
+            var $this = $(this);
+            var parentid = $this.attr("data-parent");
+
+            //if (!parentid) {
+            //    $("#departmentTask").hide();
+            //    $("#departmentTask").find('[data-submitfield="DepartmentId"]').hide();
+            //}
+
+
+
+            $('#departmentTask [data-task]').each(function () {
+                var field = $(this).attr("data-submitField");
+                var url = $(this).attr("data-url");
+                var id = $this.attr("id");
+                if ($(this).attr("data-method") == "POST") {
+                    $(this).attr("data-href", url);
+                    $(this).attr("data-id", id);
+                } else {
+                    $(this).attr("data-href", url + "?" + field + "=" + id);
+                }
+            });
+            nodeCenter($(this));
+        });
+
+        oc.$chartContainer.on('click', '.person', function (event) {
+            $(".person").removeClass("active");
+            $(this).addClass("active");
+            $("#personTask").show();
+            var id = $(this).attr("id");
+            $('#personTask [data-task]').each(function () {
+                var field = $(this).attr("data-submitField");
+                var url = $(this).attr("data-url");
+                if ($(this).attr("data-method") == "POST") {
+                    $(this).attr("data-href", url);
+                    $(this).attr("data-id", id);
+                } else {
+                    $(this).attr("data-href", url + "?" + field + "=" + id);
+                }
+            });
+        });
+
+        oc.$chartContainer.on('toggle', '.node', function (e) {
+            var $this = $j(e.target);
+            $this.trigger("click");
+        });
+
+        oc.$chartContainer.on('click', '.orgchart', function (event) {
+            if (!$(event.target).closest('.node').length) {
+                $("#departmentTask,#personTask").hide();
+            }
+        });
+    }
+
+    function nodeCenter($this) {
+        window.setTimeout(function () {
+            var $chart = $this.closest('.orgchart');
+            var newX = window.parseInt(($chart.outerWidth(true) / 2) - ($this.offset().left - $chart.offset().left) - ($this.outerWidth(true) / 2));
+            var newY = window.parseInt(($chart.outerHeight(true) / 5) - ($this.offset().top - $chart.offset().top) - ($this.outerHeight(true) / 2));
+            $chart.css('transform', 'matrix(1, 0, 0, 1, ' + (newX) + ', ' + (newY) + ')');
+        }, 400);
+    }
+
+    function filterNodes(keyWord) {
+        DrawOrganizationSchema();
+        if (!keyWord.length) {
+            return;
+        } else {
+            var $chart = $(".orgchart");
+            $chart.addClass("noncollapsable");
+            $chart
+              .find(".node")
+              .filter(function (index, node) {
+                  return (
+                    $(node)
+                      .text()
+                      .split("İ").join("i").toLocaleUpperCase()
+                      .indexOf(keyWord.split("İ").join("i").toLocaleUpperCase()) > -1
+                  );
+              })
+              .addClass("matched")
+              .closest("table")
+              .parents("table")
+              .find("tr:first")
+              .find(".node")
+              .addClass("retained");
+            // hide the unmatched nodes
+            $chart.find(".matched,.retained").each(function (index, node) {
+                $(node)
+                  .removeClass("slide-up")
+                  .closest(".nodes")
+                  .removeClass("hidden")
+                  .siblings(".lines")
+                  .removeClass("hidden");
+                var $unmatched = $(node)
+                  .closest("table")
+                  .parent()
+                  .siblings()
+                  .find(".node:first:not(.matched,.retained)")
+                  .closest("table")
+                  .parent()
+                  .addClass("hidden");
+                $unmatched
+                  .parent()
+                  .prev()
+                  .children()
+                  .slice(1, $unmatched.length * 2 + 1)
+                  .addClass("hidden");
+            });
+            // hide the redundant descendant nodes of the matched nodes
+            $chart.find(".matched").each(function (index, node) {
+                if (
+                  !$(node)
+                    .closest("tr")
+                    .siblings(":last")
+                    .find(".matched").length
+                ) {
+                    $(node)
+                      .closest("tr")
+                      .siblings()
+                      .addClass("hidden");
+                }
+            });
+        }
+    }
+
+    function clearFilterResult() {
+        DrawOrganizationSchema();
+    }
+
+    function getColor(type) {
+
+        switch (type) {
+
+            case 0:
+                return "#ffcf00";
+            case 1:
+                return "#ff8f00";
+            case 2:
+                return "#00beff";
+            case 3:
+                return "#02ba37";
+            case 4:
+                return "#00e742";
+            case 5:
+                return "#acddff";
+            case 6:
+                return "#0081da";
+            case 7:
+                return "#4100c9";
+            case 8:
+                return "#ffce6f";
+            case 9:
+                return "#7cc3ff";
+            default:
+                return "red";
+        }
+    }
+
+    function snapshot() {
+        html2canvas(document.getElementById("chartContent")).then(function (canvas) {
+            canvas.toBlob(function (blob) {
+                saveAs(blob, "organizasyon-semasi" + new Date().toLocaleString("TR-tr") + ".JPEG");
+            }, "image/jpeg", 0.99);
+        });
+    }
+
+    function DrawOrganizationSchema() {
+
+        $('#chart').empty();
+        oc = $('#chart').orgchart({
+            pan: true,
+            data: data,
+            nodeId: "id",
+            zoom: false,
+            depth: 3,
+            toggleSiblingsResp: false,
+            exportButton: false,
+            exportFilename: "MyOrgChart",
+            exportFileextension: "png",
+            nodeTemplate: function (data) {
+                return `
+                    <div class="title" data-id="${data.id}" style="background-color:${data.color}">${data.department}</div>
+                    <div class="content" style="border-color:${data.color}">${data.personels}</div>
+                  `;
+            },
+            createNode: function () {
+                $("#chart .edge:not(.bottomEdge),#chart .fa.fa-users.symbol").remove();
+            },
+            initCompleted: function () {
+                $("#chart .edge:not(.bottomEdge),#chart .fa.fa-users.symbol").remove();
+                nodeCenter($("#" + data.id));
+
+            }
+        });
+
+    }
+</script>

@@ -1,0 +1,365 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWINV_PermitForm
+@{
+    ViewBag.Title = "Geçmiş izin ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now.AddDays(-1);
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+
+    var workingTimes = @Html.Raw(Infoline.Helper.Json.Serialize(TenantConfig.Tenant.Config.WorkingTimes));
+
+    var permitPage = {
+        defines: {
+            WorkingTimes: workingTimes,
+            WeekDays:{"0":"Sunday","1":"Monday","2":"Tuesday","3":"Wednesday","4":"Thursday","5":"Friday","6":"Saturday"},
+            OfficalPermit: $.ajax({
+                url: "/INV/VWINV_Permit/GetOfficalPermit",
+                type: "GET",
+                dataType: "JSON",
+                async: false
+            }).responseJSON,
+        },
+        functions: {
+            SetHours: function (e) {
+                var startDate = $("#StartDate").data("kendoDateTimePicker");
+                var endDate = $("#EndDate").data("kendoDateTimePicker");
+                var typeDrop = $("#PermitTypeId").data("kendoDropDownList");
+
+                var canHourly = typeDrop && typeDrop.dataItem().CanHourly;
+
+                if (startDate && startDate.value()) {
+                    var date = startDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.Start).sort()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+                    if (canHourly == false || parseInt(workingtime.replace(":", "")) > parseInt(currenttime.replace(":", ""))) {
+                        startDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), workingtime.split(":")[0], workingtime.split(":")[1], 0, 0));
+                    } else {
+                        startDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), currenttime.split(":")[0], currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+                if (endDate && endDate.value()) {
+                    var date = endDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.End).sort().reverse()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+                    if (canHourly == false || parseInt(workingtime.replace(":", "")) < parseInt(currenttime.replace(":", ""))) {
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), workingtime.split(":")[0], workingtime.split(":")[1], 0, 0));
+                    } else {
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), currenttime.split(":")[0], currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+                if (startDate && startDate.value() && e && e.sender && e.sender.element.attr("id") == "StartDate") {
+
+                    var date = startDate.value();
+                    var day = permitPage.defines.WeekDays[date.getDay()];
+                    var workingtime = permitPage.defines.WorkingTimes[day].allowTimes.map(c=>c.End).sort().reverse()[0];
+                    var currenttime = date.toLocaleString().split(" ")[1];
+
+
+                    endDate.min(startDate.value());
+                    if (canHourly == false || parseInt(workingtime.replace(":", "")) < parseInt(currenttime.replace(":", ""))) {
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), workingtime.split(":")[0], workingtime.split(":")[1], 0, 0));
+                    } else {
+                        endDate.value(new Date(date.getFullYear(), date.getMonth(), date.getDate(), currenttime.split(":")[0], currenttime.split(":")[1], 0, 0));
+                    }
+                }
+
+            },
+            SetCommencementDate: function (e) {
+
+                permitPage.functions.SetHours(e);
+                GetJsonDataFromUrl('/INV/VWINV_Permit/GetPermitDetails', $("form").serializeArray(), function (res) {
+                    if(res.TotalDay > 4000){
+                        permitPage.functions.SetCommencementDate();
+                    }
+                    if(res.Text == "false"){
+                        $('#StartDate').data('kendoDateTimePicker').value(new Date());
+                        $('#EndDate').data('kendoDateTimePicker').value(new Date());
+                        $('form').validator('validate');
+                        permitPage.functions.SetCommencementDate();
+                    }
+                    if (res && res.CommencementDate) {
+                        $("#CommencementDate").val(new Date(res.CommencementDate).toLocaleString("tr-TR").replace(":00", ""));
+                    }
+                    if (res) {
+                        $("#CalculateDay").val(res.Text != "" ? res.Text : "0 saat");
+                    }
+                });
+            },
+            SetDisableDates: function (e) {
+
+                if (e.sender.timeView.ul) {
+                    e.sender.timeView.list.find("li").each(function (i, c) {
+                        var _this = $(this);
+                        _this.addClass("hide");
+                        var day = permitPage.defines.WeekDays[e.sender.value().getDay()];
+                        var workingTime = permitPage.defines.WorkingTimes[day];
+                        var date = kendo.parseDate("01.01.2001 " + $(this).text(), "dd.mm.yyyy HH:mm");
+
+                        workingTime.allowTimes.forEach(function (b) {
+                            var start = kendo.parseDate("01.01.2001 " + b.Start, "dd.mm.yyyy HH:mm:ss");
+                            var end = kendo.parseDate("01.01.2001 " + b.End, "dd.mm.yyyy HH:mm:ss");
+                            if (start <= date && end >= date) {
+                                _this.removeClass("hide");
+                            }
+                        });
+                    });
+                }
+
+                if (e.sender.dateView.calendar) {
+
+                    if (e.sender.dateView.calendar.element.find(".k-weekend").length > 0) {
+                        e.sender.dateView.calendar.element.find('[data-value]').each(function (e) {
+                            var element = $(this);
+                            var dateArr = element.data("value").split("/");
+                            var date = new Date(dateArr[0], dateArr[1], dateArr[2], 12, 30);
+
+                            var day = permitPage.defines.WeekDays[date.getDay()];
+                            var workingTime = permitPage.defines.WorkingTimes[day];
+
+                            if (workingTime.isWorking == false) {
+                                element.remove();
+                            } else {
+                                permitPage.defines.OfficalPermit.forEach(function (item) {
+                                    if (new Date(item.StartDate) <= date && new Date(item.EndDate) >= date) {
+                                        element.remove();
+                                    }
+                                });
+                            }
+                        });
+                    }
+
+                    if (!e.sender.dateView.calendar.element.attr("data-control")) {
+                        e.sender.dateView.calendar.element.attr("data-control", true);
+                        e.sender.dateView.calendar.element.find(".k-link").bind("click", function (e) {
+                            var id = $(this).parents(".k-calendar").attr("id");
+                            permitPage.functions.exec($("#" + id));
+                        });
+                    }
+                };
+
+            },
+            
+            SetPersonYearlyPermit: function (e) {
+                $("#personPermitCount").hide();
+                var type = $("#PermitTypeId").data("kendoDropDownList").dataItem();
+                var person = $("#IdUser").data("kendoDropDownList").dataItem();
+                var yillikIzin = "F8547488-3215-1235-5126-EF2323CBBCB2";
+
+                if (type.id && person) {
+                    if (typeof (person.PermitYearlyUsable) != 'undefined' && type.id.toUpperCase() == yillikIzin) {
+                        $("#personPermitCount").show();
+                        $("#personPermitCount").html("Personel'in kalan yıllık izin hakkı <strong>" + person.PermitYearlyUsable + "</strong> gündür." + (person.PermitYearlyUsable < 0 ? "(Avans İzin Kullanıldı)" : ""));
+                    }
+                };
+
+                $('[aria-controls="EndDate_timeview"]')[type.CanHourly ? "show" : "hide"]();
+                $('[aria-controls="StartDate_timeview"]')[type.CanHourly ? "show" : "hide"]();
+
+                if (person.JobStartDate) {
+                    $("#StartDate").data("kendoDateTimePicker").min(new Date(person.JobStartDate));
+                    $("#StartDate").trigger("change");
+                }
+                if (person.IsWorking == 0) {
+                    $('#StartDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
+                    $('#EndDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
+                }
+
+                if (e.sender.element.attr("name") == "PermitTypeId") {
+                    permitPage.functions.SetCommencementDate(e);
+                }
+               
+            },
+            exec: function (elem) {
+
+                window.setTimeout(function () {
+                    if (elem.find(".k-weekend").length > 0) {
+                        elem.find('[data-value]').each(function () {
+                            var element = $(this);
+                            var dateArr = element.data("value").split("/");
+                            var date = new Date(dateArr[0], dateArr[1], dateArr[2], 12, 30);
+                            var day = permitPage.defines.WeekDays[date.getDay()];
+                            var workingTime = permitPage.defines.WorkingTimes[day];
+
+                            if (workingTime.isWorking == false) {
+                                element.remove();
+                            } else {
+                                permitPage.defines.OfficalPermit.forEach(function (item) {
+                                    if (new Date(item.StartDate) <= date && new Date(item.EndDate) >= date) {
+                                        element.remove();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }, 650);
+            }
+        }
+    }
+
+    $(document)
+       .on("ready",function(){
+       })
+        .on("click", ".k-calendar .k-link", function (e) {
+            var id = $(this).parents(".k-calendar").attr("id");
+            permitPage.functions.exec($("#" + id));
+        });
+</script>
+
+
+
+@using (Html.BeginForm("PastYearlyPermits", "VWINV_Permit", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PermitCode">İzin Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.PermitCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                 {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="PermitTypeId">İzin Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.PermitTypeId)
+                .OptionLabel("Lütfen İzin Tipi Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("Name")
+                .Action(b => b.Action("DataSourceDropDown", "INV_PermitType", new { area = "INV" }))
+                .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
+                .Sort(a => a.Add("created"))
+                .Validate(Validations.Required)
+                .Filter("contains")
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IdUser">Personel</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.IdUser)
+                .OptionLabel("Lütfen Personel Seçiniz..")
+                .Readonly(Model.IdUser.HasValue)
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson))
+                .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="StartDate">İzin Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+              Html.Akilli()
+              .DateTimePickerFor(model => model.StartDate)
+              .Max(new DateTime(Model.EndDate.Value.Ticks).AddMinutes(1))
+              .MaxDateElement("EndDate")
+              .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+              .Interval(15)
+              .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EndDate">İzin Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+              Html.Akilli()
+              .DateTimePickerFor(model => model.EndDate)
+              .MinDateElement("StartDate")
+              .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+              .Interval(15)
+              .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="isbasi">İşbaşı Tarihi ve Saat'i / İzin Süresi</label>
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CommencementDate", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İşbaşı Tarihi ve Saat'i"}
+            })
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CalculateDay", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İzin Süresi(Gün/Saat)"}
+            })
+        </div>
+        <div class="col-md-8 col-md-offset-4">
+            <div class="alert alert-warning text-center m-t-sm" style="padding:10px;display:none;" id="personPermitCount"></div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">İzin Talep Dosyaları</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_Permit")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "İzin Talep Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}
+
+
+
+
+
+

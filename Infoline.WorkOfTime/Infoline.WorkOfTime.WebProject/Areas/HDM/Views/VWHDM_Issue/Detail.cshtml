@@ -1,0 +1,94 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMHDM_IssueModel
+@{
+    ViewBag.Title = "Konu Detayı";
+    ViewBag.Path = Model.path;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="tabs-container">
+    <ul class="nav nav-tabs">
+        <li class="active"><a data-toggle="tab" href="#tab-1"> <i class="fa fa-list text-success"></i> @Model.title'ın Alt Konuları </a></li>
+        <li class=""><a data-toggle="tab" href="#tab-2"> <i class="fa fa-check text-success"></i> Çözüm Önerileri </a></li>
+        @if (!Model.pid.HasValue)
+        {
+            <li class=""><a data-toggle="tab" href="#tab-3"> <i class="fa fa-users text-success"></i> Sorumlu Yöneticiler </a></li>
+        }
+    </ul>
+    <div class="tab-content">
+        <div id="tab-1" class="tab-pane active">
+            @(Html.Akilli()
+             .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Issue>("VWHDM_Issue")
+             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Issue", new { area = "HDM" })).Filter(a => a.pid == Model.id).PageSize(25))
+             .Columns(x =>
+             {
+                 x.Bound(y => y.title).Title("Başlık").Width(130);
+                 x.Bound(y => y.expiryMinute).Title("Ortalama Çözüm Süresi (dk)").Width(100);
+                 x.Bound(y => y.status_Title).Title("Durumu").Width(130);
+             })
+             .Scrollable(s => s.Height(650))
+             .Selectable(x => x.Mode(GridSelectionMode.Single))
+             .ToolBar(x =>
+             {
+                 x.Custom().Text("<i data-original-title='Yeni Konu Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWHDM_Issue", new { area = "HDM", pid = Model.id }));
+                 x.Custom().Text("<i data-original-title='Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHDM_Issue", new { area = "HDM" }));
+                 x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-default", "" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWHDM_Issue", new { area = "HDM" }));
+                 x.Custom().Text("<i data-original-title='Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Konunun altındaki çözüm önerileri de silinecek, devam etmek istediğinizden emin misiniz?" } }).Url(Url.Action("Delete", "VWHDM_Issue", new { area = "HDM" }));
+             }))
+        </div>
+        <div id="tab-2" class="tab-pane">
+
+            @(Html.Akilli()
+                   .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_Suggestion>("VWHDM_Suggestion")
+                   .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_Suggestion", new { area = "HDM" }))
+                   .Filter(f => f.issueId == Model.id)
+                   .PageSize(25))
+                   .Columns(x =>
+                   {
+                       x.Bound(y => y.title).Title("Başlık").Width(130);
+                       x.Bound(y => y.status_Title).Title("Durumu").Width(130);
+                   })
+                   .Scrollable(s => s.Height(650))
+                   .Selectable(x => x.Mode(GridSelectionMode.Single))
+                   .ToolBar(x =>
+                   {
+                       x.Custom().Text("<i data-original-title='Yeni Öneri Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWHDM_Suggestion", new { area = "HDM", issueId = Model.id }));
+                       x.Custom().Text("<i data-original-title='Öneri Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-default", "" } }).Url(Url.Action("Update", "VWHDM_Suggestion", new { area = "HDM" }));
+                       x.Custom().Text("<i data-original-title='Öneri Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWHDM_Suggestion", new { area = "HDM" }));
+                   }))
+
+        </div>
+        @if (!Model.pid.HasValue)
+        {
+            <div id="tab-3" class="tab-pane">
+
+                @(Html.Akilli()
+                       .Grid<Infoline.WorkOfTime.BusinessData.VWHDM_IssueUser>("VWHDM_IssueUser")
+                       .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHDM_IssueUser", new { area = "HDM" }))
+                       .Filter(f => f.issueId == Model.id)
+                       .PageSize(25))
+                       .Columns(x =>
+                       {
+                           x.Bound(y => y.userId_Title).Title("Sorumlu Yönetici").Width(130);
+                       })
+                       .Scrollable(s => s.Height(650))
+                       .Selectable(x => x.Mode(GridSelectionMode.Single))
+                       .ToolBar(x =>
+                       {
+                            if (!Model.pid.HasValue)
+                            {
+                                x.Custom().Text("<i data-original-title='Yeni Sorumlu Ata' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWHDM_IssueUser", new { area = "HDM", issueId = Model.id }));
+                                x.Custom().Text("<i data-original-title='Sorumlu Kişiyi Değiştir' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHDM_IssueUser", new { area = "HDM" }));
+                                x.Custom().Text("<i data-original-title='Sorumlu Kaldır' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWHDM_IssueUser", new { area = "HDM" }));
+                            }
+                       }))
+
+            </div>
+        }
+
+    </div>
+</div>
+
+
+
+

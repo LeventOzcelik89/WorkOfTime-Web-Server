@@ -1,0 +1,141 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonAvailability[]
+@{
+    Layout = null;
+    var Personel_Title = Model.GroupBy(x => x.Person_Title).Select(s => s.Key).OrderBy(a => a).ToList();
+    var StartDateGroup = Model.Where(a => a.StartDate.HasValue).OrderBy(x => x.StartDate.Value).GroupBy(x => x.StartDate.Value.ToString("MM/yyyy")).ToList();
+}
+
+<style type="text/css">
+    #tableDiv {
+        overflow-x: scroll;
+        overflow-y: visible;
+    }
+
+    #costTable {
+        border-spacing: 0;
+    }
+
+        #costTable tbody tr td:first-child, #costTable thead tr th:first-child {
+            min-width: 180px;
+            max-width: 200px;
+            text-align: center;
+        }
+
+        #costTable td, #costTable th {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        #costTable tbody tr td input {
+            background-color: #f2f2f2;
+            padding: 5px !important;
+            font-family: 'Roboto', sans-serif;
+            font-size: 13px;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+            border: 1px #0c0c0c solid;
+            width: 100%;
+        }
+
+    ::-webkit-scrollbar {
+        width: 0.7em;
+        height: 0.7em;
+    }
+
+    ::-webkit-input-placeholder {
+        color: black;
+    }
+</style>
+
+
+<script type="text/javascript">
+
+
+    //rgb(34, 204, 168)
+
+    (function ($) {
+        $.fn.MinMaxControl = function () {
+            return this.each(function () {
+                $(this).on('change', function () {
+                    var item = this,
+                        value = parseFloat(item.value),
+                        min = parseFloat(item.min),
+                        max = parseFloat(item.max);
+
+                    if (value >= min && value <= max) {
+                        item.value = value;
+                    }
+                    else {
+                        item.value = value < min ? min : max;
+                    }
+                    var colors = ["eef6ec", "d7ecd2", "b7ddb0", "99d18e", "7bc86c", "61bd4e", "5aac44", "519839", "49852e", "3f6f22", "3f6f22"];
+
+                    var bckgrnd = colors[parseInt(item.value * 10)];
+                    $(item).css("background-color", "#" + bckgrnd + "!important");
+                    if ((255 - Math.round((item.value * 170))) < 145) {
+                        $(item).css("color", "white");
+                    }
+                    else {
+                        $(item).css("color", "black");
+                    }
+                });
+            });
+        };
+    })(jQuery);
+
+    $(document).on("ready", function (e) {
+        $(".myInput").MinMaxControl();
+        $(".myInput").each(function () {
+            $(this).trigger("change");
+        });
+    });
+
+</script>
+
+@if (Model.Count() == 0)
+{
+    <div class="alert alert-danger">Projeye Tanımlı Personel Yok</div>
+}
+else
+{
+    <div id="tableDiv">
+        <table id="costTable" style="width:100%;" class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Personel Adı</th>
+                    @foreach (var item in StartDateGroup)
+                {
+                        <th>@item.Key</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @{ var i = 0; }
+                @foreach (var item in Personel_Title)
+                {
+                    var id = Model.Where(a => a.Person_Title == item).Select(a => a.IdUser).FirstOrDefault();
+                    <tr>
+                        <td>@item</td>
+                        @foreach (var row in StartDateGroup)
+                        {
+                            var userDetail = row.Where(x => x.Person_Title == item && x.StartDate.Value.ToString("MM/yyyy") == row.Key).FirstOrDefault();
+                            if (userDetail != null)
+                            {
+                                var deger = userDetail.rate.HasValue == false ? "0" : userDetail.rate.Value.ToString().Replace(",", ".");
+
+                                <td>
+                                    <input type="number" readonly class="myInput" min="0" max="1" step="0.1" value="@deger" />
+                                </td>
+                            }
+                            else
+                            {
+                                <td>-</td>
+                            }
+                        }
+
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+                    }

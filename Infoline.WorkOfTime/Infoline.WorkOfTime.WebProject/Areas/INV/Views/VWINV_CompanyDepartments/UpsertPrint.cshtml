@@ -1,0 +1,190 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments
+@{
+    ViewBag.Title = Model.Type_Title + " Düzenleme";
+    Layout = null;
+}
+
+<link href="~/content/themes/font-awesome/css/font-awesome.css" rel="stylesheet" />
+<link href="~/Content/Custom/orgchartNew/css/jquery.orgchart.css?v=1" rel="stylesheet" />
+
+<script src="~/content/themes/js/jquery-2.1.1.js"></script>
+<script src="~/content/themes/js/plugins/metisMenu/jquery.metisMenu.js"></script>
+<script src="~/Content/Themes/js/jquery.livequery.min.js"></script>
+<script src="~/Content/Plugins/Loading/js/jquery.loadingModal.min.js"></script>
+<script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+<script src="~/Content/Custom/js/master.js"></script>
+
+<style type="text/css">
+    #chart-container {
+        position: relative;
+        display: inline-block;
+        top: 10px;
+        left: 10px;
+        width: calc(100% - 24px);
+        border: 2px dashed #aaa;
+        border-radius: 5px;
+        overflow: auto;
+        text-align: center;
+    }
+
+    #chart {
+        display: inline-block;
+    }
+
+    body {
+        font-family: sans-serif;
+    }
+</style>
+
+<div id="chart-container">
+    <div id="chart"></div>
+</div>
+
+<script src="~/Content/OrgChart/js/jquery.min.js"></script>
+<script src="~/Content/Custom/orgchartNew/html2canvas.min.js"></script>
+<script>var $j = jQuery.noConflict(true);</script>
+<script src="~/Content/Custom/orgchartNew/jqueryorgchart.js"></script>
+<script src="~/Content/Custom/orgchartNew/jspdf.min.js"></script>
+<script src="~/Content/Plugins/html2canvas/FileSaver.js"></script>
+
+<script type="text/javascript">
+    var oc = null;
+    var data = null;
+    var url = "@Url.Action("GetOrganization", "VWINV_CompanyDepartments", new {area="INV",id=Model.id })";
+
+    $(document)
+        .on('ready', function () {
+        GetJsonDataFromUrl(url, null, function (resp) {
+           data = resp;
+           SetOrganizationShema();
+           $('.oc-export-btn').trigger('click');
+           setTimeout(function () {
+         //    window.close();
+           },6000)
+       })
+   })
+
+   .on("success:json", function (e, resp) {
+       var $node = oc.$chartContainer.find(".node.focused");
+
+       if (resp.Result) {
+           if (resp.Object) {
+               var _person = $node.find("#" + resp.Object);
+               var _content = _person.parents(".content");
+               _person.remove();
+               if (_content.find(".person").length == 0) {
+                   $('<div>Personel ataması yapılmamış.</div>').appendTo(_content);
+               }
+           } else {
+               oc.removeNodes($node);
+           }
+       }
+       $("#departmentTask,#personTask").hide();
+   })
+
+    function SetOrganizationShema() {
+
+        DrawOrganizationSchema();
+
+        oc.$chartContainer.on('click', '.node', function (event) {
+            if (!$(event.target).hasClass("person")) {
+                $("#personTask").hide();
+                $(".person").removeClass("active");
+            }
+
+            $("#departmentTask").find('[data-submitfield="DepartmentId"]').show();
+            $("#departmentTask").show();
+            var $this = $(this);
+            var parentid = $this.attr("data-parent");
+
+            $('#departmentTask [data-task]').each(function () {
+                var field = $(this).attr("data-submitField");
+                var url = $(this).attr("data-url");
+                var id = $this.attr("id");
+                if ($(this).attr("data-method") == "POST") {
+                    $(this).attr("data-href", url);
+                    $(this).attr("data-id", id);
+                } else {
+                    $(this).attr("data-href", url + "?" + field + "=" + id);
+                }
+            });
+            nodeCenter($(this));
+        });
+
+        oc.$chartContainer.on('click', '.person', function (event) {
+            $(".person").removeClass("active");
+            $(this).addClass("active");
+            $("#personTask").show();
+            var id = $(this).attr("id");
+            $('#personTask [data-task]').each(function () {
+                var field = $(this).attr("data-submitField");
+                var url = $(this).attr("data-url");
+                if ($(this).attr("data-method") == "POST") {
+                    $(this).attr("data-href", url);
+                    $(this).attr("data-id", id);
+                } else {
+                    $(this).attr("data-href", url + "?" + field + "=" + id);
+                }
+            });
+        });
+
+        oc.$chartContainer.on('toggle', '.node', function (e) {
+            var $this = $j(e.target);
+            $this.trigger("click");
+        });
+
+        oc.$chartContainer.on('click', '.orgchart', function (event) {
+            if (!$(event.target).closest('.node').length) {
+                $("#departmentTask,#personTask").hide();
+            }
+        });
+    }
+
+    function nodeCenter($this) {
+        window.setTimeout(function () {
+            var $chart = $this.closest('.orgchart');
+            var newX = window.parseInt(($chart.outerWidth(true) / 2) - ($this.offset().left - $chart.offset().left) - ($this.outerWidth(true) / 2));
+            var newY = window.parseInt(($chart.outerHeight(true) / 5) - ($this.offset().top - $chart.offset().top) - ($this.outerHeight(true) / 2));
+
+        }, 400);
+    }
+
+    function DrawOrganizationSchema() {
+        $('#chart').empty();
+        oc = $('#chart').orgchart({
+            pan: true,
+            data: data,
+            nodeId: "id",
+            zoom: false,
+            depth: 20,
+            toggleSiblingsResp: false,
+            exportButton: true,
+            exportFilename: "MyOrgChart",
+            exportFileextension: "png",
+            nodeTemplate: function (data) {
+                return `
+                    <div class="title" data-id="${data.id}" style="background-color:${data.color}">${data.department}</div>
+                    <div class="content" style="border-color:${data.color}">${data.personels}</div>
+                  `;
+            },
+            createNode: function () {
+                $("#chart .edge:not(.bottomEdge),#chart .fa.fa-users.symbol").remove();
+            },
+            initCompleted: function () {
+                $("#chart .edge:not(.bottomEdge),#chart .fa.fa-users.symbol").remove();
+                nodeCenter($("#" + data.id));
+
+            }
+        });
+         $('.oc-export-btn').css('display','none')
+    }
+
+    function b64toPdf() {
+        var base64 = $('.oci-download-btn').attr('href')
+        var doc = new jsPDF();
+        var widthFirstTd = $($('.orgchart table tbody tr td')[0]).width();
+
+        doc.addImage(base64, 'PNG', 5, 5, 200, 120)
+        doc.save('OrganizasyonSemasi.pdf')
+    }
+</script>

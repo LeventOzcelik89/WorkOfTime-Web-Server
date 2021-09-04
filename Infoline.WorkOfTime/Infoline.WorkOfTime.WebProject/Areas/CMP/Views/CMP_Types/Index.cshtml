@@ -1,0 +1,21 @@
+﻿@{
+    ViewBag.Title = "Firma&Cari Tip Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.CMP_Types>("CMP_Types")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "CMP_Types", new { area = "CMP" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.typeName).Title("Firma&Cari Tip Adı");
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Firma&Cari Tip Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "CMP_Types", new { area = "CMP" }));
+        x.Custom().Text("<i data-original-title='Firma&Cari Tip Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "CMP_Types", new { area = "CMP" }));
+        x.Custom().Text("<i data-original-title='Firma&Cari Tip Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "CMP_Types", new { area = "CMP" }));
+        x.Custom().Text("<i data-original-title='Firma&Cari Tip Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "CMP_Types", new { area = "CMP" }));
+    }))

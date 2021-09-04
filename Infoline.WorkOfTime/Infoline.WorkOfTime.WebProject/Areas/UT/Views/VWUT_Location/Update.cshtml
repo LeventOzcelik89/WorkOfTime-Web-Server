@@ -1,0 +1,57 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_Location
+@{
+    ViewBag.Title = ((EnumUT_LocationType)Model.type).ToDescription() + " GÜNCELLE";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWUT_Location", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.pid)
+    @Html.HiddenFor(model => model.type)
+
+    if (Model.code == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="code">@(((EnumUT_LocationType)Model.type).ToDescription())  Kodu </label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                   {
+                       {"class", "form-control"},
+                       {"placeholder", "Lütfen " + (((EnumUT_LocationType)Model.type).ToDescription()) + " Kodunu Giriniz.."}
+                   }).Validate(Validations.TextEverywhere(false))
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.code)
+    }
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="@(((Infoline.WorkOfTime.BusinessAccess.EnumUT_LocationType)Model.type).ToDescription()) İsmi">@(((EnumUT_LocationType)Model.type).ToDescription()) İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen "+(((EnumUT_LocationType)Model.type).ToDescription()) + " İsmi giriniz.."}
+             }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

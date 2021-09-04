@@ -1,0 +1,130 @@
+﻿@model VMFTM_TaskModel
+@{
+    ViewBag.Title = "Görev Formu";
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>&nbsp;</title>
+    <link href="/Content/Themes/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/Content/Themes/css/style.css" rel="stylesheet">
+    <script src="/Content/Themes/js/jquery-2.1.1.js"></script>
+    <script src="/Content/Themes/js/bootstrap.min.js"></script>
+    <script src="/Content/Plugins/formBuilder/form-render.min.js"></script>
+    <script src="/Content/Plugins/Polyfill/polyfill.min.js"></script>
+    <link href="/Content/Custom/css/print.css" rel="stylesheet" />
+    <style type="text/css">
+        span, strong, div {
+            font-size: 11px;
+        }
+    </style>
+    <script type='text/javascript'>
+        function ImageError(element, image) {
+            element.onerror = '';
+            element.src = image;
+        }
+    </script>
+</head>
+<body class="white-bg">
+    <div class="row">
+        <div class="col-md-3 col-sm-3 col-lg-3 col-xs-3 text-left">
+            <img src="@(Model.company.logo ==null ? TenantConfig.Tenant.Config.Logo : Model.company.logo)" style="width:120px;" alt="image" onerror="ImageError(this,'@TenantConfig.Tenant.Config.Logo')">
+        </div>
+        <div class="col-md-9 col-sm-9 col-lg-9 col-xs-9 text-right">
+            <h4 class="">GÖREV FORMU</h4>
+            <div><strong>Görev Kodu : </strong><span> @Model.code</span></div>
+            <div><strong>Görev Tipi : </strong><span>  @Model.type_Title</span></div>
+            <div><strong>Evrak Oluşturma Tarihi : </strong><span>  @DateTime.Now.ToString("dd.MM.yyyy HH:mm")</span></div>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-left">
+            <h5>@Model.company.name</h5>
+            <div>@Model.company.openAddress @Model.company.openAddressLocationId_Title</div>
+            <div>@Model.company.phone</div>
+            <div>@Model.company.email</div>
+        </div>
+        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6 text-right">
+            @if (Model.customer != null)
+            {
+                <h5>@Model.customer.name</h5>
+                <div>@Model.customer.openAddress @Model.customer.openAddressLocationId_Title</div>
+                <div>@Model.customer.phone</div>
+                <div>@Model.customer.email</div>
+            }
+        </div>
+    </div>
+    <hr />
+    <div class="clearfix">
+        <h4>Görev Envanter Bilgileri</h4>
+        <div class="well clearfix">
+            <div class="pull-left">@Model.product_Title</div>
+            <div class="pull-right">@Model.fixture_Title</div>
+        </div>
+    </div>
+    <div class=" clearfix">
+        <h4>Görev Operasyon Bilgileri</h4>
+        <div class="well clearfix">
+            <table class="table  invoice-table">
+                <thead>
+                    <tr>
+                        <th>Sıra No</th>
+                        <th>Operasyon Tipi</th>
+                        <th>Operasyon Tarihi</th>
+                        <th>Operasyon Gerçekleştiren</th>
+                        <th>Operasyon Açıklaması</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.taskOperations.OrderBy(a => a.created).Select((operation, i) => new { i = i, operation = operation }))
+                    {
+                        <tr>
+                            <td> @item.i</td>
+                            <td> @item.operation.status_Title</td>
+                            <td> @string.Format("{0:dd.MM.yyyy HH:mm}", item.operation.created)</td>
+                            <td>@item.operation.createdby_Title</td>
+                            <td>@item.operation.description </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-md-4 col-sm-4 col-lg-4 col-xs-4 text-center">
+            <strong>Müşteri Yetkili</strong>
+            <hr />
+            <div class="text-left">
+                <div>İsim Soyisim : </div>
+                <div>Tarih : </div>
+                <div>İmza : </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-sm-4 col-lg-4 col-xs-4 text-center">
+            <strong>Ekip Sorumlusu</strong>
+            <hr />
+            <div class="text-left">
+                <div>İsim Soyisim : </div>
+                <div>Tarih : </div>
+                <div>İmza : </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 col-sm-4 col-lg-4 col-xs-4 text-center">
+            <strong>Uygulamayı Yapan Personel</strong>
+            <hr />
+            <div class="text-left">
+                <div>İsim Soyisim : </div>
+                <div>Tarih : </div>
+                <div>İmza : </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+

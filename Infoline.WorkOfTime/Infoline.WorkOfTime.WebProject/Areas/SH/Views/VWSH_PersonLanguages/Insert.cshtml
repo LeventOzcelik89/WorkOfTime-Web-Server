@@ -1,0 +1,188 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonLanguages
+@{
+    ViewBag.Title = "Personel Yabancı Dil Bilgisi Ekle";
+    if (Request.Url.ToString().IndexOf("PersonUpdate") == -1)
+    {
+        Layout = "~/Views/Shared/_Layout.cshtml";
+    }
+}
+
+@using (Html.BeginForm("Insert", "VWSH_PersonLanguages", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    if (Model.UserId == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="PersonId">Personel Seçiniz</label>
+            </div>
+            <div class="col-md-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.UserId)
+                  .OptionLabel("Lütfen Personel Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                   .Template("#=TemplateEngine('userTemplate',data)#")
+                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Execute("id")
+                  .Validate(Validations.Required)
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(model => model.UserId)
+    }
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Languages">Dil</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Languages)
+              .OptionLabel("Lütfen Yabancı Dil Bilgisini Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonLanguages" && a.fieldName == "Languages")
+              .Execute("enumKey")
+             .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="Reads">Okuma</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Reads)
+              .OptionLabel("Lütfen Okuma Bilgisini Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonLanguages" && a.fieldName == "Reads")
+              .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="Write">Yazma</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Write)
+              .OptionLabel("Lütfen Yazma Bilgisini Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonLanguages" && a.fieldName == "Reads")
+              .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="Speak">Konuşma</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Speak)
+              .OptionLabel("Lütfen Konuşma Bilgisini Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonLanguages" && a.fieldName == "Reads")
+              .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="CertificateTypeId">Belge Türü</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.CertificateTypeId)
+                .OptionLabel("Lütfen Belge Türü Seçiniz..")
+                .DataTextField("CertificateName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_PersonCertificateType", new { area = "SH" }))
+                .Sort(x => x.Add("CertificateName").Ascending())
+                .BasicInsert(Url.Action("Insert", "VWSH_PersonCertificateType", new { area = "SH" }), "CertificateName", false)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="point">Puan</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.point).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"style", "width:100%"},
+                                {"class", "text-right form-control" }
+                            }).Spinners(false).Format("n2").Max(100).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                <span class="input-group-addon" id="CertificateTime">Puan</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Sertifika Dosyası</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("SH_PersonLanguages")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Sertifika Dosyası")
+            )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on("click", '[aria-owns="CertificateTypeId_listbox"]', function () {
+            $("#CertificateTypeId").data("kendoDropDownList").dataSource.read();
+        })
+</script>

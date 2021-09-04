@@ -1,0 +1,1368 @@
+﻿@model  Infoline.WorkOfTime.WebProject.Areas.PRJ.Models.VMPRJ_ProjectModel
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+	ViewBag.Title = "Proje İşlemleri (" + Model.ProjectCode + " | " + Model.ProjectName + ")";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+
+	decimal remainingCal = ((decimal)Model.ProjectStarEndArea - (decimal)Model.ProjectRemainingDay);
+	decimal result = ((remainingCal / (decimal)Model.ProjectStarEndArea) * 100);
+}
+<script type="text/javascript">
+	var first = false;
+	function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+            dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+	}
+
+		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+
+		function FilterMenuTaskPriority(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Görev Önceliği Seçiniz"
+			})
+	}
+
+
+	$(document).on('shown.bs.tab', 'a[href="#ProjectFTM_Task"]', function (e) {
+		if (first == false) {
+			first = true;
+			$("#VWFTM_Task").data("kendoGrid").refresh();
+		}
+	});
+
+</script>
+
+
+
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+	#if(type_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+	#}#
+</script>
+
+
+<script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+	#if(lastOperationStatus_Title != null){#
+	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+	#}#
+</script>
+
+<script type="text/javascript">
+
+	function taskPriorityResult(data) {
+
+		if (data.priority == 0) {
+
+			return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+		}
+		else if (data.priority == 1) {
+			return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+		}
+		else if (data.priority == 2) {
+			return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+		}
+
+	}
+
+	var gridBase = {
+		items: {
+			DropDown1: null,
+			DropDown2: null
+		}
+	};
+
+	function filterMenuInit(e) {
+		if (e.field == "created") {
+			var $container = e.container;
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[14]).html("Başlangıç Tarihi");
+			$($('.k-header')[17]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+
+		}
+		else if (e.field == "dueDate") {
+			var $container = e.container;
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[20]).html("Başlangıç Tarihi");
+			$($('.k-header')[23]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+		}
+		else if (e.field == "lastOperationDate") {
+			var $container = e.container;
+
+
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
+
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
+
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+			$($('.k-header')[25]).html("Başlangıç Tarihi");
+			$($('.k-header')[28]).html("Bitiş Tarihi");
+
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
+
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
+
+					$container.find('[type="submit"]').removeAttr('disabled');
+
+				}
+
+			});
+
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+				$container.find('[data-role="datepicker"]').trigger('change');
+
+			});
+		}
+	}
+
+</script>
+
+
+<script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+	#if(description!=null){#
+	#if(description.length >= 25){#
+	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
+	#}
+	else
+	{#
+	<div style="font-size:13px;">#=description#</div>
+	#}#
+	#}#
+</script>
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+	#var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+	#var color ="text-primary"#
+
+	#if(priority==0){#
+	#color = "text-danger"#
+	#}else if(priority==1){#
+	#color = "text-warning"#
+	#}else if(priority==2){#
+	#color = "text-primary"#
+	#}#
+
+	<table class="table shoping-cart-table">
+		<tbody>
+			<tr>
+				<td style="width:3%;text-align: center;vertical-align: inherit;">
+					<span>
+						#if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+					</span>
+				</td>
+
+				<td class="desc" style="width:55%;">
+					#if(type_Title != null){#
+					<div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+					#}#
+
+					#if(description!=null){#
+					#if(description.length >= 25){#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+					#}
+					else
+					{#
+					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+					#}#
+					#}#
+
+
+					#if(code!=null){#
+					<div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+					#}#
+
+					#if(customer_Title!=null){#
+					<div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+					#}#
+
+					#if(customerStorage_Title!=null){#
+					<div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+					#}#
+
+					#if(fixture_Title!=null){#
+					<div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+					#}#
+
+					<div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
+					#if(lastOperationStatus_Title!=null){#
+					<div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+					#}#
+
+					#if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+					<div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+					#}#
+
+					#if(taskSubjectType_Title != null){#
+					<span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+					#}#
+				</td>
+	             <td style="width:10%;vertical-align: inherit;">
+	             	<h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+	             				</h5>
+	             	<h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+	             		<i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+	             				</h5>
+	             </td>
+			</tr>
+		</tbody>
+	</table>
+
+</script>
+
+<style type="text/css">
+	.list-group.clear-list .list-group-item {
+		padding: 5px 0px !important;
+	}
+
+	.table {
+		border-top: 0px #ddd solid;
+	}
+
+	.mywidget {
+		border-radius: 10px !important;
+		padding: 10px 15px !important;
+		margin-bottom: 10px !important;
+		margin-top: 0px !important;
+		min-height: 70px !important;
+	}
+
+	.dl-horizontal dt {
+		text-align: left !important;
+	}
+
+	span.k-icon.k-si-close {
+		display: none;
+	}
+</style>
+
+
+
+<div class="row">
+	<div class="col-lg-3">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>PROJE BİLGİLERİNİ GÜNCELLE</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content clearfix">
+				@using (Html.BeginForm("Update", "VWPRJ_Project", FormMethod.Post, new Dictionary<string, object>() {
+					{ "class", "form-horizontal" },
+					{ "role", "form" },
+					{ "data-selector", "modalContainer" },
+					{ "data-formType", "Ajax" },
+					{ "id", "VWPRJ_ProjectUpdate" },
+					{ "style","padding:10px !important"}
+				}))
+				{
+					@Html.AntiForgeryToken()
+					@Html.ValidationSummary(true)
+					@Html.HiddenFor(model => model.id)
+
+					<div class="form-group">
+						<label>Proje Adı</label>
+						@Html.TextBoxFor(model => model.ProjectName, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Proje Adı  Girin.."},
+						}).Validate(Validations.Required)
+					</div>
+					<div class="form-group">
+						<label>Projenin Tipi</label>
+						@(Html.Akilli()
+                            .DropDownListFor(model => model.ProjectType)
+                            .OptionLabel("Lütfen Proje Tipini Seçiniz..")
+                            .MinLength(2)
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumDescription").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRJ_Project" && a.fieldName == "ProjectType")
+                            .Events(e => { e.Change("onProjectType"); e.DataBound("onProjectTypeBound"); })
+                            .Execute("enumKey")
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Proje Sponsoru</label>
+						@(Html.Akilli()
+                             .DropDownListFor(model=>model.ProjectSponsorId)
+                              .OptionLabel("Lütfen Proje Sponsoru Seçiniz..")
+                             .DataTextField("FullName")
+                             .DataValueField("id")
+                            .Template("#=TemplateEngine('userTemplate',data)#")
+                            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                            .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                             .Sort(x => x.Add("FullName").Ascending())
+                             .Execute("id")
+                             .Validate(Validations.Required)
+                            )
+					</div>
+
+					<div class="form-group">
+						<label>Proje Yöneticisi</label>
+						@(Html.Akilli()
+								.DropDownListFor(model => model.ProjectManagerId)
+								.OptionLabel("Lütfen Proje Yöneticisi Seçiniz..")
+								.DataTextField("FullName")
+								.DataValueField("id")
+								.Template("#=TemplateEngine('userTemplate',data)#")
+								.Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+								.Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+								.Sort(x => x.Add("FullName").Ascending())
+								.Execute("id")
+								.Validate(Validations.Required)
+                            )
+					</div>
+
+					if (Model.IdProjectLinked != null)
+					{
+						<div class="form-group">
+							<label>Bağlantılı Proje</label>
+							@(Html.Akilli()
+                                .DropDownListFor(model => model.IdProjectLinked)
+                                .OptionLabel("Lütfen Bağlantı Proje Seçiniz..")
+                                .DataTextField("ProjectName")
+                                .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                                .Sort(x => x.Add("ProjectName").Ascending())
+                                .Readonly(true)
+                                .Execute()
+                            )
+						</div>
+					}
+
+					if (Model.CompanyId == null)
+					{
+						<div class="form-group">
+							<label>Projenin İşletmesi</label>
+							@(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.CompanyId)
+                                .Id("projectCompanyId")
+                                .OptionLabel("Lütfen Projeyi Gerçekleştiren İşletmeyi seçiniz.")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Template("#=TemplateEngine('companyTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute()
+                            )
+						</div>
+					}
+					else
+					{
+						<div class="form-group">
+							<label>Projenin İşletmesi</label>
+							@Html.HiddenFor(model => model.CompanyId)
+
+							@(Html.TextBoxFor(model => model.Company_Title, new Dictionary<string, object>()
+                              {
+                                  {"class", "form-control"},
+                                  {"disabled", "disabled"}
+                              })
+                            )
+						</div>
+					}
+
+					<div class="form-group">
+						<label>Proje Başlangıç Tarihi</label>
+						@(
+                            Html.Akilli().DatePickerFor(model => model.ProjectStartDate)
+                            .Placeholder("Lütfen Proje Başlangıç Tarihi  Seçiniz")
+                            .Format(Extensions.DateFormatShort())
+                            .Enable(true)
+                            .MinDateElement("ProjectStartDate")
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Proje Bitiş Tarihi</label>
+						@(
+                            Html.Akilli().DatePickerFor(model => model.ProjectEndDate)
+                            .Placeholder("Lütfen Proje Bitiş Tarihi  Seçiniz..")
+                            .Format(Extensions.DateFormatShort())
+                            .Enable(true)
+                            .MinDateElement("ProjectStartDate")
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Garanti Başlangıç Tarihi</label>
+						@(
+                            Html.Akilli().DatePickerFor(model => model.WarrantyStartDate)
+                            .Placeholder("Lütfen Garanti Başlangıç Tarihi  Seçiniz")
+                            .Format(Extensions.DateFormatShort())
+                            .Enable(true)
+                            .MinDateElement("ProjectEndDate")
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Garanti Bitiş Tarihi</label>
+						@(
+                            Html.Akilli().DatePickerFor(model => model.WarrantyEndDate)
+                            .Placeholder("Lütfen Garanti Bitiş Tarihi  Seçiniz..")
+                            .Format(Extensions.DateFormatShort())
+                            .Enable(true)
+                            .MinDateElement("WarrantyStartDate")
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Projenin Kodu</label>
+						@Html.TextBoxFor(model => model.ProjectCode, new Dictionary<string, object>()
+										{
+											{"class", "form-control"},
+											{"placeholder", "Lütfen Proje Kodu Girin.."},
+										}).Validate(Validations.Required)
+					</div>
+
+					<div class="form-group">
+						<label>Jira Kodu</label>
+						@Html.TextBoxFor(model => model.ProjectJiraKey, new Dictionary<string, object>()
+									   {
+										   {"class", "form-control"},
+										   {"placeholder", "Lütfen Projenin Jira Anahtar Kodunu Girin.."},
+									   })
+					</div>
+
+					<div class="form-group">
+						<label>Yapılacağı Kurum</label>
+						@(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.CorporationId)
+                            .Id("projectCorporationId")
+                            .OptionLabel("Lütfen Projeyi Gerçekleştiren İşletmeyi seçiniz.")
+                            .DataTextField("name")
+                            .DataValueField("id")
+                            .Template("#=TemplateEngine('companyTemplate',data)#")
+                            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                            .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Diger)
+                            .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+                            .Sort(x => x.Add("name").Ascending())
+                            .Execute()
+                        )
+					</div>
+
+					if (Model.ProjectTechnicalType != null)
+					{
+						<div class="form-group">
+							<label>Teknik Tipleri</label>
+							@(
+                                Html.Akilli()
+                                .MultiSelect("ProjeTeknikTip")
+                                .Placeholder("Projenin Teknik Tipini Seçiniz..")
+                                .DataTextField("enumDescription")
+                                .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                .Sort(x => x.Add("enumDescription").Ascending())
+                                .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRJ_Project" && a.fieldName == "ProjectTechnicalType").Events(c => c.RequestEnd("onRequestEndProjeTeknikTip"))
+                                .Sort(x => x.Add("enumKey").Ascending()).Validate(Validations.Required)
+                                .Execute("enumKey")
+                            )
+						</div>
+					}
+
+					<div class="form-group">
+						<label>Proje Alanı</label>
+						@Html.TextBoxFor(model => model.ProjectScope, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Proje Alanı (Faaliyet Alanı ) Girin.."},
+						})
+					</div>
+
+					<div class="form-group">
+						<label>Sözleşme Teminat Tarihi</label>
+						@(Html.Akilli()
+                            .DateTimePickerFor(model => model.ContractGuaranteeDate)
+                            .Enable(true)
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Avans Teminat Tarihi</label>
+						@(Html.Akilli()
+                            .DateTimePickerFor(model => model.AdvanceGuaranteeDate)
+                            .Enable(true)
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Garanti Teminat Tarihi</label>
+						@(Html.Akilli()
+                            .DateTimePickerFor(model => model.WarrantyGuaranteeDate)
+                            .Enable(true)
+                        )
+					</div>
+
+					<div class="form-group">
+						<label>Sözleşme Teminat Bedeli</label>
+						<div class="input-group">
+							@(Html.Kendo().NumericTextBoxFor(model => model.ContractAmount).
+                            Value(Model.ContractAmount ?? 0).Spinners(false).
+                            Format("n2").Enable(true).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"style", "width:100%"},
+                                {"class", "text-right form-control"},
+                            }).Culture("tr-TR")
+                            )
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Avans Teminat Bedeli</label>
+						<div class="input-group">
+							@(Html.Kendo().NumericTextBoxFor(model => model.AdvanceAmount).
+                               Value(Model.AdvanceAmount ?? 0).Spinners(false).
+                               Format("n2").Enable(true).HtmlAttributes(new Dictionary<string, object>()
+                               {
+                                   {"style", "width:100%"},
+                                   {"class", "text-right form-control"},
+                               }).Culture("tr-TR")
+                            )
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Garanti Teminat Bedeli</label>
+						<div class="input-group">
+							@(Html.Kendo().NumericTextBoxFor(model => model.WarrantyAmount).
+                            Value(Model.WarrantyAmount ?? 0).Spinners(false).
+                            Format("n2").Enable(true).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"style", "width:100%"},
+                                {"class", "text-right form-control"},
+                            }).Culture("tr-TR")
+                            )
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Para Birimi</label>
+						@Html.Akilli().RadioButtonGroupFor(model => model.PriceType).Value(EnumPRJ_ProjectPriceType.TurkLirasi).Readonly(true)
+					</div>
+
+					if (Model.PriceType != null && Model.PriceType != (Int32)EnumPRJ_ProjectPriceType.TurkLirasi)
+					{
+						<div class="form-group">
+							<label>Kur Oranı</label>
+							<div class="input-group"></div>
+							@(Html.TextBoxFor(model => model.Exchange, new Dictionary<string, object>()
+                                {
+                                  {"class", "text-right form-control"},
+                                  {"placeholder", "1"}
+
+                                }))
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+							<span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+						</div>
+					}
+
+					<div class="form-group">
+						<label>İhale / Sözleşme Numarası</label>
+						@Html.TextBoxFor(model => model.TenderNo, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen İhale/Sözleşme Numarası  Girin.."},
+						})
+					</div>
+
+					<div class="form-group">
+						<label>İhale / Sözleşme Adı</label>
+						@Html.TextBoxFor(model => model.TenderName, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen İhale/Sözleşme Adı  Girin.."},
+						})
+					</div>
+
+					<div class="form-group">
+						<label>İhale / Sözleşme Açıklaması</label>
+						@Html.TextAreaFor(model => model.TenderWrite, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen İhale/Sözleşme Açıklaması  Girin.."},
+						})
+					</div>
+
+					<div class="form-group">
+						<label>Aktif mi ?</label>
+						<div class="col-md-12 radio">
+							<label> @Html.Kendo().RadioButtonFor(a => a.IsActive).Checked(Model.IsActive.HasValue && Model.IsActive == true).Value(true) @EnumPRJ_ProjectIsActive.Evet.ToDescription() </label>
+							<label> @Html.Kendo().RadioButtonFor(a => a.IsActive).Checked(Model.IsActive == null || Model.IsActive == false).Value(false) @EnumPRJ_ProjectIsActive.Hayir.ToDescription() </label>
+						</div>
+					</div>
+
+					<div class="form-group">
+						<label>Onaylanmış mı?</label>
+						<div class="col-md-12 radio">
+							<label> @Html.Kendo().RadioButtonFor(a => a.IsConfirm).Checked(Model.IsConfirm == true).Value(true) @EnumPRJ_ProjectIsConfirm.Evet.ToDescription() </label>
+							<label> @Html.Kendo().RadioButtonFor(a => a.IsConfirm).Checked(Model.IsConfirm == false || Model.IsConfirm == null).Value(false) @EnumPRJ_ProjectIsConfirm.Hayir.ToDescription() </label>
+						</div>
+					</div>
+
+
+					<div>
+						<button class="btn btn-sm btn-primary pull-right m-t-n-xs" type="submit"><strong> Güncelle </strong></button>
+					</div>
+				}
+
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-9">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5> <i class="fa text-success icon-briefcase-1"></i> @Model.ProjectName (@Model.ProjectCode) </h5>
+				<div class="ibox-tools">
+					<a class="collapse-link pull-right">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content clearfix" style="padding-bottom:0px !important; padding-top:10px !important;">
+				<div class="col-lg-5">
+					<dl class="dl-horizontal">
+						<dt>Proje Başlangıç Tarihi:</dt>
+						<dd>
+							@(Model.ProjectStartDate != null ? string.Format("{0:dd.MM.yyyy}", Model.ProjectStartDate) : "-")
+						</dd>
+					</dl>
+				</div>
+				<div class="col-lg-7">
+					<dl class="dl-horizontal">
+						<dt>Proje Bitiş Tarihi:</dt>
+						<dd>
+							@(Model.ProjectEndDate != null ? string.Format("{0:dd.MM.yyyy}", Model.ProjectEndDate) : "-")
+						</dd>
+					</dl>
+				</div>
+				<div class="col-lg-12">
+					<dl class="dl-horizontal">
+						<dt>Projede Geçen Süre:</dt>
+						<dd>
+							<div class="progress progress-striped active m-b-sm">
+								<div style="width:@(Convert.ToInt32(result))%;" class="progress-bar"></div>
+							</div>
+						</dd>
+					</dl>
+				</div>
+			</div>
+		</div>
+
+
+		<section style="margin-bottom: 20px;">
+			<div class="tabs-container">
+				<ul class="nav nav-tabs">
+					<li class="active" data-href="@Url.Action("Preview","VWPRJ_ProjectTimeline", new { area = "PRJ" })" data-toggle="tooltip" data-placement="top" title="Gantt Şeması">
+						<a data-toggle="tab" href="#Gantt" aria-expanded="true">
+							<i class="icon-flow-branch text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-href="@Url.Action("Preview", "VWINV_CompanyDepartments", new {area="INV" })" data-placement="top" title="Matrix Şeması">
+						<a data-toggle="tab" href="#ProjectMatrix" aria-expanded="true">
+							<i class="icon-flow-tree text-success fa-2x"></i>
+						</a>
+					</li>
+
+					<li data-toggle="tooltip" data-placement="top" title="Personeller" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonDepartments", new {area="INV" })">
+						<a data-toggle="tab" href="#ProjectPersons" aria-expanded="true">
+							<i class="icon-users-1 text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Geliştirme Puantaj" data-href="@Url.Action("Preview", "VWINV_CompanyPersonAvailability", new { area = "INV" })">
+						<a data-toggle="tab" href="#ProjectPersonAvability" aria-expanded="true">
+							<i class="icon-sort-number-down text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Bakım Puantaj" data-href="@Url.Action("Preview", "VWINV_CompanyPersonAvailability", new { area = "INV" })">
+						<a data-toggle="tab" href="#ProjectPersonAvability2" aria-expanded="true">
+							<i class="icon-sort-number-up text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Maliyet" data-href="@Url.Action("Cost", "VWPRJ_Project", new {area="PRJ" })">
+						<a data-toggle="tab" href="#GeneralCost" aria-expanded="true">
+							<i class="icon-money-1 text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Faturalar" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new {area="CMP" })">
+						<a data-toggle="tab" href="#ProjectInvoice" aria-expanded="true">
+							<i class="icon-doc-text-2 text-success fa-2x"></i>
+						</a>
+					</li>
+
+					<li data-toggle="tooltip" data-placement="top" title="Satın Alma Talepleri" data-href="@Url.Action("DataSource", "VWCMP_Request", new { area = "CMP" })">
+						<a data-toggle="tab" href="#BuyingRequest" aria-expanded="true">
+							<i class="icon-cart-arrow-down text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Görevlendirmeler" data-href="@Url.Action("DataSource", "VWINV_CommissionsProjects", new { area = "INV" })">
+						<a data-toggle="tab" href="#Commissions" aria-expanded="true">
+							<i class="icon-cab text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Proje Masrafları" data-href="@Url.Action("DataSource", "VWPA_Transaction", new { area = "PA" })">
+						<a data-toggle="tab" href="#Expenses" aria-expanded="true">
+							<i class="icon-money text-success fa-2x"></i>
+						</a>
+					</li>
+					<li data-toggle="tooltip" data-placement="top" title="Proje/Sözleşme Dosyaları">
+						<a data-toggle="tab" href="#ProjectFile" aria-expanded="true">
+							<i class="icon-folder-open-1 text-success fa-2x"></i>
+						</a>
+					</li>
+
+					<li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" data-placement="top" title="Proje Görevleri">
+						<a data-toggle="tab" href="#ProjectFTM_Task" aria-expanded="true">
+							<i class="icon-wrench text-success fa-2x"></i>
+						</a>
+					</li>
+
+
+					<li data-href="@Url.Action("DataSource","VWCMP_ServiceLevel", new { area = "CMP" })" class="pull-right" data-toggle="tooltip" data-placement="top" title="Sözleşme Hizmet Seviye Tanımları">
+						<a data-toggle="tab" href="#VWCMP_ContractServiceLevelTab" aria-expanded="true"><i class="icon-signal-1 text-success fa-2x"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource","VWPRJ_ProjectTypeLevel", new { area = "PRJ" })" class="pull-right" data-toggle="tooltip" data-placement="top" title="Görev Konusu ve Tipi Seviye Tanımları">
+						<a data-toggle="tab" href="#VWFTM_ProjectTypeLevelTab" aria-expanded="true"><i class="icon-cogs text-success fa-2x"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource","VWPRJ_ProjectScopeLevel", new { area = "PRJ" })" class="pull-right" data-toggle="tooltip" data-placement="top" title="Bölgesel Seviye Tanımları">
+						<a data-toggle="tab" href="#VWFTM_TaskScopeLevelTab" aria-expanded="true"><i class="icon-map text-success fa-2x"></i></a>
+					</li>
+				</ul>
+				<div class="tab-content">
+					<div class="tab-pane active" data-href="@Url.Action("Preview", "VWPRJ_ProjectTimeline", new {area="PRJ" })" id="Gantt">
+						<h4><i class="icon-flow-branch text-success"></i> PROJE KİLOMETRE TAŞLARI ZAMAN ÇİZELGESİ </h4>
+
+						@Html.Action("Upsert", "VWPRJ_ProjectTimeline", new { area = "PRJ", IdProject = Model.id })
+
+						<script type="text/javascript">
+							$(document)
+								.on('click', '[href="#Gantt"]', function (e) {
+									$('#Gant').data('kendoGantt').dataSource.read();
+								});
+						</script>
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("Preview", "VWINV_CompanyDepartments", new {area="INV" })" id="ProjectMatrix">
+						<h4><i class="icon-flow-tree text-success"></i> @Model.ProjectName MATRİX ŞEMASI </h4>
+
+						@Html.Action("Upsert", "VWINV_CompanyDepartments", new { area = "INV", IdProject = Model.id })
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonDepartments", new {area="INV" })" id="ProjectPersons">
+						<h4><i class="icon-users-1 text-success"></i>  PROJEDE GÖREV ALAN PERSONELLER </h4>
+						@(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartments")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" }))
+                            .Filter(a => a.ProjectId == Model.id)
+                            .PageSize(25).Sort(f => f.Add("created").Descending()))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).GridSelector(GridSelectorType.Radio);
+                                x.Bound(y => y.Person_Title).Title("Çalışan Adı").Width(250);
+                                x.Bound(y => y.Department_Title).Title("Departman").Width(250);
+                                x.Bound(y => y.StartDate).Title("Görev Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(250);
+                                x.Bound(y => y.EndDate).Title("Görev Bitiş Tarihi").Format(Extensions.DateFormatShort(true)).Width(250);
+                                x.Bound(y => y.IdUser).Visible(false);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Single)))
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("Preview", "VWINV_CompanyPersonAvailability", new { area = "INV" })" id="ProjectPersonAvability">
+						<h4><i class="icon-sort-number-down text-success"></i> GELİŞTİRME PERSONELİ PUANTAJ </h4>
+						@Html.Action("Upsert", "VWINV_CompanyPersonAvailability", new { area = "INV", IdProject = Model.id, type = EnumINV_CompanyPersonAvailabilityType.Proje })
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("Preview", "VWINV_CompanyPersonAvailability", new { area = "INV" })" id="ProjectPersonAvability2">
+						<h4><i class="icon-sort-number-up text-success"></i> BAKIM PERSONELİ PUANTAJ </h4>
+						@Html.Action("Upsert", "VWINV_CompanyPersonAvailability", new { area = "INV", IdProject = Model.id, type = EnumINV_CompanyPersonAvailabilityType.Bakim })
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("Cost", "VWPRJ_Project", new {area="PRJ" })" id="GeneralCost">
+						<h4><i class="icon-money-1 text-success"></i> MALİYET </h4>
+						@Html.Action("Cost", "VWPRJ_Project", new { area = "PRJ", IdProject = Model.id })
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new {area="CMP" })" id="ProjectInvoice">
+						<h4><i class="icon-doc-text-2 text-success"></i> PROJEYE KESİLMİŞ FATURALAR </h4>
+						@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_Invoice")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
+                            .Filter(a => a.direction == (int)EnumCMP_InvoiceDirectionType.Alis && a.projectId == Model.id).PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.Supplier_Title).Title("Tedarikçi").Width(250);
+                                x.Bound(y => y.SerialNumber_Title).Title("Seri-Sıra No").Width(130);
+                                x.Bound(y => y.issueDate).Title("Fatura Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(120).ClientTemplate("#=currencyFunction(data, data.totalTax)#");
+                                x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(120).ClientTemplate("#=currencyFunction(data, data.totalAmount, true)#");
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Single))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Fatura Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP", projectId = Model.id, customerId = Model.CompanyId, supplierId = Model.CorporationId }));
+                                x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                                x.Custom().Text("<i data-original-title='Fatura Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Invoice", new { area = "CMP" }));
+                            }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_CommissionsProjects", new { area = "INV" })" id="Commissions">
+						<h4><i class="icon-cab text-success"></i> PROJE BAZLI PERSONEL GÖREVLENDİRMELERİ </h4>
+						@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CommissionsProjects>
+                            ("VWINV_CommissionsProjects")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CommissionsProjects", new { area = "INV" }))
+                            .Filter(c => c.IdProject == Model.id)
+                            .PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.ApproveStatus).Title("").ClientTemplate("#=statusComissions(data)#").Filterable(a => a.Enabled(false)).Width(40);
+                                x.Bound(y => y.IdCommissions).Visible(false);
+                                x.Bound(y => y.Information_Title).Title("Görevlendirme Tipi").Width(180);
+                                x.Bound(y => y.Person_Title).Title("Personel").Width(180);
+                                x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.TravelInformation_Title).Title("Seyahat Tipi").Width(180);
+                                x.Bound(y => y.Manager1ApprovalDate).Title("Yönetici Onay Tarihi").Format(Extensions.DateFormatFull(true));
+                            })
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Görevlendirme Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_Commissions", new { area = "INV", projectId = Model.id }));
+                                x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görevlendirme detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-blank", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_Commissions", new { area = "INV" }));
+                                x.Custom().Text("<i class='fa fa-upload' data-original-title='Islak imzalı dosya yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_Commissions", new { area = "INV" }));
+                                x.Custom().Text("<i class='fa fa-print' data-original-title='Formu Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("CommissionsForm", "VWINV_Commissions", new { area = "INV" }));
+                                x.Custom().Text("<i class='fa fa-trash' data-original-title='Görevlendirme Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Delete", "VWINV_Commissions", new { area = "INV" }));
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple)))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_Procurement", new { area = "INV" })" id="BuyingRequest">
+						<h4><i class="icon-cart-arrow-down text-success"></i> PROJE İÇİN OLUŞTURULMUŞ SATIN ALMA TALEPLERİ </h4>
+						@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
+                            .Filter(a => a.type == (int)EnumCMP_InvoiceType.Talep && a.direction == (int)EnumCMP_InvoiceDirectionType.Alis && a.projectId == Model.id).PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).ClientTemplate("#= statusTemplate(data) #").Width(30).Filterable(false).Title("");
+                                x.Bound(y => y.CustomerStorage_Title).Title("Giriş Yapılacak Şube/Depo").Width(220);
+                                x.Bound(y => y.createdby_Title).Title("Talep Eden Personel").Width(180);
+                                x.Bound(y => y.created).Title("Talep Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.rowNumber).Title("Talep Kodu").Width(180);
+                                x.Bound(y => y.status_Title).Title("Talep Durumu").Width(180);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Satın Alma Talebi Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", projectId = Model.id, customerId = Model.CompanyId }));
+                                x.Custom().Text("<i data-original-title='Talebi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP" }));
+                                x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
+
+                            }))
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" id="ProjectFTM_Task">
+						<h4><i class="glyphicon glyphicon-tasks text-success"></i>  PROJE GÖREVLERİ </h4>
+						@(Html.Akilli()
+					.Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
+					.Filter(a=>a.customerId == Model.CorporationId)
+					.PageSize(25).Sort(a => a.Add(c => c.lastOperationDate).Descending()))
+					//.Filterable(a => a.Mode(GridFilterMode.Row))
+					.Scrollable(a => a.Height(650))
+					.Columns(x =>
+					{
+						x.Bound(y => y.type_Title).Title("Görev Tipi").Width(150).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+						x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(240).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+						x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(200).ClientTemplate("#=taskPriorityResult(data)#");
+						x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+						x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+						x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+						x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+						x.Bound(y => y.lastOperationDate).Title("Son Operasyon Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+						x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+						{
+							b.Clear();
+							b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+							b.IsLessThanOrEqualTo("Bitiş Tarihi");
+						}
+
+						))).Width(180).Format(Extensions.DateFormatFull(true));
+						x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+						x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+						x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+						{
+
+							b.Clear();
+							b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+							b.IsLessThanOrEqualTo("Bitiş Tarihi");
+						}
+
+						))).Width(180).Format(Extensions.DateFormatFull(true));
+					})
+					.Events(ev => ev.FilterMenuInit("filterMenuInit"))
+					.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+					.ToolBar(x =>
+					{
+						x.Custom().Text("<i data-original-title='Görev Ekle' class='fa fa-plus'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" }, { "data-show", "always" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", projectId = Model.id }));
+						x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "true" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+						x.Custom().Text("<i data-original-title='Görev Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_Task", new { area = "FTM" }));
+					}))
+
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Transaction", new { area = "PA" })" id="Expenses">
+						<h4><i class="icon-money text-success"></i> PROJE MASRAFLARI </h4>
+
+						@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+                            .Filter(a => a.type == (int)EnumPA_TransactionType.Masraf && (a.dataId == Model.id || Model.taskIds.Contains(a.dataId)))
+                            .PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionExpense',data)#");
+                                x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                                x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                                x.Bound(y => y.currencyId_Title).Title("Döviz Tipi").Hidden(true).Width(130);
+                                x.Bound(y => y.created).Title("Talep Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.progressDate).Title("Masraf Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Single))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Masraf Talep Et' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA", dataId = Model.id, dataTable = "PRJ_Project", type = (int)EnumPA_TransactionType.Masraf }));
+                                x.Custom().Text("<i data-original-title='Masraf Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
+                            })
+                        )
+					</div>
+
+					<div class="tab-pane" id="ProjectFile">
+						<h4><i class="icon-folder-open-1 text-success"></i> Proje/Sözleşme Dosyaları </h4>
+						@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "PRJ_Project" })
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource","VWPRJ_ProjectTypeLevel", new { area = "PRJ" })" id="VWFTM_ProjectTypeLevelTab">
+						<h4><i class="icon-cogs text-success"></i> GÖREV TİPİ SEVİYE TANIMLARI </h4>
+						@(Html.Akilli()
+					.Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_ProjectTypeLevel>("VWPRJ_ProjectTypeLevel")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_ProjectTypeLevel", new { area = "PRJ" })).Filter(a=>a.projectId == Model.id).Sort(c=>c.Add(g=>g.level)).PageSize(25))
+					.Columns(x =>
+					{
+						x.Bound(y => y.level).Title("Seviye").Width(200);
+						x.Bound(y => y.type_Title).Title("Görev Tipi").Width(170);
+						x.Bound(y => y.projectId_Title).Title("Proje").Width(170);
+						x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(170);
+						x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true)).Width(170);
+
+					})
+					.Scrollable(x => x.Height(610))
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
+					.ToolBar(x =>
+					{
+						x.Custom().Text("<i data-original-title='Görev Konusu ve Tipi için Seviye Tanımı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRJ_ProjectTypeLevel", new { area = "PRJ", projectId = Model.id }));
+						x.Custom().Text("<i data-original-title='Görev Konusu ve Tipi için Seviye Tanımını Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRJ_ProjectTypeLevel", new { area = "PRJ" }));
+						x.Custom().Text("<i data-original-title='Görev Konusu ve Tipi için Seviye Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRJ_ProjectTypeLevel", new { area = "PRJ" }));
+					}))
+					</div>
+
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource","VWPRJ_ProjectScopeLevel", new { area = "FTM" })" id="VWFTM_TaskScopeLevelTab">
+						<h4><i class="icon-map text-success"></i>  BÖLGESEL SEVİYE TANIMLARI </h4>
+						@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_ProjectScopeLevel>("VWPRJ_ProjectScopeLevel")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_ProjectScopeLevel", new { area = "PRJ" })).Filter(a => a.projectId == Model.id).Sort(c => c.Add(g => g.level)).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.level).Title("Seviye").Width(200);
+                        x.Bound(y => y.locationIds_Title).Title("Bölgeler").Width(700);
+                    })
+                    .Scrollable(x => x.Height(610))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Bölgesel Seviye Tanımı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRJ_ProjectScopeLevel", new { area = "PRJ", projectId = Model.id }));
+                        x.Custom().Text("<i data-original-title='Bölgesel Seviye Tanımı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRJ_ProjectScopeLevel", new { area = "PRJ" }));
+                        x.Custom().Text("<i data-original-title='Bölgesel Seviye Tanımı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRJ_ProjectScopeLevel", new { area = "PRJ" }));
+                    }))
+					</div>
+
+					<div class="tab-pane" id="VWCMP_ContractServiceLevelTab">
+						<h4><i class="text-success icon-signal-1"></i> HİZMET SEVİYE TANIMLARI </h4>
+						@Html.Action("Upsert", "VWPRJ_ProjectServiceLevel", new { area = "PRJ", projectId = Model.id })
+					</div>
+				</div>
+			</div>
+		</section>
+
+	</div>
+</div>
+
+<script type="text/javascript">
+
+    var ProjeCode = '@Html.Raw(Model.Company_Title)';
+
+    $(document)
+        .on("ready", function () {
+
+            GetJsonDataFromUrl('/General/GetEnumProjectTechnicalType', null, function (res) {
+                var types = $('#technicalType').attr("data-type");
+                var text = "-";
+
+                if (types && types != null && types != "") {
+                    text = $.Enumerable.From(res).Where(a => types.includes(a.Id)).Select(s => s.Name).ToArray().join(",");
+                }
+
+                $('#technicalType').text(text);
+            })
+
+            FormatProjeCode(ProjeCode);
+
+            var ms = $('#ProjeTeknikTip').data("kendoMultiSelect");
+
+            ms.bind("dataBound", function (e) {
+                $('form').validator("validate");
+            });
+        })
+        .on("success", '#VWPRJ_ProjectUpdate', function (e, res) {
+            location.reload();
+        })
+
+    function imageError(element) {
+        element.onerror = '';
+        element.src = '/Content/Custom/img/na.png';
+    }
+
+    function First50Char(item) {
+
+        if (item == null) { return ''; }
+        return item.substr(0, 50) + (item.length > 50 ? '...' : '');
+    }
+
+     function statusTemplate(data){
+            if(data.status == '@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)'){
+                return '<i class="text-warning fa fa-edit"></i>';
+            }
+            if(data.status == '@((int)EnumCMP_RequestStatus.TalepReddedildi)'){
+                return '<i class="text-danger fa fa-times-circle"></i>';
+            }
+            if(data.status == '@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor)'){
+                return '<i class="text-warning fa fa-spinner"></i>';
+            }
+            if(data.status == '@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor)'){
+                return '<i class="text-success fa fa-hand-o-right"></i>';
+            }
+            if(data.status == '@((int)EnumCMP_RequestStatus.TeklifOnaylandi)'){
+                return '<i class="text-success fa fa-check"></i>';
+            }
+            if(data.status == '@((int)EnumCMP_RequestStatus.FaturasiAlindi)'){
+                return '<i class="text-primary fa fa-check-square-o"></i>';
+            }
+            if(data.status == null){
+                return '<i class="fa text-warning fa-warning">';
+            }
+        }
+
+     $(document)
+        .on("selected:grid", "#VWINV_CommissionsProjects", function (e, resp) {
+
+            $('[data-href="/INV/VWINV_Commissions/Update"],[data-href="/INV/VWINV_Commissions/Delete"],[data-href="/INV/VWINV_Commissions/CommissionsForm"]').addClass('hide');
+
+             if (resp.ApproveStatus == 0 && (resp.createdby == '@userStatus.user.id' || '@userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.ProjeYonetici))' == 'True')) {
+                $('[data-href="/INV/VWINV_Commissions/Delete"]').removeClass('hide');
+            }
+
+
+            if (resp.ApproveStatus == 1 && resp.Files == null) {
+               $('[data-href="/INV/VWINV_Commissions/Update"]').removeClass('hide');
+                if(resp.IdUser == '@userStatus.user.id'){
+                    $('[data-href="/INV/VWINV_Commissions/CommissionsForm"]').removeClass("hide");
+                }
+            }
+
+
+        })
+
+    function statusComissions(data) {
+        if(data.ApproveStatus == 0){
+            return '<i class="fa text-warning fa-spinner">';
+        }else if(data.ApproveStatus == 1 && data.Files==null){
+            return '<i class="fa text-success fa-upload"></i>';
+        }else if(data.ApproveStatus == 3 || (data == 1 && data.Files!=null)){
+            return '<i class="fa text-navy fa-check">';
+        }else{
+            return '<i class="fa text-danger fa-times-circle"></i>';
+        }
+     }
+
+
+    function currencyFunction(item, data, isTotal) {
+
+        if (!data) {
+            return "-";
+        }
+
+        if (isTotal && isTotal == true) {
+            return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
+        }
+        return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
+    }
+
+    function onProjectType(e) {
+        if (this.dataItem().Id == 0 || this.dataItem().Id == 3) {
+            $('[data-projectlink]').removeClass("hide");
+        } else {
+            $('[data-projectlink]').addClass("hide");
+        }
+
+        if (this.dataItem().Id == 3) {
+            $('#CorporationId').removeAttr('required', 'required');
+            $('#labelreq').removeClass('req');
+        } else {
+            $('#CorporationId').attr('required', 'required');
+            $('#labelreq').addClass('req');
+        }
+    }
+
+    function onProjectTypeBound(e) {
+        if (this.dataItem().Id == 3) {
+            $('#CorporationId').removeAttr('required', 'required');
+            $('#labelreq').removeClass('req');
+        } else {
+            $('#CorporationId').attr('required', 'required');
+            $('#labelreq').addClass('req');
+        }
+    }
+
+    function onRequestEndProjeTeknikTip(e) {
+        var multi = $('#ProjeTeknikTip').data("kendoMultiSelect")
+        multi.value(@Html.Raw(Json.Encode(ViewBag.teknik)))
+
+    }
+
+    function CompanyIdCode(e) {
+        var code = "";
+        var dt = new Date().toISOString().split('T')[0].replace('-', '').substr(0, 6);
+        if (this.dataItem().FullName.toUpperCase().indexOf("AKILL") == 0) {
+            code = "AKL_" + dt;
+        } else {
+            code = "INF_" + dt;
+        }
+        $("#ProjectCode").val(code);
+    }
+
+    function CompanyIdCode(e) {
+        var company = $("#CompanyId").data('kendoDropDownList');
+        if (company.selectedIndex == 0) {
+            $("#ProjectCode").parents(".input-group").find("span").html(null);
+            return;
+        }
+        FormatProjeCode(company.text());
+    }
+
+     function FormatProjeCode(q) {
+        var code = "";
+        var year = $("#ProjectStartDate").data('kendoDatePicker').value().getFullYear();
+        var month = $("#ProjectStartDate").data('kendoDatePicker').value().getMonth() + 1;
+        if (q.toUpperCase().indexOf("AKILL") == 0) {
+            code = "AKL_";
+        } else {
+            code = "INF_";
+        }
+        code = code + year + (month < 10 ? "0" + month : month);
+        $("#ProjectCode").parents(".input-group").find("span").html(code);
+    }
+    $(document).on('shown.bs.tab', 'a[href="#ProjectFTM_Task"]', function (e) {
+        if (first == false) {
+            first = true;
+            $("#VWFTM_Task").data("kendoGrid").refresh();
+        }
+    });
+</script>
+

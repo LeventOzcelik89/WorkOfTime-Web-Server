@@ -1,0 +1,218 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPA_Ledger
+@{
+    ViewBag.Title = "Ödeme Planı Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWPA_Ledger", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="accountId">Asıl Hesap</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.accountId)
+			      .OptionLabel("Lütfen Asıl Hesap seçiniz..")
+			      .DataTextField("code")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+			      .Sort(x => x.Add("code").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="accountRealtedId">Bağlantılı Hesap</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.accountRealtedId)
+			      .OptionLabel("Lütfen Bağlantılı Hesap seçiniz..")
+			      .DataTextField("code")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWPA_Account", new { area = "PA" }))
+			      .Sort(x => x.Add("code").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="direction">İşlem Yönü</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			     Html.Akilli().
+			     DropDownListFor(model => model.direction).
+			     OptionLabel("Lütfen İşlem Yönü seçiniz..").
+			     DataTextField("enumDescription").
+			     DataValueField("Id").
+			     Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			     Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PA_Ledger" && a.fieldName == "direction").
+			     Sort(x => x.Add("enumDescription").Ascending()).
+			     Validate(Validations.Required).
+			     Execute("enumKey")
+			 )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="amount">Miktar</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.amount, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Miktar giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="tax">Vergi</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.tax, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Vergi giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="rateExchange">Güncel Kur</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.rateExchange, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Güncel Kur giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="currencyId">Döviz Tipi</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.currencyId)
+			      .OptionLabel("Lütfen Döviz Tipi seçiniz..")
+			      .DataTextField("code")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWUT_Currency", new { area = "UT" }))
+			      .Sort(x => x.Add("code").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="date">Ödemenin Tarihi</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			      Html.Akilli().
+			      DatePickerFor(model => model.date).
+			      Placeholder("Lütfen Ödemenin Tarihi girin..").
+			      Format(Extensions.DateFormatShort()).
+			      Validate(Validations.Required)
+			 )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="type">Ödeme Tipi</label>
+        </div>
+        <div class="col-md-8">
+			 @(Html.Kendo().CheckBoxFor(a=>a.type).Checked(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="transactionId">İşlem</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.transactionId)
+			      .OptionLabel("Lütfen İşlem seçiniz..")
+			      .DataTextField("description")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWPA_Transaction", new { area = "PA" }))
+			      .Sort(x => x.Add("description").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+			 @Html.TextBoxFor(model => model.description, new Dictionary<string, object>()
+			 {
+			     {"class", "form-control"},
+			     {"placeholder", "Lütfen Açıklama giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

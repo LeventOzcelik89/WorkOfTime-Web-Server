@@ -1,0 +1,505 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model VMCRM_PresentationModel
+@{
+    ViewBag.Title = "Potansiyel/Fırsat Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var _tenantCode = TenantConfig.Tenant.TenantCode;
+}
+
+<script src="~/Content/Custom/js/underscore-min.js" data-selector="modalContainer"></script>
+
+<style type="text/css">
+    .fa-star {
+        color: #ffcc00 !important;
+    }
+
+    .fa-star-o {
+        color: #ffcc00 !important;
+    }
+
+    .modal-lg {
+        width: 60%;
+    }
+</style>
+<script type="text/javascript" data-selector="modalContainer">
+
+    function beforeFunc() {
+        return _presentation.beforeFunc();
+    }
+
+    var _presentation = {
+        priorityLevel :null,
+        productFilter: [{ "field": "statusFlags", "operator": "contains", "value": "|" + @((int)EnumPRD_ProductStatus.satis)+"|" }],
+        Control : false,
+        ResizeTimer: null,
+        init: function () {
+            _presentation.priorityLevel=@Html.Raw(Infoline.Helper.Json.Serialize(Model.PriorityLevel));
+            fillStars(_presentation.priorityLevel);
+            _presentation.Products = @Html.Raw(Infoline.Helper.Json.Serialize(Model.Products));
+
+             $("#ProductIds").kendoMultiSelect({
+                    value: _presentation.Products.map(function (item, i) { return item.ProductId; }),
+                    placeholder: $("#ProductIds").attr('placeholder'),
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    autoBind: true,
+                    dataSource: {
+                        type: "aspnetmvc-ajax",
+                        transport: {
+                            read: {
+                                url: "@Url.Action("DataSourceDropDown", "VWPRD_Product", new {area = "PRD"})"
+                            },
+                        },
+                        filter: _presentation.productFilter,
+                        serverFiltering: true,
+                        serverPaging: true,
+                        pageSize: 500,
+                        page: 1,
+                        total: 0,
+                        serverSorting: true,
+                    },
+                    filter: 'contains',
+                    select: function (e) {
+                        var item = e.sender.dataItem(e.item);
+
+                        if (_presentation.Products.filter(a => a.ProductId == item.id).length > 0) {
+                            return false;
+                        }
+                        var promp = prompt(item.name + " ürünü için miktar giriniz.", 1);
+                        if (promp != null) {
+                            if (isNaN(parseFloat(promp))) {
+                                MesajWarning("Lütfen geçerli bir miktar giriniz.");
+                                e.preventDefault();
+                                return false;
+                            } else {
+                                _presentation.Products = _presentation.Products.filter(a => a.ProductId != item.id);
+                                _presentation.Products.push({ ProductId: item.id, Amount: parseFloat(promp), unit_Title: (item.UnitId_Title || "Adet") });
+                            }
+                        } else {
+                            e.preventDefault();
+                            return false;
+                        }
+                    },
+                    change: function (e) {
+                        var values = e.sender.value() || [];
+                        _presentation.Products = _presentation.Products.filter(a => values.indexOf(a.ProductId) > -1);
+                    },
+                    template: function (dataItem) {
+                        var _currentPoint = kendo.toString(dataItem.currentSellingPoint == null ? 0 : dataItem.currentSellingPoint, 'N0');
+                        var _category = dataItem.categoryId_Title != null ? dataItem.categoryId_Title : "Kategorisi Yok";
+                        return '<label class="label label-xs label-inverse">' + _currentPoint + ' Puan</label>' +
+                            '<label class="label-info label-xs">' + _category + '</label>' + dataItem.fullName;
+                    },
+                    tagTemplate: function (dataItem) {
+                        var presentation = _presentation.Products.filter(a => a.ProductId == dataItem.id)[0];
+                        if (_presentation.Products.length > 0 && presentation != null) {
+                            return '<span class="label label-xs label-success" style="margin-right: 10px">' + kendo.toString(presentation.Amount, 'N0') +
+                                '<small><small> ' + presentation.unit_Title + '</small></small></span>' + dataItem.name;
+                        }
+                        return dataItem.name;
+                    },
+                    dataBound: function (e) {
+                        if (_presentation.Products.length > 0 && _presentation.Control == false) {
+                            _presentation.Control = true;
+                            $('#ProductIds').trigger("change");
+                            $('body').loadingModal('destroy');
+                        }
+                    },
+                });
+
+            $('#CompletionRate').data('kendoSlider').resize();
+        },
+        Events: {
+            onChangeCustomerCompanyId: function (e) {
+                var musteri = this.dataItem();
+                $("#Name").val(musteri.name + " Potansiyel/Fırsat");
+				$('#CompletionRate').getKendoSlider().resize();
+            },
+            onDataBound: function (e) {
+                _presentation.init();
+
+            }
+        },
+        Modal: null,
+        SelectedProduct: null,
+        Products: [],
+        beforeFunc: function () {
+
+            if (_presentation.Products.length == 0) {
+                MesajWarning('Hiçbir ürün kalemi seçilmedi. Lütfen ürün seçiniz...');
+                return false;
+            }
+
+            $('#ProductsJson').val(JSON.stringify(_presentation.Products));
+
+            return true;
+        }
+    };
+
+    var products = @Html.Raw(Infoline.Helper.Json.Serialize(Model.Products));
+    $(document)
+        .on('click', '.Active [data-task="ProductSave"]', function () {
+
+            var countElem = $('[data-id="ProductCount"]').data('kendoNumericTextBox');
+            var count = countElem.value() != null ? countElem.value() : 0;
+
+            if (count <= 0) {
+                MesajWarning('Ürün Miktarı girilmedi !..');
+                return;
+            }
+
+            var unit = _presentation.SelectedProduct.unitId_Title ? _presentation.SelectedProduct.unitId_Title : "ADET"
+
+            var item = {
+                ProductId: $('[data-id="ProductId"]').val(),
+                Amount: count,
+                unit_Title: unit
+            };
+
+            _presentation.Products.push(item);
+            _presentation.SelectedProduct.Amount = count;
+            _presentation.Modal.close();
+            $('#ProductIds').data('kendoMultiSelect').dataSource.filter(_presentation.productFilter);
+            $('#ProductIds').data('kendoMultiSelect').refresh();
+
+        })
+        .on('click', '.Active [data-task="ProductCancel"]', function () {
+            _presentation.Modal.close();
+        })
+        .on('keydown', '[data-id="ProductCount"]', function (e) {
+            if (e.which == 13) {
+                $('.Active [data-task="ProductSave"]').trigger('click');
+            }
+        });
+
+    window.addEventListener('resize', function () {
+        clearTimeout(_presentation.ResizeTimer);
+        _presentation.ResizeTimer = setTimeout(function () {
+            $('#CompletionRate').getKendoSlider().resize();
+        }, 300);
+    });
+
+    $(document).on('ready', function () {
+         fillStars(_presentation.priorityLevel)
+    })
+
+    $('[data-select]').on('click', function () {
+        var value= $(this).attr("data-idUpdate");
+        _presentation.priorityLevel = value;
+        fillStars(value);
+        $('#PriorityLevel').val(value);
+
+
+    });
+
+    $('[data-select]').hover(function (e) {
+        var value = $(this).attr("data-idUpdate")
+        fillStars(value);
+    },
+    function () {
+            fillStars(_presentation.priorityLevel)
+        });
+
+    function fillStars(value) {
+
+        for (var i = 1; i < 6; i++) {
+            if (i<=value) {
+                $('[data-idUpdate=' + i + ']').removeClass('fa fa-star-o');
+                $('[data-idUpdate=' + i + ']').addClass('fa fa-star');
+            }
+            else {
+                $('[data-idUpdate=' + i + ']').removeClass('fa fa-star');
+                $('[data-idUpdate=' + i + ']').addClass('fa fa-star-o');
+            }
+        }
+    }
+
+    $('body').loadingModal({ text: 'Lütfen Bekleyin...', animation: 'rotatingPlane', backgroundColor: 'black' });
+</script>
+
+@using (Html.BeginForm("Update", "VWCRM_Presentation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "VWCRM_PresentationFormUpdate" },
+    { "data-before", "beforeFunc" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.Hidden("ProductsJson")
+    @Html.Hidden("PriorityLevel")
+    @Html.HiddenFor(a => a.ChannelCompanyId)
+
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="panel-group" id="accordion">
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse1"> <i class="fa fa-home text-success"></i> Genel Bilgiler</a>
+                        </h4>
+                    </div>
+                    <div id="collapse1" class="panel-collapse collapse in">
+                        <div class="panel-body">
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md req" for="CustomerCompanyId">Müşteri</label>
+                                </div>
+                                <div class="col-md-9">
+                                    @(Html.Akilli()
+										   .DropDownListFor(model => model.CustomerCompanyId)
+										   .OptionLabel("Lütfen Müşteri Seçiniz..")
+										   .DataTextField("name")
+										   .DataValueField("id")
+										   .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+										   .Sort(x => x.Add("name").Ascending())
+										   .Events(x => x.Change("_presentation.Events.onChangeCustomerCompanyId").DataBound("_presentation.Events.onChangeCustomerCompanyId"))
+										   .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+										   .Template("#=TemplateEngine('companyTemplate',data)#")
+										   .ValueTemplate("<span>#=name#</span>")
+										   .Execute("id")
+										   .Validate(Validations.Required)
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md req" for="ProductIds">Ürünler</label>
+                                </div>
+                                <div class="col-md-9">
+                                    <select id="ProductIds" name="ProductIds" class="form-control" style="width: 100%" data-template="product"
+                                            data-placeholder="Lütfen Ürünleri Seçiniz.." data-custom="true" required="required"></select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="Name">Potansiyel/Fırsat Adı</label>
+                                </div>
+                                <div class="col-md-9">
+                                    @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Potansiyel/Fırsat Adı Girin.."},
+                                    })
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md req" for="PresentationStageId">Aşama</label>
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Akilli()
+                                      .DropDownListFor(model => model.PresentationStageId)
+                                      .OptionLabel("Lütfen Aşama Seçiniz..")
+                                      .MinLength(2)
+                                      .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+                                      .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+                                      .DataValueField("Id")
+                                      .DataTextField("Name")
+                                      .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+                                      .Sort(x => x.Add("Name").Ascending())
+                                      .Validate(Validations.Required)
+                                      .Execute()
+                                    )
+                                </div>
+                            </div>
+
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+                            {
+                                @Html.HiddenFor(model => model.SalesPersonId)
+
+                                <script type="text/javascript" data-selector="modalContainer">
+                                    _presentation.Events.onDataBound();
+                                </script>
+                            }
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="CompletionRate"> Kapanma Yüzdesi</label>
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Kendo().SliderFor(model => model.CompletionRate)
+                                                .IncreaseButtonTitle("Arttır")
+                                                .DecreaseButtonTitle("Azalt")
+                                                .Min(10)
+                                                .Max(100)
+                                                .SmallStep(10)
+                                                .LargeStep(10)
+                                                .Value(Model.CompletionRate)
+                                                .DragHandleTitle("Kapanma Yüzdesi")
+                                                .Tooltip(false)
+                                                .HtmlAttributes(new { @class = "balSlider", title = "Kapanma Yüzdesi", @style = "width:100%" }))
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md " for="EstimatedCompletionDate">Tahmini Sonuçlanma Tarihi</label>
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Akilli().DatePickerFor(model => model.EstimatedCompletionDate).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Tahmini Sonuçlanma Tarihi Girin.."},
+                                    })
+                                    .Min(DateTime.Now).Max(DateTime.Now.AddYears(5))
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="VodafoneOffer"> Tahmini Beklenen Ciro </label>
+                                </div>
+                                <div class="col-md-9">
+                                    <div class="input-group">
+                                        @( Html.Kendo().NumericTextBoxFor(model => model.VodafoneOffer).
+                                                Value(Model.VodafoneOffer).Format("n2").Spinners(false).
+                                                HtmlAttributes(new Dictionary<string, object>()
+                                                {
+                                                    {"style", "width:100%"},
+                                                    {"class", "text-right form-control"},
+                                                }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                                        )
+
+                                        <span class="input-group-addon">TL</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="potential">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="PriorityLevel">Önem Derecesi</label>
+                                </div>
+                                <div class="col-md-9" style="margin-top:8px;">
+                                    <i data-select="priortyLevel" data-idUpdate="1" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                                    <i data-select="priortyLevel" data-idUpdate="2" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                                    <i data-select="priortyLevel" data-idUpdate="3" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                                    <i data-select="priortyLevel" data-idUpdate="4" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                                    <i data-select="priortyLevel" data-idUpdate="5" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel panel-default">
+                    <div class="panel-heading">
+                        <h4 class="panel-title">
+                            <a data-toggle="collapse" data-parent="#accordion" href="#collapse2"> <i class="fa fa-info-circle text-success"></i> Diğer Bilgiler</a>
+                        </h4>
+                    </div>
+                    <div id="collapse2" class="panel-collapse collapse">
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md " for="PlaceofArrival">Geliş Yeri</label>
+                                </div>
+                                <div class="col-md-9">
+                                    @(Html.Akilli()
+                                   .DropDownListFor(model => model.PlaceofArrival)
+                                   .OptionLabel("Lütfen Geliş Yerini Seçiniz..")
+                                   .DataValueField("Id")
+                                   .DataTextField("enumDescription")
+                                   .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                   .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CRM_Presentation" && a.fieldName == "PlaceofArrival")
+                                   .Sort(x => x.Add("enumKey").Ascending())
+                                   .Execute("enumKey")
+                            )
+                                </div>
+                            </div>
+
+                            <div class="form-group" id="opponent">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="OpponentCompany">Rakip Firma</label>
+                                </div>
+                                <div class="col-md-9">
+                                    @(Html.Akilli()
+                                    .MultiSelectFor(model => model.OpponentCompanies)
+                                    .Placeholder("Lütfen Seçim Yapınız.")
+                                    .DataTextField("CompanyName")
+                                    .DataValueField("id")
+                                    .Action(b => b.Action("DataSourceDropDown", "CRM_OpponentCompany", new { area = "CRM" }))
+                                    .Sort(x => x.Add("CompanyName").Ascending())
+                                    .Filter(FilterType.Contains)
+                                    .BasicInsert(Url.Action("Insert", "CRM_OpponentCompany", new { area = "CRM" }), "CompanyName", false)
+                                    .Execute()
+                                    )
+
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="CommitmentEndDate">Taahhüt Bitiş Tarihi</label>
+                                </div>
+                                <div class="col-md-9">
+
+                                    @(Html.Akilli().DatePickerFor(model => model.CommitmentEndDate).HtmlAttributes(new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Taahhüt Bitiş Tarihi Girin.."},
+                                })
+                                .Min(DateTime.Now)
+                                .Max(DateTime.Now.AddYears(5))
+                                    )
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="OpponentInvoiceAmount">Rakibin Fatura Tutarı</label>
+                                </div>
+                                <div class="col-md-9">
+
+                                    <div class="input-group">
+                                        @( Html.Kendo().NumericTextBoxFor(model => model.OpponentInvoiceAmount).
+                                            Value(Model.OpponentInvoiceAmount).Format("n2").Spinners(false).
+                                            HtmlAttributes(new Dictionary<string, object>()
+                                            {
+                                                {"style", "width:100%"},
+                                                {"class", "text-right form-control"},
+                                            }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                                        )
+
+                                        <span class="input-group-addon">TL</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="col-md-3">
+                                    <label class="control-label label-md" for="hasContact">İletişim İzni</label>
+                                </div>
+                                <div class="col-md-9" style="margin-top:8px;">
+                                    @(Html.Kendo().CheckBox().Name("hasContact").Checked(Model.hasContact == true ? true : false).Label("İletişim bilgilerinin kullanılmasına izin veriliyor mu?"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

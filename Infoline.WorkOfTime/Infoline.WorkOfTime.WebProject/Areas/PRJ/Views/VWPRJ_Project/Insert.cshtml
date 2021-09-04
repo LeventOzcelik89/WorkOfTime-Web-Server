@@ -1,0 +1,713 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRJ_Project
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "Yeni Proje Tanımlama";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    setTimeout(function () {
+        $('#PriceType_3').trigger("click");
+        $('#PriceType_2').trigger("click");
+        $('#PriceType_1').trigger("click");
+        $('#PriceType_0').trigger("click");
+    }, 1000)
+    function CompanyIdCode(e) {
+        var code = "";
+        var year = $("#ProjectStartDate").data('kendoDatePicker').value().getFullYear();
+        var month = $("#ProjectEndDate").data('kendoDatePicker').value().getMonth() + 1;
+        var company = $("#inputCompanyId1").data('kendoDropDownList');
+        if (company.selectedIndex == 0) {
+            $("#ProjectCode").parents(".input-group").find("span").html(null);
+            return;
+        }
+
+        if (company.text().toUpperCase().indexOf("AKILL") == 0) {
+            code = "AKL_";
+        } else if (company.text().toUpperCase().indexOf("INF") == 0) {
+            code = "INF_";
+        } else {
+            code = "PRJ_"
+        }
+        code = code + year + (month < 10 ? "0" + month : month);
+
+        $("#ProjectCode").parents(".input-group").find("span").html(code);
+    }
+
+    function onProjectType(e) {
+        if (this.dataItem().Id == '@((int)EnumPRJ_ProjectProjectType.Teknokent)' || this.dataItem().Id == '@((int)EnumPRJ_ProjectProjectType.SirketIci)') {
+            $('[data-projectlink]').removeClass("hide");
+        } else {
+            $('[data-projectlink]').addClass("hide");
+        }
+        if (this.dataItem().Id == '@((int)EnumPRJ_ProjectProjectType.SirketIci)') {
+            $('#inputCompanyId2').removeAttr('required', 'required');
+            $('#labelreq').removeClass('req');
+        } else {
+            $('#inputCompanyId2').attr('required', 'required');
+            $('#labelreq').addClass('req');
+        }
+    }
+    $(document)
+        .on('change', '#ProjectEndDate', function () {
+            //var date = $(this).data('kendoDatePicker').value();
+            //$("#WarrantyStartDate").val(new Date(date).toLocaleString("tr-TR").replace("00:00:00", "")).trigger('change');
+            $("#WarrantyEndDate").val("").trigger("change");
+        })
+
+        .on('change', '[name="PriceType"]', function (e) {
+            var code = "";
+            console.log("changed");
+            var val = $(this).val();
+            $('#cKur').show();
+            $("#moneyhide").show();
+
+            if (val == "0") {
+                $('#cKur').hide();
+                $("#moneyhide").hide();
+            }
+            else if (val == "1") {
+                code = "USD";
+            }
+            else if (val == "2") {
+                code = "EUR";
+            }
+            else if (val == "3") {
+                $('#Exchange').val(0);
+            }
+
+            GetJsonDataFromUrl('@Url.Action("GetExchange", "General", new {area = string.Empty })', { code: code }, function (resp) {
+
+                if (resp == null) {
+                    return;
+                }
+                if (resp.code == "USD") {
+                    $("#Exchange").val(resp.selling);
+                }
+                else if (resp.code == "EUR") {
+                    $("#Exchange").val(resp.selling);
+                }
+            })
+        });
+
+
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWPRJ_Project", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <style type="text/css" data-selector="modalContainer">
+        fieldset#yuksek {
+            height: 311px;
+        }
+
+        .col-md-12.radio {
+            right: 0px;
+            bottom: -10px;
+        }
+
+        .form-horizontal .control-label {
+            padding-top: 7px;
+            margin-bottom: 0;
+            text-align: left;
+        }
+
+        .btn-plus:hover {
+            color: white;
+        }
+    </style>
+
+    <div class="panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a role="button" data-toggle="collapse" data-parent="#accordion" href="#generalInfo" aria-expanded="true" aria-controls="collapseOne">
+                        <i class="text-success icon-info-4"></i> Proje Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="generalInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectCode">Proje Kodu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.ProjectCode, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"}
+                            }).Validate(Validations.Number(true, 0, 20))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectName">Proje Adı </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.ProjectName, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Proje Adını Giriniz.."}
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectType">Projenin Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Akilli()
+                              .DropDownListFor(model => model.ProjectType)
+                              .OptionLabel("Lütfen Proje Tipini Seçiniz..")
+                              .MinLength(2)
+                              .DataValueField("Id")
+                              .DataTextField("enumDescription")
+                              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                              .Events(e => e.Change("onProjectType"))
+                              .Sort(x => x.Add("enumDescription").Ascending())
+                              .Validate(Validations.Required)
+                              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRJ_Project" && a.fieldName == "ProjectType")
+                              .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group clearfix hide" data-projectlink>
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="IdProjectLinked">Bağlantılı Proje</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.IdProjectLinked)
+                                .OptionLabel("Lütfen Bağlantı Proje Seçiniz..")
+                                .DataTextField("ProjectName")
+                                .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                                .Sort(x => x.Add("ProjectName").Ascending())
+                                .Execute()
+                            )
+
+                        </div>
+                    </div>
+
+                    @if (Model.CompanyId == null)
+                    {
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req" for="CompanyId">Proje İşletmesi</label>
+                            </div>
+                            <div class="col-md-8">
+
+
+                                @(
+                                    Html.Akilli()
+                                    .DropDownListFor(model => model.CompanyId)
+                                    .Id("inputCompanyId1")
+                                    .OptionLabel("Lütfen Projeyi Gerçekleştiren İşletmeyi seçiniz.")
+                                    .DataTextField("name")
+                                    .DataValueField("id")
+                                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                    .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Validate(Validations.Required)
+                                    .Execute()
+                                )
+
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        @Html.HiddenFor(model => model.CompanyId)
+                    }
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectStartDate">Proje/Sözleşme Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Akilli().DatePickerFor(model => model.ProjectStartDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Proje/Sözleşme Başlangıç Tarihi  Seçiniz.."},
+
+                            })
+                            //.Events(e => e.Close("CompanyIdCode"))
+                            .Format(Extensions.DateFormatShort())
+                            .Value(DateTime.Now)
+                            .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectEndDate">Proje/Sözleşme Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().DatePickerFor(model => model.ProjectEndDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Proje/Sözleşme Bitiş Tarihi Seçiniz.."},
+
+                            })
+                            //.Events(e => e.Close("CompanyIdCode"))
+                            .Format(Extensions.DateFormatShort())
+                            .Value(DateTime.Now.AddDays(1))
+                            .Validate(Validations.Required)
+                            .MinDateElement("ProjectStartDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="WarrantyStartDate">Garanti Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Akilli().DatePickerFor(model => model.WarrantyStartDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Garanti Başlangıç Tarihi Seçiniz.."},
+
+                            })
+                            .Events(e => e.Close("CompanyIdCode"))
+                            .Format(Extensions.DateFormatShort())
+                            .Value(Model.WarrantyStartDate)
+                            .MinDateElement("ProjectEndDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="WarrantyEndDate">Garanti Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().DatePickerFor(model => model.WarrantyEndDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Garanti Bitiş Tarihi Seçiniz.."},
+
+                            })
+                            .Events(e => e.Close("CompanyIdCode"))
+                            .Format(Extensions.DateFormatShort())
+                            .Value(Model.WarrantyEndDate)
+                            .MinDateElement("WarrantyStartDate")
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md " for="ProjectJiraKey">Proje Jira Anahtar Kodu </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.ProjectJiraKey, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Projenin Jira Anahtar Kodunu  Girin.."},
+                            })
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="CorporationId" id="labelreq">Projenin Yapılacağı Kurum</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.CorporationId)
+                                .Id("inputCompanyId2")
+                                .OptionLabel("Lütfen Projenin Yapılacağı Kurumu Seçiniz.")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Template("#=TemplateEngine('companyTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Diger)
+                                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectType">Projenin Teknik Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .MultiSelect("ProjeTeknikTip")
+                                .Placeholder("Projenin Teknik Tipini Seçiniz..")
+                                .DataTextField("enumDescription")
+                                .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                .Sort(x => x.Add("enumDescription").Ascending())
+                                .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRJ_Project" && a.fieldName == "ProjectTechnicalType")
+                                .Sort(x => x.Add("enumKey").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectScope">Proje Alanı </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.ProjectScope, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Proje Alanı (Faaliyet Alanı ) Girin.."},
+                            }).Validate(Validations.Required)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectSponsorId">Proje Sponsoru</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                             .DropDownList("ProjectSponsorId")
+                              .OptionLabel("Lütfen Proje Sponsoru Seçiniz..")
+                             .DataTextField("FullName")
+                             .DataValueField("id")
+                            .Template("#=TemplateEngine('userTemplate',data)#")
+                            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                            .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                             .Sort(x => x.Add("FullName").Ascending())
+                             .Execute("id")
+                             .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="ProjectSponsorIdProjectManagerId">Proje Yöneticisi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .DropDownList("ProjectManagerId")
+                                .OptionLabel("Lütfen Proje Yöneticisi Seçiniz..")
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .Value(string.Format("{0}", userStatus.user.id))
+                                .Template("#=TemplateEngine('userTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute("id")
+                                .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#contactInfo" aria-expanded="false">
+                        <i class="text-success icon-map-signs"></i> Proje Teminat Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="contactInfo" class="panel-collapse collapse" role="tabpanel" aria-labelledby="headingTwo">
+                <div class="panel-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="ContractGuaranteeDate">Sözleşme Teminat Tarihi</label>
+                                </div>
+                                <div class="col-md-7">
+                                    @(Html.Akilli()
+                                .DateTimePickerFor(model => model.ContractGuaranteeDate)
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="ContractAmount">Sözleşme Teminat Bedeli</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        @(
+                                            Html.Kendo().NumericTextBoxFor(model => model.ContractAmount).
+                                            Value(Model.ContractAmount ?? 0).Spinners(false).
+                                            Format("n2").HtmlAttributes(new Dictionary<string, object>()
+                                            {
+                                                {"style", "width:100%"},
+                                                {"class", "text-right form-control"},
+                                            }).Culture("tr-TR")
+                                        )
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="AdvanceGuaranteeDate">Avans Teminat Tarihi</label>
+                                </div>
+                                <div class="col-md-7">
+                                    @(Html.Akilli()
+                                .DateTimePickerFor(model => model.AdvanceGuaranteeDate)
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="AdvanceAmount">Avans Teminat Bedeli</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        @(
+                                            Html.Kendo().NumericTextBoxFor(model => model.AdvanceAmount).
+                                            Value(Model.AdvanceAmount ?? 0).Spinners(false).
+                                            Format("n2").HtmlAttributes(new Dictionary<string, object>()
+                                            {
+                                                {"style", "width:100%"},
+                                                {"class", "text-right form-control"},
+                                            }).Culture("tr-TR")
+                                        )
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="WarrantyGuaranteeDate">Garanti Teminat Tarihi</label>
+                                </div>
+                                <div class="col-md-7">
+                                    @(Html.Akilli()
+                                .DateTimePickerFor(model => model.WarrantyGuaranteeDate)
+                                    )
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="WarrantyAmount">Garanti Teminat Bedeli</label>
+                                </div>
+                                <div class="col-md-7">
+                                    <div class="input-group">
+                                        @(
+                                            Html.Kendo().NumericTextBoxFor(model => model.WarrantyAmount).
+                                            Value(Model.WarrantyAmount ?? 0).Spinners(false).
+                                            Format("n2").HtmlAttributes(new Dictionary<string, object>()
+                                            {
+                                                {"style", "width:100%"},
+                                                {"class", "text-right form-control"},
+                                            }).Culture("tr-TR")
+                                        )
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">$</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">€</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₸</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-7">
+                            <div class="form-group">
+                                <div class="col-md-4">
+                                    <label class="control-label label-md" for="PriceType">Para Birimi</label>
+                                </div>
+
+                                <div class="col-md-8" style="left:11px;">
+                                    <div tabindex="0">
+                                        @Html.Akilli().RadioButtonGroupFor(model => model.PriceType).Value(EnumPRJ_ProjectPriceType.TurkLirasi)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="form-group">
+                                <div class="col-md-5">
+                                    <label class="control-label label-md" for="PriceType" id="cKur">Kur</label>
+                                </div>
+                                <div class="col-md-7" id="moneyhide">
+                                    <div class="input-group">
+                                        @(
+                                            Html.TextBoxFor(model => model.Exchange, new Dictionary<string, object>()
+                                              {
+                                                        {"class", "text-right form-control"},
+                                                        {"placeholder", "1"},
+                                              })
+                                        )
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="0">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="1">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="2">₺</span>
+                                        <span class="input-group-addon" data-cascade="[name='PriceType']" data-show="3">₺</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#tenderInfo" aria-expanded="false">
+                        <i class="text-success icon-newspaper-1"></i>  İhale / Sözleşme Bilgileri
+                    </a>
+                </h4>
+            </div>
+            <div id="tenderInfo" class="panel-collapse collapse" role="tabpanel">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="TenderNo">İhale No / Sözleşme No </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.TenderNo, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen İhale/Sözleşme Numarası  Girin.."},
+                            })
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="TenderName">İhale / Sözleşme Adı </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.TenderName, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen İhale/Sözleşme Adı  Girin.."},
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="TenderWrite">İhale / Sözleşme Açıklaması </label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.TenderWrite, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen İhale/Sözleşme Açıklaması  Girin.."},
+                            })
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading" role="tab">
+                <h4 class="panel-title">
+                    <a class="collapsed" role="button" data-toggle="collapse" data-parent="#accordion" href="#projectInfo" aria-expanded="false">
+                        <i class="text-success icon-statusnet"></i> Proje Durum Bilgisi
+                    </a>
+                </h4>
+            </div>
+            <div id="projectInfo" class="panel-collapse collapse" role="tabpanel">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-6">
+                            <div class="col-md-12">
+                                <label class="control-label label-md" type="radio" name="serviceTypes" for="IsActive">Aktif mi?</label>
+                            </div>
+                            <div class="col-md-12 radio">
+                                <label>
+                                    @Html.Kendo().RadioButtonFor(a => a.IsActive).Checked(Model.IsActive == true).Value(true) @EnumPRJ_ProjectIsActive.Evet.ToDescription()
+
+                                </label>
+                                <label>
+                                    @Html.Kendo().RadioButtonFor(a => a.IsActive).Checked(Model.IsActive == false || Model.IsActive == null).Value(false) @EnumPRJ_ProjectIsActive.Hayir.ToDescription()
+
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="col-md-12">
+                                <label class="control-label label-md" type="radio" name="serviceTypes" for="IsConfirm">Onaylanmış mı?</label>
+                            </div>
+                            <div class="col-md-12 radio">
+                                <label>
+                                    @Html.Kendo().RadioButtonFor(a => a.IsConfirm).Checked(Model.IsConfirm == true).Value(true) @EnumPRJ_ProjectIsConfirm.Evet.ToDescription()
+
+                                </label>
+                                <label>
+                                    @Html.Kendo().RadioButtonFor(a => a.IsConfirm).Checked(Model.IsConfirm == false || Model.IsConfirm == null).Value(false) @EnumPRJ_ProjectIsConfirm.Hayir.ToDescription()
+
+                                </label>
+
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

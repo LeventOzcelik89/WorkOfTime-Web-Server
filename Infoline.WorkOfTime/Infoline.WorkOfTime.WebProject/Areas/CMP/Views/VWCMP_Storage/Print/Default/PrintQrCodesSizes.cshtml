@@ -1,0 +1,154 @@
+﻿@model QrClass
+@{
+	Layout = null;
+	var i = 0;
+
+	var width = "";
+	var height = "";
+
+	if (Model.width.HasValue)
+	{
+		//mm cinsinden px çevriliyor.
+		width = Convert.ToString((Model.width.Value * 0.0377952756) * 100);
+		width = width.ToString().Replace(",", ".") + "px";
+	}
+	if (Model.height.HasValue)
+	{
+		//mm cinsinden px çevriliyor.
+		height = Convert.ToString((Model.height.Value * 0.0377952756) * 100);
+		height = height.ToString().Replace(",", ".") + "px";
+	}
+
+	string numericString = String.Empty;
+
+	foreach (var item in width)
+	{
+		// Check for numeric characters (hex in this case) or leading or trailing spaces.
+		if ((item >= '0' && item <= '9') || (Char.ToUpperInvariant(item) >= 'A' && Char.ToUpperInvariant(item) <= 'F') || item == ' ')
+		{
+			numericString = String.Concat(numericString, item.ToString());
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	int size = 70;
+
+	if (!string.IsNullOrEmpty(numericString))
+	{
+		var parse = Int16.Parse(numericString);
+		//Burada qr sizenın boyutlara göre ayarlanması yapıldı.
+		size = (parse * 37) / 100;
+	}
+}
+
+<html>
+<head>
+	<title>&nbsp;&nbsp;</title>
+	<script src="~/content/themes/js/jquery-2.1.1.js"></script>
+	<script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+	<script src="~/Content/Kendo/js/kendo.aspnetmvc.min.js"></script>
+	<link href="~/Content/Custom/css/print.css" rel="stylesheet" />
+	<style type="text/css">
+		.smallTxtTable {
+			font-size: 8px;
+			margin-left: -6px;
+		}
+
+		.right {
+			float: left;
+			width: 35%;
+			margin-top: 43px;
+			text-align: center;
+			-webkit-transform: rotate(-90deg);
+			-moz-transform: rotate(-90deg);
+			text-align: center;
+		}
+	</style>
+
+	<script type="text/javascript">
+		$(document)
+			.on("ready", function () {
+				print();
+			})
+	</script>
+</head>
+<body>
+	<div>
+		<table style="margin:0 auto;" cellspacing="0" cellpadding="0">
+			<tbody>
+				@if (Model.height < 20)
+				{
+					foreach (var item in Model.invertorys)
+					{
+						i++;
+						<tr>
+							<td style="width:@width;height:@height;border:3mm solid white;border-right:2mm solid white;
+    border-left: 2mm solid white;">
+								<div style="float:left;width:30%;">
+									@(Html.Kendo().QRCode()
+                                           .Name("qrCode_" + i)
+                                           .Value(item.code)
+                                           .Size(size - 13)
+                                    )
+								</div>
+
+								<div style="float:left;width:35%;">
+									<div style="text-align: center;
+                                           padding: 0px;
+                                           font-size: 6px;
+                                           text-align: center;margin-top: 8px;">
+										@item.fullName
+									</div>
+								</div>
+
+								<div class="" style="float:left;width:35%;">
+									<img style="width:@(size-20)px;margin-top:10px;margin-left: 11px;" src="@(!string.IsNullOrEmpty(Model.logo) ? Model.logo : "/Content/Customers/"+ TenantConfig.Tenant.TenantCode + "/images/logo.png")" onerror="ImageError(this,'/Content/Customers/@TenantConfig.Tenant.TenantCode/images/logo.png')" />
+									<small class="smallTxtTable" style="margin-left:-25px;">@(TenantConfig.Tenant.TenantCode == 1139 ? "www.callay.com.tr" : !string.IsNullOrEmpty(Model.weburl) ? Model.weburl : "www.workoftime.com") </small>
+								</div>
+							</td>
+						</tr>
+					}
+				}
+				else
+				{
+					foreach (var item in Model.invertorys)
+					{
+						i++;
+						<tr>
+							<td style="width:@width;height:@height;border:3mm solid white;border-right:1.3mm solid white;border-left: 1.3mm solid white;">
+								<div style="float:left;width:40%;">
+									@(Html.Kendo().QRCode()
+                                           .Name("qrCode_" + i)
+                                           .Value(item.code)
+                                           .Size(size - 10)
+                                    )
+								</div>
+
+								<div style="float:left;width:40%;">
+									<img style="width:@(size-20)px;margin-top:10px;margin-left: 11px;" src="@(!string.IsNullOrEmpty(Model.logo) ? Model.logo : "/Content/Customers/"+ TenantConfig.Tenant.TenantCode + "/images/logo.png")" onerror="ImageError(this,'/Content/Customers/@TenantConfig.Tenant.TenantCode/images/logo.png')" />
+								</div>
+
+								<div class="right" style="float:left;width:20%;">
+									<small class="smallTxtTable"> @(TenantConfig.Tenant.TenantCode == 1139 ? "www.callay.com.tr" : !string.IsNullOrEmpty(Model.weburl) ? Model.weburl : "www.workoftime.com")</small>
+								</div>
+
+								<div style="float:left;width:100%;">
+									<div style="text-align: center;
+                                           padding: 0px;
+                                           font-size: 6px;
+                                           text-align: center;width: 75%;">
+										@item.fullName
+									</div>
+								</div>
+							</td>
+						</tr>
+					}
+				}
+			</tbody>
+		</table>
+	</div>
+</body>
+</html>

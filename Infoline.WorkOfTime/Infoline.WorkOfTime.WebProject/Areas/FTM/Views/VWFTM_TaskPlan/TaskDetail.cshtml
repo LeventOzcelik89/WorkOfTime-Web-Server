@@ -1,0 +1,1103 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.TaskSchedulerModel
+@{
+    ViewBag.Title = "Planlanmış Görev Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+
+    #TaskPlanCalendar .calendar-header {
+        display: none;
+    }
+
+    .withTabs .customTabs:before {
+        content: 'YIL :';
+    }
+
+    .legendTable tr td {
+        padding: 4px;
+    }
+
+    .tab-content {
+        border: none !important;
+    }
+
+    .withTabs .tab-content .tab-pane {
+        padding: 0px;
+    }
+
+    .calendar {
+        padding: 0px !important;
+        margin: 20px 0px;
+    }
+
+    .popover {
+        max-width: 360px !important;
+        z-index: 2001;
+    }
+
+    .popover-content {
+        width: 320px;
+    }
+
+    .capt {
+        text-decoration: underline;
+        margin-bottom: 10px;
+        margin-top: 10px;
+    }
+
+    .popover .btn-group {
+        width: 100%;
+        margin-top: 10px;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+        margin-left: -15px;
+        width: calc(30px + 100%);
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+        .popover .btn-group .btn {
+            float: right;
+        }
+
+    .popover-content h3 {
+        color: #f00;
+    }
+
+    [class^="levelLegend"] {
+        width: 30px;
+        height: 18px;
+        display: inline-block;
+        float: left;
+        margin-right: 6px;
+        margin-left: 6px;
+    }
+
+    .levelLegend1 {
+        background: #bc0101;
+        margin-left: 0px !important;
+    }
+
+    .levelLegend2 {
+        background-color: #ec7c1e;
+    }
+
+    .levelLegend3 {
+        background-color: #13a261;
+    }
+
+    .levelLegend4 {
+        background-color: #ffcc16;
+    }
+
+    .levelLegend5 {
+        background-color: #1e4dec;
+    }
+
+    .legendTable {
+        margin-bottom: 4px;
+        clear: none;
+        border: 1px solid #EBEBEB;
+    }
+
+    .calPopover .close {
+        margin-top: -12px;
+        margin-right: -8px;
+    }
+
+    [data-target="type_Title"] .badge > i {
+        margin-right: 4px;
+    }
+
+    .detailList li > i, .detailList li > strong {
+        float: left;
+    }
+
+    .detailList li > i {
+        margin-right: 5px;
+    }
+
+    .detailList li {
+        text-align: right;
+    }
+
+    #DetailForm #insertRadio.akilliRadioGrup label {
+        width: 9.165% !important;
+    }
+
+    #TaskPlanDetail #DetailForm #insertRadio.akilliRadioGrup i.icon-shuffle {
+        font-size: 30px;
+    }
+</style>
+
+<link href="~/Content/YearCalendar/css/bootstrap-year-calendar.css" rel="stylesheet" />
+<link href="~/Content/YearCalendar/css/custom-year-calendar.css" rel="stylesheet" />
+<script src="~/Content/YearCalendar/js/custom-year-calendar.js"></script>
+
+<script type="text/javascript">
+
+    var _TaskDetail = {
+        Model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        StatusList: [
+            { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
+            { Key: 'Görev Devam Ediyor', Codes: [13, 20, 21, 22, 23, 24, 25, 26, 27], Color: '#ec7c1e' },
+            { Key: 'Görev Tamamlandı', Codes: [30, 31, 32, 40], Color: '#13a261' },
+            { Key: 'Görev Planlandı', Codes: [null], Color: '#ffcc16' },
+            { Key: 'Diğer', Codes: [999], Color: '#1e4dec' },
+        ],
+        Operations: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))),
+        Types: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))),
+        GetStatus: function (items) {
+
+            var its = $.Enumerable.From(items)
+                .GroupBy(a => { return a.lastOperationStatus; })
+                .Select(a => {
+
+                    var _val = a.Key();
+
+                    return $.Enumerable.From(_TaskDetail.StatusList).Where(a => { return a.Codes.indexOf(_val) > -1 }).FirstOrDefault() ?? _TaskDetail.StatusList[4];
+
+                }).ToArray();
+
+            var group = $.Enumerable.From(its).GroupBy(a => { return a.Key; });
+            var max = group.OrderByDescending(a => { return a.Count(); }).FirstOrDefault();
+
+            if (group.Count() > 1) {
+                return _TaskDetail.StatusList[4];   //  diğer
+            } else {
+                return max.source[0];
+            }
+
+            //            başlanmadı
+            //  13,20,21,22,23,24,25    başlandı
+            //  26,27                   başlandı
+            //  30,31,32,40             bitti
+            //  null                    planlanmış görev
+            //  diğerleri gri
+
+        },
+        Calendar: {
+            POP: {
+                list: [],
+                HasValue: function (_date) {
+
+                    return $.Enumerable.From(_TaskDetail.Calendar.POP.list).Any(a => { return a.date == kendo.toString(_date, 'yyyy-MM-dd') });
+
+                },
+                Hide: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    _TaskDetail.Calendar.POP.list = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    $(item.elem).popover('hide');
+
+                },
+                HideAll: function () {
+
+                    $.each(_TaskDetail.Calendar.POP.list, function (i, item) {
+
+                        $(item.elem).popover('hide');
+
+                    });
+
+                    _TaskDetail.Calendar.POP.list = [];
+
+                },
+                Toggle: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    var _it = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date == item.date }).FirstOrDefault();
+
+                    if (_it == null) {
+                        _TaskDetail.Calendar.POP.list.push(item);
+                    } else {
+                        _TaskDetail.Calendar.POP.list = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    }
+
+                }
+            },
+            GetTableRow: function (item) {
+
+                var row = $($('#rowTemplate').html());
+                $.each(row.find('[data-elem]'), function (i, it) {
+
+                    var elem = $(it);
+                    var prop = $(it).attr('data-elem');
+
+                    elem.html(item[prop]);
+
+                });
+
+                return row;
+
+            },
+            Years: null,
+            init: function () {
+
+                ReadData('/FTM/VWFTM_TaskPlan/TaskCalendarDataSource', { id: _TaskDetail.Model.TaskPlan.id }, function (res) {
+
+                    _TaskDetail.Calendar.Years = res;
+
+                    $.each(res, function (i, item) {
+
+                        $.each(item.Data, function (id, data) {
+
+                            if (data.end == null) { return; }
+
+                            var k = kendo.toString(new Date(data.end), 'yyyy-MM-dd 00:00:00');
+
+                            data.startDate = new Date(k);
+                            data.endDate = new Date(k);
+                            data.status = $.Enumerable.From(_TaskDetail.StatusList).Where(a => { return a.Codes.indexOf(data.lastOperationStatus) > -1 }).FirstOrDefault()
+                                ?? _TaskDetail.StatusList[4];
+                            data.items = data.source;
+                            data.color = data.status.Color;
+
+                        });
+
+                        $.Enumerable.From(item.Data)
+                            .GroupBy(a => { return kendo.toString(a.startDate, 'yyyy-MM-dd'); })
+                            .Select(a => {
+
+                                var stat = _TaskDetail.GetStatus(a.source);
+
+                                $.each(a.source, function (i, item) {
+
+                                    if (stat.ColorNextDays != undefined && new Date(a.Key() + ' 00:00:00') > new Date()) {
+                                        item.color = stat.ColorNextDays;
+                                    } else {
+                                        item.color = stat.Color;
+                                    }
+
+                                });
+
+                            }).ToArray();
+
+                        _TaskDetail.Calendar.initCalendar(item, (i == res.length - 1 ? 'active' : ''));
+
+                    });
+
+                    var nowYear = $.Enumerable.From(_TaskDetail.Calendar.Years).Where(a => { return a.Year == new Date().getFullYear(); }).FirstOrDefault();
+                    if (nowYear != null) {
+                        $('#CalendarContainer [data-year="' + nowYear.Year + '"]').trigger('click');
+                    } else {
+                        $('#CalendarContainer [data-year]').eq(0).trigger('click');
+                    }
+
+                });
+
+            },
+            initCalendar: function (item, cls) {
+
+                var _id = 'tab_' + newGuid().substring(0, 8);
+                var _idCalendar = 'calendar_' + newGuid().substring(0, 8);
+
+                var itemNav = '<li class="' + cls + '"><a data-toggle="tab" href="#' + _id + '" data-year="' + item.Year + '">' + item.Year + '</a></li>';
+                var elemNav = $('<div id="' + _id + '" class="tab-pane ' + cls + '"><div id="' + _idCalendar + '"></div></div>')
+
+                $('#CalendarContainer .nav-tabs').append(itemNav);
+                $('#CalendarContainer .tab-content').append(elemNav);
+
+                $('#' + _idCalendar).calendar({
+                    startYear: item.Year,
+                    style: 'background',
+                    dataSource: item.Data,
+                    language: "tr",
+                    minDate: new Date(item.Year, 0, 1),
+                    maxDate: new Date(item.Year, 11, 31),
+                    toolbar: ["pdf"],
+                    renderEnd: function (e) {
+                        //Doldurulacak
+                    },
+                    mouseOnDay: function (e) {
+
+                        if (e.events.length > 0 && !_TaskDetail.Calendar.POP.HasValue(e.date)) {
+
+                            var items = $.Enumerable.From(e.events);
+
+                            var temp = $($('#temp').html());
+                            temp.find('[data-target="taskCount"]').html(items.Count());
+                            temp.find('[data-target="detail"]').attr('href', temp.find('[data-target="detail"]').attr('href') + items.Select(a => { return a.id; }).ToArray().join(','));
+
+                            //  Tüm görevler planlanmış ise realde herhangi bir görev yoksa
+                            if (items.Count(a => { return a.lastOperationStatus == null; }) == items.Count()) {
+                                temp.find('[data-target="detail"]').attr('href', '#').attr('disabled', 'disabled').removeAttr('target');
+                            }
+
+                            temp.find('.close').on('click', function () {
+                                _TaskDetail.Calendar.POP.Hide(e.date, e.element);
+                            });
+
+                            items
+                                .GroupBy(a => { return a.customer_Title; })
+                                .Select(a => {
+
+                                    var el = $($('#temp_Customer').html());
+                                    el.html(a.Key());
+                                    el.attr('href', el.attr('href') + a.Max(b => { return b.customerId; }));
+                                    el.appendTo(temp.find('[data-target="customers"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.type_Title; })
+                                .Select(a => {
+
+                                    var _type = $.Enumerable.From(_TaskDetail.Types).Where(b => { return b.Value == a.Key(); }).FirstOrDefault();
+
+                                    var el = $('<div class="block"><span class="badge">' + '<i class="' + _type.Generic.icon + '"></i>' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="type_Title"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.status.Key; })
+                                .Select(a => {
+
+                                    var el = $('<div class="block"><span class="badge badge-white" style="color: ' + a.source[0].status.Color + '; border: 1px solid; ">' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="KeyStatus"]'));
+
+                                })
+                                .ToArray();
+
+                            $(e.element).popover({
+                                trigger: 'manual',
+                                container: 'body',
+                                html: true,
+                                content: temp,
+                                placement: 'top'
+                            });
+
+                            $(e.element).popover('show');
+
+                        }
+                        else {
+
+                            if (!_TaskDetail.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+
+                        }
+                    },
+                    clickDay: function (e) {
+
+                        _TaskDetail.Calendar.POP.Toggle(e.date, e.element);
+
+                    },
+                    mouseOutDay: function (e) {
+                        if (e.events.length > 0) {
+                            if (!_TaskDetail.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+                        }
+                    },
+                });
+
+            }
+        },
+
+    };
+
+    $(document)
+
+        .on('ready', function () {
+
+            _TaskDetail.Calendar.init();
+
+            $('[data-target="FrequencyInterval_Html"]').html(TemplateEngine('FrequencyInterval_Template', _TaskDetail.Model.TaskPlan));
+
+        })
+
+        .on('click', '[data-toggle="tab"]', function () {
+
+            _TaskDetail.Calendar.POP.HideAll();
+
+        })
+
+        .on('shown.bs.tab', 'a[href="#GridTasks"]', function (e) {
+
+            $("#VWFTM_Task").data("kendoGrid").refresh();
+
+        })
+
+        .on('success', '#MultipleForm', function (e, res) {
+
+            if (res.Result) {
+
+                setTimeout(function () { document.location.reload() }, 4000);
+
+            }
+
+        })
+
+        ;
+
+</script>
+
+<div class="row">
+    <div class="col-lg-3">
+
+        <div class="ibox ">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.TaskPlan.name
+                    </h2>
+                    @*<small> <i class="fa fa-location-arrow"></i> @(Model.openAddressLocationId_Title != null ? Model.openAddressLocationId_Title : "Lokasyon bulunamadı")</small>*@
+                </div>
+                <img src="/Content/Custom/img/kural.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
+
+                <div style="margin-top: 15px;">
+                    <a class="btn btn-xs btn-primary" data-href="/FTM/VWFTM_TaskPlan/InsertMultiple?id=@Model.TaskPlan.id" data-modal="true" data-task="Insert"> <i class="fa fa-edit"></i> Düzenle </a>
+                </div>
+
+            </div>
+
+            <div class="widget-text-box">
+                <ul class="list-group clear-list detailList" style="margin-bottom: 0 !important;">
+
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-bookmark"></i> <strong> Aktif : </strong> @(Model.TaskPlan.enabled == true ? "Evet" : "Hayır")
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-send"></i> <strong> Oluşturulmuş Görev : </strong> @(Model.TaskPlan.task_Count.Value.ToString("N0")) Adet
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-calendar"></i> <strong> Plan Başlangıç Tarihi : </strong> @Model.TaskPlan.frequencyStartDate.HtmlRaw()
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-calendar"></i> <strong> Plan Bitiş Tarihi : </strong> @Model.TaskPlan.frequencyEndDate.HtmlRaw()
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-calendar"></i> <strong> Görevin Oluşturulacağı Zaman : </strong> @Model.TaskPlan.taskCreationTime_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-arrows-h"></i> <strong> Planın Tekrar Sıklığı : </strong> @Model.TaskPlan.frequency_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-bolt"></i> <strong> Planlanan Görev : </strong> @Model.TaskPlan.templateId_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-user"></i> <strong> Planı Oluşturan : </strong> @Model.TaskPlan.createdby_Title
+                    </li>
+                    <li class="list-group-item fist-item">
+                        <i class="fa fa-spinner"></i> <strong> Tekrar Sıklığı : </strong>
+                        <div data-target="FrequencyInterval_Html"></div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-lg-9">
+
+        <div class="ibox hide">
+            <div class="ibox-title">
+                <h5> <i class="fa text-success fa-bar-chart-o"></i> ÖZET BİLGİ</h5>
+            </div>
+            <div class="ibox-content clearfix" style="padding-bottom:10px !important; padding-top:10px !important;">
+                <div class="col-md-6">
+                    <table class="table m-b-xs">
+                        <tbody>
+                            <tr>
+                                <td style="border-top:none;"> <span class="label label-success pull-right">1</span> <i class="ii-ambarmevcudu"></i> Toplam Oluşturulmuş Görevler </td>
+                            </tr>
+                            <tr>
+                                <td><span class="label label-success pull-right" data-id="VWSH_UserActive">1</span><i class="fa fa-hand-o-right"></i> Toplam Personel Sayısı </td>
+                            </tr>
+                            <tr>
+                                <td><span data-id="VWCMP_Company" class="label label-success pull-right">1</span> <i class="fa fa-calendar"></i> Toplam Şube Sayısı </td>
+                            </tr>
+                            <tr>
+                                <td><span class="label label-success pull-right" data-id="VWCMP_TenderSelling">1</span> <i class="fa fa-hand-o-left"></i> Satış Teklifleri </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table m-b-xs">
+                        <tbody>
+                            <tr>
+                                <td style="border-top:none;"><span class="label label-success pull-right" data-id="VWCMP_InvoiceSelling">1</span> <i class="fa fa-mail-reply"></i>  Satış Faturaları </td>
+                            </tr>
+                            <tr>
+                                <td> <span class="label label-success pull-right" data-id="VWCMP_InvoiceBuying">1</span> <i class="fa fa-mail-forward"></i> Alış Faturaları </td>
+                            </tr>
+                            <tr>
+                                <td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceSelling">1</span> <i class="fa fa-money"></i> Satış Faturaları Tutarı </td>
+                            </tr>
+                            <tr>
+                                <td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceBuying">1</span> <i class="fa fa-money"></i> Alış Faturaları Tutarı </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="tabs-container">
+
+            <ul class="nav nav-tabs">
+                <li class="active" data-toggle="tooltip" data-placement="top" title="Form Detayı">
+                    <a data-toggle="tab" href="#TaskPlanDetail"><i class="fa fa-info-circle text-success fa-2x"></i></a>
+                </li>
+                <li class="" data-toggle="tooltip" data-placement="top" title="Takvim Görünümü">
+                    <a data-toggle="tab" href="#TaskPlanCalendar"><i class="fa fa-calendar text-success fa-2x"></i></a>
+                </li>
+                <li class="" data-toggle="tooltip" data-placement="top" title="Oluşturulmuş Görevler">
+                    <a data-toggle="tab" href="#GridTasks"><i class="fa fa-list text-success fa-2x"></i></a>
+                </li>
+            </ul>
+
+            <div class="tab-content">
+                <div class="tab-pane active" id="TaskPlanDetail">
+                    <fieldset>
+                        <legend>Görev Plan ve Şablon Detayı</legend>
+                        @Html.Partial("~/Areas/FTM/Views/VWFTM_TaskPlan/TemplatePlanDetail.cshtml", Model)
+                    </fieldset>
+                </div>
+                <div class="tab-pane" id="TaskPlanCalendar">
+
+                    <fieldset class="withTabs" id="CalendarContainer">
+                        <legend>TAKVİM GÖRÜNÜMÜ</legend>
+
+                        <table class="legendTable">
+                            <tbody>
+                                <tr>
+                                    <td>Göreve <b>Başlanmadı</b> <span class="levelLegend1"></span></td>
+                                    <td>Görev <b>Devam Ediyor</b> <span class="levelLegend2"></span></td>
+                                    <td>Görev <b>Tamamlandı</b> <span class="levelLegend3"></span></td>
+                                    <td>Görev <b>Planlandı</b> <span class="levelLegend4"></span></td>
+                                    <td><b>Diğer</b> <span class="levelLegend5"></span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <ul class="nav nav-tabs customTabs usel"></ul>
+                        <div class="tab-content"></div>
+
+                    </fieldset>
+
+                </div>
+                <div class="tab-pane" id="GridTasks">
+                    <fieldset>
+                        <legend>Oluşturulmuş Görevler</legend>
+
+
+                        <script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
+
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1){#
+    #color = "text-warning"#
+    #}else if(priority==2){#
+    #color = "text-primary"#
+    #}#
+
+    #var slaStatus = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskSLAStatus>()));#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width: 25px;vertical-align: middle;padding: 0px !important;">
+                    <span>
+                        #if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30' && lastOperationStatus!='26'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='26'){#
+                        <i style="font-size: 25px;" class="icon-pause #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}
+
+                        else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+
+
+                    </span>
+                </td>
+
+                <td class="desc">
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    #if(description.length >= 25){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+                    #}
+                    else
+                    {#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+                    #}#
+
+
+                    #if(code!=null){#
+                    <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(fixture_Title!=null){#
+                    <div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+                    #}#
+
+                    <div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
+                    #if(lastOperationStatus_Title!=null){#
+                    <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+                    #}#
+
+                    #if(penaltyStartDate!=null){#
+                    <div style="font-size:13px;"><strong>SLA Başlangıç Tarihi  :</strong>#=kendo.toString(penaltyStartDate,"dd.MM.yyyy HH:mm")#  #=(SLAText ? ' | '+SLAText : '')#</div>
+                    #}#
+
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+
+
+                    #if(taskSubjectType_Title != null){#
+                    <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+                    #}#
+                </td>
+                <td style="width: 62px;vertical-align: middle;">
+                    <h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="İşlem Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Dosya(Resim) Sayısı" data-placement="left" class="m-b-xs">
+                        <i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+                    </h5>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+                        </script>
+                        <script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
+                            #if(description!=null){#
+                            #if(description.length >= 25){#
+                            <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+                            #}
+                            else
+                            {#
+                            <div style="font-size:13px;">#=description#</div>
+                            #}#
+                            #}#
+                        </script>
+                        <script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+    #if(type_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+    #}#
+                        </script>
+                        <script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+    #if(lastOperationStatus_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+    #}#
+                        </script>
+                        <script type="text/javascript">
+                            function taskPriorityResult(data) {
+
+                                if (data.priority == 0) {
+
+                                    return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+                                }
+                                else if (data.priority == 1) {
+                                    return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+                                }
+                                else if (data.priority == 2) {
+                                    return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+                                }
+
+                            }
+
+                            function filterMenuInit(e) {
+                                if (e.field == "created") {
+                                    var $container = e.container;
+
+                                    e.container.find('[type="reset"]').hide();
+                                    e.container.find(".k-filter-help-text").remove();
+                                    e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+                                    e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+                                    gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+                                    var logicDropDown = e.container.find("select:eq(1)");
+                                    logicDropDown.data("kendoDropDownList").value("and");
+                                    logicDropDown.data("kendoDropDownList").trigger("change");
+
+                                    gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+                                    //  firstValueDropDown.parents('.k-dropdown').hide();
+                                    logicDropDown.parents('.k-dropdown').hide();
+                                    //  secondValueDropDown.parents('.k-dropdown').hide();
+
+                                    gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+                                    gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+                                    $($('.k-header')[14]).html("Başlangıç Tarihi");
+                                    $($('.k-header')[17]).html("Bitiş Tarihi");
+
+                                    $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                                        var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                                        var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                                        if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                                            dt2.data('kendoDatePicker').value().addHours(23);
+                                            dt2.data('kendoDatePicker').value().addMinutes(59);
+                                            dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                                            $container.find('[type="submit"]').removeAttr('disabled');
+
+                                        }
+
+                                    });
+
+                                    $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                                        $container.find('[data-role="datepicker"]').trigger('change');
+
+                                    });
+
+                                }
+                                else if (e.field == "dueDate") {
+                                    var $container = e.container;
+
+                                    e.container.find('[type="reset"]').hide();
+                                    e.container.find(".k-filter-help-text").remove();
+                                    e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+                                    e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+                                    gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+                                    var logicDropDown = e.container.find("select:eq(1)");
+                                    logicDropDown.data("kendoDropDownList").value("and");
+                                    logicDropDown.data("kendoDropDownList").trigger("change");
+
+                                    gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+                                    //  firstValueDropDown.parents('.k-dropdown').hide();
+                                    logicDropDown.parents('.k-dropdown').hide();
+                                    //  secondValueDropDown.parents('.k-dropdown').hide();
+
+                                    gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+                                    gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+                                    $($('.k-header')[20]).html("Başlangıç Tarihi");
+                                    $($('.k-header')[23]).html("Bitiş Tarihi");
+
+                                    $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                                        var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                                        var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                                        if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                                            dt2.data('kendoDatePicker').value().addHours(23);
+                                            dt2.data('kendoDatePicker').value().addMinutes(59);
+                                            dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                                            $container.find('[type="submit"]').removeAttr('disabled');
+
+                                        }
+
+                                    });
+
+                                    $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                                        $container.find('[data-role="datepicker"]').trigger('change');
+
+                                    });
+                                }
+                                else if (e.field == "lastOperationDate") {
+                                    var $container = e.container;
+
+
+                                    e.container.find('[type="reset"]').hide();
+                                    e.container.find(".k-filter-help-text").remove();
+                                    e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+                                    e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+
+                                    gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+                                    gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+
+                                    var logicDropDown = e.container.find("select:eq(1)");
+                                    logicDropDown.data("kendoDropDownList").value("and");
+                                    logicDropDown.data("kendoDropDownList").trigger("change");
+
+                                    gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+                                    gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+
+                                    //  firstValueDropDown.parents('.k-dropdown').hide();
+                                    logicDropDown.parents('.k-dropdown').hide();
+                                    //  secondValueDropDown.parents('.k-dropdown').hide();
+
+                                    gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+                                    gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+
+                                    $($('.k-header')[25]).html("Başlangıç Tarihi");
+                                    $($('.k-header')[28]).html("Bitiş Tarihi");
+
+                                    $container.find('[data-role="datepicker"]').on('change', function (e) {
+
+                                        var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+                                        var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+
+                                        if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+                                            dt2.data('kendoDatePicker').value().addHours(23);
+                                            dt2.data('kendoDatePicker').value().addMinutes(59);
+                                            dt2.data('kendoDatePicker').value().addSeconds(59);
+
+                                            $container.find('[type="submit"]').removeAttr('disabled');
+
+                                        }
+
+                                    });
+
+                                    $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+
+                                        $container.find('[data-role="datepicker"]').trigger('change');
+
+                                    });
+                                }
+                            }
+
+                            function FilterMenuTaskType(element) {
+                                element.kendoDropDownList({
+                                    dataTextField: "Name",
+                                    dataValueField: "Name",
+                                    filter: "contains",
+                                    dataSource: {
+                                        transport: {
+                                            read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+                                        }
+                                    },
+                                    optionLabel: "Görev Tipi Seçiniz"
+                                })
+                            }
+
+                            function FilterMenuTaskStatus(element) {
+
+                                element.kendoDropDownList({
+                                    dataTextField: "Name",
+                                    dataValueField: "Name",
+                                    filter: "contains",
+                                    dataSource: {
+                                        transport: {
+                                            read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+                                        }
+                                    },
+                                    optionLabel: "Son İşlem Seçiniz"
+                                });
+                            }
+
+                            function FilterMenuTaskPriority(element) {
+                                element.kendoDropDownList({
+                                    dataTextField: "Name",
+                                    dataValueField: "Name",
+                                    filter: "contains",
+                                    dataSource: {
+                                        transport: {
+                                            read: "@Url.Action("FilterMenuTaskPriority", "General",  new { area = string.Empty })"
+                                        }
+                                    },
+                                    optionLabel: "Görev Önceliği Seçiniz"
+                                })
+                            }
+
+                        </script>
+
+
+                        @(Html.Akilli()
+        .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).Filter(b => b.taskPlanId == Model.TaskPlan.id)
+        .PageSize(25).Sort(a => a.Add(c => c.lastOperationDate).Descending()))
+        .Scrollable(a => a.Height(650))
+        .Columns(x =>
+        {
+            x.Bound(y => y.id).Title("").Width(500).Filterable(false).Locked(true).Hidden(false).ClientTemplate("#=TemplateEngine('FTM_TaskTemplate',data)#");
+            x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+            {
+
+                b.Clear();
+                b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                b.IsLessThanOrEqualTo("Bitiş Tarihi");
+            }
+
+            ))).Width(180).Format(Extensions.DateFormatFull(true));
+            x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+            x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+            x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+            x.Bound(y => y.type_Title).Title("Görev Tipi").Width(125).Filterable(filterable=>filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+            x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(180).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+            x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable=>filterable.UI("FilterMenuTaskPriority")).Width(140).ClientTemplate("#=taskPriorityResult(data)#");
+            x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+            //x.Bound(y => y.id).Title("").Width(180).Filterable(false).ClientTemplate("#=assignStaffButton(data)#");
+            x.Bound(y => y.assignableUserTitles).Title("Üstlenebilecek Personeller").Width(180);
+            x.Bound(y => y.helperUserTitles).Title("Yardımcı Personeller").Width(180);
+            x.Bound(y => y.plate).Title("Araç").Width(180);
+            x.Bound(y => y.lastOperationDate).Title("Son Operasyon Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+            x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+            {
+                b.Clear();
+                b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                b.IsLessThanOrEqualTo("Bitiş Tarihi");
+            }
+
+            ))).Width(180).Format(Extensions.DateFormatFull(true));
+            x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+            x.Bound(y => y.stopSubject_Titles).Title("Durdurulma Nedenleri").Width(230);
+            x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+        })
+        .Events(ev => ev.FilterMenuInit("filterMenuInit"))
+        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+        .ToolBar(x =>
+        {
+
+            //  x.Custom().Text("<i data-original-title='Toplu Onay' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-method", "GET" }, { "data-check", "all" } }).Url(Url.Action("ApproveAll", "VWFTM_Task", new { area = "FTM" }));
+            x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+            x.Custom().Text("<i data-original-title='Görev Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_Task", new { area = "FTM" }));
+        }))
+
+                    </fieldset>
+                </div>
+
+            </div>
+
+
+
+        </div>
+
+    </div>
+</div>
+
+<script type="text/template" id="rowTemplate">
+    <tr>
+        <td data-elem="customer_Title"></td>
+        <td data-elem="type_Title"></td>
+        <td data-elem="lastOperationStatus_Title"></td>
+    </tr>
+</script>
+
+<script type="text/template" id="temp_Customer">
+    <a href="/CMP/VWCMP_Company/Detail?id=" target="_blank" class="block" data-target="customerTitle"></a>
+</script>
+
+<script type="text/template" id="temp">
+    <div class="calPopover">
+
+        <button class="close">×</button>
+
+        <h3 class="text-center">Toplam <span data-target="taskCount"></span> Görev</h3>
+
+        <div class="capt">Müşteriler</div>
+        <div data-target="customers"></div>
+
+        <div class="row">
+            <div class="col-sm-6">
+                <div class="capt">Görev Tipleri</div>
+                <div data-target="type_Title"></div>
+            </div>
+            <div class="col-sm-6">
+                <div class="capt">Görev Durumları</div>
+                <div data-target="KeyStatus"></div>
+            </div>
+        </div>
+
+        <div class="btn-group">
+            <a class="btn btn-xs btn-default" target="_blank" href="/FTM/VWFTM_Task/Index?ids=" data-target="detail">Detay</a>
+        </div>
+    </div>
+</script>
+
+<script type="text/x-kendo-template" id="FrequencyInterval_Template" data-selector="modalContainer">
+
+    # if(data.frequency == 1){ #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Günde 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Günün Her #=data.times# Saatlerinde</b>
+        </div>
+
+    # } else if (data.frequency == 2) { #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Haftada 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Her Haftanın #=data.weekDays# Günlerinde</b>
+        </div>
+        <div>
+            <b class="badge">Saat #=data.times#</b>
+        </div>
+
+    # } else if (data.frequency == 3) { #
+
+        <div>
+            <b class="badge badge-warning">#=data.frequencyInterval# Ayda 1 defa</b>
+        </div>
+        <div>
+            <b class="badge badge-info">Her Ayın #=data.monthDays# Günlerinde</b>
+        </div>
+        <div>
+            <b class="badge">Saat #=data.times#</b>
+        </div>
+
+    # } else { #
+
+        <span class="text-error text-bold">#= data.frequencyInterval #</span>
+
+    # } #
+
+</script>

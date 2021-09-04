@@ -1,0 +1,318 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCSM_StudentModel
+@{
+    ViewBag.Title = "Aday Öğrenci Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var stageStatusses = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCSM_StageStatus>();
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var stageStatusses = @Html.Raw(Infoline.Helper.Json.Serialize(stageStatusses));
+
+    function onChangeStage(e) {
+
+        var datetimepicker = $('#LastActivity_contactDate').data("kendoDateTimePicker");
+        var dataItem = e.sender.dataItem();
+        var statusIsContact = stageStatusses.find(a => a.EnumKey == "Randevu");
+
+        datetimepicker.value(null);
+        datetimepicker.element.parents(".form-group").addClass("hide");
+
+        if (statusIsContact && dataItem.status == statusIsContact.Key) {
+            datetimepicker.value(new Date());
+            datetimepicker.element.parents(".form-group").removeClass("hide");
+        }
+    }
+
+</script>
+
+
+@using (Html.BeginForm("Insert", "VWCSM_Student", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1"> <i class="fa fa-users text-success"></i> Öğrenci Bilgileri </a>
+                </h4>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="name">Ad Soyad</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Adı Soyadı giriniz.."}
+                            }).Validate(Validations.TextEverywhere(true))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="phone">Telefon Numarası</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                { "style", "width: 100%"},
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Telefon numarasını başında sıfır olmadan 0(506) 987 65 43 giriniz. "},
+                            })
+                            .Mask("0(000) 000 00 00")
+                            .UnmaskOnPost(true)
+                            .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="email">E-Posta Adresi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+                            {
+                                {"placeholder","Eposta adresi(test@test.com)"},
+                                {"class","form-control"},
+                            }).Validate(Validations.EMail(false))
+
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="locationId">Konum</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.locationId)
+                                .OptionLabel("Lütfen İl,İlçe Seçiniz..")
+                                .DataTextField("pid_Title")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                                .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)))
+                                .Sort(x => x.Add("pid_Title").Ascending())
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="schoolId">Okul</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.schoolId)
+                                .OptionLabel("Lütfen Okul seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCSM_School", new { area = "CSM" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .BasicInsert(Url.Action("Insert", "VWCSM_School", new { area = "CSM" }), "name", false)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="grade">Sınıf</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.grade).Value(EnumCSM_StudentGrade.Sinif12))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="name">Bölüm</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.deparmentCurrent, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen öğrenim gördüğü bölümü giriniz.."}
+                            }).Validate(Validations.TextEverywhere(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="status">İlgilendiği Bölümler</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                              .MultiSelectFor(a=>a.StudentDepartmentIds)
+                              .Placeholder("Lütfen İlgilendiği bölümleri Seçiniz..")
+                              .DataValueField("id")
+                              .DataTextField("name")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCSM_Department", new { area = "CSM" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .TagMode(TagMode.Multiple)
+                              .BasicInsert(Url.Action("Insert", "VWCSM_Department", new { area = "CSM" }), "name", false)
+                              .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="source">Kaynak Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.source).Value(EnumCSM_StudentSource.Fuar))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="sourceDescription">Kaynak Detayı (Fuar Adı vs.)</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.sourceDescription, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Fuar Adı "}
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="isAllowContact">İletişim İzni</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Kendo().CheckBoxFor(a => a.isAllowContact).Checked(true))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2"> <i class="fa fa-calendar text-success"></i> İlk Görüşme Bilgileri </a>
+                </h4>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="grade">Görüşme Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="radio akilliRadioGrup clearfix">
+                                @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCSM_ActivityType>())
+                                {
+                                    <input type="radio" @(item.Key == "3" ? "checked" : "") name="LastActivity.type" id="type_@item.Key" value="@item.Key">
+                                    <label tabindex="0" class="radio-label" for="type_@item.Key">
+                                        @item.Value
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="LastActivity_date">Görüşme Zamanı/Süresi(dk)</label>
+                        </div>
+                        <div class="col-md-6">
+                            @(
+                                Html.Akilli().
+                                DateTimePickerFor(model => model.LastActivity.date).
+                                Name("LastActivity.date").
+                                Placeholder("Lütfen Görüşme Zamanı girin..").
+                                Format(Extensions.DateFormatFull()).
+                                Value(Model.LastActivity.date ?? DateTime.Now).
+                                Validate(Validations.Required)
+                            )
+                        </div>
+                        <div class="col-md-2">
+                            @(Html.Akilli().NumericTextBoxFor(model => model.LastActivity.duration).Name("LastActivity.duration").Min(0).Decimals(0).Format("N0").Placeholder("dk").Spinners(false))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="LastActivity_stageId">Görüşme Aşaması</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.LastActivity.stageId)
+                                .OptionLabel("Lütfen Görüşme Aşaması seçiniz..")
+                                .Name("LastActivity.stageId")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCSM_Stage", new { area = "CSM" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Events(e => { e.Change("onChangeStage"); })
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group hide" id="contactDateContent">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="LastActivity_contactDate">Randevu Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().
+                                DateTimePickerFor(model => model.LastActivity.contactDate).
+                                Name("LastActivity.contactDate").
+                                Placeholder("Lütfen Randevu Tarihi girin..").
+                                Format(Extensions.DateFormatFull())
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="LastActivity_description">Görüşme Notları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.LastActivity.description, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen görüşme notlarını giriniz.."},
+                                {"name","LastActivity.description" }
+                            }).Validate(Validations.TextEverywhere(false))
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

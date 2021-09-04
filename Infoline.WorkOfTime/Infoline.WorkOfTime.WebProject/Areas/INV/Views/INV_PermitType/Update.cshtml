@@ -1,0 +1,173 @@
+﻿@model Infoline.WorkOfTime.BusinessData.INV_PermitType
+@using Infoline.WorkOfTime.BusinessAccess
+
+@{
+    ViewBag.Title = "İzin Tipi Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $('[data-toggle="tooltip"]').tooltip();
+
+    $('[name="CanHourly"]').change(function (e) {
+        if (this.value == "False") {
+            $('[data-PaidPermitDay=""]').text("Gün");
+        } else {
+            $('[data-PaidPermitDay=""]').text("Saat");
+        }
+    })
+
+</script>
+
+@using (Html.BeginForm("Update", "INV_PermitType", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Name">İzin Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen İzin Tipi Giriniz.."},
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CanHourly"> Kullanım Şekli<i data-placement="right" data-toggle="tooltip" style="color:#1e90ff; margin-left: 5px;" title="Eğer bir mazeret izni vb. ise saatlik seçiniz.Yıllık izin vb. ise günlük seçimi yapınız." class="fa fa-info-circle blue"></i></label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:black;">
+                    @Html.Kendo().RadioButtonFor(a => a.CanHourly).Value(true)
+                    @EnumINV_PermitTypeCanHourly.Saat.ToDescription()
+                </label>
+                <label style="color:black;">
+                    @Html.Kendo().RadioButtonFor(a => a.CanHourly).Value(false)
+                    @EnumINV_PermitTypeCanHourly.Gunluk.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="BeDocumented"> İzin Sebebi Belgenlendirilecek mi? </label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.BeDocumented).Value(true)
+                    @EnumINV_PermitTypeIsPaidPermit.Evet.ToDescription()
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.BeDocumented).Value(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Hayir.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IsPaidPermit"> Ücretli İzin mi? </label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.IsPaidPermit).Value(true)
+                    @EnumINV_PermitTypeIsPaidPermit.Evet.ToDescription()
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.IsPaidPermit).Value(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Hayir.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="RequestStaff"> Personel Seçebilsin mi? <i data-placement="right" data-toggle="tooltip" style="color:#1e90ff; margin-left: 5px;" title="Personelin bu izin tipini seçmesini istiyorsanız eveti seçin." class="fa fa-info-circle blue"></i></label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.RequestStaff).Value(true)
+                    Evet
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.RequestStaff).Value(false)
+                    Hayır
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ViewStaff"> Personel Görüntülensin mi? <i data-placement="right" data-toggle="tooltip" style="color:#1e90ff; margin-left: 5px;" title="Personelin bu izin tipini görüntülemesini istiyorsanız eveti seçin. " class="fa fa-info-circle blue"></i></label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.ViewStaff).Value(true)
+                    Evet
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.ViewStaff).Value(false)
+                    Hayır
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix" data-cascade="[name='IsPaidPermit']" data-show="True">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PaidPermitDay">Ücretli İzin Sayısı</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.PaidPermitDay).Min(1).Max(30).HtmlAttributes(new Dictionary<string, object>()
+                  {
+                      {"style", "width:100%"},
+                      {"class", "text-right form-control" }
+                  }).Spinners(false).Format("n0").Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                <span class="input-group-addon" id="PaidPermitDay" data-PaidPermitDay="">Gün</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Descriptions">Açıklamalar</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Descriptions, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Giriniz.."},
+            }).Validate(Validations.Detail(false, 10, 1000))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -1,0 +1,77 @@
+﻿@model Infoline.WorkOfTime.BusinessData.DOC_DocumentVersion
+@{
+    ViewBag.Title = "Doküman Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+
+<div class="row" id="DetailForm2" data-selector="modalContainer">
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="subject">İçerik</label>
+        </div>
+        <div class="col-md-8">
+            <textarea class="form-control" name="content" id="contentversion" data-item="content"></textarea>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="subject">Versiyon</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli().FileUpload()
+                 .DataTable("DOC_DocumentVersion")
+                 .DataId(Model.id)
+                 .DataKey(x => x.fileGroup == "Doküman Dosyası").PreviewMode(true)
+            )
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript" data-selector="modalContainer">
+      var page = {
+        content: `@Html.Raw(Model.content)`,
+        loadEditor: function (content) {
+            if ($('#' + content).length == 0) {
+                return;
+            }
+            var form = $('#' + content).parents('.form-horizontal');
+            var idElem = form.find('[name="id"]');
+
+            var id = newGuid();
+
+            if (idElem && idElem != null && idElem != "") {
+                id = idElem.val();
+            }
+
+            CKEDITOR.replace(content, {
+                extraPlugins: 'image2',
+                height: '120px',
+                removeButtons: 'CustomImageUploader',
+                filebrowserImageUploadUrl: '/HDM/VWHDM_TicketMessage/EditorUploadFile?id=' + id,
+                removePlugins: 'about'
+            });
+
+            $('#contentversion').val(page.content);
+        },
+        onChangeType: function () {
+
+        }
+    };
+
+    CKEDITOR.config.entities_latin = !0;
+    CKEDITOR.config.entities_latin = false;
+    CKEDITOR.config.extraAllowedContent = false;
+    page.loadEditor('contentversion');
+
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+    #DetailForm2 span#cke_1_top {
+        display: none;
+    }
+</style>

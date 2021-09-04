@@ -1,0 +1,601 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_AdvanceModel
+@{
+    ViewBag.Title = "Avans Onayla-Reddet";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userId = userStatus.user.id;
+}
+
+<style type="text/css" data-selector="modalContainer">
+
+    .filterButtonActive {
+        background-color: #168a73;
+        border-color: #168a73;
+        color: white;
+    }
+
+    .filterButtonPassive {
+        background-color: #1ab394;
+        border-color: #168a73;
+        color: white;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    var expense = {
+        loaded : false,
+        model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        events: {
+            currencyDataBound: function (e) {
+                if (expense.loaded == false) {
+                    if (expense.model.currencyId && expense.model.currencyId != null) {
+                        e.sender.value(expense.model.currencyId);
+                    } else {
+                        var tl = $.Enumerable.From(e.sender.dataItems()).Where(a => a.code == "TL").FirstOrDefault();
+                        e.sender.value(tl.id);
+                    }
+
+                    e.sender.trigger("click");
+                    var status = expense.model.status != null ? expense.model.status : "0";
+                    $('[for="status_' + status + '"]').trigger("click");
+                    $('[name="status"]').trigger("change");
+                    $('#amount').trigger("keyup");
+                    expense.loaded = true;
+                }
+            },
+            currencyChange: function (e) {
+                $('[data-transaction="currency"]').text(e.sender.dataItem().symbol);
+            },
+            beforeSubmit: function (e, data) {
+                $('#direction').val(data);
+                $('#PA_AdvanceForm').trigger("submit");
+            }
+        }
+    }
+
+    $(document)
+        .on("click", '[data-name="filterDate"]', function (e) {
+            var _this = $(this);
+            $('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+            var attr = _this.attr("data-id");
+            var issueDate = $('#progressDate').data("kendoDatePicker").value();
+            var newDate = new Date(issueDate).addDays(parseInt(attr));
+            $('#date').data("kendoDatePicker").value(newDate);
+        })
+        .on("change", '[name="status"]', function (e) {
+            var value = $('[name="status"]:checked').val();
+            $('[data-id="status"]').addClass("hide");
+            $('#statusDiv_' + value).removeClass("hide");
+        })
+        .on("keyup", "#amount, #tax", function (e, res) {
+            var amount = $('#amount').val();
+            var tax = $('#tax').val();
+
+            amount = amount && amount != null && amount != "" ? parseFloat(amount): 0;
+            tax = tax && tax != null && tax != "" ? parseFloat(tax): 0;
+
+            $('#totalAmount').text(kendo.toString(amount + tax, "N2"));
+        })
+
+</script>
+
+@using (Html.BeginForm("Update", "VWPA_Advance", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "PA_AdvanceForm" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
+    @Html.HiddenFor(model => model.direction)
+    @Html.HiddenFor(model => model.type)
+
+    if (Model.Ledgers.Count() > 0)
+    {
+        <div class="alert alert-danger alert-dismissable">
+            Bu avans işlemi üzerinden ödeme yapıldığı için düzenleme yapamazsınız.
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Type_Title">İşlem Tipi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.type_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        if (Model.accountId_Title != null)
+        {
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="accountId_Title">İlgili Hesap</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.accountId_Title, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"readonly", "readonly"}
+                    })
+                </div>
+            </div>
+        }
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Title">Düzenlenme Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.created, "{0:dd.MM.yyyy}", new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Title">Ödeme Tarihi</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextBoxFor(model => model.date, "{0:dd.MM.yyyy}", new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="totalAmount">Tutar</label>
+            </div>
+            <div class="col-md-8">
+                <div class="input-group m-b">
+                    @(Html
+                        .Akilli().NumericTextBoxFor(model => model.amount)
+                        .Spinners(false)
+                        .Decimals(2)
+                        .Format("N2")
+                        .HtmlAttributes(new Dictionary<string, object>() {
+                            {"readonly", "readonly" },
+                            {"style", "width:100%" }
+                        }))
+                    <span class="input-group-addon">@Model.Currency_Symbol</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Description">Açıklama</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+
+        @*<div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Description">Dosya</label>
+                </div>
+                <div class="col-md-8">
+                    @if (Model.type == (int)EnumPA_AdvanceType.BankaGideri)
+                    {
+                        @(
+                            Html.Akilli().FileUpload()
+                            .DataTable("PA_Advance")
+                            .DataId(Model.id)
+                            .DataKey(x => x.fileGroup == "Banka Gideri Dosyası")
+                            .PreviewMode(true)
+                        )
+                    }
+                    else if (Model.type == (int)EnumPA_AdvanceType.Vergi)
+                    {
+                        @(
+                            Html.Akilli().FileUpload()
+                            .DataTable("PA_Advance")
+                            .DataId(Model.id)
+                            .DataKey(x => x.fileGroup == "Vergi Dosyası")
+                            .PreviewMode(true)
+                        )
+                    }
+                    else if (Model.type == (int)EnumPA_AdvanceType.FisFatura)
+                    {
+                        @(
+                            Html.Akilli().FileUpload()
+                            .DataTable("PA_Advance")
+                            .DataId(Model.id)
+                            .DataKey(x => x.fileGroup == "Fiş/Fatura Dosyası")
+                            .PreviewMode(true)
+                        )
+                    }
+                </div>
+            </div>*@
+
+
+        if (Model.debt == 0)
+        {
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="debt">Kalan</label>
+                </div>
+                <div class="col-md-8">
+                    <span style="font-size:20px;color: green;"> <i class="fa fa-check"></i> Ödendi </span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="debt">Kalan</label>
+                </div>
+                <div class="col-md-8">
+                    <div class="input-group m-b">
+                        @(Html
+                            .Akilli().NumericTextBoxFor(model => model.debt)
+                            .Spinners(false)
+                            .Decimals(2)
+                            .Format("N2")
+                            .HtmlAttributes(new Dictionary<string, object>() {
+                                {"readonly", "readonly" },
+                                {"style", "width:100%" }
+                            }))
+                        <span class="input-group-addon">@Model.Currency_Symbol</span>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        @Html.HiddenFor(a => a.status)
+
+        if (Model.created != null)
+        {
+            <style type="text/css" data-selector="modalSelector">
+                .scroller {
+                    height: 200px;
+                    overflow-y: scroll;
+                    scrollbar-color: rebeccapurple green;
+                    scrollbar-width: thin;
+                }
+            </style>
+        }
+
+
+        <div class="row">
+            <div class="col-md-12">
+                @if (!Model.createdby.HasValue || (Model.createdby.HasValue && Model.createdby.Value == userStatus.user.id))
+                {
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="LastContact_ContactType">Avans Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+								.DropDownListFor(model => model.type)
+								.OptionLabel("Lütfen Avans Tipi Seçiniz..")
+								.DataValueField("Id")
+								.DataTextField("enumDescription")
+								.Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+								.Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PA_Advance" && a.fieldName == "type")
+								//.Events(a => a.Change("_presentation.Events.onChangeContactType").DataBound("_presentation.Events.onDataBoundContactType"))
+								.Sort(x => x.Add("enumKey").Ascending())
+								.Validate(Validations.Required)
+								.Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="accountId">Masraf Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+				Html.Akilli()
+				.DatePickerFor(model => model.progressDate)
+				.Format("dd.MM.yyyy")
+				//.Min(DateTime.Now)
+				.Value(Model.progressDate.HasValue ? Model.progressDate : DateTime.Now)
+            )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="amount">Tutar</label>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="input-group m-b">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Max(999999999).Min(0).Spinners(false).Decimals(2).Format("N2").Validate(Validations.Required)
+                                <span class="input-group-addon" data-transaction="currency">@(Model.Currency_Symbol != null ? Model.Currency_Symbol : "₺")</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="currencyId">Para Birimi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                 Html.Akilli()
+                                 .DropDownListFor(model => model.currencyId)
+                                 .OptionLabel("Lütfen Para Birimi seçiniz..")
+                                 .DataTextField("name")
+                                 .DataValueField("id")
+                                 .Action(b => b.Action("DataSourceDropDown", "UT_Currency", new { area = "UT" }))
+                                 .Sort(x => x.Add("name").Ascending())
+                                 .Events(a => { a.Change("expense.events.currencyChange"); a.DataBound("expense.events.currencyDataBound"); })
+                                 .Validate(Validations.Required)
+                                 .Execute()
+                             )
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya">Avans Dosyası </label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                  Html.Akilli().FileUpload()
+                                  .DataTable("PA_Advance")
+                                  .DataId(Model.id)
+                                  .DataKey(x => x.fileGroup == "Avans Dosyası")
+                              )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="description">Açıklama</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Açıklama giriniz.."}
+                            })
+                        </div>
+                    </div>
+                }
+                else
+                {
+
+                    @Html.HiddenFor(a => a.currencyId)
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="createdby_Title">Talep Eden Personel</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"readonly", "readonly"}
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="progressDate">Talep Tarihi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.progressDate, "{0:dd.MM.yyyy}", new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"readonly", "readonly"}
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="type_Title">Avans Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.type_Title, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"readonly", "readonly"}
+                            })
+                        </div>
+                    </div>
+
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="totalAmount">Tutar</label>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="input-group m-b">
+                                @(Html
+                    .Akilli().NumericTextBoxFor(model => model.amount)
+                    .Spinners(false)
+                    .Decimals(2)
+                    .Format("N2")
+                    .HtmlAttributes(new Dictionary<string, object>() {
+                        {"readonly", "readonly" },
+                        {"style", "width:100%" }
+                    }))
+                                <span class="input-group-addon">@Model.Currency_Symbol</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Description">Dosya</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                Html.Akilli().FileUpload()
+                .DataTable("PA_Advance")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Avans Dosyası")
+                .PreviewMode(true)
+            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Description">Açıklama</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"readonly", "readonly"}
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="description">Red/Düzeltme Açıklaması</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextAreaFor(model => model.statusDescription, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Red/Düzeltme Açıklaması giriniz.."}
+                            })
+                        </div>
+                    </div>
+                }
+                @if (Model.created != null)
+                {
+                    if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
+                    {
+                        <strong>Masraf Onay Geçmişi</strong>
+                        <hr />
+                        <div id="vertical-timeline" class="vertical-container dark-timeline scroller">
+                            <div class="full-height-scroll">
+
+                                @foreach (var advanceHistory in Model.AdvanceHistory)
+                                {
+                                    if (advanceHistory.status == null)
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon gray-bg">
+                                                <i class="fa fa-spinner"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.userId_Title + " tarafından onaylanmayı beklemektedir.")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.Onay)
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon orange-bg" style="background-color:orange;color:white;">
+                                                <i class="fa fa-refresh"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.userId_Title + " tarafından onaylanmıştır.")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.YenidenTalep)
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon orange-bg" style="background-color:orange;color:white;">
+                                                <i class="fa fa-refresh"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.userId_Title + " tarafından düzeltme talebinde bulunulmuştur.")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon red-bg">
+                                                <i class="fa fa-times"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.userId_Title + " tarafından reddedilmiştir.").
+                                                </p>
+                                            </div>
+                                        </div>
+                                        break;
+                                    }
+                                }
+
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ibox" style="margin-top:44px">
+                            <div id="bilgi" class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+                                <strong> Masraf Onay Geçmişi Bulunmamaktadır </strong>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+
+        @if (Model.Ledgers.Count() == 0)
+        {
+            if (Model.direction == (int)EnumPA_AdvanceDirection.Talep && Model.createdby != userId)
+            {
+                <button class="btn btn-md btn-warning pull-right" type="button" style="margin-left: 15px;" onclick="expense.events.beforeSubmit(this, '3')"> Düzeltme Talebi Yap </button>
+                <button class="btn btn-md btn-primary pull-right" type="button" onclick="expense.events.beforeSubmit(this, '-1')" style="margin-left: 15px;"> Onayla </button>
+                <button class="btn btn-md btn-danger pull-right" type="button" onclick="expense.events.beforeSubmit(this, '2')"> Reddet </button>
+            }
+            else if (Model.direction == 3 && Model.createdby == userId)
+            {
+                <button class="btn btn-md btn-success pull-right" type="submit"> Güncelle</button>
+            }
+            else
+            {
+                if (Model.confirmUserIds != null && !Model.confirmUserIds.Contains(userStatus.user.id.ToString().ToUpper()))
+                {
+                    <button class="btn btn-md btn-success pull-right" type="submit"> Güncelle</button>
+
+                }
+            }
+        }
+    </div>
+}

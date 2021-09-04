@@ -1,0 +1,96 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Publications
+@{
+    ViewBag.Title = "Personel Yayınları Detay";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<div class="form-horizontal" data-selector="modalContainer">
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">Yayın İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Yayın İsmi giriniz.."},
+                 { "readonly", "readonly" }
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Yayın Açıklaması</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Yayın Açıklaması giriniz.."},
+                 { "readonly", "readonly" }
+            })
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="date">Yayın Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen Açıklama Giriniz." },
+                  { "readonly", "readonly" }
+                    
+             })
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" data-role="tagsinput" for="keywords">Anahtar Kelimeler</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBox("keywords", Model.keywords,
+                                 new Dictionary<string, object> {
+                                     { "data-role","tagify"},
+                                     { "readonly", "readonly" },
+                                     { "data-item", "keywords" },
+                                     { "data-value",Model.keywords}
+                             })
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Yayın Dosyası </label>
+        </div>
+        <div class="col-md-8">
+            @(
+            Html.Akilli().FileUpload()
+            .DataTable("SH_Publications")
+            .DataId(Model.id)
+            .DataKey(x => x.fileGroup == "Yayın Dosyası")
+            .PreviewMode(true)
+            )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+</div>

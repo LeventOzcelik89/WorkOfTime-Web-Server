@@ -1,0 +1,101 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments
+@{
+    ViewBag.Title = Model.Name;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var report = (DepartmentsDetailPageReport)ViewBag.PageReport;
+}
+
+@section Css{
+    <style type="text/css">
+        .widget {
+            margin-top: 0px !important;
+        }
+    </style>
+}
+
+@section Javascript{
+
+    <script type="text/javascript">
+        $(".k-grid-content").height($(window).height() - 480);
+    </script>
+
+}
+
+
+<div class="row m-b-md">
+    <div class="col-xs-12 col-sm-6 col-md-4">
+        @Html.Akilli().Card().Color("yellow").Text("Toplam Birim Sayısı").Value(report != null ? string.Format("{0:N0} Adet", report.ToplamBirimSayisi) : "0 Adet").IconClass("fa fa-sitemap")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+        @Html.Akilli().Card().Color("navy").Text("Son Eklenen Birim").Value(report != null && !string.IsNullOrEmpty(report.SonEklenenBirim) ? report.SonEklenenBirim : "Bulunamadı").IconClass("fa fa-list-alt")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-4">
+        @Html.Akilli().Card().Color("blue").Text("Yan Birim Sayısı").Value(report != null ? string.Format("{0:N0} Adet", report.YanBirimSayisi) : "0 Adet").IconClass("fa fa-chevron-right")
+    </div>
+</div>
+
+
+
+<div class="tabs-container">
+
+    <ul class="nav nav-tabs">
+        <li class="active" data-toggle="tooltip" data-placement="top" title="Departmanlar"><a data-toggle="tab" href="#departments" aria-expanded="true"><i class="icon-flow-tree"></i><span class="hidden-xs hidden-sm"> @(Model.PID == null ? "Ana Departman(lar)" : "Alt Departman(lar)&Birim(ler)") </span></a></li>
+        <li class="@(Model.PID == null ? "hide" : "")" data-toggle="tooltip" data-placement="top" title="Departman&Birim Personelleri"><a data-toggle="tab" href="#users" aria-expanded="false"><i class="fa fa-users" aria-hidden="true"></i><span class="hidden-xs hidden-sm"> Departman&amp;Birim Personelleri </span></a></li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="departments" class="tab-pane active">
+            @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyDepartments>("VWINV_CompanyDepartments")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyDepartments", new { area = "INV" }))
+                    .Filter(a => a.PID == Model.id)
+                    .PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Width(35);
+                        x.Bound(y => y.Name).Title("Departman Adı").Width(400);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_CompanyDepartments", new { area = "INV", PID = Model.id }));
+                        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyDepartments", new { area = "INV" }));
+                        x.Custom().Text("Departman/Birim Detayı").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWINV_CompanyDepartments", new { area = "INV" }));
+                        x.Custom().Text("SİL").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_CompanyDepartments", new { area = "INV" }));
+                    })
+            )
+        </div>
+        <div id="users" class="tab-pane">
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonDepartments>("VWINV_CompanyPersonDepartments")
+                .DataSource(x =>
+                    x.Ajax().Read(r => r.Action("DataSource", "VWINV_CompanyPersonDepartments", new { area = "INV" }))
+                    .Filter(a => a.DepartmentId == Model.id && (a.EndDate == System.UIHelper.Datetime.Null || a.EndDate > DateTime.Now))
+                    .PageSize(25)
+                )
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).Width(35);
+                    x.Bound(y => y.Person_Title).Title("Personel").Width(180);
+                    x.Bound(y => y.Title).Title("Personel Ünvanı").Width(180);
+                    x.Bound(y => y.StartDate).Title("Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.EndDate).Title("Bitiş Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("Personel Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_CompanyPersonDepartments", new { area = "INV", DepartmentId = Model.id }));
+                    x.Custom().Text("Personel Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_CompanyPersonDepartments", new { area = "INV" }));
+                    x.Custom().Text("Personel Detayı").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Detail", "VWINV_CompanyPersonDepartments", new { area = "INV" }));
+                    x.Custom().Text("Personel Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_CompanyPersonDepartments", new { area = "INV" }));
+                })
+            )
+        </div>
+
+    </div>
+</div>
+
+
+
+
+

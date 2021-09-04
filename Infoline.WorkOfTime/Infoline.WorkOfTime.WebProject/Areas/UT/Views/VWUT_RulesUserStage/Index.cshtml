@@ -1,0 +1,45 @@
+﻿@{
+    ViewBag.Title = "Kullanıcı Kural Aşamaları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+     <div class="col-md-12">
+		 <div class="ibox">
+		 	<div class="ibox-title">
+		 		<div class="col-md-9">
+					<h5>Kullanıcı Kural Aşamaları</h5>
+		 		</div>
+		 		<div class="col-md-3">
+					<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;margin-right: -6px;" data-modal="true" data-task="Insert" data-href="/UT/VWUT_RulesUserStage/Insert"> <i class="fa fa-plus-circle"></i> Kural Aşaması Ekle </a>
+		 		</div>
+		 	</div>
+		 	<div class="ibox-content">
+		 		@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_RulesUserStage>("VWUT_RulesUserStage")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_RulesUserStage", new { area = "UT" })).PageSize(25).Sort(t => t.Add(y => y.order))
+    .Group(c => c.Add(f => f.rulesId_Title))
+    )
+    .Columns(x =>
+    {
+
+        x.Bound(y => y.rulesId_Title).Title("Kural").Width(130);
+        x.Bound(y => y.order).Title("Sıra").Width(130);
+        x.Bound(y => y.type_Title).Title("Tip").Width(130);
+        x.Bound(y => y.userId_Title).Title("Kullanıcı").Width(130);
+        x.Bound(y => y.roleId_Title).Title("Rol").Width(130);
+        x.Bound(y => y.title).Title("Başlık").Width(130);
+    })
+    .Scrollable(x => x.Height(650))
+    .Groupable()
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i data-original-title='Kullanıcı Kural Aşamaları Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_RulesUserStage", new { area = "UT" }));
+        x.Custom().Text("<i data-original-title='Kullanıcı Kural Aşamaları Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_RulesUserStage", new { area = "UT" }));
+    }))
+		 	</div>
+		 </div>
+     </div>
+</div>

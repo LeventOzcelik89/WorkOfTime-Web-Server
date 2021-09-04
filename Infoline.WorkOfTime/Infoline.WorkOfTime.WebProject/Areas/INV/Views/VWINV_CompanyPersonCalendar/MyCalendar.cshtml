@@ -1,0 +1,376 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@using Infoline.WorkOfTime.BusinessData
+@using Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
+@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyCalendar
+@{
+    ViewBag.Title = "Benim Takvimim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
+
+}
+
+<link href="~/Content/plugins/fullcalendar/fullcalendar.css" rel="stylesheet" />
+<script src="~/Content/plugins/fullcalendar/moment.min.js"></script>
+<script src="~/Content/plugins/fullcalendar/fullcalendar.min.js"></script>
+<script src="~/Content/Plugins/fullcalendar/fc_event.js"></script>
+<script src="~/Content/plugins/fullcalendar/locale-all.js"></script>
+<style type="text/css">
+    .fc-content {
+        line-height: 21px;
+    }
+
+    #eventInfo {
+        padding-top: 20px;
+        border-top: 1px solid #808080;
+        margin-top: 20px;
+        font-weight: 500;
+    }
+
+    .modal-header {
+        background-color: #3343a4 !important;
+    }
+
+        .modal-header h5 {
+            color: #fff;
+            display: inline-block;
+            font-size: 16px;
+        }
+
+    ul.calendar-header {
+        padding: 0px;
+        list-style-type: none;
+    }
+
+        ul.calendar-header li {
+            float: left;
+            margin-right: 6px;
+        }
+
+            ul.calendar-header li div {
+                margin-right: 4px;
+                border-radius: 3px;
+                height: 15px;
+                width: 15px;
+                float: left;
+            }
+
+            ul.calendar-header li.active {
+                border-bottom: 1px solid gray;
+            }
+</style>
+<script type="text/javascript">
+    var pageCalendar = {
+        fileId: null,
+        URL: {
+            FulcalendatDataSource: '@Url.Action("CalendarDataSource", "VWINV_CompanyPersonCalendar", new {area = "INV", Type = Model.Type,isMine = true})',
+            Insert: '@Url.Action("Insert", "VWINV_CompanyPersonCalendar", new {area = "INV"})'
+        }
+    }
+    $(document)
+        .on('ready', function (e) {
+
+            $('#calendar').fullCalendar({
+                header: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'month,listWeek,listDay'
+                },
+                windowResize: function (view) {
+                    var height = $(window).height() - 180;
+                    $('#calendar').fullCalendar('option', 'height', height);
+                },
+                height: 830,
+                defaultDate: new Date(),
+                locale: 'tr',
+                selectable: true,
+                allDaySlot: false,
+                eventLimit: true,
+                timezone:"local",
+                // weekNumbers:true,//Hafta Numarası
+                select: function (start, end, jsEvent) {
+                    if (start.isBefore(moment()) && new Date(start).toDateString() != new Date().toDateString()) {
+                        $('#calendar').fullCalendar('unselect');
+                        MesajWarning("Geçmiş tarih ile işlem yapamazsınız.", "Bilgilendirme !");
+                        return false;
+                    }
+
+                    var startDate = moment(new Date(new Date(start.local()).setHours(08)).setMinutes(30)).toDate().toLocaleString("tr-TR");
+                    var endDate = moment(new Date(new Date(end.local()).setHours(18)).setMinutes(00)).toDate().addDays(-1).toLocaleString("tr-TR");
+
+                    if (new Date(start).toDateString() == new Date().toDateString()) {
+                        startDate = moment(new Date(new Date(start.local()).setHours(new Date().getHours())).setMinutes(new Date().getMinutes())).toDate().toLocaleString("tr-TR");
+                        endDate = moment(new Date(new Date(start.local()).setHours(new Date().getHours())).setMinutes(new Date().getMinutes() + 30)).toDate().toLocaleString("tr-TR");
+                    }
+
+                    var url = pageCalendar.URL.Insert + "?StartDate=" + startDate + "&EndDate=" + endDate;
+                    $('[data-click-modal]').attr('data-href', url);
+                    $('[data-click-modal]').trigger('click');
+                },
+                events: pageCalendar.URL.FulcalendatDataSource,
+                timeFormat: 'HH:mm',
+                eventRender: function (event, element) {
+                    pageCalendar.fileId = event.id;
+                    //Hafta seçilirse bulunulan günün rengi değişir.
+                    if (new Date().getDay() == event.start._d.getDay()) {
+                        if ($('.fc-listWeek-button').hasClass('fc-state-active') == true) {
+                            $(element).css("background-color", "#ece69a");
+                        }
+                    }
+                    //Doğum Günü ve Proje için saati gizler.
+                    if (event.type == 4 || event.type == 5) {
+                        $(element).find('.fc-time').text("");
+                    }
+                    element.attr('href', 'javascript:void(0);');
+                    element.click(function () {
+                        var datas = {
+                            DataId: event.id,
+                            DataTable: "INV_CompanyPersonCalendar",
+                            Filter: false
+                        };
+
+                        $.ajax({
+                              type: 'GET',
+                              url: '/Files/Preview',
+                              data: (typeof (datas) != 'undefined' ? datas : null),
+                              datatype: "html",
+                              success: function (data) {
+                                  $('#fileUpload').html(data);
+                              }
+                          });
+
+
+                        if (event.start) {
+                            $("[data-start]").val(moment(event.start).format('DD.MM.YYYY HH:mm'));
+                        }
+
+                        if (event.type == 2 || event.type == 5 || event.type == 6 || event.type == 7 || event.type == 9 || event.type == 10) {
+                            $('#bitisT').hide();
+                        }
+                        else {
+                            if (event.end) {
+                                $('#bitisT').show();
+                                $("[data-end]").val(moment(event.end).format('DD.MM.YYYY HH:mm'));
+                            }
+                        }
+
+                        $("[data-description]").val(event.description ? event.description : "Açıklama girilmemiş.");
+
+                        $("[data-katilimcilarwrapper]").addClass('hide');
+                        if (event.katilimcilar) {
+                            $("[data-katilimcilar]").val(event.katilimcilar);
+                            $("[data-katilimcilarwrapper]").removeClass('hide');
+                        }
+
+                        if (event.type == 102) {
+                            $('#DescORMeeting').text("Toplantı Salonu");
+                        }
+                        else {
+                            $('#DescORMeeting').text("Açıklama");
+                        }
+
+                        $("#Dtitle").html(event.title);
+
+                        //Hatirlatma = 100,
+                        //Not = 101,
+                        //Toplanti = 102,
+                        //Duyuru = 103,
+                        //Tebrik = 104,
+                        //Sunum = 105
+
+                        $("#InfoContent").modal();
+                        $('[data-delete]').addClass('hide');
+                        $('[data-edit]').addClass('hide');
+                        if (event.type == 100 || event.type == 101 || event.type == 102 || event.type == 103 || event.type == 104 || event.type == 105) {
+                            if (!event.start.isBefore(moment())) {
+                                $('#calendar').fullCalendar('unselect');
+                                if (event.createdby == '@userStatus.user.id') {
+                                    $('[data-edit]').attr('data-href', '/INV/VWINV_CompanyPersonCalendar/Update?id=' + event.id);
+                                    $('[data-delete]').attr('data-href', '/INV/VWINV_CompanyPersonCalendar/Delete');
+                                    $('[data-delete]').attr('data-id', event.id);
+                                    $('[data-delete]').removeClass('hide');
+                                    $('[data-edit]').removeClass('hide');
+                                }
+                            }
+                        }
+                    });
+                }
+            });
+        })
+        .on('click', '[data-delete]', function (e) {
+
+            var $this = $(this);
+            swal({
+                title: "Devam Et ?",
+                text: "İşlemi gerçekleştirmek için onay vermeniz gereklidir. Devam etmek istediğinize emin misiniz !",
+                type: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Evet",
+                cancelButtonText: "Hayır",
+                closeOnConfirm: false,
+                closeOnCancel: false
+            }, function (isConfirm) {
+
+                if (isConfirm) {
+
+                    var entity = { id: $($this).attr('data-id') }
+
+                    $.ajax({
+                        dataType: 'JSON',
+                        type: 'POST',
+                        async: true,
+                        timeout: 600000,
+                        url: $($this).attr('data-href'),
+                        data: entity,
+                        success: function (res) {
+                            if (res.Result) {
+                                $('#calendar').fullCalendar('refetchEvents');
+                                feedback(res.objects);
+                                $("#InfoContent").modal('hide');
+                            }
+                        }
+                    });
+                } else {
+                    //  swal("İşlem iptal edildi", "İşlem tarafınızca iptal edildi.", "warning");
+                }
+                swal.close();
+            });
+        })
+        .on("success", "form#VWINV_CompanyPersonCalendar", function (event, response) {
+            $("#InfoContent").modal('hide');
+            $('[data-task="modalClose"]').trigger('click');
+            $('#calendar').fullCalendar('refetchEvents');
+        })
+        .on('click', '[data-calendartype]', function (e) {
+            $('.calendar-header').find('li').removeClass('active');
+            $(this).addClass('active');
+            var url = '/INV/VWINV_CompanyPersonCalendar/CalendarDataSource?Type=' + $(this).attr('data-calendartype') + '&isMine=true';
+            var calendar = $('#calendar').data('fullCalendar');
+            if (calendar) {
+                calendar.eventManager.otherSources[0].url = url;
+            }
+            $('#calendar').fullCalendar('refetchEvents');
+        })
+        .on('change', '[name="Type"]', function (e, item) {
+            var type = this.value;
+            if (type != 102) {
+                $('#descrip').show()
+            } else {
+                $('#descrip').hide()
+            }
+        })
+        .on('click', '.bootstrap-dialog-close-button', function (e) {
+            $(this).parents('.modal-content').find('[data-dismiss="modal"]').trigger('click');
+        });
+</script>
+
+<form class="form-horizontal">
+    <a data-href="" data-method="GET" data-task="Insert" data-modal="true" data-show="always" class="hide" data-click-modal></a>
+    <div class="m-b-xl">
+        <div class="alert alert-info clearfix text-center" style="margin-bottom: 0px;">
+            <ul class="calendar-header">
+                @{
+                    var calendarHeaders = new Infoline.WorkOfTime.WebProject.Areas.INV.Models.CompanyCalendarModel().CalendarHeaDictionary.ToList();
+                }
+                @if (Model.Type.HasValue == false)
+                {
+                    foreach (var row in calendarHeaders)
+                    {
+
+                        <li title="@row.Key.ToDescription()" data-calendartype="@((Int32)((EnumINV_CompanyPersonCalendarType)row.Key))"><div style="background-color:@row.Value"></div> <a href="javascript:void(0)" title="@row.Key.ToDescription()"> @row.Key.ToDescription()</a></li>
+                    }
+                    <li title="Tümü" data-calendartype><a href="javascript:void(0)" title="Tümü" class="label label-danger"> Tümü</a></li>
+                }
+                else
+                {
+                    var calendarHeader = calendarHeaders.Where(x => (EnumINV_CompanyPersonCalendarType)x.Key == (EnumINV_CompanyPersonCalendarType)Model.Type).FirstOrDefault();
+                    <li title="@calendarHeader.Key.ToDescription()"><div style="background-color:@calendarHeader.Value"></div> <a href="javascript:void(0)" title="@calendarHeader.Key.ToDescription()"> @calendarHeader.Key.ToDescription()</a></li>
+                }
+            </ul>
+        </div>
+    </div>
+    <div id="calendar"></div>
+</form>
+
+@if (Request.Browser.IsMobileDevice)
+{
+    <div class="fixedStart">
+        <input type="checkbox" checked id="fixed" autocomplete="off">
+        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+        <div class="fix-buttons">
+            <a data-href="/INV/VWINV_CompanyPersonCalendar/Insert" data-method="GET" data-task="Insert" data-modal="true" data-show="always" data-click-modal> <i class="fa fa-calendar" data-toggle="tooltip" title="" data-original-title="Yeni Etkinlik Tanımla" data-click-modal></i> </a>
+        </div>
+    </div>
+}
+
+
+<!-- Takvim kayıt Detayı Başlangıç -->
+<div class="modal fade" id="InfoContent" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="bootstrap-dialog-close-button" style="display: block;"><button class="close">×</button></div>
+                <h5 class="modal-title" id="Dtitle"></h5>
+            </div>
+            <div class="modal-body">
+
+                <div class="form-group clearfix">
+                    <div class="col-md-4">
+                        <label id="startEndDate" class="control-label label-md">Tarih</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control" disabled="disabled" data-start />
+                            <span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group clearfix" id="bitisT">
+                    <div class="col-md-4">
+                        <label class="control-label label-md">Bitiş Tarihi</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="input-group">
+                            <input type="text" class="form-control " disabled="disabled" data-end />
+                            <span class="input-group-addon"><i class="fa fa-calendar" aria-hidden="true"></i></span>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group clearfix hide" data-katilimcilarwrapper>
+                    <div class="col-md-4">
+                        <label class="control-label label-md">Katılımcılar</label>
+                    </div>
+                    <div class="col-md-8">
+                        <textarea class="form-control" disabled="disabled" data-katilimcilar></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" id="DescORMeeting">Açıklama</label>
+                    </div>
+                    <div class="col-md-8">
+                        <textarea class="form-control " disabled="disabled" data-description></textarea>
+                    </div>
+                </div>
+
+                <div class="form-group clearfix">
+                    <div class="col-md-4">
+                        <label class="control-label label-md" for="Dosya">Takvim Dosyaları</label>
+                    </div>
+                    <div class="col-md-8">
+                        <div id="fileUpload"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger pull-left" data-dismiss="modal">Kapat</button>
+                <a class="btn  btn-primary pull-right  hide" data-method="GET" data-edit style="margin-right: 5px" data-task="Insert" data-href="" data-modal="true" data-show="always"> <i class="fa fa-edit"></i> Etkinliği Güncelle</a>
+                <button type="button" data-delete data-id="" class="btn  btn-danger hide pull-right"> <i class="fa fa-trash"></i> Etkinliği Sil</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Takvim kayıt Detayı Bitiş -->

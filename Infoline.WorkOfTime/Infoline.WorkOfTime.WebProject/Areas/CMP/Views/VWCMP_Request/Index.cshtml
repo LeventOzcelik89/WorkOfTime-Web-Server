@@ -1,0 +1,45 @@
+﻿@{
+    ViewBag.Title = "Satın Alma Talepleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var authorizedRoles = userStatus.AuthorizedRoles;
+    var satinAlmaTalebi = new Guid(SHRoles.SatinAlmaTalebi);
+    var satinAlmaPersonel = new Guid(SHRoles.SatinAlmaPersonel);
+    var satinAlmaOnaylayici = new Guid(SHRoles.SatinAlmaOnaylayici);
+    var sistemYonetici = new Guid(SHRoles.SistemYonetici);
+}
+
+
+<script type="text/javascript">
+    function statusTemplate(data) {
+        var statuslar = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_RequestStatus>()));
+        var res = statuslar.filter(a => a.Key == data.status)[0];
+        return '<i style="color:'+ res.Generic.color +'" data-original-title="'+data.status_Title+'" data-placement="right" class="' + res.Generic.icon + '"></i>';
+    }
+    function descriptionFunction(data) {
+        if (data.description != null) {
+            return '<i class="fa fa-info-circle" data-placement="right" data-original-title="Talep Açıklaması : ' + data.description + '" data-placement="bottom"></i>';
+        }
+        return "";
+    }
+</script>
+
+
+
+
+
+@if (authorizedRoles.Contains(satinAlmaOnaylayici) || authorizedRoles.Contains(satinAlmaPersonel) || authorizedRoles.Contains(sistemYonetici) || authorizedRoles.Contains(satinAlmaTalebi))
+{
+    Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Request/Shared/RequestAll.cshtml");
+}
+else
+{
+    Html.RenderPartial("~/Areas/CMP/Views/VWCMP_Request/Shared/RequestMy.cshtml");
+}
+
+
+
+
+
+

@@ -1,0 +1,2283 @@
+﻿@{
+    ViewBag.Title = "Tüm CRM Haritası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+
+@section Javascript{
+    <script type="text/javascript">
+
+        var control = false;
+        var selectedFeature = null;
+
+        var page = {
+            popup: null,
+            defines: {
+                stages: null,
+                data: [],
+                filteredData: [],
+                colorSelectionData: [
+                        { text: "Aşamaya Göre", value: "Stage" },
+                        { text: "Potansiyel/Fırsat Adedine Göre", value: "Presentation" },
+                        { text: "Tamamlanma Oranına Göre", value: "Completion" },
+                        { text: "Son Ziyaretten Sonra Geçen Zamana Göre", value: "LastContact" },
+                        { text: "Toplam Puana Göre", value: "TotalPoints" },
+                ],
+                descriptionSelectionData: [
+                        { text: "Potansiyel/Fırsat Sayısı", value: "PresentationCount", type: "number" },
+                        { text: "Toplam Puan", value: "TotalPoints", type: "number" },
+                        { text: "Son Değişiklik Tarihi", value: "PresentationStageChangedDate", type: "date" },
+                        { text: "Aşama", value: "Stage_Title", type: "string" },
+                        { text: "Toplam Aktivite/Randevu Sayısı", value: "TotalContact", type: "number" },
+                        { text: "Son Aktivite/Randevu Tarihi", value: "Last_ContactDate", type: "date" },
+                        { text: "Son Ziyaretten Sonra Geçen Gün", value: "DaysSinceVisit", type: "number" },
+                        { text: "Potansiyel/Fırsat İsmi", value: "Name", type: "string" },
+                        { text: "Tamamlanma Oranı", value: "CompletionRate", type: "number" },
+                        { text: "Tahmini Sonuçlanma Tarihi", value: "EstimatedCompletionDate", type: "date" },
+                        { text: "Satış Personeli", value: "SalesPerson_Title", type: "string" },
+                        { text: "Sektör İsimleri", value: "Sector_Title", type: "string" },
+                        { text: "Kanal İsimleri", value: "ChannelCompany_Title", type: "string" },
+                        { text: "Müşteri İşletme", value: "CustomerCompany_Title", type: "string" },
+                ],
+                colorRanges: {
+                    Presentation: {
+                        1: { color: "#000000", range: "Potansiyeli Yok", min: 0, max: 0 },
+                        2: { color: "#ffc81d", range: "1-2 Adet", min: 1, max: 2 },
+                        3: { color: "#f86d0a", range: "3-5 Adet", min: 3, max: 5 },
+                        4: { color: "#e03903", range: "6-9 Adet", min: 6, max: 9 },
+                        5: { color: "#ad1202", range: "10 ve üzeri", min: 10, max: 99 },
+                    },
+                    Completion: {
+                        0: { color: "#000000", range: "Potansiyeli Yok", min: -1, max: -1 },
+                        1: { color: "#ffc81d", range: "0-20 %", min: 0, max: 20 },
+                        2: { color: "#ffa414", range: "21-40 %", min: 21, max: 40 },
+                        3: { color: "#f86d0a", range: "41-60 %", min: 41, max: 60 },
+                        4: { color: "#e03903", range: "61-80 %", min: 61, max: 80 },
+                        5: { color: "#ad1202", range: "81-100 %", min: 81, max: 100 },
+                    },
+                    LastContact: {
+                        0: { color: "#000000", range: "Potansiyeli Yok", min: -1, max: -1 },
+                        1: { color: "#ffc81d", range: "0-5 Gün", min: 0, max: 5 },
+                        2: { color: "#ffa414", range: "6-10 Gün", min: 6, max: 10 },
+                        3: { color: "#f86d0a", range: "11-20 Gün", min: 11, max: 20 },
+                        4: { color: "#e03903", range: "21-29 Gün", min: 21, max: 29 },
+                        5: { color: "#ad1202", range: "30 ve üzeri", min: 31, max: 365 },
+                    },
+                    Budget: { // Budget ????
+                        1: { color: "#ffc81d", range: "0-5", min: 0, max: 0 },
+                        2: { color: "#ffa414", range: "6-10", min: 0, max: 0 },
+                        3: { color: "#f86d0a", range: "11-20", min: 0, max: 0 },
+                        4: { color: "#e03903", range: "21-30", min: 0, max: 0 },
+                        5: { color: "#ad1202", range: "30 ve üzeri", min: 0, max: 0 },
+                    }
+                },
+            },
+            dfn: {
+                harita: new AkilliHarita('Harita', {
+                    zoom: 7,
+                    altlik: "Default1",
+                    uiAltlik: false,
+                    uiDefault: true,
+                    uiSearch: true,
+                    uiMinimap: false,
+                    uiScaleLine: false,
+                    uiMousePosition: false,
+                    uiMesurement: false,
+                    uiInfo: false
+                }),
+            },
+            fn: {
+                zoomIn: function (e) {
+                    $('.ol-zoom-in').trigger("click");
+                },
+                zoomOut: function (e) {
+                    $('.ol-zoom-out').trigger("click");
+                },
+                zoomMove: function (e) {
+                    $(e).toggleClass("active");
+                    if ($(e).hasClass("active")) {
+                        $('[data-tool="DragZoom"]').trigger("click");
+                    } else {
+                        $('[data-tool="DragPan"]').trigger("click");
+                    }
+                },
+                home: function (e) {
+                    $('[data-tool="Home"]').trigger("click");
+                },
+                fullScreen: function (e) {
+                    $(e).toggleClass("active");
+                    $('.ol-full-screen-false').trigger("click");
+                },
+                layersSwip: function (e) {
+                    $(e).toggleClass("active");
+                    $('[data-tool="Swipe"]').trigger("click");
+                },
+                slideTab: function (elem, target) {
+
+                    var hasActive = $(elem).hasClass("active");
+                    $(elem).parent().find("button").removeClass("active");
+
+                    if (hasActive) {
+                        $(".btn-bar.right").animate({ right: -800 }, 200);
+                    } else {
+                        $(elem).addClass("active");
+                        $(".btn-bar.right").animate({ right: -800 }, 200, function () {
+                            $('.pan-container').find('.pan-content').hide();
+                            $('.pan-container').find("#" + target).show();
+                            $(".btn-bar.right").animate({ right: 15 }, 200);
+                        });
+                    }
+                },
+                colorSelect: function (e) {
+                    if ($('#ColorBox').hasClass("hide")) {
+                        $('#ColorBox').removeClass("hide");
+                    } else {
+                        $('#ColorBox').addClass("hide");
+                    }
+                },
+                markerDescriptionSelect: function (e) {
+                    if ($('#MarkerBox').hasClass("hide")) {
+                        $('#MarkerBox').removeClass("hide");
+                    } else {
+                        $('#MarkerBox').addClass("hide");
+                    }
+                },
+                colorInfoSelect: function (e) {
+                    if ($('#ColorInfo').hasClass("hide")) {
+                        $('#ColorInfo').removeClass("hide");
+                    } else {
+                        $('#ColorInfo').addClass("hide");
+                    }
+                },
+                searchSelect: function (e) {
+                    if ($('.search-content')[0].style.display == "none") {
+                        $('[data-target=".search-content"]').trigger("click");
+                    } else {
+                        $('.search-content')[0].style.display = "none";
+                    }
+                }
+            },
+            changePresId: "",
+            data: null,
+            colorByPresentationCount: function (count) {
+                if (count == 0) {
+                    return "ffffff";
+                }
+                if (count > 0 && count < 3) {
+                    return "#ffc81d";
+                }
+                if (count > 2 && count < 6) {
+                    return "#f86d0a";
+                }
+                if (count >= 6 && count <= 9) {
+                    return "#e03903";
+                }
+                else {
+                    return "#ad1202";
+                }
+            },
+            colorByCompletionRate: function (rate) {
+                if (rate <= 20) {
+                    return "#ffc81d";
+                }
+                if (rate > 20 && rate < 40) {
+                    return "#ffa414";
+                }
+                if (rate >= 40 && rate < 60) {
+                    return "#f86d0a";
+                }
+                if (rate >= 60 && rate < 80) {
+                    return "#e03903";
+                }
+                else {
+                    return "#ad1202";
+                }
+            },
+            colorByLastContactDate: function (dateCount) {
+                if (dateCount <= 5) {
+                    return "#ffc81d";
+                }
+                if (dateCount > 5 && dateCount < 10) {
+                    return "#ffa414";
+                }
+                if (dateCount >= 10 && dateCount < 20) {
+                    return "#f86d0a";
+                }
+                if (dateCount >= 20 && dateCount < 30) {
+                    return "#e03903";
+                }
+                else {
+                    return "#ad1202";
+                }
+            },
+            colorByCustomRange: function (value, avg) {
+                if (value <= avg) {
+                    return "#ffc81d";
+                }
+                if (value > avg && value < avg * 2) {
+                    return "#ffa414";
+                }
+                if (value >= avg * 2 && value < avg * 3) {
+                    return "#f86d0a";
+                }
+                if (value >= avg * 3 && value < avg * 4) {
+                    return "#e03903";
+                }
+                else {
+                    return "#ad1202";
+                }
+            },
+            loadPanelData: function (type, key) {
+
+                var customers = $.Enumerable.From(page.defines.filteredData).Select(a=>a.Data).ToArray();
+                var presentations = $.Enumerable.From(page.defines.filteredData).SelectMany(a=>a.Presentations).Select(a=>a.Data).ToArray();
+                var contacts = $.Enumerable.From(page.defines.filteredData).SelectMany(a=>a.Presentations).SelectMany(a=>a.Contacts).ToArray();
+
+                if (key && key != null && key != "") {
+                    if (type == "contact") {
+                        contacts = $.Enumerable.From(contacts).Where(a=>a.Data.Presentation_Title && a.Data.Presentation_Title.toLowerCase().includes(key.toLowerCase())).ToArray();
+                    }
+                    if (type == "presentation") {
+                        presentations = $.Enumerable.From(presentations).Where(a=>(a.Name && a.Name.toLowerCase().includes(key.toLowerCase())) || (a.CustomerCompany_Title && a.CustomerCompany_Title.toLowerCase().includes(key.toLowerCase()))).ToArray();
+                    }
+                    if (type == "customer") {
+                        customers = $.Enumerable.From(customers).Where(a=>a.FullName && a.FullName.toLowerCase().includes(key.toLowerCase())).ToArray();
+                    }
+                }
+
+                $('[data-id="filteredCompanyCount"]').text(page.defines.filteredData.length);
+                $('[data-id="filteredPresentationCount"]').text(presentations.length);
+                $('[data-id="filteredContactCount"]').text(contacts.length);
+            },
+            getProductsForDropDown: function () {
+                $("#ProductIds").kendoMultiSelect({
+                    placeholder: $("#ProductIds").attr('placeholder'),
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    autoBind: true,
+                    autoClose: false,
+                    dataSource: {
+                        type: "aspnetmvc-ajax",
+                        transport: {
+                            read: {
+                                url: "@Url.Action("DataSourceDropDown", "VWPRD_Product", new {area = "PRD"})"
+                            },
+                        },
+                        serverFiltering: true,
+                        serverPaging: true,
+                        pageSize: 50,
+                        page: 1,
+                        total: 0,
+                        serverSorting: true,
+                    },
+                    filter: 'contains',
+                    template: function (dataItem) {
+                        if (dataItem.categoryId_Title!=null) {
+                             return '<label class="label-info label-xs">' + dataItem.categoryId_Title + '</label>' + " || " + dataItem.fullName;
+                        }
+                        else {
+                            return '<label class="label-info label-xs">Kategori Yok</label>' + " || " + dataItem.fullName;
+                        }
+
+                    },
+                    dataBound: function () {
+                        if (control == false) {
+                            page.getMapData();
+                            control = true;
+                        }
+                    }
+                });
+            },
+            getMapData: function () {
+
+                GetJsonDataFromUrl('/CRM/VWCRM_Presentation/GetMapData', null, function (res) {
+
+                    page.defines.data = res.Customer;
+                    page.defines.stages = res.Stages;
+
+                    if (res) {
+                        var start = page.getStartDateBySelectedRange("today");
+                        var end = page.getEndDateBySelectedRange("today");
+
+                        var allcontacts = $.Enumerable.From(res.Customer).SelectMany(a=>$.Enumerable.From(a.Presentations).SelectMany(a=>a.Contacts).ToArray()).ToArray()
+
+                        var contactFiltered = allcontacts.filter(function (contact) {
+                            var ccc = contact.Users.filter(a=>a.UserId == '@userStatus.user.id' && new Date(a.ContactStartDate) >= start && new Date(a.ContactStartDate) <= end);
+                            return ccc.length > 0;
+                        })
+
+                        $('[data-id="filteredTodayContactCount"]').text(contactFiltered.length);
+
+                        var mesajText = contactFiltered.length > 0 ? "Bugün " + contactFiltered.length + " adet randevunuz bulunmaktadır." : "Bugün randevunuz bulunmamaktadır.";
+
+                        MesajWarning(mesajText, "Aktivite/Randevu Uyarısı");
+                    }
+                    var dropDownList = $("#colorSelection").getKendoDropDownList().trigger("change");
+
+                });
+            },
+            init: function () {
+
+                page.getProductsForDropDown();
+
+                $('[data-original-title]').tooltip();
+
+                var layer = page.dfn.harita.layer.addVector("Tüm Potansiyel/Fırsatlar", "Presentations", "styleCustom", "styleCustom", "styleCustom", null);
+                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+
+            },
+            filterArray: function (baseObj, filterObj) {
+
+                var keys = Object.keys(filterObj);
+                keys.forEach(function (key) {
+                    if (filterObj[key].length > 0) {
+                        baseObj.forEach(function (obj) {
+                            if (obj.Presentations.length > 0) {
+                                obj.Presentations = obj.Presentations.filter(function (pres) {
+                                    return this.indexOf(pres.Data[key]) >= 0;
+                                }, filterObj[key])
+                            }
+                        })
+                    }
+                })
+
+                page.defines.filteredData = baseObj;
+            },
+            filterDataByProductIds: function (productIds) {
+
+                if (productIds.length > 0) {
+                    page.defines.filteredData.forEach(function (data) {
+                        data.Presentations = data.Presentations.filter(function (pres) {
+                            pres.Products = pres.Products.filter(a=>productIds.includes(a.ProductId));
+                            return pres.Products.length > 0;
+                        })
+                    })
+                }
+            },
+            filterDataByOpponentCompanyIds: function (opponentCompanyIds) {
+
+                if (opponentCompanyIds.length > 0) {
+                    page.defines.filteredData.forEach(function (data) {
+                        data.Presentations = data.Presentations.filter(function (pres) {
+                            pres.OpponentCompany = pres.OpponentCompany.filter(a=>opponentCompanyIds.includes(a.OpponentCompanyId));
+                            return pres.OpponentCompany.length > 0;
+                        })
+                    })
+                }
+            },
+            filterDataByMinMaxPoint: function (minPoint, maxPoint) {
+                page.defines.filteredData.forEach(function (data) {
+                    if (minPoint && minPoint != null && minPoint != "") {
+                        data.Presentations = data.Presentations.filter(a=>a.Data.TotalPoints >= minPoint);
+                    }
+
+                    if (minPoint && minPoint != null && minPoint != "") {
+                        data.Presentations = data.Presentations.filter(a=>a.Data.TotalPoints <= maxPoint);
+                    }
+                })
+            },
+            filterDataByMinMaxPointForVodafoneOffer: function (minPoint, maxPoint) {
+                page.defines.filteredData.forEach(function (data) {
+                    if (minPoint && minPoint != null && minPoint != "") {
+                        data.Presentations = data.Presentations.filter(a=>a.Data.VodafoneOffer >= minPoint);
+                    }
+
+                    if (maxPoint && maxPoint != null && maxPoint != "") {
+                        data.Presentations = data.Presentations.filter(a=>a.Data.VodafoneOffer <= maxPoint);
+                    }
+                })
+            },
+            filterDataByMinMaxRate: function (rate) {
+                if (rate.length > 1) {
+                    page.defines.filteredData.forEach(function (data) {
+                        data.Presentations = data.Presentations.filter(a=>a.Data.CompletionRate >= rate[0] && a.Data.CompletionRate <= rate[1]);
+                    })
+                }
+            },
+            filterDataByDateRange: function () {
+
+                var activeRange = $('#filterDateRangeButton').find(".filterButtonActive");
+                var range = $(activeRange).attr("data-id");
+
+                var start = page.getStartDateBySelectedRange(range);
+                var end = page.getEndDateBySelectedRange(range);
+
+                var active = $('#filterButtonGroup').find(".filterButtonActive");
+                var field = $(active).attr("data-id");
+
+                if (field == "ContactStartDate") {
+                    page.defines.filteredData.forEach(function (data) {
+                        data.Presentations = data.Presentations.filter(function (pres) {
+                            pres.Contacts = pres.Contacts.filter(function (con) {
+                                return new Date(con.Data[field]) >= start && new Date(con.Data[field]) <= end;
+                            });
+                            return pres.Contacts.length > 0;
+                        })
+                    })
+                }
+
+                else {
+                    page.defines.filteredData.forEach(function (data) {
+                        data.Presentations = data.Presentations.filter(a=>new Date(a.Data[field]) >= start && new Date(a.Data[field]) <= end);
+                    })
+                }
+
+            },
+            filterByPresentationCount: function (min, max) {
+                page.defines.filteredData.forEach(function (data) {
+                    if (data.Presentations.length >= min && data.Presentations.length <= max) {
+                        data.Presentations = data.Presentations;
+                    } else {
+                        data.Presentations = [];
+                    }
+                })
+            },
+            filterByLastContact: function (min, max) {
+
+                page.defines.filteredData.forEach(function (data) {
+                    data.Presentations = data.Presentations.filter(a=>a.Data.DaysSinceVisit <= max && a.Data.DaysSinceVisit >= min);
+                })
+            },
+            filterDataByCityIds: function (cityIds) {
+                if (cityIds.length > 0) {
+                    page.defines.filteredData.forEach(function (data) {
+                        if (!cityIds.includes(data.Data.openAddressLocationId)) {
+                            data.Presentations = [];
+                        }
+                    })
+                }
+            },
+            locateFeatureToMap: function () {
+                var colorS = $('#colorSelection').data("kendoDropDownList");
+                var colorSelect = colorS ? $('#colorSelection').data("kendoDropDownList").value() : "";
+
+                var textS = $('#markerDescription').data("kendoDropDownList");
+
+                page.defines.filteredData.forEach(function (cus) {
+
+                    var presentations = cus.Presentations;
+
+                    if (presentations.length > 0) {
+
+                        var source = $.Enumerable.From(presentations).OrderByDescending(a=>a.Data.PresentationStageChangedDate).Select(a=>a.Data).FirstOrDefault();
+                        var color = source.Stage_Color;
+
+                        switch (colorSelect) {
+                            case "Presentation":
+                                color = page.colorByPresentationCount(presentations.length ? presentations.length : 0);
+                                break;
+                            case "Completion":
+                                color = page.colorByCompletionRate(source.CompletionRate ? source.CompletionRate : 0);
+                                break;
+                            case "LastContact":
+                                color = page.colorByLastContactDate(source.DaysSinceVisit ? source.DaysSinceVisit : 0);
+                                break;
+                            case "Budget":
+                                break;
+                            case "TotalPoints":
+                                var sumPoint = $.Enumerable.From(page.defines.data).SelectMany(a=>a.Presentations).Select(a=>a.Data).Max(a=>a.TotalPoints);
+                                var avg = sumPoint / 5;
+
+                                color = page.colorByCustomRange(source.TotalPoints, avg);
+                                break;
+                            default:
+                                break;
+                        }
+
+                        var svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="' + color + '" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z"/><circle fill="#ededed" cx="256" cy="160" r="96"/><path fill="' + color + '"  d="M321.8,164.1c-.3,44.9-23.1,76.9-79.9,76.9a97.26,97.26,0,0,1-11.9-.7V166.9l-21.8,7.9V161.7l21.8-7.9V141l-21.8,7.9V135.8l21.8-7.9V79h20.6v41.4l43.6-15.6V118l-43.6,15.6v12.6L294,130.6v13.1l-43.4,15.6V223c27.3-1.2,50.6-17.4,51.6-59h19.6Z"/></svg>';
+
+                        var textSelect = "";
+                        if (textS) {
+                            var dataItem = textS.dataItem();
+                            var value = dataItem.value;
+                            var type = dataItem.type;
+
+                            if (value == "PresentationCount") {
+                                textSelect = presentations.length;
+                            } else {
+
+                                if (type == "number") {
+                                    textSelect = source[value];
+                                }
+
+                                else if (type == "date") {
+                                    if (value == "ContactStartDate") {
+                                        textSelect = source[value] != null ? new Date(source[value]).toLocaleString() : "Görüşülmedi";
+                                    } else {
+                                        textSelect = source[value] != null ? new Date(source[value]).toLocaleString() : "Bilinmiyor";
+                                    }
+
+                                }
+                                else {
+                                    textSelect = source[value];
+                                }
+                            }
+                        }
+
+                        var styleCustom = new ol.style.Style({
+                            image: new ol.style.Icon({
+                                opacity: 1,
+                                src: 'data:image/svg+xml,' + escape(svg),
+                                scale: 0.8,
+                                anchor: [0.5, 64],
+                                anchorXUnits: 'fraction',
+                                anchorYUnits: 'pixels',
+                            }),
+                            text: new ol.style.Text({
+                                text: textSelect == null ? "Bilinmiyor" : textSelect.toString(),
+                                scale: 1,
+                                fill: new ol.style.Fill({
+                                    color: "#000"
+                                }),
+                                backgroundFill: new ol.style.Fill({
+                                    color: 'black'
+                                }),
+                                stroke: new ol.style.Stroke({
+                                    color: "#000",
+                                    width: 0.1
+                                }),
+                                offsetY: -60
+                            }),
+                            zIndex: 20
+                        });
+
+                        if (source.CustomerCompanyLocation != null) {
+                            var styleId = page.dfn.harita.helper.NewGuid();
+                            page.dfn.harita.style.addCustom(styleId + "styleCustom", styleCustom);
+                            var feature = page.dfn.harita.feature.add("Presentations", cus.Data.id, cus.Data.location);
+
+                            if (feature) {
+                                feature.set("properties", cus);
+                                feature.set("style", styleId + "styleCustom");
+                                feature.set("styleSelected", styleId + "styleCustom");
+                                feature.set("styleHover", styleId + "styleCustom");
+                            }
+                        }
+                    }
+
+                    else {
+
+                        var color = "#000";
+                        var svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="' + color + '" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z"/><circle fill="#ededed" cx="256" cy="160" r="96"/><path fill="' + color + '"  d="M321.8,164.1c-.3,44.9-23.1,76.9-79.9,76.9a97.26,97.26,0,0,1-11.9-.7V166.9l-21.8,7.9V161.7l21.8-7.9V141l-21.8,7.9V135.8l21.8-7.9V79h20.6v41.4l43.6-15.6V118l-43.6,15.6v12.6L294,130.6v13.1l-43.4,15.6V223c27.3-1.2,50.6-17.4,51.6-59h19.6Z"/></svg>';
+                        var styleCustom = new ol.style.Style({
+                            image: new ol.style.Icon({
+                                opacity: 1,
+                                src: 'data:image/svg+xml,' + escape(svg),
+                                scale: 0.8,
+                                anchor: [0.5, 64],
+                                anchorXUnits: 'fraction',
+                                anchorYUnits: 'pixels',
+                            })
+                        });
+                        if (cus.Data.location != null) {
+                            var styleId = page.dfn.harita.helper.NewGuid();
+                            page.dfn.harita.style.addCustom(styleId + "styleCustom", styleCustom);
+
+                            var feature = page.dfn.harita.feature.add("Presentations", cus.Data.id, cus.Data.location);
+                            if (feature) {
+                                feature.set("properties", cus);
+                                feature.set("style", styleId + "styleCustom");
+                                feature.set("styleSelected", styleId + "styleCustom");
+                                feature.set("styleHover", styleId + "styleCustom");
+                            }
+                        }
+                    }
+                });
+
+                page.dfn.harita.layer.panTo("Presentations");
+            },
+            applyFilter: function (type, min, max) {
+                page.dfn.harita.layer.get("Presentations")["Presentations"].getSource().clear();
+                page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
+                var presentations = $.Enumerable.From(page.defines.data).SelectMany(a=>a.Presentations).Select(a=>a.Data).ToArray();
+
+                var filter = {
+                    PresentationStageId: $('#PresentationStageIds').data("kendoMultiSelect").value(),
+                    SalesPersonId: $('#SalesPersonIds').data("kendoMultiSelect").value(),
+                    SectorId: $('#SectorIdss').data("kendoMultiSelect").value(),
+                    ChannelCompanyId: $('#ChannelCompanyId').data("kendoMultiSelect").value(),
+                    CustomerCompanyId: $('#CustomerCompanyId').data("kendoMultiSelect").value(),
+                };
+
+                page.defines.filteredData = $.extend(true, [], page.defines.data);
+
+                page.filterArray(page.defines.filteredData, filter);
+
+                if (type && type != null && type != "") {
+                    if (type == "Completion") {
+                        $('#CompletionRate').data("kendoRangeSlider").value([min, max])
+                    }
+                    if (type == "Presentation") {
+                        page.filterByPresentationCount(min, max);
+                    }
+                    if (type == "LastContact") {
+                        page.filterByLastContact(min, max);
+                    }
+                }
+
+                var rate = $('#CompletionRate').data("kendoRangeSlider").value();
+                var productIds = $('#ProductIds').data("kendoMultiSelect").value();
+                var opponentCompanyIds = $('#OpponentCompanyIds').data("kendoMultiSelect").value();
+                var minPoint = $('#MinPoint').val();
+                var maxPoint = $('#MaxPoint').val();
+
+                var cityIds = $('#MapCityIds').data("kendoMultiSelect").value();
+
+                page.filterDataByCityIds(cityIds);
+
+                page.filterDataByProductIds(productIds);
+                page.filterDataByOpponentCompanyIds(opponentCompanyIds);
+                page.filterDataByMinMaxRate(rate);
+                page.filterDataByDateRange();
+                page.filterDataByMinMaxPointForVodafoneOffer(minPoint, maxPoint);
+
+                page.locateFeatureToMap();
+                page.loadPanelData();
+
+                if ($('#searchButton').hasClass("active")) {
+                    $('#searchButton').trigger("click");
+                }
+
+            },
+            cleanFilter: function () {
+
+                $('#MinPoint').data("kendoNumericTextBox").value("");
+                $('#MaxPoint').data("kendoNumericTextBox").value("");
+                $('#ProductIds').data("kendoMultiSelect").value([]);
+                $('#OpponentCompanyIds').data("kendoMultiSelect").value([]);
+                $('#PresentationStageIds').data("kendoMultiSelect").value([]);
+                $('#SalesPersonIds').data("kendoMultiSelect").value([]);
+                $('#MapCityIds').data("kendoMultiSelect").value([]);
+                $('#SectorIdss').data("kendoMultiSelect").value([]);
+                $('#ChannelCompanyId').data("kendoMultiSelect").value([]);
+                $('#CustomerCompanyId').data("kendoMultiSelect").value([]);
+
+                $('#CompletionRate').data("kendoRangeSlider").value([0, 100])
+
+                $('#filterButtonGroup').find('[data-id="created"]').trigger("click");
+                $('#filterDateRangeButton').find('[data-id="all"]').trigger("click");
+
+                page.applyFilter();
+            },
+            goLocation: function (_this) {
+                var featureId = $(_this).attr("data-customerId");
+
+                if (featureId && featureId != null && featureId != "") {
+                    var feature = page.dfn.harita.feature.get(featureId)[featureId];
+                    if (feature) {
+                        page.dfn.harita.helper.PanTo(feature.getGeometry().getExtent());
+                        page.dfn.harita.map.getView().setZoom(14);
+
+                        $("#Harita").trigger("select:feature", { type: "add", element: feature });
+
+                        $(".btn-bar.right").animate({ right: -800 }, 200);
+                    }
+                    else {
+                        MesajWarning("Konum bulunamadı.", "Uyarı");
+                    }
+                }
+                else {
+                    MesajWarning("Konum bulunamadı.", "Uyarı");
+                }
+            },
+            customerDetail: function (_this) {
+                var id = $(_this).attr("data-customer");
+                window.open("/CMP/VWCMP_Company/Detail?id=" + id, '_blank');
+            },
+            presentationDetail: function (_this) {
+                var id = $(_this).attr("data-presentation");
+                window.open("/CRM/VWCRM_Presentation/Detail?id=" + id, '_blank');
+            },
+            presentationInsert: function (_this) {
+                var url = "/CRM/VWCRM_Presentation/Insert";
+                var customerCompanyId = $(_this).attr("data-presentationInsert");
+
+                if (customerCompanyId && customerCompanyId != null && customerCompanyId != "") {
+                    url += "?CustomerCompanyId=" + customerCompanyId;
+                }
+                window.open(url, '_blank');
+            },
+            presentationUpdate: function (_this) {
+                var id = $(_this).attr("data-presentation");
+                window.open("/CRM/VWCRM_Presentation/Update?id=" + id, '_blank');
+            },
+            onChangeColorful: function (_this) {
+
+                var val = $('#colorSelection').val();
+
+                $('#ColorInfoBox').removeClass("hide");
+                $('#ColorInfo').find("table tbody tr").empty();
+
+                if (val == "TotalPoints") {
+                    var presentations = $.Enumerable.From(page.defines.filteredData).SelectMany(a=>a.Presentations).Select(a=>a.Data).ToArray();
+
+                    if (presentations.length > 0) {
+                        var maxPoint = $.Enumerable.From(presentations).Max(a=>a.TotalPoints);
+                        var avg = maxPoint / 5;
+
+                        for (var i = 0; i < 5; i++) {
+                            var min = Math.round(avg * i);
+                            var max = Math.round(avg * (i + 1));
+                            var color = page.colorByCustomRange(min + 1, avg);
+
+                            var c = '<td data-id="colorRangeCustom" data-max="' + max + '" data-min="' + min + '" data-type="' + val +
+                                        '" data-toggle="tooltip" data-placement="bottom" data-color="#19177a" class="category" style="height: 48px;line-height: 48px;background-color: ' +
+                                            color + '; width: 20%;">' + kendo.toString(min, 'N0') + " - " + kendo.toString(max, 'N0') + " Puan" +
+                                    '</td>';
+
+                            $('#ColorInfo').find("table tbody tr").append(c);
+                        }
+                    }
+                    else {
+                        var c = '<td data-id="colorRangeCustom" data-max="0" data-min="0" data-type="' + val +
+                                        '" data-toggle="tooltip" data-placement="bottom" data-color="#19177a" class="category" style="height: 48px;line-height: 48px;background-color: #000; width: 100%;"> 0 Puan' +
+                                    '</td>';
+
+                        $('#ColorInfo').find("table tbody tr").append(c);
+                    }
+
+                }
+                else if (val == "Stage") {
+                    var count = page.defines.stages.length;
+                    var width = 100 / count;
+
+                    page.defines.stages.forEach(function (stage) {
+                        var c = '<td data-id="colorRangeCustom" title="' + stage.Name + '" data-x="' + stage.id + '" data-type="stage" data-toggle="tooltip" data-placement="top" data-color="#19177a" class="category" ' +
+                            ' style="height: 48px;line-height: 48px;background-color: ' + stage.color + ';padding: 0 10px 0 10px;">' +
+                                        stage.Name.substr(0, 10) + (stage.Name.length > 10 ? '...' : '') +
+                                '</td>';
+
+                        $('#ColorInfo').find("table tbody tr").append(c);
+                    })
+                }
+                else {
+                    var count = $.Enumerable.From(page.defines.colorRanges[val]).Count();
+                    var width = 100 / count;
+
+                    $.each(page.defines.colorRanges[val], function (i, colorrange) {
+                        var c = '<td data-id="colorRangeCustom" data-max="' + colorrange.max + '" data-min="' + colorrange.min + '" data-type="' + val +
+                                    '" data-toggle="tooltip" data-placement="bottom" data-color="#19177a" class="category" style="height: 48px;line-height: 48px;background-color: ' +
+                                        colorrange.color + '; width: ' + width + '%;">' + colorrange.range +
+                                '</td>';
+
+                        $('#ColorInfo').find("table tbody tr").append(c);
+                    })
+                }
+
+                page.cleanFilter();
+            },
+            onChangeMarkerDescription: function (_this) {
+                $('#applyFilter').trigger("click");
+            },
+            onChangeCustomer: function (_this) {
+                setTimeout(function () {
+                    var featureId = _this.sender.value();
+                    var feature = page.dfn.harita.feature.get(featureId)[featureId];
+                    if (feature) {
+                        $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                    }
+                     page.dfn.harita.helper.PanTo(feature.getGeometry().getExtent());
+                        page.dfn.harita.map.getView().setZoom(13);
+                }, 250)
+            },
+            onDataBoundCustomer: function (_this) {
+                var element = _this.sender;
+                var dataSource = element.dataSource.data();
+
+                if ($.Enumerable.From(dataSource).Where(a=>a.location == null || a.location == "").Count() > 0) {
+                    var data = $.Enumerable.From(element.dataSource.data()).Where(a=>a.location != null && a.location != "").ToArray();
+                    element.dataSource.data(element.dataSource.data().filter(x => x.location != "" && x.location != null))
+                }
+            },
+            getStartDateBySelectedRange: function (range) {
+                var date = new Date();
+                var start = new Date();
+                switch (range) {
+                    case "all":
+                        start = new Date(date.getFullYear() - 20, 12, 31, 0, 0, 0);
+                        break;
+                    case "yesterday":
+                        var yesterday = new Date(date.setDate(date.getDate() - 1));
+                        start = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0);
+                        break;
+                    case "today":
+                        start = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+                        break;
+                    case "lastWeek":
+                        var thisMonday = new Date(getMonday(date));
+                        var lastMonday = new Date(thisMonday.setDate(thisMonday.getDate() - 7));
+                        start = new Date(lastMonday.getFullYear(), lastMonday.getMonth(), lastMonday.getDate(), 0, 0, 0);
+                        break;
+                    case "thisWeek":
+                        var thisMonday = new Date(getMonday(date));
+                        start = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate(), 0, 0, 0);
+                        break;
+                    case "lastMonth":
+                        var lastMonth = new Date(new Date().setMonth(new Date().getMonth() - 1));
+                        start = new Date(lastMonth.getFullYear(), lastMonth.getMonth(), 1, 0, 0, 0);
+                        break;
+                    case "future":
+                        break;
+                    case "thisMonth":
+                        start = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0);
+                        break;
+                    default:
+                        break;
+                }
+                return start;
+            },
+            getEndDateBySelectedRange: function (range) {
+                var date = new Date();
+                var end = new Date();
+
+                switch (range) {
+                    case "all":
+                        end = new Date(date.getFullYear() + 20, 12, 31, 0, 0, 0);
+                        break;
+                    case "yesterday":
+                        end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0);
+                        break;
+                    case "today":
+                        end = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59);
+                        break;
+                    case "lastWeek":
+                        var thisMonday = new Date(getMonday(date));
+                        end = new Date(thisMonday.getFullYear(), thisMonday.getMonth(), thisMonday.getDate(), 0, 0, 0);
+                        break;
+                    case "thisWeek":
+                        var thisMonday = new Date(getMonday(date));
+                        var nextMonday = new Date(thisMonday.setDate(thisMonday.getDate() + 7));
+                        end = new Date(nextMonday.getFullYear(), nextMonday.getMonth(), nextMonday.getDate(), 0, 0, 0);
+                        break;
+                    case "lastMonth":
+                        end = new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0);
+                        break;
+                    case "future":
+                        end = new Date(date.getFullYear() + 20, 12, 31, 0, 0, 0);
+                        break;
+                    case "thisMonth":
+                        end = new Date(date.getFullYear(), date.getMonth() + 1, 1, 0, 0, 0);
+                        break;
+                    default:
+                        break;
+                }
+                return end;
+            },
+            search: function (_this) {
+                var type = $(_this).attr("data-content");
+                var key = $(_this).val();
+
+                page.loadPanelData(type, key);
+            },
+            searchPresentationOfCompany: function (_this) {
+                var cards = $('#selectedCustomer').find(".card");
+                var key = $(_this).val();
+
+                $.each(cards, function (i, item) {
+                    var text = $(item).find(".card-name").text();
+                    if (text.toLowerCase().includes(key.toLowerCase())) {
+                        $(item).removeClass("hide");
+                    } else {
+                        $(item).addClass("hide");
+                    }
+                })
+            },
+            getPresentationOfCompany: function (pres) {
+
+                var presentation = pres.Data;
+                var name = presentation.Name != null ? presentation.Name : "-";
+                var lastContact = presentation.Last_ContactDate != null ? new Date(presentation.Last_ContactDate).toLocaleString("tr-TR") : "Görüşülmedi";
+
+                var salesPerson = presentation.SalesPerson_Title != null ? presentation.SalesPerson_Title : "-";
+                var channel = presentation.ChannelCompany_Title != null ? presentation.ChannelCompany_Title : "-";
+                var points = presentation.TotalPoints != null ? presentation.TotalPoints : "0";
+
+                var card = '<div class="card col-md-6">                                                                                     ' +
+                            '    <header class="header">                                                                            ' +
+                            '        <div class="card-details">                                                                     ' +
+                            '            <h3 class="card-name" style="color: aliceblue;"> ' + name + '</h3>                                                ' +
+                            '           <button type="button" data-state="change" data-id="' + presentation.id + '" data-task="Insert" data-method="GET" data-show="single" data-href="/CRM/VWCRM_Presentation/UpdateState?id=' + presentation.id + '"' +
+                            '               class="btn btn-outline" style="color:' + presentation.Stage_Color + ';border-color:' + presentation.Stage_Color + '">' +
+                            '               <i class="fa fa-edit"></i>' + presentation.Stage_Title +
+                            '           </button>' +
+                            '        </div>                                                                                         ' +
+                            '                                                                                                       ' +
+                            '    </header>                                                                                          ' +
+                            '    <nav class="nav">                                                                                  ' +
+                            '        <ul>                                                                                           ' +
+                            '            <li><strong>Son Ziyaret Tarihi</strong><span>' + lastContact + '</span></li>                                       ' +
+                            '            <li><strong>Satış Temsilcisi</strong><span>' + salesPerson + '</span></li>                         ' +
+                            '            <li><strong>Kanal</strong><span>' + channel + '</span></li>                                         ' +
+                             '            <li><strong>Toplam Puan</strong><span>' + points + '</span></li>                                         ' +
+                            '        </ul>                                                                                          ' +
+                            '    </nav>                                                                                             ' +
+                            '              <div class="buttongroup" style="bottom: 20px;position: absolute;">                                                                                                                                                         ' +
+                             '                  <div class="row" style="margin-left: 0px;margin-right: 0px;">                                                                                                                                                        ' +
+                             '                      <a style="margin-left:5px;" target="_blank" href="/CRM/VWCRM_Presentation/Update?id=' + presentation.id + '" class="btn btn-sm btn-info"><i class="fa fa-edit"></i> Düzenle </a>' +
+                             '                      <a target="_blank" href="/CRM/VWCRM_Presentation/Detail?id=' + presentation.id + '" class="btn btn-sm btn-info"><i class="icon-dollar"></i> Detay </a> ' +
+                             '                          <div style="margin-top:7px;">                                               ' +
+                              '                   <button data-href="/CRM/VWCRM_Contact/Insert?id=' + presentation.id + '" data-method="GET" data-task="Insert" name="contactInsert" class="btn btn-sm btn-warning"><i class="fa fa-plus"></i> Aktivite/Randevu Tanımla</button>' +
+                              '</div>' +
+                            '                  </div>                                                                                                                                                                        ' +
+                             '              </div>    ' +
+                            '</div>';
+
+                return card;
+            },
+            getContactOfCompany: function (contact, customer) {
+
+                var element = contact.Data;
+                var usersTitle = $.Enumerable.From(contact.Users).Select(a=>a.User_Title).ToArray().join(", ");
+
+                var status = element.ContactStatus_Title != null ? element.ContactStatus_Title : "Bilinmiyor";
+                var type = element.ContactType_Title != null ? element.ContactType_Title : "Bilinmiyor";
+                var start = new Date(element.ContactStartDate).toLocaleString();
+                var end = new Date(element.ContactEndDate).toLocaleString();
+                var userCount = element.TotalContactPerson != null ? element.TotalContactPerson + " Kişi" : "Bilinmiyor";
+
+
+                var card = '<div class="card col-md-6">                                                                             ' +
+                            '    <header class="header">                                                                            ' +
+                            '        <div class="card-details">                                                                     ' +
+                            '            <h3 class="card-name" style="color: aliceblue;"> ' + element.Presentation_Title + '</h3>   ' +
+                            '        </div>                                                                                         ' +
+                            '    </header>                                                                                          ' +
+                            '    <nav class="nav">                                                                                  ' +
+                            '        <ul>                                                                                           ' +
+                            '            <li><strong>Aktivite/Randevu Durumu</strong><span>' + status + '</span></li>                   ' +
+                            '            <li><strong>Aktivite/Randevu Tipi</strong><span>' + type + '</span></li>  ' +
+                            '            <li><strong>Başlangıç</strong><span title="' + usersTitle + '">' + start + '</span></li>          ' +
+                            '            <li><strong>Bitiş</strong><span>' + end + '</span></li>            ' +
+                            '            <li><strong>Toplam Katılımcı</strong><span>' + userCount + '</span></li>            ' +
+                            '        </ul>                                                                                          ' +
+                            '    </nav>                                                                                             ' +
+                            '    <div class="buttongroup" style="bottom: 20px;position: absolute;"> ' +
+                            '       <div class="row" style="margin-left: 0px;margin-right: 0px;"> ' +
+                            '            <button data-method="GET" data-href="/CRM/VWCRM_Contact/Update?id=' + element.id + '" data-task="Insert" class="btn btn-sm btn-warning"><i class="fa fa-edit"></i> Düzenle</button>                                                     ' +
+                            '            <button data-method="GET" data-href="/CRM/VWCRM_Contact/Detail?id=' + element.id + '" data-task="Insert" class="btn btn-sm btn-warning"><i class="icon-group"></i> Detay</button>                                                      ' +
+                            '       </div>   ' +
+                            '   </div>    ' +
+                            '</div>';
+
+                return card;
+            },
+            getCustomerDetailForHover: function (data) {
+                var customer = data.Data;
+                var personeller = customer.PersonInCompany != null ? customer.PersonInCompany + " Personel" : "Bilinmiyor";
+
+                var contacts = $.Enumerable.From(data.Presentations).SelectMany(a=>a.Contacts).Where(a=>new Date(a.Data.ContactStartDate) > new Date()).ToArray();
+
+                var lastContact = $.Enumerable.From(data.Presentations).Where(a=>a.Data.Last_ContactDate != null).OrderByDescending(a=>a.Data.Last_ContactDate).Select(a=>a.Data.Last_ContactDate).FirstOrDefault();
+
+                var lastContactDate = lastContact ? new Date(lastContact).toLocaleString("tr-TR").substr(0, 16) : "Görüşülmedi";
+
+                var text = '<div class="item">                                                 ' +
+                            '  <div class="head text-center clearfix">                         ' +
+                            '      <a target="_blank" href="#">                                ' +
+                            '          <div class="col-xs-12">' + customer.name + '</div>          ' +
+                            '          <div class="col-xs-12" style="padding-top:0px;"><small>(' + customer.code + ')</small> </div> ' +
+                            '      </a>       ' +
+                            '  </div>         ' +
+                            '<ul class="list-group clear-list m-t">                                             ' +
+                             '        <li class="list-group-item fist-item">                                               ' +
+                             '            <span class="pull-right listGroupValue">                                              ' +
+                                            contacts.length +
+                              '            </span>                                                                ' +
+                             '            Yakındaki Aktivite/Randevu Sayısı                ' +
+                             '        </li>                                                                      ' +
+                             '        <li class="list-group-item">                                               ' +
+                             '            <span class="pull-right listGroupValue">                                              ' +
+                                                lastContactDate +
+                             '            </span>                                                                ' +
+                             '            Son Ziyaret Tarihi               ' +
+                             '        </li>                                                                      ' +
+                             '        <li class="list-group-item">                                               ' +
+                             '            <span class="pull-right listGroupValue">                                              ' +
+                                                data.Presentations.length +
+                             '            </span>                                                                ' +
+                             '            Potansiyel/Fırsat Sayısı         ' +
+                             '        </li>                                                                      ' +
+                             '    </ul>' +
+                        '  </div>';
+
+                return text;
+            }
+        }
+
+        $(document)
+            .on("ready", function () {
+
+                $('#colorSelection').kendoDropDownList({
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    dataSource: page.defines.colorSelectionData,
+                    index: 0,
+                    change: page.onChangeColorful
+                })
+                $('#markerDescription').kendoDropDownList({
+                    dataTextField: "text",
+                    dataValueField: "value",
+                    dataSource: page.defines.descriptionSelectionData,
+                    index: 0,
+                    change: page.onChangeMarkerDescription
+                })
+
+                page.init();
+
+                $('[data-target=".search-content"]').attr("data-placement", "left");
+                $('[data-target=".search-content"]').tooltip();
+            })
+            .on("click", '[data-name="filterType"]', function (e) {
+                var _this = $(this);
+
+                _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+                _this.parent().find('.fa-check').removeClass('fa fa-check');
+                _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+                _this.find('span').addClass("fa fa-check");
+            })
+            .on("click", '[data-state="change"]', function (e) {
+                page.changePresId = $(this).attr("data-id");
+            })
+            .on("success", "#VWCRM_PresentationUpdateStateForm", function (e, result) {
+
+                if (result) {
+                    GetJsonDataFromUrl('/General/GetPresentationViewById', { id: result.Object.id }, function (res) {
+                        page.defines.data.forEach(function (data) {
+                            data.Presentations.forEach(function (pres) {
+                                if (pres.Data.id == page.changePresId) {
+                                    pres.Data = res;
+                                }
+                            })
+                        })
+
+                        page.applyFilter();
+                        setTimeout(function () {
+                            var feature = page.dfn.harita.feature.get(selectedFeature)[selectedFeature];
+                            if (feature) {
+                                $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                            }
+                        }, 250)
+                    });
+                }
+            })
+            .on("success", "#INV_CompanyForm", function (e, res) {
+
+                if (e.type == "success" && res && res.Object) {
+                    var customer = JSON.parse(res.Object);
+
+                    GetJsonDataFromUrl('/General/GetCompanyViewById', { id: customer.id }, function (cus) {
+                        page.defines.data.push({ Data: cus, Presentations: [] });
+                        page.applyFilter();
+
+                        setTimeout(function () {
+                            var feature = page.dfn.harita.feature.get(cus.id)[cus.id];
+                            if (feature) {
+                                $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                            }
+                        }, 250)
+                    });
+                }
+            })
+            .on("success", "#INV_CompanyFormUpdate", function (e, res) {
+
+                if (e.type == "success") {
+                    var customer = JSON.parse(res.Object);
+
+                    GetJsonDataFromUrl('/General/GetCompanyViewById', { id: customer.id }, function (cust) {
+                        page.defines.data.forEach(function (cus) {
+                            if (cus.Data.id == cust.id) {
+                                cus.Data = cust;
+                                page.applyFilter();
+
+                                setTimeout(function () {
+                                    var feature = page.dfn.harita.feature.get(cus.Data.id)[cus.Data.id];
+                                    if (feature) {
+                                        $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                                    }
+                                }, 250)
+                            }
+                        })
+                    });
+                }
+            })
+            .on("success", "#VWCRM_ContactUpdateForm", function (e, res) {
+
+                if (e.type == "success") {
+                    var contact = JSON.parse(res.Object);
+
+                    GetJsonDataFromUrl('/General/GetContactViewById', { id: contact.id }, function (myContact) {
+                        page.defines.data.forEach(function (data) {
+                            data.Presentations.forEach(function (pres) {
+                                pres.Contacts.forEach(function (con) {
+                                    if (con.Data.id == myContact.Data.id) {
+                                        con = myContact;
+                                        page.applyFilter();
+
+                                        setTimeout(function () {
+                                            var feature = page.dfn.harita.feature.get(con.Data.CustomerCompanyId)[con.Data.CustomerCompanyId];
+                                            if (feature) {
+                                                $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                                            }
+                                        }, 250)
+                                    }
+                                })
+                            })
+                        })
+                    });
+                }
+            })
+            .on("success", "#VWCRM_ContactInsertForm", function (e, res) {
+                if (e.type == "success") {
+                    var contact = JSON.parse(res.Object);
+
+                    GetJsonDataFromUrl('/General/GetContactViewById', { id: contact.id }, function (myContact) {
+                        page.defines.data.forEach(function (data) {
+                            data.Presentations.forEach(function (pres) {
+                                if (pres.Data.id == myContact.Data.PresentationId) {
+                                    pres.Contacts.push(myContact);
+                                    page.applyFilter();
+
+                                    setTimeout(function () {
+                                        var feature = page.dfn.harita.feature.get(myContact.Data.CustomerCompanyId)[myContact.Data.CustomerCompanyId];
+                                        if (feature) {
+                                            $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                                        }
+                                    }, 250)
+                                }
+                            })
+                        })
+                    });
+                }
+            })
+            .on("hover:feature", "#Harita", function (e, resp) {
+
+                page.dfn.harita.overlay.remove('slider-station');
+
+                if (resp.type == "add") {
+                    var elem = resp.element;
+                    var prop = elem.get("properties");
+
+                    if (prop) {
+                        text = page.getCustomerDetailForHover(prop);
+                        var geometry = resp.element.getGeometry();
+                        var coordinate = geometry.getCoordinates();
+                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+
+                        var tooltiplocation = "";
+
+                        if (pixel[1] < 400)
+                            tooltiplocation = "top-right";
+                        else if (screen.height - pixel[1] < 400)
+                            tooltiplocation = "bottom-right";
+                        else
+                            tooltiplocation = "center-right";
+
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                        page.dfn.harita.map.updateSize();
+                    }
+                }
+            })
+            .on("select:feature", "#Harita", function (e, resp) {
+                page.dfn.harita.overlay.remove('slider-station');
+
+                if (resp.type == "add") {
+                    selectedFeature = resp.element.getId();
+                    var prop = resp.element.get("properties");
+
+                    $('#selectedCustomer').find(".panContentPresentation").empty();
+                    $('#selectedCustomer').find(".panContentContact").empty();
+
+                    if (prop.Presentations) {
+
+                        var body = "";
+                        var bodyContact = "";
+
+                        if (prop.Presentations.length == 0) {
+                            body = $('<div class="alert alert-warning text center m-t-sm m-b-sm" style="text-align:center;padding:10px;">').text("Potansiyeli Yok");
+                        }
+
+                        if ($('#selectCompany').hasClass("hide")) {
+                            $('#selectCompany').removeClass("hide");
+                        }
+
+                        if ($('#selectCompany').hasClass("active")) {
+                            $('#selectCompany').removeClass("active");
+                            setTimeout(function () {
+                                $('#selectCompany').trigger("click");
+                            }, 300)
+                        }
+                        else {
+                            $('#selectCompany').trigger("click");
+                        }
+
+                        $.each(prop.Presentations, function (i, item) {
+                            body += page.getPresentationOfCompany(item);
+                            if ((i + 1) % 2 == 0) {
+                                $('#selectedCustomer').find(".panContent").append('<div class="clearfix"></div>');
+                            }
+                        })
+
+                        var contacts = $.Enumerable.From(prop.Presentations).SelectMany(a=>a.Contacts).ToArray();
+
+                        if (contacts.length == 0) {
+                            bodyContact = $('<div class="alert alert-warning text center m-t-sm m-b-sm" style="text-align:center;padding:10px;">').text("Aktivite/Randevu Yok");
+                        }
+
+                        $.each(contacts, function (i, contact) {
+                            bodyContact += page.getContactOfCompany(contact);
+                            if ((i + 1) % 2 == 0) {
+                                $('#selectedCustomer').find(".panContentContact").append('<div class="clearfix"></div>');
+                            }
+                        })
+
+                        var lastContact = $.Enumerable.From(prop.Presentations).Where(a=>a.Data.Last_ContactDate != null).OrderByDescending(a=>a.Data.Last_ContactDate).Select(a=>a.Data.Last_ContactDate).FirstOrDefault();
+
+                        var lastContactDate = lastContact ? new Date(lastContact).toLocaleString("tr-TR").substr(0, 16) : "Görüşülmedi";
+
+                        $('#selectedCustomer').find('[data-id="customerName"]').text(prop.Data.name + " İŞLETMESİNİN BİLGİLERİ");
+
+                        $('#selectedCustomer').find('[data-id="customerCode"]').text(prop.Data.code);
+                        $('#selectedCustomer').find('[data-id="customerLastVisitDate"]').text(lastContactDate);
+
+                        $('#selectedCustomer').find('[data-id="contactCount"]').text(contacts.length);
+                        $('#selectedCustomer').find('[data-id="totalProduct"]').text(kendo.format("{0:N0}", $.Enumerable.From(prop.Presentations).SelectMany(a=>a.Products).Sum(a=>a.Amount)) + " Adet");
+
+
+                        $('#selectedCustomer').find('[name="customerDetail"]').attr("data-customer", prop.Data.id);
+                        $('#selectedCustomer').find('[name="customerUpdate"]').attr("data-href", "/CMP/VWCMP_Company/Update?id=" + prop.Data.id);
+
+                        $('#selectedCustomer').find(".panContentPresentation").append(body);
+                        $('#selectedCustomer').find(".panContentContact").append(bodyContact);
+
+                        $('#selectedCustomer').find('[name = "presentationInsert"]').attr("data-presentationInsert", prop.Data.id)
+
+                    }
+
+                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+                }
+            })
+
+            .on("change", "#MaxPoint", function (e) {
+                var maxPoint = parseInt(this.value);
+                if ($('#MinPoint').val() != "") {
+                    var minPoint = parseInt($('#MinPoint').val());
+                    if (minPoint > maxPoint) {
+                        $('#MaxPoint').val(minPoint);
+                    }
+                }
+            })
+
+            .on("change", '#MinPoint', function () {
+                var minPoint = this.value;
+                if ($('#MaxPoint').val() != "") {
+                     var maxPoint =  parseInt($('#MaxPoint').val());
+                if (minPoint>maxPoint) {
+                    $('#MinPoint').val(maxPoint);
+                    }
+                }
+            })
+
+        function fn_CategoryName(item) {
+
+            if (item.Category_Title == null || item.Category_Title == '') { return ''; }
+
+            var cats = item.Category_Title.split(' > ');
+            var res = '';
+            $.each(cats, function (cati, catitem) {
+                var _cls = '';
+                if (cati % 3 == 0) {
+                    _cls = 'warning';
+                } else if (cati % 3 == 1) {
+                    _cls = 'info';
+                } else if (cati % 3 == 2) {
+                    _cls = 'primary';
+                }
+                res += '<label class="label-' + _cls + ' label-xs">' + catitem + '</label>';
+            });
+            return res == '' ? item.Category_Title : res;
+        }
+
+        function getMonday(d) {
+            d = new Date(d);
+            var day = d.getDay(),
+                diff = d.getDate() - day + (day == 0 ? -6 : 1);
+            return new Date(d.setDate(diff)).setHours(0);
+        }
+
+    </script>
+}
+
+<div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
+
+    <div class="btn-bar" style="width:100%;top:2%;">
+        <div style="display: inherit;margin: 0 auto;">
+
+            <div class="col-md-3">
+                <div id="CustomerSearch">
+                    @(Html.Akilli()
+                                .DropDownList("CustomerSearching")
+                                .OptionLabel("Müşteri Ara")
+                                .MinLength(0)
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .DataSource(a => a.Read("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<VWCMP_Company>(f => f.type == (int)EnumCMP_CompanyType.Diger)
+                                .Sort(x => x.Add("name").Ascending())
+                                .Events(e => { e.Change("page.onChangeCustomer"); e.DataBound("page.onDataBoundCustomer"); })
+                                .Execute("id")
+                    )
+                </div>
+            </div>
+            <div class="col-md-9">
+                <div class="widget navy-bg col-md-3" style="margin: 5px;height:50px !important;width:250px !important;    min-height: 50px !important;">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-building fa-2x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <span> Müşteri Sayısı : </span>
+                            <strong data-id="filteredCompanyCount"></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget lazur-bg col-md-3" style="margin: 5px;height:50px !important;width:250px !important;    min-height: 50px !important;">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-dollar fa-2x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <span> Potansiyel/Fırsat Sayısı : </span>
+                            <strong data-id="filteredPresentationCount"></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget yellow-bg col-md-3" style="margin: 5px;height:50px !important;width:250px !important;    min-height: 50px !important;">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-users fa-2x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <span> Aktivite/Randevu Sayısı : </span>
+                            <strong data-id="filteredContactCount"></strong>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget red-bg col-md-3" style="margin: 5px;height:50px !important;width:250px !important;    min-height: 50px !important;">
+                    <div class="row">
+                        <div class="col-xs-3">
+                            <i class="fa fa-calendar fa-2x"></i>
+                        </div>
+                        <div class="col-xs-9 text-right">
+                            <span> Bugünkü Aktivite/Randevular : </span>
+                            <strong data-id="filteredTodayContactCount"></strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+        </div>
+
+    </div>
+
+    <div class="btn-bar left top animated slideInLeft" style="top: 140px;">
+        <div class="btn-container m-b-lg">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInUp" style="bottom:135px !important;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.markerDescriptionSelect(this)" data-placement="right" data-original-title="Marker Açıklama"><i class="fa fa-info-circle"></i></button>
+        </div>
+        <div id="MarkerBox" class="hide">
+            <div class="col-md-3">
+                <label style="color:white;">Açıklamalar</label>
+            </div>
+            <div class="col-md-9">
+                <select id="markerDescription" style="width:100%;"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="right" data-original-title="Renklendirme Bilgisi"><i class="fa fa-adjust"></i></button>
+        </div>
+        <div id="ColorInfo" class="color-bar hide">
+            <table class="slider">
+                <tbody>
+                    <tr></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInUp" style="bottom:75px !important;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorSelect(this)" data-placement="right" data-original-title="Renklendirme Tercihi"><i class="icon-palette"></i></button>
+        </div>
+        <div id="ColorBox" class="hide">
+            <div class="col-md-3">
+                <label style="color:white;">RENKLENDİRME</label>
+            </div>
+            <div class="col-md-9">
+                <select id="colorSelection" style="width:100%;"></select>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar right bottom animated slideInUp hide" style="bottom:5px !important;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.searchSelect(this)" data-placement="right"><i class="icon-search"></i></button>
+        </div>
+    </div>
+
+    <div class="btn-bar left top animated slideInUp" style="top:70px !important">
+        <div id="AddCustomer">
+            <button class="btn btn-md btn-primary" data-href="/CMP/VWCMP_Company/Insert" data-task="Insert" data-method="GET">
+                <i class="fa fa-plus-circle"></i> Yeni Cari
+            </button>
+        </div>
+    </div>
+
+    <div class="btn-bar right top animated slideInRight" style="width:860px;right:-800px;">
+        <div class="btn-container m-b-lg">
+            <button id="searchButton" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'search')"><i class="fa fa-sliders"></i></button>
+            <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
+            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedCustomer')"><i class="fa fa-bookmark"></i></button>
+        </div>
+        <div class="pan-container">
+            <div id="search" class="pan-content">
+                <div class="pan-head clearfix">
+                    DETAYLI ARAMA
+                </div>
+                <div class="pan-body form-horizontal">
+
+                    <div class="form-group" style="text-align: center;">
+                        <div class="btn-group rounded" id="filterButtonGroup" role="group" data-group="filterSearch" aria-label="Basic example">
+                            <button type="button" data-id="created" data-name="filterType" class="btn btn-rounded filterButtonActive"><span class="fa fa-check"></span> OLUŞTURULMA TARİHİNE GÖRE</button>
+                            <button type="button" data-id="PresentationStageChangedDate" data-name="filterType" class="btn filterButtonPassive"><span></span> SON GÜNCELLENME TARİHİNE GÖRE</button>
+                            <button type="button" data-id="ContactStartDate" data-name="filterType" class="btn btn-rounded filterButtonPassive"><span></span> TOPLANTI TARİHİNE GÖRE</button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="text-align: center;">
+                        <div class="btn-group rounded" role="group" id="filterDateRangeButton" data-group="filterSearch" aria-label="Basic example">
+                            <button type="button" data-id="lastMonth" data-name="filterType" class="btn btn-rounded filterButtonPassive"><span></span> GEÇEN AY</button>
+                            <button type="button" data-id="lastWeek" data-name="filterType" class="btn filterButtonPassive"><span></span> GEÇEN HAFTA</button>
+                            <button type="button" data-id="yesterday" data-name="filterType" class="btn filterButtonPassive"><span></span> DÜN</button>
+                            <button type="button" data-id="today" data-name="filterType" class="btn filterButtonPassive"><span></span> BUGÜN</button>
+                            <button type="button" data-id="thisWeek" data-name="filterType" class="btn filterButtonPassive"><span></span> BU HAFTA</button>
+                            <button type="button" data-id="thisMonth" data-name="filterType" class="btn filterButtonPassive"><span></span> BU AY</button>
+                            <button type="button" data-id="all" data-name="filterType" class="btn btn-rounded filterButtonPassive"><span></span> TÜMÜ</button>
+                        </div>
+                    </div>
+                    <fieldset>
+                        <legend> Potansiyel/Fırsat Kriterleri</legend>
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Potansiyel/Fırsat Aşaması</label>
+                            </div>
+                            <div class="col-md-4">
+
+                                @(Html.Akilli()
+                                .MultiSelect("PresentationStageIds")
+                                .Placeholder("Potansiyel/Fırsat aşaması")
+                                .MinLength(0)
+                                .ItemTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-right:6px;\"></div><span>#: data.Name#</span>")
+                                .DataValueField("Id")
+                                .DataTextField("Name")
+                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false)).Filter(FilterType.Contains)
+                                .Sort(x => x.Add("Name").Ascending())
+                                .TagTemplate("#=TagTemplate(data, 'Name')#")
+                                .Execute("Id")
+                                )
+                            </div>
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Yetkili Personel</label>
+                            </div>
+                            <div class="col-md-4">
+                                @(Html.Akilli()
+                                .MultiSelect("SalesPersonIds")
+                                .Placeholder("Satış Personeli")
+                                .MinLength(0)
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute("id")
+                                )
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Lokasyon</label>
+                            </div>
+                            <div class="col-md-4">
+                                @(
+                                    Html.Akilli()
+                                    .MultiSelect("MapCityIds")
+                                    .Placeholder("Lütfen Ülke,İl,İlçe seçiniz..")
+                                    .DataTextField("pid_Title")
+                                    .DataValueField("id")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                                    .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                                    .Sort(x => x.Add("pid_Title").Ascending())
+                                    .Execute()
+                                )
+                            </div>
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Sektör</label>
+                            </div>
+                            <div class="col-md-4">
+                                @(Html.Akilli()
+                                .MultiSelect("SectorIdss")
+                                .Placeholder("Sektör")
+                                .MinLength(0)
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute()
+                                )
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Kanal</label>
+                            </div>
+                            <div class="col-md-4">
+                                @(Html.Akilli()
+                                .MultiSelect("ChannelCompanyId")
+                                .Placeholder("Kanal")
+                                .MinLength(0)
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .DataSource(a => a.Read("DataSourceDropDown", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }).ServerFiltering(false)).Filter(FilterType.Contains)
+                                .Sort(x => x.Add("name").Ascending())
+                                .TagTemplate("#=TagTemplate(data, 'name')#")
+                                .Execute("id")
+                                )
+                            </div>
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Müşteri</label>
+                            </div>
+                            <div class="col-md-4">
+                                @(Html.Akilli()
+                                .MultiSelect("CustomerCompanyId")
+                                .Placeholder("Müşteri")
+                                .MinLength(0)
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .DataSource(a => a.Read("DataSourceDropDown", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }).ServerFiltering(false)).Filter(FilterType.Contains)
+                                .Sort(x => x.Add("name").Ascending())
+                                .TagTemplate("#=TagTemplate(data, 'name')#")
+                                .Execute("id")
+                                )
+                            </div>
+                        </div>
+                        <div class="form-group">
+
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Kapanma Aralığı</label>
+                            </div>
+                            <div class="col-md-10" style="padding-top:15px;">
+                                @(Html.Kendo().RangeSlider()
+                                    .Name("CompletionRate")
+                                    .Max(100)
+                                    .Min(0)
+                                    .LargeStep(10)
+                                    .SmallStep(10)
+                                    .Tooltip(true)
+                                    .LeftDragHandleTitle("Kapanma Yüzdesi")
+                                    .RightDragHandleTitle("Kapanma Yüzdesi")
+                                    .HtmlAttributes(
+                                        new { @class = "balSlider", title = "Kapanma Yüzdesi", @style = "width:100%;" })
+                                )
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Ürünler</label>
+                            </div>
+                            <div class="col-md-10">
+                                <select id="ProductIds" name="ProductIds" class="form-control" style="width: 100%" data-template="product"
+                                        placeholder="Lütfen Ürünleri Seçiniz.." data-custom="true" required="required"></select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md">Rakip Firma</label>
+                            </div>
+                            <div class="col-md-10">
+
+                                @(Html.Akilli()
+                                .MultiSelect("OpponentCompanyIds")
+                                .Placeholder("Lütfen Seçim Yapınız.")
+                                .DataTextField("CompanyName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "CRM_OpponentCompany", new { area = "CRM" }))
+                                .Sort(x => x.Add("CompanyName").Ascending())
+                                .Filter(FilterType.Contains)
+                                .Execute()
+                                )
+
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-3">
+                                <label class="control-label label-md" for="MinPoint">Teklif Aralığı</label>
+                            </div>
+                            <div class="col-md-4">
+
+                                <div class="input-group">
+                                    @Html.Kendo().NumericTextBox().Name("MinPoint").Min(0).Spinners(false).Decimals(0).Format("N0").MaxElement("MaxPoint").Placeholder("Minimum Teklif").HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        { "style", "width:100%" }
+                                    })
+                                    <span class="input-group-addon" style="font-size:14px;" id="MinPoint"> ₺  </span>
+                                    <span class="input-group-addon" id="MinPoint"> Min  </span>
+
+                                </div>
+
+                            </div>
+                            <div class="col-md-1">
+                                <label class="control-label label-md" for="MaxPoint">ile</label>
+                            </div>
+                            <div class="col-md-4">
+
+                                <div class="input-group">
+                                    @Html.Kendo().NumericTextBox().Name("MaxPoint").Max(2147483647).Spinners(false).Decimals(0).Format("N0").MinElement("MinPoint").Placeholder("Maksimum Teklif").HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        { "style", "width:100%" }
+                                    })
+                                    <span class="input-group-addon" style="font-size:14px;" id="MaxPoint"> ₺ </span>
+
+                                    <span class="input-group-addon" id="MaxPoint">Max</span>
+                                </div>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+                <div class="pan-footer clearfix">
+                    <button type="button" onclick="page.cleanFilter()" class="btn btn-danger  pull-left"><i class="fa fa-trash"></i> Temizle</button>
+                    <button type="button" id="applyFilter" onclick="page.applyFilter()" class="btn btn-primary pull-right"><i class="fa fa-search"></i> Filtrele</button>
+                </div>
+            </div>
+            <div id="selectedCustomer" class="pan-content">
+                <div class="pan-head clearfix" style="margin-left: 15px;">
+                    <div style="padding-top: 7px;">
+                        <div class="col-md-8"style="padding-left:0px !important;padding-right:0px !important">
+                            <span style="padding-left: 5px;text-transform: uppercase;" data-id="customerName">Harita Üzerinden İşletme Seçiniz</span>
+                        </div>
+                        <div class="col-md-4" style="padding-left:0px !important;padding-right:0px !important">
+                            <button style="margin-right: 10px;background-color: #1ab394;color: #fff;" name="customerDetail" class="btn btn-xs pull-right" onclick="page.customerDetail(this)"><i class="fa fa-building"></i> İşletme Detayı</button>
+                            <button style="margin-right: 5px;background-color: #1ab394;color: #fff;" data-method="GET" data-task="Insert" name="customerUpdate" class="btn btn-xs pull-right"><i class="fa fa-edit"></i> İşletmeyi Düzenle</button>
+                        </div>
+                    </div>
+                    </div>
+                <div>
+                    <div class="clearfix">
+
+                    </div>
+                    <div class="cardCustomer" style="padding-bottom: 10px;">
+                        <div class="col-md-6">
+                            <nav class="nav">
+                                <ul>
+                                    <li><strong>İşletme Kodu : </strong><span data-id="customerCode"></span></li>
+                                    <li><strong>Son Ziyaret Tarihi : </strong><span data-id="customerLastVisitDate"></span></li>
+                                </ul>
+                            </nav>
+                        </div>
+                        <div class="col-md-6">
+                            <nav class="nav">
+                                <ul>
+                                    <li><strong>Toplam Aktivite/Randevu Sayısı : </strong><span data-id="contactCount"></span></li>
+                                    <li><strong>Toplam Ürün Miktarı : </strong><span data-id="totalProduct"></span></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <div class="pan-bodyCustom">
+
+                        <div class="col-md-6">
+                            <div class="pan-head" style="margin-top: 10px;background-color: #23c6c8;border: 0;">
+                                <div style="padding-top: 7px;margin-left: 5px;">
+                                    POTANSİYEL/FIRSATLAR
+                                    <button onclick="page.presentationInsert(this)" name="presentationInsert" class="btn btn-xs pull-right"
+                                            data-placement="left" data-original-title="Yeni Potansiyel/Fırsat" style="margin-right: 5px;background-color: #fff;color: #23c6c8;">
+                                        <i class="fa fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="panContentPresentation">
+
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="pan-head" style="margin-top: 10px;background-color: #f8ac59;border: 0;">
+                                <div style="padding-top: 7px;margin-left: 5px;">
+                                    AKTİVİTE/RANDEVULAR
+                                </div>
+                            </div>
+
+                            <div class="panContentContact">
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Css{
+    <style type="text/css">
+        .search-control.ol-control {
+            left: auto !important;
+            right: 20px !important;
+        }
+
+            .search-control.ol-control button {
+                float: right !important;
+            }
+
+        .btn-bar {
+            position: absolute;
+            z-index: 99;
+        }
+
+            .btn-bar.left {
+                left: 15px;
+            }
+
+            .btn-bar.right {
+                right: 15px;
+            }
+
+            .btn-bar.bottom {
+                bottom: 60px;
+            }
+
+            .btn-bar.top {
+                top: 15px;
+            }
+
+        .btn-container {
+            border-radius: 100px;
+            background: #2f404f;
+            float: left;
+            width: 50px;
+        }
+
+        .btn-custom {
+            background: #2f404f;
+            color: #fff;
+            width: 46px;
+            height: 46px;
+            padding: 0;
+            margin-top: 5px;
+            font-size: 15px !important;
+            border: 3px #2f404f solid;
+            padding: 0 !important;
+            border-radius: 25px !important;
+            width: 50px !important;
+        }
+
+        .btn-container .btn-custom:first-child {
+            margin-top: 0px;
+        }
+
+        .btn-custom span {
+            font-size: 11px;
+            font-weight: Bold;
+        }
+
+        .btn-custom:hover, .btn-custom:focus, .btn-custom.active {
+            background-color: #1ab394;
+            color: #fff;
+            -webkit-box-shadow: none !important;
+            box-shadow: none !important;
+        }
+
+        .ol-control.default-control {
+            display: none;
+        }
+
+        #Harita {
+            background: #fff;
+        }
+
+        fieldset {
+            border: 1px rgba(255,255,255,0.5) solid !important;
+            padding: 5px 15px 15px 15px !important;
+            -webkit-box-shadow: 0px 0px 0px 0px #000;
+            box-shadow: 0px 0px 0px 0px #000;
+            border-radius: 0px;
+            margin-top: 10px !important;
+            margin-bottom: 10px !important;
+        }
+
+            fieldset .form-group:first-child {
+                margin-top: 0px !important;
+            }
+
+            fieldset .form-group:last-child {
+                margin-bottom: 0px !important;
+            }
+
+            fieldset legend {
+                font-size: 14px !important;
+                font-weight: bold !important;
+                text-align: left !important;
+                width: auto;
+                padding: 0 10px;
+                border-bottom: none;
+                color: #fff;
+                margin-bottom: 10px !important;
+                margin-left: -8px;
+            }
+
+        .form-control.k-widget {
+            padding: 0px !important;
+        }
+
+        .form-control .k-dropdown-wrap, .form-control .k-picker-wrap, .form-control .k-multiselect-wrap {
+            padding: 0px !important;
+        }
+
+        .pan-container {
+            width: 800px;
+            background: #2f404f;
+            height: calc(100vh - 170px);
+            float: right;
+            border-radius: 15px;
+            padding: 15px;
+        }
+
+        .pan-head {
+            margin-bottom: 5px !important;
+            padding-bottom: 10px;
+            color: #fff;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom: 1px #fff solid;
+        }
+
+            .pan-head .inputContainer {
+                width: 100% !important;
+            }
+
+                .pan-head .inputContainer input {
+                    border: 1px #d9d9d3 solid;
+                }
+
+                .pan-head .inputContainer i {
+                    color: #d9d9d3;
+                }
+
+        .inputContainer .searchInput:active, .inputContainer .searchInput:focus {
+            outline: none !important;
+        }
+
+        .pan-head .inputContainer .searchInput::-webkit-input-placeholder {
+            color: #d9d9d3 !important;
+        }
+
+        .pan-body {
+            height: calc(100vh - 270px);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+
+        .pan-bodyCustom {
+            height: calc(100vh - 325px);
+            position: relative;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .pan-body label {
+            color: #d9d9d3;
+            font-weight: 500 !important;
+        }
+
+        .buttongroup {
+            margin-top: 10px;
+        }
+
+            .buttongroup .btn-group {
+                width: 19% !important;
+            }
+
+        @@media (min-width: 768px) {
+            .form-horizontal .control-label {
+                text-align: left !important;
+            }
+        }
+
+        group + group {
+            margin-top: 20px;
+        }
+
+        .inline-radio {
+            display: flex;
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid #b6b6b6;
+        }
+
+            .inline-radio div {
+                position: relative;
+                flex: 1;
+            }
+
+            .inline-radio input {
+                width: 100%;
+                height: 30px;
+                opacity: 0;
+                cursor: pointer;
+            }
+
+            .inline-radio label {
+                position: absolute;
+                top: 0;
+                left: 0;
+                color: #ffffff;
+                width: 100%;
+                height: 100%;
+                background: #ed5565;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                pointer-events: none;
+                border-right: 1px solid #b6b6b6;
+            }
+
+            .inline-radio div:last-child label {
+                border-right: 0;
+            }
+
+            .inline-radio input:checked + label {
+                font-weight: 800;
+                color: #fff;
+                background: #1ab394;
+            }
+
+        .filterButtonActive {
+            background-color: #2f96b4;
+            border-color: #2f96b4;
+            color: white;
+        }
+
+        .filterButtonPassive {
+            background-color: #49afcd;
+            border-color: #2f96b4;
+            color: white;
+        }
+
+        #customerFilterButtons .filterButtonActive {
+            background-color: #074f7c;
+            border-color: #08507d;
+            color: white;
+        }
+
+        #customerFilterButtons .filterButtonPassive {
+            background-color: #1d84c6;
+            border-color: #08507d;
+            color: white;
+        }
+
+        #contactFilterButtons .filterButtonActive {
+            background-color: #95101e;
+            border-color: #95101e;
+            color: white;
+        }
+
+        #contactFilterButtons .filterButtonPassive {
+            background-color: #ed5666;
+            border-color: #95101e;
+            color: white;
+        }
+
+        #presentationFilterButtons .filterButtonActive {
+            background-color: #e37d11;
+            border-color: #e37d11;
+            color: white;
+        }
+
+        #presentationFilterButtons .filterButtonPassive {
+            background-color: #f8ac5a;
+            border-color: #e37d11;
+            color: white;
+        }
+
+        #filterButtonGroup .filterButtonActive {
+            background-color: #1bb394;
+            border-color: #1bb394;
+            color: white;
+        }
+
+        #filterButtonGroup .filterButtonPassive {
+            background-color: #5a9e90;
+            border-color: #5a9e90;
+            color: white;
+        }
+
+        #ColorBox {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            left: 54px;
+            padding: 8px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 500px;
+        }
+
+        #CustomerSearch {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            padding: 6px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 350px;
+            height: 49px;
+        }
+
+        #AddCustomer {
+            background: rgb(48, 65, 80);
+            left: 54px;
+            padding: 6px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 113px;
+            height: 49px;
+        }
+
+        #MarkerBox {
+            background: rgb(48, 65, 80);
+            position: absolute;
+            left: 54px;
+            padding: 8px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: 500px;
+        }
+
+        #ColorInfo {
+            background: rgb(255, 255, 255);
+            position: absolute;
+            left: 54px;
+            z-index: -1;
+            border: 1px solid rgb(204, 204, 204);
+            border-radius: 10px;
+            width: auto;
+            height: 50px;
+        }
+
+        .balSlider .k-label {
+            color: white !important;
+        }
+
+        #slider-station .item {
+            background: #212c36 !important;
+            height: 220px;
+            width: 350px;
+            box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+            padding: 5px 20px;
+            border-radius: 15px;
+        }
+
+            #slider-station .item .head .col-xs-12 {
+                padding-top: 10px;
+                color: #fff;
+                font-size: 16px;
+                text-transform: uppercase;
+            }
+
+            #slider-station .item .head .col-xs-2 img {
+                width: 70%;
+                margin: 0 15%;
+            }
+
+            #slider-station .item .head .presentationHead {
+                color: #babbc0;
+            }
+
+        #slider-station .list-group-item {
+            color: #babbc0;
+        }
+
+        #slider-station .listGroupValue {
+            color: #d9d9d3;
+        }
+
+        #ColorInfo .category {
+            float: left;
+        }
+
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .slider tr {
+        }
+
+        #ColorInfo tbody {
+        }
+
+        #ColorInfo .slider {
+            color: white;
+            padding-top: 6px;
+        }
+
+            #ColorInfo .slider tr {
+                vertical-align: middle;
+                display: flex;
+                border: none;
+            }
+
+            #ColorInfo .slider td {
+                text-align: center;
+                border: none;
+                opacity: 1;
+            }
+
+        #ColorInfo .color-bar {
+            width: 100%;
+        }
+
+        #ColorInfo .category {
+            min-height: 24px;
+        }
+
+        #ColorInfo .slider tr td:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        #ColorInfo .slider tr td:last-child {
+            border-radius: 0 10px 10px 0px;
+        }
+
+        .card {
+            background: rgba(0,0,0,0.17);
+            border-radius: 10px;
+            margin-top: 10px;
+            max-width: 370px;
+            min-height: 315px;
+            padding: 20px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+            .card .header {
+                align-items: flex-start;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .card .card-picture {
+                border-radius: 6px;
+                width: 50px;
+            }
+
+            .card .card-name {
+                font-weight: 700;
+                margin: 0 0 10px;
+            }
+
+            .card .card-title {
+                font-weight: 400;
+                margin: 0;
+            }
+
+            .card .nav {
+                align-items: center;
+                padding-top: 15px;
+                display: table-cell;
+                justify-content: space-between;
+                z-index: 1;
+            }
+
+                .card .nav ul {
+                    list-style-type: none;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                    .card .nav ul li {
+                        display: table-row;
+                    }
+
+                    .card .nav ul span {
+                        display: table-cell;
+                        text-decoration: none;
+                        color: #f0f8ff;
+                        padding: 5px 15px;
+                    }
+
+
+        .cardCustomer {
+            border-radius: 10px;
+            position: relative;
+            width: 100%;
+            overflow: hidden;
+        }
+
+            .cardCustomer .nav {
+                align-items: center;
+                display: table-cell;
+                justify-content: space-between;
+                z-index: 1;
+            }
+
+                .cardCustomer .nav ul {
+                    list-style-type: none;
+                    margin: 0;
+                    padding: 0;
+                }
+
+                    .cardCustomer .nav ul li {
+                        display: table-row;
+                    }
+
+                        .cardCustomer .nav ul li strong {
+                            color: white;
+                        }
+
+                    .cardCustomer .nav ul span {
+                        display: table-cell;
+                        text-decoration: none;
+                        color: #f0f8ff;
+                        padding: 5px 15px;
+                    }
+    </style>
+}

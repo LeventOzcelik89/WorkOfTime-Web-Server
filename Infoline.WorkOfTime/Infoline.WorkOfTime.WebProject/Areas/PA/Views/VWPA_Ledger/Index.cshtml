@@ -1,0 +1,569 @@
+﻿@model VMPA_Ledger
+
+@{
+    ViewBag.Title = "Muhasebe Defteri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ids = Model.AccountIds.Select(x => (Guid?)x.id).ToList();
+
+    var now = DateTime.Now;
+
+    var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
+    var endOfMonth = now;
+
+    var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
+    var endOfLastMonth = startOfMonth;
+
+    int quarterNumber = (int)Math.Ceiling(now.Month / 3.0);
+
+    var startOfThisQuarter = new DateTime(now.Year, (3 * quarterNumber) - 2, 1).Date;
+    var endOfThisQuarter = now;
+
+    var startOfLastQuarter = startOfThisQuarter.AddMonths(-3);
+    var endOfLastQuarter = startOfThisQuarter;
+
+    var startOfThisYear = new DateTime(now.Year, 1, 1).Date;
+    var endOfThisYear = now;
+
+    var startOfLastYear = new DateTime(now.Year - 1, 1, 1).Date;
+    var endOfLastYear = startOfThisYear;
+}
+
+
+<script src="~/Content/Plugins/HighCharts/js/highstock.js"></script>
+<script src="~/Content/Plugins/HighCharts/js/exporting.js"></script>
+
+<style type="text/css">
+
+    .filterButtonActive {
+        background-color: #2f96b4;
+        border-color: #2f96b4;
+        color: white;
+        width: 16% !important;
+    }
+
+    .filterButtonPassive {
+        background-color: #49afcd;
+        border-color: #2f96b4;
+        color: white;
+        width: 16% !important;
+    }
+</style>
+
+<script type="text/javascript">
+
+    var page = {
+        model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+        types: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
+        fnc: {
+            init: function (data) {
+                var inputAmount = $.Enumerable.From(page.model.Ledgers).Sum(a => a.inputAmount * a.rateExchange);
+                var outputAmount = $.Enumerable.From(page.model.Ledgers).Sum(a => a.outputAmount * a.rateExchange);
+                var balance = inputAmount - outputAmount;
+                $('[data-id="inputAmount"]').text(kendo.toString(inputAmount , "N2") + " ₺");
+                $('[data-id="outputAmount"]').text(kendo.toString(outputAmount, "N2") + " ₺");
+                $('[data-id="balanceAmount"]').text(kendo.toString(balance, "N2") + " ₺");
+
+                $('.filterButtonActive').trigger("click");
+            },
+            filterData: function (startDate, endDate) {
+                var data = $.Enumerable.From(page.model.Ledgers).Where(a => a.date != null && new Date(a.date).getTime() >= new Date(startDate).getTime() && new Date(a.date).getTime() <= new Date(endDate).getTime()).ToArray();
+
+                var inputData = [], outputData = [], balance = [];
+
+                var groupedData = $.Enumerable.From(data).GroupBy(s => new Date(s.date).toLocaleDateString()).ToArray();
+
+                $.each(groupedData, function (i, item) {
+                    var enumerableData = $.Enumerable.From(item.source);
+                    var date = new Date(item.source[0].date).getTime();
+                    var input = enumerableData.Sum(s => s.inputAmount * s.rateExchange);
+                    var output = enumerableData.Sum(s => s.outputAmount * s.rateExchange);
+
+                    inputData.push({ x: date, y: input });
+                    outputData.push({ x: date, y: output * -1 });
+                    balance.push({ x: date, y: input - output });
+                })
+
+                for (var d = new Date(startDate); d <= new Date(endDate); d.setDate(d.getDate() + 1)) {
+                    if (!$.Enumerable.From(inputData).Any(a => a.x == d.getTime())) {
+                        inputData.push({ x: d.getTime(), y: 0 });
+                        outputData.push({ x: d.getTime(), y: 0 });
+                        balance.push({ x: d.getTime(), y: 0});
+                    }
+                }
+
+
+                var series = {
+                    input: { name: "Nakit Girişi", data: $.Enumerable.From(inputData).OrderBy(a => new Date(a.x)).ToArray(), type: "column", color: "#1ab394", enterType: 1 },
+                    output: { name: "Nakit Çıkışı", data: $.Enumerable.From(outputData).OrderBy(a => new Date(a.x)).ToArray(), type: "column", color: "#ed5565", enterType: -1 },
+                    balance: { name: "Net Para Akışı", data: $.Enumerable.From(balance).OrderBy(a => new Date(a.x)).ToArray(), type: "spline", color: "#920b0b", enterType: 0},
+                }
+
+                page.fnc.createChart("Chart", series, new Date(startDate), new Date(endDate));
+
+                var startDate = kendo.toString(new Date(startDate), "yyyy-MM-ddT00-00-00");
+                var endDate = kendo.toString(new Date(endDate), "yyyy-MM-ddT00-00-00");
+                var date ='date~gte~datetime' + "'" + startDate + "'" + '~and~' + 'date~lte~datetime' + "'" + endDate + "'";
+                var gridQuery = '(((' + date + '))';
+                page.fnc.filterGrid(gridQuery);
+            },
+            createChart: function (element, series, minDate, maxDate) {
+                Highcharts.stockChart(element, {
+                    chart: {
+                        height: 400,
+                    },
+                    scrollbar: {
+                        enabled: false
+                    },
+                    credits: {
+                        enabled: false
+                    },
+                    navigator: {
+                        enabled: false
+                    },
+                    legend: {
+                        enabled: true,
+                        verticalAlign: 'bottom',
+                    },
+                    tooltip: {
+                        shared: false,
+                        useHTML: true,
+                        split: true,
+                    },
+                    xAxis: {
+                        type: 'datetime',
+                        title: {
+                            text: 'Tarih',
+                        },
+                        labels: {
+                            format: "{value:%e %B}"
+                        },
+                    },
+                    yAxis: [{
+                        labels: {
+                            align: 'left',
+                            formatter: function () {
+                                return kendo.toString(this.value, "N2") + " ₺";
+                            }
+                        },
+                    }],
+                    rangeSelector : {
+                        allButtonsEnabled: true,
+                        buttons: [{
+                            type: 'month',
+                            count: 3,
+                            text: 'Günlük',
+                            dataGrouping: {
+                                approximation: "sum",
+                                forced: true,
+                                units: [['day', [1]]]
+                            }
+                        },
+                            {
+                            type: 'year',
+                            count: 1,
+                            text: 'Haftalık',
+                            dataGrouping: {
+                                forced: true,
+                                approximation: "sum",
+                                units: [['week', [1]]],
+                                dateTimeLabelFormats: {
+                                    week: ['%A, %b %e, %Y Haftası'],
+                                }
+                            }
+                        },
+                        {
+                            type: 'all',
+                            text: 'Aylık',
+                            dataGrouping: {
+                                approximation: "sum",
+                                forced: true,
+                                units: [['month', [1]]]
+                            }
+                        },
+                        {
+                            type: 'year',
+                            text: 'Yıllık',
+                            dataGrouping: {
+                                approximation: "sum",
+                                forced: true,
+                                units: [['year', null]]
+                            }
+                        }],
+                        buttonTheme: {
+                            width: 60
+                        },
+                        selected: 3
+                    },
+                    plotOptions: {
+                        series: {
+                            cursor: 'pointer',
+                            events: {
+                                legendItemClick: function () {
+                                    var type = this.userOptions.enterType;
+                                    if (type!=0) {
+                                         var otherType = $.Enumerable.From(this.chart.series).Where(a => a.options.enterType == (-1 *type)).FirstOrDefault();
+
+                                         var allData = $.Enumerable.From(this.chart.userOptions.series).SelectMany(a => a.data);
+                                         var minDate = new Date(allData.Min(a => a.x));
+                                         var maxDate = new Date(allData.Max(a => a.x));
+
+                                         var startDate = kendo.toString(minDate, "yyyy-MM-ddT00-00-00")
+                                         var endDate = kendo.toString(maxDate, "yyyy-MM-ddT00-00-00")
+
+                                         var query = '';
+                                         var direction = '';
+                                         if (this.visible == false) {
+                                             direction = '(direction~eq~'+ type +')';
+                                         }
+
+                                         if (otherType.visible) {
+                                             direction = direction == '' ? '(direction~eq~' + otherType.options.enterType + ')' : '((' + direction  +  "~or~" + '(direction~eq~' + otherType.options.enterType + ')' + '))'
+                                         }
+
+                                         if (direction == '') {
+                                             query = '(((direction~eq~2))~and~(' + 'date~gte~datetime' + "'" + startDate + "'" + '~and~' +      'date~lte~datetime' + "'" + endDate + "'" + '))';
+                                         } else {
+                                             query = '((' + direction + ')~and~(' + 'date~gte~datetime' + "'" + startDate + "'" + '~and~' +     'date~lte~datetime' + "'" + endDate + "'" + '))';
+                                         }
+
+                                        page.fnc.filterGrid(query);
+
+
+                                    }
+                                },
+                                click: function (e) {
+                                    var type = this.userOptions.enterType;
+                                    if (type != 0) {
+
+                                        var start = new Date(e.point.x);
+                                        var end = null;
+
+                                        if (this.currentDataGrouping.unitName == "day") {
+                                            end = new Date(start).addDays(1);
+                                        } else if (this.currentDataGrouping.unitName == "week") {
+                                            end = new Date(start).addDays(7)
+                                        } else if (this.currentDataGrouping.unitName == "month") {
+                                            end = new Date(new Date(start).setMonth(start.getMonth() + 1));
+                                        } else {
+                                            end = new Date(start).addYears(1);
+                                        }
+
+                                        var startDate = kendo.toString(start, "yyyy-MM-ddT00-00-00")
+                                        var endDate = kendo.toString(end, "yyyy-MM-ddT00-00-00")
+                                        var gridQuery ='(((direction~eq~' + type + ')~and~(' + 'date~gte~datetime' + "'" + startDate + "'" + '~and~' + 'date~lte~datetime' + "'" + endDate + "'" + '))';
+                                        page.fnc.filterGrid(gridQuery);
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    series: $.Enumerable.From(series).Select(function (a) { return a.Value; }).ToArray()
+                })
+            },
+            filterGrid: function (query) {
+                var grid = $("#VWPA_Ledger").data("kendoGrid");
+                var gridFilter = grid.dataSource.transport.parameterMap({ filter: { logic: "and", filters: grid.options.dataSource.filter } }).filter;
+                var gridQuery = query + "~and~" + '(' + gridFilter + '))';
+                var newFilter = kendo.filterParser(gridQuery);
+                grid.dataSource.filter(newFilter);
+                grid.dataSource.read();
+            }
+        },
+        events: {
+            onChangeStartDate: function (e) {
+                $('#EndDate').data("kendoDatePicker").trigger("change");
+            },
+            onChangeEndDate: function (e) {
+                var startDate = $('#StartDate').data("kendoDatePicker").value();
+                var endDate = e.sender.value();
+                page.fnc.filterData(startDate, endDate);
+            }
+        },
+        templates: {
+            inputAmountFunction: function (data) {
+                if (data.inputAmount==0) {
+                    return '<span class="text-warning pull-right" style="font-size:18px">' + kendo.toString(data.inputAmount, "n2") +" " + data.Currency_Symbol + '</span>';
+                }
+
+                return '<span class="pull-right" style="font-size:18px;color:#007904">' + kendo.toString(data.inputAmount, "n2") +" " + data.Currency_Symbol + '</span>';
+            },
+            outputAmountFunction: function (data) {
+                if (data.outputAmount==0) {
+                    return '<span class="text-warning pull-right" style="font-size:18px">' + kendo.toString(data.outputAmount, "n2") +" " + data.Currency_Symbol + '</span>';
+                }
+
+                return '<span class="text-danger pull-right" style="font-size:18px">' + kendo.toString(data.outputAmount, "n2") +" " + data.Currency_Symbol + '</span>';
+            },
+            typeTemplate: function (data) {
+                if (data.type == null) {
+                    return '<i class="text-warning fa-2x fa fa-warning">';
+                }
+
+                var type = $.Enumerable.From(page.types).Where(a => a.Key == data.type).FirstOrDefault();
+                var color = data.direction == -1 ? "#ed5565" : "#007904";
+                return '<i style="color:' + color + ';" class=" fa-2x ' + type.Generic.icon + '">';
+            }
+        }
+    }
+
+    $(document)
+        .on("ready", function () {
+            page.fnc.init(page.model.Ledgers);
+        })
+        .on('click', '[data-name="filterDate"]', function (e) {
+            var _this = $(this);
+
+            _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+
+            var startDate = $(this).attr("data-startdate");
+            var endDate = $(this).attr("data-enddate");
+
+            $('#StartDate').data("kendoDatePicker").value(new Date(startDate));
+            $('#EndDate').data("kendoDatePicker").value(new Date(endDate));
+
+            $('#StartDate').data("kendoDatePicker").trigger("change");
+        })
+
+    Highcharts.setOptions({
+        global: { useUTC: false },
+        lang: {
+            shortMonths: ['Ocak', 'Şub', 'Mart', 'Nis', 'May', 'Haz', 'Tem', 'Ağu','Eyl', 'Ekim', 'Kas', 'Ara'],
+            months: ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'],
+            weekdays: ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'],
+            downloadJPEG: 'JPEG Olarak Kaydet',
+            downloadPNG: 'PNG Olarak Kaydet',
+            downloadSVG: 'SVG Olarak Kaydet',
+            downloadPDF: 'PDF Olarak Kaydet',
+            printChart: 'Yazdır',
+            resetZoom: 'Zoom Kapat',
+            decimalPoint: ',',
+            thousandsSep: '.',
+            rangeSelectorZoom: '',
+            rangeSelectorFrom: "Başlangıç",
+            rangeSelectorTo: "Bitiş",
+        },
+        tooltip: { valueDecimals: 2 }
+    });
+
+</script>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Filtre Seçimi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content clearfix">
+                <div class="col-md-6">
+                    <div class="btn-group rounded" role="group" aria-label="Basic example" style="width: 100%;">
+                        <button type="button" data-id="1" data-name="filterDate" data-startDate="@(startOfMonth.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfMonth.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn btn-rounded filterButtonActive"> BU AY </button>
+                        <button type="button" data-id="360" data-name="filterDate" data-startDate="@(startOfLastMonth.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfLastMonth.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn filterButtonPassive"><span></span>GEÇEN AY</button>
+                        <button type="button" data-id="180" data-name="filterDate" data-startDate="@(startOfThisQuarter.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfThisQuarter.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn filterButtonPassive"><span></span>BU ÇEYREK </button>
+                        <button type="button" data-id="30" data-name="filterDate" data-startDate="@(startOfLastQuarter.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfLastQuarter.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn filterButtonPassive"><span></span>GEÇEN ÇEYREK</button>
+                        <button type="button" data-id="30" data-name="filterDate" data-startDate="@(startOfThisYear.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfThisYear.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn filterButtonPassive"><span></span>BU YIL</button>
+                        <button type="button" data-id="0" data-name="filterDate" data-startDate="@(startOfLastYear.ToString("yyyy.MM.dd HH:mm:ss"))" data-endDate="@(endOfLastYear.ToString("yyyy.MM.dd HH:mm:ss"))" class="btn btn-rounded filterButtonPassive"><span></span> GEÇEN YIL </button>
+                    </div>
+
+                </div>
+                <div class="col-md-3">
+                    @(Html.Akilli().DatePicker("StartDate").
+                                Placeholder("Başlangıç Tarihi").
+                                Max(DateTime.Now).
+                                Value(DateTime.Now).
+                                MaxDateElement("EndDate").
+                                Events(e => { e.Change("page.events.onChangeStartDate"); }).
+                                Validate(Validations.Required)
+                    )
+                </div>
+                <div class="col-md-3">
+                    @(Html.Akilli().DatePicker("EndDate").
+                                Placeholder("Bitiş Tarihi").
+                                Max(DateTime.Now).
+                                Value(DateTime.Now).
+                                MinDateElement("StartDate").
+                                Events(e => { e.Change("page.events.onChangeEndDate"); }).
+                                Validate(Validations.Required)
+                    )
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div class="widget style1 navy-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-plus-circle fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Toplam Para Girişi</span>
+                            <h2><span data-id="inputAmount"></span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div class="widget style1 red-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-minus-circle fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Toplam Para Çıkışı</span>
+                            <h2><span data-id="outputAmount"></span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+                <div id="Card_e2a97d72" class="widget style1 yellow-bg">
+                    <div class="row">
+                        <div class="col-xs-2 hidden-md wHeader">
+                            <i class="icon-exchange-1 fa-4x"></i>
+                        </div>
+                        <div class="col-xs-10 text-right wInformation">
+                            <span>Net Nakit Akışı</span>
+                            <h2><span data-id="balanceAmount"></span></h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="ibox ">
+            <div class="ibox-content">
+                <div id="Chart"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="ibox ">
+    <div class="ibox-title">
+        <h5>Muhasebe Defteri</h5>
+        <div class="ibox-tools">
+            <a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den Hareketleri Ekle" class="btn btn-xs btn-primary"
+               data-properties="@ExcelHelper.GetSchema(typeof(PA_TransactionLedgerExcel), "PA_Transaction")" data-post="@Url.Action("Import","VWPA_Transaction",new { area="PA"})">
+                <i class="fa fa-file-excel-o"></i> Excel'den Muhasebe Kayıtlarını Ekle
+            </a>
+            <a class="collapse-link">
+                <i class="fa fa-chevron-up"></i>
+            </a>
+        </div>
+    </div>
+    <div class="ibox-content">
+        @if (ids.Count() > 0)
+        {
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
+                    .Sort(a =>
+                    {
+                        a.Add(b => b.date).Descending();
+                        a.Add(b => b.created).Descending();
+                    })
+                    .Filter(c => ids.Contains(c.accountId)).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).ClientTemplate("#= page.templates.typeTemplate(data) #").Width(40).Filterable(false).Title("");
+                    x.Bound(y => y.type_Title).Title("İşlem Türü").Width(150);
+                    x.Bound(y => y.date).Title("İşlem Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.accountCompanyId_Title).Title("Hesap").Width(150);
+                    x.Bound(y => y.description).Title("Açıklama").Width(150);
+                    x.Bound(y => y.inputAmount).Title("Giriş").ClientTemplate("#=page.templates.inputAmountFunction(data)#").Width(100).HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                    x.Bound(y => y.outputAmount).Title("Çıkış").ClientTemplate("#=page.templates.outputAmountFunction(data)#").Width(100).HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPA_Ledger", new { area = "PA" }));
+                }))
+        }
+
+        else
+        {
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" })).Filter(c => ids.Contains(c.accountId)).PageSize(25))
+                .Columns(x =>
+                        {
+                    x.Bound(y => y.type_Title).Title("İşlem Türü").Width(150);
+                    x.Bound(y => y.date).Title("İşlem Tarihi").Width(150).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.accountId_Title).Title("Hesap").Width(150);
+                    x.Bound(y => y.description).Title("Açıklama").Width(150);
+                }))
+        }
+    </div>
+</div>
+
+
+<script type="text/x-kendo-template" id="VWPA_LedgerTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>()))#
+
+    #if(direction==1){#
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+            <i style="font-size: 30px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])# text-primary" data-original-title="#:type_Title#" data-placement="right"></i><br />
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(totalAmount !=null){#
+                <span style="font-size:17px;" data-original-title="Tutar" data-placement="left" class="text-primary">#=totalAmount # </span>
+                #}else{#
+                <span style="font-size:17px;" class="text-danger">Tutar bulunamadı.</span>
+                #}#
+            </small>
+            #if(accountRealtedId_Title!=null && accountId_Title==null){#
+            <span style="font-size:13px;" data-original-title="İşletmem" data-placement="left">#=accountRealtedId_Title#</span>
+            <br />
+            #}else if(accountRealtedId_Title==null && accountId_Title!=null){#
+            <span style="font-size:13px;" data-original-title="İşletmem" data-placement="left">#=accountId_Title#</span>
+            <br />
+            #}else{#
+            <span style="font-size:13px;" data-original-title="Ödeme Yapan" data-placement="left">#=accountRealtedId_Title#</span>
+            <i style="font-size:16px; color:seagreen;" class="fa fa-hand-o-right"></i> <span style="font-size:13px;" data-original-title="Ödeme Yapılan" data-placement="right">#=accountId_Title#</span>
+            <br />
+            #}#
+
+            <span style="font-size:13px;"><strong> İşlemi Yapan : </strong>  #=createdby_Title#</span><br />
+            <span style="font-size:13px;"> <strong> İşlem Tarihi : </strong>  #:kendo.toString(date,"dd.MM.yyyy HH:mm")#</span><br />
+
+        </div>
+    </div>
+    #}else{#
+    <div class="feed-element" style="font-size:15px;">
+        <a class="pull-left" style="margin-top:15px; margin-left:17px;">
+            <i style="font-size: 30px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])# text-danger" data-original-title="#:type_Title#" data-placement="right"></i><br />
+        </a>
+        <div class="media-body" style="margin-left:85px;">
+            <small class="pull-right" style="margin-top:25px;">
+                #if(totalAmount !=null){#
+                <span style="font-size:17px;" data-original-title="Tutar" data-placement="left" class="text-danger">#=totalAmount# </span>
+                #}else{#
+                <span style="font-size:17px;" class="text-danger">Tutar bulunamadı.</span>
+                #}#
+            </small>
+            #if(accountRealtedId_Title!=null && accountId_Title==null){#
+            <span style="font-size:13px;" data-original-title="İşletmem" data-placement="left">#=accountRealtedId_Title#</span>
+            <br />
+            #}else if(accountRealtedId_Title==null && accountId_Title!=null){#
+            <span style="font-size:13px;" data-original-title="İşletmem" data-placement="left">#=accountId_Title#</span>
+            <br />
+            #}else{#
+            <span style="font-size:13px;" data-original-title="Ödeme Yapan" data-placement="left">#=accountId_Title#</span>
+            <i style="font-size:16px; color:red" class="fa fa-hand-o-right"></i> <span style="font-size:13px;" data-original-title="Ödeme Yapılan" data-placement="right">#=accountRealtedId_Title#</span>
+            <br />
+            #}#
+            <span style="font-size:13px;"><strong> İşlemi Yapan : </strong>  #=createdby_Title#</span><br />
+            <span style="font-size:13px;"> <strong> İşlem Tarihi : </strong>  #:kendo.toString(date,"dd.MM.yyyy HH:mm")#</span><br />
+        </div>
+    </div>
+    #}#
+
+</script>

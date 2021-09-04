@@ -1,0 +1,100 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_ProductPointSelling
+@{
+    ViewBag.Title = "Ürün Satış Puanları Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWPRD_ProductPointSelling", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+    if (Model.productId == null)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="productId">Ürün</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.productId)
+                  .OptionLabel("Lütfen Ürün seçiniz..")
+                  .DataTextField("fullName")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                  .Template("#=TemplateEngine('productTemplate',data)#")
+                  .Sort(x => x.Add("fullName").Ascending())
+                  .Validate(Validations.Required)
+                  .Execute()
+                )
+            </div>
+        </div>
+    }
+    else
+    {
+        @Html.HiddenFor(c => c.productId)
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="point">Ürün Puan</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @(Html.Kendo().NumericTextBoxFor(model => model.point).
+                        Value(Model.point).Format("n0").Spinners(false).
+                        HtmlAttributes(new Dictionary<string, object>()
+                        {
+                            {"style", "width:100%"},
+                            {"class", "text-right form-control"},
+                        }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                        .Validate(Validations.Required)
+                )
+                <span class="input-group-addon">Puan</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="startDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			      Html.Akilli().
+			      DatePickerFor(model => model.startDate).
+			      Placeholder("Lütfen Başlangıç Tarihi girin..").
+                  MaxDateElement("endDate").
+			      Validate(Validations.Required)
+			 )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="endDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+			 @(
+			      Html.Akilli().
+			      DatePickerFor(model => model.endDate).
+			      Placeholder("Lütfen Bitiş Tarihi girin..").
+                  MinDateElement("startDate").
+			      Validate(Validations.Required)
+			 )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

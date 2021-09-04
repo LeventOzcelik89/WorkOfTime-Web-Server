@@ -1,0 +1,88 @@
+﻿@model VWPRD_Inventory
+@{
+    ViewBag.Title = "Bakım Envanteri Depolar Arası Transfer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@using (Html.BeginForm("MoveMaintance", "VWPRD_Inventory", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "id", "maintenanceInventoryForm"},
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="id">Envanter</label>
+        </div>
+        <div class="col-md-8">
+
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.id)
+                .OptionLabel("Lütfen Envanter Seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                .Filter<VWPRD_Inventory>(a => a.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri)
+                .Sort(x => x.Add("fullName").Ascending())
+                .Template("#=TemplateEngine('inventoryTemplate',data)#")
+                .Readonly(true)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="firstActionDataId">Envanterin Sahibi Olan İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.firstActionDataId)
+                .OptionLabel("Lütfen Seçim Yapınız..")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .ValueTemplate("#=name# (#=code#)")
+                .DataTextField("searchField")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+                .Sort(x => x.Add("type").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="lastActionDataId">Envanterin Bulunduğu Şube/Depo</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.lastActionDataId)
+                .OptionLabel("Lütfen Seçim Yapınız..")
+                .DataTextField("searchField")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('storageTemplate',data)#")
+                .ValueTemplate("#=companyId_Title# | #=name# (#=code#)")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .BasicInsert(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP" }), "name", true)
+                .Validate(Validations.Required)
+                .Execute()
+            )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

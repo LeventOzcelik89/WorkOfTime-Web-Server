@@ -1,0 +1,604 @@
+﻿
+@{
+    ViewBag.Title = "Şube/Depo/Kısım Haritası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Javascript{
+    <script type="text/javascript">
+
+        var page = {
+            fn: {
+                zoomIn: function (e) {
+                    $('.ol-zoom-in').trigger("click");
+                },
+                zoomOut: function (e) {
+                    $('.ol-zoom-out').trigger("click");
+                },
+                zoomMove: function (e) {
+                    $(e).toggleClass("active");
+                    if ($(e).hasClass("active")) {
+                        $('[data-tool="DragZoom"]').trigger("click");
+                    } else {
+                        $('[data-tool="DragPan"]').trigger("click");
+                    }
+                },
+                home: function (e) {
+                    $('[data-tool="Home"]').trigger("click");
+                },
+                layersSwip: function (e) {
+                    $(e).toggleClass("active");
+                    $('[data-tool="Swipe"]').trigger("click");
+                },
+                slideTab: function (elem, target) {
+
+                    var hasActive = $(elem).hasClass("active");
+                    $(elem).parent().find("button").removeClass("active");
+
+                    if (hasActive) {
+                        $(".btn-bar.right").animate({ right: -600 }, 200);
+                    } else {
+                        $(elem).addClass("active");
+                        $(".btn-bar.right").animate({ right: -600 }, 200, function () {
+                            $('.pan-container').find('.pan-content').hide();
+                            $('.pan-container').find("#" + target).show();
+                            $(".btn-bar.right").animate({ right: 15 }, 200);
+                        });
+                    }
+                },
+            },
+            fnc: {
+                getData: function () {
+                    GetJsonDataFromUrl('/CMP/VWCMP_Storage/GetMapData', null, function (res) {
+                        if (res && res != null) {
+                            page.dfn.mapData = res;
+                            page.fnc.locateMap();
+
+                        }
+                    });
+                },
+                locateMap: function (item, type, companyId) {
+
+                    if (page.first != true) {
+
+                        page.dfn.harita.layer.get("MyStorages")["MyStorages"].getSource().clear();
+                        page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+
+                          page.dfn.harita.layer.get("OtherStorages")["OtherStorages"].getSource().clear();
+                        page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+                        
+
+                    }
+
+                    page.first = false;
+
+                    $('#storageSearch').val("");
+
+                    var data = page.dfn.mapData.filter(a => a.location != null);
+
+                    if (type && type != null && type != "") {
+                        data = $.Enumerable.From(data).Where(a => a.myStorage == (type == "my")).ToArray();
+                    }
+
+                    if (companyId && companyId != null && companyId != "") {
+                        data = $.Enumerable.From(data).Where(a => a.companyId == companyId).ToArray();
+                    } else {
+                        $('#companyId').data("kendoDropDownList").value(null);
+                    }
+
+                    if ($('#selectInventory').hasClass("active")) {
+                        $('#selectInventory').trigger("click");
+                        $('#selectInventory').addClass("hide");
+                    }
+
+                    if ($('#selectStock').hasClass("active")) {
+                        $('#selectStock').trigger("click");
+                        $('#selectStock').addClass("hide");
+                    }
+
+                    if (data.length == 0) {
+                        page.dfn.harita.map.getView().setCenter(ol.proj.transform([34.979530, 39.015137], 'EPSG:4326', 'EPSG:3857'));
+                        page.dfn.harita.map.getView().setZoom(7);
+                    }
+
+                    var resultData = [];
+                    $.each(data, function (i, item) {
+                        resultData.push({
+                            key: item.id,
+                            value: item.name + (item.companyId_Title ? " - " + item.companyId_Title : "")
+                        });
+                    })
+
+                    $('#storageSearch').autocomplete({
+                        source: resultData,
+                        position: {
+                            collision: "flip"
+                        },
+                        placeholder: "Depo/Şube/Kısım Arayın...",
+                        select: function (e, ui) {
+                            setTimeout(function () {
+                                var featureId = ui.item.key;
+                                var feature = page.dfn.harita.feature.get(featureId)[featureId];
+                                if (feature) {
+                                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+                                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().push(feature);
+                                    page.dfn.harita.feature.panTo(featureId, 22);
+                                }
+                            }, 250)
+                        }
+                    });
+
+                    var logomy = "/Content/Custom/img/marker-my-storage.png";
+                    var logoother = "/Content/Custom/img/marker-other-storage.png";
+                    var styleId = newGuid();
+                    var selectedStyle = newGuid();
+                    var styleId2 = newGuid();
+                    var selectedStyle2 = newGuid();
+
+                    page.dfn.harita.style.add(styleId, "#000", "#000", 1, logomy, logomy, 1, 1);
+                    page.dfn.harita.style.add(selectedStyle, "#000", "#000", 1, "/Content/Custom/img/marker-selected.png", "/Content/Custom/img/marker-selected.png", 1, 2);
+
+                    page.dfn.harita.style.add(styleId2, "#000", "#000", 1, logoother, logoother, 1, 1);
+                    page.dfn.harita.style.add(selectedStyle2, "#000", "#000", 1, "/Content/Custom/img/marker-selected.png", "/Content/Custom/img/marker-selected.png", 1, 2);
+
+                    var layer = page.dfn.harita.layer.addVector("Şirket Depoları", "MyStorages", styleId, selectedStyle, selectedStyle);
+                    var layer2 = page.dfn.harita.layer.addVector("Müşteri Depoları", "OtherStorages", styleId2, selectedStyle2, selectedStyle2);
+
+                    data.forEach(function (storage) {
+                        var feature = page.dfn.harita.feature.add((storage.myStorage == true ? "MyStorages" : "OtherStorages"), storage.id, storage.location);
+                        if (feature) {
+                            feature.set("properties", storage);
+
+                            $('#filterStock').append('<li><a data-grid="VWPRD_StockSummaryStorage" id="filter' + storage.id + '" data-category="1" data-switch="radio" data-query="(stockId~eq~' + storage.id + ')" href="#">' + storage.name + '</a></li>')
+                            $('#filterInventory').append('<li><a data-grid="VWPRD_Inventory" id="inv' + storage.id + '" data-category="1" data-switch="radio" data-query="(lastActionDataId~eq~' + storage.id + ')" href="#">' + storage.name + '</a></li>')
+                        }
+                    })
+                    //historyde var logo işlemleri
+
+                    page.dfn.harita.layer.panTo("Storages");
+                },
+                getDetailForHover: function (data) {
+                    var companyTitle = data.companyId_Title ? data.companyId_Title.split('(')[0] : "-";
+                    var phone = data.phone ? data.phone : "-";
+                    var address = data.address ? data.address : "-";
+
+                    var text = '<div class="item">                                                 ' +
+                        '  <div class="head text-center clearfix">                         ' +
+                        '      <a target="_blank" href="#">                                ' +
+                        '          <div class="col-xs-12">' + data.name + '</div>          ' +
+                        '          <div class="col-xs-12" style="padding-top:0px;"><small>(' + companyTitle + ')</small> </div> ' +
+                        '      </a>       ' +
+                        '  </div>         ' +
+                        '<div class="widget-list-group">' +
+                        '    <ul class="list-group clear-list" style="margin-bottom: 0 !important;">' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="fa fa-building"></i> <strong> Şube/Depo/Kısım Kodu : </strong> <span class="pull-right"> ' + data.code + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item">' +
+                        '            <i class="icon-phone"></i> <strong> Telefon : </strong><span class="pull-right"> ' + phone + '</span>' +
+                        '        </li>' +
+                        '        <li class="list-group-item fist-item" style="border-bottom:0px !important;">' +
+                        '            <i class="fa fa-user"></i><strong> Adres : </strong> ' + address +
+                        '        </li>' +
+                        '    </ul>' +
+                        '  </div>' +
+                        '  </div>';
+
+                    return text;
+                },
+                changeCompany: function (e) {
+                    page.fnc.locateMap(e.sender.element, "", e.sender.value());
+                }
+            },
+            dfn: {
+                mapData: [],
+                harita: new AkilliHarita('Harita', {
+                    zoom: 7,
+                    altlik: "Default1",
+                    uiAltlik: false,
+                    uiDefault: true,
+                    uiSearch: false,
+                    uiMinimap: false,
+                    uiScaleLine: false,
+                    uiMousePosition: false,
+                    uiMesurement: false,
+                    uiInfo: false
+                })
+            },
+            first:true
+        }
+
+        $(document)
+            .on("ready", function () {
+                //  var layer = page.dfn.harita.layer.addVector("Tüm Şube/Depolar", "Storages", "styleCustom", "/Content/Custom/img/marker-selected.png", "/Content/Custom/img/marker-selected.png", null);
+                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+                page.fnc.getData();
+
+            })
+            .on("hover:feature", "#Harita", function (e, resp) {
+
+                page.dfn.harita.overlay.remove('slider-station');
+
+                if (resp.type == "add") {
+                    var elem = resp.element;
+                    var prop = elem.get("properties");
+
+                    if (prop) {
+                        text = page.fnc.getDetailForHover(prop);
+                        var geometry = resp.element.getGeometry();
+                        var coordinate = geometry.getCoordinates();
+                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+
+                        var tooltiplocation = "";
+
+                        if (pixel[1] < 400)
+                            tooltiplocation = "top-right";
+                        else if (screen.height - pixel[1] < 400)
+                            tooltiplocation = "bottom-right";
+                        else
+                            tooltiplocation = "center-right";
+
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+                        page.dfn.harita.map.updateSize();
+                    }
+                }
+            })
+            .on("select:feature", "#Harita", function (e, resp) {
+
+                //page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+                page.dfn.harita.overlay.remove('slider-station');
+
+                if (resp.type == "add") {
+                    var prop = resp.element.get("properties");
+
+                    if (prop) {
+
+                        $('#selectStock').addClass("hide");
+
+                        if (prop.myStorage) {
+
+                            if ($('#selectStock').hasClass("hide")) {
+                                $('#selectStock').removeClass("hide");
+                            }
+
+                            if ($('#selectStock').hasClass("active")) {
+                                $('#selectStock').removeClass("active");
+                            }
+                        }
+
+                        if ($('#selectInventory').hasClass("hide")) {
+                            $('#selectInventory').removeClass("hide");
+                        }
+
+                        if ($('#selectInventory').hasClass("active")) {
+                            $('#selectInventory').removeClass("active");
+                            setTimeout(function () {
+                                $('#selectInventory').trigger("click");
+                            }, 300)
+                        }
+                        else {
+                            $('#selectInventory').trigger("click");
+                        }
+
+                        $('#filter' + prop.id).trigger("click");
+                        $('#inv' + prop.id).trigger("click");
+                        $('#selectedInventory').find('[data-id="storageName"]').text(prop.name + " - Envanter Listesi");
+                        $('#selectedStock').find('[data-id="storageName"]').text(prop.name + " - Stok Özeti");
+
+                        resizeFnc();
+                    }
+
+                }
+            })
+
+        function resizeFnc() {
+            $.each($(".k-grid"), function (i, item) {
+                var contentArea = $(item).find(".k-grid-content");
+                var finalHeight = $(item).parents(".pan-container").height() - 150;
+                contentArea.height(finalHeight);
+            })
+        }
+
+        $(window).resize(function () {
+            resizeFnc();
+        });
+    </script>
+}
+
+
+<div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
+
+    <div class="btn-bar" style="width:100%;top: 1%;left:35%;">
+        <div style="display: inherit;margin: 0 auto;">
+            <div class="col-md-3">
+                <div id="StorageSearchDiv">
+                    <input id="storageSearch" placeholder="Depo/Şube/Kısım Arayın" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar" style="width:100%;top: 1%;left:5%;">
+        <div style="display: inherit;margin: 0 auto;">
+            <div class="col-md-3">
+                <div id="CustomerSearchDiv">
+                    @(Html.Akilli()
+                        .DropDownList("companyId")
+                        .OptionLabel("İşletmeye Göre Filtreleyin")
+                        .DataTextField("name")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                        .Events(e => { e.Change("page.fnc.changeCompany"); })
+                        .Sort(x => x.Add("name").Ascending())
+                        .Template("#=TemplateEngine('companyTemplate',data)#")
+                        .ValueTemplate("<span>#=name#</span>")
+                        .Execute("id")
+                        .Validate(Validations.Required)
+                    )
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar left top animated slideInLeft" style="top: 10px;">
+        <div class="btn-container m-b-lg">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+        </div>
+    </div>
+
+    <div class="btn-bar left bottom animated slideInLeft" style="top: 50%;">
+        <div class="btn-container m-b-lg">
+            <div style="text-align: center;padding: 5px;padding-top: 20px;">
+                <a href="#" onclick="page.fnc.locateMap(this)">
+                    Hepsi
+                </a>
+            </div>
+            <div style="padding: 5px;">
+                <a href="#" onclick="page.fnc.locateMap(this, 'my')">
+                    <img src="/Content/Custom/img/marker-my-storage.png" width="40" height="55" />
+                </a>
+            </div>
+            <div style="padding: 5px;">
+                <a href="#" onclick="page.fnc.locateMap(this, 'other')">
+                    <img src="/Content/Custom/img/marker-other-storage.png" width="40" height="55" />
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="btn-bar right top animated slideInRight" style="width:660px;right:-700px;">
+        <div class="btn-container m-b-lg">
+            <button id="selectInventory" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedInventory')"><i class="fa fa-qrcode"></i></button>
+            <button id="selectStock" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedStock')"><i class="fa fa-cubes"></i></button>
+        </div>
+        <div class="pan-container">
+            <div id="selectedStock" class="pan-content">
+                <div class="pan-head clearfix">
+                    <div style="padding-top: 7px;">
+                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
+                    </div>
+                </div>
+
+                <div class="hide">
+                    <ul id="filterStock" class=""></ul>
+                </div>
+                <div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+                    @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
+                        .AutoBind(false)
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.productId_Title).Title("Ürün");
+                            x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .ToolBar(x =>
+                        {
+                             x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+                        }))
+                </div>
+            </div>
+            <div id="selectedInventory" class="pan-content">
+                <div class="pan-head clearfix">
+                    <div style="padding-top: 7px;">
+                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
+                    </div>
+                </div>
+
+                <div class="hide">
+                    <ul style="height:300px !important;overflow:auto !important;" id="filterInventory" class=""></ul>
+                </div>
+                <div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+                    @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).PageSize(25))
+                        .AutoBind(false)
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+                            x.Bound(y => y.productId_Title).Title("Ürün").Width(130).Hidden(true);
+                            x.Bound(y => y.code).Title("Envanter Kodu").Width(130).Hidden(true);
+                            x.Bound(y => y.serialcode).Title("Envanter Seri Numarası").Width(130).Hidden(true);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
+                            x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "true" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+                        }))
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style type="text/css">
+
+    .ui-autocomplete {
+        top: 110px !important;
+        bottom: auto !important;
+        max-height:350px !important;
+        overflow: auto !important;
+
+    }
+
+    #storageSearch {
+        width: 100%;
+        height: 36px;
+        padding: 10px;
+    }
+
+    .form-control .k-dropdown-wrap, .form-control .k-picker-wrap, .form-control .k-multiselect-wrap {
+        padding: 0px !important;
+    }
+
+    #StorageSearchDiv {
+        position: absolute;
+        width: 400px;
+    }
+
+    #CustomerSearchDiv {
+        position: absolute;
+        width: 400px;
+    }
+
+
+    .search-control.ol-control {
+        left: 20px !important;
+    }
+
+    .btn-bar {
+        position: absolute;
+        z-index: 99;
+    }
+
+        .btn-bar.left {
+            left: 15px;
+        }
+
+        .btn-bar.right {
+            right: 15px;
+        }
+
+        .btn-bar.bottom {
+            bottom: 60px;
+        }
+
+        .btn-bar.top {
+            top: 15px;
+        }
+
+    .btn-container {
+        border-radius: 100px;
+        background: #fff;
+        float: left;
+        width: 50px;
+    }
+
+    .btn-custom {
+        background: #fff;
+        color: #2f4050;
+        width: 46px;
+        height: 46px;
+        padding: 0;
+        margin-top: 5px;
+        font-size: 15px !important;
+        border: 3px #fff solid;
+        padding: 0 !important;
+        border-radius: 25px !important;
+        width: 50px !important;
+    }
+
+    .btn-container .btn-custom:first-child {
+        margin-top: 0px;
+    }
+
+    .btn-custom span {
+        font-size: 11px;
+        font-weight: Bold;
+    }
+
+    .btn-custom:hover, .btn-custom:focus, .btn-custom.active {
+        background-color: #1ab394;
+        color: #fff;
+        -webkit-box-shadow: none !important;
+        box-shadow: none !important;
+    }
+
+    .ol-control.default-control {
+        display: none;
+    }
+
+    #Harita {
+        background: #fff;
+    }
+
+    .pan-container {
+        width: 600px;
+        background: #fff;
+        height: calc(100vh - 110px);
+        float: right;
+        border-radius: 15px;
+        padding: 15px;
+    }
+
+    .pan-head {
+        margin-bottom: 5px !important;
+        padding-bottom: 10px;
+        color: #2f4050;
+        font-size: 15px;
+        font-weight: bold;
+        border-bottom: 1px #2f4050 solid;
+    }
+
+    #slider-station .item {
+        background: #fff !important;
+        height: auto;
+        width: 350px;
+        box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+        padding: 5px 20px;
+        border-radius: 15px;
+    }
+
+        #slider-station .item .head .col-xs-12 {
+            padding-top: 10px;
+            color: #2f4050;
+            font-size: 16px;
+            text-transform: uppercase;
+        }
+
+        #slider-station .item .head .col-xs-2 img {
+            width: 70%;
+            margin: 0 15%;
+        }
+
+    #slider-station .list-group-item {
+        color: #2f4050;
+    }
+
+    .widget-list-group {
+        padding: 10px
+    }
+
+        .widget-list-group .list-group-item {
+            border-bottom: 1px solid #7d7d7d !important;
+        }
+
+    #VWPRD_StockSummaryStorage .k-grid-toolbar {
+        display: none;
+    }
+
+    #VWPRD_Inventory th:first-child {
+        display: none;
+    }
+
+    .k-pager-info.k-label {
+        display: none;
+    }
+</style>

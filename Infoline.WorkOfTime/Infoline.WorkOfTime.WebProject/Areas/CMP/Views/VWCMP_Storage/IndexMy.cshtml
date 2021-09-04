@@ -1,0 +1,80 @@
+﻿@{
+    ViewBag.Title = "Şirket Şube/Depo/Kısımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+<script type="text/javascript">
+    function hasLocation(data) {
+        if (data && data != null && data != "") {
+            return '<i style="color:green;" class="fa fa-location-arrow"></i>';
+        }
+        else {
+            return "";
+        }
+    }
+</script>
+
+
+
+
+<div class="row">
+
+
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Storage/Insert?myStorage=1"> <i class="fa fa-plus-circle"></i> Yeni Şube/Depo/Kısım Ekle </a>
+                    <a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den Şube/Depo/Kısım Ekle" class="btn btn-block btn-primary"
+                       data-properties="@ExcelHelper.GetSchema(typeof(CMP_StorageExcel), "CMP_Storage")" data-gridRefresh="VWCMP_Storage"
+                       data-post="@Url.Action("Import","VWCMP_Storage",new { area="CMP"})">
+                        <i class="fa fa-file-excel-o"></i> Excel'den Şube/Depo/Kısım Ekle
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Şube/Depo/Kısım Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.myStorage == true).PageSize(25))
+                    .Scrollable(a => a.Height(650))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.address).Title("").Width(40).ClientTemplate("#=hasLocation(data.address) #").HeaderTemplate("<i data-toggle='tooltip' title='Konum' data-placement='left'  class='fa fa-location-arrow'></i>").Filterable(false);
+                        x.Bound(y => y.companyId_Title).Title("İşletme").Width(280);
+                        x.Bound(y => y.supervisorId_Title).Title("Sorumlu Kişi").Width(280);
+                        x.Bound(y => y.code).Title("Kodu").Width(150);
+                        x.Bound(y => y.name).Title("İsmi").Width(140);
+                        x.Bound(y => y.address).Title("Adres").Width(300);
+                        x.Bound(y => y.locationId_Title).Title("İlçe,İl/Ülke").Width(180);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i class='fa fa-edit' data-original-title='Bilgileri Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Şube/Depo/Kısım Detayı'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+                        x.Custom().Text("<i class='fa fa-trash' data-original-title='Şube/Depo/Kısım Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
+                    }))
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+

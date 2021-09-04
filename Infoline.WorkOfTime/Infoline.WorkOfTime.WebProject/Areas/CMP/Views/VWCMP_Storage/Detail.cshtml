@@ -1,0 +1,406 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_StorageCompany
+@{
+    ViewBag.Path = Model.breadCrumps;
+    ViewBag.Title = Model.fullName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+
+    $(document)
+        .on("click", '#locationArrow', function (e) {
+            setTimeout(function (e) {
+                haritalar['LocationCompany'].map.updateSize();
+                haritalar['LocationCompany'].feature.panTo('@Model.id');
+                haritalar['LocationCompany'].map.getView().setZoom(5);
+            }, 250)
+        })
+
+    	  function FilterMenuInventoryLastStatus(element) {
+        element.kendoDropDownList({
+            dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuInventoryLastStatus", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Durum Seçiniz"
+
+        })
+    }
+    var first = false;
+
+    $(document).on('shown.bs.tab', 'a[href="#VWPRD_Inventories"]', function (e) {
+        if (first == false) {
+            first = true;
+            $("#VWPRD_Inventory").data("kendoGrid").refresh();
+        }
+    });
+
+	$(document)
+		.on("selected:grid", "#VWFTM_TaskFormRelations", function (e, res) {
+			var detail = $("#taskFormDetail");
+			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
+		})
+
+
+</script>
+
+<script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
+     #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+
+    <div class="chat-element">
+        <a class="pull-left">
+            <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
+        </a>
+        <div class="media-body">
+            <strong class="pull-right text-right">
+            </strong>
+            <strong><i class="fa fa-qrcode text-success" data-toggle="tooltip" title="Seri Numarası ve Kodu"></i> #:fullName#</strong>
+            <p class="m-b-none"><i class="fa fa-info-circle text-success" data-toggle="tooltip" title="Ürün"></i> #:(productId_Title != null ? productId_Title : "-")#</p>
+            <p class="m-b-none"><i class="icon-warehouse text-success" data-toggle="tooltip" title="Şu anki Konumu"></i> #=(lastActionType_Title ? lastActionType_Title + ' |' : '-')# #=(lastActionDataCompanyId_Title ? lastActionDataCompanyId_Title : '-')# #=(lastActionDataId_Title ? ' - '+lastActionDataId_Title : '-')#</p>
+        </div>
+    </div>
+</script>
+
+<style type="text/css">
+    .list-group.clear-list .list-group-item {
+        padding: 5px 0px !important;
+    }
+
+    .table {
+        border-top: 0px #ddd solid;
+    }
+
+    .mywidget {
+        border-radius: 10px !important;
+        padding: 10px 15px !important;
+        margin-bottom: 10px !important;
+        margin-top: 0px !important;
+        min-height: 70px !important;
+    }
+
+    .dl-horizontal dt {
+        text-align: left !important;
+    }
+
+    #VWCMP_StorageSections {
+        height: 630px;
+    }
+
+    .breadcrumb {
+        padding: 0px 0px !important;
+        margin-bottom: 0px !important;
+        border-radius: 4px !important;
+    }
+</style>
+
+<div class="row">
+    <div class="col-lg-3">
+        <div class="ibox ">
+            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        @Model.name
+                    </h2>
+                    <small> <i class="fa fa-location-arrow"></i> @(Model.locationId_Title != null ? Model.locationId_Title : "Lokasyon bulunamadı")</small>
+                </div>
+                <img src="@(Model.companyId_Image != null ? Model.companyId_Image : "/Content/Custom/img/company.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px;margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+                <div style="margin-top: 15px;">
+
+                    <a href="#" data-task="Insert" data-modal="true" title="Bilgileri Düzenle" style="line-height: 14px;" data-href="@Url.Action("Update", "VWCMP_Storage", new {area = "CMP" , id = Model.id })" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Bilgileri Düzenle</a>
+                    <a class="btn btn-xs btn-primary" href="tel:@Model.phone"> <i class="fa fa-phone"></i> Ara </a>
+                </div>
+            </div>
+            <div class="widget-text-box">
+				<ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+					<li class="list-group-item fist-item">
+						<i class="fa fa-building"></i> <strong> İşletme : </strong> <a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" data-toggle="tooltip" target="_blank" title="İşletme Detayına Git">  @Model.companyId_Title </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="ii-ambarmevcudu"></i> <strong> Şube/Depo/Kısım Kodu : </strong> @Model.code
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-user"></i><strong> Şube/Depo/Kısım Sorumlusu : </strong> @(Model.supervisorId_Title != null ? Model.supervisorId_Title : "Atama yapılmamış")
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-phone"></i><strong> Telefon : </strong>  <a href="tel:@Model.phone"> @Model.phone </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-phone"></i><strong> Email : </strong>  @Model.email
+					</li>
+				</ul>
+            </div>
+        </div>
+
+        <div class="ibox  ">
+            <div class="ibox-title">
+                <h5><i class="fa fa-location-arrow text-success"></i> KONUM BİLGİSİ</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link" id="locationArrow">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content p-sm clearfix">
+                @Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker-my-storage.png").ZoomLevel(12).Navigation(false).Height(300)
+            </div>
+        </div>
+
+
+
+        <div class="ibox  collapsed">
+            <div class="ibox-title">
+                <h5><i class="fa fa-qrcode text-success"></i> QR KOD</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content clearfix">
+                <div class="qrCodeWrapper" style="width:170px;">
+                    @(  Html.Kendo().QRCode()
+                         .Name("QRCode")
+                         .Value(Model.code)
+                         .Size(140)
+                    )
+                    <span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+                    <div style="text-align:center;">
+                        <a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+                        <a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+    </div>
+    <div class="col-lg-9">
+        <section style="margin-bottom: 20px;">
+            <div class="tabs-container">
+				<ul class="nav nav-tabs">
+
+					@if (Model.myStorage == true)
+					{
+						<li class="active" data-href="@Url.Action("DataSource","VWPRD_StockSummary", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Özeti">
+							<a data-toggle="tab" href="#VWPRD_StockSummarys" aria-expanded="false"><i class="icon-cubes text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+					}
+
+					<li data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Envanter Listesi">
+						<a data-toggle="tab" href="#VWPRD_Inventories" aria-expanded="false"><i class="icon-buffer text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource","VWPRD_StockAction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Hareketleri">
+						<a data-toggle="tab" href="#VWPRD_StockActions" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+
+					<li data-href="@Url.Action("DataSource","VWPRD_Transaction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok İşlemleri">
+						<a data-toggle="tab" href="#VWPRD_Transactions" aria-expanded="false"><i class="icon-th-list text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Görev Form Tanımları">
+						<a data-toggle="tab" href="#VWFTM_TaskFormRelation" aria-expanded="false"><i class="icon-doc-text-inv-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Alt Şube/Depo/Kısımlar">
+						<a data-toggle="tab" href="#VWCMP_Storages" aria-expanded="false"><i class="ii-ambarmevcudu text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+				</ul>
+				<div class="tab-content">
+
+
+					@if (Model.myStorage == true)
+					{
+						<div class="tab-pane active" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummarys">
+							<h4><i class="text-success  icon-cubes"></i> STOK ÖZETİ</h4>
+							@(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.id).PageSize(25)).Scrollable(a => a.Height(500))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).ClientTemplate("#= TemplateEngine('photoTemplate',data) #").Filterable(false).Title("").Width(50);
+                                x.Bound(y => y.productId_Title).Title("Ürün").Width(500);
+                                x.Bound(y => y.stockId_Title).Title("Depo").Width(500);
+                                x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+                                x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-storage", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+                                x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
+                            }))
+						</div>
+					}
+
+					<div class="tab-pane @(Model.myStorage == false ? "active" : "")" data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" id="VWPRD_Inventories">
+						<h4><i class="icon-buffer text-success"></i> Envanter Listesi </h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).Filter(a => a.lastActionDataId == Model.id).PageSize(25))
+                        //.Filterable(t => t.Mode(GridFilterMode.Row))
+                        .Scrollable(a => a.Height(480))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).Title("Envanter Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Locked(true).Sortable(false).Width(600).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+                            x.Bound(y => y.serialcode).Title("Seri No").Width(130).Hidden(false);
+                            x.Bound(y => y.code).Title("Envanter Kodu").Width(150).Hidden(false);
+                            x.Bound(y => y.productId_Title).Title("Ürün Bilgisi").Width(220).Hidden(false);
+                            x.Bound(y => y.lastActionType_Title).Title("Durumu").Filterable(filterable => filterable.UI("FilterMenuInventoryLastStatus")).Width(130).Hidden(false);
+                            x.Bound(y => y.lastActionDataCompanyId_Title).Title("Cari Konumu").Width(200).Hidden(false);
+                            x.Bound(y => y.lastActionDataId_Title).Title("Depo Konumu").Width(200).Hidden(false);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
+                            x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+                            // x.Custom().Text("<i title='Hareket Detayı' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Inventory", new { area = "PRD" }));
+                        }))
+					</div>
+
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_StockActions">
+						<h4><i class="icon-exchange-1 text-success "></i> STOK HAREKETLERİ </h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.id).PageSize(25))
+                        .Groupable(a => a.Enabled(true))
+                        .Scrollable(a => a.Height(470))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.code).Title("Evrak Kodu").Width(140);
+                                x.Bound(y => y.date).Title("Evrak Tarihi").Width(140).Format(Extensions.DateFormatFull(true));
+                                x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(120);
+                                x.Bound(y => y.stockId_Title).Title("Şube/Depo").Width(300);
+                                x.Bound(y => y.dataId_Title).Title("Firma/Personel/Bölüm").Width(300);
+                                x.Bound(y => y.productId_Title).Title("Ürün").Width(300);
+                                x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity, 'n2')# #:unitId_Title#</span> ").Width(150).Format("{0:N2}");
+                                x.Bound(y => y.serialCodes).Title("Seri Numaraları").Width(400);
+                                x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+                                x.Bound(y => y.unitPrice).Title("Birim Fiyat").Width(120).Format("{0:N2} TL");
+                                x.Bound(y => y.totalPrice).Title("Tutar").Width(100).Format("{0:N2} TL");
+                                x.Bound(y => y.currency_Title).Title("Birim").Hidden(true);
+                                x.Bound(y => y.createdby_Title).Title("İşlemi Gerçekleştiren").Width(180);
+                                x.Bound(y => y.created).Title("İşlemi Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                        })
+                        .Events(a => a.ExcelExport("Kendo_CustomExport"))
+                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+					</div>
+
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_Transactions">
+						<h4><i class="icon-th-list text-success "></i> STOK İŞLEMLERİ </h4>
+						@(Html.Akilli()
+                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_Transaction")
+                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })).Filter(a => a.inputId == Model.id || a.outputId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
+                         .Scrollable(a => a.Height(490))
+                         .Filterable(t => t.Mode(GridFilterMode.Row))
+                         .Columns(x =>
+                         {
+                             x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                             x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                             x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                             x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                             x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                             x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                             x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                             x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                             x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                         })
+                         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                         .ToolBar(x =>
+                         {
+                             if (Model.myStorage == true) {
+                                 x.Custom().Text("<i class='fa fa-plus-circle'  data-original-title='Stok Girişi Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD", direction=1,inputId=Model.id }));
+                                 x.Custom().Text("<i class='fa fa-minus-circle'  data-original-title='Stok Çıkışı Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD", direction=-1, outputId = Model.id }));
+                                 x.Custom().Text("<i class='icon-updown-circle'  data-original-title='Depolar Arası Transfer Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD", type=99, inputId = Model.id, outputId = Model.id }));
+                             }
+
+
+
+
+                             x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+                             x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+                             x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+                             x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+                         }))
+					</div>
+
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" id="VWFTM_TaskFormRelation">
+						<h4><i class="icon-doc-text-inv-1 text-success"></i> GÖREV FORM TANIMLARI </h4>
+						@(Html.Akilli()
+						 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskFormRelation>("VWFTM_TaskFormRelations")
+						 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })).PageSize(25).Filter(a => a.companyStorageId == Model.id))
+						 .Columns(x =>
+						 {
+						 x.Bound(y => y.formId_Title).Title("Form ismi").Width(240);
+						 x.Bound(y => y.productId_Title).Title("Ürün");
+						 x.Bound(y => y.company_Title).Title("İşletme").Width(180);
+						 x.Bound(y => y.companyStorage_Title).Title("Şube/Depo/Kısım");
+						 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+	                     })
+						 .Selectable(x => x.Mode(GridSelectionMode.Single))
+						 .ToolBar(x =>
+						 {
+							 x.Custom().Text("<i data-original-title='Form Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, {"id","taskFormDetail" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
+						 }))
+					</div>
+
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
+						<h4><i class="text-success  ii-ambarmevcudu"></i> ALT ŞUBE/DEPO/KISIMLAR</h4>
+						@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).Filter(a => a.pid == Model.id).PageSize(25))
+                        .Scrollable(a => a.Height(500))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Radio);
+                            x.Bound(y => y.code).Title("Kodu").Width(200);
+                            x.Bound(y => y.name).Title("İsmi").Width(300);
+                            x.Bound(y => y.companyId_Title).Title("İşletme").Width(300);
+                            x.Bound(y => y.locationId_Title).Title("İlçe,İl/Ülke").Width(250);
+                            x.Bound(y => y.address).Title("Adres").Width(250);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Şube/Depo/Kısım Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP" , pid = Model.id}));
+                            x.Custom().Text("<i class='fa fa-edit' data-original-title='Şube/Depo/Kısım Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+                            x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Şube/Depo/Kısım Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+                            x.Custom().Text("<i class='fa fa-trash' data-original-title='Şube/Depo/Kısım Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
+                        }))
+					</div>
+				</div>
+            </div>
+        </section>
+    </div>
+</div>
+
+
+
+
+<script type="text/javascript">
+    $(document)
+        .on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
+            var detail = $('[data-storage="detail"]');
+            var dataProduct = $('[data-productStorage="detail"]');
+            $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+            if (res.stockType == 2 && res.quantity != 0) {
+                $(dataProduct).show();
+                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+            }
+            else {
+                $(dataProduct).hide();
+            }
+        });
+</script>

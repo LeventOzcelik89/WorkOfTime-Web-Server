@@ -1,0 +1,137 @@
+﻿@model VMCMP_CompanyModel
+@{
+	ViewBag.Title = "Firma&Cari Listesi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+	$(document)
+		.on("load:grid", "#VWCMP_Company", function (e, res) {
+			var dataSource = $("#VWCMP_Company").data("handler").dataSource;
+			var filter = dataSource.transport.parameterMap({ filter: dataSource.filter() }).filter;
+			$('[data-print]').each(function (c) {
+				$(this).attr("href", $(this).attr("data-print") + "&filter=" + filter);
+			});
+		});
+</script>
+
+
+<div class="row">
+	<div class="col-md-2">
+		<div class="ibox ">
+			<div class="ibox-content mailbox-content">
+				<div class="file-manager">
+					<a class="btn btn-block btn-success" data-task="Insert" data-href="/CMP/VWCMP_Company/Insert" data-modal="true" data-method="get"> <i class="fa fa-plus-circle"></i> Yeni Firma (Cari) Ekle</a>
+					<a href="#" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den İşletme (Cari) Ekle" class="btn btn-block btn-primary"
+					   data-properties="@ExcelHelper.GetSchema(typeof(CMP_CompanyExcel), "CMP_Company")" data-gridRefresh="VWCMP_Company"
+					   data-post="@Url.Action("Import","VWCMP_Company",new { area="CMP"})">
+						<i class="fa fa-file-excel-o"></i> Excel'den Firma (Cari) Ekle
+					</a>
+
+					<a download href="~/Content/SampleExcels/company_template.xlsx" class="btn btn-block btn-info" data-original-title="Örnek Excel İndir">
+						<i class="fa fa-download"></i> Örnek Excel İndir
+					</a>
+
+					<div class="space-25"></div>
+
+					<h5>FİRMA (CARİ) TÜRÜ</h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCMP_CompanyTaxType>())
+						{
+							<li class="clearfix">
+								<a class="pull-left" href="#" data-grid="VWCMP_Company" data-category="2" data-query="(taxType~eq~'@item.Key')">
+									@item.Value
+								</a>
+							</li>
+						}
+					</ul>
+
+					<div class="space-25"></div>
+
+					<h5>DURUMU</h5>
+					<ul class="folder-list m-b-md" style="padding: 0">
+						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCMP_CompanyIsActive>())
+						{
+							<li class="clearfix">
+								<a class="pull-left" href="#" data-grid="VWCMP_Company" data-category="4" data-query="(isActive~eq~'@item.Key')">
+									@item.Value
+								</a>
+							</li>
+						}
+					</ul>
+
+					<div class="space-25"></div>
+
+					@if (Model.CMP_Types.Count() > 0)
+					{
+						<h5>FİRMA (CARİ) TİPİ </h5>
+						<ul class="tag-list clearfix m-b-md" style="padding: 0;height: 139px;overflow: auto;">
+							@foreach (var item in Model.CMP_Types.OrderBy(a => a.typeName))
+							{
+								<li class="clearfix">
+									<a class="pull-left" href="#" data-grid="VWCMP_Company" data-category="5" data-query="(CMPTypes_Title~contains~'@item.typeName')">
+										@item.typeName
+									</a>
+								</li>
+							}
+						</ul>
+
+						<div class="space-25"></div>
+					}
+
+
+					<a class="btn btn-block btn-primary" data-print="/CMP/VWCMP_Company/PrintQrCodes?type=4" target="_blank" href="/CMP/VWCMP_Company/PrintQrCodes?type=4"> <i class="fa fa-qrcode pull-left"></i> 5'li(A4) için qrcode yazdır </a>
+					<a class="btn btn-block btn-primary" data-print="/CMP/VWCMP_Company/PrintQrCodes?type=3" target="_blank" href="/CMP/VWCMP_Company/PrintQrCodes?type=3"> <i class="fa fa-qrcode pull-left"></i> 7'li(A3) için qrcode yazdır </a>
+					<a class="btn btn-block btn-primary" data-print="/CMP/VWCMP_Company/PrintQrCodes?type=100" target="_blank" href="/CMP/VWCMP_Company/PrintQrCodes?type=100"> <i class="fa fa-qrcode pull-left"></i> 25'li(Büyük Boyutlar) qrcode yazdır </a>
+					<div class="clearfix"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-md-10">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5>Firma (Cari) Listesi</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content">
+				@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).PageSize(25))
+                    .Filterable(a => a.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.searchField).Title("İşletme Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        x.Bound(y => y.code).Title("Kodu").Hidden(true);
+                        x.Bound(y => y.name).Title("İsmi").Hidden(true);
+                        x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
+                        x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Hidden(true);
+                        x.Bound(y => y.isActive_Title).Title("Cari Durumu").Hidden(true);
+                        x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
+                        x.Bound(y => y.email).Title("E-Mail").Hidden(true);
+                        x.Bound(y => y.phone).Title("Telefon Numarası").Hidden(true);
+                        x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
+                        x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
+                        x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
+                        x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
+                        x.Bound(y => y.invoiceAddress).Title("Fatura Adresi").Hidden(true);
+                        x.Bound(y => y.openAddress).Title("Açık Adres").Hidden(true);
+                    })
+                    .Scrollable(x => x.Height(650))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Firma (Cari) Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Firma (Cari) Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Firma (Cari) Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Company", new { area = "CMP" }));
+                    })
+                )
+			</div>
+		</div>
+	</div>
+</div>
+

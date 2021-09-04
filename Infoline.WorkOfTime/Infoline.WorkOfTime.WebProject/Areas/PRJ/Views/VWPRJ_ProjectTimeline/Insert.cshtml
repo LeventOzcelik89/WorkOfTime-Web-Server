@@ -1,0 +1,191 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.VWPRJ_ProjectTimeline
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .akilliRadioGrup > input:checked + label[for=Status_0] {
+        background-color: #ff492c !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_1] {
+        background-color: #409bf9 !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_2] {
+        background-color: #ffb020 !important;
+    }
+
+    .akilliRadioGrup > input:checked + label[for=Status_3] {
+        background-color: #11b51d !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    setTimeout(() => { onEndDateTimeChange(); }, 1000)
+
+    function onChangeStart() {
+        var minDate = new Date(parseFloat(this.dataItem().ProjectStartDate.replace('/Date(', '').replace(')/', '')))
+        var kendo = $('#StartDate').data('kendoDateTimePicker');
+        kendo.min(minDate);
+    };
+    $(document)
+        .on('success', '#VWPRJ_ProjectTimeline', function (e, resp) {
+            if (resp.Result == false || resp.Object == null) {
+                return;
+            }
+            window.open(window.location.origin + resp.Object);
+        });
+
+    function onEndDateTimeChange() {
+        var start = $("#StartDate").data('kendoDateTimePicker');
+        var end = $("#EndDate").data('kendoDateTimePicker');
+        if (start) {
+            $('[data-timespan="result"]').show();
+            var result = Math.floor((end.value() - start.value()) / 1000 / 60 / 60 / 24);
+            $('[data-timespan="result"] label').html((result == 0 ? 1 : result + 1) + " takvim günü");
+        }
+    }
+
+</script>
+
+
+
+@using (Html.BeginForm("Insert", "VWPRJ_ProjectTimeline", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id", "VWPRJ_ProjectTimeline" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.IdProject)
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Name">Çizelge Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Çizelge Adı Giriniz.."},
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IdPersons">Sorumlu Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Kendo().MultiSelect().Name("IdPersons")
+                 .HtmlAttributes(new Dictionary<string, object>()
+                 {
+                      {"style", "width:100%"},
+                      {"class", "form-control"},
+                 })
+                .Placeholder("Lütfen Sorumlu Personelleri Seçiniz..")
+                .AutoClose(false)
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetVWSH_User_OurCompanies", "General", new { area = String.Empty });
+                    });
+                }).Filter(FilterType.Contains)
+                .Sort(x => x.Add("Name").Ascending())
+                .Value(ViewBag.persons)
+            )
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Type">Olay Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                  .DropDownListFor(model => model.Type)
+                  .OptionLabel("Lütfen Olay Tipi Seçiniz..")
+                  .DataValueField("Id").DataTextField("enumDescription")
+                  .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                  .Sort(x => x.Add("enumDescription").Ascending()).Validate(Validations.Required)
+                  .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "PRJ_ProjectTimeline" && a.fieldName == "Type")
+                  .Execute("enumKey")
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="status">Durum</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.Status).Value(EnumPRJ_ProjectTimelineStatus.Baslamadi))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                      .DateTimePickerFor(model => model.StartDate)
+                      .Min(Model.StartDate.HasValue ? Model.StartDate.Value : DateTime.Now)
+                      .MaxDateElement("EndDate")
+                      .Events(x => x.Change("onEndDateTimeChange")))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .MinDateElement("StartDate").MaxDateTime(Model.EndDate.HasValue ? Model.EndDate.Value : DateTime.Now.AddMonths(3))
+                .Events(x => x.Change("onEndDateTimeChange"))
+            )
+        </div>
+    </div>
+    <div class="form-group clearfix" data-timespan="result" style="display: none">
+        <div class="col-md-4"></div>
+        <div class="col-md-8"><div class="alert alert-warning"><label></label></div></div>
+    </div>
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Girin.."},
+            }).Validate(Validations.Adres(false))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+

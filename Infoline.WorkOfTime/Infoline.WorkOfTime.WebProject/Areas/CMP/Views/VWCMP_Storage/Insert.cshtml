@@ -1,0 +1,239 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_Storage
+@{
+	ViewBag.Title = "İşletme Şube/Depo/Kısım Ekle";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+	$(document)
+		.on('change', '#location', function () {
+			var location = $('#location').val()
+			if (location != "") {
+				GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
+					if (resp) {
+						DropDownSetValue($("#locationId").data("kendoDropDownList"), resp.id);
+						$('#address').val(resp.pid_Title);
+					}
+				})
+			}
+		})
+
+
+	function onChangeCompany(e) {
+		var company = e.sender.dataItem();
+		if (this.value() != "") {
+			var filter = ("(type~eq~0~or~companyId~eq~'" + company.id + "')~and~IsWorking~eq~1");
+			var filterJSON = kendo.filterParser(filter);
+			$('#supervisorId').data("kendoDropDownList").dataSource.filter(filterJSON);
+			$("#supervisorId").data("handler").enable(true);
+
+		} else {
+			$("#supervisorId").data("handler").enable(false);
+			$("#supervisorId").data("handler").value([]);
+		}
+	}
+
+
+</script>
+
+@using (Html.BeginForm("Insert", "VWCMP_Storage", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "id", "VWCMP_StorageInsertForm" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.pid)
+
+	<div class="form-group @(Model.companyId.HasValue ? "hide" : "")">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="İşletme">İşletme</label>
+		</div>
+		<div class="col-md-8">
+
+			@if (Model.myStorage == true)
+			{
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.companyId)
+                    .OptionLabel("Lütfen İşletme seçiniz..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .Filter<CMP_Company>(a => a.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Events(a => a.Change("onChangeCompany"))
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			}
+			else
+			{
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.companyId)
+                    .OptionLabel("Lütfen İşletme seçiniz..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .Events(a => a.Change("onChangeCompany"))
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .Validate(Validations.Required)
+                    .Execute()
+                )
+			}
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="code">Kodu</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+			 {
+				 {"class", "form-control"},
+				 {"placeholder", "Lütfen Kodu giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true, 0, 50))
+		</div>
+	</div>
+
+	<div class="form-group  @(Model.supervisorId.HasValue ? "hide" : "")">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="İşletme">Şube/Depo/Kısım Sorumlusu</label>
+		</div>
+		<div class="col-md-8">
+			@if (Model.companyId.HasValue)
+			{
+				@(Html.Akilli()
+                .DropDownListFor(model => model.supervisorId)
+                .OptionLabel("Lütfen Görevli Personel Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Filter<VWSH_User>(x=>(x.type == 0 || x.CompanyId == Model.companyId.Value) && x.IsWorking == true)
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+            )
+			}
+			else
+			{
+				@(Html.Akilli()
+                .DropDownListFor(model => model.supervisorId)
+                .OptionLabel("Lütfen Görevli Personel Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Enable(false)
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+            )
+			}
+
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="name">İsmi</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+			 {
+				 {"class", "form-control"},
+				 {"placeholder", "Lütfen İsmi giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true, 0, 250))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Telefon">Telefon</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.phone, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Telefon giriniz.."}
+						}).Validate(Validations.TelefonNo(false))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Email">Email</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Email giriniz.."}
+						}).Validate(Validations.EMail(false))
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label req label-md" for="location">Lokasyon</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli().MapInputFor(a => a.location).
+                HelpText("Lütfen Lokasyon seçiniz.").
+                HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Lokasyon Seçiniz.."}
+                }).
+                Validate(Validations.Required).
+                Opened(true).
+                ZoomLevel(5).
+                Navigation(false).
+                Searchable(true)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DropDownListFor(model => model.locationId)
+                .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                .DataTextField("pid_Title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                .Sort(x => x.Add("pid_Title").Ascending())
+                .Execute()
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="address">Adres</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
+			 {
+				 {"class", "form-control"},
+				 {"placeholder", "Lütfen Adres giriniz.."}
+			 }).Validate(Validations.TextEverywhere(true, 0, 1000))
+		</div>
+	</div>
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+
+}

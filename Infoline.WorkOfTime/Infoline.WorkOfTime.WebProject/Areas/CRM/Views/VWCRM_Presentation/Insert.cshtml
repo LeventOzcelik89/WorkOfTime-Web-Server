@@ -1,0 +1,630 @@
+﻿@model VMCRM_PresentationModel
+@{
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var _tenantCode = TenantConfig.Tenant.TenantCode;
+    ViewBag.Title = "Yeni Potansiyel/Fırsat Tanımı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Custom/js/underscore-min.js" data-selector="modalContainer"></script>
+<script type="text/javascript" data-selector="modalContainer">
+
+    function beforeFunc() {
+        return _presentation.beforeFunc();
+    }
+
+    var _presentation = {
+        priorityLevel: 1,
+        productFilter: [{ "field": "statusFlags", "operator": "contains", "value": "|" + @((int)EnumPRD_ProductStatus.satis)+"|" }],
+        loadStatus: false,
+        ResizeTimer: null,
+        SelectedProduct: null,
+        Products: [],
+        init: function () {
+            fillStars(_presentation.priorityLevel);
+            $('#PriorityLevel').val(_presentation.priorityLevel);
+            $("#ProductIds").kendoMultiSelect({
+                    placeholder: $("#ProductIds").attr('placeholder'),
+                    dataTextField: "name",
+                    dataValueField: "id",
+                    autoBind: true,
+                    dataSource: {
+                        type: "aspnetmvc-ajax",
+                        transport: {
+                            read: {
+                                url: "@Url.Action("DataSourceDropDown", "VWPRD_Product", new {area = "PRD"})"
+                            },
+                        },
+                        filter: _presentation.productFilter,
+                        serverFiltering: true,
+                        serverPaging: true,
+                        pageSize: 50,
+                        page: 1,
+                        total: 0,
+                        serverSorting: true,
+                    },
+                    filter: 'contains',
+                    select: function (e) {
+
+                        var item = e.sender.dataItem(e.item);
+
+                        if (_presentation.Products.filter(a => a.ProductId == item.id).length > 0) {
+                            return false;
+                        }
+                        var promp = prompt(item.name + " ürünü için miktar giriniz.", 1);
+                        if (promp != null) {
+                            if (isNaN(parseFloat(promp))) {
+                                MesajWarning("Lütfen geçerli bir miktar giriniz.");
+                                e.preventDefault();
+                                return false;
+                            } else {
+                                _presentation.Products = _presentation.Products.filter(a => a.ProductId != item.id);
+                                _presentation.Products.push({ ProductId: item.id, Amount: parseFloat(promp), unit_Title: (item.UnitId_Title || "Adet") });
+                            }
+                        } else {
+                            e.preventDefault();
+                            return false;
+                        }
+
+                    },
+                    change: function (e) {
+                        var values = e.sender.value() || [];
+                        _presentation.Products = _presentation.Products.filter(a => values.indexOf(a.ProductId) > -1);
+                    },
+                    template: function (dataItem) {
+                        var _currentPoint = kendo.toString(dataItem.currentSellingPoint == null ? 0 : dataItem.currentSellingPoint, 'N0');
+                        var _category = dataItem.categoryId_Title != null ? dataItem.categoryId_Title : "Kategorisi Yok";
+                        return '<label class="label label-xs label-inverse">' + _currentPoint + ' Puan</label>' +
+                            '<label class="label-info label-xs">' + _category + '</label>' + dataItem.fullName;
+                    },
+                    tagTemplate: function (dataItem) {
+                        var presentation = _presentation.Products.filter(a => a.ProductId == dataItem.id)[0];
+                        if (_presentation.Products.length > 0 && presentation != null) {
+                            return '<span class="label label-xs label-success" style="margin-right: 10px">' + kendo.toString(presentation.Amount, 'N0') +
+                                '<small><small> ' + presentation.unit_Title + '</small></small></span>' + dataItem.name;
+                        }
+                        return dataItem.name;
+                    }
+                });
+            $('#CompletionRate').data('kendoSlider').resize();
+        },
+        Events: {
+            onChangeCustomerCompanyId: function (e) {
+                var musteri = this.dataItem();
+                if (musteri.id != "") {
+                    $("#Name").val(musteri.name + " Potansiyel/Fırsat")
+                }
+            },
+            onBoundCustomerCompanyId: function (e) {
+                e.sender.trigger("change");
+            },
+            onDataBound: function (e) {
+                if (!_presentation.loadStatus) {
+                    _presentation.loadStatus = true;
+                    _presentation.init();
+                }
+            },
+            onChangeContactType: function (e) {
+                var val = this.value();
+                if (val == "") {
+                    e.sender.element.parents(".form-group").siblings(".form-group").hide();
+                } else {
+                    e.sender.element.parents(".form-group").siblings(".form-group").show();
+                }
+            },
+            onDataBoundContactType: function (e) {
+                e.sender.trigger("change");
+            }
+
+        },
+        beforeFunc: function () {
+            if (_presentation.Products.length == 0) {
+                MesajWarning('Hiçbir ürün kalemi seçilmedi. Lütfen ürün seçiniz...');
+                return false;
+            }
+            $('#ProductsJson').val(JSON.stringify(_presentation.Products));
+            return true;
+        }
+    };
+
+
+    function fillStars(value) {
+        for (var i = 1; i < 6; i++) {
+            if (i <= value) {
+                $('[data-idInsert=' + i + ']').removeClass('fa fa-star-o');
+                $('[data-idInsert=' + i + ']').addClass('fa fa-star');
+            }
+            else {
+                $('[data-idInsert=' + i + ']').removeClass('fa fa-star');
+                $('[data-idInsert=' + i + ']').addClass('fa fa-star-o');
+            }
+        }
+    }
+
+
+
+    $(document)
+        .on('click', '[data-selectInsert]', function () {
+             var value= $(this).attr("data-idInsert");
+             _presentation.priorityLevel = value;
+             fillStars(value);
+             $('#PriorityLevel').val(value);
+        })
+        .on('mouseover', '[data-selectInsert]', function () {
+             var value = $(this).attr("data-idInsert")
+             fillStars(value);
+        })
+        .on('mouseleave', '[data-selectInsert]', function () {
+             fillStars(_presentation.priorityLevel)
+        })
+        .on('keydown', '[data-id="ProductCount"]', function (e) {
+            if (e.which == 13) {
+                $('.Active [data-task="ProductSave"]').trigger('click');
+            }
+        });
+
+    window.addEventListener('resize', function () {
+        clearTimeout(_presentation.ResizeTimer);
+        _presentation.ResizeTimer = setTimeout(function () {
+            $('#CompletionRate').getKendoSlider().resize();
+        }, 300);
+    });
+
+
+</script>
+
+
+@using (Html.BeginForm("Insert", "VWCRM_Presentation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "data-before", "beforeFunc" },
+    { "id", "VWCRM_PresentationInsertForm" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.Hidden("ProductsJson")
+    @Html.Hidden("PriorityLevel")
+    @Html.Hidden("AbsoluteUri", Request.UrlReferrer.AbsoluteUri)
+    @Html.HiddenFor(a => a.id)
+
+
+    <div class="panel-group" id="accordion">
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse1"> <i class="fa fa-home text-success"></i> Genel Bilgiler </a>
+                </h4>
+            </div>
+            <div id="collapse1" class="panel-collapse collapse in">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="CustomerCompanyId">Müşteri</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.CustomerCompanyId)
+                                .OptionLabel("Lütfen Müşteri Seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Events(x => x.Change("_presentation.Events.onChangeCustomerCompanyId").DataBound("_presentation.Events.onBoundCustomerCompanyId"))
+                                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                                .Template("#=TemplateEngine('companyTemplate',data)#")
+                                .ValueTemplate("<span>#=name#</span>")
+                                .Execute("id")
+                                .Validate(Validations.Required)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="ProductIds">Ürünler</label>
+                        </div>
+                        <div class="col-md-9">
+                            <select id="ProductIds" name="ProductIds" class="form-control" style="width: 100%" data-template="product"
+                                    data-placeholder="Lütfen Ürünleri Seçiniz.." data-custom="true" required="required"></select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="Name">Potansiyel/Fırsat Adı</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Potansiyel/Fırsat Adını Girin.."},
+                            })
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="PresentationStageId">Aşama</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.PresentationStageId)
+                                .OptionLabel("Lütfen Aşama Seçiniz..")
+                                .MinLength(2)
+                                .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+                                .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+                                .DataValueField("Id")
+                                .DataTextField("Name")
+                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+                                .Sort(x => x.Add("Name").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md req" for="SalesPersonId">Satış Personeli</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.SalesPersonId)
+                                .OptionLabel("Lütfen satış personelini seçiniz..")
+                                .Template("#=TemplateEngine('userTemplate',data)#")
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Events(e => { e.DataBound("_presentation.Events.onDataBound"); })
+                                .Filter<VWSH_User>(a =>
+                                    a.id == userStatus.user.id ||
+                                    (
+                                        a.type == (int)(EnumSH_UserType.MyPerson) &&
+                                        a.IsWorking == true &&
+                                        Model.SalesPersons.Contains(a.id)
+                                    )
+                                )
+                                .Sort(x => x.Add("firstname").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="CompletionRate"> Kapanma Yüzdesi</label>
+                        </div>
+                        <div class="col-md-9">
+
+                            @(Html.Kendo().SliderFor(model => model.CompletionRate)
+                                .IncreaseButtonTitle("Arttır")
+                                .DecreaseButtonTitle("Azalt")
+                                .Min(10)
+                                .Max(100)
+                                .SmallStep(10)
+                                .LargeStep(10)
+                                .Value(10)
+                                .DragHandleTitle("Kapanma Yüzdesi")
+                                .Tooltip(false)
+                                .HtmlAttributes(new { @class = "balSlider", title = "Kapanma Yüzdesi", @style = "width:100%" }))
+
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="EstimatedCompletionDate">Tahmini Sonuçlanma Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli().DatePickerFor(model => model.EstimatedCompletionDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Tahmini Sonuçlanma Tarihi Girin.."},
+                            })
+                            .Min(DateTime.Now).Max(DateTime.Now.AddYears(5))
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="VodafoneOffer"> Tahmini Beklenen Ciro </label>
+                        </div>
+                        <div class="col-md-9">
+                            <div class="input-group">
+                                @( Html.Kendo().NumericTextBoxFor(model => model.VodafoneOffer).
+                                            Value(Model.VodafoneOffer).Format("n2").Spinners(false).
+                                            HtmlAttributes(new Dictionary<string, object>()
+                                            {
+                                                {"style", "width:100%"},
+                                                {"class", "text-right form-control"},
+                                            }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                                    )
+                                <span class="input-group-addon">TL</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="PriorityLevel">Önem Derecesi</label>
+                        </div>
+                        <div class="col-md-9" style="margin-top:8px;">
+                            <i data-selectInsert="priortyLevel" data-idInsert="1" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                            <i data-selectInsert="priortyLevel" data-idInsert="2" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                            <i data-selectInsert="priortyLevel" data-idInsert="3" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                            <i data-selectInsert="priortyLevel" data-idInsert="4" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                            <i data-selectInsert="priortyLevel" data-idInsert="5" class="fa fa-star-o" style="color:#ffcc00;font-size:20px;"></i>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse2"> <i class="fa fa-info-circle text-success"></i> Diğer Bilgiler</a>
+                </h4>
+            </div>
+            <div id="collapse2" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="ChannelCompanyId">Kanal</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.ChannelCompanyId)
+                                .OptionLabel("Lütfen Kanal Seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                                .Template("#=TemplateEngine('companyTemplate',data)#")
+                                .ValueTemplate("<span>#=name#</span>")
+                                .Execute("id")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="PlaceofArrival">Geliş Yeri</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                   .DropDownListFor(model => model.PlaceofArrival)
+                                   .OptionLabel("Lütfen Geliş Yerini Seçiniz..")
+                                   .DataValueField("Id")
+                                   .DataTextField("enumDescription")
+                                   .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                   .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CRM_Presentation" && a.fieldName == "PlaceofArrival")
+                                   .Sort(x => x.Add("enumKey").Ascending())
+                                   .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group" id="opponent">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="OpponentCompany">Rakip Firma</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                .MultiSelectFor(model => model.OpponentCompanies)
+                                .Placeholder("Lütfen Seçim Yapınız.")
+                                .DataTextField("CompanyName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "CRM_OpponentCompany", new { area = "CRM" }))
+                                .Sort(x => x.Add("CompanyName").Ascending())
+                                .Filter(FilterType.Contains)
+                                .BasicInsert(Url.Action("Insert", "CRM_OpponentCompany", new { area = "CRM" }), "CompanyName", false)
+                                .Execute()
+                            )
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="CommitmentEndDate">Taahhüt Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+
+                            @(Html.Akilli().DatePickerFor(model => model.CommitmentEndDate).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Taahhüt Bitiş Tarihi Girin.."},
+                            })
+                            .Min(DateTime.Now)
+                            .Max(DateTime.Now.AddYears(5)))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="OpponentInvoiceAmount">Rakibin Fatura Tutarı</label>
+                        </div>
+                        <div class="col-md-9">
+
+                            <div class="input-group">
+                                @( Html.Kendo().NumericTextBoxFor(model => model.OpponentInvoiceAmount).
+                                        Value(Model.OpponentInvoiceAmount).Format("n2").Spinners(false).
+                                        HtmlAttributes(new Dictionary<string, object>()
+                                        {
+                                            {"style", "width:100%"},
+                                            {"class", "text-right form-control"},
+                                        }).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                                )
+
+                                <span class="input-group-addon">TL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse3"> <i class="fa fa-briefcase text-success"></i> Aktivite/Randevu Bilgileri</a>
+                </h4>
+            </div>
+            <div id="collapse3" class="panel-collapse collapse">
+                <div class="panel-body">
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="LastContact_ContactType">Aktivite/Randevu Tipi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli()
+                                .DropDownListFor(model => model.LastContact.ContactType)
+                                .Name("LastContact.ContactType")
+                                .OptionLabel("Lütfen Aktivite/Randevu Tipi Seçiniz..")
+                                .DataValueField("Id")
+                                .DataTextField("enumDescription")
+                                .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "CRM_Contact" && a.fieldName == "ContactType")
+                                .Events(a => a.Change("_presentation.Events.onChangeContactType").DataBound("_presentation.Events.onDataBoundContactType"))
+                                .Sort(x => x.Add("enumKey").Ascending())
+                                .Execute("enumKey")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="LastContact_ContactStatus">Aktivite/Randevu Durumu</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.LastContact.ContactStatus).Value(EnumCRM_ContactContactStatus.ToplantiPlanlandi))
+                            <script type="text/javascript">
+                                $('[name="ContactStatus"]')
+                                    .attr("name", "LastContact.ContactStatus");
+                            </script>
+                        </div>
+                    </div>
+
+
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md " for="LastContactContactStartDate">Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+								Html.Akilli()
+								.DateTimePickerFor(a => a.LastContact.ContactStartDate)
+								.Name("LastContact.ContactStartDate")
+								//.MaxDateElement("LastContact_ContactEndDate")
+                                .Value(DateTime.Now)
+								.Interval(15)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="LastContactContactEndDate">Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-9">
+                            @(
+                                Html.Akilli()
+                                .DateTimePickerFor(a => a.LastContact.ContactEndDate)
+                                .Name("LastContact.ContactEndDate")
+                                .Interval(15)
+                                .MinDateElement("LastContact_ContactStartDate")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="LastContact_Description">Aktivite/Randevu Notu</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextAreaFor(a => a.LastContact.Description, new Dictionary<string, object>() {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Açıklama Girin.."},
+                            }).Validate(Validations.TextTurkceSpace09(false, 0))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label label-md" for="hasContact">İletişim İzni</label>
+                        </div>
+                        <div class="col-md-9" style="margin-top:8px;">
+                            @(Html.Kendo().CheckBox().Name("hasContact").Checked(false).Label("İletişim bilgilerinin kullanılmasına izin veriliyor mu?"))
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <h4 class="panel-title">
+                    <a data-toggle="collapse" data-parent="#accordion" href="#collapse4"> <i class="fa fa-file text-success"></i> Toplantı Dosyaları</a>
+                </h4>
+            </div>
+            <div id="collapse4" class="panel-collapse collapse">
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya">Aktivite/Randevu Dosyaları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.LastContact.id)
+                                .DataKey(x => x.fileGroup == "Toplantı Dosyası")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya1">Kartvizitler</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.LastContact.id)
+                                .DataKey(x => x.fileGroup == "Kartvizitler")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Dosya2">Aktivite/Randevu Diğer Dosyaları</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli().FileUpload()
+                                .DataTable("CRM_Contact")
+                                .DataId(Model.LastContact.id)
+                                .DataKey(x => x.fileGroup == "Diğer Dosyalar")
+                            )
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit"><i class="fa fa-save" style="margin-right: 5px"></i>Potansiyel/Fırsat Kaydet</button>
+    </div>
+}

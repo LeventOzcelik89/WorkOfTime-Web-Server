@@ -1,0 +1,461 @@
+﻿@{
+	ViewBag.Title = "Yıllık Personel İzin Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	string[] months = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+}
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-11">
+						<div class="row">
+							<div class="col-md-6">
+								@(
+									   Html.Akilli()
+									   .MultiSelect("userIds")
+									   .Placeholder("Lütfen Personel Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("FullName")
+									   .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+									   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+									   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+									   .Sort(x => x.Add("FullName").Ascending())
+									   .Execute()
+                                   )
+							</div>
+							<div class="col-md-6">
+								@(
+									   Html.Akilli()
+									   .DropDownList("year")
+									   .OptionLabel("Raporlamak İstediğiniz Yılı Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(DateTime.Now.Year.ToString())
+									   .Execute()
+                                   )
+							</div>
+
+
+						</div>
+					</div>
+					<div class="col-md-1">
+						<button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px;font-size:17px;"><i class="fa fa-search"></i> Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+
+			<br />
+		</div>
+	</div>
+</div>
+
+
+	<div class="col-md-12">
+		<div class="col-lg-4">
+			<div class="widget style1 navy-bg">
+				<div class="row">
+					<div class="col-xs-4">
+						<i class="fa fa-plus fa-4x"></i>
+					</div>
+					<div class="col-xs-8 text-right">
+						<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki toplam izin adetlerini gösterir."></i> Toplam İzin Talebi </span>
+						<h2 class="font-bold" id="totalPermitCount">0</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-4">
+			<div class="widget style1 yellow-bg">
+				<div class="row">
+					<div class="col-xs-4">
+						<i class="fa fa-bar-chart fa-4x"></i>
+					</div>
+					<div class="col-xs-8 text-right">
+						<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki en çok kullanılan izin tipini gösterir."></i> En Çok Kullanılan İzin Tipi </span>
+						<h2 class="font-bold" id="totalUsedPermitType">-</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-lg-4">
+			<div class="widget style1 red-bg">
+				<div class="row">
+					<div class="col-xs-4">
+						<i class="fa fa-clock-o fa-4x"></i>
+					</div>
+					<div class="col-xs-8 text-right">
+						<span style="font-size:15px;"><i class="fa fa-info-circle" data-toggle="tooltip" data-title="Seçili tarihler arasında ki iş gücü kaybının toplamını gösterir."></i> Toplam İş Gücü Kaybı </span>
+						<h2 class="font-bold" id="totalWorkforceLoss">0</h2>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-12">
+		<div class="col-md-6">
+			<div class="ibox ovflow-height500 ">
+				<div class="ibox-title">
+					<h5>İzin Tiplerine Göre Dağılım </h5>
+				</div>
+				<div class="ibox-content clearfix ">
+					<div class="not-data" data-type="GetShipmentDateUpComing">
+						<div class="feed-activity-list" data-slide="all">
+							<div data-PermitTypeControl="3" id="PermitTypeAll"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="ibox ">
+				<div class="ibox-title">
+					<h5><i class="fa fa-list"></i> İzin Tipine Göre Dağılım Tablosu</h5>
+					<div class="ibox-tools">
+					</div>
+				</div>
+
+				<div class="ibox-content ibox-content_image clearfix " style="height:437px; overflow-y:scroll;">
+					<div id="permitTypeGrid"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="col-md-12">
+			<div class="ibox ">
+				<div class="ibox-title">
+					<h5><i class="fa fa-list"></i> Yıl Bazlı Personel İzin Raporu</h5>
+					<div class="ibox-tools">
+					</div>
+				</div>
+
+				<div class="ibox-content ibox-content_image clearfix " style="height:500px; overflow-y:scroll;">
+					<div id="yearlyStaffGrid"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+<script>
+	$("#DashBoardFilter").click(function () {
+
+		var userIds = $("#userIds").val();
+		var year = $('#year').val();
+
+		GetJsonDataFromUrl('/INV/VWINV_Permit/YearlyStaffReportDataSource', { year: year, userIds: userIds }, function (res) {
+
+			GetJsonDataFromUrl('/INV/VWINV_Permit/YearlyStaffReportChartDataSource', { year: year, userIds: userIds }, function (res) {
+
+				CreatePieChart($("#PermitTypeAll"), res, "   #= category #   <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Yıl ) ");
+
+				$("#totalUsedPermitType").text($.Enumerable.From(res).Select(x => x.MostUsedPermission).First());
+
+				$("#totalWorkforceLoss").text($.Enumerable.From(res).Select(x => x.TotalDays).Sum() + " Gün")
+
+
+				$("#permitTypeGrid").kendoGrid({
+					dataSource: res,
+					pageSize: 100,
+					height: 395,
+					sortable: true,
+					toolbar: [{ name: 'excel', text: '' }],
+					excel: {
+						title: "",
+						fileName: "İzin Tipine Göre Dağılım Tablosu.xlsx",
+						filterable: true
+					},
+					filterable: {
+						operators: {
+							string: {
+								contains: "İçeriyor",
+								eq: "Eşittir",
+								neq: "Eşit Değil",
+							}
+						}
+					},
+					pageable: {
+						refresh: true,
+						pageSizes: false,
+						buttonCount: 5
+					},
+					columns: [
+						{
+							field: "permitType_Title",
+							title: "İzin Tipi"
+						},
+						{
+							field: "TotalDays",
+							title: "Toplam Gün",
+						}
+					]
+				});
+
+				var grid = $("#permitTypeGrid").data("kendoGrid");
+				grid.dataSource.page(1);
+
+
+			})
+
+			$("#totalPermitCount").text(res.length+" Gün");
+
+			$("#yearlyStaffGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 460,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Yıllık Personel İzin Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "personnelName",
+						title: "İsim Soyisim"
+					},
+					{
+						field: "startDate",
+						title: "Başlangıç Tarihi",
+					},
+					{
+						field: "endDate",
+						title: "Bitiş Tarihi",
+					},
+					{
+						field: "permitType_Title",
+						title: "İzin Tipi",
+					},
+					{
+						field: "TotalHoursText",
+						title: "İş Gücü Kaybı",
+					}
+				]
+			});
+
+			var grid = $("#yearlyStaffGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+
+		})
+	})
+
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+
+
+
+	function createYearlyStaffKendoGrid(year, months) {
+
+		GetJsonDataFromUrl('/INV/VWINV_Permit/YearlyStaffReportDataSource', { year: year, months: months }, function (res) {
+
+			$.ajax({
+				url: '/INV/VWINV_Permit/YearlyStaffReportChartDataSource?year=' + year + '&userIds=' + userIds,
+				type: 'POST',
+				dataType: 'json',
+				success: function (datas) {
+					CreatePieChart($("#PermitTypeAll"), datas, "   #= category #   <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Yıl ) ");
+					$("#totalUsedPermitType").text($.Enumerable.From(datas).Select(x => x.MostUsedPermission).First());
+
+
+					$("#totalWorkforceLoss").text($.Enumerable.From(datas).Select(x => x.TotalDays).Sum() + " Gün")
+
+
+					$("#permitTypeGrid").kendoGrid({
+						dataSource: datas,
+						pageSize: 100,
+						height: 395,
+						sortable: true,
+						toolbar: [{ name: 'excel', text: '' }],
+						excel: {
+							title: "",
+							fileName: "İzin Tipine Göre Dağılım Tablosu.xlsx",
+							filterable: true
+						},
+						filterable: {
+							operators: {
+								string: {
+									contains: "İçeriyor",
+									eq: "Eşittir",
+									neq: "Eşit Değil",
+								}
+							}
+						},
+						pageable: {
+							refresh: true,
+							pageSizes: false,
+							buttonCount: 5
+						},
+						columns: [
+							{
+								field: "permitType_Title",
+								title: "İzin Tipi"
+							},
+							{
+								field: "TotalDays",
+								title: "Toplam Gün",
+							}
+						]
+					});
+
+					var grid = $("#permitTypeGrid").data("kendoGrid");
+					grid.dataSource.page(1);
+				}
+			});
+
+
+			$("#totalPermitCount").text(res.length + " Gün");
+
+
+			$("#yearlyStaffGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 460,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Yıllık Personel İzin Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "personnelName",
+						title: "İsim Soyisim"
+					},
+					{
+						field: "startDate",
+						title: "Başlangıç Tarihi",
+						format: "{0: yyyy-MM-dd HH:mm:ss}"
+					},
+					{
+						field: "endDate",
+						title: "Bitiş Tarihi",
+					},
+					{
+						field: "permitType_Title",
+						title: "İzin Tipi",
+					},
+					{
+						field: "TotalHoursText",
+						title: "İş Gücü Kaybı",
+					}
+				]
+			});
+
+			var grid = $("#yearlyStaffGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+
+
+	}
+
+	function CreatePieChart(element, data, MyTemplatePie, position) {
+
+
+		$.each(data, function (ind, el) {
+			el.Key = el.Key == null ? "Bilinmiyor" : el.Key;
+		})
+
+		element.kendoChart({
+			title: {},
+			legend: {
+				position: position
+			},
+			dataSource: {
+				data: data
+			},
+
+			render: function (e) {
+				var loading = $(".chart-loading", e.sender.element.parent());
+				kendo.ui.progress(loading, false);
+			},
+			series: [{
+				type: "pie",
+				field: "TotalDays",
+				colorField: "Color",
+				categoryField: "permitType_Title"
+			}],
+
+			seriesDefaults: {
+				overlay: { gradient: "none" },
+
+				labels: {
+					visible: true,
+					background: "transparent",
+					template: "#= kendo.format('{0:p2}', percentage)#"
+
+				}
+			},
+			chartArea: {
+				background: "transparent"
+			},
+			tooltip: {
+				visible: true,
+				template: MyTemplatePie,
+				format: "{0:N0}"
+			}
+		});
+		$(element.selector).append(kendoExportTemplate(element.selector));
+	}
+
+
+	$(document)
+		.on('ready', function (e) {
+			var year = new Date().getFullYear();
+			var userId = kendo.guid();
+
+			createYearlyStaffKendoGrid(year, userId);
+		})
+
+</script>
+
+
+
+
+

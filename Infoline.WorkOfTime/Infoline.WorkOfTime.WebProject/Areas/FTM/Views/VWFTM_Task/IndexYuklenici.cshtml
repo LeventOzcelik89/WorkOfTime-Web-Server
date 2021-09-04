@@ -1,0 +1,199 @@
+﻿@{
+    ViewBag.Title = "Görevlerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var now = DateTime.Now;
+}
+
+
+<style type="text/css">
+    .k-grid-content i {
+        font-size: 13px;
+    }
+</style>
+
+
+
+
+<script type="text/x-kendo-template" id="FTM_TaskTemplateMyIndex" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
+
+    #if(priority==0){#
+    #color = "text-danger"#
+    #}else if(priority==1){#
+    #color = "text-warning"#
+    #}else if(priority==2){#
+    #color = "text-primary"#
+    #}#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width:3%;text-align: center;">
+                    <span style="color:#:color#;">
+                        #if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+                    </span>
+                </td>
+                <td class="desc" style="width:55%;">
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(plate!=null){#
+                    <div style="font-size:13px;"><strong>Plaka : </strong>#=plate#</div>
+                    #}#
+
+                    #if(lastOperationStatus_Title!=null){#
+                    <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+                    #}#
+
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+                </td>
+                <td style="width:10%;">
+                    <h5 data-original-title="Saha Operasyon Görev Form Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="fa fa-upload   m-r-xs"></i>#=SahaOperasyonGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="İşlem Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="fa fa-qrcode   m-r-xs"></i>#=IslemSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Doldurulan Görev Form Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="fa fa-file-text   m-r-xs"></i> #=DoldurulanGorevFormSayisi# Adet
+                    </h5>
+                    <h5 data-original-title="Dosya(Resim) Sayısı" data-placement="right" class="m-b-xs">
+                        <i class="fa fa-image   m-r-xs"></i> #=DosyaSayisi# Adet
+                    </h5>
+                </td>
+                <td style="width:25%;">
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><i class="fa fa-user"></i>  #=assignableUserTitles# </div>
+                    #}#
+
+                    #if(assignUser_Title!=null){#
+                    <div style="font-size:13px;"><strong><i class="fa fa-user"></i> </strong> #=assignUser_Title#</div>
+                    #}#
+
+                    <div style="font-size:13px;"><strong><i class="fa fa-calendar"></i> </strong> #:kendo.toString(created,"dd.MM.yyyy HH:mm")#</div>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
+
+
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox ">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                   
+                    <div class="space-25"></div>
+                    <h5> GÖREV DURUMU </h5>
+                    <ul class="folder-list" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">
+                                <i class="icon-arrows-cw"></i>  Çözüm Bildirdiğim Görevler
+                            </a>
+                            <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~false)~and~lastOperationStatus~eq~30)">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">
+                                <i class="fa fa-check"></i>  Tamamladığım Görevler
+                            </a>
+                            <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(assignUserId~eq~'@userStatus.user.id'~and~isComplete~eq~true)">0</span>
+                        </li>
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5>OLUŞTURULMA TARİHİ </h5>
+                    <ul class="category-list" style="padding: 0">
+                        <li>
+                            <a href="#" data-grid="VWFTM_Task" data-category="2" data-query="(created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')')"> <i class="fa fa-calendar"></i> Geçmiş</a>
+                        </li>
+                        <li>
+                            <a href="#" data-grid="VWFTM_Task" data-category="2" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün</a>
+                        </li>
+                        <li>
+                            <a href="#" data-grid="VWFTM_Task" data-category="2" data-query="(created~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+                        </li>
+                    </ul>
+                    <div class="space-25"></div>
+                    <h5> GÖREV TİPİ</h5>
+                    <ul class="tag-list" style="padding: 0">
+                        @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>())
+                        {
+                            <li class="clearfix">
+                                <a class=" pull-left" href="#" data-grid="VWFTM_Task" data-category="4" data-query="(type~eq~'@item.Key')">
+                                    <i class="@item.Generic["icon"]"></i>  @item.Value
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox ">
+            <div class="ibox-title">
+                <h5>Görev Listesi</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
+                    .Filter(a => a.companyId == userStatus.user.CompanyId || a.assignableUserIds.Contains(userStatus.user.id.ToString()) || a.assignUserId == userStatus.user.id)
+                    .PageSize(25))
+                    .Scrollable(a => a.Height(650))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.code).Title("Görev Bilgilerim").Width(130).ClientTemplate("#=TemplateEngine('FTM_TaskTemplateMyIndex',data)#"); ;
+                        x.Bound(y => y.company_Title).Title("Görevli Firma").Width(180).Hidden(true);
+                        x.Bound(y => y.plate).Title("Plaka").Width(230).Hidden(true);
+                        x.Bound(y => y.lastOperationStatus_Title).Title("Son Durum").Width(180).Hidden(true);
+                        x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(true);
+                        x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true)).Width(180).Hidden(true);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+                    }))
+            </div>
+        </div>
+    </div>
+</div>
+

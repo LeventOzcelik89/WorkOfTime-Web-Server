@@ -1,0 +1,344 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWINV_PermitForm
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "İzin Talebi Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@section css{
+    <link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" />
+}
+
+
+@using (Html.BeginForm("", "", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.PermitTypeId)
+
+
+    <div class="form-group wzrd">
+        <div class="col-sm-3 step red" style="height: 48px;">
+            <a>
+                @Model.Person_Title @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin ? "Geçmiş İzin" : "İzin Talebi Yapıldı")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.TalepEdildi ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number">1.<span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong>
+                        @string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) -
+                        @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) |
+                        @Model.PermitType_Title Talep
+                    </div>
+                    <div><strong>İşlem Yapan : </strong> @Model.createdby_Title</div>
+                    <div><strong>İşlem Tarihi : </strong> @Model.created.Value.ToString("dd.MM.yyyy HH:mm")</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step orange  @(Model.Manager1ApprovalDate.HasValue ? "":"disabled")">
+            <a>
+                1. Yönetici @(Model.Manager1ApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Onay ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong>
+                        @(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Red ? "Red" : Model.Manager1Approval.HasValue ? "Onay" : "Otomatik Onay") : "Onay/Red")
+                    </div>
+                    <div>
+                        <strong>İşlem  @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        @(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")
+                    </div>
+                    <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-3 step green  @(Model.Manager2ApprovalDate.HasValue ? "":"disabled")">
+            <a>
+                2. Yönetici @(Model.Manager2ApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Onay ? "" : "hide")"></i>
+            </a>
+            <div class="content top">
+                <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                <div id="ccc">
+                    <div>
+                        <strong>İşlem : </strong>
+                        @(Model.Manager2ApprovalDate.HasValue ? (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Red ? "Red" : Model.Manager2Approval.HasValue ? "Onay" : "Otomatik Onay") : "Onay/Red")
+                    </div>
+                    <div>
+                        <strong>İşlem  @(Model.Manager2ApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        @(Model.Manager2Approval.HasValue ? Model.Manager2Approval_Title : "Sistem")
+                    </div>
+                    <div class="@(Model.Manager2ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager2ApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-sm-3 step blue @(Model.IkApprovalDate.HasValue ? "":"disabled")">
+            <a>
+                İ.K. Yönetici @(Model.IkApprovalDate.HasValue ? " İşlem Yaptı" : " Onayı Bekleniyor")
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrol || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ucrenk">4. <span>Adım</span></div>
+                <div id="ccc">
+
+                    @if (Model.IkApprovalDate.HasValue)
+                    {
+                        if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrol || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IslakImzaYuklendi)
+                        {
+                            <div><strong>İşlem : </strong>Onay</div>
+                        }
+                        else if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrolRed)
+                        {
+                            <div><strong>İşlem : </strong>Red</div>
+                        }
+                        else if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.GecmisIzin)
+                        {
+                            <div><strong>İşlem : </strong> Otomatik Onay</div>
+                        }
+                    }
+                    else
+                    {
+                        <div><strong>İşlem : </strong> Onay/Red</div>
+                    }
+
+                    <div>
+                        <strong>İşlem  @(Model.IkApprovalDate.HasValue ? "Yapan" : "Yapacak") : </strong>
+                        @(Model.IkApproval.HasValue ? Model.IkApproval_Title : "Sistem")
+                    </div>
+                    <div class="@(Model.IkApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong> @string.Format("{0:dd.MM.yyyy HH:mm}", Model.IkApprovalDate)</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PermitCode">İzin Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.PermitCode, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                     {"readonly", "readonly"}
+                })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="PersonId">Personel</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Person_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly", "readonly"}
+                })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PermitTypeId">İzin Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.PermitType_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="StartDate">İzin Başlangıç Tarihi Ve Saati</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.StartDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="EndDate">İzin Bitiş Tarihi ve Saati</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.EndDate, "{0:dd.MM.yyyy HH:mm}", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="isbasi">İşbaşı Tarihi ve Saati / İzin Süresi</label>
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CommencementDate", string.Format("{0:dd.MM.yyyy HH:mm}", Model.Calc.CommencementDate), new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İşbaşı Tarihi ve Saat'i"}
+            })
+        </div>
+        <div class="col-md-4">
+            @Html.TextBox("CalculateDay", Model.Calc.Text, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","İzin Süresi(Gün/Saat)"}
+            })
+        </div>
+        <div class="col-md-8 col-md-offset-8">
+            <div class="alert alert-warning text-center m-t-sm m-b-sm" style="padding:10px;display:none;" id="personPermitCount">
+                Personel'in kalan yıllık izin hakkı
+                <strong>@(Model.User.PermitYearlyUsable)</strong>
+                gündür. @(Model.User.PermitYearlyUsable > 0 ? "(Avans İzin Kullanıldı)" : "")
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="AccessPhone">Ulaşılacak Telefon</label>
+        </div>
+        <div class="col-md-8">
+            @Html.Kendo().MaskedTextBoxFor(a => a.AccessPhone).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width: 100%"},
+                    {"class", "form-control"},
+                {"readonly", "readonly"}
+            }).Mask("0 (000) 000 00 00").UnmaskOnPost(true)
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ArriveAdress"> Bulunacağı Adres </label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ArriveAdress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Detail">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Detail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">İzin Talep Dosyaları</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_Permit")
+                .PreviewMode(true)
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "İzin Talep Dosyası")
+            )
+        </div>
+    </div>
+
+    if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IslakImzaYuklendi)
+    {
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Dosya">Islak İmzalı İzin Dosyası</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().FileUpload()
+                    .DataTable("INV_Permit")
+                    .PreviewMode(true)
+                    .DataId(Model.id)
+                    .DataKey(x => x.fileGroup == "Islak İmzalı İzin Dosyası")
+                )
+            </div>
+        </div>
+
+    }
+
+    if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.SaglikRaporu)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="Dosya">Sağlık Raporu Dosyası</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().FileUpload()
+                    .DataTable("INV_Permit")
+                    .PreviewMode(true)
+                    .DataId(Model.id)
+                    .DataKey(x => x.fileGroup == "Sağlık Raporu Dosyası")
+                )
+            </div>
+        </div>
+    }
+
+    if (Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Red || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Red || Model.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrolRed)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" id="" for="ApproveDetail">Red Açıklaması</label>
+            </div>
+            <div class="col-md-8">
+                @Html.TextAreaFor(model => model.ApproveDetail, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"id", "cc00" },
+                    {"readonly", "readonly"}
+                })
+            </div>
+        </div>
+    }
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+
+        @if (Model.PermitTypeId != new Guid("9022a2f3-eed3-477c-a57e-21a2a37f42d5"))
+        {
+            <button data-modal="true" data-show="always" data-task="Insert" data-href="/INV/VWINV_Permit/PermitForm?id=@Model.id" class="btn btn-primary btn-md pull-right" title="Belgenin Önizlemesi">İzin Formu Önizlemesi</button>
+        }
+    </div>
+
+}

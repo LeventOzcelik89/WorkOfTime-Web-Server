@@ -1,0 +1,387 @@
+﻿@using Infoline.WorkOfTime.BusinessData
+@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.BusinessData.VWINV_Commissions
+@{
+
+    ViewBag.Title = "Yeni Görevlendirme Talebi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var projectId = ViewBag.ProjectsId;
+
+}
+
+@section Css{
+
+    <link href="~/Content/Custom/css/ProgressWizard.css" rel="stylesheet" data-selector="modalContainer" />
+    <style type="text/css" data-selector="modalContainer">
+        .akilliRadioGrup > #ApproveStatus_0:checked + label {
+            background-color: #ed5565;
+            color: #fff;
+        }
+
+        .wzrd {
+            margin: 90px 0px 130px 0 !important;
+        }
+    </style>
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+    var commisionsPage = {
+        defines: {
+
+        },
+        functions: {
+            SetHours: function (e) {
+
+            },
+            SetCommencementDate: function (e) {
+                GetJsonDataFromUrl('/INV/VWINV_Commissions/GetCommissionsDetails', $("form").serializeArray(), function (res) {
+
+                    if (res) {
+                        $("#CalculateDay").val(res.Text != "" ? res.Text : "0 saat");
+                    }
+                });
+            },
+            CompanyAdress: function (cId) {
+                $.ajax({
+                    url: "/INV/INV_CompanyAdress/GetINV_CompanyAdressById?id=" + cId,
+                    dataType: "JSON",
+                    success: function (resp) {
+                        if (resp == null) return;
+
+                        $("#ToCorporation").val(resp.FirmaName);
+                        $("#ToAdress").val(resp.Adress);
+
+                    }
+                });
+            },
+            onChangeProjectId: function (e) {
+                // commisionsPage.functions.CompanyAdress(this.dataItem().CorporationId);
+            }
+        }
+    }
+
+    $(document)
+        .on("blur", "#Descriptions", function (e) {
+            $('form').validator("validate");
+        })
+
+        .on('change', '[name="TravelInformation"]', function (e, i) {
+            $('#Descriptions').trigger("blur");
+        })
+
+
+
+    window.setTimeout(function () {
+        commisionsPage.functions.SetCommencementDate();
+    }, 300);
+
+
+
+</script>
+
+
+@using (Html.BeginForm("Insert", "VWINV_Commissions", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group wzrd">
+        <div class="col-sm-4 step red" style="height: 48px;">
+            <a>
+                Görevlendirme Talebi Yapıldı
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number">1. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) - @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) | Görevlendirme Talebi</div>
+                    <div><strong>İşlem Yapan : </strong>@(Model.createdby_Title)</div>
+                    <div><strong>İşlem Tarihi : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 step orange @(Model.Manager1ApprovalDate.HasValue ? "" : "disabled")">
+            <a>
+                1. Yönetici Yanıtlayacak
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi  ? "" : "hide")"></i>
+            </a>
+            <div class="content bottom">
+                <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>@(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi ? "Red" : "Onay") : "Onay/Red")</div>
+                    <div><strong>İşlem @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak")  : </strong>@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</div>
+                    <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate))</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-sm-4 step green @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "" : "disabled")">
+            <a>
+                Islak imza yüklenecek
+                <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi  ? "" : "hide")"></i>
+            </a>
+            <div class="content">
+                <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                <div id="ccc">
+                    <div><strong>İşlem : </strong>Islak İmza Yükleme</div>
+                    <div><strong>İşlem @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "Yapan" : "Yapacak") : </strong>@(Model.createdby_Title)</div>
+                    <div class="@(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "":"hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.changed))</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CommissionCode">Görevlendirme Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.CommissionCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IdUsers">Personeller</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .MultiSelect("IdUsers")
+                .Placeholder("Lütfen seçim yapınız..")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && (a.Manager1 == userStatus.user.id || a.id == userStatus.user.id || a.Manager2 == userStatus.user.id))
+                .Sort(x => x.Add("firstname").Ascending())
+                .Value(new Guid[] { userStatus.user.id })
+                .Execute()
+            )
+
+        </div>
+    </div>
+    if (projectId != null)
+    {
+        <input type="hidden" name="IdProject" value="@projectId" />
+    }
+    else
+    {
+        <div class="form-group clearfix">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="IdProject">Proje</label>
+            </div>
+            <div class="col-md-8">
+                @(
+                    Html.Akilli().MultiSelect("IdProject").Id("ProjectId")
+                    .Placeholder("Lütfen Proje Seçiniz")
+                    .DataTextField("ProjectName")
+                    .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                    .Sort(x => x.Add("ProjectName").Ascending())
+                    .Events(e => e.Change("commisionsPage.functions.onChangeProjectId"))
+                    .Execute()
+                )
+            </div>
+        </div>
+
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="StartDate">Görevlendirme Başlangıç / Bitiş Tarihi ve Saati</label>
+        </div>
+        <div class="col-md-4">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.StartDate)
+                .MaxDateElement("EndDate")
+                .Events(a => a.Change("commisionsPage.functions.SetCommencementDate"))
+                .Interval(15)
+                .Validate(Validations.Required)
+            )
+
+        </div>
+        <div class="col-md-4">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .MinDateElement("StartDate")
+                .Events(a => a.Change("commisionsPage.functions.SetCommencementDate"))
+                .Interval(15)
+                .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="EndDate">Görevlendirme Süresi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBox("CalculateDay", "", new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"disabled", "disabled"},
+                { "placeholder","Görevlendirme Süresi(Gün/Saat)"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ToCorporation">Görev ve Seyahat Edeceği Firma</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.ToCorporation, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahat Edeceği Firma.."}
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="ToAdress">Görev ve Seyahat Edeceği Adres</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.ToAdress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahat Edeceği Adres.."}
+            })
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CommissionSubject">Görev ve Seyahatin Amacı/Konusu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.CommissionSubject, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görev ve Seyahatin Amacı/Konusu.."}
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Information">Görevlendirme Tipi</label>
+        </div>
+        <div class="col-md-8" data-control="gorev">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Information)
+              .OptionLabel("Lütfen Görevlendirme Tipi Seçiniz..")
+              .MinLength(2)
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending())
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "INV_Commissions" && a.fieldName == "Information")
+              .Execute("enumKey")
+              .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[name='Information']" data-show="7">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="InformationDetail">Görevlendirme Tipi Detayı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.InformationDetail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Görevlendirme Bilgisi Detayını Giriniz.."},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="RequestForAccommodation">Konaklama Talebi</label>
+        </div>
+        <div class="col-md-3" data-control="seyahat">
+            @Html.Akilli().RadioButtonGroupFor(model => model.RequestForAccommodation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsRequestForAccommodation.Yok)
+        </div>
+    </div>
+
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="TravelInformation">Görevlendirme Seyahat Bilgileri</label>
+        </div>
+        <div class="col-md-8" data-control="seyahat">
+            @Html.Akilli().RadioButtonGroupFor(model => model.TravelInformation).Value(Infoline.WorkOfTime.BusinessAccess.EnumINV_CommissionsTravelInformation.Arac)
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[name='TravelInformation']" data-show="3">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="TravelInformationDetail">Görevlendirme Seyahat Bilgisi Detayı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.TravelInformationDetail, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Seyahat Bilgisi Detayını Giriniz.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group" data-cascade="[name='TravelInformation']" data-show="0">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="IdCompanyCar">Araç</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+              .DropDownListFor(model => model.IdCompanyCar)
+              .OptionLabel("Lütfen Araç Seçiniz..")
+              .MinLength(2)
+              .DataValueField("id").DataTextField("plate")
+              .Action(b => b.Action("DataSourceDropDown", "VWCMP_CompanyCars", new { area = "CMP" }))
+              .BasicInsert(Url.Action("Insert", "VWCMP_CompanyCars", new { area = "CMP" }), "plate", false)
+              .Sort(x => x.Add("plate").Ascending())
+            )
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="Descriptions">Görevlendirme Diğer Açıklamalar</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Descriptions, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Açıklama Giriniz.."},
+            }).Validate(Validations.Adres(false))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+

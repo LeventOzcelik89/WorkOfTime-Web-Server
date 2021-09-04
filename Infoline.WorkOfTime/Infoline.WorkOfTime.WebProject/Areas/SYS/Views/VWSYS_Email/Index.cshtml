@@ -1,0 +1,86 @@
+﻿@{
+    ViewBag.Title = "Email Logları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<style type="text/css">
+    .k-grid-content i {
+        font-size: 15px;
+    }
+</style>
+
+<script type="text/javascript">
+    function statusTemplate(Status, Result) {
+        if (Status == true) {
+            return '<i class="fa fa-check text-primary" data-original-title="' + Result + '" data-placement="right" data-placement="center" ></i>';
+        }
+        else if (Status == false) {
+            return '<i class="fa fa-times-circle text-danger"  data-original-title="' + Result + '" data-placement="right" data-placement="left"></i>';
+        } else {
+               return '<i class="fa fa-warning text-grey"  data-original-title="' + "Durum Bulunamadı" + '" data-placement="right" data-placement="left"></i>';
+        }
+    }
+</script>
+
+<div class="row">
+    <div class="col-md-2">
+        <div class="ibox">
+            <div class="ibox-content mailbox-content">
+                <div class="file-manager">
+                    <div class="space-25"></div>
+                    <h5>GÖNDERİM SONUCUNA GÖRE</h5>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWSYS_Email" data-category="1" data-query="(Status~eq~'true')" data-switch="radio">
+                                <i class="fa fa-check text-primary"></i>  Başarılı
+                            </a>
+                            <span class="badge badge-primary pull-right m-l-md  m-t-xs" data-counturl="/SYS/VWSYS_Email/DataSourceCount?filter=(Status~eq~'true')">0</span>
+                        </li>
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWSYS_Email" data-category="1" data-query="(Status~eq~'false')" data-switch="radio">
+                                <i class="fa fa-times-circle text-danger"></i>  Başarısız
+                            </a>
+                            <span class="badge badge-danger pull-right m-l-md  m-t-xs" data-counturl="/SYS/VWSYS_Email/DataSourceCount?filter=(Status~eq~'false')">0</span>
+                        </li>
+                    </ul>
+
+                    <div class="clearfix"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-10">
+        <div class="ibox">
+            <div class="ibox-title">
+                <h5>Email Logları</h5>
+                <div class="ibox-tools">
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWSYS_Email>("VWSYS_Email")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSYS_Email", new { area = "SYS" }))
+                    .PageSize(25)
+                    )
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.id).Title("").ClientTemplate("#=statusTemplate(Status,Result)#").Filterable(false).Width(50);
+                        x.Bound(y => y.created).Title("Tarih").Width(150).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.SendingMail).Title("Alıcı").Width(300);
+                        x.Bound(y => y.SendingTitle).Title("Konu");
+                    })
+                    .Scrollable(s => s.Height(660))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSYS_Email", new { area = "SYS" }));
+                    }))
+
+            </div>
+        </div>
+    </div>
+</div>

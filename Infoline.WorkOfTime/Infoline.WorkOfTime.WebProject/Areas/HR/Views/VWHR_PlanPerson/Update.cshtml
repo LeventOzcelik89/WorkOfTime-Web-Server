@@ -1,0 +1,645 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Areas.HR.Models.VMHR_PlanAndPerson
+@{
+    ViewBag.Title = "Mülakat Düzenle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var i = 0;
+}
+
+<style type="text/css" data-selector="modalContainer">
+    group + group {
+        margin-top: 20px;
+    }
+
+    group input {
+        cursor: pointer;
+    }
+
+    .inline-radio {
+        display: flex;
+        border-radius: 3px;
+        overflow: hidden;
+        border: 1px solid #b6b6b6;
+    }
+
+        .inline-radio div {
+            position: relative;
+            flex: 1;
+        }
+
+        .inline-radio input {
+            width: 100%;
+            height: 30px;
+            opacity: 0;
+        }
+
+        .inline-radio label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            color: #b6b6b6;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            border-right: 1px solid #b6b6b6;
+        }
+
+        .inline-radio div:last-child label {
+            border-right: 0;
+        }
+
+        .inline-radio input:checked + label {
+            font-weight: 500;
+            color: #fff;
+        }
+
+        .inline-radio div:nth-child(5) input:checked + label {
+            background: #007900;
+        }
+
+        .inline-radio div:nth-child(4) input:checked + label {
+            background: #FFC200;
+        }
+
+        .inline-radio div:nth-child(3) input:checked + label {
+            background: #FF6A00;
+        }
+
+        .inline-radio div:nth-child(2) input:checked + label {
+            background: #FF2C2C;
+        }
+
+        .inline-radio div:nth-child(1) input:checked + label {
+            background: #84002F;
+        }
+
+        .inline-radio div:nth-child(6) input:checked + label {
+            background: #000;
+        }
+
+    #questionContent textarea {
+        min-height: 60px !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+                .on('ready', function () {
+                    GetJsonDataFromUrl('/HR/VWHR_Person/GetHR_PersonBranchGroup', null, function (resp) {
+                        resp.forEach(function (e, i) {
+                            $("#Branch").append('<option value="' + e + '"> ' + e + ' </option>')
+                        })
+                    });
+
+                    window.setTimeout(function () {
+                        $('form').validator('validate')
+                    }, 1000)
+                })
+
+               .on('change', '[name="MilitaryStatus"]', function (e) {
+                    var _this = $(this);
+                    if (_this.val() != "@(Convert.ToInt32(EnumHR_PersonMilitaryStatus.Tecilli))") {
+                        $('#RetirementDate').data("kendoDatePicker").value(null);
+                    }
+                    if (_this.val() != "@(Convert.ToInt32(EnumHR_PersonMilitaryStatus.Muaf))") {
+                        $('#MilitaryExemptDetail').val("")
+                    }
+                    if (_this.val() != "@(Convert.ToInt32(EnumHR_PersonMilitaryStatus.Yapildi))") {
+                        $('#MilitaryDoneDate').data("kendoDatePicker").value(null);
+                    }
+               })
+
+               .on('success', '#gorusUpdate', function () {
+                   var genderMan = $('#Gender_1').is(":checked");
+                   if (!genderMan) {
+                       $('#RetirementDate').data("kendoDatePicker").value(null);
+                       $('#MilitaryExemptDetail').val("");
+                       $('#MilitaryDoneDate').data("kendoDatePicker").value(null);
+                   }
+              
+          })
+</script>
+
+
+<form data-formtype="Ajax" method="post" id="gorusUpdate" action="/HR/VWHR_PlanPerson/Update" data-selector="modalContainer">
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.HrPlanId)
+    @Html.HiddenFor(model => model.HrPersonId)
+    @Html.HiddenFor(model => model.questions[0].evaluateFormId)
+    @Html.HiddenFor(model => model.HrPerson.id)
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    <div class="form-horizontal">
+
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="panel-group" id="accordionUpdate">
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionUpdate" href="#collapse1"> <i class="fa fa-user text-success"></i> Kişi Bilgileri </a>
+                            </h4>
+                        </div>
+                        <div id="collapse1" class="panel-collapse collapse ">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Name">İsim</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => model.HrPerson.Name, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen İsim Girin.."},
+                                    })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="SurName">Soyisim</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => model.HrPerson.SurName, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Soyisim Girin.."},
+                                    })
+
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Phone">Telefon</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Kendo().MaskedTextBoxFor(a => a.HrPerson.Phone).HtmlAttributes(new Dictionary<string, object>()
+                                         {
+                                             { "style", "width: 100%"},
+                                             {"class", "form-control"},
+                                             {"placeholder", "Lütfen Telefonunuzu Giriniz."},
+                                         })
+                                         .Mask("0 (000) 000 00 00")
+                                         .UnmaskOnPost(true)
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Email">Email</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => model.HrPerson.Email, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Email Girin.."},
+                                    })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Position">Pozisyon</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                             .MultiSelect("Position")
+                                             .Placeholder("Lütfen Pozisyon Seçiniz..")
+                                             .DataTextField("Name")
+                                             .DataValueField("id")
+                                             .Action(b => b.Action("DataSourceDropDown", "HR_Position", new { area = "HR" }))
+                                             .Sort(x => x.Add("Name").Ascending())
+                                             .BasicInsert(Url.Action("Insert", "HR_Position", new { area = "HR" }), "Name")
+                                             .Execute("id")
+                                             .Value(Model.personPosition)
+                                             .TagMode(TagMode.Multiple)
+                                             .Readonly(true)
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Keywords">Bilgi ve Beceriler</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                             .MultiSelect("Keywords")
+                                             .Placeholder("Lütfen Bilgi ve Beceriler Seçiniz..")
+                                             .DataTextField("Name")
+                                             .DataValueField("id")
+                                             .Action(b => b.Action("DataSourceDropDown", "HR_Keywords", new { area = "HR" }))
+                                             .Sort(x => x.Add("Name").Ascending())
+                                             .BasicInsert(Url.Action("Insert", "HR_Keywords", new { area = "HR" }), "Name")
+                                             .Execute("id")
+                                             .Value(Model.personKeywords)
+                                             .TagMode(TagMode.Multiple)
+                                             .Readonly(true)
+                                        )
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionUpdate" href="#collapse2"> <i class="fa fa-info-circle text-success"></i> Diğer Bilgiler</a>
+                            </h4>
+                        </div>
+                        <div id="collapse2" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="IdentifyNumber">Kimlik Numarası</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => model.HrPerson.IdentifyNumber, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Kimlik Numarası Girin.."},
+                                    })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Gender">Cinsiyet</label>
+                                    </div>
+                                    <div class="col-md-8 radio">
+                                        <div class="row">
+                                            <label>
+                                                @Html.Kendo().RadioButtonFor(a => a.HrPerson.Gender).Value((Int32)EnumSH_PersonInformationGender.Erkek)
+                                                @EnumSH_PersonInformationGender.Erkek.ToDescription()
+                                            </label>
+                                            <label>
+                                                @Html.Kendo().RadioButtonFor(a => a.HrPerson.Gender).Value((Int32)EnumSH_PersonInformationGender.Kadin)
+                                                @EnumSH_PersonInformationGender.Kadin.ToDescription()
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md">Medeni Durumu</label>
+                                    </div>
+                                    <div class="col-md-8 radio">
+                                        <div class="row">
+                                            <label>
+                                                @Html.Kendo().RadioButtonFor(a => a.HrPerson.MaritalStatus).Value((Int32)EnumSH_PersonInformationMarital.Evli)
+                                                @EnumSH_PersonInformationMarital.Evli.ToDescription()
+                                            </label>
+                                            <label>
+                                                @Html.Kendo().RadioButtonFor(a => a.HrPerson.MaritalStatus).Value((Int32)EnumSH_PersonInformationMarital.Bekar)
+                                                @EnumSH_PersonInformationMarital.Bekar.ToDescription()
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Birthday">Doğum Tarihi</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli().DatePickerFor(model => model.HrPerson.Birthday).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Doğum Tarihi Girin.."},
+                                    }).Max(DateTime.Now.AddYears(-15)).Min(DateTime.Now.AddYears(-115))
+                                    .Format(Extensions.DateFormatShort())
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="LocationId">İl/İlçe/Ülke</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                            Html.Akilli()
+                                            .DropDownListFor(model => model.HrPerson.LocationId)
+                                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                                            .DataTextField("pid_Title")
+                                            .DataValueField("id")
+                                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                                            .Sort(x => x.Add("pid_Title").Ascending()).Readonly(true)
+                                            .Execute()
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Adress">Açık Adres</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextAreaFor(model => model.HrPerson.Adress, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Adres Girin.."},
+                                    })
+                                    </div>
+                                </div>
+
+
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="ArrivalType">CV Geliş Tipi</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                           .DropDownListFor(model => model.HrPerson.ArrivalType)
+                                           .OptionLabel("Lütfen CV Geliş Tipi Seçiniz..")
+                                           .DataValueField("Id")
+                                           .DataTextField("enumDescription")
+                                           .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                           .Sort(x => x.Add("enumDescription").Ascending())
+                                           .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "ArrivalType").Readonly(true)
+                                           .Execute("enumKey")
+                                        )
+                                    </div>
+                                </div>
+
+
+                                <div class="form-group" data-cascade="[name='ArrivalType']" data-show="2">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="ReferenceId">Şirket İçi Referans</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                           .DropDownListFor(model => model.HrPerson.ReferenceId)
+                                           .OptionLabel("Lütfen Şirket İçi Referans Seçiniz..")
+                                           .DataTextField("FullName")
+                                           .DataValueField("id")
+                                           .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                           .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson))
+                                           .Template("#=TemplateEngine('userTemplate',data)#").Readonly(true)
+                                           .Sort(x => x.Add("FullName").Ascending())
+                                           .Execute()
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Education">Eğitim Düzeyi</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                           .DropDownListFor(model => model.HrPerson.Education)
+                                            .OptionLabel("Lütfen Eğitim Düzeyi Seçiniz..")
+                                           .DataValueField("Id")
+                                           .DataTextField("enumDescription")
+                                           .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                           .Sort(x => x.Add("enumKey").Ascending())
+                                           .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "Education").Readonly(true)
+                                           .Execute("enumKey")
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="DriverLicense">Sürücü Belgesi</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(Html.Akilli()
+                                           .DropDownListFor(model => model.HrPerson.DriverLicense)
+                                            .OptionLabel("Lütfen Sürücü Belgesi Seçiniz..")
+                                           .DataValueField("Id")
+                                           .DataTextField("enumDescription")
+                                           .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                                           .Sort(x => x.Add("enumDescription").Ascending())
+                                           .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "DriverLicense").Readonly(true)
+                                           .Execute("enumKey")
+                                        )
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="SchoolName">Okul Adı</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => model.HrPerson.SchoolName, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Okul Adı Girin.."},
+                                    }).Validate(Validations.TextName(false))
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md " for="Branch">Bölüm</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <input list="Branch" name="Branch" class="form-control" value="@Model.HrPerson.Branch" placeholder="Lütfen Bölüm Adı Girin...">
+                                        <datalist id="Branch"></datalist>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" data-cascade="[name='Gender']" data-show="1">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="MilitaryStatus">Askerlik Durumu</label>
+                                    </div>
+                                    <div class="col-md-4">
+
+                                        @Html.Akilli().RadioButtonGroupFor(model => model.HrPerson.MilitaryStatus).Value(EnumHR_PersonMilitaryStatus.Yapilmadi)
+
+                                    </div>
+                                    <div class="col-md-4" data-cascade="[name='MilitaryStatus']" data-show="1">
+                                        @(Html.Akilli().DatePickerFor(model => model.HrPerson.RetirementDate).HtmlAttributes(new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                       {"placeholder", "Lütfen Tecil Tarihi Girin.."},
+                                                   }).Min(DateTime.Now)
+                                                   .Format(Extensions.DateFormatShort())
+                                        )
+                                    </div>
+                                    <div class="col-md-4" data-cascade="[name='MilitaryStatus']" data-show="0">
+                                        @(Html.Akilli().DatePickerFor(model => model.HrPerson.MilitaryDoneDate).HtmlAttributes(new Dictionary<string, object>()
+                                                   {
+                                                       {"class", "form-control"},
+                                                       {"placeholder", "Lütfen Terhis Tarihi Girin.."},
+                                                   }).Min(DateTime.Now)
+                                                   .Format(Extensions.DateFormatShort())
+                                        )
+                                    </div>
+                                    <div class="col-md-4" data-cascade="[name='MilitaryStatus']" data-show="2">
+                                        @Html.TextAreaFor(model => model.HrPerson.MilitaryExemptDetail, new Dictionary<string, object>()
+                                          {
+                                              {"class", "form-control"},
+                                              {"placeholder", "Lütfen Askerlik Muaf Açıklaması Giriniz.."},
+                                          }).Validate(Validations.Detail(false, 0, 500))
+                                    </div>
+                                </div>
+
+                                <div class="form-group clearfix">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="ExprienceYear">İş Tecrübesi</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="input-group">
+                                            @Html.Kendo().NumericTextBoxFor(model => model.HrPerson.ExprienceYear).Min(0).Max(100).Spinners(false).Decimals(0).Format("N0").HtmlAttributes(new Dictionary<string, object>()
+                                                    {
+                                                        {"style", "width:100%"},
+                                                        {"class","text-right form-control" }
+                                                    })
+                                            <span class="input-group-addon" id="ExprienceYear">Yıl</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="form-group clearfix">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="SalaryRangeMin">Talep Edilen Maaş Aralığı</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            @Html.Akilli().NumericTextBox("SalaryRangeMin").Min(0).Spinners(false).Decimals(0).Format("N2").MaxElement("SalaryRangeMax").Placeholder("Minimum Talep Edilen Maaş")
+                                            <span class="input-group-addon" id="SalaryRangeMin">Min</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="input-group">
+                                            @Html.Akilli().NumericTextBox("SalaryRangeMax").Min(0).Max(2147483647).Spinners(false).Decimals(0).Format("N2").MinElement("SalaryRangeMin").Placeholder("Maksimum Talep Edilen Maaş")
+                                            <span class="input-group-addon" id="SalaryRangeMax">Max</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionUpdate" href="#collapse3"> <i class="fa fa-file text-success"></i> Dosyalar</a>
+                            </h4>
+                        </div>
+                        <div id="collapse3" class="panel-collapse collapse">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <div class="col-md-12">
+                                        @Html.Action("Index", "Files", new { area = "", DataId = Model.HrPersonId, DataTable = "HR_Person", Filter = false })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @if (Model.questions != null)
+                    {
+                        <div class="panel panel-default">
+                            <div class="panel-heading">
+                                <h4 class="panel-title">
+                                    <a data-toggle="collapse" data-parent="#accordionUpdate" href="#update4">     <i class="text-success fa fa-edit"></i> Değerlendirme</a>
+                                </h4>
+                            </div>
+                            <div id="update4" class="panel-collapse collapse">
+                                <div class="panel-body">
+                                    @foreach (var itemOut in Model.questions.GroupBy(x => x.groupName))
+                                    {
+                                        <fieldset>
+                                            <legend>@itemOut.Key</legend>
+                                            <div id="questionContent">
+                                                @foreach (var item in Model.questions.Where(x => x.groupName == itemOut.Key).ToArray())
+                                                {
+                                                    <div class="form-group" data-content="questDiv">
+                                                        <div class="col-md-6">
+                                                            <div class="">
+                                                                <label class="control-label label-md"> @item.question  </label>
+
+                                                            </div>
+                                                            <div class="" style="text-align:center;">
+                                                                <group class="inline-radio" data-name="radioGroup" data-question="@item.question" data-qFormId="@item.id">
+                                                                    <div><input name="questionResult[@i].score" value="1" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 1 ? "checked" : "") type="radio"><label>Çok Kötü</label></div>
+                                                                    <div><input name="questionResult[@i].score" value="2" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 2 ? "checked" : "") type="radio"><label>Kötü</label></div>
+                                                                    <div><input name="questionResult[@i].score" value="3" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 3 ? "checked" : "") type="radio"><label>Orta</label></div>
+                                                                    <div><input name="questionResult[@i].score" value="4" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 4 ? "checked" : "") type="radio"><label>İyi</label></div>
+                                                                    <div><input name="questionResult[@i].score" value="5" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 5 ? "checked" : "") type="radio"><label>Çok İyi</label></div>
+                                                                    <div><input name="questionResult[@i].score" value="0" @(Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.score).FirstOrDefault() == 0 ? "checked" : "") type="radio"><label>D. Dışı</label></div>
+                                                            </div>
+                                                            <input type="text" hidden value="@item.id" name="questionResult[@i].questionFormId" />
+                                                            <input type="text" hidden value="@item.id" name="questions[@i].id" />
+                                                            <input type="text" hidden value="@item.factor" name="questions[@i].factor" />
+                                                            <input type="text" hidden value="@Model.questionResult.Where(c => c.questionFormId == item.id).Select(c => c.id).FirstOrDefault()" name="questionResult[@i].id" />
+                                                        </div>
+                                                        <div class="col-md-6">
+
+
+                                                            <label class="label-md">Varsa Yorumunuz</label>
+
+
+                                                            <textarea data-name="comment" style="width:100%;" name="questionResult[@i].comment">@(Model.questionResult[i].comment)</textarea>
+
+
+                                                        </div>
+                                                    </div>
+
+                                                    i++;
+                                                }
+                                            </div>
+                                        </fieldset>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title">
+                                <a data-toggle="collapse" data-parent="#accordionUpdate" href="#update5"> <i class="fa fa-users text-success"></i> Mülakat Durumu</a>
+                            </h4>
+                        </div>
+                        <div id="update5" class="panel-collapse collapse in">
+                            <div class="panel-body">
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md req" for="Result">Mülakat Durumu</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.Akilli().RadioButtonGroupFor(model => model.Result).Value(Infoline.WorkOfTime.BusinessAccess.EnumHR_PlanResult.Olumlu)
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md req" for="Description">Mülakat Açıklaması</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextArea("Description", new Dictionary<string, object>()
+                                       {
+                                           {"class", "form-control"},
+                                           {"placeholder", "Lütfen Mülakat Açıklamasını Giriniz.."},
+                                       }).Validate(Validations.Required)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button class="btn btn-md btn-success pull-right" type="submit">Mülakatı Sonlandır</button>
+        </div>
+    </div>
+
+</form>

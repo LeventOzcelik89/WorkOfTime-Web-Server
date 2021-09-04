@@ -1,0 +1,138 @@
+﻿@model List<VMPersonALLInformation>
+    <script src="~/Content/Custom/wordjs/jquery.js"></script>
+    <script src="~/Content/Custom/wordjs/FileSaver.js"></script>
+    <script src="~/Content/Custom/js/wordexport.js"></script>
+    <script type="text/javascript">
+        jQuery(document).ready(function ($) {
+            $("a.word-export").click(function (event) {
+                var tags = @Html.Raw(Json.Encode(Model));
+
+                for (var i = 0; i < 10; i++) {
+                    $("#page-content" + i).wordExport(tags[i].firstname + " " + tags[i].lastname);
+                }
+
+                window.setTimeout(function(){
+                for (var i = 10; i < 20; i++) {
+                    $("#page-content" + i).wordExport(tags[i].firstname + " " + tags[i].lastname);
+                }
+                },5000)
+
+                window.setTimeout(function(){
+                for (var i = 20; i < 30; i++) {
+                    $("#page-content" + i).wordExport(tags[i].firstname + " " + tags[i].lastname);
+                }
+                },10000)
+
+                window.setTimeout(function(){
+                for (var i = 30; i < tags.length; i++) {
+                    $("#page-content" + i).wordExport(tags[i].firstname + " " + tags[i].lastname);
+                }
+                },15000)
+                
+            });
+            $('#cvSave').trigger('click');
+        });
+    </script>
+    @{
+        var sayi = -1;
+    }
+
+    <a class="word-export" href="#" id="cvSave">CV OLUŞTUR</a>
+<div id="general">
+    @foreach (var item in Model)
+    {
+        sayi = sayi + 1;
+        <div id="@("page-content"+ sayi)">
+
+            <table class="MsoTableGrid" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none;mso-yfti-tbllook:1184;mso-padding-alt:0cm 5.4pt 0cm 5.4pt;mso-border-insideh:none;mso-border-insidev:none">
+                <tbody>
+                    <tr style="mso-yfti-irow:0;mso-yfti-firstrow:yes;mso-yfti-lastrow:yes">
+                        <td width="302" valign="top" style="width:226.55pt;padding:0cm 5.4pt 0cm 5.4pt">
+                            <p style="tab-stops:10.8pt 21.3pt">
+                                <strong>
+                                    <span style="font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif">@(item.firstname != null ? item.firstname : "")@(item.lastname != null ? item.lastname : "")<span style="mso-tab-count:1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; </span><o:p></o:p></span>
+                                </strong>
+                            </p>
+                        </td>
+                        <td width="302" valign="top" style="width:226.55pt;padding:0cm 5.4pt 0cm 5.4pt">
+                            <p align="right" style="text-align:right;tab-stops:10.8pt 21.3pt">
+                                <span style="mso-no-proof:yes">
+                                    <img width="129" height="143" src="@(item.ProfilePhoto != null ? item.ProfilePhoto : "/Content/Themes/img/unknown.jpg")" v:shapes="Resim_x0020_1"><!--[endif]-->
+                                </span><strong><span style="font-size:11.0pt;font-family:&quot;Arial&quot;,sans-serif"><o:p></o:p></span></strong>
+                            </p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2 style="tab-stops: 0cm right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">KİŞİSEL BİLGİLER </span></strong></h2>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Uyruk&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> TC </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Doğum Tarihi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.birthday.HasValue ? item.birthday.Value.ToString("dd.MM.yyyy") : "") </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Doğum Yeri&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.PersonInformation == null ? "" : item.PersonInformation.IDBornTownLocation != null ? item.PersonInformation.IDBornTownLocation : "" )   </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Askerlik Durumu&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.PersonInformation == null ? "" : item.PersonInformation.Military_Title != null ? item.PersonInformation.Military_Title : "") </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Cep Tel&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.cellphone != null ? item.cellphone : "") </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Mail&nbsp;Adresi&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.email != null ? item.email : "") </span></p>
+            <p><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">Adres&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; :</span></strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;"> @(item.address != null ? item.address : "") </span></p>
+            <h2 style="tab-stops: 0cm right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">EĞİTİM BİLGİLERİ </span></strong></h2>
+            @for (int i = 0; i < item.PersonSchools.Count(); i++)
+            {
+            <p>
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">
+                    @(item.PersonSchools[i].StartDate.HasValue ? item.PersonSchools[i].StartDate.Value.Year : DateTime.Now.Year) - @(item.PersonSchools[i].EndDate.HasValue ? item.PersonSchools[i].EndDate.Value.Year : DateTime.Now.Year) @(item.PersonSchools[i].School_Title != null ? item.PersonSchools[i].School_Title : "") - @(item.PersonSchools[i].Branch != null ? item.PersonSchools[i].Branch : "")
+                </span>
+            </p>
+            }
+            <h2 style="tab-stops: 0cm right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">İŞ TECR&Uuml;BESİ </span></strong></h2>
+            @for (int i = 0; i < item.PersonWorkExperience.Count(); i++)
+            {
+            <p>
+                <strong>
+                    <span style="font-size: 12.0pt; font-family: 'Arial',sans-serif;">
+                        @(item.PersonWorkExperience[i].CompanyName != null ? item.PersonWorkExperience[i].CompanyName : "")
+                    </span>
+                </strong>
+            </p>
+            <p>
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">
+                    @(item.PersonWorkExperience[i].JobStartDate.HasValue ? item.PersonWorkExperience[i].JobStartDate.Value.ToString("dd.MM.yyyy") : "") @(item.PersonWorkExperience[i].JobEndDate.HasValue ?  item.PersonWorkExperience[i].JobEndDate.Value.ToString("dd.MM.yyyy") : "Devam")   @(item.PersonWorkExperience[i].WorkingPosition != null ? item.PersonWorkExperience[i].WorkingPosition : "")
+                </span>
+            </p>
+
+            <p>
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif; color: black;">
+                    &nbsp;
+                </span>
+            </p>
+
+            <p>
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif; color: black;">
+                    @(item.PersonWorkExperience[i].JobDescription != null ? item.PersonWorkExperience[i].JobDescription : "")
+                </span>
+            </p>
+            }
+            <h2 style="tab-stops: 0cm right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">BİLGİSAYAR BİLGİLERİ </span></strong></h2>
+            @for (int i = 0; i < item.PersonCompetencies.Count(); i++)
+            {
+            <p>
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">@(item.PersonCompetencies[i].Competencies_Title != null ? item.PersonCompetencies[i].Competencies_Title : "") @(item.PersonCompetencies[i].CompetenciesLevel_Title != null ? "(" + item.PersonCompetencies[i].CompetenciesLevel_Title + ")" : "" )</span>
+            </p>
+            }
+            <h2 style="tab-stops: right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">YABANCI DİL </span></strong></h2>
+            @for (int i = 0; i < item.PersonLanguages.Count(); i++)
+            {
+            <p style="margin-top: 3.0pt; tab-stops: 87.1pt;">
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">
+                    @(item.PersonLanguages[i].Languages_Title != null ? item.PersonLanguages[i].Languages_Title : "" ) @(item.PersonLanguages[i].Speak_Title != null ? "(" + item.PersonLanguages[i].Speak_Title + ")" : "")
+                </span>
+            </p>
+            }
+            <h2 style="tab-stops: right dotted 453.55pt; background: #E6E6E6; margin: 24.0pt 0cm 18.0pt 0cm;"><strong><span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">EĞİTİM VE SERTİFİKALAR </span></strong></h2>
+            @for (int i = 0; i < item.PersonCertificate.Count(); i++)
+            {
+            <p style="margin-top: 3.0pt; tab-stops: 87.1pt;">
+                <span style="font-size: 11.0pt; font-family: 'Arial',sans-serif;">@(item.PersonCertificate[i].CertificateType_Title != null ? item.PersonCertificate[i].CertificateType_Title : "")</span>
+            </p>
+            }
+        </div>
+    }
+</div>

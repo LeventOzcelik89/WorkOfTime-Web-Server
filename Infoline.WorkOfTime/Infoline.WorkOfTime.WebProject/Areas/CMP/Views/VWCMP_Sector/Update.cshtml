@@ -1,0 +1,66 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_Sector
+@{
+    ViewBag.Title = "İşletme Sektörleri Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Update", "VWCMP_Sector", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="İşletme">İşletme</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.companyId)
+			      .OptionLabel("Lütfen İşletme seçiniz..")
+			      .DataTextField("code")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+			      .Sort(x => x.Add("code").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Üst Sektör">Üst Sektör</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.sectorId)
+			      .OptionLabel("Lütfen Üst Sektör seçiniz..")
+			      .DataTextField("name")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" }))
+			      .Sort(x => x.Add("name").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

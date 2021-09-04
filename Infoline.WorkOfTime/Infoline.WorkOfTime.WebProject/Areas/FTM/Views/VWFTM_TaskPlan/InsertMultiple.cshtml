@@ -1,0 +1,50 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.TaskSchedulerModel
+@{
+    ViewBag.Title = "Yeni Planlanmış Görev ve Şablon Tanımla";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    [data-elem="TaskPlan.enabled"] {
+        display: none;
+    }
+
+    [data-elem="TaskPlan.templateId"] {
+        display: none;
+    }
+
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $('[data-elem="TaskPlan.templateId"] input').removeAttr('required');
+
+</script>
+
+@using (Html.BeginForm("InsertMultiple", "VWFTM_TaskPlan", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id", "MultipleForm" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.TaskPlan.id)
+    @Html.HiddenFor(model => model.TaskPlan.monthDays)
+
+    @Html.Partial("~/Areas/FTM/Views/VWFTM_TaskTemplate/_Part_FormElements.cshtml", Model)
+
+    <hr />
+
+    @Html.Partial("~/Areas/FTM/Views/VWFTM_TaskPlan/_Part_FormElements.cshtml", Model)
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+

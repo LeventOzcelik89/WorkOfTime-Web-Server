@@ -1,0 +1,716 @@
+﻿@model Infoline.WorkOfTime.WebProject.Areas.INV.Models.VWINV_PermitDashboardPageReport
+@{
+	ViewBag.Title = "İzin Raporları";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+	.permitList {
+		height: 500px;
+		overflow-y: scroll;
+	}
+
+	.vertical-timeline-content {
+		background-color: #f6f6f6;
+		width: 90%;
+	}
+
+	.nodatas {
+		opacity: .2;
+		filter: alpha(opacity=60);
+		text-align: center;
+		padding: 202px 0px 150px;
+		width: 100%;
+		font-size: 34px;
+		font-family: Arial;
+		color: black;
+		text-align: center;
+	}
+
+	.nodata.fixs {
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		padding: 202px;
+	}
+
+	.nodata {
+		color: red !important;
+	}
+</style>
+
+<script type="text/javascript">
+    $(document)
+    .on('click', '.tab-data button', function (e) {
+
+            $(this).parent('.tab-data').find('button').removeClass('active');
+
+            var dataTab = $(this).attr('data-tab');
+
+            $(this).addClass('active');
+
+            $(this).parents('.ibox').find(".not-data .feed-activity-list").addClass('hide');
+
+            $(this).parents('.ibox').find('.not-data [data-slide="' + dataTab + '"]').removeClass('hide');
+
+        })
+    .on('click', '[data-tab]', function () {
+            $(this).parents('.ibox').find('[data-role="chart"]').each(function () {
+                if ($(this).data('kendoChart')) {
+                    $(this).data('kendoChart').resize();
+                };
+            })
+        });
+    function CreateLineChart(element, Mydata) {
+
+        element.kendoChart({
+            title: {
+            },
+            legend: {
+                position: "bottom"
+            },
+            chartArea: {
+
+            },
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            seriesDefaults: {
+                type: "column",
+                labels: {
+                    visible: false,
+                },
+                overlay: {
+                    gradient: "none"
+                },
+            },
+            seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#9de219", "#1c0F7F", "#90cc38"],
+            series: Mydata.data.map(function (e) { return { name: e.Key, data: e.Values } }),
+            categoryAxis: {
+                categories: Mydata.aylar,
+                labels: {
+                    rotation: -45
+                },
+                majorGridLines: {
+                    visible: true
+                }
+            },
+            tooltip: {
+                shared: true,
+                visible: true,
+                template: "${value} Adet ",
+                format: "{0:N0}"
+            }
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+    GetJsonDataFromUrl('@Url.Action("DashboardResult", "VWINV_Permit",new {area="INV" })', {}, function (resp) {
+        if (resp.PermitYearlyPersonUsable.length == 0 || resp == null) {
+            $('#spanVeri').show();
+        } else {
+            $('#spanVeri').hide();
+        }
+        CreateKendoPermintsChart($('#AllPermits'), resp.PermitsByMonth);
+        CreateKendoPermintsChart($('#AllPermitsThisYear'), resp.PermitsByMonthThisYear);
+        $.each(resp.PersonPermits, function (i, item) {
+            if (item.Key == "Gunluk") {
+                CreateList($('#PermitByDaily'), item.Permits, " ( Bugün ) ");
+                return;
+            }
+            if (item.Key == "Haftalik") {
+                CreateList($('#PermitByWeekly'), item.Permits, " ( Bu Hafta ) ");
+                return;
+            }
+            if (item.Key == "Aylik") {
+                CreateList($('#PermitByMonthly'), item.Permits, " ( Bu Ay ) ");
+                return;
+            }
+            if (item.Key == "Yillik") {
+                CreateList($('#PermitChartAll'), item.Permits, " ( Bu Yıl ) ");
+                return;
+            }
+        });
+        $.each(resp.PersonPermitFuture, function (i, item) {
+            if (item.Key == "Gunluk") {
+                CreateList($('#PermitFutureByDaily'), item.Permits, " ( Bugün ) ");
+                return;
+            }
+            if (item.Key == "Haftalik") {
+                CreateList($('#PermitFutureByWeekly'), item.Permits, " ( Bu Hafta ) ");
+                return;
+            }
+            if (item.Key == "Aylik") {
+                CreateList($('#PermitFutureByMonthly'), item.Permits, " ( Bu Ay ) ");
+                return;
+            }
+            if (item.Key == "Yillik") {
+                CreateList($('#PermitFutureChartAll'), item.Permits, " ( Bu Yıl ) ");
+                return;
+            }
+        });
+
+        if (resp.PermitsByPosition.length == 0) {
+            for (var i = 0; i < 4; i++) {
+                $('[data-PermitTypeControl="'+i+'"]').parents('div').eq(0).html("").append('<div class="text-center" style="height:400px;padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + noDataDesc(i) + '</h3></div>');
+            }
+
+        }
+        $.each(resp.PermitsByPosition, function (i, itemx) {
+
+
+            if (itemx.length == 0) {
+                $('[data-PermitTypeControl="' + i + '"]').parents('div').eq(0).html("").append('<div class="text-center" style="height:400px;padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + noDataDesc(i) + '</h3></div>');
+                return;
+            }
+
+            if (itemx[0].Description == "Gunluk") {
+                CreatePieChart($("#PermitTypeDaily"), itemx, " #= category # :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bugün ) ");
+                return;
+            }
+            if (itemx[0].Description == "Haftalik") {
+                CreatePieChart($("#PermitTypeWeekly"), itemx, "  #= category #  :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Hafta ) ");
+                return;
+            }
+            if (itemx[0].Description == "Aylik") {
+                CreatePieChart($("#PermitTypeMonthly"), itemx, "  #= category #   :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Ay ) ");
+                return;
+            }
+            if (itemx[0].Description == "Yillik") {
+                CreatePieChart($("#PermitTypeAll"), itemx, "   #= category #  :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Yıl ) ");
+                return;
+            }
+        });
+        if (resp.PermitsFutureByPosition.length == 0) {
+            for (var i = 0; i < 4; i++) {
+                $('[data-PermitTypeFutureControl="'+i+'"]').parents('div').eq(0).html("").append('<div class="text-center" style="height:400px;padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + noDataDesc(i) + '</h3></div>');
+            }
+
+        }
+        $.each(resp.PermitsFutureByPosition, function (i, itemy) {
+
+            if (itemy.length == 0) {
+                $('[data-PermitTypeFutureControl="' + i + '"]').parents('div').eq(0).html("").append('<div class="text-center" style="height:400px;padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + noDataDesc(i) + '</h3></div>');
+                return;
+            }
+
+            if (itemy[0].Description == "Gunluk") {
+                CreatePieChart($("#PermitTypeFutureDaily"), itemy, " #= category # :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bugün ) ");
+                return;
+            }
+            if (itemy[0].Description == "Haftalik") {
+                CreatePieChart($("#PermitTypeFutureWeekly"), itemy, "  #= category #  :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Hafta ) ");
+                return;
+            }
+            if (itemy[0].Description == "Aylik") {
+                CreatePieChart($("#PermitTypeFutureMonthly"), itemy, "  #= category #   :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Ay ) ");
+                return;
+            }
+            if (itemy[0].Description == "Yillik") {
+                CreatePieChart($("#PermitTypeFutureAll"), itemy, "   #= category #  :  #=kendo.format(\"{0:N0}\", data.dataItem.Value)# Adet <br> Toplam Gün : #=kendo.format(\"{0:N0}\", data.dataItem.TotalDays)# Gün", " ( Bu Yıl ) ");
+                return;
+            }
+        });
+        CreateListPerson($('#PermitByNewJob'), resp.PermitByNewJobSearch[0].Permits);
+        $.each(resp.PermitByMarried, function (i, item) {
+            if (item.Key == "Gecmis") {
+                CreateListPerson($('#PermitMarriedPast'), item.Permits, " ( Geçmiş ) ");
+            }
+            if (item.Key == "Gelecek") {
+                CreateListPerson($('#PermitMarriedFuture'), item.Permits, " ( Gelecek ) ");
+            }
+        });
+
+
+
+
+       var datas = $.Enumerable.From(resp.PermitYearlyPersonUsable).GroupBy(function (c) { return c.Key }).ToArray();
+
+       for (var i = 0; i < datas.length; i++) {
+           var contr = "cm" + i;
+           $('#sirketler').append('<button type="button" style="margin-left:5px !important" class="btn btn-xs btn-success active" data-tab="' + i + '">' + datas[i].Key() + '</button>')
+            $('#sirketlerIcerik').append('<div class="feed-activity-list hide col-md-12"  data-slide="' + i + '">'
+               + '<div class="yearlyList" id="' + "cm" + i + '">' +
+               '</div>' + '</div>')
+
+
+            $.each(datas[i].source, function (i, item) {
+                if (item.Key == null) {
+                    return;
+                }
+
+
+                $('#' + contr).append("<div class=\"vertical-timeline-block col-lg-12 col-md-12\" style=\"margin-bottom:15px !important;margin:0px\">" +
+                    "   <div class=\"vertical-timeline-icon navy-bg\">" +
+                    "       <i class=\"fa fa-user\"></i>" +
+                    "   </div>" +
+                    "   <div class=\"vertical-timeline-content\">" +
+                    "       <div class=\"col-md-4\"><h4> Personel </h4></div><div class=\"col-md-8\"><h4> : " + item.Color + " </h4></div>" +
+                    "       <div class=\"col-md-4\"><h4> Yıllık İzin Hakkı </h4></div><div class=\"col-md-8\"><h4> : " + item.Value + " Gün" + " </h4></div>" +
+                    "       </h4>" +
+                    "    </div>" +
+                    "</div>");
+
+            })
+       }
+       $("[data-tab='0']").trigger('click');
+
+
+    }, "Personel İzin Grafikleri Yükleniyor...");
+    function CreateKendoPermintsChart(element, data) {
+
+        if (data.filter(function (v) { return v.tumIzinler == 0; }).length == 12) {
+            element.parents('div').eq(0).html("").append('<div class="nodatas fixs"><div>Herhangi bir veri bulunamadı</div></div>');
+        }
+
+        element.kendoChart({
+            dataSource: {
+                data: data
+            },
+            series: [{
+                field: "tumIzinler",
+                //field: "ToplamGun",
+                categoryField: "Ay"
+            }],
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#1c0F7F", "#9de219", "#90cc38"],
+            legend: {
+
+                visible: true
+            },
+            valueAxis: {
+                labels: {
+                    format: "{0:N0} "
+                }
+            },
+            categoryAxis: {
+                labels: {
+                    rotation: -45
+                },
+                majorGridLines: {
+                    visible: true
+                },
+                majorTicks: {
+                    lines: {
+                        visible: true
+                    }
+                },
+            },
+            tooltip: {
+                visible: true,
+                format: "{0:N0}",
+                template: "Toplam İzin Sayısı: #=kendo.format(\"{0:N0}\", data.dataItem.tumIzinler)# Adet",
+                opacity: 0.7,
+                background: 'red'
+            }
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+    function CreatePieChart(element, data, MyString, tarih) {
+        var sayac = 0;
+        $.each(data, function (i, item) {
+            if (item.Value == 0) {
+                sayac++;
+            }
+        });
+
+        if (data.length == 0 || sayac == 5) {
+
+            element.parents('div').eq(0).append('<div class="text-center" style="height:400px;padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + tarih + '</h3></div>');
+            return;
+
+        }
+
+        element.kendoChart({
+            title: {},
+            legend: {
+                position: "bottom"
+            },
+            render: function (e) {
+                var loading = $(".chart-loading", e.sender.element.parent());
+                kendo.ui.progress(loading, false);
+            },
+            seriesDefaults: {
+                labels: {
+                    visible: true,
+                    background: "transparent",
+                    template: "#if (data.value != 0) {# #=kendo.format(\"{0:p2}\", percentage)# #}#"
+                },
+                overlay: {
+                    gradient: "none"
+                },
+            },
+            chartArea: {
+                background: "transparent"
+            },
+            dataSource: {
+                data: data
+            },
+            seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#9de219", "#1c0F7F", "#90cc38"],
+            series: [{
+                type: "pie",
+                field: "Value",
+                field: "TotalDays",
+                categoryField: "Key",
+                colorField: "Color"
+            }],
+
+            tooltip: {
+                visible: true,
+                template: MyString,
+                format: "{0:N0}"
+            },
+        });
+        $(element.selector).append(kendoExportTemplate(element.selector));
+    }
+
+    function CreateList(elem, data, tarih) {
+
+        if (data == null) {
+            return;
+        }
+
+        elem.html(null);
+
+        if (data.length == 0) {
+            elem.html('<div class="text-center" style="padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı ' + tarih + '</h3></div>');
+            return;
+        }
+        $.each(data, function (index, item) {
+
+            elem.append(
+                "<div class=\"vertical-timeline-block\">" +
+                "   <div class=\"vertical-timeline-icon navy-bg\">" +
+                "       <i class=\"fa fa-check-circle-o\"></i>" +
+                "   </div>" +
+                "   <div class=\"vertical-timeline-content\">" +
+                "       <div class=\"col-md-3\"><h4> Personel </h4></div><div class=\"col-md-9\"><h4> : " + item.Person_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> İzin Nedeni </h4></div><div class=\"col-md-9\"><h4> : " + item.PermitType_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> Süre </h4></div><div class=\"col-md-9\"><h4> : " + item.TotalHoursText + "</h4></div>" +
+                "       <div class=\"col-md-3\"><h4> Başlangıç / Bitiş </h4></div><div class=\"col-md-9\"><h4> : " + parseJsonDate(item.StartDate) + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4>  </h4></div><div class=\"col-md-9\"><h4> : " + parseJsonDate(item.EndDate) + " </h4></div>" +
+                "       </h4>" +
+                "   <button data-modal=\"false\"  data-show=\"always\" data-method=\"POST\"  data-blank=\"\" data-task=\"Insert\" data-href=\"/INV/VWINV_Permit/Detail?id=" + item.id + "\" class=\"btn btn-primary btn-xs\"><i class=\"fa fa-long-arrow-right\"></i> İzin Detayı</button>" +
+                "    </div>" +
+                "</div><hr>");
+        });
+    }
+    function CreateListPerson(elem, data, tarih) {
+
+        if (data == null) {
+            return;
+        }
+
+        elem.html(null);
+
+        if (data.length == 0) {
+            elem.html('<div class="text-center" style="padding-top:200px"><h3 class="nodata">Herhangi bir veri bulunamadı </h3></div>');
+            return;
+        }
+        $.each(data, function (index, item) {
+            if (item.Manager1_Title == null || item.Manager1_Title == "") {
+                item.Manager1_Title = " - ";
+            }
+            if (item.Manager2_Title == null || item.Manager2_Title == "") {
+                item.Manager2_Title = " - ";
+            }
+            if (item.Manager1Approval_Title == null || item.Manager1Approval_Title == "") {
+                item.Manager1Approval_Title = " - ";
+            }
+			if (item.Manager2Approval_Title == null || item.Manager2Approval_Title == "") {
+				item.Manager2Approval_Title = " - ";
+			}
+            elem.append(
+                "<div class=\"vertical-timeline-block\">" +
+                "   <div class=\"vertical-timeline-icon navy-bg\">" +
+                "       <i class=\"fa fa-check-circle-o\"></i>" +
+                "   </div>" +
+                "   <div class=\"vertical-timeline-content\">" +
+                "       <div class=\"col-md-3\"><h4> Personel </h4></div><div class=\"col-md-9\"><h4> : " + item.Person_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> 1. Yöneticisi </h4></div><div class=\"col-md-9\"><h4> : " + item.Manager1Approval_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> 2. Yöneticisi </h4></div><div class=\"col-md-9\"><h4> : " + item.Manager2Approval_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> Durum </h4></div><div class=\"col-md-9\"><h4> : " + item.ApproveStatus_Title + " </h4></div>" +
+                "       <div class=\"col-md-3\"><h4> Başlangıç / Bitiş </h4></div><div class=\"col-md-9\"><h4> : " + parseJsonDate(item.StartDate) + " / " + parseJsonDate(item.EndDate) + " </h4></div>" +
+               //"       <h4><label class=\"" + (item.InvoiceChecked == 0 ? "colorControlTrue" : "colorControlFalse") + "\"> " + item.InvoiceChecked_Title + "  </label></strong></h4>" +
+                "       </h4>" +
+                 "   <button data-modal=\"false\"  data-show=\"always\" data-method=\"POST\"  data-blank=\"\" data-task=\"Insert\" data-href=\"/INV/VWINV_Permit/Detail?id=" + item.id + "\" class=\"btn btn-primary btn-xs\"><i class=\"fa fa-long-arrow-right\"></i> İzin Detayı</button>" +
+                "    </div>" +
+                "</div><hr>");
+        });
+    }
+    function parseJsonDate(jsonDateString) {
+        if (jsonDateString != "" || jsonDateString != null) {
+            return new Date(parseInt(jsonDateString.replace('/Date(', ''))).toLocaleString("tr-TR");
+
+        }
+    }
+    function dateDiff(startdate, enddate) {
+
+        var start = new Date(JsonUTCDate(startdate)),
+            end = new Date(JsonUTCDate(enddate)),
+            diff = new Date(end - start),
+            days = Math.round(diff / 1000 / 60 / 60 / 24);
+        return days;
+
+    }
+    function noDataDesc(date) {
+        switch (date) {
+            case 0:
+                return "( Bugün )";
+            case 1:
+                return "( Bu Hafta )";
+            case 2:
+                return "( Bu Ay )";
+            case 3:
+                return "( Bu Yıl )";
+            default:
+                return "";
+        }
+    }
+    $(document).ready(function () {
+        kendo.ui.progress($(".chart-loading"), true);
+    });
+</script>
+
+<div class="row">
+	<div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+		@Html.Akilli().Card().Color("blue").Text("Bu Yıl Talep Edilen İzinler").Value(string.Format("{0:N0} Adet", Model.BuYilTalepEdilen)).IconClass("fa fa-clock-o")
+	</div>
+	<div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+		@Html.Akilli().Card().Color("navy").Text("Bu Yıl Onaylanan İzinler").Value(string.Format("{0:N0} Adet", Model.BuYilOnaylanan)).IconClass("fa fa-check")
+	</div>
+	<div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+		@Html.Akilli().Card().Color("red").Text("Bu Yıl Reddedilen İzinler").Value(string.Format("{0:N0} Adet", Model.BuYilReddedilen)).IconClass("fa fa-times")
+	</div>
+	<div class="colmd3Cards col-xs-12 col-sm-6 col-md-3">
+		@Html.Akilli().Card().Color("yellow").Text("Bu Yıl Onayda Bekleyen İzinler").Value(string.Format("{0:N0} Adet", Model.BuYilOnayBekleyenIzinler)).IconClass("fa fa-users")
+	</div>
+</div>
+
+<div class="row clearfix">
+	<div class="col-md-12">
+		<div class="ibox  ovflow-height500">
+			<div class="ibox-title">
+				<h5>Aylara Göre Onaylanan İzin Dağılımı </h5> &nbsp;   &nbsp; <i data-toggle="tooltip" title="Mevcut aylarda verilen izin sayıları gösterilir." class="fa fa-info-circle blue"></i>
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger active" data-tab="daily">Son 12 Ay</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Bu Sene</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list" data-slide="daily">
+						<div id="AllPermits"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div id="AllPermitsThisYear"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Geçmiş Dönemde İzin Almış Personeller</h5> &nbsp; <i data-toggle="tooltip" title="Geçmiş Dönemlerde Onaylanan İzinler Listelenir." class="fa fa-info-circle blue"></i>
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger " data-tab="daily">Bugün</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Bu Hafta</button>
+						<button type="button" class="btn btn-xs btn-success" data-tab="past">Bu Ay</button>
+						<button type="button" class="btn btn-xs btn-info active" data-tab="all">Bu Yıl</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list hide" data-slide="daily">
+						<div class="permitList" id="PermitByDaily"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div class="permitList" id="PermitByWeekly"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="past">
+						<div class="permitList" id="PermitByMonthly"></div>
+					</div>
+					<div class="feed-activity-list" data-slide="all">
+						<div class="permitList" id="PermitChartAll"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Gelecek Dönemlerde İzni Onaylanmış Personeller</h5> &nbsp; <i data-toggle="tooltip" title="Önümüzde ki zamanlarda onaylanan izinleri listeler." class="fa fa-info-circle blue"></i>
+
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger" data-tab="daily">Bugün</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Bu Hafta</button>
+						<button type="button" class="btn btn-xs btn-success" data-tab="past">Bu Ay</button>
+						<button type="button" class="btn btn-xs btn-info active" data-tab="all">Bu Yıl</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list hide" data-slide="daily">
+						<div class="permitList" id="PermitFutureByDaily"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div class="permitList" id="PermitFutureByWeekly"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="past">
+						<div class="permitList" id="PermitFutureByMonthly"></div>
+					</div>
+					<div class="feed-activity-list" data-slide="all">
+						<div class="permitList" id="PermitFutureChartAll"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Onaylanan İzin Tiplerine Göre Dağılım <small style="color:red"> (Geçmiş İzinler)</small></h5> &nbsp; <i data-toggle="tooltip" title="Geçmiş zamanlarda en çok onaylanan izin tiplerinin raporu (Maksimum 5 İzin Tipi)" class="fa fa-info-circle blue"></i>
+
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger active" data-tab="daily">Bugün</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Bu Hafta</button>
+						<button type="button" class="btn btn-xs btn-success" data-tab="past">Bu Ay</button>
+						<button type="button" class="btn btn-xs btn-info" data-tab="all">Bu Yıl</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list hide" data-slide="daily">
+						<div data-PermitTypeControl="0" id="PermitTypeDaily"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div data-PermitTypeControl="1" id="PermitTypeWeekly"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="past">
+						<div data-PermitTypeControl="2" id="PermitTypeMonthly"></div>
+					</div>
+					<div class="feed-activity-list" data-slide="all">
+						<div data-PermitTypeControl="3" id="PermitTypeAll"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Onaylanan İzin Tiplerine Göre Dağılım <small style="color:red">(Gelecek İzinler)</small></h5> &nbsp; <i data-toggle="tooltip" title="Önümüzde ki zamanlarda en çok onaylanan izin tiplerinin raporu (Maksimum 5 İzin Tipi)" class="fa fa-info-circle blue"></i>
+
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger active" data-tab="daily">Bugün</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Bu Hafta</button>
+						<button type="button" class="btn btn-xs btn-success" data-tab="past">Bu Ay</button>
+						<button type="button" class="btn btn-xs btn-info " data-tab="all">Bu Yıl</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list hide" data-slide="daily">
+						<div data-PermitTypeFutureControl="0" id="PermitTypeFutureDaily"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div data-PermitTypeFutureControl="1" id="PermitTypeFutureWeekly"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="past">
+						<div data-PermitTypeFutureControl="2" id="PermitTypeFutureMonthly"></div>
+					</div>
+					<div class="feed-activity-list" data-slide="all">
+						<div data-PermitTypeFutureControl="3" id="PermitTypeFutureAll"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Bu Ay İdari İzin Verilen Personeller</h5> &nbsp; <i data-toggle="tooltip" title="İçinde bulunduğumuz ay içerisinde, idari izin verilmiş personeller listelenir. " class="fa fa-info-circle blue"></i>
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger active" data-tab="daily">Bu Ay</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list" data-slide="daily">
+						<div class="permitList" id="PermitByNewJob"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="col-lg-6 col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Evlilik İzni Talebinde Bulunan Personeller <small style="color:red">(Bulunan Yılda)</small></h5> &nbsp; <i data-toggle="tooltip" title="İçinde bulunduğumuz yıl içerisinde, evlilik izni talebi yapmış personeller listelenir." class="fa fa-info-circle blue"></i>
+				<div class="pull-right">
+					<div class="btn-group tab-data">
+						<button type="button" class="btn btn-xs btn-danger active" data-tab="daily">Geçmiş</button>
+						<button type="button" class="btn btn-xs btn-warning" data-tab="weekly">Gelecek</button>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix ">
+				<div class="not-data" data-type="GetShipmentDateUpComing">
+					<div class="feed-activity-list" data-slide="daily">
+						<div class="permitList" id="PermitMarriedPast"></div>
+					</div>
+					<div class="feed-activity-list hide" data-slide="weekly">
+						<div class="permitList" id="PermitMarriedFuture"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="col-md-12">
+		<div class="ibox ovflow-height500 ">
+			<div class="ibox-title">
+				<h5>Personellerin Kalan Yıllık İzin Günleri</h5> &nbsp; <i data-toggle="tooltip" title="Personellerin kalan yıllık izinlerinin listelendiği alandır." class="fa fa-info-circle blue"></i>
+				<div class="pull-right">
+					<div class="btn-group tab-data" id="sirketler">
+						
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content clearfix " style="height: 500px;overflow: auto;">
+				<div class="not-data" data-type="GetShipmentDateUpComing" id="sirketlerIcerik">
+
+					<span id="spanVeri" class="nodata" style="padding-top:200px; text-align:center;font-weight:bold;"> VERİ BULUNAMADI</span>
+					
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="fixed-button">
+		<a href="@Url.Action("Index","VWINV_Permit",new {area="INV"})" class="btn btn-success btn-block text-left" title="İzinleri Listele"><i class="fa fa-list" aria-hidden="true"></i> İzinleri Listele</a>
+	</div>
+</div>

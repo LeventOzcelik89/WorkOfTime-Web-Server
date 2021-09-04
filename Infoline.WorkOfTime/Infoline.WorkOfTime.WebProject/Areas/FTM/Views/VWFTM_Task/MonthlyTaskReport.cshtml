@@ -1,0 +1,644 @@
+﻿@{
+	ViewBag.Title = "Aylık Çağrı Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	string[] months = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+}
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-6">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .DropDownList("year")
+									   .OptionLabel("Raporlamak İstediğiniz Yılı Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(DateTime.Now.Year.ToString())
+									   .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-6">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .MultiSelect("months")
+									   .Placeholder("Lütfen Rapor Aylarını Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(months)
+									   .Execute()
+                                   )
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+								 Html.Akilli()
+								 .DropDownList("customerId")
+								 .OptionLabel("Lütfen Müşteri İşletmeyi Seçiniz..")
+								 .DataValueField("id")
+								 .DataTextField("fullName")
+								 .Template("#=TemplateEngine('companyTemplate',data)#")
+								 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+								 .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+								 //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+								 .Sort(x => x.Add("fullName").Ascending())
+								 .Validate(Validations.Required)
+								 .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+							@(
+                              Html.Akilli()
+                              .DropDownList("customerStorageId")
+                              .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('storageTemplate',data)#")
+                              .ValueTemplate("#=fullName#)")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                              .CascadeFrom("customerId")
+                              .CascadeFromField("companyId")
+                              .Sort(x => x.Add("fullName").Ascending())
+                              .Execute()
+                              )
+						</div>
+					</div>
+
+					<div class="col-md-3 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+
+			<br />
+		</div>
+	</div>
+</div>
+
+
+
+
+<div class="row clearfix">
+	<div class="col-md-12">
+		<div class="col-md-6">
+			<div class="ibox">
+				<div class="ibox-title">
+					<h5>Aylara Göre Açılan Çağrı Dağılımı </h5> &nbsp;   &nbsp; <i data-toggle="tooltip" title="Mevcut aylarda açılan çağrı sayıları gösterilir." class="fa fa-info-circle blue"></i>
+				</div>
+				<div class="ibox-content clearfix">
+					<div class="not-data" data-type="GetShipmentDateUpComing">
+						<div class="feed-activity-list" data-slide="daily">
+							<div id="AllTasks"></div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="ibox ">
+				<div class="ibox-title">
+					<h5><i class="fa fa-list"></i> Ay/Yıl Bazlı Çağrı Raporu</h5>
+					<div class="ibox-tools">
+					</div>
+				</div>
+
+				<div class="ibox-content ibox-content_image clearfix " style="height:435px; overflow-y:scroll;">
+					<div id="monthTaskGrid"></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="col-md-12">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5><i class="fa fa-list"></i> Ay/Yıl Bazlı Çağrı Konusu Raporu</h5>
+				<div class="ibox-tools">
+				</div>
+			</div>
+
+			<div class="ibox-content ibox-content_image clearfix " style="height:540px; overflow-y:scroll;">
+				<div id="monthSubjectTaskGrid"></div>
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-12">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<h5><i class="fa fa-list"></i> Ay/Yıl Bazlı Personel Çağrı Raporu</h5>
+				<div class="ibox-tools">
+				</div>
+			</div>
+
+			<div class="ibox-content ibox-content_image clearfix " style="height:520px; overflow-y:scroll;">
+				<div id="monthPersonnelTaskGrid"></div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<script>
+	$("#DashBoardFilter").click(function () {
+
+		var months = $("#months").val();
+		var year = $('#year').val();
+		var customer = $("#customerId").val();
+		var customerStorage = $("#customerStorageId").val();
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTaskReportDataSource', { year: year, months: months, customer: customer, customerStorage: customerStorage }, function (res) {
+
+			CreateKendoAllTaskChart($('#AllTasks'), res);
+
+
+			$("#monthTaskGrid").kendoGrid({
+				dataSource: res,
+				height: 395,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Çağrı Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count.length",
+						title: "Çağrı Adedi",
+						width: 180
+					},
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıtlama Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+					{
+						field: "resolutionTime",
+						title: "Ortalama Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					}
+				]
+			});
+
+			var grid = $("#monthTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+
+		})
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyEmployeeTaskReportDataSource', { year: year, months: months, customer: customer, customerStorage: customerStorage }, function (res) {
+
+
+			$("#monthPersonnelTaskGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 500,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Personel Çağrı Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "personnelName",
+						title: "Personel"
+					},
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count",
+						title: "Çağrı Adedi",
+						width: 180
+					},
+
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıt Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+
+					{
+						field: "resolutionTime",
+						title: "Ortalama Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+				]
+			});
+
+			var grid = $("#monthPersonnelTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTaskSubjectReportDataSource', { year: year, months: months, customer: customer, customerStorage: customerStorage }, function (res) {
+
+
+			$("#monthSubjectTaskGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 10,
+				height: 500,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Çağrı Konu Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "taskType_Title",
+						title: "Çağrı Tipi"
+					},
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count",
+						title: "Çağrı Adedi",
+						width: 150
+					},
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıt Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+					{
+						field: "resolutionTime",
+						title: "Ortalama Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					}
+				]
+			});
+
+			var grid = $("#monthSubjectTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+	})
+
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+
+
+
+	function createMonthTaskKendoGrid(year, months) {
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTaskReportDataSource', { year: year, months: months }, function (res) {
+
+			CreateKendoAllTaskChart($('#AllTasks'), res);
+
+
+			$("#monthTaskGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 395,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Çağrı Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count.length",
+						title: "Çağrı Adedi",
+						width: 180
+					},
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıt Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+					{
+						field: "resolutionTime",
+						title: "Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+				]
+			});
+
+			var grid = $("#monthTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+
+
+	}
+	function createMonthPersonnelTaskKendoGrid(year, months) {
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyEmployeeTaskReportDataSource', { year: year, months: months }, function (res) {
+			$("#monthPersonnelTaskGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 475,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Personel Çağrı Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "personnelName",
+						title: "Personel"
+					},
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count",
+						title: "Çağrı Adedi",
+						width: 180
+					},
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıt Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+					{
+						field: "resolutionTime",
+						title: "Ortalama Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+				]
+			});
+
+			var grid = $("#monthPersonnelTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+	}
+	function createMonthSubjectTaskKendoGrid(year, months) {
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/MonthlyTaskSubjectReportDataSource', { year: year, months: months }, function (res) {
+
+			$("#monthSubjectTaskGrid").kendoGrid({
+				dataSource: res,
+				pageSize: 100,
+				height: 500,
+				sortable: true,
+				toolbar: [{ name: 'excel', text: '' }],
+				excel: {
+					title: "",
+					fileName: "Aylık Çağrı Konu Raporu.xlsx",
+					filterable: true
+				},
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: false,
+					buttonCount: 5
+				},
+				columns: [
+					{
+						field: "taskType_Title",
+						title: "Çağrı Tipi"
+					},
+					{
+						field: "text",
+						title: "Aylar"
+					},
+					{
+						field: "count",
+						title: "Çağrı Adedi",
+						width: 150
+					},
+					{
+						field: "responseTime",
+						title: "Ortalama Yanıtlama Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.responseTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+					{
+						field: "resolutionTime",
+						title: "Ortalama Düzeltme Süresi (saat)",
+						template: function (data) {
+							return kendo.toString(data.resolutionTime / 60.0, 'N0');
+						},
+						filterable: false
+					},
+				]
+			});
+
+			var grid = $("#monthSubjectTaskGrid").data("kendoGrid");
+			grid.dataSource.page(1);
+		})
+	}
+	function CreateKendoAllTaskChart(element, data) {
+
+		//if (data.filter(function (v) { return v.tumIzinler == 0; }).length == 12) {
+		//	element.parents('div').eq(0).html("").append('<div class="nodatas fixs"><div>Herhangi bir veri bulunamadı</div></div>');
+		//}
+
+		element.kendoChart({
+			dataSource: {
+				data: data
+			},
+			series: [{
+				field: "count.length",
+				categoryField: "text"
+			}],
+			render: function (e) {
+				var loading = $(".chart-loading", e.sender.element.parent());
+				kendo.ui.progress(loading, false);
+			},
+			seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#1c0F7F", "#9de219", "#90cc38"],
+			legend: {
+
+				visible: true
+			},
+			valueAxis: {
+				labels: {
+					format: "{0:N0} "
+				}
+			},
+			categoryAxis: {
+				labels: {
+					rotation: -45
+				},
+				majorGridLines: {
+					visible: true
+				},
+				majorTicks: {
+					lines: {
+						visible: true
+					}
+				},
+			},
+			tooltip: {
+				visible: true,
+				format: "{0:N0}",
+				template: "Çağrı Sayısı: #=kendo.format(\"{0:N0}\", data.dataItem.count.length)# Adet",
+				opacity: 0.7,
+				background: 'red'
+			}
+		});
+		$(element.selector).append(kendoExportTemplate(element.selector));
+	}
+
+	$(document)
+		.on('ready', function (e) {
+			var year = new Date().getFullYear();
+			var months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+			createMonthTaskKendoGrid(year, months);
+			createMonthPersonnelTaskKendoGrid(year, months);
+			createMonthSubjectTaskKendoGrid(year, months);
+		})
+
+</script>
+
+
+
+
+

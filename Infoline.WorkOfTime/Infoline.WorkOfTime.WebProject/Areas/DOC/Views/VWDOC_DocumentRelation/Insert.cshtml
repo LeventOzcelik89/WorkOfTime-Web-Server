@@ -1,0 +1,43 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWDOC_DocumentRelation
+@{
+    ViewBag.Title = "İlişkili Doküman Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWDOC_DocumentRelation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.documentId)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Count">İlişkili Doküman</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.documentRelationId)
+                .OptionLabel("Lütfen İlişkili Doküman Seçiniz..")
+                .DataTextField("title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWDOC_Document", new { area = "DOC" }))
+                .Sort(x => x.Add("title").Ascending())
+                .Validate(Validations.Required)
+                .Execute("id")
+             )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -1,0 +1,363 @@
+﻿@model Dictionary<string, string>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Dil Tanımlamaları";
+    var languages = Configs.languages;
+    var random = new Random().Next(0, 15000);
+}
+
+<style type="text/css">
+    .panel > .panel-heading {
+        padding: 20px;
+        color: #7ebf52;
+    }
+
+    table thead tr th {
+        padding: 15px !important;
+        color: #808080;
+    }
+</style>
+
+
+<script type="text/javascript">
+
+
+    var q = {
+        global: {},
+        local: {},
+        selected: null,
+        page: {
+            change: function (e) {
+
+                var item = e.sender.dataItem();
+                q.selected = item;
+                if (item && item.Area != "" && item.Action != "Insert" && item.Action != "Index") {
+
+                    $.ajax({
+                        url: "/SYS/Language/GetParam",
+                        type: "POST",
+                        beforeSend: function () {
+                            $("body").loadingModal({ text: "Metot parametreleri yükleniyor.Lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "#000" });
+                        },
+                        data: { Controller: item.Controller },
+                        success: function (e) {
+                            if (e && e != null) {
+                                $("#Params").val("?id=" + e);
+                            }
+                            q.selected = item;
+                        }, complete: function () {
+                            $("body").loadingModal("destroy");
+                        }
+                    });
+
+                } else {
+                    $("#Params").val("");
+                }
+
+                q.init();
+            },
+            next: function () {
+                var dropdown = $("#Page").data("kendoDropDownList");
+                dropdown.select(dropdown.selectedIndex + 1);
+                dropdown.trigger("change", { item: $("li.k-state-selected", $("#dropdownlist-list")) });
+                window.setTimeout(function () {
+                    q.page.get();
+                }, 300);
+            },
+            get: function (e) {
+
+                var params = $("#Params").val();
+                if (q.selected == null) {
+                    MesajWarning("Sayfa seçmelisiniz.", "İşlem Eksik gerçekleştir.");
+                    return false;
+                }
+              
+                $("#Language tbody tr:not(:first-child)").remove();
+
+                $.ajax({
+                    url: q.selected.Text + params,
+                    type: "GET",
+                    beforeSend: function () {
+                        $("body").loadingModal({ text: "Sayfa verileri yükleniyor.Lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "#000" });
+                    },
+                    success: function (resp) {
+
+                        var textArray = $.Enumerable.From($(resp).find("*").not("script").not("style").contents())
+                                                    .Where("($.nodeType==3 && $.nodeValue.trim()!='' && $.nodeValue.trim().length>3)")
+                                                    .Select("$.nodeValue.trim()")
+                                                    .ToArray();
+
+                        $(resp).find("*").each(function (i, e) {
+                            if ($(this).attr("placeholder")) {
+                                textArray.push($(this).attr("placeholder").trim());
+                            }
+                            if ($(this).attr("title")) {
+                                textArray.push($(this).attr("title").trim());
+                            }
+                            $.each($(this).data(), function (i, e) {
+                                if (i && typeof (e) == "string" && i == "original-title") {
+                                    textArray.push(e.trim());
+                                }
+                            });
+                        });
+
+                        $.getJSON("/Language/Sources/" + q.selected.Value + '@TenantConfig.Tenant.Config.LanguageCode'  + "?t=" + Math.random())
+                            .done(function (resp2) {
+                                if (resp2) {
+                                    $.Enumerable.From(resp2).ToArray().forEach(function (elem) {
+                                        textArray.push(elem.Key);
+                                    });
+                                }
+
+                                textArray = $.Enumerable.From(textArray).GroupBy(function (e) { return e }).Select(function (e) { return e.Key() }).ToArray();
+
+
+                            })
+                            .complete(function (resp2) {
+                                console.clear();
+
+                                textArray.forEach(function (props) {
+                                    var clone = $("#Language tbody tr:first-child").clone(true);
+                                    clone.removeClass("hide");
+                                    clone.find("td:first-child input").val(e);
+                                    clone.find("textarea").each(function (i, e) {
+                                        if (i == 0) {
+                                            $(this).attr("readonly", "readonly")
+                                            $(this).val(props);
+                                        }
+                                        if (q.global && q.global[props] && q.global[props][$(this).attr("name")]) {
+                                            $(this).val(q.global[props][$(this).attr("name")]);
+                                        }
+                                    });
+                                    clone.find("button").removeClass("btn-success").addClass("btn-danger");
+                                    clone.find("button").find("i").removeClass("fa-plus").addClass("fa-minus");
+                                    clone.find("button").removeAttr("onclick");
+                                    clone.find("button").on("click", function () {
+                                        $(this).parents("tr").remove();
+                                    })
+                                    $("#Language tbody tr:first-child").after(clone);
+                                });
+                            });
+
+
+
+
+
+                        //$.getJSON("/Language/Sources/" + q.selected.Value + "?t=" + Math.random())
+                        //    .done(function (resp2) {
+                        //        if (resp2) {
+                        //            $.Enumerable.From(resp2).ToArray().forEach(function (elem) {
+                        //                textArray.push(elem.Key);
+                        //            });
+                        //        }
+                        //        textArray = $.Enumerable.From(textArray).GroupBy(function (e) { return e }).Select(function (e) { return e.Key() }).ToArray();
+                        //    })
+
+                        //GetJsonDataFromUrl("/SYS/Language/LanguageLoad", { param: textArray }, function (resp) {
+
+
+                        //    var textArrayResult = resp.objects;
+                        //    var i = 0;
+
+
+                        //    textArray.forEach(function (props) {
+                        //        var clone = $("#Language tbody tr:first-child").clone(true);
+                        //        clone.removeClass("hide");
+                        //        clone.find("td:first-child input").val(e);
+                        //        clone.find("td:eq(1) textarea").val(textArrayResult.TR_EN[i]);
+                        //        clone.find("td:eq(2) textarea").val(textArrayResult.TR_RU[i]);
+                        //        i++;
+                        //        clone.find("textarea").each(function (i, e) {
+                        //            if (i == 0) {
+                        //                $(this).attr("readonly", "readonly")
+                        //                $(this).val(props);
+                        //            }
+                        //            if (q.global && q.global[props] && q.global[props][$(this).attr("name")]) {
+                        //                $(this).val(q.global[props][$(this).attr("name")]);
+
+                        //            }
+
+                        //        });
+                        //        clone.find("button").removeClass("btn-success").addClass("btn-danger");
+                        //        clone.find("button").find("i").removeClass("fa-plus").addClass("fa-minus");
+                        //        clone.find("button").removeAttr("onclick");
+                        //        clone.find("button").on("click", function () {
+                        //            $(this).parents("tr").remove();
+                        //        })
+                        //        $("#Language tbody tr:first-child").after(clone);
+                        //    });
+                        //});
+
+
+                    },
+
+
+                    error: function (resp) {
+                        console.clear();
+                        MesajError("Geçersiz metod parametreleri ile istek işlenmeye çalışıyor.", "İşlem Eksik gerçekleşti.");
+                    },
+                    complete: function () {
+                        $("body").loadingModal("destroy");
+                    }
+                });
+            },
+            save: function () {
+
+                if (!q.selected) {
+                    MesajWarning("Sayfa seçmelisiniz.", "İşlem Eksik gerçekleştir.");
+                    return false;
+                };
+
+                q.init();
+
+
+                var fileName = $("#Page").val();
+                q.local = {};
+
+                $("#Language tbody tr").each(function (trindex, trelem) {
+                    var tr = $(this);
+                    var indis = "";
+                    tr.find("textarea").each(function (i, e) {
+                        if (i == 0) {
+                            indis = $(this).val();
+                            if (indis == "") return;
+                        } else {
+
+                            if ($(this).val() == "" || indis == "") return;
+
+                            if (!q.local.hasOwnProperty(indis)) {
+                                q.local[indis] = {}
+                            }
+                            q.local[indis][$(this).attr("name")] = $(this).val();
+                        }
+                    });
+                });
+
+
+                $.ajax({
+                    url: '/SYS/Language/Save',
+                    data: { json: JSON.stringify(q.local), fileName: q.selected.Value },
+                    type: "post",
+                    beforeSend: function (e) {
+                        $("body").loadingModal({ text: "Sayfa verileri yükleniyor.Lütfen bekleyiniz.", animation: 'rotatingPlane', backgroundColor: "#000" });
+                    },
+                    success: function (resp) {
+                        if (resp) {
+                            MesajSuccess("Kaydetme işlemi başarılı.", "İşlem Başarıyla gerçekleşti.");
+                        } else {
+                            MesajSuccess("Kaydetme işlemi başarısız.", "Bir sorun oluştu.");
+                        }
+                    },
+                    error: function () {
+                        MesajError("Kaydetme işlemi esnasında sorunlar oluştu.", "İşlem Eksik gerçekleşti.");
+                    },
+                    complete: function () {
+                        q.init();
+                        $("body").loadingModal("destroy");
+                    }
+                });
+            }
+        },
+        row: {
+            add: function (elem) {
+                var tr = $(elem).parents("tr");
+
+                if (tr.find('[name="TR"]').val() == "") {
+                    alert("Kelimenin türkçesini girmeden kaydedemezsiniz.");
+                    return false;
+                }
+
+                var clone = tr.clone(true);
+                tr.find("input").val("");
+                clone.find("button").removeClass("btn-primary").addClass("btn-danger").attr("id", "remove").html('<i class="fa fa-minus"></i>');
+                tr.after(clone);
+            },
+        },
+        init: function () {
+            $.getJSON("/Language/Sources/global" + '@TenantConfig.Tenant.Config.LanguageCode' + ".json?t=" + Math.random(), function (resp) {
+                q.global = resp;
+            });
+        }
+    };
+
+
+
+
+    q.init();
+
+</script>
+
+
+<div class="language-content">
+    <div class="panel panel-default">
+        <div class="panel-body">
+
+            <div class="form-group">
+                <label class="control-label">Dil girişi yapılacak sayfa'yı seç</label>
+                <div class="clearfix">
+                    @(Html.Kendo().DropDownList()
+                      .Name("Page")
+                      .OptionLabel("Dil girişi yapılacak sayfayı seçiniz..")
+                      .DataTextField("DescAll")
+                      .DataValueField("Value")
+                      .Filter("contains")
+                      .Events(a => a.Change("q.page.change"))
+                      .DataSource(source =>
+                      {
+                          source.Read(read =>
+                          {
+                              read.Action("GetPages", "Language", new { area = "SYS" });
+                          });
+                      })
+                      .HtmlAttributes(new Dictionary<string, object> { { "class", "form-control" } })
+                    )
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="control-label">Varsa ek parametreleri Giriniz.. ( ?id=e4e2727d-5dad-461e-bdb9-2aee32ab9fa7&state=1)</label>
+                <input type="text" id="Params" name="Params" class="form-control" placeholder="?id=e4e2727d-5dad-461e-bdb9-2aee32ab9fa7&state=1" />
+            </div>
+
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-block btn-info" onclick="q.page.get()">Seçili Sayfayı Getir</button>
+                    </div>
+                    <div class="col-md-6">
+                        <button type="button" class="btn btn-block btn-info" onclick="q.page.next()">Sonraki Sayfayı Getir</button>
+                    </div>
+                </div>
+            </div>
+
+            <table class="table table-condensed table-bordered" id="Language">
+                <thead>
+                    <tr>
+                        @foreach (var item in languages)
+                        {
+                            <th>@item</th>
+                        }
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        @foreach (var item in languages)
+                        {
+                            <td><textarea type="text" name="@item" class="form-control input-md"></textarea></td>
+                        }
+                        <td><button class="btn btn-md btn-success btn-block" onclick="q.row.add(this)"><i class="fa fa-plus"></i></button></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="fixed-button">
+            <button class="btn btn-md btn-success pull-right" onclick="q.page.save()"><i class="fa icon-check-1"></i>Kaydet</button>
+        </div>
+        <div class="panel-footer clearfix">
+            <button class="btn btn-md btn-danger pull-left"><i class="fa fa-chevron-left" style="margin-right:5px"></i>Geri</button>
+        </div>
+    </div>
+
+</div>

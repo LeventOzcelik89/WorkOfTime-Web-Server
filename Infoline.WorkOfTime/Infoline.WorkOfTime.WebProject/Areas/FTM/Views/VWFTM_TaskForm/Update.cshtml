@@ -1,0 +1,229 @@
+﻿@model VMFTM_TaskForm
+@{
+	ViewBag.Title = "Görev Formu Düzenleme";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script src="~/Content/Plugins/formBuilder/form-builder.min.js" data-selector="modalContainer"></script>
+<script src="~/Content/Plugins/formBuilder/form-render.min.js" data-selector="modalContainer"></script>
+<script type="text/javascript" data-selector="modalContainer">
+
+    var page = {
+        data: @Html.Raw(Json.Encode(Model)),
+        form: null,
+        fnc: {
+           submit: function(){
+                var jsonData = page.form.actions.getData("json");
+                $('#json').val(jsonData);
+                $('#VWFTM_TaskFormUpdate').trigger("submit");
+                 $("#submit").prop("onclick", null).off("click");
+            },
+            buildForm: function(){
+
+
+                var data = null;
+                try {
+                   var data = JSON.parse(page.data.json);
+                } catch (e) {
+                   var data = page.data.json;
+                }
+
+                page.form = $('#build-wrap').formBuilder({
+                    showActionButtons: false,
+                    disableFields: ['file','button'],
+                    disabledAttrs: ['access'],
+                    i18n:{
+                        locale: "tr-TR"
+                    },
+                    formData: data,
+                });
+            }
+        }
+    }
+
+
+    $(document)
+        .ready(function(){
+            page.fnc.buildForm();
+        })
+
+
+
+</script>
+
+@using (Html.BeginForm("Update", "VWFTM_TaskForm", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "id", "VWFTM_TaskFormUpdate"},
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true)
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.json)
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="name">Form Adı</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Form Adını Girin.."},
+			}).Validate(Validations.Required)
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="code">Form Kodu</label>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"readonly", "readonly" }
+			}).Validate(Validations.Required)
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="type">Form Tipi</label>
+		</div>
+		<div class="col-md-8">
+
+			@(Html.Akilli()
+                          .DropDownListFor(model => model.type)
+                          .OptionLabel("Lütfen Form Tipini Seçiniz..")
+                          .DataValueField("Id")
+                          .DataTextField("enumDescription")
+                          .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                          .Sort(x => x.Add("enumDescription").Ascending())
+                          .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "FTM_Task" && a.fieldName == "type")
+                          .Execute("enumKey")
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="productId">Ürün</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DropDownListFor(model => model.productId)
+                .OptionLabel("Lütfen Ürün seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('productTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                .Sort(x => x.Add("code").Ascending())
+                .Execute()
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="inventoryId">Envanter</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .MultiSelectFor(model => model.inventoryId)
+                .Placeholder("Lütfen Envanter seçiniz..")
+                .DataTextField("searchField")
+                .DataValueField("id")
+                .ItemTemplate("#=TemplateEngine('inventoryTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                .CascadeFrom("productId")
+                .CascadeFromField("productId")
+                .Sort(x => x.Add("code").Ascending())
+                .Execute()
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyId">İşletme</label>
+		</div>
+		<div class="col-md-8">
+			@(
+        Html.Akilli()
+        .DropDownListFor(model => model.companyId)
+        .OptionLabel("Lütfen İşletme Seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .Execute()
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md " for="companyStorageId">Şube/Depo/Kısım</label>
+		</div>
+		<div class="col-md-8">
+			@(
+            Html.Akilli()
+            .DropDownListFor(model => model.companyStorageId)
+            .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+            .DataTextField("fullName")
+            .DataValueField("id")
+            .Template("#=TemplateEngine('storageTemplate',data)#")
+            .ValueTemplate("#=fullName#)")
+            .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+            .CascadeFrom("companyId")
+            .CascadeFromField("companyId")
+            .Sort(x => x.Add("fullName").Ascending())
+            .Execute()
+                )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="isActive">Form Durumu</label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix" id="insertRadio">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskFormIsActive>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.isActive, item.Key, new Dictionary<string, object> { { "id", "Type" + item.Key } }))
+						<label for="Type@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<div id="build-wrap" style="background-color: #f1f2f2;padding:10px;"></div>
+
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+	</div>
+
+	<div class="fixed-button" style="vertical-align:middle">
+		<button class="btn btn-md btn-success pull-right" id="submit" type="button" onclick="page.fnc.submit()">Kaydet</button><br /><br />
+	</div>
+}

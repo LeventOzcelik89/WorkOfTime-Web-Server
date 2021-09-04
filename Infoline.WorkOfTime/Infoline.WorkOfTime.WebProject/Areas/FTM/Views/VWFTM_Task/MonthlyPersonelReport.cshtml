@@ -1,0 +1,309 @@
+﻿@{
+	ViewBag.Title = "Personel Yıl/Ay Bazlı Çağrı Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	string[] months = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12" };
+
+}
+
+<script type="text/javascript">
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#assignableUsers').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+</script>
+
+<style type="text/css">
+	table {
+		border: 1px #ccc solid !important;
+	}
+
+	td {
+		text-align: center;
+	}
+
+	th {
+		text-align: center;
+	}
+</style>
+
+
+
+<div class="row clearfix">
+	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+		<div class="ibox-custom ">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
+		  Html.Akilli()
+									   .DropDownList("group")
+									   .OptionLabel("Lütfen Grub/Ekip Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("name")
+									   .Action(b => b.Action("DataSourceDropDown", "SH_Group", new { area = "SH" }))
+									   .Events(x => x.Change("onChangeGroup"))
+									   .Sort(x => x.Add("name").Ascending())
+									   .Execute()
+                            )
+						</div>
+					</div>
+
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
+		  Html.Akilli()
+									   .MultiSelect("assignableUsers")
+									   .Placeholder("Lütfen Personel Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("FullName")
+									   .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+									   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+									   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && a.RoleIds.Contains(SHRoles.SahaGorevPersonel))
+									   .Sort(x => x.Add("FullName").Ascending())
+									   .Execute()
+                            )
+						</div>
+					</div>
+
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
+								 Html.Akilli()
+								 .DropDownList("customerId")
+								 .OptionLabel("Lütfen Müşteri İşletmeyi Seçiniz..")
+								 .DataValueField("id")
+								 .DataTextField("fullName")
+								 .Template("#=TemplateEngine('companyTemplate',data)#")
+								 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+								 .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
+								 //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+								 .Sort(x => x.Add("fullName").Ascending())
+								 .Validate(Validations.Required)
+								 .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
+                              Html.Akilli()
+                              .DropDownList("customerStorageId")
+                              .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('storageTemplate',data)#")
+                              .ValueTemplate("#=fullName#)")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                              .CascadeFrom("customerId")
+                              .CascadeFromField("companyId")
+                              .Sort(x => x.Add("fullName").Ascending())
+                              .Execute()
+                              )
+						</div>
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="col-md-4">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .DropDownList("year")
+									   .OptionLabel("Raporlamak İstediğiniz Yılı Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(DateTime.Now.Year.ToString())
+									   .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-5">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .MultiSelect("months")
+									   .Placeholder("Lütfen Rapor Aylarını Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+									   .Validate(Validations.Required)
+									   .Value(months)
+									   .Execute()
+                                   )
+						</div>
+					</div>
+
+					<div class="col-md-3 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+			</div>
+
+
+
+		</div>
+
+		<br />
+	</div>
+</div>
+</div>
+
+<div id="grid"></div>
+
+<script type="text/javascript">
+	var tableToExcel = (function () {
+		var uri = 'data:application/vnd.ms-excel;base64,'
+			, template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Satış Siparişleri</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>'
+			, base64 = function (s) { return window.btoa(unescape(encodeURIComponent(s))) }
+			, format = function (s, c) { return s.replace(/{(\w+)}/g, function (m, p) { return c[p]; }) }
+		return function (table, name) {
+			var a = document.createElement('a');
+			document.body.appendChild(a);
+			var ctx = { worksheet: 'Worksheet', table: document.getElementById(table).innerHTML }
+			a.href = uri + base64(format(template, ctx));
+			a.download = 'Satış Siparişleri - ' + new Date().toLocaleDateString() + '.xls';
+			a.click();
+		}
+	})();
+
+	$("#DashBoardFilter").click(function () {
+
+		var months = $("#months").val();
+		var year = $('#year').val();
+		var assignableUsers = $("#assignableUsers").val();
+		var customer = $("#customerId").val();
+		var customerStorage = $("#customerStorageId").val();
+
+		createKendoGrid(year, months, assignableUsers, customer, customerStorage)
+
+
+	})
+
+	function GetMonthlyName(data) {
+
+		var resultData = "";
+		switch (data) {
+			case 1:
+				resultData = "Ocak";
+				break;
+			case 2:
+				resultData = "Şubat";
+				break;
+			case 3:
+				resultData = "Mart";
+				break;
+			case 4:
+				resultData = "Nisan";
+				break;
+			case 5:
+				resultData = "Mayıs";
+				break;
+			case 6:
+				resultData = "Haziran";
+				break;
+			case 7:
+				resultData = "Temmuz";
+				break;
+			case 8:
+				resultData = "Ağustos";
+				break;
+			case 9:
+				resultData = "Eylül";
+				break;
+			case 10:
+				resultData = "Ekim";
+				break;
+			case 11:
+				resultData = "Kasım";
+				break;
+			case 12:
+				resultData = "Aralık";
+				break;
+			default:
+		}
+
+		return resultData;
+
+	}
+
+
+	function createKendoGrid(year, months, assignableUsers,customer,customerStorage) {
+
+		ReadData('/FTM/VWFTM_Task/MonthlyPersonelReportData', { year: year, months: months, assignableUsers: assignableUsers, customer: customer, customerStorage: customerStorage }, function (resp) {
+
+
+			var cols = [
+				{ field: 'Name', title: 'Personel', width: 200 },
+				{ field: 'Group_Title', title: 'Grup/Ekib', width: 200 },
+			];
+
+			$.each(months, function (m, month) {
+				month = parseInt(month);
+				var str = "data.M" + month + ".Reso";
+				cols.push(
+					{
+						title: year + ' ' + GetMonthlyName(month), width: 200,
+						headerAttributes: {
+							style: "text-align: center; font-size: 14px"
+						},
+						columns:
+							[
+								{
+									field: 'M' + month + '.Count',
+									title: 'Çağrı Adedi',
+									width: 170,
+									template: "<a target='blank' class='btn btn-info' href=/FTM/VWFTM_TaskGrid/Index?taskIds=#=M" + month + ".taskIds#>#=M" + month + ".Count#</a>"
+								},
+								{
+									field: 'M' + month + '.Resp',
+									title: 'Ortalama Cevap (dk)',
+									width: 220
+								},
+								{
+									field: 'M' + month + '.Reso',
+									title: 'Ortalama Tamamlama (dk)',
+									width: 220
+								}
+							]
+					}
+				);
+			});
+
+			opts = {
+				Data: resp,
+				Column: cols,
+				groupField: 'Group_Title',
+				groupable: true
+			};
+
+			GridRender(opts, $('#grid'));
+		});
+
+	}
+
+
+	$(document)
+		.on('ready', function (e) {
+			var year = new Date().getFullYear();
+			var months = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
+			createKendoGrid(year, months);
+		})
+
+
+</script>

@@ -1,0 +1,67 @@
+﻿@model VMUT_RulesUser
+@{
+    ViewBag.Title = "Kullanıcılara Kural Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWUT_RulesUser", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+
+
+
+    <div class="form-group @(Model.rulesId.HasValue ? "hide" : "")">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="rulesId">Kural</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .DropDownListFor(model => model.rulesId)
+			      .OptionLabel("Lütfen kural seçiniz..")
+			      .DataTextField("name")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWUT_Rules", new { area = "UT" }))
+			      .Sort(x => x.Add("name").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="userId">Kullanıcı</label>
+        </div>
+        <div class="col-md-8">
+			  @(
+			      Html.Akilli()
+			      .MultiSelectFor(model => model.userIds)
+			      .Placeholder("Lütfen kullanıcı seçiniz..")
+			      .DataTextField("FullName")
+			      .DataValueField("id")
+			      .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                  .Filter<VWSH_User>(x => x.IsWorking == true && x.status == true)
+			      .Sort(x => x.Add("firstname").Ascending())
+			      .Validate(Validations.Required)
+			      .Execute()
+			)
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

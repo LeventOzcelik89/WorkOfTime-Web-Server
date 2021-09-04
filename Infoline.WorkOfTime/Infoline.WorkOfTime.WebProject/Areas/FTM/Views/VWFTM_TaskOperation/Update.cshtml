@@ -1,0 +1,174 @@
+﻿@model VMFTM_TaskOperationModel
+@{
+    ViewBag.Title = "Görev Operasyon Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var gecensure = DateTime.Now - Model.Task.created.Value;
+    var status = (EnumFTM_TaskOperationStatus)Model.status;
+}
+
+
+@using (Html.BeginForm("Update", "VWFTM_TaskOperation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.taskId)
+    @Html.HiddenFor(model => model.status)
+
+    <div class="hide">
+        @(Html.Akilli().MapInput().Navigation(true).Name("location"))
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="description">Tarih/Oluşturan : </label>
+        </div>
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    @Html.TextBoxFor(model => model.created, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"}
+                    })
+                </div>
+                <div class="col-md-6">
+                    @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"}
+                    })
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    if (Model.fixture_Title != null)
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md" for="description">Envanter</label>
+            </div>
+            <div class="col-md-9">
+                @Html.TextBoxFor(model => model.fixture_Title, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly","readonly" }
+                }).Validate(Validations.Required)
+            </div>
+        </div>
+    }
+
+    if (status == EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun || status == EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAltUrun || status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun || status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAltUrun || status == EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md req" for="description">Açıklama</label>
+            </div>
+            <div class="col-md-9">
+                @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Açıklama Giriniz." }
+                    }).Validate(Validations.TextTurkceSpace09(true, 0, 1000))
+            </div>
+        </div>
+    }
+
+    if (status == EnumFTM_TaskOperationStatus.UrunDegisimi)
+    {
+        @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.Task.customerStorageId && a.type ==(Int16)EnumPRD_TransactionType.Transfer).PageSize(2))
+                        .Scrollable(a => a.Height(80))
+                        .Columns(x =>
+                        {
+                                x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+                                x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity, 'n2')# #:unitId_Title#</span> ").Width(130).Format("{0:N2}");
+                                x.Bound(y => y.serialCodes).Title("Seri Numaraları").Width(200);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+
+        <br />
+    }
+
+
+    if (status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun || status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAltUrun || status == EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md req" for="Dosya">Dosya</label>
+            </div>
+            <div class="col-md-9">
+                @(Html.Akilli().FileUpload()
+                        .DataTable("FTM_TaskOperation")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Görev Dosyası")
+                        .Validate(true))
+            </div>
+        </div>
+    }
+
+    if (status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun || status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun)
+    {
+        <div class="clearfix">
+            <script src="~/Content/Plugins/formBuilder/form-render.min.js" data-selector="modalContainer"></script>
+            <script type="text/javascript" data-selector="modalContainer">
+
+                var pageFormOperation = {
+                    data: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
+                    fnc: {
+                        submit: function (e) {
+                            $('#markup').validator("validate");
+                            if (!$('#markup').data('bs.validator').hasErrors()) {
+                                var updatedData = $('#markup').formRender("userData");
+                                $('#jsonResult').val(JSON.stringify(updatedData));
+                                $(e).parents("form").trigger("submit");
+                            } else {
+                                MesajWarning("Lütfen formdaki zorunlu alanları doldurunuz.", "Bildilendirme");
+                            }
+                        },
+                        renderForm: function () {
+                            var data = JSON.parse(pageFormOperation.data.jsonResult);
+                            $("#markup").formRender({ formData: data });
+                            $.each(data, function (i, item) { if (item.type === "checkbox-group" || item.type === "radio-group") { if (typeof item.required !== 'undefined' && item.required === true) { if (item.userData.length > 0) { $('.field-' + item.name).find('input').each(function (i, e) { if ($.inArray(e.value, item.userData) !== -1) { $(e).trigger("click"); } }); } } } });
+                        }
+                    }
+                };
+
+                pageFormOperation.fnc.renderForm();
+            </script>
+
+            @Html.HiddenFor(a => a.formResultId)
+            @Html.HiddenFor(a => a.jsonResult)
+
+            <div class="form-group">
+                <div class="col-md-3">
+                    <label class="control-label label-md req" for="form">Form</label>
+                </div>
+                <div class="col-md-9">
+                    <div id="markup" style="border:1px #ccc solid;padding:10px;"></div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        @if (status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun || status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun)
+        {
+            <button class="btn btn-md btn-primary pull-right" type="button" onclick="pageFormOperation.fnc.submit(this)">Güncelle</button>
+        }
+        else
+        {
+            <button class="btn btn-md btn-primary pull-right" type="submit">Güncelle</button>
+        }
+    </div>
+
+}

@@ -1,0 +1,74 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_Inventory
+@{
+    Layout = null;
+    int size = 75;
+    var qrCodeInfo = Model.productId_Title + " | " + Model.serialcode + " | " + Model.code;
+}
+
+<html>
+<head>
+    <title>&nbsp;&nbsp;</title>
+    <script src="~/content/themes/js/jquery-2.1.1.js"></script>
+    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.aspnetmvc.min.js"></script>
+    <link href="~/Content/Custom/css/print.css" rel="stylesheet" />
+    <style type="text/css">
+        .smallTxtTable {
+            font-size: 9px;
+            margin-left: -6px;
+        }
+
+        .right {
+            float: left;
+            width: 35%;
+            margin-top: 43px;
+            text-align: center;
+            -webkit-transform: rotate(-90deg);
+            -moz-transform: rotate(-90deg);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <table style="margin:50px auto;" cellspacing="0" cellpadding="0">
+            <tbody>
+
+                <tr>
+                    <td style="width:204.09448824px;height:128.50393704px;border:3mm solid white;border-right:1.3mm solid white;border-left: 1.3mm solid white;">
+                        <div style="float:left;width:40%;">
+                            @(Html.Kendo().QRCode()
+                                           .Name("qrCode_")
+                                           .Value(qrCodeInfo)
+                                           .Size(size - 10)
+                                    )
+                        </div>
+
+                        <div style="float:left;width:40%;">
+                            <img style="width:@(size-20)px;margin-top:10px;margin-left: 11px;" src="@(TenantConfig.Tenant.TenantCode + "/images/logo.png")" onerror="ImageError(this,'/Content/Customers/@TenantConfig.Tenant.TenantCode/images/logo.png')" />
+                        </div>
+
+                        <div class="right" style="float:left;width:20%;">
+                            <small class="smallTxtTable">www.callay.com.tr</small>
+                        </div>
+
+                        <div style="float:left;width:100%;">
+                            <div style="text-align: center;
+                                           padding: 0px;
+                                           font-size: 10px;
+                                           text-align: center;width: 75%;">
+                                @Model.productId_Title.Split('|')[0] @Model.fullName
+                            </div>
+                        </div>
+
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div style="text-align: center;margin-top: -62px;">
+            <a class="btn btn-danger btn-xs" data-print="/PRD/VWPRD_Inventory/PrintQrCodeSize?height=34&width=54&id=@Model.id" target="_blank" href="/PRD/VWPRD_Inventory/PrintQrCodeSize?height=34&width=54&id=@Model.id"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+        </div>
+
+    </div>
+</body>
+</html>

@@ -1,0 +1,39 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="colmd3Cards col-xs-12 col-sm-12 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWHR_StaffNeedsKeywords>("VWHR_StaffNeedsKeywords")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWHR_StaffNeedsKeywords", new { area = "HR" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
+        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWHR_StaffNeedsKeywords", new { area = "HR" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWHR_StaffNeedsKeywords", new { area = "HR" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWHR_StaffNeedsKeywords", new { area = "HR" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWHR_StaffNeedsKeywords", new { area = "HR" }));
+    }))

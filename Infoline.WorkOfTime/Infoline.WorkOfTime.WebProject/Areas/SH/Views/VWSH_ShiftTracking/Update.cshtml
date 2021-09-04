@@ -1,0 +1,122 @@
+﻿@model Infoline.WorkOfTime.BusinessData.SH_ShiftTracking
+@{
+	ViewBag.Title = "Personel Giriş Çıkış Kayıt Düzenle";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWSH_ShiftTracking", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true)
+	@Html.HiddenFor(model => model.id)
+
+
+	<div class="form-group" hidden>
+		<div class="col-md-4">
+			<label class="control-label label-md" for="userId">Personel</label>
+		</div>
+		<div class="col-md-8">
+			@(
+				Html.Akilli()
+				.MultiSelectFor(a => a.userId)
+				.DataValueField("id")
+				.DataTextField("FullName")
+				.Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+				.Sort(x => x.Add("FullName").Ascending())
+				.Execute()
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group" hidden>
+		<div class="col-md-4">
+			<label class="control-label label-md" for="companyId">İşletme</label>
+		</div>
+		<div class="col-md-8">
+			@(
+				Html.Akilli()
+				.MultiSelectFor(a => a.companyId)
+				.DataValueField("id")
+				.DataTextField("name")
+				.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+				.Sort(x => x.Add("name").Ascending())
+				.Enable(false)
+				.Readonly(true)
+				.Execute()
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="timestamp">Tarih</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Kendo().DateTimePickerFor(model => model.timestamp).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Tarih Giriniz.."},
+            })
+            .Format(Extensions.DateFormatFull())
+            .Validate(Validations.Required)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="shiftTrackingStatus">Durumu</label>
+		</div>
+		<div class="col-md-8">
+			@(
+			     Html.Akilli().
+			     DropDownListFor(model => model.shiftTrackingStatus).
+			     OptionLabel("Lütfen Durum seçiniz..").
+			     DataTextField("enumDescription").
+			     DataValueField("Id").
+			     Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			     Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_ShiftTracking" && a.fieldName == "shiftTrackingStatus").
+			     Sort(x => x.Add("enumDescription").Ascending()).
+			     Validate(Validations.Required).
+			     Execute("enumKey")
+			 )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="location">Konum</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                     Html.Akilli().MapInputFor(a => a.location).
+                     HelpText("Lütfen Lokasyon Seçiniz.").
+                     HtmlAttributes(new Dictionary<string, object>()
+                     {
+                         {"class", "form-control"},
+                         {"placeholder", "Lütfen Lokasyon Giriniz.."}
+                     }).
+                     Opened(false).
+					 ReadOnly(true).
+                     ZoomLevel(5).
+                     Navigation(false).
+                     Searchable(true)
+                 )
+			</div>
+		</div>
+
+
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+
+}

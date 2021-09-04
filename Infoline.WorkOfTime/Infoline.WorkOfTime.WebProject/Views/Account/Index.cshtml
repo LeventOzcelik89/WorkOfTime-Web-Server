@@ -1,0 +1,833 @@
+﻿@using Infoline.WorkOfTime.BusinessAccess
+@model Infoline.WorkOfTime.WebProject.Controllers.IndexDatas
+@{
+    ViewBag.Title = "Hoş Geldiniz ";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var db = new WorkOfTimeDatabase();
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userid = userStatus.user.id;
+    if (userStatus != null)
+    {
+        userStatus.user = db.GetVWSH_UserById(userid);
+    }
+    var issueIds = db.GetHDM_IssueUserByUserId(userStatus.user.id).Select(a => a.issueId).ToList();
+    var ticketQuery = "(issueId~eq~'" + Guid.NewGuid() + "')";
+    if (issueIds.Count() > 0)
+    {
+        ticketQuery = "(";
+        for (int i = 0; i < issueIds.Count(); i++)
+        {
+            if (i + 1 == issueIds.Count())
+            {
+                ticketQuery += "(issueId~eq~'" + issueIds[i] + "'))";
+            }
+            else
+            {
+                ticketQuery += "(issueId~eq~'" + issueIds[i] + "')~or~";
+            }
+        }
+    }
+}
+<link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
+<link href="~/Content/Custom/css/account-index.css" rel="stylesheet" />
+<script src="~/Content/Themes/js/plugins/chartJs/Chart.min.js"></script>
+<style type="text/css">
+    .nav.nav-tabs li {
+        background-color: #d8d8d891;
+    }
+</style>
+<script type="text/javascript">
+    var myPage = {
+        defines: {
+            yearlyChart: null,
+            excuseChart: null,
+            yearlyData: [
+                {
+                    value: @userStatus.user.PermitYearlyUsed,
+                    color: "#FF5733",
+                    highlight: "#F08080",
+                    label: "Kullanılan"
+                },
+                {
+                    value: @userStatus.user.PermitYearlyUsable,
+                    color: "#90EE90",
+                    highlight: "#2E8B57",
+                    label: "Kalan"
+                },
+            ],
+            excuseData:[
+                {
+                    value: @Html.Raw(Json.Encode(userStatus.user.PermitExcuseUsed)),
+                    color: "#FF5733",
+                    highlight: "#F08080",
+                    label: "Kullanılan"
+                },
+                {
+                    value: @Html.Raw(Json.Encode(userStatus.user.PermitExcuseUsable)),
+                    color: "#90EE90",
+                    highlight: "#2E8B57",
+                    label: "Kalan"
+                },
+            ],
+            chartOptions: {
+                   tooltips: {
+      callbacks: {
+        title: function(tooltipItem, data) {
+          return data['labels'][tooltipItem[0]['index']];
+        },
+        label: function(tooltipItem, data) {
+          return data['datasets'][0]['data'][tooltipItem['index']];
+        },
+        afterLabel: function(tooltipItem, data) {
+          var dataset = data['datasets'][0];
+          var percent = Math.round((dataset['data'][tooltipItem['index']] / dataset["_meta"][0]['total']) * 100)
+          return '(' + percent + '%)';
+        }
+      },
+      backgroundColor: '#FFF',
+      titleFontSize: 16,
+      titleFontColor: '#0066ff',
+      bodyFontColor: '#000',
+      bodyFontSize: 14,
+      displayColors: false
+    }
+            }
+        },
+        functions: {
+            createDoughnutChart: function (element, data, chart) {
+               var ctx = document.getElementById(element).getContext("2d");
+                new Chart(ctx).Doughnut(data, myPage.defines.chartOptions);
+            },
+            createScheduler: function (element) {
+                $("#" + element).kendoScheduler({
+                    date: new Date(),
+                    startTime: new Date(),
+                    endTime: new Date().addDays(1),
+                    height: window.outerHeight / 100 * 62,
+                    views: [
+                        { type: "workWeek", selected: true },
+                        "day",
+                        "workWeek",
+                        "month",
+                        "agenda",],
+                    editable: false,
+                    eventTemplate: $("#event-template").html(),
+                    dataSource: new kendo.data.SchedulerDataSource({
+                        transport: {
+                            read: {
+                                url: '@Url.Action("SchedulerDataSource", "VWINV_CompanyPersonCalendar", new {area = "INV", isMine = true})',
+                                dataType: "json"
+                            }
+                        }
+                    })
+                })
+            },
+                createCertificateScheduler: function (element) {
+                $("#" + element).kendoScheduler({
+                    date: new Date(),
+                    startTime: new Date(),
+                    endTime: new Date().addDays(1),
+                    height: window.outerHeight / 100 * 62,
+                    views: [
+                        { type: "agenda", selected: true }],
+                    editable: false,
+                    eventTemplate: $("#event-template").html(),
+                    dataSource: new kendo.data.SchedulerDataSource({
+                        transport: {
+                            read: {
+                                url: '@Url.Action("CertificateSchedulerDataSource", "VWINV_CompanyPersonCalendar", new {area = "INV", isMine = true})',
+                                dataType: "json"
+                            }
+                        }
+                    })
+                })
+            }
+        }
+    }
+    $(document)
+        .on("ready", function () {
+                if (@Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0) {
+                    myPage.functions.createDoughnutChart("doughnutChart", myPage.defines.yearlyData, myPage.defines.yearlyChart);
+                }
+                if (@Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count()) {
+                    myPage.functions.createDoughnutChart("doughnutChart2", myPage.defines.excuseData, myPage.defines.excuseChart);
+                }
+            myPage.functions.createScheduler("scheduler");
+			myPage.functions.createCertificateScheduler("certificateScheduler");
+            $('body').removeClass('mini-navbar');
+        })
+        .on("success", '[data-counturl]', function (e, res) {
+            $(this).removeClass(res == 0 ? "green" : "red");
+            $(this).addClass(res == 0 ? "red" : "green");
+        });
+    window.addEventListener('resize', function (e) {
+        var scheduler = $("#scheduler").data("kendoScheduler");
+        scheduler.element.height(window.outerHeight / 100 * 62);
+        scheduler.resize(true);
+    });
+</script>
+<script id="event-template" type="text/x-kendo-template">
+    <div class="eventtemplate">
+        <h3><span class="k-scheduler-mark" style="background-color:#:color#;"></span> #: title #</h3>
+        <p> #: description != null ? description : "" #</p>
+    </div>
+</script>
+<div class="row" style="padding-bottom: 15px;">
+    <div class="ibox-content clearfix" style="margin-top: -16px;border: 0;padding: 5px;">
+        <div class="col-md-3">
+            <div class="profile-image">
+                <img src="@(userStatus.user.ProfilePhoto!=null ? userStatus.user.ProfilePhoto :  "/Content/Custom/img/na.png")" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle circle-border m-b-md" alt="profile">
+            </div>
+            <div class="profile-info m-t-sm">
+                <div class="">
+                    <div>
+                        <h2 class="no-margins">
+                            @userStatus.user.FullName
+                        </h2>
+                        <h4 class="m-b-xs">@userStatus.user.Company_Title</h4>
+                        <small>
+                            @userStatus.user.Department_Title
+                        </small>
+                        <h5>
+                            İşe Giriş Tarihim : @(userStatus.user.JobStartDate.HasValue ? userStatus.user.JobStartDate.Value.ToShortDateString() : "-")
+                        </h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @if (Model.permits.Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3">
+                <table class="table small m-b-xs" style="border-top: none;">
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart" width="80" height="80"></canvas>
+                        <h5>Yıllık İzin</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitYearlyDeserved</button>
+                                        Hak Edilen Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitYearlyUsed</button>
+                                        Kullanılan Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitYearlyUsable</button>
+                                        Kalan Yıllık İzin
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart2" width="80" height="80"></canvas>
+                        <h5>Mazeret İzni</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitExcuseDeserved</button>
+                                        Hak Edilen Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitExcuseUsed</button>
+                                        Kullanılan Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitExcuseUsable</button>
+                                        Kalan Mazeret İzni
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart" width="80" height="80"></canvas>
+                        <h5>Yıllık İzin</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitYearlyDeserved</button>
+                                        Hak Edilen Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitYearlyUsed</button>
+                                        Kullanılan Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitYearlyUsable</button>
+                                        Kalan Yıllık İzin
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart2" width="80" height="80"></canvas>
+                        <h5>Mazeret İzni</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitExcuseDeserved</button>
+                                        Hak Edilen Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitExcuseUsed</button>
+                                        Kullanılan Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitExcuseUsable</button>
+                                        Kalan Mazeret İzni
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.permits.Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                <table class="table small m-b-xs" style="border-top: none;">
+                    <tbody>
+                        @foreach (var item in Model.permits.OrderByDescending(x => x.Value))
+                        {
+                            var str = "";
+                            var control = item.Value.ToString().Split(',');
+                            if (control.Count() > 1)
+                            {
+                                str += control[0] + " Saat ";
+                                str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                            }
+                            if (control.Count() == 1)
+                            {
+                                str += control[0] + " Saat ";
+                            }
+                            <tr>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@item.Key</td>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@(item.Tooltip == "true" ? item.Value + " Gün" : str)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart" width="80" height="80"></canvas>
+                        <h5>Yıllık İzin</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitYearlyDeserved</button>
+                                        Hak Edilen Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitYearlyUsed</button>
+                                        Kullanılan Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitYearlyUsable</button>
+                                        Kalan Yıllık İzin
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.permits.Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                <table class="table small m-b-xs" style="border-top: none;">
+                    <tbody>
+                        @foreach (var item in Model.permits.OrderByDescending(x => x.Value))
+                        {
+                            var str = "";
+                            var control = item.Value.ToString().Split(',');
+                            if (control.Count() > 1)
+                            {
+                                str += control[0] + " Saat ";
+                                str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                            }
+                            if (control.Count() == 1)
+                            {
+                                str += control[0] + " Saat ";
+                            }
+                            <tr>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@item.Key</td>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@(item.Tooltip == "true" ? item.Value + " Gün" : str)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart2" width="80" height="80"></canvas>
+                        <h5>Mazeret İzni</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitExcuseDeserved</button>
+                                        Hak Edilen Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitExcuseUsed</button>
+                                        Kullanılan Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitExcuseUsable</button>
+                                        Kalan Mazeret İzni
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.permits.Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                <table class="table small m-b-xs" style="border-top: none;">
+                    <tbody>
+                        @foreach (var item in Model.permits.OrderByDescending(x => x.Value))
+                        {
+                            var str = "";
+                            var control = item.Value.ToString().Split(',');
+                            if (control.Count() > 1)
+                            {
+                                str += control[0] + " Saat ";
+                                str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                            }
+                            if (control.Count() == 1)
+                            {
+                                str += control[0] + " Saat ";
+                            }
+                            <tr>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@item.Key</td>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@(item.Tooltip == "true" ? item.Value + " Gün" : str)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart" width="80" height="80"></canvas>
+                        <h5>Yıllık İzin</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitYearlyDeserved</button>
+                                        Hak Edilen Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitYearlyUsed</button>
+                                        Kullanılan Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitYearlyUsable</button>
+                                        Kalan Yıllık İzin
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+        {
+            <div class="col-md-3"></div>
+            <div class="col-md-3"></div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart2" width="80" height="80"></canvas>
+                        <h5>Mazeret İzni</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitExcuseDeserved</button>
+                                        Hak Edilen Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitExcuseUsed</button>
+                                        Kullanılan Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitExcuseUsable</button>
+                                        Kalan Mazeret İzni
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="col-md-3">
+                <table class="table small m-b-xs" style="border-top: none;">
+                    <tbody>
+                        @foreach (var item in Model.permits.OrderByDescending(x => x.Value))
+                        {
+                            var str = "";
+                            var control = item.Value.ToString().Split(',');
+                            if (control.Count() > 1)
+                            {
+                                str += control[0] + " Saat ";
+                                str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                            }
+                            if (control.Count() == 1)
+                            {
+                                str += control[0] + " Saat ";
+                            }
+                            <tr>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@item.Key</td>
+                                <td style="line-height: 5px; @(item.Key == Model.permits[0].Key ? "border-top:none;" : "")">@(item.Tooltip == "true" ? item.Value + " Gün" : str)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart" width="80" height="80"></canvas>
+                        <h5>Yıllık İzin</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitYearlyDeserved</button>
+                                        Hak Edilen Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitYearlyUsed</button>
+                                        Kullanılan Yıllık İzin
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Gün" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitYearlyUsable</button>
+                                        Kalan Yıllık İzin
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+            <div class="col-md-3">
+                @if (Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
+                {
+                    <div class="col-md-4  hidden-xs" style="text-align: center;">
+                        <canvas id="doughnutChart2" width="80" height="80"></canvas>
+                        <h5>Mazeret İzni</h5>
+                    </div>
+                    <div class="col-md-8">
+                        <table class="table small m-b-xs" style="border-top: 0px;">
+                            <tbody>
+                                <tr>
+                                    <td style="border-top: 0px;">
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-warning m-r-sm">@userStatus.user.PermitExcuseDeserved</button>
+                                        Hak Edilen Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-danger m-r-sm">@userStatus.user.PermitExcuseUsed</button>
+                                        Kullanılan Mazeret İzni
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <button type="button" data-original-title="Saat" class="btn btn-xs btn-primary m-r-sm">@userStatus.user.PermitExcuseUsable</button>
+                                        Kalan Mazeret İzni
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>
+<div class="col-md-12">
+    <div class="row">
+        <div class="col-lg-2 status-box " id="box1" data-toggle="tooltip" title="Onayınızı Bekleyen İzin Talepleri" style="cursor:pointer" onclick="window.open('/INV/VWINV_Permit/MyAboutIndex','_blank')">
+            <div class="widget style1 navy-bg" style="background-color: #1c84c6">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa fa-plane fa-5x" style="vertical-align: middle;"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10 ">
+                        <span class="hide-on-small hide-on-medium"> Onayınızı Bekleyen İzin Talepleri </span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(((Manager1Approval~eq~'@userid'~and~ApproveStatus~eq~0)~or~(Manager2Approval~eq~'@userid'~and~ApproveStatus~eq~1))~or~(IkApproval~eq~'@userid'~and~ApproveStatus~eq~3))"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 status-box " id="box2" style="cursor:pointer" data-toggle="tooltip" title="Onayınızı Bekleyen Masraf Talepleri" onclick="window.open('/PA/VWPA_Transaction/IndexRequest','_blank')">
+            <div class="widget style1 pink-bg" style="background-color: #23c6c8">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa  fa-money fa-5x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10">
+                        <span class="hide-on-medium"> Onayınızı Bekleyen Masraf Talepleri</span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((confirmationUserIds~contains~'@userStatus.user.id')~and(direction~eq~'0'~and~type~eq~'8')~and~(confirmationStatus~eq~1~or~confirmationStatus~eq~'@System.UIHelper.Int32.Null'))"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 status-box " id="box3" style="cursor:pointer" data-toggle="tooltip" title="Onayınızı Bekleyen Avans Talepleri" onclick="window.open('/PA/VWPA_Advance/IndexRequest','_blank')">
+            <div class="widget style1 blue-bg" style="background-color: #1ab394">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa  fa-pencil fa-5x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10">
+                        <span class="hide-on-medium"> Onayınızı Bekleyen Avans Talepleri</span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/PA/VWPA_Advance/DataSourceCount?filter=((confirmationUserIds~contains~'@userStatus.user.id')~and~(confirmationStatus~eq~1~or~confirmationStatus~eq~'@System.UIHelper.Int32.Null'))"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 status-box " id="box4" style="cursor:pointer" data-toggle="tooltip" title="Islak İmza Gereken İzin Talepleriniz" onclick="window.open('/INV/VWINV_Permit/MyIndex','_blank')">
+            <div class="widget style1 yellow-bg" style="background-color:orange">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa fa-fighter-jet   fa-5x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10">
+                        <span class="hide-on-medium wet-sign" style="font-size:0.6vw"> Islak İmza Gereken İzin Talepleriniz</span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/INV/VWINV_Permit/DataSourceCount?filter=(IdUser~eq~'@userStatus.user.id')~and~(ApproveStatus~eq~5)"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 status-box " id="box5" style="cursor:pointer" data-toggle="tooltip" title="Onay Bekleyen Görevlendirme Talepleri" onclick="window.open('/INV/VWINV_Commissions/MyAboutIndex','_blank')">
+            <div class="widget style1 red-bg" style="background-color: #ed5565">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa fa-car   fa-5x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10 ">
+                        <span class="hide-on-medium"> Onay Bekleyen Görevlendirme Talepleri</span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=((Manager1Approval~eq~'@userStatus.user.id'~and~ApproveStatus~eq~0)~and~IsOwner~eq~true)"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-2 status-box " id="box6" style="cursor:pointer" data-toggle="tooltip" title="Islak İmza Gereken Görevlendirme Talepleriniz" onclick="window.open('/INV/VWINV_Commissions/MyIndex','_blank')">
+            <div class="widget style1 navy-bg" style="background-color:cornflowerblue">
+                <div class="row">
+                    <div class="col-xs-4 col-md-6 icon-center col-lg-2">
+                        <i class="fa fa-newspaper-o   fa-5x"></i>
+                    </div>
+                    <div class="col-xs-8 text-right col-md-6 col-lg-10">
+                        <span class="hide-on-medium wet-sign" style="font-size:0.6vw">Islak İmza Gereken Görevlendirme Talepleriniz</span>
+                        <h2 class="font-bold when-hide-on-medium" data-counturl="/INV/VWINV_CommissionsPersons/DataSourceCount?filter=(IdUser~eq~'@userStatus.user.id')~and~(ApproveStatus~eq~1~and~Files~eq~'')"></h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="col-md-4">
+    <div class="row">
+        <div class="col-sm-6">
+            <button onclick="window.open('/INV/VWINV_Permit/Insert','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-plane button-icon"  title="Yeni İzin Talebi"></i> YENİ İZİN TALEBİ</button>
+        </div>
+        <div class="col-sm-6">
+            <button onclick="window.open('/INV/VWINV_Commissions/Insert','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-car button-icon" title="Yeni Görevlendirme Talebi"></i> YENİ GÖREVLENDİRME TALEBİ</button>
+        </div>
+        <div class="col-sm-6">
+            <button data-task="Insert" data-href="/PA/VWPA_Transaction/InsertExpense?type=8" data-modal="true" data-method="get" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-money button-icon" title="Masraf Talebi Yap"></i> MASRAF TALEBİ YAP</button>
+        </div>
+        <div class="col-sm-6">
+            <button data-task="Insert" data-href="/PA/VWPA_Advance/InsertExpense" data-modal="true" data-method="get" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-dollar button-icon" title="Avans Talebi Yap"></i> AVANS TALEBİ YAP</button>
+        </div>
+        <div class="col-sm-6">
+            <button onclick="window.open('/SH/VWSH_User/ContactOffice','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-calendar"  title="Şirket Rehberi"></i> ŞİRKET REHBERİ</button>
+        </div>
+        <div class="col-sm-6">
+            <button onclick="window.open('/INV/VWINV_CompanyDepartments/Preview','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-sitemap"  title="Organizasyon Şeması"></i> ORGANİZASYON ŞEMASI </button>
+        </div>
+        <div class="col-sm-6">
+            <button onclick="window.open('/CMP/VWCMP_Company/PersonnelRegulationDocument','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-book"  title="Şirket Yönetmeliği"></i> ŞİRKET YÖNETMELİĞİ</button>
+        </div>
+        <div class="col-sm-6">
+            <button onclick="window.open('/Account/Profile','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-user"  title="Benim Bilgilerim"></i> BENİM BİLGİLERİM</button>
+        </div>
+    </div>
+</div>
+<script>
+    function disableToolTip() {
+        var width = window.innerWidth;
+        if (width >= 1499) {
+            for (var i = 1; i <= 6; i++) {
+                $('#box' + i).tooltip('destroy');
+            }
+        }
+        if (width <= 1498) {
+            for (var i = 1; i <= 6; i++) {
+                $('#box' + i).tooltip('toggle');
+                $('#box' + i).tooltip('hide');
+            }
+        }
+    }
+    window.onload = function () {
+        disableToolTip();
+    }
+    
+    window.onresize = function () {
+        disableToolTip();
+    }
+</script>
+<div class="col-md-8" style="margin-bottom:15px">
+    <div class="tabs-container">
+        <ul class="nav nav-tabs" style="display: inline-block;float: right;">
+            <li class="active" data-toggle="tooltip" data-placement="top" title="Haftalık Etkinlik Görünümü">
+                <a data-toggle="tab" href="#schedulerTab" aria-expanded="false"><i class="fa fa-calendar text-success fa-2x" aria-hidden="true"></i></a>
+            </li>
+            <li data-toggle="tooltip" data-placement="top" title="Eğitim/Sertifika/Dosya Personel Takip Takvimi">
+                <a data-toggle="tab" href="#certificateCalendarDate" aria-expanded="false"><i class="fa fa-file-text-o text-success fa-2x" aria-hidden="true"></i></a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="schedulerTab">
+                <h4><i class="fa text-building fa fa-calendar"></i> HAFTALIK ETKİNLİK GÖRÜNÜMÜ </h4>
+                <div id="example" class="k-content">
+                    <div id="scheduler" style="height: calc(100vh - 320px);"></div>
+                </div>
+            </div>
+            <div class="tab-pane" id="certificateCalendarDate">
+                <h4><i class="fa text-building fa fa-file-text-o"></i> EĞİTİM/SERTİFİKA/DOSYA PERSONEL TAKİP TAKVİMİ </h4>
+                <div id="example" class="k-content">
+                    <div id="certificateScheduler" style="height: calc(100vh - 320px);"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+    <div class="fix-buttons">
+        <a href="/INV/VWINV_Permit/Insert" target="_blank"> <i class="fa fa-plane" data-toggle="tooltip" title="Yeni İzin Talebi"></i> </a>
+        <a href="/INV/VWINV_Commissions/Insert" target="_blank"> <i class="fa fa-car" data-toggle="tooltip" title="Yeni Görevlendirme Talebi"></i> </a>
+        <a data-task="Insert" data-href="/PA/VWPA_Transaction/InsertExpense?type=8" data-modal="true" data-method="get" style="cursor:pointer"> <i class="fa fa-money" data-toggle="tooltip" title="Masraf Talebi Yap"></i> </a>
+        <a data-task="Insert" data-href="/PA/VWPA_Advance/InsertExpense" data-modal="true" data-method="get"> <i class="fa fa-credit-card" data-toggle="tooltip" title="Avans Talebi Yap"></i> </a>
+    </div>
+</div>

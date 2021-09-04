@@ -1,0 +1,46 @@
+﻿@model SYS_FilesFiltre
+@{
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+<div class="clearfix">
+    <fieldset class="@(Model.Filter ? "" : "hide")">
+        <legend>Filtreleme İşlemi</legend>
+        <div class="input-group">
+            <input type="search" data-filter="contains" class="form-control" placeholder="YÜKLEMEK İSTEDİĞİNİZ KATEGORİNİN GRUP ADINI YAZINIZ" />
+            <span class="input-group-addon background-none search-icon-border"><i class="fa fa-search" aria-hidden="true"></i></span>
+        </div>
+    </fieldset>
+    @foreach (var item in Model.FileBase)
+    {
+        <fieldset data-filtre="@item.fileGroup">
+            <legend>@item.fileGroup</legend>
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable(Model.DataTable)
+                .DataId(Model.DataId)
+                .DataKey(x => x.fileGroup == item.fileGroup)
+                .Value(item.files)
+                .PreviewMode(false)
+                .AutoSend()
+            )
+        </fieldset>
+    }
+
+
+    <script type="text/javascript">
+        $(document)
+            .on('keyup', '[data-filter="contains"]', function (e) {
+                var $value = $(this).val().toLocaleLowerCase();
+                var element = $(this).parents("fieldset").siblings('[data-filtre]');
+                $.each(element, function (index, item) {
+                    var key = $(item).attr('data-filtre').toLocaleLowerCase();
+                    if (key.indexOf($value) == -1) {
+                        $(item).addClass('hide');
+                    } else {
+                        $(item).removeClass('hide');
+                    }
+                });
+            })
+        ;
+    </script>
+</div>

@@ -1,0 +1,109 @@
+﻿@model Infoline.WorkOfTime.BusinessData.INV_PermitType
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+    ViewBag.Title = "İzin Tipi Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="form-horizontal" data-selector="modalContainer">
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Name">İzin Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="CanHourly"> Kullanım Şekli</label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:black;">
+                    @Html.Kendo().RadioButtonFor(a => a.CanHourly).Value(true).Enable(false)
+                    @EnumINV_PermitTypeCanHourly.Saat.ToDescription()
+                </label>
+                <label style="color:black;">
+                    @Html.Kendo().RadioButtonFor(a => a.CanHourly).Value(false).Enable(false)
+                    @EnumINV_PermitTypeCanHourly.Gunluk.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="BeDocumented"> İzin Sebebi Belgenlendirilecek mi? </label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.BeDocumented).Value(true).Enable(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Evet.ToDescription()
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.BeDocumented).Value(false).Enable(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Hayir.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IsPaidPermit"> Ücretli İzin mi? </label>
+        </div>
+        <div class="col-md-4 radio">
+            <div class="row">
+                <label style="color:green;">
+                    @Html.Kendo().RadioButtonFor(a => a.IsPaidPermit).Value(true).Enable(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Evet.ToDescription()
+                </label>
+                <label style="color:red;">
+                    @Html.Kendo().RadioButtonFor(a => a.IsPaidPermit).Value(false).Enable(false)
+                    @EnumINV_PermitTypeIsPaidPermit.Hayir.ToDescription()
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix" data-cascade="[name='IsPaidPermit']" data-show="True">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="PaidPermitDay">Ücretli İzin Sayısı</label>
+        </div>
+        <div class="col-md-8">
+            <div class="input-group">
+                @Html.Kendo().NumericTextBoxFor(model => model.PaidPermitDay).HtmlAttributes(new Dictionary<string, object>()
+                  {
+                      {"style", "width:100%"},
+                      {"readonly", "readonly"}
+                  }).Spinners(false).Format("n0").Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+                <span class="input-group-addon" id="PaidPermitDay">Gün</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Descriptions">Açıklamalar</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Descriptions, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+
+</div>

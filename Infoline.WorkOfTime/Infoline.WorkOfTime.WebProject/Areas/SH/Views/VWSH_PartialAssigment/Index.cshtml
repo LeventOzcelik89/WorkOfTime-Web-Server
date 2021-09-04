@@ -1,0 +1,69 @@
+﻿@{
+    ViewBag.Title = "DSÜ Görevlendirilmeler";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+    <div class="row">
+        <div class="col-md-2">
+            <div class="ibox  m-b-none">
+                <div class="ibox-content mailbox-content">
+                    <div class="file-manager">
+                        <a class="btn btn-block btn-success" data-id="Insert" data-modal="true" data-task="Insert" data-href="/SH/VWSH_PartialAssigment/Insert"> <i class="fa fa-plus-circle"></i> Yeni Görevlendirilme Ekle </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-10">
+            <div class="ibox ">
+                <div class="ibox-title">
+                    <h5>DSÜ Görevlendirilme Listesi</h5>
+                    <div class="ibox-tools">
+                        <a class="collapse-link">
+                            <i class="fa fa-chevron-up"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="ibox-content">
+
+                    @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWSH_PartialAssigment>("VWSH_PartialAssigment")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_PartialAssigment", new { area = "SH" })).PageSize(25).Sort(a => a.Add(c => c.startDate).Descending()))
+                        .Columns(x =>
+                        {
+                            
+                            x.Bound(y => y.startDate).Title("Görev Başlangıç Tarihi").Width(200).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.endDate).Title("Görev Bitiş Tarihi").Width(200).Format(Extensions.DateFormatFull(true));
+                            x.Bound(y => y.staffName).Title("Akademisyen").Width(200);
+                              x.Bound(y => y.schoolDepartment).Title("Bölüm Adı").Width(200);
+                            x.Bound(y => y.lesson).Title("Ders Adı").Width(200);
+                            x.Bound(y => y.courseHours).Title("Girdiği Ders Saati").ClientTemplate("#=HourTemplate(data)#").Width(200);
+                            x.Bound(y => y.hourlyWage).Title("Saatlik Ücreti").ClientTemplate("#=PriceTemplate(data)#").Width(200);
+                          
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                        .Scrollable(x => x.Height(670))
+                        .ToolBar(x =>
+                        {
+                            x.Custom().Text("<i class='fa fa-edit' data-original-title='Görevlendirme Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>
+                        () { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_PartialAssigment", new { area = "SH" }));
+                            x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Görevlendirme Detayı'></i>").HtmlAttributes(new Dictionary<string, object>
+                            () { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_PartialAssigment", new { area = "SH" }));
+                            x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>
+                                () { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_PartialAssigment", new { area = "SH" }));
+                         }))
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<script type="text/javascript">
+    function HourTemplate(data) {
+        var dataHour = data.courseHours!=null ? '<span>'+ kendo.toString(data.courseHours, "##.#,#") + ' Saat</span>' : '<span></span>';
+        return dataHour;
+    }
+    function PriceTemplate(data) {
+        var dataPrice = data.hourlyWage!=null ? '<span>'+ kendo.toString(data.hourlyWage,'N2')+ ' ₺</span>' : '<span></span>';
+        return dataPrice;
+    }
+</script>

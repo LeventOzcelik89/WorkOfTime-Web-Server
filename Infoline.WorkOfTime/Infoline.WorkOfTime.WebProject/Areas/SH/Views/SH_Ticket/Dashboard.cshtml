@@ -1,0 +1,275 @@
+﻿
+@{
+    ViewBag.Title = "Kullanıcı Oturum Raporları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Css{
+    <link href="~/Content/Custom/css/SH_Ticket_Dashboard.css" rel="stylesheet" />
+}
+
+@section Javascript{
+
+    <script type="text/javascript">
+
+        $(document)
+
+        .on('ready', function () {
+
+            GetJsonDataFromUrl('/SH/SH_Ticket/DashboardResult', null, function (resp) {
+
+                $('[data-total="personelToplam"]').html(kendo.format("{0:N0}", resp.personSessions.length));
+                $('[data-total="personelBugun"]').html(kendo.format("{0:N0}", resp.personToday.length));
+                $('[data-total="personelTotalSaat"]').html(kendo.format("{0:N0}", resp.personOnline.map(item => item.totalTime).reduce((prev, next) => prev + next)));
+                
+                var tumOnline = $.Enumerable.From(resp.personNowOnline).Distinct("$.User_Title").ToArray();
+                $('[data-total="personOnlines"]').html(tumOnline.length);
+
+                $('[data-type="personOnline"] [data-slide="allofpersonOnline"]').html(null);
+                $.each(tumOnline, function (index, item) {
+
+                    var t = new Date().getTime() - new Date(item.createtime).getTime();
+                    var sec = (t - (t % 1000)) / 1000;
+                    var second = sec % 60;
+                    var min = (sec-second) / 60;
+                    min = min > 60 ? min % 60 : min;
+                    var hour = min > 60 ? (min - (min % 60)) / 60 : 0;
+                   
+                    $('[data-type="personOnline"] [data-slide="allofpersonOnline"]').append("<div class=\"feed-element col-md-12\">" +
+                        "<i class=\"fa fa-user\" style=\"color:green\"></i>" +
+                        "<span class=\"online-user \">" + item.User_Title + " " + "(" + "<span class=\"online-createtime\">" +
+                                new Date(item.createtime).toLocaleTimeString("tr-TR") + " - " + hour + " Saat " + min + " Dk" +
+                         "</span>" + ")" + "</span>" +
+                        "</div>" +
+                    "</div>");
+                });
+
+                CreateAllPieCharts($('#AllPersonsTotalSession'), resp.personSessions, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Defa Oturum Açmıştır. ");
+                CreateAllPieCharts($('#AllPersonTodaySessions'), resp.personToday, " #= category # : #=kendo.format(\"{0:N0}\", data.value)# Defa Oturum Açmıştır.  ");
+                CreateKendoChart($('#AllPersonOnline'), resp.personOnline);
+
+            }, "Oturum Kullanıcı Grafikleri Yükleniyor...");
+        })
+
+
+        function CreateAllPieCharts(element, data, MyTemplatePie) {
+
+            if (data.length == 0) {
+                element.parents('div').eq(0).append('<div class="nodata "><div>Kayıt Bulunamadı</div></div>');
+                return;
+            }
+
+            element.kendoChart({
+                title: {},
+                legend: {
+                },
+                dataSource: {
+                    data: data
+                },
+                render: function (e) {
+                    var loading = $(".chart-loading", e.sender.element.parent());
+                    kendo.ui.progress(loading, false);
+                },
+                series: [{
+                    type: "pie",
+                    field: "Value",
+                    categoryField: "Key",
+                }],
+                seriesColors: ["#9CCC65", "#8BC34A", "#7CB342", "#689F38", "#558B2F", "#33691E", "#81C784", "#66BB6A", "#4CAF50", "#43A047", "#388E3C", "#2E7D32", "#1B5E20", "#4DD0E1", "#26A69A", "#009688", "#00897B", "#00796B", "#00695C", "#004D40"].reverse(),
+                seriesDefaults: {
+                    overlay: { gradient: "none" },
+
+                    labels: {
+                        visible: true,
+                        background: "transparent",
+                        template: "#= kendo.format('{0:p2}', percentage)#"
+                    }
+                },
+                chartArea: {
+                    background: "transparent"
+                },
+
+                tooltip: {
+                    visible: true,
+                    template: MyTemplatePie,
+                    format: "{0:N0}"
+                },
+            });
+            $(element.selector).append(kendoExportTemplate(element.selector));
+        }
+
+        function CreateKendoChart(element, data) {
+
+            if (data.filter(function (v) { return v.tumKullanicilar == 0; }).length == 12) {
+                element.parents('div').eq(0).append('<div class="nodata fix"><div>Kayıt Bulunamadı</div></div>');
+            }
+
+            element.kendoChart({
+                dataSource: {
+                    data: data
+                },
+                series: [{
+                    field: "kullanıcılar",
+                    field: "totalTime",
+                    categoryField: "DateMonthYear"
+                }],
+                render: function (e) {
+                    var loading = $(".chart-loading", e.sender.element.parent());
+                    kendo.ui.progress(loading, false);
+                },
+                seriesColors: ["#3F51B5", "#03A9F4", "#4CAF50", "#1c0F7F", "#9de219", "#90cc38"],
+                legend: {
+
+                    visible: true
+                },
+                valueAxis: {
+                    labels: {
+                        format: "{0:N0} "
+                    }
+                },
+                categoryAxis: {
+                    labels: {
+                        rotation: -45
+                    },
+                    majorGridLines: {
+                        visible: true
+                    },
+                    majorTicks: {
+                        lines: {
+                            visible: true
+                        }
+                    },
+                },
+                tooltip: {
+                    visible: true,
+                    format: "{0:N0}",
+                    template: "Personel Sayısı: #= data.dataItem.kullanıcılar # <br>Toplam Zaman: #=kendo.format(\"{0:N0}\", data.dataItem.totalTime)# Saat",
+                    opacity: 0.7,
+                    background: 'red'
+                }
+            });
+            $(element.selector).append(kendoExportTemplate(element.selector));
+        }
+
+        function fn_StartEndDate(data) {
+
+            var t = new Date(data.endtime).getTime() - new Date(data.createtime).getTime();
+
+            if (t != 1800000) {
+                var sec = (t - (t % 1000)) / 1000;
+                var second = sec % 60;
+                var min = (sec - second) / 60;
+                min = min > 60 ? min % 60 : min;
+                var hour = min > 60 ? (min - (min % 60)) / 60 : 0;
+
+                return '<label class="label-warning" style="padding-left:5px;padding-right:5px;">' + hour + " Saat " + min + " Dk " + second + " Sn" + '</label>'
+            }
+
+            else {
+                return '<label class="label-primary" style="padding-left:5px;padding-right:5px;">' + "Çevrimiçi" + '</label>'
+            }
+
+         
+
+        }
+
+    </script>
+}
+
+<div class="form-horizontal">
+    <div class="row">
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Kullanıcıların Son Bir Günde Gerçekleştirdiği Oturum Sayısı</h5><br />
+                    <small>Kullanıcıların bugüne ait oturum sayılarının tutulduğu grafiktir.En fazla 10 kullanıcı kaydı bulunabilir.</small><br />
+                    <small>Grafikte Toplam <span class="chart-total" data-total="personelBugun"></span>  Adet Oturum Kaydı Bulunmaktadır.  </small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllPersonTodaySessions"></div>
+                            <div class="chart-loading"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Kullanıcıların Toplam Gerçekleştirdiği Oturum Sayısı</h5><br />
+                    <small>Kullanıcıların tüm oturum sayılarının listelendiği grafiktir.En fazla 5 kullanıcı kaydı grafikte gösterilebilir.</small><br />
+                    <small>Grafikte <span class="chart-total" data-total="personelToplam"> </span> Adet Oturum Kaydı Bulunmaktadır.</small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllPersonsTotalSession"></div>
+                            <div class="chart-loading"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Kullanıcıların Sistemdeki Aktif Saat Durumu</h5><br />
+                    <small>Ay bazlı olarak kullanıcıların sistemde kaldığı saate göre dağılımı</small><br />
+                    <small>Toplam <span class="chart-total" data-total="personelTotalSaat"></span> Saat Kullanıcı Çalışma Durumu Mevcuttur. </small>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-12 ovflow-height478">
+                            <div id="AllPersonOnline"></div>
+                            <div class="chart-loading"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6 col-md-12">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Kullanıcıların Çevrimiçi Oturum Durumları</h5><br />
+                    <small>Şirketteki kullanıcılarının şuanki çevrimiçi durumları mevcuttur.</small><br />
+                    <small>Şuanda Sistemde <span class="chart-total" data-total="personOnlines"></span> Adet Kullanıcı Durumu Mevcuttur. </small>
+                    <div class="ibox-content clearfix" style="text-align:left !important" data-show="All">
+                        <div class="col-md-3"></div><div class="col-md-6">
+                            <div class="ovflow-height478" style="margin-top: 12px;" data-type="personOnline">
+                                <div class="feed-activity-list" data-slide="allofpersonOnline"></div>
+                            </div>
+                        </div><div class="col-md-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <div class="ibox-title">
+                        <h5>Kullanıcı Oturum Geçmişi</h5><br />
+                    </div>
+                    @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_Ticket>("VWSH_Ticket")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "SH_Ticket", new { area = "SH" })).PageSize(25).Filter(f => f.userid != Guid.Empty).Sort(a => a.Add("createtime").Descending()))
+                    .Scrollable(a => a.Height(700))
+                    .Columns(x =>
+                    {
+                          x.Bound(y => y.User_Title).Title("Kullanıcı");
+                          x.Bound(y => y.createtime).Title("Başlangıç Tarihi").Width(200).Format("{0:dd.MM.yyyy - HH:mm}");
+                          x.Bound(y => y.endtime).Title("Bitiş Tarihi").Width(200).Format("{0:dd.MM.yyyy - HH:mm}");
+                          x.Bound(y => y.TotalMinute).Title("Oturum Süresi").Width(200).Format("{0:N0} dakika");
+                          x.Bound(y => y.DeviceId_Title).Title("Cihaz").Width(200);
+                          x.Bound(y => y.IP).Title("IP Adresi").Width(200);
+                    })
+                    .Selectable(x => x.Enabled(false)))
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
