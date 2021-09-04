@@ -39,6 +39,30 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
+		[PageInfo("Üretim Emri Güncelle", SHRoles.SistemYonetici)]
+		public ActionResult Update(VMPRD_ProductionModel data)
+		{
+			return View(data.Load());
+		}
+
+		[HttpPost]
+		[PageInfo("Üretim Emri Güncelle", SHRoles.SistemYonetici)]
+		public JsonResult Update(VMPRD_ProductionModel data, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = new ResultStatus { result = true };
+
+			dbresult = data.Save(userStatus.user.id, Request);
+
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.") :
+											 feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri oluşturma işlemi başarısız oldu.")
+			}, JsonRequestBehavior.AllowGet);
+		}
+
 		[PageInfo("Tüm Üretim Emirleri", SHRoles.Personel)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
