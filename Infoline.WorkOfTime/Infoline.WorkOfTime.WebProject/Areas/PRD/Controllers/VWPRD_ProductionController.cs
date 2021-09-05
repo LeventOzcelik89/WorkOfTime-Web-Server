@@ -84,5 +84,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		{
 			new VMPRD_ProductionModel().InsertProductionProducts(materiels, productionId, userId);
 		}
+
+		[AllowEveryone]
+		[PageInfo("Ürünlere ait depolarda ki stok miktarlarıni dönen method", SHRoles.Personel)]
+		public JsonResult GetProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
+		{
+			var model = new VMPRD_ProductionModel().ProductStocksByProductIdsAndStorageId(productIds, storageId);
+			return Json(model, JsonRequestBehavior.AllowGet);
+		}
 	}
 }

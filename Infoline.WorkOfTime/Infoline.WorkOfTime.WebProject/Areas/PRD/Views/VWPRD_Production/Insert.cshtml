@@ -4,38 +4,33 @@
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
 }
-
-
+<link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 
 
 <script data-selector="modalContainer" type="text/javascript">
-	class VWPRD_ProductionModel {
-		constructor(productId, price, materialId) {
-			this.productId = productId;
-			this.price = price;
-			this.materialId = materialId
-		}
-		}
-
 
 	$(document)
 		.on("success", '#VWPRD_ProductionInsertForm', function (e, res) {
-			debugger;
-
 			if (res.Result) {
-
-				debugger;
 				var productMateriels = $.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray();
-
 				if (productMateriels.length > 0) {
-					debugger;
 					productMateriels =  $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x=> { return x.productId +'!'+x.price+'!'+x.materialId }).ToArray()
-
 					GetJsonDataFromUrl('/PRD/VWPRD_Production/InsertProductMateriels', { materiels: productMateriels, productionId: res.Object, userId: '@userStatus.user.id' }, function (data) {
 
 					})
 				}
 			}
+		})
+		.on("change", "#quantity", function (e, resp) {
+			var data = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).ToArray()
+
+			var quantity = parseInt($("#quantity").val());
+			$.each(data, function (index, value) {
+				value.totalQuantity = quantity * value.quantity;
+			});
+
+			var grid = $("#productMaterialGrid").data("kendoGrid");
+			grid.refresh();
 		})
 
 	function onChangeCompany(e) {
@@ -45,56 +40,40 @@
 		personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
 	}
 
+
 	function onBoundPerson(e) {
 		e.sender.trigger("change");
 	}
 
-	function onChangePerson(e) {
-		$('#PersonAvaibles').empty();
-		if (e.sender.value().length > 0) {
-			$.each(e.sender.value(), function (i, item) {
-				var res = $.ajax({
-					type: "POST",
-					url: '/FTM/VWFTM_Task/GetPermitUserAvailableStatus',
-					data: { userid: item },
-					async: false
-				}).responseJSON;
-				if (res.objects.permits.length > 0) {
-					$('#PersonAvaibles').removeClass('hide');
 
-					$.each(res.objects.permits, function (p, per) {
-						var startdate = kendo.toString(new Date().FromJson(per.StartDate), 'dd.MM.yyyy HH:mm');
-						var enddate = kendo.toString(new Date().FromJson(per.EndDate), 'dd.MM.yyyy HH:mm')
-						var txt = '<div><i class="fa fa-calendar"></i> ' + per.Person_Title + ':' + startdate + ' - ' + enddate + ' Tarihleri Arası İzinli </div>';
-						$('#PersonAvaibles').append(txt);
-
-					})
-
+	function onChangeStorage(e)
+	{
+		var storage = e.sender.dataItem();
+		if (storage.id != null && storage.id != "") {
+		var productionMaterialGrid = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).ToArray()
+			var productIds = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x => x.materialId).ToArray()
+			var notStockTotalDatas = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Where(x => x.stockTotal == 0 || x.stockTotal == null).ToArray()
+			GetJsonDataFromUrl('/PRD/VWPRD_Production/GetProductStocksByProductIdsAndStorageId', { productIds: productIds, storageId: storage.id }, function (stockSummaries) {
+			$.each(stockSummaries, function (index, value) {
+				var data = $.Enumerable.From(productionMaterialGrid).Where(x => x.materialId == value.productId).FirstOrDefault();
+				if (data != null) {
+					
+					data.stockTotal = value.quantity
+					$("#productionInsertButton").removeClass("hide")
 				}
-
-				if (res.objects.taskCount > 0) {
-					$('#PersonAvaibles').removeClass('hide');
-					var txt2 = '<h5><i class="fa fa-tasks m-r-xs"></i> ' + res.objects.userName + ' Çözüm Bildirilmemiş İş Sayısı : ' + res.objects.taskCount + ' Adet</h5>';
-
-					$('#PersonAvaibles').append(txt2);
-				}
-			})
+			});
+			if (notStockTotalDatas != null && notStockTotalDatas != undefined) {
+				$("#productionInsertButton").addClass("hide")
+				MesajWarning("Reçetenizde Seçmiş Olduğunuz Deponun Stokların da Bulunmayan Ürünler Mevcut. Lütfen Ürünleri Deponuza Temin Ettikten Sonra Üretim Emri Planlayınız.")
+			}
+			var grid = $("#productMaterialGrid").data("kendoGrid");
+			grid.refresh();
+		})
 		}
-
-		var values = e.sender.value();
-		$('[data-selector="personSelection"]')[values.length == 0 ? "hide" : "show"]();
 	}
 
-	function onChangeCustomer(e) {
-	var customer = e.sender.dataItem();
-	if (this.value() != "") {
-			var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
-			var filterJSON = kendo.filterParser(filter);
-		} else {
-			$("#fixtureIds").data("handler").enable(false);
-			$("#fixtureIds").data("handler").value([]);
-		}
-	} function onChangeProductionSchema(e) {
+
+	function onChangeProductionSchema(e) {
 		var productionSchema = e.sender.dataItem();
 		if ((productionSchema != null || productionSchema != undefined) && productionSchema.name != null) {
 			$("#schemaTitle").val(productionSchema.name);
@@ -103,14 +82,21 @@
 
 	function onChangeProduct(e) {
 		var product = e.sender.dataItem();
-		if (product != null && product.id != null) {
+		if (product != null && product.id != null && product.id != "") {
+			$("#quantity").data("handler").enable(true);
+
+			var detail = $("#productDetailButton");
+				$(detail).attr("href", "/PRD/VWPRD_Product/Detail?id=" + product.id);
+				detail.removeClass("hide");
+
+
 			GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
 
 				var cols = [
 					{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
 					{ field: 'quantity', title: 'Birim Miktar', width: 200 },
 					{ field: 'price', title: 'Birim Fiyat', width: 200 },
-					{ field: 'quantity', title: 'Toplam Miktar', width: 200 },
+					{ field: 'totalQuantity', title: 'Toplam Miktar', width: 200 },
 					{ field: 'stockTotal', title: 'Toplam Stok Durumu', width: 200 },
 
 				];
@@ -123,7 +109,35 @@
 				};
 
 				GridRender(opts, $('#productMaterialGrid'));
+
+
+				if (res.length <= 0) {
+					MesajWarning("Seçilen Ürünün Reçetesi Bulunmamaktadır.","Bilgilendirme")
+					$("#productionInsertButton").addClass("hide")
+				}
+				else {
+					$("#productionInsertButton").removeClass("hide")
+
+
+					var productionMaterialGrid = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Where(x => x.stockTotal == null || x.stockTotal == "").ToArray()
+
+					if (productionMaterialGrid.length > 0) {
+						$.each(productionMaterialGrid, function (index, value) {
+							value.stockTotal = 0;
+						});
+
+
+						var grid = $("#productMaterialGrid").data("kendoGrid");
+						grid.refresh();
+
+					}
+
+				}
 			})
+		}
+		else {
+			$("#quantity").data("handler").enable(false);
+			$("#productDetailButton").addClass("hide")
 		}
 	}
 
@@ -320,7 +334,7 @@
 				<div class="col-md-5">
 					<label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
 				</div>
-				<div class="col-md-7">
+				<div class="col-md-5">
 					@(Html.Akilli()
 		.DropDownListFor(model=>model.productId)
 		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
@@ -333,6 +347,10 @@
 		.Validate(Validations.Required)
 		.Execute()
             )
+
+				</div>
+				<div class="col-sm-2">
+					<a class="btn pull-right m-r-sm btn btn-primary hide" style="margin-top: 3px;" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i> Detay </a>
 				</div>
 			</div>
 		</div>
@@ -347,6 +365,7 @@
                     Html.Akilli()
                     .NumericTextBoxFor(a => a.quantity)
                     .Min(0)
+					.Enable(false)
                     .Format("N0").Validate(Validations.Required)
                 )
 				</div>
@@ -371,7 +390,6 @@
         .Template("#=TemplateEngine('companyTemplate',data)#")
         .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
         .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
-        .Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
         .Sort(x => x.Add("fullName").Ascending())
         .Validate(Validations.Required)
         .Execute()
@@ -420,6 +438,7 @@
 			.Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
 			.CascadeFrom("centerCompanyId")
 			.CascadeFromField("companyId")
+			.Events(a => { a.Change("onChangeStorage"); a.DataBound("onChangeStorage"); })
 			.Sort(x => x.Add("fullName").Ascending())
 			.Validate(Validations.Required)
 			.Execute()
@@ -489,7 +508,6 @@
         .DataTextField("FullName")
         .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
         .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-        .Events(e => { e.Change("onChangePerson").Close("onChangePerson").DataBound("onBoundPerson"); })
         .Sort(x => x.Add("FullName").Ascending())
         .Execute()
             )
@@ -521,10 +539,8 @@
 	<div class="buttons">
 		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
 
-		<button class="btn btn-md btn-success pull-right" type="submit">
+		<button id="productionInsertButton" class="btn btn-md btn-success pull-right" type="submit">
 			Üretim Emri Planla
 		</button>
-
 	</div>
-
 }

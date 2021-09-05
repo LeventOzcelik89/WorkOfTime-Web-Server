@@ -16,5 +16,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? price { get; set;}
         public double? stockTotal { get; set;}
         public string stockCompanyIds { get; set;}
-	}
+        public double? totalQuantity { get; set; }
+    }
 }

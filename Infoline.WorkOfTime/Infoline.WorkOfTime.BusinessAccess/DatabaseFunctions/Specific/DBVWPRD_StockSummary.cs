@@ -45,5 +45,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_StockAction>().Where(a => a.stockId.In(stockIds)).Execute().ToArray();
             }
         }
+
+        public VWPRD_StockSummary[] GetVWPRD_StockSummaryByProductIdsAndStockId(Guid[] productIds, Guid stockId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_StockSummary>().Where(a => a.productId.In(productIds) && a.stockId == stockId && a.stockTable == "CMP_Storage" && a.quantity > 0).Execute().ToArray();
+            }
+        }
     }
 }

@@ -130,28 +130,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				stageNumber = x.stageNum
 			}));
 
-			////	ön taraftan gelecek. price bilgileri
-			//var productPrices = db.GetPRD_ProductPriceByProductIds(productMaterials.Where(x => x.productId.HasValue).Select(x => x.productId.Value).ToArray());
-
-			//if (productPrices.Count() > 0)
-			//{
-			productionProducts.AddRange(productMaterials.Select(x => new VWPRD_ProductionProduct
-			{
-				id = Guid.NewGuid(),
-				productId = x.productId,
-				productionId = this.id,
-				quantity = x.quantity,
-				totalQuantity = x.quantity * this.quantity,
-				//price = productPrices.Where(y => y.productId == x.productId).Select(z => z.price).FirstOrDefault() ?? 0
-			}));
-			//}
-
 			var rs = new ResultStatus { result = true };
 			rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
 			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(a => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
 			rs &= db.BulkInsertPRD_ProductionUser(productionUsers.Select(a => new PRD_ProductionUser().B_EntityDataCopyForMaterial(a, true)), this.trans);
 			rs &= db.BulkInsertPRD_ProductionStage(productionStages.Select(a => new PRD_ProductionStage().B_EntityDataCopyForMaterial(a, true)), this.trans);
-			rs &= db.BulkInsertPRD_ProductionProduct(productionProducts.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)), this.trans);
+
 
 			if (rs.result == true)
 			{
@@ -299,6 +283,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				db.BulkInsertPRD_ProductionProduct(productionProducts);
 			}
 
+		}
+
+		public VWPRD_StockSummary[] ProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
+		{
+			var db = new WorkOfTimeDatabase();
+			var stockSummary = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productIds, storageId);
+			return stockSummary;
 		}
 	}
 }
