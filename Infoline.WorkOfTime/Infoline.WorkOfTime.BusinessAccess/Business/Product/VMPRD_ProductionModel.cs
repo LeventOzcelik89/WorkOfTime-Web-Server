@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
-				productionSchemaId = productionStages.Count() > 0 ? productionStages.Where(a=>a.productionSchemaId.HasValue).Select(x => x.productionSchemaId.Value).FirstOrDefault() : Guid.NewGuid();
+				productionSchemaId = productionStages.Count() > 0 ? productionStages.Where(a => a.productionSchemaId.HasValue).Select(x => x.productionSchemaId.Value).FirstOrDefault() : Guid.NewGuid();
 			}
 			this.code = !String.IsNullOrEmpty(this.code) ? this.code : BusinessExtensions.B_GetIdCode();
 			return this;
@@ -155,10 +155,48 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			db = db ?? new WorkOfTimeDatabase();
 			var transaction = trans ?? db.BeginTransaction();
 			this.assignableUsers = this.assignableUsers ?? new List<Guid>();
+			var rs = new ResultStatus { result = true };
+
+			var insertUsers = new List<PRD_ProductionUser>();
+			var users = new List<VWSH_User>();
+			var currentUserDatas = db.GetPRD_ProductionUsersByProductionId(this.id);
+			var deletedUsers = currentUserDatas.Where(a => !this.assignableUsers.Contains(a.userId.Value));
+			var newInsertUsers = this.assignableUsers.Where(a => !currentUserDatas.Select(c => c.userId).Contains(a)).ToArray();
+
+			if (newInsertUsers.Count() > 0)
+			{
+				users = db.GetVWSH_UserByIds(newInsertUsers).ToList();
+				var currentUsers = db.GetFTM_TaskUserByTaskId(this.id);
+				rs &= db.BulkDeleteFTM_TaskUser(currentUsers, trans);
+			}
+
+			if (users.Count() > 0)
+			{
+				var now = DateTime.Now;
+				productionOperations.Add(new VWPRD_ProductionOperation
+				{
+					createdby = userId,
+					created = DateTime.Now,
+					productionId = this.id,
+					status = (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcılarına atama yapıldı."
+				});
+
+				insertUsers = assignableUsers.Select(a => new PRD_ProductionUser
+				{
+					createdby = userId,
+					created = (DateTime.Now),
+					userId = a,
+					productionId = this.id,
+				}).ToList();
+			}
+
+			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(x=> new PRD_ProductionOperation().B_EntityDataCopyForMaterial(x,true)), trans);
+			rs &= db.BulkDeletePRD_ProductionUser(deletedUsers, trans);
+			rs &= db.BulkInsertPRD_ProductionUser(insertUsers, trans);
 
 			var production = new PRD_Production().B_EntityDataCopyForMaterial(this, true);
-
-			var rs = db.UpdatePRD_Production(production, true, transaction);
+			rs &= db.UpdatePRD_Production(production, true, transaction);
 
 			if (rs.result == true)
 			{
@@ -274,7 +312,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						id = Guid.NewGuid(),
 						createdby = userId,
 						productId = new Guid(materialSplitData[0]),
-						price =  Convert.ToDouble(materialSplitData[1]),
+						price = Convert.ToDouble(materialSplitData[1]),
 						materialId = new Guid(materialSplitData[2]),
 						quantity = 0,
 						productionId = productionId,
