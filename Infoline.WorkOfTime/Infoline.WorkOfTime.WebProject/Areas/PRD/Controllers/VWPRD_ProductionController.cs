@@ -1,8 +1,11 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
+using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
@@ -35,7 +38,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			{
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.") :
-											 feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri oluşturma işlemi başarısız oldu.")
+											 feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri oluşturma işlemi başarısız oldu."),
+				Object = data.id
 			}, JsonRequestBehavior.AllowGet);
 		}
 
@@ -75,7 +79,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
-		
+		[PageInfo("Üretim Emirleri Reçete Ürünleri Ekleme Methodu", SHRoles.Personel)]
+		public void InsertProductMateriels(string[] materiels, Guid? productionId, Guid? userId)
+		{
+			new VMPRD_ProductionModel().InsertProductionProducts(materiels, productionId, userId);
+		}
 	}
 }

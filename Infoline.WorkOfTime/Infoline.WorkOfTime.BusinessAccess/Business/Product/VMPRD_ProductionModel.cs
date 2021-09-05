@@ -91,7 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			productionOperations.Add(createOperation);
 
-			if (assignableUsers.Count() > 0)
+			if (assignableUsers != null && assignableUsers.Count() > 0)
 			{
 				var users = db.GetVWSH_UserByIds(this.assignableUsers.ToArray());
 
@@ -135,17 +135,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			//if (productPrices.Count() > 0)
 			//{
-				productionProducts.AddRange(productMaterials.Select(x => new VWPRD_ProductionProduct
-				{
-					id = Guid.NewGuid(),
-					productId = x.productId,
-					productionId = this.id,
-					quantity = x.quantity,
-					totalQuantity = x.quantity * this.quantity,
-					//price = productPrices.Where(y => y.productId == x.productId).Select(z => z.price).FirstOrDefault() ?? 0
-				}));
+			productionProducts.AddRange(productMaterials.Select(x => new VWPRD_ProductionProduct
+			{
+				id = Guid.NewGuid(),
+				productId = x.productId,
+				productionId = this.id,
+				quantity = x.quantity,
+				totalQuantity = x.quantity * this.quantity,
+				//price = productPrices.Where(y => y.productId == x.productId).Select(z => z.price).FirstOrDefault() ?? 0
+			}));
 			//}
-			
+
 			var rs = new ResultStatus { result = true };
 			rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
 			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(a => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
@@ -263,12 +263,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Üretim adedi zorunludur." };
 			}
 
-			if (this.productMaterials.Count() <= 0)
-			{
-				return new ResultStatus { result = false, message = "Ürünün reçetesi bulunmamaktadır." };
-			}
+			//if (this.productMaterials.Count() <= 0)
+			//{
+			//	return new ResultStatus { result = false, message = "Ürünün reçetesi bulunmamaktadır." };
+			//}
 
 			return new ResultStatus { result = true };
+		}
+
+
+		public void InsertProductionProducts(string[] materiels, Guid? productionId, Guid? userId)
+		{
+			if (materiels.Count() > 0)
+			{
+				var db = new WorkOfTimeDatabase();
+				var productionProducts = new List<PRD_ProductionProduct>();
+
+				foreach (var material in materiels)
+				{
+					var materialSplitData = material.Split('!');
+					productionProducts.Add(new PRD_ProductionProduct
+					{
+						id = Guid.NewGuid(),
+						createdby = userId,
+						productId = new Guid(materialSplitData[0]),
+						price =  Convert.ToDouble(materialSplitData[1]),
+						materialId = new Guid(materialSplitData[2]),
+						quantity = 0,
+						productionId = productionId,
+						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
+
+					});
+				}
+
+				db.BulkInsertPRD_ProductionProduct(productionProducts);
+			}
+
 		}
 	}
 }

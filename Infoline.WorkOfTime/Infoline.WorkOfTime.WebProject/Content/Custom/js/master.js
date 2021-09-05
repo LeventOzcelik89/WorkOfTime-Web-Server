@@ -3249,6 +3249,7 @@ function GridRender(userOptions, element) {
         //  Scroll edebilme. Aktifleştirmek için false yapıp height null setlemek gerekiyor.
         scrollable: true,
         groupable: false,
+        editable: false
     }
 
     options = $.extend(options, userOptions);
@@ -3311,6 +3312,7 @@ function GridRender(userOptions, element) {
             scrollable: options.scrollable,
             resizable: true,
             filterable: options.Filtreable,
+            editable: options.Filtreable,
             pageable: {
                 refresh: true,
                 pageSizes: options.PageMenuSize,

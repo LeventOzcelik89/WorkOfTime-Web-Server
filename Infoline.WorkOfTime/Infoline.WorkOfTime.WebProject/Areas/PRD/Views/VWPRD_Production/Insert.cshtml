@@ -2,41 +2,41 @@
 @{
 	ViewBag.Title = "Üretim Emri Planla";
 	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 
 
-<script type="text/javascript">
-
-    function FilterDate() {
-
-        var ids = '@Html.Raw(String.Join(",", Model))';
-
-        if (ids != '') {
-
-            var grid = $('#VWFTM_Task').data('kendoGrid');
-            var filter = grid.dataSource.filter();
-            filter.logic = 'or';
-            filter.filters = ids.split(',').map(function (item) { return { field: "id", operator: "equal", value: item } });
-            grid.dataSource.filter(filter);
-
-        }
-
-    }
-
-    $(document)
-
-        .on('ready', function () {
-
-            FilterDate();
-
-        })
-
-        ;
-
-</script>
 
 <script data-selector="modalContainer" type="text/javascript">
+	class VWPRD_ProductionModel {
+		constructor(productId, price, materialId) {
+			this.productId = productId;
+			this.price = price;
+			this.materialId = materialId
+		}
+		}
+
+
+	$(document)
+		.on("success", '#VWPRD_ProductionInsertForm', function (e, res) {
+			debugger;
+
+			if (res.Result) {
+
+				debugger;
+				var productMateriels = $.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray();
+
+				if (productMateriels.length > 0) {
+					debugger;
+					productMateriels =  $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x=> { return x.productId +'!'+x.price+'!'+x.materialId }).ToArray()
+
+					GetJsonDataFromUrl('/PRD/VWPRD_Production/InsertProductMateriels', { materiels: productMateriels, productionId: res.Object, userId: '@userStatus.user.id' }, function (data) {
+
+					})
+				}
+			}
+		})
 
 	function onChangeCompany(e) {
 		var companyId = this.value();
@@ -86,17 +86,15 @@
 	}
 
 	function onChangeCustomer(e) {
-		var customer = e.sender.dataItem();
-		if (this.value() != "") {
+	var customer = e.sender.dataItem();
+	if (this.value() != "") {
 			var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
 			var filterJSON = kendo.filterParser(filter);
 		} else {
 			$("#fixtureIds").data("handler").enable(false);
 			$("#fixtureIds").data("handler").value([]);
 		}
-	}
-
-	function onChangeProductionSchema(e) {
+	} function onChangeProductionSchema(e) {
 		var productionSchema = e.sender.dataItem();
 		if ((productionSchema != null || productionSchema != undefined) && productionSchema.name != null) {
 			$("#schemaTitle").val(productionSchema.name);
@@ -109,17 +107,19 @@
 			GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
 
 				var cols = [
-					{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
+					{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
 					{ field: 'quantity', title: 'Birim Miktar', width: 200 },
+					{ field: 'price', title: 'Birim Fiyat', width: 200 },
 					{ field: 'quantity', title: 'Toplam Miktar', width: 200 },
-					{ field: 'quantity', title: 'Toplam Stok Durumu', width: 200 },
+					{ field: 'stockTotal', title: 'Toplam Stok Durumu', width: 200 },
 
 				];
 
 				opts = {
 					Data: res,
 					Column: cols,
-					Height: 400
+					Height: 400,
+					editable: true
 				};
 
 				GridRender(opts, $('#productMaterialGrid'));
@@ -231,7 +231,7 @@
 	{ "role", "form" },
 	{ "data-selector", "modalContainer" },
 	{ "data-formType", "Ajax" },
-	{ "id","VWFTM_TaskInsertForm" }
+	{ "id","VWPRD_ProductionInsertForm" }
 }))
 {
 	@Html.AntiForgeryToken()
@@ -522,7 +522,7 @@
 		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
 
 		<button class="btn btn-md btn-success pull-right" type="submit">
-			Görev Oluştur
+			Üretim Emri Planla
 		</button>
 
 	</div>
