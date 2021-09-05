@@ -36,6 +36,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
+				productionSchemaId = productionStages.Count() > 0 ? productionStages.Where(a=>a.productionSchemaId.HasValue).Select(x => x.productionSchemaId.Value).FirstOrDefault() : Guid.NewGuid();
 			}
 			this.code = !String.IsNullOrEmpty(this.code) ? this.code : BusinessExtensions.B_GetIdCode();
 			return this;
@@ -111,7 +112,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						createdby = userId,
 						created = DateTime.Now.AddSeconds(1),
 						productionId = this.id,
-						status = (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+						status = (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi,
 						description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcıları üretime dahil oldu."
 					});
 				}
@@ -127,7 +128,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				code = x.code,
 				name = x.name,
 				productionId = this.id,
-				stageNumber = x.stageNum
+				stageNumber = x.stageNum,
+				productionSchemaId = this.productionSchemaId
 			}));
 
 			var rs = new ResultStatus { result = true };
@@ -169,9 +171,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Ürün emri güncelleme işlemi başarısız." };
 			}
 		}
-		public ResultStatus Delete(Guid? userId, DbTransaction trans = null)
+		public ResultStatus Delete(Guid? userId, DbTransaction _trans = null)
 		{
 			db = db ?? new WorkOfTimeDatabase();
+			this.trans = _trans ?? this.db.BeginTransaction();
 			var production = db.GetPRD_ProductionById(this.id);
 			if (production == null)
 			{

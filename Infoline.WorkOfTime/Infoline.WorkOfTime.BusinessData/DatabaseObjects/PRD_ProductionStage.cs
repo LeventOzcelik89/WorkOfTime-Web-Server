@@ -24,5 +24,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Aşama Sırası
         /// </summary>
         public int? stageNumber { get; set;}
-    }
+
+		public Guid? productionSchemaId { get; set; }
+	}
 }

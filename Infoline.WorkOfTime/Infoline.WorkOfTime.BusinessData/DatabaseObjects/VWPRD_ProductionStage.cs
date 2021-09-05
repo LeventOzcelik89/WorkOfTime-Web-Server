@@ -11,5 +11,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? stageNumber { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public Guid? productionSchemaId { get; set; }
     }
 }
