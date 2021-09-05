@@ -602,7 +602,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 confirmations = confirmations.Where(x => x.status == null).ToArray();
                 for (int i = 0; i < confirmations.Count(); i++)
                 {
-
+                    return;
                 }
             }
             else if (this.direction == 0)
