@@ -15,6 +15,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public SH_User[] PersonelUsers { get; set; }
     }
 
+    public class VWHDM_TicketMessageFiles : VWHDM_TicketMessage
+    {
+        public SYS_Files[] files { get; set; }
+    }
+
     public class VMHDM_TicketModel : VWHDM_Ticket
     {
         private WorkOfTimeDatabase db { get; set; }
@@ -23,10 +28,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private string _tenantName { get; set; } = TenantConfig.Tenant.TenantName;
         public VWHDM_TicketRequester Requester { get; set; }
         public VWHDM_TicketAction[] Actions { get; set; }
-        public VWHDM_TicketMessage[] Messages { get; set; }
         public VWHDM_Issue Issue { get; set; }
         public VWSH_User[] IssueManagers { get; set; }
         public VWSH_User AssignUser { get; set; }
+        public VWHDM_TicketMessageFiles[] Messages { get; set; }
 
         public VMHDM_TicketModel Load()
         {
@@ -37,8 +42,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.B_EntityDataCopyForMaterial(ticket, true);
                 this.Actions = this.db.GetVWHDM_TicketActionByTicketId(this.id);
-                this.Messages = this.db.GetVWHDM_TicketMessageByTicketId(this.id);
-
+                var Messages = this.db.GetVWHDM_TicketMessageByTicketId(this.id);
+                var filesList = new List<VWHDM_TicketMessageFiles>();
+                for (int i = 0; i < Messages.Length; i++)
+                {
+                    var filesData = new VWHDM_TicketMessageFiles().B_EntityDataCopyForMaterial(Messages[i]);
+                    var files = this.db.GetSYS_FilesByDataIdAll(filesData.id);
+                    if (files.Count() > 0)
+                    {
+                        filesData.files = files;
+                    }
+                    filesList.Add(filesData);
+                }
+                this.Messages = filesList.ToArray();
                 if (this.requesterId.HasValue)
                 {
                     this.Requester = this.db.GetVWHDM_TicketRequesterById(this.requesterId.Value);
