@@ -67,6 +67,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
+
+		[PageInfo("Üretim Emri Detay",SHRoles.Personel)]
+		public ActionResult Detail(VMPRD_ProductionModel request)
+		{
+			var data = request.Load();
+			return View(data);
+		}
+
+
 		[PageInfo("Tüm Üretim Emirleri", SHRoles.Personel)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
