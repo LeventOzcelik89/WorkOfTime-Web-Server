@@ -107,6 +107,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var db = new WorkOfTimeDatabase();
                 var childPersons = new ManagersCalculator().GetAllChilds(CallContext.Current.UserId);
                 var usermanagers = db.GetVWINV_CompanyPersonDepartmentsByUserIdAndEndDateNullIsBaseTrue(CallContext.Current.UserId);
+
+                if(usermanagers == null)
+                {
+                    RenderResponse(context, new ResultStatus { result =false , message = "Departman bulunamadı." });
+                }
+
                 var managerList = new List<Guid?>();
                 managerList.Add(usermanagers.Manager1);
                 managerList.Add(usermanagers.Manager2);
