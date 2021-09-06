@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return rs;
 		}
 
-		private ResultStatus Insert(Guid? userId)
+		public ResultStatus Insert(Guid? userId)
 		{
 			if (this.productionId == null) return new ResultStatus { result = false, message = "Üretim kaydı seçili değil." };
 
