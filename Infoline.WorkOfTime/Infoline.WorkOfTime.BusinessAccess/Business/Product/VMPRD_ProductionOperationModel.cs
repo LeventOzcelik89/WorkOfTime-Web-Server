@@ -123,7 +123,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "İşlem başarısız." };
 			}
 		}
-		private ResultStatus Update(Guid? userId)
+		public ResultStatus Update(Guid? userId)
 		{
 			this.db = new WorkOfTimeDatabase();
 			this.trans = this.db.BeginTransaction();

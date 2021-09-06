@@ -65,25 +65,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Saha Görev Operasyon Düzenleme", SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici)]
-		public ActionResult Update(VMFTM_TaskOperationModel request)
+		[PageInfo("Üretim Emri Operasyon Düzenleme", SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici)]
+		public ActionResult Update(VMPRD_ProductionOperationModel request)
 		{
 			var model = request.Load();
 			return View(model);
 		}
 
 		//ExportPDF eklenir ise form render js çalışmıyor.
-		[PageInfo("Görev Operasyon Formu Yazdır"), ExportPDF, AllowEveryone]
-		public ActionResult Print(VMFTM_TaskModel request, Guid? operationId)
+		[PageInfo("Üretim Emri Operasyon Formu Yazdır"), ExportPDF, AllowEveryone]
+		public ActionResult Print(VMPRD_ProductionModel request, Guid? operationId)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var model = request.Load();
-			model.taskOperations = model.taskOperations.Where(a => a.id == operationId).ToList();
+			model.productionOperations = model.productionOperations.Where(a => a.id == operationId).ToList();
 			return View(model);
 		}
-		[PageInfo("Saha Görev Operasyon Düzenleme Metodu", SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici)]
+		[PageInfo("Üretim Emri Operasyon Düzenleme Metodu", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(VMFTM_TaskOperationModel item, bool? isPost)
+		public JsonResult Update(VMPRD_ProductionOperationModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -101,22 +101,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Saha Görev Operasyon Silme", SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici)]
+		[PageInfo("Üretim Emri Operasyon Silme", SHRoles.Personel)]
 		[HttpPost]
 		public JsonResult Delete(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
 			var feedback = new FeedBack();
 
-			var operation = db.GetVWFTM_TaskOperationById(id);
+			var operation = db.GetVWPRD_ProductionOperationById(id);
 			var dbresult = new ResultStatus { result = true };
 			if (operation != null)
 			{
-				dbresult &= db.DeleteFTM_TaskOperation(new FTM_TaskOperation { id = id });
-				if (operation.formResultId.HasValue)
-				{
-					dbresult &= db.DeleteFTM_TaskFormRelation(new FTM_TaskFormRelation { id = operation.formResultId.Value });
-				}
+				dbresult &= db.DeletePRD_ProductionOperation(new PRD_ProductionOperation { id = id });
 			}
 			var result = new ResultStatusUI
 			{
