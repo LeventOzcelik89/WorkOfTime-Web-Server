@@ -128,9 +128,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (this.InvoiceItems.Count() == 0) { return new ResultStatus { result = false, message = "Fatura ekleyebilmek için en az bir ürün girişi yapmalısınız." }; }
             if (this.customerId == this.supplierId) { return new ResultStatus { result = false, message = "Kendi işletmenize fatura kesemezsiniz." }; }
 
-			if (this.customerId.HasValue)
+			if (this.supplierId.HasValue)
 			{
-                var controlSerialNumber = db.GetCMP_InvoiceBySerialNumberAndCompanyId(this.serialNumber, this.rowNumber, this.customerId.Value);
+                var controlSerialNumber = db.GetCMP_InvoiceBySerialNumberAndCompanyId(this.serialNumber, this.rowNumber, this.supplierId.Value);
 
                 if (controlSerialNumber != null) { return new ResultStatus { result = false, message = "Seçilen işletme için bu seri ve sıra numaralı fatura sistemde kayıtlıdır. Lütfen kontrol ediniz." }; }
             }
