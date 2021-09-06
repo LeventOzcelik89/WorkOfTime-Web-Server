@@ -20,6 +20,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Materyel ürün idsinin tutulduğu alandır.
         /// </summary>
         public Guid? materialId { get; set;}
-		public double? totalQuantity { get; set; }
-	}
+        public double? totalQuantity { get; set;}
+    }
 }

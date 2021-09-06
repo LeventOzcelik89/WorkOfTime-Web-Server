@@ -105,12 +105,13 @@ namespace Infoline.WorkOfTime.WebService.Handler
             try
             {
                 var db = new WorkOfTimeDatabase();
+                var upDown = context.Request["upDown"];
                 var childPersons = new ManagersCalculator().GetAllChilds(CallContext.Current.UserId);
                 var usermanagers = db.GetVWINV_CompanyPersonDepartmentsByUserIdAndEndDateNullIsBaseTrue(CallContext.Current.UserId);
 
-                if(usermanagers == null)
+                if (usermanagers == null)
                 {
-                    RenderResponse(context, new ResultStatus { result =false , message = "Departman bulunamadı." });
+                    RenderResponse(context, new ResultStatus { result = false, message = "Departman bulunamadı." });
                 }
 
                 var managerList = new List<Guid?>();
@@ -121,33 +122,39 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 managerList.Add(usermanagers.Manager5);
                 var childUserList = new List<VWSH_UserOrderType>();
                 var chsay = 0;
-                foreach (var chilPerson in childPersons.Where(x => x.IdUser != CallContext.Current.UserId))
+                if (Convert.ToBoolean(upDown))
                 {
-                    if (!chilPerson.IdUser.HasValue)
+                    foreach (var chilPerson in childPersons.Where(x => x.IdUser != CallContext.Current.UserId))
                     {
-                        continue;
-                    }
-                    var user = db.GetVWSH_UserById(chilPerson.IdUser.Value);
-                    if (user != null)
-                    {
-                        var data = new VWSH_UserOrderType().B_EntityDataCopyForMaterial(user);
-                        data.order = (chsay + 1);
-                        data.upDown = true;
-                        childUserList.Add(data);
-                        chsay = chsay + 1;
+                        if (!chilPerson.IdUser.HasValue)
+                        {
+                            continue;
+                        }
+                        var user = db.GetVWSH_UserById(chilPerson.IdUser.Value);
+                        if (user != null)
+                        {
+                            var data = new VWSH_UserOrderType().B_EntityDataCopyForMaterial(user);
+                            data.order = (chsay + 1);
+                            data.upDown = true;
+                            childUserList.Add(data);
+                            chsay = chsay + 1;
+                        }
                     }
                 }
-                var syc = 0;
-                foreach (var manager in managerList.Where(x => x.HasValue).ToArray())
+                else
                 {
-                    var user = db.GetVWSH_UserById(manager.Value);
-                    if (user != null)
+                    var syc = 0;
+                    foreach (var manager in managerList.Where(x => x.HasValue).ToArray())
                     {
-                        var data = new VWSH_UserOrderType().B_EntityDataCopyForMaterial(user);
-                        data.order = (syc + 1);
-                        data.upDown = false;
-                        childUserList.Add(data);
-                        syc = syc + 1;
+                        var user = db.GetVWSH_UserById(manager.Value);
+                        if (user != null)
+                        {
+                            var data = new VWSH_UserOrderType().B_EntityDataCopyForMaterial(user);
+                            data.order = (syc + 1);
+                            data.upDown = false;
+                            childUserList.Add(data);
+                            syc = syc + 1;
+                        }
                     }
                 }
                 RenderResponse(context, new ResultStatus { result = true, objects = childUserList });
