@@ -10,6 +10,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string userId_Title { get; set;}
-		public string photo { get; set; }
-	}
+        public string photo { get; set;}
+    }
 }
