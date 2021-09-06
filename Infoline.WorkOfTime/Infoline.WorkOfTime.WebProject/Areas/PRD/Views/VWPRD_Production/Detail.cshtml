@@ -6,7 +6,7 @@
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderBy(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
-	var step3 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi||
+	var step3 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.StogaIadeEdildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.FormYuklendi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi ||
@@ -23,19 +23,19 @@
 
 <style type="text/css">
 	li {
-		list-style:none;
+		list-style: none;
 	}
 </style>
 
 <script type="text/javascript">
-    function ImageErrorData(element, image, id) {
-        element.onerror = '';
-        element.src = image;
-        element.height = 500;
-        $('.removeImage' + id + '').removeAttr("href");
-        $(element).css({ "margin": "5%", "margin-left": "25%" });
+	function ImageErrorData(element, image, id) {
+		element.onerror = '';
+		element.src = image;
+		element.height = 500;
+		$('.removeImage' + id + '').removeAttr("href");
+		$(element).css({ "margin": "5%", "margin-left": "25%" });
 
-    }
+	}
 </script>
 
 <div id="detailProduction">
@@ -116,23 +116,23 @@
 																<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
 															</li>
 															@*<li>
-																<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
-																<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
+																	<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
+																	<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
 
-															</li>
-															<li>
-																<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																<span class="m-l-xs">Send documents to Mike</span>
-																<small class="label label-primary"></small>
-															</li>
-															<li>
-																<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																<span class="m-l-xs">Go to the doctor dr Smith</span>
-															</li>
-															<li>
-																<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																<span class="m-l-xs">Plan vacation</span>
-															</li>*@
+																</li>
+																<li>
+																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+																	<span class="m-l-xs">Send documents to Mike</span>
+																	<small class="label label-primary"></small>
+																</li>
+																<li>
+																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+																	<span class="m-l-xs">Go to the doctor dr Smith</span>
+																</li>
+																<li>
+																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+																	<span class="m-l-xs">Plan vacation</span>
+																</li>*@
 														}
 													</ul>
 												</div>
@@ -169,7 +169,7 @@
 
 								<div id="vertical-timeline" class="vertical-container dark-timeline">
 
-									@foreach (var item in Model.productionOperations)
+									@foreach (var item in Model.productionOperations.OrderByDescending(a => a.created))
 									{
 										var statusEnum = enumProperties.Where(a => Convert.ToInt32(a.Key) == item.status.Value).FirstOrDefault();
 
@@ -238,9 +238,25 @@
 	<input type="checkbox" checked id="fixed">
 	<label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
 	<div class="fix-buttons">
-			@if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0)
+		@if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti)
+		{
+
+			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0 || Model.lastOperationStatus == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
 			{
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-location-arrow"></i> </a>
 			}
+
+			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0)
+			{
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
+			}
+
+			if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
+			{
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimDurduruldu })"><i data-toggle="tooltip" title="Üretimi Durdur" class="fa fa-pause"></i> </a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>
+			}
+		}
+
 	</div>
 </div>
