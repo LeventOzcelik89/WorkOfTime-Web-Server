@@ -24,6 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VWPRD_ProductMateriel> productMaterials { get; set; } = new List<VWPRD_ProductMateriel>();
 		public List<VWPRD_ProductionProduct> productionProducts { get; set; } = new List<VWPRD_ProductionProduct>();
 		public Guid? productionSchemaId { get; set; }
+		public string materialString { get; set; }
 
 		public VMPRD_ProductionModel Load()
 		{
@@ -121,6 +122,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
 			var productionSchemaStages = db.GetVWPRD_ProductionSchemaStageByStageSchemaId(this.productionSchemaId.Value);
+			var rs = new ResultStatus { result = true };
 
 			productionStages.AddRange(productionSchemaStages.Select(x => new VWPRD_ProductionStage
 			{
@@ -133,7 +135,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				productionSchemaId = this.productionSchemaId
 			}));
 
-			var rs = new ResultStatus { result = true };
+			if (!string.IsNullOrEmpty(this.materialString))
+			{
+				var materials = Infoline.Helper.Json.Deserialize<List<VWPRD_ProductMateriel>>(this.materialString);
+
+				if (materials.Count() > 0)
+				{
+
+
+					var productionProducts = new List<PRD_ProductionProduct>();
+
+					productionProducts.AddRange(materials.Select(x => new PRD_ProductionProduct
+					{
+						id = Guid.NewGuid(),
+						createdby = userId,
+						productId = x.productId,
+						price = x.price,
+						materialId = x.materialId,
+						quantity = x.quantity,
+						productionId = this.id,
+						totalQuantity = x.totalQuantity,
+						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
+					}));
+
+					rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
+				}
+			}
+
 			rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
 			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(a => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
 			rs &= db.BulkInsertPRD_ProductionUser(productionUsers.Select(a => new PRD_ProductionUser().B_EntityDataCopyForMaterial(a, true)), this.trans);

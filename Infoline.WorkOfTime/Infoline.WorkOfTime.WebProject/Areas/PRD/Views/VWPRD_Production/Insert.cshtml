@@ -10,30 +10,17 @@
 <script data-selector="modalContainer" type="text/javascript">
 
 	$(document)
-		.on("success", '#VWPRD_ProductionInsertForm', function (e, res) {
 
-			if (!res.Result) {
-				return;
-			}
-
-			if (res.Result) {
-				var productMateriels = $.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray();
-				if (productMateriels.length > 0) {
-					productMateriels = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x =>
-					({
-						productId: x.productId,
-						price: x.price,
-						materialId: x.materialId,
-						quantity: x.quantity,
-						totalQuantity: x.totalQuantity
-					})).ToArray();
-
-					debugger;
-					GetJsonDataFromUrl('/PRD/VWPRD_Production/InsertProductMateriels', { materiels: productMateriels, productionId: res.Object, userId: '@userStatus.user.id' }, function (data) {
-
-					})
-				}
-			}
+		.on('before:submit', '#VWPRD_ProductionInsertForm', function (e, i) {
+			$('#materialString').val(JSON.stringify($.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x =>
+			({
+				productId: x.productId,
+				price: parseFloat(x.price),
+				materialId: x.materialId,
+				quantity: parseFloat(x.quantity),
+				totalQuantity: parseFloat(x.totalQuantity)
+			})).ToArray()));
+			return true;
 		})
 		.on("change", "#quantity", function (e, resp) {
 
@@ -50,8 +37,7 @@
 
 			$("#productMaterialGrid").data("kendoGrid").refresh();
 
-		})
-		;
+		});
 
 	function onChangeCompany(e) {
 		var companyId = this.value();	//	""
@@ -81,7 +67,7 @@
 					$("#productionInsertButton").removeClass("hide")
 				}
 			});
-				
+
 			var grid = $("#productMaterialGrid").data("kendoGrid");
 			grid.refresh();
 		})
@@ -189,6 +175,8 @@
 	@Html.HiddenFor(model => model.id)
 	@Html.HiddenFor(model => model.code)
 	@Html.HiddenFor(model => model.schemaTitle)
+	@Html.Hidden("materialString")
+
 
 	<div class="row">
 		<div class="col-md-6">
@@ -207,7 +195,7 @@
 		</div>
 		<div class="col-md-6">
 
-			
+
 			<div class="form-group">
 				<div class="col-md-5">
 					<label class="control-label label-md req" for="centerCompanyId">Merkez Şirket</label>
@@ -248,13 +236,13 @@
             )
 				</div>
 			</div>
-			
+
 
 
 		</div>
 
 		<div class="col-md-6">
-			
+
 
 			<div class="form-group">
 				<div class="col-md-5">
@@ -321,14 +309,14 @@
             )
 				</div>
 			</div>
-			
+
 		</div>
 	</div>
 
 
 	<div class="row">
 		<div class="col-md-6">
-			
+
 
 			<div class="form-group">
 				<div class="col-md-5">
@@ -370,7 +358,7 @@
 			</div>
 		</div>
 
-		
+
 	</div>
 
 	<div class="row">
@@ -482,7 +470,7 @@
 			</div>
 		</div>
 	</div>
-	
+
 
 	<div class="row">
 		<div class="ibox-content">
