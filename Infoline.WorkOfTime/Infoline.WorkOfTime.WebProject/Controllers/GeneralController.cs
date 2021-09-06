@@ -917,6 +917,13 @@ namespace Infoline.WorkOfTime.Controllers
             return Json(materials, JsonRequestBehavior.AllowGet);
         }
 
+        public JsonResult GetProductionProducts(Guid productId, Guid productionId)
+        {
+            var db = new WorkOfTimeDatabase();
+            var materials = db.GetVWPRD_ProductionProductByProductIdAndProductionId(productId, productionId);
+            return Json(materials, JsonRequestBehavior.AllowGet);
+        }
+
         public ContentResult GetYears()
         {
             var maxYear = DateTime.Now.Year;
