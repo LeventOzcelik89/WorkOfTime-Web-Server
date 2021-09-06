@@ -31,6 +31,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [AllowEveryone]
+        [PageInfo("Toplantı İlgililer Grid Metodu")]
+        public ContentResult DataSourceDropDownForRelations([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCRM_ContactRelationTables(condition);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
+
 
         [PageInfo("Aktivite/Randevu Veri Methodu", SHRoles.Personel)]
         public int DataSourceCount([DataSourceRequest]DataSourceRequest request)
