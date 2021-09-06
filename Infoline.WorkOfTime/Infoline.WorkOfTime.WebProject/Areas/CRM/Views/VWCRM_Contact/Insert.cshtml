@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Aktivite/Randevu Planlama";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var all = ViewBag.All;
 }
 
 <style data-selector="modalContainer">
@@ -11,8 +12,24 @@
 </style>
 
 <script type="text/javascript" data-selector="modalContainer">
+    var first = false;
     function PresentationStageIdDataBound(e) {
         e.sender.element.trigger("change");
+    }
+
+    function onChangeRelationId(e) {
+        $('#IdUserCc').removeClass('hide');
+        $('#IdUsers').attr('readurl', '/General/GetSH_UsersForPresentationById?id=' + this.dataItem().id);
+        if (first == false) {
+            _contact.init();
+            first = true;
+        }
+        if (this.dataItem().dataTable == 'CRM_Presentation') {
+            $('#Pstage').removeClass('hide');
+        } else {
+            $('#Pstage').addClass('hide');
+            $('#PresentationStageId').removeAttr('required', 'required')
+        }
     }
 </script>
 
@@ -42,29 +59,6 @@
             <div id="collapseContact1" class="panel-collapse collapse in">
                 <div class="panel-body">
 
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <label class="control-label label-md req" for="PresentationStageId">Potansiyel Aşaması</label>
-                        </div>
-                        <div class="col-md-8">
-                            @(Html.Akilli()
-                                .DropDownListFor(model => model.PresentationStageId)
-                                .OptionLabel("Lütfen Potansiyel Aşaması Seçiniz..")
-                                .MinLength(2)
-                                .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
-                                .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
-                                .DataValueField("Id")
-                                .DataTextField("Name")
-                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
-                                .Sort(x => x.Add("Name").Ascending())
-                                .Events(a=>a.DataBound("PresentationStageIdDataBound"))
-                                .Validate(Validations.Required)
-                                .Execute()
-                            )
-                        </div>
-                    </div>
-
-
                     <div class="form-group" style="display:none;">
                         <div class="col-md-4">
                             <label class="control-label label-md" for="AppointmentDate">Randevu Tarihi</label>
@@ -79,27 +73,113 @@
                         </div>
                     </div>
 
-
-
-
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <label class="control-label label-md req" for="IdUsers">Katılımcılar</label>
+                    @if (Convert.ToBoolean(all) == true)
+                    {
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="RelationId">İlgili <i class="fa fa-info-circle" data-original-title="Müşteri veya potansiyel seçiniz"></i></label>
+                            </div>
+                            <div class="col-md-8">
+                                @(Html.Akilli()
+                              .DropDownList("RelationId")
+                              .OptionLabel("Lütfen Seçim Yapınız.")
+                              .DataTextField("Name")
+                              .DataValueField("id")
+                              .ValueTemplate("#=TemplateEngine('activityRelationTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDownForRelations", "VWCRM_Contact", new { area = "CRM" }))
+                              .Sort(x => x.Add("Name").Ascending())
+                              .Events(x => x.Change("onChangeRelationId"))
+                              .Template("<span class='badge badge-success' style='background-color:#:color#'>#:description#</span> #:Name# ")
+                              .Execute("id")
+                          )
+                            </div>
                         </div>
-                        <div class="col-md-8">
-                            <select required="required"
-                                    id="IdUsers"
-                                    name="IdUsers"
-                                    style="width: 100%"
-                                    class="form-control"
-                                    data-custom="true"
-                                    data-cascadeFrom="PresentationId"
-                                    data-cascadeFromField="id"
-                                    data-readurl="/General/GetSH_UsersForPresentationById?id=@Model.PresentationId"
-                                    data-placeholder="Lütfen Katılımcıları Seçiniz.."></select>
 
+                        <div class="form-group hide" id="Pstage">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req" for="PresentationStageId">Potansiyel Aşaması</label>
+                            </div>
+                            <div class="col-md-8">
+                                @(Html.Akilli()
+                                .DropDownListFor(model => model.PresentationStageId)
+                                .OptionLabel("Lütfen Potansiyel Aşaması Seçiniz..")
+                                .MinLength(2)
+                                .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+                                .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+                                .DataValueField("Id")
+                                .DataTextField("Name")
+                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+                                .Sort(x => x.Add("Name").Ascending())
+                                .Events(a=>a.DataBound("PresentationStageIdDataBound"))
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                            </div>
                         </div>
-                    </div>
+
+
+                        <div class="form-group hide" id="IdUserCc">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req" for="IdUsers">Katılımcılar</label>
+                            </div>
+                            <div class="col-md-8">
+                                <select required="required"
+                                        id="IdUsers"
+                                        name="IdUsers"
+                                        style="width: 100%"
+                                        class="form-control"
+                                        data-custom="true"
+                                        data-cascadeFrom="RelationId"
+                                        data-cascadeFromField="id"
+                                        data-readurl="/General/GetSH_UsersForPresentationById"
+                                        data-placeholder="Lütfen Katılımcıları Seçiniz.."></select>
+
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req" for="PresentationStageId">Potansiyel Aşaması</label>
+                            </div>
+                            <div class="col-md-8">
+                                @(Html.Akilli()
+                                .DropDownListFor(model => model.PresentationStageId)
+                                .OptionLabel("Lütfen Potansiyel Aşaması Seçiniz..")
+                                .MinLength(2)
+                                .Template("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-right: 15px;margin-top:5px\" ></div><span>#: data.Name#</span>")
+                                .ValueTemplate("<div style=\"background: #=data.color#;width:20px;height:20px;float:left;margin-top: 4px;margin-left:10px;\" ></div><span>#: data.Name#</span>")
+                                .DataValueField("Id")
+                                .DataTextField("Name")
+                                .DataSource(a => a.Read("GetCRM_ManagerStageCodeAndName", "General", new { area = string.Empty }).ServerFiltering(false))
+                                .Sort(x => x.Add("Name").Ascending())
+                                .Events(a=>a.DataBound("PresentationStageIdDataBound"))
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req" for="IdUsers">Katılımcılar</label>
+                            </div>
+                            <div class="col-md-8">
+                                <select required="required"
+                                        id="IdUsers"
+                                        name="IdUsers"
+                                        style="width: 100%"
+                                        class="form-control"
+                                        data-custom="true"
+                                        data-cascadeFrom="PresentationId"
+                                        data-cascadeFromField="id"
+                                        data-readurl="/General/GetSH_UsersForPresentationById?id=@Model.PresentationId"
+                                        data-placeholder="Lütfen Katılımcıları Seçiniz.."></select>
+
+                            </div>
+                        </div>
+                    }
 
                     <div class="form-group">
                         <div class="col-md-4">
@@ -159,12 +239,6 @@
                             )
                         </div>
                     </div>
-
-
-
-
-
-
 
                     <div class="form-group">
                         <div class="col-md-4">
@@ -261,8 +335,12 @@
         validate: false,
         channel : '@Html.Raw(Model.ChannelCompanyId)',
         Model: @Html.Raw(Json.Encode(Model)),
+        all: @Html.Raw(Json.Encode(ViewBag.All)),
         init: function () {
-
+            if (($('#IdUsers').attr('data-readurl') == '/General/GetSH_UsersForPresentationById') && $('#RelationId').data('handler').value() == "") {
+                $('#IdUserCc').addClass('hide')
+                return;
+            }
             $('#IdUsers')
                 .kendoMultiSelect({
                     value: @Html.Raw(Json.Encode(ViewBag.SalesPersonId)),
@@ -273,7 +351,7 @@
                     dataSource: new kendo.data.DataSource({
                         transport: {
                             read: {
-                                url: $('#IdUsers').attr('data-readurl'),
+                                url: ($('#IdUsers').attr('data-readurl') == '/General/GetSH_UsersForPresentationById' ? '/General/GetSH_UsersForPresentationById?id=' + $('#RelationId').data('handler').value() : $('#IdUsers').attr('data-readurl')),
                                 dataType: "json"
                             }
                         }
@@ -317,7 +395,6 @@
         },
         Events: {
             onDataBound: function () {
-
                 var $this = this;
 
                 var ds = $this.dataSource;
@@ -350,16 +427,14 @@
                 }
             },
             onSelect: function (e) {
-
                 if (e.item == null) { return; }
 
                 var elem = this.dataSource.view()[e.item.index()];
                 if (elem.newItem == true) {
-
                     $.ajax({
                         type: "POST",
                         url: '/CRM/VWCRM_ContactUser/InstantInsert',
-                        data: { contactType: elem.type, name: elem.Name, id: elem.Id, ContactId: _contact.Model.id, PresentationId: _contact.Model.PresentationId  },
+                        data: { contactType: elem.type, name: elem.Name, id: elem.Id, ContactId: _contact.Model.id, PresentationId: (_contact.Model.PresentationId == null ? $('#RelationId').data('handler').value() : _contact.Model.PresentationId)  },
                         success: function (response) {
                             if (response.result) {
                                 elem.newItem = false;
@@ -391,6 +466,9 @@
             }
         })
 
-    _contact.init();
+    if (_contact.all != true)
+    {
+             _contact.init();
+    }
 
 </script>

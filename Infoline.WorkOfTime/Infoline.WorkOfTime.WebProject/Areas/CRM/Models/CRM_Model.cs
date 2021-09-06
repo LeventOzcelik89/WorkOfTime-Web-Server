@@ -48,6 +48,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM
                     }));
                 }
             }
+            else
+            {
+                result.AddRange(db.GetVWSH_UserByCompanyId(id).Select(a => new DropDownDataSource
+                {
+                    Id = a.id,
+                    Name = a.FullName,
+                    type = (int)EnumCRM_ContactUserUserType.CustomerUser
+                }));
+            }
+
+
+            
             return result.OrderBy(a => a.Name).ToList();
 
         }
