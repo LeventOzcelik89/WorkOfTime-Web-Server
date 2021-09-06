@@ -11,7 +11,7 @@ using System.Web.Mvc;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 {
-	public class VWCRM_ContactController : Controller
+    public class VWCRM_ContactController : Controller
     {
         [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli)]
         public ActionResult Index()
@@ -20,8 +20,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
-        public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
             request.Page = 1;
@@ -43,7 +43,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
         [PageInfo("Aktivite/Randevu Veri Methodu", SHRoles.Personel)]
-        public int DataSourceCount([DataSourceRequest]DataSourceRequest request)
+        public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
             var db = new WorkOfTimeDatabase();
@@ -52,7 +52,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
         [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli)]
-        public ContentResult DataSourceUser([DataSourceRequest]DataSourceRequest request)
+        public ContentResult DataSourceUser([DataSourceRequest] DataSourceRequest request)
         {
             request = UpdateRequest(request);
             var condition = KendoToExpression.Convert(request);
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
         [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli)]
-        public int DataSourceUserCount([DataSourceRequest]DataSourceRequest request)
+        public int DataSourceUserCount([DataSourceRequest] DataSourceRequest request)
         {
             request = UpdateRequest(request);
             var condition = KendoToExpression.Convert(request);
@@ -76,13 +76,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
         [PageInfo("Aktivite/Randevu Veri Methodu", SHRoles.Personel)]
-        public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
+        public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
 
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWCRM_Contact(condition);
-            return Content(Infoline.Helper.Json.Serialize(data), "application/json"); 
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
 
@@ -98,13 +98,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
+
+
         [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
-        public ActionResult Insert(VWCRM_Contact item, DateTime? date)
+        public ActionResult Insert(VWCRM_Contact item, DateTime? date, bool all = false)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var list = new List<Guid?> { userStatus.user.id };
-            
+
             if (item.PresentationId.HasValue)
             {
                 var pre = db.GetVWCRM_PresentationById(item.PresentationId.Value);
@@ -113,7 +115,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     list.Add(pre.SalesPersonId);
                     item.ChannelCompanyId = pre.ChannelCompanyId;
                     item.PresentationStageId = pre.PresentationStageId;
-                } 
+                }
             }
 
             if (date.HasValue)
@@ -121,14 +123,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 item.ContactStartDate = date;
             }
             ViewBag.SalesPersonId = list.Distinct().Select(a => a.Value);
-
+            ViewBag.All = all;
 
             return View(item);
         }
 
         [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Insert(VWCRM_Contact item, Guid[] IdUsers, DateTime? AppointmentDate, bool mailForParticipants)
+        public JsonResult Insert(VWCRM_Contact item, Guid[] IdUsers, DateTime? AppointmentDate, bool mailForParticipants, Guid? RelationId)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -137,19 +139,36 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             item.created = DateTime.Now;
             item.createdby = userStatus.user.id;
 
-            if (item.PresentationId == null)
+            if (!RelationId.HasValue)
             {
-                return Json(new ResultStatusUI
+                if (item.PresentationId == null)
                 {
-                    Result = false,
-                    FeedBack = feedback.Warning("Bağlı potansiyel fırsat bulunamadı.")
-                }, JsonRequestBehavior.AllowGet);
+                    return Json(new ResultStatusUI
+                    {
+                        Result = false,
+                        FeedBack = feedback.Warning("Bağlı potansiyel fırsat bulunamadı.")
+                    }, JsonRequestBehavior.AllowGet);
+                }
+            }
+
+            if (RelationId.HasValue)
+            {
+                var cmp = db.GetCMP_CompanyById(RelationId.Value);
+                if(cmp != null)
+                {
+                    item.customerId = RelationId;
+                }
+                else
+                {
+                    item.PresentationId = RelationId;
+                }
             }
 
 
             var trans = db.BeginTransaction();
             var dbresult = db.InsertCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, true), trans);
 
+            if (item.PresentationId.HasValue) { 
             dbresult &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
             {
                 created = DateTime.Now,
@@ -159,7 +178,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 type = (short)EnumCRM_PresentationActionType.YeniAktivite,
                 contactId = item.id,
             }, trans);
-
+            }
             dbresult &= db.BulkInsertCRM_ContactUser(IdUsers.Select(a => new CRM_ContactUser
             {
                 id = Guid.NewGuid(),
