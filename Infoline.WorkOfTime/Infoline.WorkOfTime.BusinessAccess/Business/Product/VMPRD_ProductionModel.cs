@@ -36,6 +36,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
+				assignableUsers = productionUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
 				productionSchemaId = productionStages.Count() > 0 ? productionStages.Where(a => a.productionSchemaId.HasValue).Select(x => x.productionSchemaId.Value).FirstOrDefault() : Guid.NewGuid();
 			}
 			this.code = !String.IsNullOrEmpty(this.code) ? this.code : BusinessExtensions.B_GetIdCode();
@@ -150,6 +151,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Üretim emri oluşturma işlemi başarısız." };
 			}
 		}
+
 		private ResultStatus Update(Guid? userId, DbTransaction trans = null)
 		{
 			db = db ?? new WorkOfTimeDatabase();
@@ -166,8 +168,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (newInsertUsers.Count() > 0)
 			{
 				users = db.GetVWSH_UserByIds(newInsertUsers).ToList();
-				var currentUsers = db.GetFTM_TaskUserByTaskId(this.id);
-				rs &= db.BulkDeleteFTM_TaskUser(currentUsers, trans);
+				var currentUsers = db.GetPRD_ProductionUsersByProductionId(this.id);
+				rs &= db.BulkDeletePRD_ProductionUser(currentUsers, trans);
 			}
 
 			if (users.Count() > 0)
@@ -191,7 +193,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}).ToList();
 			}
 
-			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(x=> new PRD_ProductionOperation().B_EntityDataCopyForMaterial(x,true)), trans);
+			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(x => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(x, true)), trans);
 			rs &= db.BulkDeletePRD_ProductionUser(deletedUsers, trans);
 			rs &= db.BulkInsertPRD_ProductionUser(insertUsers, trans);
 
@@ -209,6 +211,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Ürün emri güncelleme işlemi başarısız." };
 			}
 		}
+
 		public ResultStatus Delete(Guid? userId, DbTransaction _trans = null)
 		{
 			db = db ?? new WorkOfTimeDatabase();
@@ -219,10 +222,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Üretim emri silinmiş." };
 			}
 
+			//	THİS.LOAD()
 			var _productionOperations = db.GetPRD_ProductionOperationByProductionId(production.id);
 			var _productionUsers = db.GetPRD_ProductionUsersByProductionId(production.id);
 			var _productionStages = db.GetPRD_ProductionStageByProductionId(production.id);
 			var _productionProduct = db.GetPRD_ProductionProductByProductionId(production.id);
+
+			//	üretim gerçekleştirildiyse silinemez !...
+			//	50 üretildi gridinde sil olacak.
 
 			var rs = db.BulkDeletePRD_ProductionUser(_productionUsers, trans);
 			rs &= db.BulkDeletePRD_ProductionOperation(_productionOperations, trans);
@@ -246,7 +253,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus
 				{
 					result = false,
-					message = "Üretim silme işlemi başarısız."
+					message = rs.message
 				};
 			}
 		}
@@ -297,33 +304,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		}
 
 
-		public void InsertProductionProducts(string[] materiels, Guid? productionId, Guid? userId)
+		public void InsertProductionProducts(VWPRD_ProductMateriel[] materiels, Guid? productionId, Guid? userId)
 		{
-			if (materiels.Count() > 0)
+			if (materiels.Count() <= 0)
 			{
-				var db = new WorkOfTimeDatabase();
-				var productionProducts = new List<PRD_ProductionProduct>();
-
-				foreach (var material in materiels)
-				{
-					var materialSplitData = material.Split('!');
-					productionProducts.Add(new PRD_ProductionProduct
-					{
-						id = Guid.NewGuid(),
-						createdby = userId,
-						productId = new Guid(materialSplitData[0]),
-						price = Convert.ToDouble(materialSplitData[1]),
-						materialId = new Guid(materialSplitData[2]),
-						quantity = 0,
-						productionId = productionId,
-						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
-
-					});
-				}
-
-				db.BulkInsertPRD_ProductionProduct(productionProducts);
+				return;
 			}
 
+			var db = new WorkOfTimeDatabase();
+			var productionProducts = new List<PRD_ProductionProduct>();
+
+			productionProducts.AddRange(materiels.Select(x => new PRD_ProductionProduct
+			{
+				id = Guid.NewGuid(),
+				createdby = userId,
+				productId = x.productId,
+				price = x.price,
+				materialId = x.materialId,
+				quantity = x.quantity,
+				productionId = productionId,
+				totalQuantity = x.totalQuantity,
+				type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
+			}));
+
+			db.BulkInsertPRD_ProductionProduct(productionProducts);
 		}
 
 		public VWPRD_StockSummary[] ProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
@@ -332,5 +336,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var stockSummary = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productIds, storageId);
 			return stockSummary;
 		}
+
 	}
 }
