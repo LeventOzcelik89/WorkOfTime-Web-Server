@@ -17,7 +17,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Üretim Başladı"), Generic("icon", "fa fa-building", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
         UretimBasladi = 1,
         [Description("Üretim Durduruldu"), Generic("icon", "fa fa-cogs", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
-        UretımDurduruldu = 2,
+        UretimDurduruldu = 2,
         [Description("Üretim Bitti"), Generic("icon", "fa fa-users", "color", "173270", "description", "Doğrulama Kodunun Gönderilmesi Bekleniyor")]
         UretimBitti = 3,
         [Description("Üretim İptal Edildi"), Generic("icon", "fa fa-barcode", "color", "23c6c8", "description", "Görevin Üstlenilmesi Bekleniyor")]
