@@ -12,9 +12,7 @@
 	a.status == (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi
 	).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumFTM_TaskOperationStatus.GorevUstlenildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/> GEÇEN SÜRE : {2}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step5 = Model.productionOperations.Where(a => a.status == (int)EnumFTM_TaskOperationStatus.CozumBildirildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/> GEÇEN SÜRE : {2}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step6 = Model.productionOperations.Where(a => a.status == (int)EnumFTM_TaskOperationStatus.CozumOnaylandi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/> GEÇEN SÜRE : {2}", a.createdby_Title, a.created)).FirstOrDefault();
+	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
 
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
@@ -71,9 +69,9 @@
 					</div>
 				</a>
 			</div>
-			<div class="timeline2 @(step6 != null ? "green2" : "")">
-				<a href="#" class="timeline-content2" data-toggle="tooltip" data-placement="top" data-html="true" data-original-title="@(step6 != null ? step6 : "Henüz İşlem Yapılmadı.")">
-					<div class="@(step6 != null ? "timeline-yeargreen" : "timeline-year2")">
+			<div class="timeline2 @(step4 != null ? "green2" : "")">
+				<a href="#" class="timeline-content2" data-toggle="tooltip" data-placement="top" data-html="true" data-original-title="@(step4 != null ? step4 : "Henüz İşlem Yapılmadı.")">
+					<div class="@(step4 != null ? "timeline-yeargreen" : "timeline-year2")">
 						<span class="fa fa-check-circle fa-2x"></span>
 					</div>
 					<div class="inner-content2">
@@ -246,7 +244,7 @@
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-location-arrow"></i> </a>
 			}
 
-			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0)
+			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
 			{
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
 			}
