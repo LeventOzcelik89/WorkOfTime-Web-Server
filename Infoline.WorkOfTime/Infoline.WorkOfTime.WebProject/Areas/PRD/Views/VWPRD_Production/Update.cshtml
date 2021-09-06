@@ -6,10 +6,46 @@
 }
 <link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 
+
 <script data-selector="modalContainer" type="text/javascript">
 
+	$(document)
+		.on("success", '#VWPRD_ProductionInsertForm', function (e, res) {
+
+			if (!res.Result) {
+				return;
+			}
+
+			if (res.Result) {
+				var productMateriels = $.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray();
+				if (productMateriels.length > 0) {
+					productMateriels = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x => { return x.productId + '!' + x.price + '!' + x.materialId }).ToArray()
+					GetJsonDataFromUrl('/PRD/VWPRD_Production/InsertProductMateriels', { materiels: productMateriels, productionId: res.Object, userId: '@userStatus.user.id' }, function (data) {
+
+					})
+				}
+			}
+		})
+		.on("change", "#quantity", function (e, resp) {
+
+			var data = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).ToArray();
+
+			if ($(this).val() == "") {
+				return;
+			}
+			debugger;
+			var quantity = parseInt($(this).val());
+			$.each(data, function (index, value) {
+				value.totalQuantity = quantity * value.quantity;
+			});
+
+			$("#productMaterialGrid").data("kendoGrid").refresh();
+
+		})
+		;
+
 	function onChangeCompany(e) {
-		var companyId = this.value();
+		var companyId = this.value();	//	""
 		var personElem = $('#assignableUsers').data("kendoMultiSelect");
 		var basefilter = personElem.options.dataSource.filter;
 		personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
@@ -27,7 +63,6 @@
 		if (storage.id != null && storage.id != "") {
 		var productionMaterialGrid = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).ToArray()
 			var productIds = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Select(x => x.materialId).ToArray()
-			var notStockTotalDatas = $.Enumerable.From($.Enumerable.From($("#productMaterialGrid").data("kendoGrid").dataSource.data()).ToArray()).Where(x => x.stockTotal == 0 || x.stockTotal == null).ToArray()
 			GetJsonDataFromUrl('/PRD/VWPRD_Production/GetProductStocksByProductIdsAndStorageId', { productIds: productIds, storageId: storage.id }, function (stockSummaries) {
 			$.each(stockSummaries, function (index, value) {
 				var data = $.Enumerable.From(productionMaterialGrid).Where(x => x.materialId == value.productId).FirstOrDefault();
@@ -38,11 +73,6 @@
 				}
 			});
 
-				debugger;
-				if (notStockTotalDatas != null && notStockTotalDatas != undefined && notStockTotalDatas.length > 0) {
-				$("#productionInsertButton").addClass("hide")
-				MesajWarning("Reçetenizde Seçmiş Olduğunuz Deponun Stokların da Bulunmayan Ürünler Mevcut. Lütfen Ürünleri Deponuza Temin Ettikten Sonra Üretim Emri Planlayınız.")
-			}
 			var grid = $("#productMaterialGrid").data("kendoGrid");
 			grid.refresh();
 		})
@@ -59,6 +89,11 @@
 
 	function onChangeProduct(e) {
 		var product = e.sender.dataItem();
+
+		if (product == null || product.id == null || product.id == "") {
+			return;
+		}
+
 		if (product != null && product.id != null && product.id != "") {
 
 			var detail = $("#productDetailButton");
@@ -66,14 +101,13 @@
 				detail.removeClass("hide");
 
 
-			GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
+			GetJsonDataFromUrl('/General/GetProductionProducts', { productId: product.id, productionId : '@Model.id' }, function (res) {
 
 				var cols = [
 					{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
-					{ field: 'quantity', title: 'Birim Miktar', width: 200 },
+					{ field: 'quantity', title: 'Birim Miktar', format: '{0:N2}', width: 200 },
 					{ field: 'price', title: 'Birim Fiyat', width: 200 },
-					{ field: 'totalQuantity', title: 'Toplam Miktar', width: 200 },
-					{ field: 'stockTotal', title: 'Toplam Stok Durumu', width: 200 },
+					{ field: 'totalQuantity', title: 'Toplam Miktar', width: 200 }
 
 				];
 
@@ -81,7 +115,7 @@
 					Data: res,
 					Column: cols,
 					Height: 400,
-					editable: false
+					editable: true
 				};
 
 				GridRender(opts, $('#productMaterialGrid'));
@@ -112,6 +146,7 @@
 			})
 		}
 		else {
+			$("#quantity").data("handler").enable(false);
 			$("#productDetailButton").addClass("hide")
 		}
 	}
@@ -131,90 +166,6 @@
 
 </script>
 
-<script type="text/x-kendo-template" id="assignableUserTemplate" data-selector="modalContainer">
-	<table class="table shoping-cart-table">
-		<tbody>
-			<tr>
-				<td style="width:15%;text-align: center;">
-					<img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
-				</td>
-				<td class="desc" style="width:40%;">
-					<div style="font-size:13px;">#=FullName#</div>
-					<div style="font-size:13px;">#=Company_Title#</div>
-					<div style="font-size:13px;">#=title#</div>
-				</td>
-
-			</tr>
-		</tbody>
-	</table>
-</script>
-
-<script type="text/x-kendo-template" id="taskUserTemplate" data-selector="modalContainer">
-	<div style='position:relative'>
-		<div class="clearfix" style="padding:8px 0;">
-			<img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
-			<div style="width:calc(100% - 70px);height:60px;float:right;">
-				<div class="template-item">#:FullName#</div>
-				<div class="template-item"><small>#:(Company_Title ? Company_Title : '-')#</small></div>
-				<a style='float: right;top: 15px;position: absolute;right: 15px;' class= 'btn btn-success xs' target="blank" href='/FTM/VWFTM_Task/PersonTasks?personId=#=id#'>Görevleri</a>
-				<div class="template-item">
-					<small>#:(title ? title : '')#</small>
-					#if(IsWorking == false){#
-					<div class="pull-right"><span class="badge badge-danger" style="" data-original-title="#:JobLeavingDescription#"> İşten ayrıldı. </span></div>
-					#}#
-
-				</div>
-
-			</div>
-
-		</div>
-	</div>
-</script>
-
-<style type="text/css" data-selector="modalContainer">
-	.noselector .k-i-all {
-		display: none !important;
-		visibility: hidden;
-	}
-
-	.noselector .k-clear-value {
-		right: 10px !important;
-	}
-
-	#insertRadio.akilliRadioGrup i {
-		font-size: 27px;
-	}
-
-		#insertRadio.akilliRadioGrup i.icon-shuffle {
-			font-size: 16px;
-		}
-
-		#insertRadio.akilliRadioGrup i.icon-retweet-3 {
-			font-size: 16px;
-		}
-
-	#insertRadio.akilliRadioGrup label {
-		width: 8.4%;
-		text-align: center;
-		font-size: 12px;
-		font-weight: bold;
-		max-height: 80px;
-		overflow: hidden;
-	}
-
-	.akilliRadioGrup > input:checked + label[for=priority_0] {
-		background-color: #EF5352;
-	}
-
-	.akilliRadioGrup > input:checked + label[for=priority_1] {
-		background-color: #F8AC59;
-	}
-
-	.akilliRadioGrup > input:checked + label[for=priority_2] {
-		background-color: #1ab394;
-	}
-</style>
-
 @using (Html.BeginForm("Insert", "VWPRD_Production", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
 	{ "role", "form" },
@@ -228,8 +179,6 @@
 	@Html.HiddenFor(model => model.code)
 	@Html.HiddenFor(model => model.schemaTitle)
 
-
-
 	<div class="row">
 		<div class="col-md-6">
 			<div class="form-group">
@@ -241,10 +190,38 @@
 									{
 										{"class", "form-control"},
 										{"placeholder", "Lütfen Üretim Emri Kodu Giriniz." }
-									}).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+									}).Validate(Validations.TextTurkceSpace09(false, 0, 140))
 				</div>
 			</div>
 		</div>
+		<div class="col-md-6">
+
+
+			<div class="form-group">
+				<div class="col-md-5">
+					<label class="control-label label-md req" for="centerCompanyId">Merkez Şirket</label>
+				</div>
+				<div class="col-md-7">
+					@(
+        Html.Akilli()
+        .DropDownListFor(model => model.centerCompanyId)
+        .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .Enable(false)
+        .Execute()
+            )
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+	<div class="row">
 		<div class="col-md-6">
 
 			<div class="form-group">
@@ -253,18 +230,44 @@
 				</div>
 				<div class="col-md-7">
 					@(
-        Html.Akilli().
-        DateTimePickerFor(model => model.productionOrderDate).
-        Format(Extensions.DateFormatFull()).
-        Value(DateTime.Now)
+		Html.Akilli().
+		DateTimePickerFor(model => model.productionOrderDate).
+		Format(Extensions.DateFormatFull()).
+		Value(DateTime.Now)
             )
 				</div>
 			</div>
 
+
+
+		</div>
+
+		<div class="col-md-6">
+
+
+			<div class="form-group">
+				<div class="col-md-5">
+					<label class="control-label label-md req" for="centerStorageId">Merkez Depo</label>
+				</div>
+				<div class="col-md-7">
+					@(
+			Html.Akilli()
+			.DropDownListFor(model => model.centerStorageId)
+			.OptionLabel("Lütfen Malzemelerin Alınacağı Depoyu Seçiniz..")
+			.DataTextField("fullName")
+			.DataValueField("id")
+			.Template("#=TemplateEngine('storageTemplate',data)#")
+			.ValueTemplate("#=fullName#)")
+			.Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+			.Events(a => { a.Change("onChangeStorage"); a.DataBound("onChangeStorage"); })
+			.Sort(x => x.Add("fullName").Ascending())
+			.Enable(false)
+			.Execute()
+                )
+				</div>
+			</div>
 		</div>
 	</div>
-
-
 
 	<div class="row">
 		<div class="col-md-6">
@@ -281,100 +284,10 @@
             )
 				</div>
 			</div>
-
-
 		</div>
 
 		<div class="col-md-6">
-			<div class="form-group">
-				<div class="col-md-5">
-					<label class="control-label label-md" for="lastProductionDate">Son Üretim Tarihi</label>
-				</div>
-				<div class="col-md-7">
-					@(
-			Html.Akilli().
-			DateTimePickerFor(model => model.lastProductionDate).
-			Placeholder("Son Üretim Tarihi").
-			Format(Extensions.DateFormatFull()).
-			Value(DateTime.Now)
-				)
-				</div>
-			</div>
-		</div>
-	</div>
 
-	<div class="row">
-		<div class="col-md-6">
-			<div class="form-group noselector">
-				<div class="col-md-5">
-					<label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
-				</div>
-				<div class="col-md-5">
-					@(Html.Akilli()
-		.DropDownListFor(model=>model.productId)
-		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
-		.DataTextField("fullName")
-		.DataValueField("id")
-		.Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Events(a => { a.Change("onChangeProduct"); a.DataBound("onChangeProduct"); })
-		//.Template("#=TemplateEngine('inventoryTemplate',data)#")
-		
-		.Enable(false)
-		.Execute()
-            )
-
-				</div>
-				<div class="col-sm-2">
-					<a class="btn pull-right m-r-sm btn btn-primary hide" style="margin-top: 3px;" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i> Detay </a>
-				</div>
-			</div>
-		</div>
-
-		<div class="col-md-6">
-			<div class="form-group">
-				<div class="col-md-5">
-					<label class="control-label label-md req" for="quantity">Üretilecek Adet</label>
-				</div>
-				<div class="col-md-7">
-					@(
-                    Html.Akilli()
-                    .NumericTextBoxFor(a => a.quantity)
-                    .Min(0)
-					.Enable(false)
-                    .Format("N0")
-                )
-				</div>
-			</div>
-		</div>
-	</div>
-
-
-	<div class="row">
-		<div class="col-md-6">
-			<div class="form-group">
-				<div class="col-md-5">
-					<label class="control-label label-md req" for="centerCompanyId">Merkez Şirket</label>
-				</div>
-				<div class="col-md-7">
-					@(
-		Html.Akilli()
-		.DropDownListFor(model => model.centerCompanyId)
-		.OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
-		.DataValueField("id")
-		.DataTextField("fullName")
-		.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
-		.Sort(x => x.Add("fullName").Ascending())
-		
-		.Enable(false)
-		.Execute()
-            )
-				</div>
-			</div>
-		</div>
-		<div class="col-md-6">
 			<div class="form-group">
 				<div class="col-md-5">
 					<label class="control-label label-md req" for="productionSchemaId">Üretilecek Şirket</label>
@@ -388,40 +301,34 @@
 		.DataTextField("fullName")
 		.Template("#=TemplateEngine('companyTemplate',data)#")
 		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
 		//.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
 		.Sort(x => x.Add("fullName").Ascending())
-		
 		.Enable(false)
 		.Execute()
             )
 				</div>
 			</div>
-		</div>
 
+		</div>
+	</div>
+
+
+	<div class="row">
 		<div class="col-md-6">
+
+
 			<div class="form-group">
 				<div class="col-md-5">
-					<label class="control-label label-md req" for="centerStorageId">Merkez Depo</label>
+					<label class="control-label label-md" for="lastProductionDate">Son Üretim Tarihi</label>
 				</div>
 				<div class="col-md-7">
 					@(
-			Html.Akilli()
-			.DropDownListFor(model => model.centerStorageId)
-			.OptionLabel("Lütfen Malzemelerin Alınacağı Depoyu Seçiniz..")
-			.DataTextField("fullName")
-			.DataValueField("id")
-			.Template("#=TemplateEngine('storageTemplate',data)#")
-			.ValueTemplate("#=fullName#)")
-			.Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
-			//.CascadeFrom("centerCompanyId")
-			//.CascadeFromField("companyId")
-			.Events(a => { a.Change("onChangeStorage"); a.DataBound("onChangeStorage"); })
-			.Sort(x => x.Add("fullName").Ascending())
-			
-			.Enable(false)
-			.Execute()
-                )
+			Html.Akilli().
+			DateTimePickerFor(model => model.lastProductionDate).
+			Placeholder("Son Üretim Tarihi").
+			Format(Extensions.DateFormatFull()).
+			Value(DateTime.Now)
+				)
 				</div>
 			</div>
 		</div>
@@ -440,19 +347,43 @@
 			.Template("#=TemplateEngine('storageTemplate',data)#")
 			.ValueTemplate("#=fullName#)")
 			.Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
-			//.CascadeFrom("productionCompanyId")
-			//.CascadeFromField("companyId")
 			.Sort(x => x.Add("fullName").Ascending())
-			
 			.Enable(false)
 			.Execute()
                 )
 				</div>
 			</div>
 		</div>
+
+
 	</div>
 
 	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group noselector">
+				<div class="col-md-5">
+					<label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
+				</div>
+				<div class="col-md-5">
+					@(Html.Akilli()
+		.DropDownListFor(model=>model.productId)
+		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
+		.DataTextField("fullName")
+		.DataValueField("id")
+		.Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Events(a => { a.Change("onChangeProduct"); a.DataBound("onChangeProduct"); })
+		//.Template("#=TemplateEngine('inventoryTemplate',data)#")
+		.Enable(false)
+		.Execute()
+            )
+
+				</div>
+				<div class="col-sm-2">
+					<a class="btn pull-right m-r-sm btn btn-primary hide" style="margin-top: 3px;" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i> Detay </a>
+				</div>
+			</div>
+		</div>
 		<div class="col-md-6">
 			<div class="form-group">
 				<div class="col-md-5">
@@ -469,10 +400,29 @@
 		.Action(b => b.Action("DataSourceDropDown", "VWPRD_ProductionSchema", new { area = "PRD" }))
 		.Events(a => { a.Change("onChangeProductionSchema"); a.DataBound("onChangeProductionSchema"); })
 		.Sort(x => x.Add("name").Ascending())
-		
 		.Enable(false)
 		.Execute()
             )
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-5">
+					<label class="control-label label-md req" for="quantity">Üretilecek Adet</label>
+				</div>
+				<div class="col-md-7">
+					@(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.quantity)
+                    .Min(0)
+					.Enable(false)
+                    .Format("N0")
+                )
 				</div>
 			</div>
 		</div>
@@ -499,24 +449,29 @@
 	</div>
 
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md" for="description">Üretim Açıklaması</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
-			{
-				{"class", "form-control"},
-				{"placeholder", "Lütfen Açıklama Giriniz." }
-			}).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+
+
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-5">
+					<label class="control-label label-md" for="description">Üretim Açıklaması</label>
+				</div>
+				<div class="col-md-7">
+					@Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen Açıklama Giriniz." }
+					}).Validate(Validations.TextTurkceSpace09(false, 0, 250))
+				</div>
+			</div>
 		</div>
 	</div>
 
+
 	<div class="row">
 		<div class="ibox-content">
-			<div id="productMaterialGrid">
-
-			</div>
+			<div id="productMaterialGrid"></div>
 		</div>
 	</div>
 
@@ -524,7 +479,7 @@
 		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
 
 		<button id="productionInsertButton" class="btn btn-md btn-success pull-right" type="submit">
-			Üretim Emri Planla
+			Üretim Emrini Güncelle
 		</button>
 	</div>
 }
