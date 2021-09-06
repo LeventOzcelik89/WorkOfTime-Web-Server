@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 	public class VMPRD_ProductionOperationModel : VWPRD_ProductionOperation
 	{
 		private WorkOfTimeDatabase db { get; set; }
+		public VWPRD_Production Production { get; set; }
 		private DbTransaction trans { get; set; }
 		public VMPRD_ProductionOperationModel Load()
 		{
@@ -21,6 +22,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.B_EntityDataCopyForMaterial(productionOperation, true);
 			}
+
+			if (this.productionId.HasValue)
+			{
+				this.Production = db.GetVWPRD_ProductionById(this.productionId.Value);
+			}
+
 			return this;
 		}
 
@@ -34,13 +41,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.createdby = userId;
 				this.created = DateTime.Now;
-				rs = Insert(trans);
+				rs = Insert(userId);
 			}
 			else
 			{
 				this.changedby = userId;
 				this.changed = DateTime.Now;
-				rs = Update(trans);
+				rs = Update(userId);
 			}
 
 			if (rs.result)
@@ -53,77 +60,89 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return rs;
 		}
 
-		private ResultStatus Insert(DbTransaction trans = null)
+		private ResultStatus Insert(Guid? userId)
 		{
-			db = db ?? new WorkOfTimeDatabase();
-			var transaction = trans ?? db.BeginTransaction();
-			var productionOperation = new PRD_ProductionOperation().B_EntityDataCopyForMaterial(this, true);
+			if (this.productionId == null) return new ResultStatus { result = false, message = "Üretim kaydı seçili değil." };
 
-			var rs = db.InsertPRD_ProductionOperation(productionOperation, transaction);
+			db = db ?? new WorkOfTimeDatabase();
+			this.trans = this.db.BeginTransaction();
+			this.Production = db.GetVWPRD_ProductionById(this.productionId.Value);
+			this.created = DateTime.Now.AddSeconds(5);
+			this.createdby = userId;
+
+			if (this.Production == null) return new ResultStatus { result = false, message = "Üretim kaydı silinmiş." };
+			if (this.status == null) return new ResultStatus { result = false, message = "Operasyon durumu boş gönderilemez." };
+
+			var productionOperation = db.GetPRD_ProductionOperationByProductionId(this.productionId.Value);
+			var productionUsers = db.GetPRD_ProductionUsersByProductionId(this.productionId.Value);
+			var rs = new ResultStatus { result = true };
+			var status = (EnumPRD_ProductionOperationStatus)this.status;
+			var message = "İşlem başarıyla gerçekleşti.";
+
+			switch (status)
+			{
+				case EnumPRD_ProductionOperationStatus.UretimEmriVerildi:
+					break;
+				case EnumPRD_ProductionOperationStatus.UretimBasladi:
+					message = "Göreve başlandı.";
+					break;
+				case EnumPRD_ProductionOperationStatus.UretimDurduruldu:
+					break;
+				case EnumPRD_ProductionOperationStatus.UretimBitti:
+					break;
+				case EnumPRD_ProductionOperationStatus.UretimIptalEdildi:
+					break;
+				case EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi:
+					message = "Envanter işlem bildirimi başarılı.";
+					break;
+				case EnumPRD_ProductionOperationStatus.FireBildirimiYapildi:
+					break;
+				case EnumPRD_ProductionOperationStatus.StogaIadeEdildi:
+					break;
+				case EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi:
+					break;
+				case EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi:
+					break;
+				case EnumPRD_ProductionOperationStatus.FormYuklendi:
+					break;
+				default:
+					break;
+			}
+
+			rs &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation().B_EntityDataCopyForMaterial(this, true));
 
 
 			if (rs.result == true)
 			{
-				if (trans == null) transaction.Commit();
-				return new ResultStatus { result = true, message = "Ürün Ekleme işlemi başarılı." };
+				if (trans == null) trans.Commit();
+				return new ResultStatus { result = true, message = message };
 			}
 			else
 			{
-				if (trans == null) transaction.Rollback();
-				return new ResultStatus { result = false, message = "Ürün Ekleme işlemi başarısız." };
+				if (trans == null) trans.Rollback();
+				return new ResultStatus { result = false, message = "İşlem başarısız." };
 			}
 		}
-		private ResultStatus Update(DbTransaction trans = null)
+		private ResultStatus Update(Guid? userId)
 		{
-			db = db ?? new WorkOfTimeDatabase();
-			var transaction = trans ?? db.BeginTransaction();
-			var productionOperation = new PRD_ProductionOperation().B_EntityDataCopyForMaterial(this, true);
-			var rs = db.UpdatePRD_ProductionOperation(productionOperation, true, transaction);
+			this.db = new WorkOfTimeDatabase();
+			this.trans = this.db.BeginTransaction();
+			this.changedby = userId;
+			this.changed = DateTime.Now;
 
-			if (rs.result == true)
+			var rs = db.UpdatePRD_ProductionOperation(new PRD_ProductionOperation().B_EntityDataCopyForMaterial(this, true), false, trans);
+
+			if (rs.result)
 			{
-				if (trans == null) transaction.Commit();
-				return new ResultStatus { result = true, message = "Ürün Güncelleme işlemi başarılı." };
+				rs.message = "Güncelleme işlemi başarılı.";
+				trans.Commit();
 			}
 			else
 			{
-				if (trans == null) transaction.Rollback();
-				return new ResultStatus { result = false, message = "Ürün Güncelleme işlemi başarısız." };
+				rs.message = "Güncelleme işlemi başarısız.";
+				trans.Rollback();
 			}
-		}
-		public ResultStatus Delete(DbTransaction trans = null)
-		{
-			db = db ?? new WorkOfTimeDatabase();
-			var _productionOperation = db.GetPRD_ProductionOperationById(this.id);
-			if (_productionOperation == null)
-			{
-				return new ResultStatus { result = false, message = "Ürün zaten silinmiş." };
-			}
-
-			var dbres = new ResultStatus { result = true };
-			var transaction = trans ?? db.BeginTransaction();
-
-			var productionOperation = new PRD_ProductionOperation().B_EntityDataCopyForMaterial(_productionOperation, true);
-			dbres &= db.DeletePRD_ProductionOperation(productionOperation, trans);
-
-			if (dbres.result == true)
-			{
-				if (trans == null) transaction.Commit();
-				return new ResultStatus
-				{
-					result = true,
-					message = "Ürün silme işlemi başarıslı oldu."
-				};
-			}
-			else
-			{
-				if (trans == null) transaction.Rollback();
-				return new ResultStatus
-				{
-					result = false,
-					message = "Ürün silme işlemi başarısız oldu."
-				};
-			}
+			return rs;
 		}
 	}
 }

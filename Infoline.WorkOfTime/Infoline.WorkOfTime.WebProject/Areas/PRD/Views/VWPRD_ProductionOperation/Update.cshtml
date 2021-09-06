@@ -1,0 +1,125 @@
+﻿@model VMPRD_ProductionOperationModel
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+	ViewBag.Title = "Üretim Operasyon Güncelleme (" + ((EnumFTM_TaskOperationStatus)Model.status).B_ToDescription() + ")";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	//var personUserIds = new WorkOfTimeDatabase().GetSH_UserByRoleIdList(new Guid(SHRoles.SahaGorevPersonel));
+}
+
+@using (Html.BeginForm("Insert", "VWPRD_ProductionOperation", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+	@Html.HiddenFor(model => model.productionId)
+	@Html.HiddenFor(model => model.status)
+
+	switch ((EnumPRD_ProductionOperationStatus)Model.status)
+	{
+		case EnumPRD_ProductionOperationStatus.UretimEmriVerildi:
+
+			break;
+		case EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi:
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md" for="assignableUsers">Sorumlu Personeller</label>
+				</div>
+				<div class="col-md-8">
+					@(
+                Html.Akilli()
+                .MultiSelect("userIds")
+                .Placeholder("Lütfen sorumlu personelleri seçiniz..")
+                .DataValueField("id")
+                .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+            )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Personele Ata</button>
+			</div>
+			break;
+		case EnumPRD_ProductionOperationStatus.UretimBasladi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md" for="description">Açıklama </label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Açıklama Giriniz." }
+						})
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Göreve Başla</button>
+			</div>
+			break;
+		@*case EnumFTM_TaskOperationStatus.CozumBildirildi:
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Çözüm Açıklaması</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Lütfen çözüm bildirirken varsa bir açıklama giriniz." }
+					}).Validate(Validations.Required)
+				</div>
+			</div>
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Görev Bitir</button>
+			</div>
+			break;*@
+		case EnumPRD_ProductionOperationStatus.FormYuklendi:
+
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label req">Açıklama</label>
+				</div>
+				<div class="col-md-9">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Varsa ek açıklama girebilirsiniz." }
+					})
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-3">
+					<label class="control-label label-md req" for="Dosya">Dosya</label>
+				</div>
+				<div class="col-md-9">
+					@(
+                        Html.Akilli().FileUpload()
+                        .DataTable("PRD_ProductionOperation")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Üretim Dosyası")
+                        .Validate(true)
+                    )
+				</div>
+			</div>
+
+			<div class="buttons">
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+				<button class="btn btn-md btn-success pull-right" type="submit">Dosyayı Kaydet</button>
+			</div>
+			break;
+		default:
+			break;
+	}
+}

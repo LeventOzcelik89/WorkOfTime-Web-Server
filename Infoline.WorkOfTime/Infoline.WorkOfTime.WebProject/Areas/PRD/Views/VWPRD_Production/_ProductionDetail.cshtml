@@ -1,0 +1,263 @@
+﻿@model VMPRD_ProductionModel
+@{
+	Layout = null;
+	var userStatus = (PageSecurity)Session["userStatus"];
+	//var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
+}
+
+<div class="ibox-title">
+	<span class="text-muted small pull-right">
+		Üretim Emri Oluşturulma Tarihi : @String.Format("{0:dd.MM.yyyy HH:mm}", Model.created)
+	</span>
+	<h5>
+		Üretim Detayları
+		@if (Model.lastOperationStatus < (int)EnumPRD_ProductionOperationStatus.UretimBasladi)
+		{
+			<a class="btn btn-xs btn-warning m-l-md" data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Update","VWPRD_Production",new {area="PRD",id=Model.id })"><i class="fa fa-edit"></i> Düzenle </a>
+		}
+	</h5>
+</div>
+
+<div class="ibox-content clearfix">
+
+	<div class="col-lg-6" style="border-right: 1px solid #cfcfcf;">
+		<dl class="dl-horizontal">
+			<dt>Üretim Emri Kodu:</dt>
+			<dd>@Model.code</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretim Emri Tarihi: </dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.productionOrderDate) </dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretim Plan Tarihi: </dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.scheduledProductionDate) </dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Son Üretim Tarihi: </dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastProductionDate) </dd>
+		</dl>
+
+
+		<dl class="dl-horizontal">
+			<dt>Son İşlem Tarihi :</dt>
+			<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate) </dd>
+		</dl>
+		<dl class="dl-horizontal">
+			<dt>Son Operasyon:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@(Model.lastOperationStatus_Title)</u></strong></span></dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretim Açıklaması:</dt>
+			<dd><span style="white-space: pre-wrap;word-break: break-all;">@(Model.description)</span></dd>
+		</dl>
+
+
+	</div>
+
+	<div class="col-lg-6">
+		<dl class="dl-horizontal">
+			<dt>Merkez İşletme:</dt>
+			<dd>
+				<span>@Model.centerCompanyId_Title </span>
+			</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Merkez Depo:</dt>
+			<dd>
+				<span>@Model.centerStorageId_Title </span>
+
+			</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretilecek İşletme:</dt>
+			<dd>
+				<span>@Model.productionCompanyId_Title </span>
+			</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretilecek Depo:</dt>
+			<dd>
+				<span>@Model.productionStorageId_Title </span>
+
+			</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Üretim Şeması:</dt>
+			<dd>
+				<span>@Model.schemaTitle </span>
+
+			</dd>
+		</dl>
+
+		<dl class="dl-horizontal">
+			<dt>Sorumlu Personeller:</dt>
+			<dd class="project-people">
+				@if (Model.productionUsers.Count() > 0)
+				{
+					foreach (var user in Model.productionUsers)
+					{
+						<a href="#">
+							<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+						</a>
+					}
+				}
+				else
+				{
+					<span>Henüz personel ataması yapılmamış</span>
+				}
+
+			</dd>
+		</dl>
+
+		@*@if (!string.IsNullOrEmpty(Model.SLAText))
+		{
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Başlangıç Tarihi:</dt>
+				<dd>
+					@String.Format("{0:dd.MM.yyyy HH:mm}", Model.penaltyStartDate)
+				</dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt><i class="fa fa-info-circle" data-original-title="@(Model.SLAText)"></i> SLA Toplam Ceza:</dt>
+				<dd>
+					@String.Format("{0:C2}", Model.amercementTotal)
+				</dd>
+			</dl>
+		}*@
+		@*<dl class="dl-horizontal">
+
+			@if (Model.taskPlanId_Title != null)
+			{
+				<dt>Bakım Planı :</dt>
+				<dd>@Model.taskPlanId_Title  <a data-href="/FTM/VWFTM_TaskPlan/TemplatePlanDetail?id=@Model.taskPlanId" data-modal="true" data-task="Insert" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+
+			}
+
+		</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Planlanan Başlangıç :</dt>
+				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.planStartDate) </dd>
+			</dl>
+
+			<dl class="dl-horizontal">
+				<dt>Planlanan Bitiş :</dt>
+				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.dueDate) </dd>
+			</dl>
+
+
+
+			<dl class="dl-horizontal">
+				<dt>Geçen Süre:</dt>
+				<dd>@(Model.workingHour)</dd>
+			</dl>
+
+			@if (Model.taskStartDate != null)
+			{
+				<dl class="dl-horizontal">
+					<dt>Görev Başlangıç Tarihi :</dt>
+					<dd> <strong><u>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskStartDate) </u></strong></dd>
+				</dl>
+				<dl class="dl-horizontal">
+					<dt>Görev Bitiş Tarihi :</dt>
+					@if (Model.taskEndDate != null)
+					{
+						<dd> <strong><u>  @String.Format("{0:dd.MM.yyyy HH:mm}", Model.taskEndDate) </u></strong></dd>
+					}
+					else
+					{
+						<dd> <strong><u> @(Model.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.GorevDurduruldu ? "Görev Durduruldu" : "Görev Devam Etmekte")  </u></strong></dd>
+					}
+				</dl>
+			}
+
+			<dl class="dl-horizontal">
+				<dt>Müşteri İşletme:</dt>
+				<dd><span>@(Model.customer_Title)</span> <a href="/CMP/VWCMP_Company/Detail?id=@Model.customerId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+
+			</dl>
+
+			@if (Model.customerStorageId.HasValue)
+			{
+				<dl class="dl-horizontal">
+					<dt>Şube/Depo/Kısım:</dt>
+					<dd><span>@(Model.customerStorage_Title)</span> <a href="/CMP/VWCMP_Storage/Detail?id=@Model.customerStorageId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+				</dl>
+			}
+
+
+			@if (Model.fixtureId.HasValue)
+			{
+				<dl class="dl-horizontal">
+					<dt>Görevlendirilen Envanter:</dt>
+					<dd><span>@(Model.fixture_Title)</span> <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.fixtureId" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a></dd>
+				</dl>
+			}
+
+			@{var assignInfo = Model.taskUsers.Where(a => a.status == true).FirstOrDefault(); }
+
+			@if (assignInfo != null)
+			{
+				<dl class="dl-horizontal">
+					<dt>Görevi Üstlenen:</dt>
+					<dd class="project-people">
+						<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@assignInfo.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(assignInfo.photo != null ? assignInfo.photo : "/Content/Custom/img/na.png")">
+					</dd>
+				</dl>
+			}
+			else
+			{
+				<dl class="dl-horizontal">
+					<dt>Üstlenebilecekler:</dt>
+					<dd class="project-people">
+						@if (Model.taskUsers.Count() > 0)
+						{
+							foreach (var user in Model.taskUsers)
+							{
+								<a href="#">
+									<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+								</a>
+							}
+						}
+						else
+						{
+							<span>Henüz personel ataması yapılmamış</span>
+						}
+
+					</dd>
+				</dl>
+			}
+
+			<dl class="dl-horizontal">
+				<dt>Yardımcılar:</dt>
+				<dd class="project-people">
+					@if (Model.taskUsersHelper.Count() > 0)
+					{
+						foreach (var user in Model.taskUsersHelper)
+						{
+							<a href="#">
+								<img alt="image" data-toggle="tooltip" data-placement="top" data-original-title="@user.userId_Title" onerror="ImageError(this,'/Content/Custom/img/na.png')" class="img-circle" src="@(user.photo != null ? user.photo : "/Content/Custom/img/na.png")">
+							</a>
+						}
+					}
+					else
+					{
+						<span>Yardımcı personel yok</span>
+					}
+
+				</dd>
+			</dl>*@
+
+	</div>
+
+</div>

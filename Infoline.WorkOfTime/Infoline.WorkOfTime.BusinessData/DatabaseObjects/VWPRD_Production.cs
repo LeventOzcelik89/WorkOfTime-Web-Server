@@ -27,5 +27,6 @@ namespace Infoline.WorkOfTime.BusinessData
 		public string lastOperationStatus_Title { get; set; }
 		public string productId_Title { get; set; }
 		public int lastOperationStatus { get; set; }
+		public DateTime? lastOperationDate { get; set; }
 	}
 }
