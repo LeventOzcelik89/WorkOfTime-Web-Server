@@ -82,28 +82,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[AllowEveryone]
 		[PageInfo("Üretim Emri Sil)", SHRoles.Personel)]
 		[HttpPost]
-		public JsonResult Delete(Guid[] id)
+		public JsonResult Delete(Guid id)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			var list = new List<ResultStatus>();
-			foreach (var item in id)
-			{
-				list.Add(new VMPRD_ProductionModel { id = item }.Delete(userStatus.user.id));
-			}
-
-			var mesages = string.Join("<br/>", list.Where(a => a.result == false).Select(a => a.message));
+			var res = new VMPRD_ProductionModel { id = id }.Delete(userStatus.user.id);
 
 			var result = new ResultStatusUI
 			{
-				Result = list.Count(a => a.result == false) > 0,
-				FeedBack = list.Count(a => a.result == false) > 0 ? feedback.Warning("Üretim emirlerinin bir kaçı silinemedi.<br/><br/>" + mesages) : feedback.Success("Üretim emri silme işlemi başarılı")
+				Result = res.result,
+				FeedBack = res.result == false ? feedback.Error(res.message, "Üretim emirlerinin bir kaçı silinemedi.") : feedback.Success("Üretim emri silme işlemi başarılı")
 			};
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
 		[PageInfo("Üretim Emirleri Reçete Ürünleri Ekleme Methodu", SHRoles.Personel)]
-		public void InsertProductMateriels(string[] materiels, Guid? productionId, Guid? userId)
+		public void InsertProductMateriels(VWPRD_ProductMateriel[] materiels, Guid? productionId, Guid? userId)
 		{
 			new VMPRD_ProductionModel().InsertProductionProducts(materiels, productionId, userId);
 		}
