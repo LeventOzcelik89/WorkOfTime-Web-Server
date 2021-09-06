@@ -5,7 +5,7 @@
 	var userStatus = (PageSecurity)Session["userStatus"];
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderBy(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/> GEÇEN SÜRE : {2}", a.createdby_Title, a.created)).FirstOrDefault();
+	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderBy(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
 	var step3 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi||
 	a.status == (int)EnumPRD_ProductionOperationStatus.StogaIadeEdildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.FormYuklendi ||
@@ -238,7 +238,7 @@
 	<input type="checkbox" checked id="fixed">
 	<label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
 	<div class="fix-buttons">
-			@if (Model.lastOperationStatus < (int)EnumPRD_ProductionOperationStatus.UretimBasladi)
+			@if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0)
 			{
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-location-arrow"></i> </a>
 			}

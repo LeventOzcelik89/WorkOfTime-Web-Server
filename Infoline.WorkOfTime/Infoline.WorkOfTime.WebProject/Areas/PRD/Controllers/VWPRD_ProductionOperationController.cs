@@ -7,7 +7,7 @@ using System;
 using System.Linq;
 using System.Web.Mvc;
 
-namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
+namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
 	public class VWPRD_ProductionOperationController : Controller
 	{
@@ -38,6 +38,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View(model);
 		}
 
+		[AllowEveryone]
 		[PageInfo("Üretim Emri Operasyon Ekleme", SHRoles.Personel, SHRoles.YukleniciPersoneli)]
 		public ActionResult Insert(VMPRD_ProductionOperationModel request)
 		{
