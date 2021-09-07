@@ -1,4 +1,5 @@
-﻿using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
@@ -630,6 +631,40 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
+
+        [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli,SHRoles.IdariPersonelYonetici)]
+        public ActionResult ContactCalendar()
+        {
+            var model = new TaskSchedulerModel();
+            var res = model.GetTaskTemplatePlanList();
+
+            return View(res);
+
+        }
+
+        [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli, SHRoles.IdariPersonelYonetici)]
+        public ContentResult GetContactCalendarData(Guid? userId)
+        {
+            var res = new List<object>();
+            var db = new WorkOfTimeDatabase();
+            var data = new VMCRM_ContactModel().CalendarDatas(userId);
+            var years = data.Where(x => x.ContactEndDate.HasValue).GroupBy(a => a.ContactEndDate.Value.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
+
+            foreach (var year in years)
+            {
+
+                var yearData = data.Where(a => a.ContactEndDate.HasValue && a.ContactEndDate.Value.Year == year).ToArray();
+
+                res.Add(new
+                {
+                    Year = year,
+                    Data = yearData
+                });
+
+            }
+
+            return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
+        }
 
         public int GetUserByType(Guid userId)
         {
