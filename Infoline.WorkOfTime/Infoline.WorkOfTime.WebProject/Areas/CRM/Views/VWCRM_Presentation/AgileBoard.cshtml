@@ -1,0 +1,404 @@
+﻿@{
+    ViewBag.Title = "Agile Board";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/Content/AgileBoard/css/default.css" rel="stylesheet" />
+
+<div class="row agileContainer">
+
+    <ul class="agileColumns" data-target="AgileColumnsContainer">
+
+        <li class="agileColumn" data-id="3012B9BC-A6A2-4572-8CA3-C403EDA76E46" data-target="AgileColumn">
+            Müşteri Beğendi
+            <div data-target="AgileGrid"></div>
+        </li>
+
+        <li class="agileColumn" data-id="66F54BEA-B7F6-42A1-848B-D449D3CF49D7" data-target="AgileColumn">
+            Olumlu
+            <div data-target="AgileGrid"></div>
+        </li>
+
+        <li class="agileColumn" data-id="74E098B0-CBCE-43B4-812F-C7B54C073BEA" data-target="AgileColumn">
+            Potansiyel Fırsat / Aday Müşteri
+            <div data-target="AgileGrid"></div>
+        </li>
+
+    </ul>
+
+</div>
+
+<script type="text/template" id="template">
+    <div class="agileItem" data-id="#:id#" data-presentationstageid=#:PresentationStageId#>
+        <div class="cont" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
+        <div class="cont">
+            <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
+            <span class="info">
+
+                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#:kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
+
+                <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
+                    <span style="width: #:CompletionRate ?? 0#%" class="pb">
+                        <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
+                    </span>
+                </span>
+
+                <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Öncelik"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
+
+                <img class="spimg" src="/Files/SH_User/442945d4-5a15-4a09-b5b5-2db628f09e6b/PR___2021_09_06_13_56_34.jpg" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" />
+
+            </span>
+
+            <div class="optsCont">
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-users-1"></i> Toplantı
+                    </span>
+                    <span class="val">
+                        #:TotalContact == null ? '-' : TotalContact#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-dollar-1"></i> Tahmini Ciro
+                    </span>
+                    <span class="val">
+                        #:VodafoneOffer == null ? '-' : kendo.toString(VodafoneOffer, 'N2')#
+                        #if(VodafoneOffer != null) { # <small>₺</small> #}#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-dollar-1"></i> Son Teklif
+                    </span>
+                    <span class="val">
+                        #:lastTenderTotalAmount == null ? '-' : kendo.toString(lastTenderTotalAmount, 'N2')#
+                        #if(lastTenderTotalAmount != null) { # <small>₺</small> #}#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-award-1"></i> Son Toplantı
+                    </span>
+                    <span class="val">
+                        #:LastStatus == null ? '-' : LastStatus#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-megaphone-2"></i> Geçen Gün
+                    </span>
+                    <span class="val">
+                        #:DaysSinceVisit == null ? '-' : DaysSinceVisit#
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+
+    var page = {
+
+        init: function () {
+
+            $.each($('[data-target="AgileColumnsContainer"] [data-target="AgileColumn"]'), function (i, item) {
+
+                page.ListView.init($(this).find('[data-target="AgileGrid"]'), $(this).attr('data-id'));
+
+            });
+
+            $('[data-target="AgileGrid"]').sortable({
+                connectWith: '[data-target="AgileGrid"]',
+                update: function (event, ui) {
+
+                    var _id = ui.item.attr('data-id');
+                    var preId = ui.item.attr('data-presentationstageid');
+                    var _PresentationStageId = $(event.target).parents('[data-target="AgileColumn"]').attr('data-id');
+
+                    if (preId.toLowerCase() == _PresentationStageId.toLowerCase()) {
+                        return;
+                    }
+
+                    ReadData('/CRM/VWCRM_Presentation/UpdateState', { id: _id, PresentationStageId: _PresentationStageId }, function (res) {
+
+                    });
+
+                    //  id: 80aae6e1-6425-4c3d-b0c3-3b6b0be2248b
+                    //  PresentationStageId: 3012b9bc-a6a2-4572-8ca3-c403eda76e46
+
+
+
+                }
+            }).disableSelection();
+
+        },
+        func: {
+
+        },
+        ListView: {
+            init: function (elem, id) {
+
+                elem
+                    .html(null)
+                    .kendoListView({
+                        dataSource: new kendo.data.DataSource({
+                            type: 'aspnetmvc-ajax',
+                            transport: {
+                                read: {
+                                    url: '/CRM/VWCRM_Presentation/DataSourceDropDown'
+                                }
+                            },
+                            filter: [{
+                                logic: 'and',
+                                filters: [{
+                                    field: 'PresentationStageId',
+                                    operator: 'eq',
+                                    value: id
+                                }]
+                            }],
+                            "serverPaging": true,
+                            "serverSorting": true,
+                            "serverFiltering": true,
+                            "serverGrouping": true,
+                            "serverAggregates": true,
+                            "pageSize": 500,
+                            "page": 1,
+                            "total": 0,
+                        }),
+                        template: kendo.template($("#template").html())
+                    });
+
+            }
+        },
+        Grid: {
+            init: function (elem, id) {
+
+                elem
+                    .html(null)
+                    .kendoGrid({
+
+                        //sortable: false,
+                        //filterable: false,
+                        //resizable: false,
+                        //selectable: 'Single, Row',
+                        columns: [{
+                            "field": "Name",
+                            "title": "",
+                            "headerAttributes": {
+                                "data-field": "Name",
+                                "data-title": ""
+                            },
+                            "encoded": true
+                        }],
+                        dataSource: {
+                            type: 'aspnetmvc-ajax',
+                            transport: {
+                                read: {
+                                    url: '/CRM/VWCRM_Presentation/DataSource'
+                                }
+                            },
+                            filter: [{
+                                logic: 'and',
+                                filters: [{
+                                    field: 'PresentationStageId',
+                                    operator: 'eq',
+                                    value: id
+                                }]
+                            }],
+                            "serverPaging": true,
+                            "serverSorting": true,
+                            "serverFiltering": true,
+                            "serverGrouping": true,
+                            "serverAggregates": true,
+                            "pageSize": 500,
+                            "page": 1,
+                            "total": 0,
+                            "schema": {
+                                "data": "Data",
+                                "total": "Total",
+                                "errors": "Errors",
+                                "model": {
+                                    "fields": {
+                                        "Name": {
+                                            "type": "string"
+                                        },
+                                        "SalesPersonId": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        },
+                                        "ChannelCompanyId": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        },
+                                        "CustomerCompanyId": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        },
+                                        "PresentationStageId": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        },
+                                        "CommitmentEndDate": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "OpponentInvoiceAmount": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "VodafoneOffer": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "CompletionRate": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "EstimatedCompletionDate": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "Budget": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "PriorityLevel": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "hasContact": {
+                                            "type": "boolean",
+                                            "defaultValue": null
+                                        },
+                                        "PlaceofArrival": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "createdby_Title": {
+                                            "type": "string"
+                                        },
+                                        "changedby_Title": {
+                                            "type": "string"
+                                        },
+                                        "SalesPerson_Title": {
+                                            "type": "string"
+                                        },
+                                        "ChannelCompany_Title": {
+                                            "type": "string"
+                                        },
+                                        "CustomerCompany_Title": {
+                                            "type": "string"
+                                        },
+                                        "CustomerCompany_Phone": {
+                                            "type": "string"
+                                        },
+                                        "CustomerCompanyLocation": {
+                                            "type": "object"
+                                        },
+                                        "DaysSinceVisit": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "TotalPoints": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "Stage_Color": {
+                                            "type": "string"
+                                        },
+                                        "Stage_Title": {
+                                            "type": "string"
+                                        },
+                                        "PresentationStageChangedDate": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "TotalContact": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "LastDescription": {
+                                            "type": "string"
+                                        },
+                                        "LastStatus": {
+                                            "type": "string"
+                                        },
+                                        "PlaceofArrival_Title": {
+                                            "type": "string"
+                                        },
+                                        "Last_ContactDate": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "LastActivityDate": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "LastActivityCreatedBy_Title": {
+                                            "type": "string"
+                                        },
+                                        "Product_Titles": {
+                                            "type": "string"
+                                        },
+                                        "lastTenderTotalAmount": {
+                                            "type": "number",
+                                            "defaultValue": null
+                                        },
+                                        "createdByPhoto": {
+                                            "type": "string"
+                                        },
+                                        "salesPersonPhoto": {
+                                            "type": "string"
+                                        },
+                                        "searchField": {
+                                            "type": "string"
+                                        },
+                                        "id": {
+                                            "type": "string"
+                                        },
+                                        "created": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "changed": {
+                                            "type": "date",
+                                            "defaultValue": null
+                                        },
+                                        "changedby": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        },
+                                        "createdby": {
+                                            "type": "string",
+                                            "defaultValue": null
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+            }
+        }
+
+    };
+
+    $(document)
+
+        .on('ready', function () {
+
+            page.init();
+
+        })
+
+        ;
+</script>

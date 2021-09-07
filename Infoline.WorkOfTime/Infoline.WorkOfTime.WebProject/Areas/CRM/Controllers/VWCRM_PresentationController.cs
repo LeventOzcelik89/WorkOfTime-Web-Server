@@ -453,7 +453,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(data);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
         [PageInfo("Potansiyel/Fırsat Aşaması Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public JsonResult UpdateState(CRM_Presentation item)
         {
@@ -629,5 +629,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             query.Filter &= filter;
             return query;
         }
+
+        [AllowEveryone]
+        public ActionResult AgileBoard()
+        {
+            return View();
+        }
+
     }
 }
