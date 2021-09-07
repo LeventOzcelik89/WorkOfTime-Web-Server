@@ -23,6 +23,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
 		public bool hasUpdate { get; set; }
 		public string tenderIds { get; set; }
+		public Guid? companyId { get; set; }
+
 		public VMPRD_ProductionTransactionModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
@@ -53,9 +55,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					var products = db.GetPRD_ProductByIds(invoiceItems.Where(a => a.productId.HasValue).Select(a => a.productId.Value).ToArray()).Where(s => s.stockType != (short)EnumPRD_ProductStockType.Stoksuz);
 					this.outputId = invoice.supplierStorageId;
 					this.outputTable = "CMP_Storage";
+
 					this.inputCompanyId = invoice.customerId;
 					this.inputId = invoice.customerStorageId;
 					this.inputTable = "CMP_Storage";
+
 					this.type = (short)(invoice.direction == (int)EnumCMP_InvoiceDirectionType.Alis ? EnumPRD_TransactionType.GelenIrsaliye : EnumPRD_TransactionType.GidenIrsaliye);
 					this.type_Title = invoice.direction == (int)EnumCMP_InvoiceDirectionType.Alis ? EnumPRD_TransactionType.GelenIrsaliye.B_ToDescription() : EnumPRD_TransactionType.GidenIrsaliye.B_ToDescription();
 
@@ -72,6 +76,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					}
 				}
 				//Sipariş altından irsaliye
+
 				var outputInfo = this.GetInfo(this.outputId, this.outputTable, this.outputCompanyId);
 				var inputInfo = this.GetInfo(this.inputId, this.inputTable, this.inputCompanyId);
 
@@ -85,8 +90,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.outputCompanyId = outputInfo.CompanyId;
 				this.outputCompanyId_Title = outputInfo.CompanyIdTitle;
 				this.outputId_Title = outputInfo.Text;
-
-
 
 
 				if (this.createdby.HasValue)
@@ -163,6 +166,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.type == null) return new ResultStatus { result = false, message = "İşlem tipi seçilmeli." };
 			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
+
+			if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			{
+				this.inputId = null;
+				this.inputCompanyId = null;
+				this.inputTable = null;
+			}
 
 			var productids = this.items.Select(a => a.productId.Value).ToArray();
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
@@ -395,6 +405,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.inputCompanyId_Title = inputInfo.CompanyIdTitle;
 			this.inputId = inputInfo.DataId;
 			this.inputTable = inputInfo.DataTable;
+
+
 			this.outputId_Title = outputInfo.Text;
 			this.outputCompanyId = outputInfo.CompanyId;
 			this.outputCompanyId_Title = outputInfo.CompanyIdTitle;

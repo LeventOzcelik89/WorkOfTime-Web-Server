@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private WorkOfTimeDatabase db { get; set; }
 		public VWPRD_Production Production { get; set; }
 		private DbTransaction trans { get; set; }
+
 		public VMPRD_ProductionOperationModel Load()
 		{
 			db = db ?? new WorkOfTimeDatabase();
