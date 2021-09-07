@@ -131,30 +131,6 @@
 
     var _contactCalendar = {
         Model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
-        StatusList: [
-            { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
-        ],
-        GetStatus: function (items) {
-
-            var its = $.Enumerable.From(items)
-                .GroupBy(a => { return a.id; })
-                .Select(a => {
-
-                    var _val = a.Key();
-
-                    return _contactCalendar.StatusList[0];
-
-                }).ToArray();
-
-            var group = $.Enumerable.From(its).GroupBy(a => { return a.Key; });
-            var max = group.OrderByDescending(a => { return a.Count(); }).FirstOrDefault();
-
-            if (group.Count() > 1) {
-                return _contactCalendar.StatusList[0];   //  diğer
-            } else {
-                return max.source[0];
-            }
-        },
         Calendar: {
             activeYear: null,
             POP: {
@@ -164,7 +140,6 @@
 
                 },
                 Hide: function (_date, _elem) {
-                    debugger;
                     var item = { date: _date, elem: _elem };
                     item.date = kendo.toString(item.date, 'yyyy-MM-dd');
 
@@ -187,7 +162,6 @@
 
                     var item = { date: _date, elem: _elem };
                     item.date = kendo.toString(item.date, 'yyyy-MM-dd');
-                    debugger;
                     var _it = $.Enumerable.From(_contactCalendar.Calendar.POP.list).Where(a => { return a.date == item.date }).FirstOrDefault();
 
                     if (_it == null) {
@@ -216,12 +190,10 @@
                         $.each(item.Data, function (id, data) {
                             if (data.ContactEndDate == null) { return; }
                             var k = kendo.toString(new Date(data.ContactEndDate), 'yyyy-MM-dd 00:00:00');
-                            debugger;
                             data.start = data.ContactEndDate;
                             data.end = data.ContactEndDate;
                             data.startDate = new Date(k);
                             data.endDate = new Date(k);
-                            data.status = _contactCalendar.StatusList[0];
 
                             var rest = $.Enumerable.From(_contactCalendar.Calendar.Years).Where(x => x.Year == new Date(data.ContactEndDate).getFullYear()).Select(x => x.Data).FirstOrDefault();
                             var color = "";
