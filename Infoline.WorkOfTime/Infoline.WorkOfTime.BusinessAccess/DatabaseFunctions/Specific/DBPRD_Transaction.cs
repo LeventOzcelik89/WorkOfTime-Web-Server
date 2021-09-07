@@ -57,6 +57,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         //Giriş Çıkış İşlemleri
         [Description("Transfer Fişi"), Generic("icon", "icon-updown-circle")]
         Transfer = 99,
+        [Description("Harcama Bildirimi"), Generic("icon", "icon-updown-circle")]
+        HarcamaBildirimi = 100,
     }
 
     partial class WorkOfTimeDatabase

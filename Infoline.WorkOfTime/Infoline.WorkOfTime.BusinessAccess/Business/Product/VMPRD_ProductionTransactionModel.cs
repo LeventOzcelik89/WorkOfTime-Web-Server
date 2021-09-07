@@ -544,8 +544,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								id = Guid.NewGuid(),
 								productionId = this.productionId,
 								userId = this.createdby,
-								description = "Yeni Ürün Eklemesi Gerçekleşti.",
-								status = (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi,
+								description = "Harcama Bildirimi Gerçekleşti.",
+								status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
 								created = DateTime.Now
 							});
 						}
@@ -681,6 +681,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						case EnumPRD_TransactionType.SarfFisi:
 						case EnumPRD_TransactionType.FireFisi:
 						case EnumPRD_TransactionType.SayimEksigi:
+						case EnumPRD_TransactionType.HarcamaBildirimi:
 						case EnumPRD_TransactionType.Transfer:
 							if (winventory == null) unvalidInventory.Add(serialcode);
 							if (winventory != null && winventory.lastActionDataId != this.outputId) unvalidInventory.Add(serialcode);

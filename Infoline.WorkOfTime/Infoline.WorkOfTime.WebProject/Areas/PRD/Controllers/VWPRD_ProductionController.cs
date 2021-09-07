@@ -108,7 +108,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel)]
 		public ActionResult Upsert(VMPRD_ProductionTransactionModel model, int? direction)
 		{
-			model.type = (int)EnumPRD_TransactionType.Transfer;
 			model.status = (int)EnumPRD_TransactionStatus.beklemede;
 			var data = model.Load();
 

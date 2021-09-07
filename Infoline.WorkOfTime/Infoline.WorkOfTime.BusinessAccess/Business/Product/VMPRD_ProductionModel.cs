@@ -88,6 +88,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				createdby = userId,
 				created = DateTime.Now,
 				productionId = this.id,
+				dataId = this.id,
+				dataTable = "PRD_Production",
 				status = (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi,
 				description = this.description,
 			};
@@ -138,11 +140,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (!string.IsNullOrEmpty(this.materialString))
 			{
 				var materials = Infoline.Helper.Json.Deserialize<List<VWPRD_ProductMateriel>>(this.materialString);
-
 				if (materials.Count() > 0)
 				{
-
-
 					var productionProducts = new List<PRD_ProductionProduct>();
 
 					productionProducts.AddRange(materials.Select(x => new PRD_ProductionProduct
