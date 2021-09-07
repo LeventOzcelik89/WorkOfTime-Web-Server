@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? productionStageId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public string productionStageId_Title { get; set;}
         public string status_Title { get; set;}
     }
 }
