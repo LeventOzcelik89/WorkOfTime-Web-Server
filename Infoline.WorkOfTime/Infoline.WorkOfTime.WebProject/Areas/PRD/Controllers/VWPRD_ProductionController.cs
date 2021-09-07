@@ -106,9 +106,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel)]
-		public ActionResult Upsert(VMPRD_TransactionModel model, int? direction)
+		public ActionResult Upsert(VMPRD_ProductionTransactionModel model, int? direction)
 		{
-			model.type = (int)EnumPRD_TransactionType.UretimFisi;
+			model.type = (int)EnumPRD_TransactionType.Transfer;
 			model.status = (int)EnumPRD_TransactionStatus.beklemede;
 			var data = model.Load();
 
@@ -122,7 +122,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Upsert(VMPRD_TransactionModel item, bool? isPost)
+		public JsonResult Upsert(VMPRD_ProductionTransactionModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -133,12 +133,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 				Result = dbresult.result,
 				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
-		}
-
-		[PageInfo("Üretim Emirleri Reçete Ürünleri Ekleme Methodu", SHRoles.Personel)]
-		public void InsertProductMateriels(VWPRD_ProductMateriel[] materiels, Guid? productionId, Guid? userId)
-		{
-			new VMPRD_ProductionModel().InsertProductionProducts(materiels, productionId, userId);
 		}
 
 		[AllowEveryone]
