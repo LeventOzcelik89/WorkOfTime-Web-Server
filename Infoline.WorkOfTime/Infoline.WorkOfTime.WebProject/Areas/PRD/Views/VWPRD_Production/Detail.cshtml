@@ -87,7 +87,7 @@
 			<div class="col-lg-8">
 				<div class="tabs-container">
 					<ul class="nav nav-tabs">
-						<li class="active" data-toggle="tooltip" data-placement="top" title="Görev Detayları">
+						<li class="active" data-toggle="tooltip" data-placement="top" title="Üretim Detayları">
 							<a data-toggle="tab" href="#gorevdetay" aria-expanded="true"><i class="icon-spread text-success"></i></a>
 						</li>
 					</ul>
@@ -108,11 +108,21 @@
 													<ul class="todo-list m-t small-list">
 														@foreach (var stage in Model.productionStages)
 														{
-															<li>
-																<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																<span class="m-l-xs">@stage.name</span>
-																<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
-															</li>
+															if (Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() > 0)
+															{
+																<li>
+																	<span class="m-l-xs">@stage.name</span>
+																	<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() +" adet aşama kullanıldı.")</small>
+																</li>
+															}
+															else
+															{
+																<li>
+																	<span class="m-l-xs">@stage.name</span>
+																	<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
+																</li>
+															}
+															
 															@*<li>
 																	<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
 																	<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
@@ -170,6 +180,8 @@
 													<small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
 												</p>
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
+												@if (!String.IsNullOrEmpty(item.productionStageId_Title))
+												{<div class="small text-muted"> Aşama : @item.productionStageId_Title </div>}
 												@if (item.description != null)
 												{<div class="small text-muted"> Açıklama : @item.description </div>}
 
@@ -235,6 +247,15 @@
 
 			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
 			{
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD", 
+																									   productionId = Model.id,
+																									   outputId = Model.centerStorageId, 
+																									   outputTable= "CMP_Storage",
+																									   outputCompanyId = Model.centerCompanyId,
+																									   inputId= Model.productionStorageId,
+																									   inputTable = "CMP_Storage",
+																									   inputCompanyId = Model.productionCompanyId,
+																									   status = (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi })"><i data-toggle="tooltip" title="Yeni Malzeme Bildir" class="fa fa-plus"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Değiştir" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
 			}
