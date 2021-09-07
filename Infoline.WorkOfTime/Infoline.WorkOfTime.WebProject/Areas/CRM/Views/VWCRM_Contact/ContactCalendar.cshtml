@@ -1,7 +1,8 @@
-﻿@model Infoline.WorkOfTime.BusinessAccess.VM_TaskTemplatePlanList
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMCRM_ContactModel
 @{
     ViewBag.Title = "Toplantı Takvimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 <style type="text/css">
@@ -387,43 +388,19 @@
         })
 
         .on('click', '[data-toggle="tab"]', function () {
-
             _contactCalendar.Calendar.POP.HideAll();
-
-        })
-
-        .on('shown.bs.tab', 'a[href="#GridTasks"]', function (e) {
-
-            $("#VWFTM_Task").data("kendoGrid").refresh();
-
         })
 
         .on('shown.bs.tab', '#CalendarContainer .nav li', function () {
-
             _contactCalendar.Calendar.activeYear = parseInt($(this).find('a').attr('data-year'));
-
         })
 
-        .on('success', '#MultipleForm', function (e, res) {
-
-            if (res.Result) {
-
-                setTimeout(function () { document.location.reload() }, 4000);
-
-            }
-
-        })
 
         .on('click', '.customList .showhide', function () {
-
             $(this).toggleClass('active');
-
             $(this).parents('[data-plan]').attr('data-show', $(this).hasClass('active'));
-
             _contactCalendar.Calendar.renderCalendars();
-
-        })
-        ;
+        });
 </script>
 
 <div class="row">
@@ -484,8 +461,10 @@
                             <td>3 üzeri toplantı <span class="levelLegend3"></span></td>
                             <td><b>Boş</b> <span class="levelLegend5"></span></td>
 
-                            <td colspan="4" style=" width: 265px;">
-                                @(Html.Akilli()
+                            @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                            {
+                                <td colspan="4" style=" width: 265px;">
+                                    @(Html.Akilli()
                                          .DropDownList("salesPersonId")
                                          .OptionLabel("Lütfen Satış Personeli Seçiniz..")
                                          .DataTextField("User_Title")
@@ -496,7 +475,8 @@
                                          .Sort(x => x.Add("User_Title").Ascending())
                                          .Execute("userid")
                                     )
-                            </td>
+                                </td>
+                            }
                         </tr>
                     </tbody>
                 </table>

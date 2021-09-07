@@ -155,7 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             if (RelationId.HasValue)
             {
                 var cmp = db.GetCMP_CompanyById(RelationId.Value);
-                if(cmp != null)
+                if (cmp != null)
                 {
                     item.customerId = RelationId;
                 }
@@ -169,16 +169,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             var trans = db.BeginTransaction();
             var dbresult = db.InsertCRM_Contact(new CRM_Contact().EntityDataCopyForMaterial(item, true), trans);
 
-            if (item.PresentationId.HasValue) { 
-            dbresult &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
+            if (item.PresentationId.HasValue)
             {
-                created = DateTime.Now,
-                createdby = userStatus.user.id,
-                description = "Yeni aktivite/randevu eklendi.",
-                presentationId = item.PresentationId.Value,
-                type = (short)EnumCRM_PresentationActionType.YeniAktivite,
-                contactId = item.id,
-            }, trans);
+                dbresult &= db.InsertCRM_PresentationAction(new CRM_PresentationAction
+                {
+                    created = DateTime.Now,
+                    createdby = userStatus.user.id,
+                    description = "Yeni aktivite/randevu eklendi.",
+                    presentationId = item.PresentationId.Value,
+                    type = (short)EnumCRM_PresentationActionType.YeniAktivite,
+                    contactId = item.id,
+                }, trans);
             }
             dbresult &= db.BulkInsertCRM_ContactUser(IdUsers.Select(a => new CRM_ContactUser
             {
@@ -632,21 +633,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli,SHRoles.IdariPersonelYonetici)]
+        [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli, SHRoles.IdariPersonelYonetici)]
         public ActionResult ContactCalendar()
         {
-            var model = new TaskSchedulerModel();
-            var res = model.GetTaskTemplatePlanList();
-
-            return View(res);
+            var model = new VMCRM_ContactModel();
+            return View(model);
 
         }
 
         [PageInfo("Toplantı takvimi", SHRoles.SatisPersoneli, SHRoles.IdariPersonelYonetici)]
         public ContentResult GetContactCalendarData(Guid? userId)
         {
+            var userStatus = (PageSecurity)Session["userStatus"];
             var res = new List<object>();
             var db = new WorkOfTimeDatabase();
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
+            {
+                if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                {
+                    if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.IdariPersonelYonetici)))
+                    {
+                        userId = userStatus.user.id;
+                    }
+                }
+            }
+
             var data = new VMCRM_ContactModel().CalendarDatas(userId);
             var years = data.Where(x => x.ContactEndDate.HasValue).GroupBy(a => a.ContactEndDate.Value.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
 
