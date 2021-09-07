@@ -5,12 +5,14 @@
 	var userStatus = (PageSecurity)Session["userStatus"];
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderBy(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
+	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
 	var step3 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.StogaIadeEdildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.FormYuklendi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi ||
-	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi
+	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi ||
+	a.status == (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi
+
 	).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
@@ -86,11 +88,6 @@
 		<div class="row">
 			<div class="col-lg-8">
 				<div class="tabs-container">
-					<ul class="nav nav-tabs">
-						<li class="active" data-toggle="tooltip" data-placement="top" title="Üretim Detayları">
-							<a data-toggle="tab" href="#gorevdetay" aria-expanded="true"><i class="icon-spread text-success"></i></a>
-						</li>
-					</ul>
 
 					<div class="tab-content">
 						<div class="tab-pane active" id="gorevdetay">
@@ -99,54 +96,6 @@
 								@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
 
 								<div class="wrapper">
-									<div class="row">
-										<div class="col-lg-6">
-											<div class="ibox ">
-												<div class="ibox-content">
-													<h4>Üretim Aşamaları</h4>
-													<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
-													<ul class="todo-list m-t small-list">
-														@foreach (var stage in Model.productionStages)
-														{
-															if (Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() > 0)
-															{
-																<li>
-																	<span class="m-l-xs">@stage.name</span>
-																	<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() +" adet aşama kullanıldı.")</small>
-																</li>
-															}
-															else
-															{
-																<li>
-																	<span class="m-l-xs">@stage.name</span>
-																	<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
-																</li>
-															}
-															
-															@*<li>
-																	<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
-																	<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
-
-																</li>
-																<li>
-																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																	<span class="m-l-xs">Send documents to Mike</span>
-																	<small class="label label-primary"></small>
-																</li>
-																<li>
-																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																	<span class="m-l-xs">Go to the doctor dr Smith</span>
-																</li>
-																<li>
-																	<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-																	<span class="m-l-xs">Plan vacation</span>
-																</li>*@
-														}
-													</ul>
-												</div>
-											</div>
-										</div>
-									</div>
 									<div class="row">
 										<div class="ibox">
 											<div class="ibox-title">
@@ -157,7 +106,7 @@
 	                                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductionProduct>("VWPRD_ProductionProduct")
 	                                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductionProduct", new { area = "PRD" }))
 	                                             .PageSize(25).Sort(a => a.Add(c => c.created).Descending()))
-	                                             .Scrollable(a => a.Height(650))
+	                                             .Scrollable(a => a.Height(450))
 	                                             .Columns(x =>
 	                                             {
 	                                             	x.Bound(y => y.materialId_Title).Title("Ürün Adı").Width(180);
@@ -181,12 +130,56 @@
 				</div>
 			</div>
 			<div class="col-lg-4">
+				<div class="ibox ">
+					<div class="ibox-content">
+						<h4>Üretim Aşamaları</h4>
+						<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
+						<ul class="todo-list m-t small-list">
+							@foreach (var stage in Model.productionStages.OrderBy(x=>x.stageNumber))
+							{
+								if (Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() > 0)
+								{
+									<li>
+										<span class="m-l-xs"><i>@stage.stageNumber</i> @stage.name</span>
+										<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() +" adet aşama kullanıldı.")</small>
+									</li>
+								}
+								else
+								{
+									<li>
+										<span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
+										<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
+									</li>
+								}
+
+								@*<li>
+							<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
+							<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
+
+						</li>
+						<li>
+							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+							<span class="m-l-xs">Send documents to Mike</span>
+							<small class="label label-primary"></small>
+						</li>
+						<li>
+							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+							<span class="m-l-xs">Go to the doctor dr Smith</span>
+						</li>
+						<li>
+							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
+							<span class="m-l-xs">Plan vacation</span>
+						</li>*@
+							}
+						</ul>
+					</div>
+				</div>
 				<div class="ibox">
 					<div class="ibox-title">
 						<h5>Görev Operasyon Geçmişi</h5>
 					</div>
 					<div class="ibox-content">
-						<div class="tab-content" style="max-height: 760px;overflow: scroll;">
+						<div class="tab-content" style="max-height: 530px;overflow: scroll;">
 
 							<div class="client-detail">
 
