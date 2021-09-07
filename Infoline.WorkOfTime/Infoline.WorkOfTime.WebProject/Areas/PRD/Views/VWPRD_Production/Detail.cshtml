@@ -9,7 +9,7 @@
 	var step3 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.StogaIadeEdildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.FormYuklendi ||
-	a.status == (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi ||
+	a.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi
 
@@ -137,11 +137,11 @@
 						<ul class="todo-list m-t small-list">
 							@foreach (var stage in Model.productionStages.OrderBy(x=>x.stageNumber))
 							{
-								if (Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() > 0)
+								if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
 								{
 									<li>
 										<span class="m-l-xs"><i>@stage.stageNumber</i> @stage.name</span>
-										<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.productionStageId == stage.id).Count() +" adet aşama kullanıldı.")</small>
+										<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.dataId == stage.id).Count() +" adet aşama kullanıldı.")</small>
 									</li>
 								}
 								else
@@ -176,7 +176,7 @@
 				</div>
 				<div class="ibox">
 					<div class="ibox-title">
-						<h5>Görev Operasyon Geçmişi</h5>
+						<h5>Üretim Operasyon Geçmişi</h5>
 					</div>
 					<div class="ibox-content">
 						<div class="tab-content" style="max-height: 530px;overflow: scroll;">
@@ -199,8 +199,8 @@
 													<small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
 												</p>
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
-												@if (!String.IsNullOrEmpty(item.productionStageId_Title))
-												{<div class="small text-muted"> Aşama : @item.productionStageId_Title </div>}
+												@if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
+												{<div class="small text-muted"> Aşama : @item.dataId_Title </div>}
 												@if (item.description != null)
 												{<div class="small text-muted"> Açıklama : @item.description </div>}
 
@@ -274,7 +274,8 @@
 																									   inputId= Model.productionStorageId,
 																									   inputTable = "CMP_Storage",
 																									   inputCompanyId = Model.productionCompanyId,
-																									   status = (int)EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi })"><i data-toggle="tooltip" title="Yeni Malzeme Bildir" class="fa fa-plus"></i></a>
+																									   type = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi  })"><i data-toggle="tooltip" title="Yeni Malzeme Bildir" class="fa fa-plus"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Değiştir" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
 			}

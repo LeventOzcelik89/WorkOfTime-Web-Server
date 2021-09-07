@@ -92,7 +92,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					break;
 				case EnumPRD_ProductionOperationStatus.UretimIptalEdildi:
 					break;
-				case EnumPRD_ProductionOperationStatus.YeniMalzemeEklendi:
+				case EnumPRD_ProductionOperationStatus.HarcamaBildirildi:
+					this.dataTable = "PRD_ProductionStage";
 					message = "Envanter işlem bildirimi başarılı.";
 					break;
 				case EnumPRD_ProductionOperationStatus.FireBildirimiYapildi:
