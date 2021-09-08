@@ -77,7 +77,6 @@
                 $('#description').trigger("blur");
                 $('[data-button="type"]').removeClass("active");
                 $('[data-button="type"][value="' + page.type + '"]').addClass("active");
-                $('[for="code"]').text(page.type == '10' || page.type == '3' ? "İrsaliye Seri/Sıra No" : "Evrak Kodu");
             },
             typeLoad: function () {
                 page.events.typeChange();
@@ -176,6 +175,7 @@
                     .attr('name', 'items[' + page.Counter + '].quantity')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
 
+                debugger;
                 temp.find('[data-item="serialCodes"]')
                     .attr('name', 'items[' + page.Counter + '].serialCodes')
                     .attr('value', data != undefined ? data.serialCodes : '')
@@ -407,12 +407,12 @@
 			<input type="hidden" data-item="id" />
 			<input data-item="productId" class="form-control" data-insertfield="name" data-inserturl="/PRD/VWPRD_Product/Insert?stockType=1&type=1" data-modal="true" data-refresh="" />
 		</td>
-		@*<td>
+		<td hidden>
 			<div class="input-group">
 				<input data-item="unitPrice" />
 				<span class="input-group-addon"> TL</span>
 			</div>
-		</td>*@
+		</td>
 		<td>
 			<div class="input-group">
 				<input data-item="quantity" />
@@ -500,6 +500,24 @@
 		</div>
 	</div>
 
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-5">
+					<label class="control-label label-md" for="code">Ürünlerin Temin Edildiği Depo</label>
+				</div>
+				<div class="col-md-7">
+					@Html.TextBoxFor(a => a.outputCompanyId_Title, new Dictionary<string, object>()
+									{
+										{"class", "form-control"},
+										{"placeholder", "Lütfen Üretim Emri Kodu Giriniz." },
+				                        {"disabled",true }
+									}).Validate(Validations.TextTurkceSpace09(false, 0, 140))
+				</div>
+			</div>
+		</div>
+	</div>
+
 	<div class="clearfix m-t-md" id="productTable">
 		<div class="hr-line-dashed"></div>
 		<table class="table table-custom" cellpadding="1" cellspacing="0">
@@ -509,7 +527,7 @@
 					<th style="width:40%">ÜRÜN</th>
 					<th style="width:10%">MİKTAR<br /> </th>
 					<th style="width:36%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-					<th style="width:4%"></th>
+					<th style="width:15%"></th>
 				</tr>
 			</thead>
 			<tbody id="RowContainer">
