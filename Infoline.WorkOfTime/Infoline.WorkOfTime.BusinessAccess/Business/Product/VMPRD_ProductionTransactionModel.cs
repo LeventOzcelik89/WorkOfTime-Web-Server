@@ -166,12 +166,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
 
-			if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
-			{
-				this.inputId = null;
-				this.inputCompanyId = null;
-				this.inputTable = null;
-			}
+			//if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			//{
+			//	this.inputId = null;
+			//	this.inputCompanyId = null;
+			//	this.inputTable = null;
+			//}
 
 			var productids = this.items.Select(a => a.productId.Value).ToArray();
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
