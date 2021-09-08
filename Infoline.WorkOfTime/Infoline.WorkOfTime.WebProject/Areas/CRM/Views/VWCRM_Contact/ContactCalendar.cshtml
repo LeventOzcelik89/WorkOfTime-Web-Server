@@ -1,6 +1,6 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCRM_ContactModel
 @{
-    ViewBag.Title = "Şirket Toplantı Takvimi";
+    ViewBag.Title = "Satış Personeli Toplantı Takvimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
@@ -124,7 +124,6 @@
         onChangeSalesPersonId: function (e) {
             _contactCalendar.salesPersonId = this.dataItem().userid;
             _contactCalendar.Calendar.init();
-            _contactCalendar.Calendar.renderCalendars();
         },
         Model: @Html.Raw(Infoline.Helper.Json.Serialize(Model)),
         Calendar: {
@@ -172,77 +171,41 @@
             init: function () {
                 ReadData('/CRM/VWCRM_Contact/GetContactCalendarData', null, function (res) {
                     _contactCalendar.Calendar.Years = res;
-
-                    $.Enumerable.From(_contactCalendar.Calendar.Years)
-                        .SelectMany(a => { return a.Data; })
-                        .GroupBy(a => { return a.id; })
-                        .Select(a => {
-
-                            $('.customList [data-plan="' + a.Key() + '"]').find('[data-target="count"]').html(kendo.toString(a.Count(), 'N0'));
-
-                        }).ToArray()
-
-                    $.each(_contactCalendar.Calendar.Years, function (i, item) {
-                        $.each(item.Data, function (id, data) {
-                            if (data.ContactEndDate == null) { return; }
-                            var k = kendo.toString(new Date(data.ContactEndDate), 'yyyy-MM-dd 00:00:00');
-                            data.start = data.ContactEndDate;
-                            data.end = data.ContactEndDate;
-                            data.startDate = new Date(k);
-                            data.endDate = new Date(k);
-
-                            var rest = $.Enumerable.From(_contactCalendar.Calendar.Years).Where(x => x.Year == new Date(data.ContactEndDate).getFullYear()).Select(x => x.Data).FirstOrDefault();
-                            var color = "";
-                            var aa = $.Enumerable.From(rest).Where(x => kendo.toString(x.ContactStartDate, 'yyyy-MM-dd') == kendo.toString(data.ContactStartDate, 'yyyy-MM-dd'))
-                                .GroupBy(a => { return kendo.toString(a.ContactStartDate, 'yyyy-MM-dd'); })
-                                .Select(a => {
-                                    if (a.source.length == 0) {
-                                        return color = "#afafaf";
-                                    }
-                                    else if (a.source.length <= 3) {
-                                        return color = "#ec7c1e";
-                                    }
-                                    else {
-                                        return color = "#13a261";
-                                    }
-
-
-                                }).FirstOrDefault();
-                            data.color = color;
-                        });
-                    });
                     _contactCalendar.Calendar.renderCalendars();
                 });
             },
             renderCalendars: function () {
                 $('#CalendarContainer .nav-tabs').html(null);
                 $('#CalendarContainer .tab-content').html(null);
-
                 $.each(_contactCalendar.Calendar.Years, function (i, item) {
-
 
                     if (_contactCalendar.salesPersonId != null && _contactCalendar.salesPersonId != "") {
                         item.Data = $.Enumerable.From(item.Data).Where(x => x.UserId == _contactCalendar.salesPersonId).ToArray();
                     }
 
-                    $.Enumerable.From(item.Data)
-                        .GroupBy(a => { return kendo.toString(a.ContactStartDate, 'yyyy-MM-dd'); })
-                        .Select(a => {
-                            if (a.source.length == 0)
-                            {
-                                item.color = "#afafaf";
-                            }
-                            else if (a.source.length <= 3)
-                            {
-                                item.color = "#ec7c1e";
-                            }
-                            else
-                            {
-                                item.color = "#13a261";
-                            }
+                    $.each(item.Data, function (id, data) {
 
+                        var k = kendo.toString(new Date(data.ContactEndDate), 'yyyy-MM-ddT00:00:00');
+                        data.startDate = new Date(k);
+                        data.endDate = new Date(k).addHours(23);
 
-                        }).ToArray();
+                        var dayCount =
+                            $.Enumerable.From(item.Data)
+                                .Where(a => { return k == kendo.toString(new Date(a.ContactEndDate), 'yyyy-MM-ddT00:00:00') })
+                                .GroupBy(a => { return a.id; })
+                                .Count();
+
+                        if (dayCount == 0) {
+                            data.color = "#afafaf";
+                        }
+                        else if (dayCount <= 3) {
+                            data.color = "#ec7c1e";
+                        }
+                        else {
+                            data.color = "#13a261";
+                        }
+
+                    });
 
                     if (_contactCalendar.Calendar.activeYear == null && item.Year == new Date().getFullYear()) {
                         _contactCalendar.Calendar.activeYear = item.Year;
@@ -283,12 +246,14 @@
                         //Doldurulacak
                     },
                     mouseOnDay: function (e) {
+                        
                         if (e.events.length > 0 && !_contactCalendar.Calendar.POP.HasValue(e.date)) {
 
                             var items = $.Enumerable.From(e.events);
+                            var toplanti = items.GroupBy(a => { return a.id; });
 
                             var temp = $($('#temp').html());
-                            temp.find('[data-target="taskCount"]').html(items.Count());
+                            temp.find('[data-target="taskCount"]').html(toplanti.Count());
                             temp.find('[data-target="detail"]').attr('href', temp.find('[data-target="detail"]').attr('href') + items.Select(a => { return a.id; }).ToArray().join(','));
 
                             if (items.Count(a => { return a.id == null; }) == items.Count()) {
