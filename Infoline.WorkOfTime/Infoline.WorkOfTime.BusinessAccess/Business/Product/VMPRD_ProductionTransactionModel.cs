@@ -556,6 +556,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								id = Guid.NewGuid(),
 								productionId = this.productionId,
 								dataId = this.id,
+								createdby = this.createdby,
 								dataTable = "PRD_Transaction", 
 								userId = this.createdby,
 								description = "Harcama Bildirimi Gerçekleşti.",

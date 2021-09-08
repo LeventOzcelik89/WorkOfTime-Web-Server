@@ -28,6 +28,29 @@
 </style>
 
 <script type="text/javascript">
+
+	$(document).on("ready", function () {
+		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId : '@Model.id'}, function (res) {
+			var cols = [
+				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200 },
+				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', width: 200 },
+				{ field: 'amountSpent', title: 'Harcanan Miktar', width: 200, template: "#: totalQuantity # / #:amountSpent#" },
+
+			];
+
+			opts = {
+				Data: res,
+				Column: cols,
+				Height: 400,
+				editable: false
+			};
+
+			GridRender(opts, $('#productMaterialGrid'));
+		})
+	})
+
+
 	function ImageErrorData(element, image, id) {
 		element.onerror = '';
 		element.src = image;
@@ -102,23 +125,7 @@
 												<h5>Kullanılan Ürünler</h5> &nbsp;
 											</div>
 											<div class="ibox-content" style="padding:25px;height:600px;">
-												@(Html.Akilli()
-	                                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductionProduct>("VWPRD_ProductionProduct")
-	                                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductionProduct", new { area = "PRD" }))
-	                                             .PageSize(25).Sort(a => a.Add(c => c.created).Descending()))
-	                                             .Scrollable(a => a.Height(450))
-	                                             .Columns(x =>
-	                                             {
-	                                             	x.Bound(y => y.materialId_Title).Title("Ürün Adı").Width(180);
-	                                             	x.Bound(y => y.quantity).Title("Birim").Width(180);
-	                                             	x.Bound(y => y.totalQuantity).Title("Gerekli Miktar").Width(180);
-	                                             	x.Bound(y => y.amountSpent).Title("Harcanan").Width(180);
-	                                             
-	                                             })
-	                                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-	                                             .ToolBar(x =>
-	                                             {
-	                                             }))
+												<div id="productMaterialGrid"></div>
 											</div>
 										</div>
 									</div>
@@ -135,41 +142,24 @@
 						<h4>Üretim Aşamaları</h4>
 						<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
 						<ul class="todo-list m-t small-list">
-							@foreach (var stage in Model.productionStages.OrderBy(x=>x.stageNumber))
+							@foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
 							{
 								if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
 								{
 									<li>
 										<span class="m-l-xs"><i>@stage.stageNumber</i> @stage.name</span>
-										<small class="label label-primary"><i class="fa fa-check"></i> @(Model.productionOperations.Where(x => x.dataId == stage.id).Count() +" adet aşama kullanıldı.")</small>
+										<small class="label label-primary"> Bildirim Yapıldı</small>
+										<small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count()</small>
 									</li>
 								}
 								else
 								{
 									<li>
 										<span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
-										<small class="label label-warning"><i class="fa fa-clock-o"></i> Henüz İşlem Yapılmadı</small>
+										<small class="label label-warning"> Bildirim Yapılmadı</small>
+										<small class="label label-warning" style="float:right"> 0</small>
 									</li>
 								}
-
-								@*<li>
-							<a href="#" class="check-link"><i class="fa fa-check-square"></i> </a>
-							<span class="m-l-xs  todo-completed">Go to shop and find some products.</span>
-
-						</li>
-						<li>
-							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-							<span class="m-l-xs">Send documents to Mike</span>
-							<small class="label label-primary"></small>
-						</li>
-						<li>
-							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-							<span class="m-l-xs">Go to the doctor dr Smith</span>
-						</li>
-						<li>
-							<a href="#" class="check-link"><i class="fa fa-square-o"></i> </a>
-							<span class="m-l-xs">Plan vacation</span>
-						</li>*@
 							}
 						</ul>
 					</div>
@@ -207,7 +197,7 @@
 												<div class="btnns m-t-xs">
 
 													<a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-													@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
+													@*@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
 													{
 														if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
 														{
@@ -216,7 +206,7 @@
 																<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
 															}
 														}
-													}
+													}*@
 
 													@if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
 													{
@@ -266,9 +256,9 @@
 
 			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
 			{
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD", 
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
 																									   productionId = Model.id,
-																									   outputId = Model.centerStorageId, 
+																									   outputId = Model.centerStorageId,
 																									   outputTable= "CMP_Storage",
 																									   outputCompanyId = Model.centerCompanyId,
 																									   inputId= Model.productionStorageId,

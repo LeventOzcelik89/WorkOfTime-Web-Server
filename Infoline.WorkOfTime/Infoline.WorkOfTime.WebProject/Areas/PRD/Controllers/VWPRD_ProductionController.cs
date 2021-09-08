@@ -134,12 +134,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
 		[PageInfo("Ürünlere ait depolarda ki stok miktarlarıni dönen method", SHRoles.Personel)]
 		public JsonResult GetProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
 		{
 			var model = new VMPRD_ProductionModel().ProductStocksByProductIdsAndStorageId(productIds, storageId);
 			return Json(model, JsonRequestBehavior.AllowGet);
+		}
+
+
+		[PageInfo("Üretime ait ürünler ve stok hareketlerinde ki harcamaları dönen method", SHRoles.Personel)]
+		public JsonResult ProductionProductAndTransactionDataSource(Guid productionId)
+		{
+			var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
+			return Json(productionProducts, JsonRequestBehavior.AllowGet);
 		}
 	}
 }

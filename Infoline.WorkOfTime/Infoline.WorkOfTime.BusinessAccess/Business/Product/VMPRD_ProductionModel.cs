@@ -9,6 +9,9 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
+	public class ProductionProductModel : VWPRD_Production
+	{ }
+
 	public class VMPRD_ProductionModel : VWPRD_Production
 	{
 		private WorkOfTimeDatabase db { get; set; }
@@ -35,6 +38,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.B_EntityDataCopyForMaterial(production, true);
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
+				productionProducts = db.GetVWPRD_ProductionProductByProductId(this.id).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
 				assignableUsers = productionUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
@@ -362,6 +366,66 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var db = new WorkOfTimeDatabase();
 			var stockSummary = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productIds, storageId);
 			return stockSummary;
+		}
+
+		public VWPRD_ProductionProduct[] GetProductionProductAndTransaction(Guid productionId)
+		{
+			var db = new WorkOfTimeDatabase();
+			var productionProductList = new List<VWPRD_ProductionProduct>();
+			var newProductionProductList = new List<VWPRD_ProductionProduct>();
+
+			var data = new VMPRD_ProductionModel { id = productionId }.Load();
+			var productionOperations = data.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi).ToList();
+
+			if (productionOperations.Count() > 0)
+			{
+				var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(productionOperations.Where(a => a.dataId.HasValue).Select(x => x.dataId.Value).ToArray());
+
+				foreach (var transactionItem in transactionItems)
+				{
+					var product = data.productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+
+					if (product != null)
+					{
+						if (productionProductList.Where(x => x.materialId == product.materialId).Count() > 0)
+						{
+							continue;
+						}
+
+						var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
+						var amountSpent = transaction.Sum();
+						product.amountSpent = amountSpent;
+						productionProductList.Add(product);
+
+						
+					}
+					else
+					{
+						newProductionProductList.Add(new VWPRD_ProductionProduct
+						{
+							id = Guid.NewGuid(),
+							price = transactionItem.unitPrice,
+							productionId = productionId,
+							materialId = transactionItem.productId,
+							serialCodes = transactionItem.serialCodes,
+							type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+							amountSpent = transactionItem.quantity,
+							totalQuantity = 0,
+							quantity = 0,
+							productId = this.productId
+						});
+
+					}
+				}
+				db.BulkUpdatePRD_ProductionProduct(productionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));
+				db.BulkInsertPRD_ProductionProduct(newProductionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));
+			}
+			else
+			{
+				return data.productionProducts.ToArray();
+			}
+
+			return productionProductList.ToArray();
 		}
 
 	}

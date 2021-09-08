@@ -21,5 +21,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWPRD_TransactionItem[] GetVWPRD_TransactionItemByTransactionIds(Guid[] transactionIds)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_TransactionItem>().Where(a => a.transactionId.In(transactionIds)).Execute().ToArray();
+            }
+        }
+
     }
 }
