@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 {
     public class VWCRM_PresentationController : Controller
     {
-        [PageInfo("Potansiyel Fırsatlar", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel Fırsatlar", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Index()
         {
             var db = new WorkOfTimeDatabase();
@@ -445,7 +445,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(dbresult), "application/json");
         }
 
-        [PageInfo("Potansiyel/Fırsat Aşama Güncelle", SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Aşama Güncelle", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult UpdateState(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -453,7 +453,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(data);
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
         [PageInfo("Potansiyel/Fırsat Aşaması Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public JsonResult UpdateState(CRM_Presentation item)
         {
@@ -486,7 +486,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                     presentationId = item.id,
                     color = newStage != null ? newStage.color : "",
                     type = (short)EnumCRM_PresentationActionType.AsamaGüncelleme,
-                    description = "Aşama Güncellendi. Yeni aşama : " + newStage.Name
+                    description = "Aşama Güncellendi. Yeni aşama : " + (newStage != null ? newStage.Name : "")
                 }, trans);
 
                 if (dbresult.result == false)
@@ -629,5 +629,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             query.Filter &= filter;
             return query;
         }
+
+        [AllowEveryone]
+        public ActionResult AgileBoard()
+        {
+            return View();
+        }
+
     }
 }
