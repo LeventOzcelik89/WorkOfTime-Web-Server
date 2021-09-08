@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
-		[PageInfo("Üretim Emri Detay",SHRoles.Personel)]
+		[PageInfo("Üretim Emri Detay", SHRoles.Personel)]
 		public ActionResult Detail(VMPRD_ProductionModel request)
 		{
 			var data = request.Load();
@@ -148,5 +148,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
 			return Json(productionProducts, JsonRequestBehavior.AllowGet);
 		}
+
+		
 	}
 }

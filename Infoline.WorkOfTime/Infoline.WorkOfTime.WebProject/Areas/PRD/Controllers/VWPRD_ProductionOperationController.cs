@@ -101,25 +101,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Üretim Emri Operasyon Silme", SHRoles.Personel)]
+
+		[AllowAnonymous]
 		[HttpPost]
+		[PageInfo("Stok&Envanter İşlem Yazdır", SHRoles.Personel)]
 		public JsonResult Delete(Guid id)
 		{
-			var db = new WorkOfTimeDatabase();
 			var feedback = new FeedBack();
-
-			var operation = db.GetVWPRD_ProductionOperationById(id);
 			var dbresult = new ResultStatus { result = true };
-			if (operation != null)
-			{
-				dbresult &= db.DeletePRD_ProductionOperation(new PRD_ProductionOperation { id = id });
-			}
+
+			dbresult &= new VMPRD_ProductionTransactionModel { id = id }.Delete();
+
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Silme işlemi başarılı")
+				FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Warning("Silme işlemi başarısız.Mesaj:İşlem başka işlemlerle bağlantı olabilir.")
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 	}

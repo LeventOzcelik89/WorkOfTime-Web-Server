@@ -539,7 +539,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
 							{
 								var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
-								production.quantity = transactionItem.quantity;
+								//production.quantity = transactionItem.quantity;
 								production.price = transactionItem.unitPrice;
 								production.serialCodes = transactionItem.serialCodes;
 
@@ -557,7 +557,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								productionId = this.productionId,
 								dataId = this.id,
 								createdby = this.createdby,
-								dataTable = "PRD_Transaction", 
+								dataTable = "PRD_Transaction",
 								userId = this.createdby,
 								description = "Harcama Bildirimi Gerçekleşti.",
 								status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
@@ -614,6 +614,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.trans = _trans ?? db.BeginTransaction();
 				var transactionItems = db.GetPRD_TransactionItemByTransactionId(transaction.id);
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
+				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
 
 				var rs = new ResultStatus { result = true };
 				if (inventoryActions.Count() > 0)
@@ -624,9 +625,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					rs &= db.BulkDeletePRD_InventoryAction(deleteactions, trans);
 					rs &= db.BulkDeletePRD_Inventory(deleteinventories, trans);
 				}
+
+				rs &= db.DeletePRD_ProductionOperation(productionOperation, trans);
 				rs &= db.BulkDeletePRD_TransactionItem(transactionItems, trans);
 				rs &= db.DeletePRD_Transaction(transaction, trans);
-
 
 				if (rs.result == true)
 				{

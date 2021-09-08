@@ -47,5 +47,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_ProductionOperation>().Where(x => x.productionId == productionId).Execute().ToArray();
             }
         }
+
+        public PRD_ProductionOperation GetPRD_ProductionOperationByDataId(Guid dataId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_ProductionOperation>().Where(x => x.dataId == dataId).Execute().FirstOrDefault();
+            }
+        }
     }
 }
