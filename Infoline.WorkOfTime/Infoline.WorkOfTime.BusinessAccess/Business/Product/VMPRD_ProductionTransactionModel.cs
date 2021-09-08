@@ -105,7 +105,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.items.AddRange(productionProducts.Select(x => new VMPRD_TransactionItems
 				{
 					productId = x.materialId,
-					quantity = x.quantity,
+					quantity = x.quantity != 0 ? x.quantity : x.amountSpent,
 					unitPrice = x.price
 				}));
 			}
