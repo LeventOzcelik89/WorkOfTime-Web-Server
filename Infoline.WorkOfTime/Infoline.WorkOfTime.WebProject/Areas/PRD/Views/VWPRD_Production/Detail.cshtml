@@ -14,7 +14,7 @@
 	a.status == (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi
 
 	).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
-	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
+	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti || a.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
 
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
@@ -33,11 +33,11 @@
 		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId : '@Model.id'}, function (res) {
 			var cols = [
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
-				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200 },
-				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', width: 200 },
+				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#=quantity# Adet" },
+				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#=totalQuantity# Adet"},
 				{
-					field: 'amountSpent', title: 'Harcanan Miktar', width: 200,
-					template: "#if (amountSpent == 0) {#<small class='label label-warning'>0</small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#=amountSpent#</small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#=amountSpent#</small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#=amountSpent#</small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0</small>#}#"
+					field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}', width: 200,
+					template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 Adet</small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#=amountSpent# Adet</small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#=amountSpent# Adet</small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#=amountSpent# Adet</small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 Adet</small>#}#"
 				},
 
 			];
@@ -101,7 +101,7 @@
 						<span class="fa fa-users fa-2x"></span>
 					</div>
 					<div class="inner-content2">
-						<h3 class="title2">Üretime Başladı</h3>
+						<h3 class="title2">Üretime Başlandı</h3>
 					</div>
 				</a>
 			</div>
@@ -118,7 +118,7 @@
 			<div class="timeline2 @(step4 != null ? "green2" : "")">
 				<a href="#" class="timeline-content2" data-toggle="tooltip" data-placement="top" data-html="true" data-original-title="@(step4 != null ? step4 : "Henüz İşlem Yapılmadı.")">
 					<div class="@(step4 != null ? "timeline-yeargreen" : "timeline-year2")">
-						<span class="fa fa-check-circle fa-2x"></span>
+						<span class="@(Model.lastOperationStatus == (Int32)EnumPRD_ProductionOperationStatus.UretimIptalEdildi ? "fa fa-times": "fa fa-check-circle") fa-2x"></span>
 					</div>
 					<div class="inner-content2">
 						<h3 class="title2">@(Model.lastOperationStatus == (Int32)EnumPRD_ProductionOperationStatus.UretimIptalEdildi ? "Üretim İptal Edildi": "Üretim Tamamlandı") </h3>
@@ -206,7 +206,14 @@
 											</div>
 											<div class="vertical-timeline-content">
 												<p class="clearfix ">
-													<strong class="pull-left"> @item.status_Title</strong>
+													@if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
+													{
+														<strong class="pull-left"> @item.status_Title (@item.dataId_Title)</strong>
+													}
+													else
+													{
+														<strong class="pull-left"> @item.status_Title</strong>
+													}
 													<small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
 												</p>
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
@@ -274,8 +281,8 @@
 <div class="fixedStart">
 	<input type="checkbox" checked id="fixed">
 	<label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-	<div class="fix-buttons"> 
-		@if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti)
+	<div class="fix-buttons">
+		@if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi)
 		{
 
 			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0 || Model.lastOperationStatus == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
@@ -305,6 +312,7 @@
 			{
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimDurduruldu })"><i data-toggle="tooltip" title="Üretimi Durdur" class="fa fa-pause"></i> </a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi })"><i data-toggle="tooltip" title="Üretimi İptal Et" class="fa fa-times"></i> </a>
 			}
 		}
 
