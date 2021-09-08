@@ -17,9 +17,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		[PageInfo("Personel Listesi", SHRoles.IKYonetici)]
 		public ActionResult Index()
 		{
-			var db = new WorkOfTimeDatabase();
-			var userRoles = db.GetSH_UserRoleByRoleId(new Guid(SHRoles.AdayOgrenciYonetim)).Where(x => x.userid.HasValue).Select(x => x.userid.Value).ToList();
-			return View(userRoles);
+			return View();
 		}
 
 		[PageInfo("Şirket Rehberi", SHRoles.Personel)]

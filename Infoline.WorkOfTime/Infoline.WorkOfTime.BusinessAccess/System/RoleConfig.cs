@@ -26,8 +26,6 @@ namespace System
         //Personel Rolü
         [PropInfo("Personel Rolü", "İzin Talep edebilir,Görevlendirme doldurabilir.Özlük bilgilerine ulaşabilir.")]
         public const string Personel = "00000000-0000-0000-0000-100000000000";
-        [PropInfo("Öğrenci Rolü", "Öğrencilerin kendi sayfalarını görüntülemelerini sağlar")]
-        public const string Ogrenci = "00000000-0000-0000-0000-111000000000";
         //Personel Rolü
 
         //Insan Kaynakları
@@ -100,16 +98,6 @@ namespace System
         [PropInfo("Depo Sorumlusu Rolü", "Ürün Stok işlemleri yapar.Kendi depolarını görüntüleyebilir.")]
         public const string DepoSorumlusu = "00000000-0000-0000-0000-920000000000";
         //Ürün Stok
-
-
-        //Aday Öğrenci
-        [PropInfo("Aday Öğrenci Yönetim Rolü", "Aday Öğrenci Sistemi yönetimini sağlar")]
-        public const string AdayOgrenciYonetim = "00000000-0000-0000-0001-000000000000";
-        [PropInfo("Aday Öğrenci Agent Rolü", "Aday Öğrenci Sistemi call center kullanılarının aktivite işlemlerini yapar.")]
-        public const string AdayOgrenciAgent = "00000000-0000-0000-0001-200000000000";
-        //Aday Öğrenci
-
-
 
         //Ticket / HelpDesk Yönetimi
         [PropInfo("Yardım Masası Yönetim Rolü", "Yönetici olarak atandığı konuları görüntüler ve alt konu ile çözüm önerisi oluşturabilir. Raporları görüntüler. Ticket oluşturabilir. Oluşturan ticket için personel ataması yapabilir.")]
