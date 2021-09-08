@@ -15,9 +15,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
     public class VWCRM_ContactController : Controller
     {
         [PageInfo("Aktivite ve Randevular", SHRoles.CRMYonetici, SHRoles.SatisPersoneli)]
-        public ActionResult Index()
+        public ActionResult Index(string ids)
         {
-            return View();
+            var _ids = new List<Guid>();
+            if (!String.IsNullOrEmpty(ids))
+            {
+                _ids = ids.Split(',').Select(a => new Guid(a)).ToList();
+            }
+            return View(_ids);
         }
 
 
