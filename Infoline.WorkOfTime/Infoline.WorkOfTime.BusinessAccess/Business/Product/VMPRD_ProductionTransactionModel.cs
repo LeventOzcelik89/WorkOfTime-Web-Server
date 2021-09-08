@@ -615,7 +615,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
 
-				
+
 
 				var rs = new ResultStatus { result = true };
 				if (inventoryActions.Count() > 0)
@@ -629,12 +629,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (productionOperation != null && productionOperation.productionId.HasValue)
 				{
-					var productionProduct = db.GetPRD_ProductionProductById(productionOperation.productionId.Value);
-
-					if (productionProduct != null)
+					if (productionOperation != null)
 					{
-						productionProduct.amountSpent = 0;
-						rs &= db.UpdatePRD_ProductionProduct(productionProduct);
+
+					}
+					var productionProducts = db.GetVWPRD_ProductionProductByProductId(productionOperation.productionId.Value);
+
+					if (productionProducts.Count() > 0 && transactionItems.Count() > 0)
+					{
+						var transactionProductIds = transactionItems.Where(a => a.productId.HasValue).Select(a => a.productId.Value).ToArray();
+
+						var productProductList = new List<PRD_ProductionProduct>();
+
+
+						foreach (var item in transactionProductIds)
+						{
+							var product = productionProducts.Where(x => x.materialId == item).FirstOrDefault();
+							product.amountSpent = 0;
+							productProductList.Add(new PRD_ProductionProduct().B_EntityDataCopyForMaterial(product));
+						}
+
+						rs &= db.BulkUpdatePRD_ProductionProduct(productProductList);
 					}
 				}
 

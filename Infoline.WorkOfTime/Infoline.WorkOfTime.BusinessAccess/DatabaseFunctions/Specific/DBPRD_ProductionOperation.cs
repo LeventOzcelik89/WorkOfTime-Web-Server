@@ -22,7 +22,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UretimBitti = 3,
         [Description("Üretim İptal Edildi"), Generic("icon", "fa fa-times", "color", "23c6c8", "description", "Üretim İptal Edildi")]
         UretimIptalEdildi = 4,
-        [Description("Aşama Bildirimi Yapıldı"), Generic("icon", "fa fa-retweet", "color", "4f8ea5", "description", "Aşama Bildirimi Yapıldı")]
+        [Description("Aşama Geçişi Yapıldı"), Generic("icon", "fa fa-retweet", "color", "4f8ea5", "description", "Aşama Bildirimi Yapıldı")]
         AsamaBildirimi = 5,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "4E5EF1", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 100,

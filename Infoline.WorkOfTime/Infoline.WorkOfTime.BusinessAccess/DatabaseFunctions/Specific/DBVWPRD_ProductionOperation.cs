@@ -20,5 +20,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_ProductionOperation>().Where(x => x.productionId == productionId).Execute().ToArray();
             }
         }
+
+        public VWPRD_ProductionOperation GetVWPRD_ProductionOperationByDataId(Guid dataId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_ProductionOperation>().Where(x => x.dataId == dataId).Execute().FirstOrDefault();
+            }
+        }
     }
 }

@@ -35,7 +35,10 @@
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
 				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200 },
 				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', width: 200 },
-				{ field: 'amountSpent', title: 'Harcanan Miktar', width: 200, template: "#:amountSpent ?? 0 #" },
+				{
+					field: 'amountSpent', title: 'Harcanan Miktar', width: 200,
+					template: "#if (amountSpent == 0) {#<small class='label label-warning'>0</small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#=amountSpent#</small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#=amountSpent#</small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#=amountSpent#</small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0</small>#}#"
+				},
 
 			];
 
@@ -157,7 +160,7 @@
 			<div class="col-lg-4">
 				<div class="ibox ">
 					<div class="ibox-content">
-						<h4>Üretim Aşamaları (@Model.lastProductionStage_Title)</h4> 
+						<h4>Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "("+Model.lastProductionStage_Title+")" : "")</h4> 
 						<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
 						<ul class="todo-list m-t small-list">
 							@foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
@@ -208,7 +211,7 @@
 												</p>
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
 												@if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
-												{<div class="small text-muted"> Aşama : @item.dataId_Title </div>}
+												{<div class="small text-muted"> Aşama : <strong>@item.dataId_Title</strong> </div>}
 												@if (item.description != null)
 												{<div class="small text-muted"> Açıklama : @item.description </div>}
 
@@ -271,7 +274,7 @@
 <div class="fixedStart">
 	<input type="checkbox" checked id="fixed">
 	<label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-	<div class="fix-buttons">
+	<div class="fix-buttons"> 
 		@if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti)
 		{
 
@@ -293,8 +296,8 @@
 																									   type = (int)EnumPRD_TransactionType.HarcamaBildirimi,
 																									   status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
 																									   companyId = Model.centerCompanyId
-																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-plus"></i></a>
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Bildirimi" class="fa fa-retweet"></i></a>
+																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-cubes"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Geçişi Yap" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
 			}
 
