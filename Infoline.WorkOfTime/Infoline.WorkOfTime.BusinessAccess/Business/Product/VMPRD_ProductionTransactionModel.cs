@@ -615,6 +615,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
 
+				
+
 				var rs = new ResultStatus { result = true };
 				if (inventoryActions.Count() > 0)
 				{
@@ -623,6 +625,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					var deleteactions = inventoryActions.Where(a => inventories.Select(c => c.lastTransactionItemId).Contains(a.transactionItemId)).ToArray();
 					rs &= db.BulkDeletePRD_InventoryAction(deleteactions, trans);
 					rs &= db.BulkDeletePRD_Inventory(deleteinventories, trans);
+				}
+
+				if (productionOperation != null && productionOperation.productionId.HasValue)
+				{
+					var productionProduct = db.GetPRD_ProductionProductById(productionOperation.productionId.Value);
+
+					if (productionProduct != null)
+					{
+						productionProduct.amountSpent = 0;
+						rs &= db.UpdatePRD_ProductionProduct(productionProduct);
+					}
 				}
 
 				rs &= db.DeletePRD_ProductionOperation(productionOperation, trans);
