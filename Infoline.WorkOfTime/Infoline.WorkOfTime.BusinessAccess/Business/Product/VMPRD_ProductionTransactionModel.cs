@@ -555,6 +555,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							{
 								id = Guid.NewGuid(),
 								productionId = this.productionId,
+								dataId = this.id,
+								dataTable = "PRD_Transaction", 
 								userId = this.createdby,
 								description = "Harcama Bildirimi Gerçekleşti.",
 								status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
@@ -993,6 +995,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					return EnumPRD_InventoryActionType.SayimEksigi;
 				case EnumPRD_TransactionType.Transfer:
 					return EnumPRD_InventoryActionType.Transfer;
+				case EnumPRD_TransactionType.HarcamaBildirimi:
+					return EnumPRD_InventoryActionType.Harcandi;
 				default:
 					return null;
 			}
