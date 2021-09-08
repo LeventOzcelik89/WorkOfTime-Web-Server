@@ -19,7 +19,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return View(model);
         }
 
-        [PageInfo("Ülke, Şehir, İlçe Methodu",SHRoles.Personel, SHRoles.AdayOgrenciYonetim)]
+        [PageInfo("Ülke, Şehir, İlçe Methodu",SHRoles.Personel)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Ülke, Şehir, İlçe Veri Methodu", SHRoles.Personel,SHRoles.AdayOgrenciYonetim, SHRoles.AdayOgrenciAgent, SHRoles.BayiPersoneli)]
+        [PageInfo("Ülke, Şehir, İlçe Veri Methodu", SHRoles.Personel, SHRoles.BayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

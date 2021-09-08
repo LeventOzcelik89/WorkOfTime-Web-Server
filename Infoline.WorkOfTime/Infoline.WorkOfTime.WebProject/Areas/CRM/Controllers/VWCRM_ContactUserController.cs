@@ -69,6 +69,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
             var presentation = db.GetCRM_PresentationById(PresentationId);
 
+
             string firstName = "";
             string lastName = "";
             if (name != "")
@@ -113,9 +114,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
             var ourCompanies = db.GetVWCMP_CompanyMyCompanies().FirstOrDefault();
 
-            var compId = contactType == (int)EnumCRM_ContactUserUserType.OwnerUser ? (ourCompanies != null ? ourCompanies.id : (Guid?)null) :
+            Guid? compId;
+            if(presentation != null) { 
+            compId = contactType == (int)EnumCRM_ContactUserUserType.OwnerUser ? (ourCompanies != null ? ourCompanies.id : (Guid?)null) :
                 contactType == (int)EnumCRM_ContactUserUserType.CustomerUser ? presentation.CustomerCompanyId :
                 contactType == (int)EnumCRM_ContactUserUserType.ChannelUser ? presentation.ChannelCompanyId : presentation.CustomerCompanyId;
+            }
+            else
+            {
+                compId = PresentationId;
+            }
 
             var compPerson = new INV_CompanyPerson
             {

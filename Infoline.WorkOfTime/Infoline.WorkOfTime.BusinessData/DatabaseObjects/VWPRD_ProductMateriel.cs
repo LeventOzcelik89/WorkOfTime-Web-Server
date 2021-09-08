@@ -8,6 +8,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? productId { get; set;}
         public double? quantity { get; set;}
         public Guid? materialId { get; set;}
+        public double? totalQuantity { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}
@@ -16,6 +17,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? price { get; set;}
         public double? stockTotal { get; set;}
         public string stockCompanyIds { get; set;}
-        public double? totalQuantity { get; set; }
     }
 }

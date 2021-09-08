@@ -312,42 +312,6 @@ namespace System.Web.Mvc
         public string address { get; set; }
     }
 
-    public class CSM_StudentExcel
-    {
-        [ColumnInfoAttribute("Öğrenci Adı")]
-        public string name { get; set; }
-        [ColumnInfoAttribute("Öğrenci Soyadı")]
-        public string surname { get; set; }
-        [ColumnInfoAttribute("E-Posta")]
-        public string email { get; set; }
-        [ColumnInfoAttribute("Telefon")]
-        public string phone { get; set; }
-        [ColumnInfoAttribute("Okul")]
-        public string school { get; set; }
-        [ColumnInfoAttribute("Sınıf")]
-        public string grade { get; set; }
-        [ColumnInfoAttribute("Bölüm")]
-        public string departmentCurrent { get; set; }
-        [ColumnInfoAttribute("İlgilendiği Bölüm")]
-        public string departmentTarget { get; set; }
-        [ColumnInfoAttribute("Veri Kaynağı Tipi (Fuar,Web Site,Arama)")]
-        public string source { get; set; }
-        [ColumnInfoAttribute("Veri Kaynağı Detayı (Fuar Adı vs)")]
-        public string sourceDescription { get; set; }
-        [ColumnInfoAttribute("İl")]
-        public string city { get; set; }
-        [ColumnInfoAttribute("İlçe")]
-        public string town { get; set; }
-        [ColumnInfoAttribute("Görüşme Tarihi")]
-        public DateTime? date { get; set; }
-        [ColumnInfoAttribute("Görüşme Süresi")]
-        public int? duration { get; set; }
-        [ColumnInfoAttribute("Randevu Tarihi")]
-        public DateTime? contactDate { get; set; }
-
-
-    }
-
     public class PA_TransactionLedgerExcel
     {
         [ColumnInfoAttribute("İşletme Kodu")]

@@ -1,7 +1,7 @@
 ﻿@using Infoline.WorkOfTime.BusinessAccess
 @{
     var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
-    var navigation = TenantConfig.Tenant.TenantCode == 1191 ? new NavModelIICS().GetHtml() : new NavModel(userStatus).GetHtml();
+    var navigation = new NavModel(userStatus).GetHtml();
 }
 
 <style data-selector="modalContainer">
@@ -316,19 +316,10 @@
             <li class="nav-header">
                 <div class="dropdown profile-element text-center">
                     <span>
-                        @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.Ogrenci)))
-                        {
-                            <a href="@Url.Action("Index", "Account", new { area = "" })">
-                                <img src="data: image / jpeg; base64, @userStatus.user.ProfilePhoto" class="img-circle photos" style="width:48px; overflow:hidden">
-                            </a>
-                           
-                        }
-                        else
-                        {
-                            <a href="@Url.Action("Index", "Account", new { area = "" })">
-                                <img src="@(userStatus != null && userStatus.user.ProfilePhoto != null ? userStatus.user.ProfilePhoto : "/Content/Custom/img/na.png")" class="img-circle photos" onerror="ImageError(this,'/Content/Custom/img/na.png')" style="width:48px; overflow:hidden">
-                            </a>
-                        }
+
+                        <a href="@Url.Action("Index", "Account", new { area = "" })">
+                            <img src="@(userStatus != null && userStatus.user.ProfilePhoto != null ? userStatus.user.ProfilePhoto : "/Content/Custom/img/na.png")" class="img-circle photos" onerror="ImageError(this,'/Content/Custom/img/na.png')" style="width:48px; overflow:hidden">
+                        </a>
 
                     </span>
                     <a data-toggle="dropdown" class="dropdown-toggle" href="#">

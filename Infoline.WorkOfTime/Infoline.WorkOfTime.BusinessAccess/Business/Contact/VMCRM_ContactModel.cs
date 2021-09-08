@@ -35,6 +35,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Users[] Users { get; set; }
         public bool mailForParticipants { get; set; }
         public List<Participants> Participants { get; set; }
+        public Guid RelationId { get; set; }
 
         public VMCRM_ContactModel Load()
         {
@@ -64,6 +65,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return this;
         }
 
+        public VWCRM_ContactUser[] CalendarDatas(Guid? userId)
+        {
+            this.db = this.db ?? new WorkOfTimeDatabase();
+            var datas = new List<VWCRM_ContactUser>();
+            var contactUsers = db.GetVWCRM_ContactUser();
+            if (userId.HasValue)
+            {
+                contactUsers = contactUsers.Where(x => x.UserId == userId.Value).ToArray();
+            }
+            datas.AddRange(contactUsers.Select(x => new VWCRM_ContactUser().B_EntityDataCopyForMaterial(x)).ToList());
+            return datas.ToArray();
+        }
+
         public List<Participants> GetParticipants(string userName)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -91,7 +105,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return participantList.OrderBy(x => x.UserName).ToList();
         }
 
-
         public ResultStatus Save(Guid userid, HttpRequestBase request = null, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -118,7 +131,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return res;
         }
-
 
         private ResultStatus Insert(DbTransaction trans = null)
         {
@@ -337,8 +349,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
-
         private ResultStatus Update(DbTransaction trans = null)
         {
             var feedback = new FeedBack();
@@ -536,8 +546,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             };
         }
 
-
-
         public List<Participants> GetSH_UsersForPresentationById(Guid id)
         {
             var result = new List<Participants>();
@@ -581,9 +589,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result.OrderBy(a => a.UserName).ToList();
 
         }
-
-
-
 
         public ResultStatus ParticipantsInsert()
         {

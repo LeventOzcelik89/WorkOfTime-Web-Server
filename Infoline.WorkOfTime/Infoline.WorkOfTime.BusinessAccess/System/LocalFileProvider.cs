@@ -443,6 +443,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             },
             {
+                "PRD_ProductionOperation", new[]
+                {
+                    new FileBase ("Üretim Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3,*.mp4", 99,
+                                 new string[]{ SHRoles.Personel,SHRoles.Personel, SHRoles.Personel, SHRoles.Personel, SHRoles.Personel },
+                                 new string[]{ SHRoles.Personel, SHRoles.Personel, SHRoles.Personel, SHRoles.Personel, SHRoles.Personel },
+                                 new string[]{ SHRoles.Personel, SHRoles.Personel, SHRoles.Personel, SHRoles.Personel, SHRoles.Personel  }),
+                }
+            },
+            {
                 "CMP_Invoice", new[]
                 {
                     new FileBase ("Fatura Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
@@ -583,14 +592,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel},
                                                                                  new string[]{ SHRoles.Personel},
                                                                                  new string[]{ SHRoles.Personel}),
-                }
-            },
-            {
-                "CSM_Activity", new []{
-                    new FileBase("Aktivite Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent},
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent},
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent}),
                 }
             },
             {

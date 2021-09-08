@@ -67,6 +67,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
+
+		[PageInfo("Üretim Emri Detay", SHRoles.Personel)]
+		public ActionResult Detail(VMPRD_ProductionModel request)
+		{
+			var data = request.Load();
+			return View(data);
+		}
+
+
 		[PageInfo("Tüm Üretim Emirleri", SHRoles.Personel)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
@@ -96,18 +105,50 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Üretim Emirleri Reçete Ürünleri Ekleme Methodu", SHRoles.Personel)]
-		public void InsertProductMateriels(VWPRD_ProductMateriel[] materiels, Guid? productionId, Guid? userId)
+		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel)]
+		public ActionResult Upsert(VMPRD_ProductionTransactionModel model, int? direction)
 		{
-			new VMPRD_ProductionModel().InsertProductionProducts(materiels, productionId, userId);
+			model.status = (int)EnumPRD_TransactionStatus.beklemede;
+			var data = model.Load();
+
+			if (data.items.Count() == 1 && !data.items.Select(x => x.productId.HasValue).FirstOrDefault())
+			{
+				data.items = new List<VMPRD_TransactionItems>();
+			}
+			ViewBag.Direction = direction;
+			return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.Personel)]
+		[HttpPost, ValidateAntiForgeryToken]
+		public JsonResult Upsert(VMPRD_ProductionTransactionModel item, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save(userStatus.user.id);
+
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+			}, JsonRequestBehavior.AllowGet);
+		}
+
 		[PageInfo("Ürünlere ait depolarda ki stok miktarlarıni dönen method", SHRoles.Personel)]
 		public JsonResult GetProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
 		{
 			var model = new VMPRD_ProductionModel().ProductStocksByProductIdsAndStorageId(productIds, storageId);
 			return Json(model, JsonRequestBehavior.AllowGet);
 		}
+
+
+		[PageInfo("Üretime ait ürünler ve stok hareketlerinde ki harcamaları dönen method", SHRoles.Personel)]
+		public JsonResult ProductionProductAndTransactionDataSource(Guid productionId)
+		{
+			var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
+			return Json(productionProducts, JsonRequestBehavior.AllowGet);
+		}
+
+		
 	}
 }

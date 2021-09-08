@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<Guid>
+@{
     ViewBag.Title = "Aktivite ve Randevular";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var now = DateTime.Now;
@@ -12,15 +13,40 @@
 
 @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
 {
-    Html.RenderPartial("~/Areas/CRM/Views/VWCRM_Contact/Shared/MyIndex.cshtml");
+    Html.RenderPartial("~/Areas/CRM/Views/VWCRM_Contact/Shared/MyIndex.cshtml",Model);
 }
 else
 {
-    Html.RenderPartial("~/Areas/CRM/Views/VWCRM_Contact/Shared/AllIndex.cshtml");
+    Html.RenderPartial("~/Areas/CRM/Views/VWCRM_Contact/Shared/AllIndex.cshtml",Model);
 }
 
 
 
 
 
+<script type="text/javascript">
+    function contactTemp(res) {
+        if (res.customerId_Title == null) {
+            return '<i class="fa fa-dollar" style="color:orange"></i> ' + res.Presentation_Title;
+        }
+        return '<i class="fa fa-building" style="color:orange"></i> ' +res.customerId_Title;
+    }
 
+      function FilterDate() {
+        var ids = '@Html.Raw(String.Join(",", Model))';
+        if (ids != '') {
+
+            var grid = $('#VWCRM_Contact').data('kendoGrid');
+            var filter = grid.dataSource.filter();
+            filter.logic = 'or';
+            filter.filters = ids.split(',').map(function (item) { return { field: "id", operator: "equal", value: item } });
+            grid.dataSource.filter(filter);
+
+        }
+    }
+
+    $(document)
+        .on('ready', function () {
+            FilterDate();
+        })
+</script>

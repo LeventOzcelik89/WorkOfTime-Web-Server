@@ -14,16 +14,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Üretim Emri Verildi"), Generic("icon", "fa fa-bookmark", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
         UretimEmriVerildi = 0,
-        [Description("Üretim Başladı"), Generic("icon", "fa fa-building", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
+        [Description("Üretime Başlandı"), Generic("icon", "fa fa-building", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
         UretimBasladi = 1,
         [Description("Üretim Durduruldu"), Generic("icon", "fa fa-cogs", "color", "0E5B66", "description", "Personel Atamasının Yapılması Bekleniyor")]
-        UretımDurduruldu = 2,
+        UretimDurduruldu = 2,
         [Description("Üretim Bitti"), Generic("icon", "fa fa-users", "color", "173270", "description", "Doğrulama Kodunun Gönderilmesi Bekleniyor")]
         UretimBitti = 3,
         [Description("Üretim İptal Edildi"), Generic("icon", "fa fa-barcode", "color", "23c6c8", "description", "Görevin Üstlenilmesi Bekleniyor")]
         UretimIptalEdildi = 4,
-        [Description("Yeni Malzeme Eklendi"), Generic("icon", "fa fa-user-secret", "color", "4E5EF1", "description", "Görev Üzerindeki İşlemlerin Yapılması Bekleniyor")]
-        YeniMalzemeEklendi = 100,
+        [Description("Aşama Bildirimi Yapıldı"), Generic("icon", "fa fa-barcode", "color", "23c6c8", "description", "Görevin Üstlenilmesi Bekleniyor")]
+        AsamaBildirimi = 5,
+        [Description("Harcama Bildirildi"), Generic("icon", "fa fa-user-secret", "color", "4E5EF1", "description", "Görev Üzerindeki İşlemlerin Yapılması Bekleniyor")]
+        HarcamaBildirildi = 100,
         [Description("Fire Bildirimi Yapıldı"), Generic("icon", "fa fa-play", "color", "4E5EF1", "description", "Görev Üzerindeki İşlemlerin Yapılması Bekleniyor")]
         FireBildirimiYapildi = 101,
         [Description("Stoğa İade Edildi"), Generic("icon", "fa fa-retweet", "color", "A77B13", "description", "Görev Üzerindeki İşlemlerin Yapılması Bekleniyor")]
@@ -43,6 +45,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 return db.Table<PRD_ProductionOperation>().Where(x => x.productionId == productionId).Execute().ToArray();
+            }
+        }
+
+        public PRD_ProductionOperation GetPRD_ProductionOperationByDataId(Guid dataId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_ProductionOperation>().Where(x => x.dataId == dataId).Execute().FirstOrDefault();
             }
         }
     }

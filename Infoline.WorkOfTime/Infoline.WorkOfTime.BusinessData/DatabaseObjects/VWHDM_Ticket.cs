@@ -5,6 +5,7 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWHDM_Ticket : InfolineTable
     {
+        public string searchField { get; set;}
         public string code { get; set;}
         public short? evaluation { get; set;}
         public short? status { get; set;}
@@ -33,6 +34,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? replyCount { get; set;}
         public int? forwardCount { get; set;}
         public int? noteCount { get; set;}
-        public string searchField { get; set;}
     }
 }

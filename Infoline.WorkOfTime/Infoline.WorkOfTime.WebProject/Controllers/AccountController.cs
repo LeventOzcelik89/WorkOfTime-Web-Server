@@ -13,7 +13,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 {
 	public class AccountController : Controller
 	{
-		[PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.Ogrenci, SHRoles.AdayOgrenciAgent, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
+		[PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
 		public ActionResult Index()
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -27,16 +27,6 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)))
 			{
 				return RedirectToAction("Index", "VWFTM_Task", new { area = "FTM" });
-			}
-
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.Ogrenci)) && userStatus.user.type == null)
-			{
-				return RedirectToAction("Index", "Student", new { area = "" });
-			}
-
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.AdayOgrenciAgent)))
-			{
-				return RedirectToAction("IndexMy", "VWCSM_Activity", new { area = "CSM" });
 			}
 
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)

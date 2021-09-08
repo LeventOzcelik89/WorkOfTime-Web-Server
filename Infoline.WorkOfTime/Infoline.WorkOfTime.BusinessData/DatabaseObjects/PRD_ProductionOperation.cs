@@ -24,5 +24,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Operasyona Eklenen Kullanıcı
         /// </summary>
         public Guid? userId { get; set;}
+        public Guid? dataId { get; set;}
+        public string dataTable { get; set;}
     }
 }

@@ -1,0 +1,120 @@
+﻿@model VMPRD_ProductionOperationModel
+@{
+	
+	ViewBag.Title = "Üretim Emri Operasyon Detayı";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var status = (EnumPRD_ProductionOperationStatus)Model.status;
+}
+
+<style type="text/css">
+	.k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+		display: none;
+	}
+</style>
+
+@using (Html.BeginForm("Update", "VWPRD_ProductionOperation", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+
+
+	<div class="form-group">
+		<div class="col-md-3">
+			<label class="control-label label-md" for="description">Tarih/Oluşturan : </label>
+		</div>
+		<div class="col-md-9">
+			<div class="row">
+				<div class="col-md-6">
+					@Html.TextBoxFor(model => model.created, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"disabled", "disabled"}
+					})
+				</div>
+				<div class="col-md-6">
+					@Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"disabled", "disabled"}
+					})
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-3">
+			<label class="control-label label-md" for="description">Açıklama : </label>
+		</div>
+		<div class="col-md-9">
+			@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"readonly","readonly" }
+			}).Validate(Validations.Required)
+		</div>
+	</div>
+
+
+	@*if (status == EnumFTM_TaskOperationStatus.UrunDegisimi)
+	{
+		@(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.Task.customerStorageId && a.type ==(Int16)EnumPRD_TransactionType.Transfer).PageSize(2))
+                        .Scrollable(a => a.Height(80))
+                        .Columns(x =>
+                        {
+                                x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+                                x.Bound(y => y.totalQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(totalQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(totalQuantity, 'n2')# #:unitId_Title#</span> ").Width(130).Format("{0:N2}");
+                                x.Bound(y => y.serialCodes).Title("Seri Numaraları").Width(200);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single)))
+
+		<br />
+	}*@
+
+
+
+
+	@*if (status == EnumPRD_ProductionOperationStatus.UretimBasladi ||
+		status == EnumPRD_ProductionOperationStatus.FireBildirimiYapildi ||
+		status == EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi ||
+		status == EnumPRD_ProductionOperationStatus.StogaIadeEdildi)
+	{
+		<div class="form-group">
+			<div class="col-md-3">
+				<label class="control-label label-md" for="Dosya">Dosya : </label>
+			</div>
+			<div class="col-md-9">
+				@(
+                Html.Akilli().FileUpload()
+                .DataTable("PRD_ProductionOperation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Üretim Dosyası")
+                .Validate(true)
+                .PreviewMode(true)
+            )
+			</div>
+		</div>
+	}*@
+
+	<div class="buttons">
+		@*@if (status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun ||
+			status == EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun ||
+			status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun ||
+			status == EnumFTM_TaskOperationStatus.GorevDosyaIslemiAltUrun ||
+			status == EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAltUrun ||
+			status == EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun ||
+			status == EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)
+		{
+			<button class="btn btn-md btn-warning pull-left" data-task="Insert" data-ask="Silmek istediğinizden eminmisiniz." data-show="single" data-method="POST" data-href="@Url.Action("Delete","VWFTM_TaskOperation",new {area="FTM" })" data-id="@Model.id"><i class="fa fa-trash"></i> Sil</button>
+		}*@
+
+
+		<button class="btn btn-md btn-danger pull-right" data-task="modalClose">Kapat</button>
+	</div>
+
+}
