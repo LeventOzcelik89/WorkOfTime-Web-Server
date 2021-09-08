@@ -9,6 +9,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid ContactUserId { get; set;}
         public Guid? UserId { get; set;}
         public int? UserType { get; set;}
+        public string Photo { get; set;}
         public string User_Title { get; set;}
         public string UserType_Title { get; set;}
         public Guid? PresentationId { get; set;}
