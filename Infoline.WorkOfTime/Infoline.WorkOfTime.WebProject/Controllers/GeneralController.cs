@@ -374,23 +374,14 @@ namespace Infoline.WorkOfTime.Controllers
             var res = new WorkOfTimeDatabase().GetCRM_ManagerStage().OrderBy(a => a.Code).Select(a => new { Id = a.id, Name = a.Code + " - " + a.Name, color = a.color }).OrderBy(a => a.Name).ToArray();
             return Content(Infoline.Helper.Json.Serialize(res), "application/json");
         }
-        public ContentResult GetCSM_StageCodeAndName()
-        {
-            var res = new WorkOfTimeDatabase().GetCSM_Stage().OrderBy(a => a.code).Select(a => new { Id = a.id, Name = a.code + " - " + a.name, color = a.color }).OrderBy(a => a.Name).ToArray();
-            return Content(Infoline.Helper.Json.Serialize(res), "application/json");
-        }
+    
         public JsonResult GetCRM_ManagerStageName()
         {
             var db = new WorkOfTimeDatabase();
             var res = db.GetCRM_ManagerStage();
             return Json(res.Select(c => new { Id = c.id, Name = c.Name }).OrderBy(c => c.Name).ToArray(), JsonRequestBehavior.AllowGet);
         }
-        public JsonResult GetCSM_StageName()
-        {
-            var db = new WorkOfTimeDatabase();
-            var res = db.GetCSM_Stage();
-            return Json(res.Select(c => new { Id = c.id, Name = c.name }).OrderBy(c => c.Name).ToArray(), JsonRequestBehavior.AllowGet);
-        }
+     
         public ContentResult GetPresentationViewById(Guid id)
         {
             var db = new WorkOfTimeDatabase();

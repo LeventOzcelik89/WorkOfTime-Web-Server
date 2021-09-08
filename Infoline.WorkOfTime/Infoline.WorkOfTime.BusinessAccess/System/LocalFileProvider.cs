@@ -595,14 +595,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             },
             {
-                "CSM_Activity", new []{
-                    new FileBase("Aktivite Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent},
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent},
-                                                                                 new string[]{ SHRoles.AdayOgrenciYonetim , SHRoles.AdayOgrenciAgent}),
-                }
-            },
-            {
                 "HDM_Ticket", new []{
                     new FileBase("Yardım Talep Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
                                                                                  new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep },

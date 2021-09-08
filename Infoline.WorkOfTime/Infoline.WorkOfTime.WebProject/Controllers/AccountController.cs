@@ -34,11 +34,6 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 				return RedirectToAction("Index", "Student", new { area = "" });
 			}
 
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.AdayOgrenciAgent)))
-			{
-				return RedirectToAction("IndexMy", "VWCSM_Activity", new { area = "CSM" });
-			}
-
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)
 			{
 				return RedirectToAction("Index", "Customer", new { area = "" });

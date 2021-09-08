@@ -32,7 +32,6 @@ namespace System.Web.Mvc
                     _root.Add(GetHomePage());
                     _root.Add(GetOfisYonetimi());
                     _root.Add(GetIK(userStatus));
-                    _root.Add(GetAdayOgrenciYonetimi());
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
@@ -82,17 +81,6 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Talep Oluştur", "/HDM/VWHDM_Ticket/InsertBasic"));
             menu.AddChild(new Menu("Konu ve Öneriler", "/HDM/VWHDM_Issue"));
             menu.AddChild(new Menu("Sıkça Sorulan Sorular", "/HDM/VWHDM_Issue/Help"));
-            return menu;
-        }
-
-        private Menu GetAdayOgrenciYonetimi()
-        {
-            var menu = new Menu("Aday Öğrenci İşlemleri", "#", "icon-graduation-cap");
-            menu.AddChild(new Menu("Öğrenciler", "/CSM/VWCSM_Student"));
-            menu.AddChild(new Menu("Öğrenci Görüşmeleri", "/CSM/VWCSM_Activity"));
-            menu.AddChild(new Menu("Öğrenci Okulları", "/CSM/VWCSM_School"));
-            menu.AddChild(new Menu("Öğrenci Bölümleri", "/CSM/VWCSM_Department"));
-            menu.AddChild(new Menu("Süreç Aşamaları", "/CSM/VWCSM_Stage"));
             return menu;
         }
 
