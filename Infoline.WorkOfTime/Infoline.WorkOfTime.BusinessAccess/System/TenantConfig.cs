@@ -254,8 +254,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 case 1100:
                     this.Roles.AddRange(new List<string> {
-                        SHRoles.AdayOgrenciYonetim,
-                        SHRoles.Ogrenci,
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
@@ -487,16 +485,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
                     });
-                    break;
-                case 1141:
-                    this.MailingUsers = new string[] { "umut.pektas@mahrek.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
-                    this.Roles.AddRange(new List<string> {
-                        SHRoles.YardimMasaYonetim,
-                        SHRoles.YardimMasaPersonel,
-                        SHRoles.YardimMasaTalep,
-                        SHRoles.Ogrenci
-                    });
-                    this.AllowModules = new List<Enum_Modules>() { Enum_Modules.MODULE_DASHBOARD, Enum_Modules.MODULE_TASKS };
                     break;
                 case 1142:
                     this.MailingUsers = new string[] { "erhan.yuksel@gilangroup.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
@@ -946,56 +934,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
                         });
-                    break;
-                case 1907:
-                    this.Roles.AddRange(new List<string> {
-                        SHRoles.AdayOgrenciYonetim,
-                        SHRoles.AdayOgrenciAgent,
-                        SHRoles.Ogrenci,
-                        SHRoles.YardimMasaYonetim,
-                        SHRoles.YardimMasaPersonel,
-                        SHRoles.YardimMasaTalep,
-                        SHRoles.AkademikPersonel
-                    });
-                    this.CallCenterService = new AloTechManager("http://fbu.alo-tech.com/api/", "ahRzfm11c3RlcmktaGl6bWV0bGVyaXIfCxISVGVuYW50QXBwbGljYXRpb25zGICApIyPuKcKDKIBEGZidS5hbG8tdGVjaC5jb20");
-                    //Test hesabı
-                    this.IysInformations = new IysInformation
-                    {
-                        code = 695649,
-                        brandCode = 695649,
-                        userName = "d3fc7f27-17c8-422f-b7ca-24dcf2d1c63a",
-                        password = "98305"
-                    };
-
-                    this.Favicon = "/Content/Customers/" + TenantCode + "/images/favicon.ico";
-                    this.MailingUsers = new string[] { "alisan.yildirim@fbu.edu.tr", "orcun.aktas@fbu.edu.tr" };
-                    this.LdapUrls = new string[] { "sv-dc-01.fbu.edu.tr:636" };
-                    this.WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
-                    {
-                            {DayOfWeek.Sunday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                             new TimeInterval { Start = new TimeSpan(0, 0, 0), End = new TimeSpan(0, 0, 0) },
-                             new TimeInterval { Start = new TimeSpan(0, 0, 0), End = new TimeSpan(0, 00, 0) }
-                        },isWorking = false }},
-                        {DayOfWeek.Monday, new WorkingTime { allowTimes =new List<TimeInterval> {
-                            new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},{DayOfWeek.Tuesday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                            new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},{DayOfWeek.Wednesday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                            new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},{DayOfWeek.Thursday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                            new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},{DayOfWeek.Friday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                            new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},{DayOfWeek.Saturday,new WorkingTime { allowTimes =new List<TimeInterval> {
-                             new TimeInterval { Start = new TimeSpan(8, 30, 0), End = new TimeSpan(12, 00, 0) },
-                            new TimeInterval { Start = new TimeSpan(13, 00, 0), End = new TimeSpan(18, 00, 0) }
-                        },isWorking = true}},
-                    };
                     break;
                 default:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "bilal.dursun@infoline-tr.com" };
