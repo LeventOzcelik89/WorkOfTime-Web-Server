@@ -1,0 +1,699 @@
+﻿@{
+    ViewBag.Title = "Agile Board";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var db = new WorkOfTimeDatabase();
+    var SalesPersons = db.GetUserByRoleId(SHRoles.SatisPersoneli).ToList();
+    var PriorityLevels = new int[] { 1, 2, 3, 4, 5 };
+}
+
+<link href="~/Content/AgileBoard/css/default.css" rel="stylesheet" />
+
+<script type="text/template" id="AgileColumnTemplate">
+
+    <li class="agileColumn" data-target="AgileColumn" data-id="{{id}}">
+
+        <div class="agileHeader">
+
+            <h4>{{title}}</h4>
+
+            <div class="btn-group settings">
+                <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle"><i class="icon-cog"></i></button>
+                <ul class="dropdown-menu">
+                    @*<li><a href="#" data-event="Filters">Filtreler</a></li>*@
+                    <li><a href="#">Sıralama</a></li>
+                    <li class="divider"></li>
+                    <li><a href="#" data-event="Delete">Sil</a></li>
+                </ul>
+            </div>
+
+        </div>
+
+        <div data-target="AgileGrid"></div>
+
+    </li>
+
+</script>
+
+<div class="row agileContainer">
+
+    <ul class="agileColumns" data-target="AgileColumnsContainer"></ul>
+
+</div>
+
+<div class="modal inmodal fade" id="ModalFilter" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Kapat</span></button>
+                <h4 class="modal-title">Filtre</h4>
+                <small class="font-bold">Sütun içerisinde görünecek ögeler için buradan filtreleme yapabilirsiniz.</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="form-horizontal">
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Filter_CustomerCompanyId">Müşteri</label>
+                        </div>
+                        <div class="col-md-8">
+
+                            @(Html.Akilli().MultiSelect("Filter_CustomerCompanyId")
+                  .Placeholder("Lütfen Müşteri seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                  .Sort(x => x.Add("Name").Ascending())
+                  .ItemTemplate("#=TemplateEngine('companyTemplate', data)#")
+                  .TagTemplate("#=TagTemplate(data, 'fullName')#")
+                  .Validate(Validations.Required)
+                  .Execute()
+			)
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Filter_SalesPersonId">Satış Personeli</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                                Html.Akilli()
+                                .MultiSelect("Filter_SalesPersonId")
+                                .Placeholder("Lütfen satış personelini seçiniz..")
+                                .ItemTemplate("#=TemplateEngine('userTemplate', data)#")
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWSH_User>(a => a.id == userStatus.user.id || ( a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true && SalesPersons.Contains(a.id) ) )
+                                .Sort(x => x.Add("firstname").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md " for="Filter_ChannelCompanyId">Kanal</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
+                                .MultiSelect("Filter_ChannelCompanyId")
+                                .Placeholder("Lütfen Kanal Seçiniz..")
+                                .DataTextField("name")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .ItemTemplate("#=TemplateEngine('companyTemplate', data)#")
+                                .TagTemplate("#=TagTemplate(data, 'fullName')#")
+                                .Execute("id")
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md " for="Filter_CompletionRate">Min. Tamamlanma Oranı</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().NumericTextBox("Filter_CompletionRate").Min(0).Max(100))
+                        </div>
+                    </div>
+
+                </div>
+
+
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-white" data-event="CancelFilter" data-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" data-event="SaveFilter">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal inmodal fade" id="ModalAgileColumns" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Kapat</span></button>
+                <h4 class="modal-title">Görüntülenecek Aşamalar</h4>
+                <small class="font-bold">Görüntülenecek aşamaları belirtip, konumlarını (sürükle bırak) yöntemi ile tanımlayabilirsiniz.</small>
+            </div>
+            <div class="modal-body">
+
+                <div class="row miniStageContainer" data-target="StagesContainer">
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-dismiss="modal">Kaydet</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/template" id="template">
+    <div class="agileItem" data-id="#:id#" data-presentationstageid=#:PresentationStageId#>
+        <div class="cont" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
+        <div class="cont">
+            <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
+            <span class="info">
+
+                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#:kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
+
+                <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
+                    <span style="width: #:CompletionRate ?? 0#%" class="pb">
+                        <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
+                    </span>
+                </span>
+
+                <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
+
+                <img class="spimg" src="/Files/SH_User/442945d4-5a15-4a09-b5b5-2db628f09e6b/PR___2021_09_06_13_56_34.jpg" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" />
+
+            </span>
+
+            <div class="optsCont">
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-user-1"></i> Müşteri
+                    </span>
+                    <span class="val">
+                        #:CustomerCompany_Title == null ? '-' : CustomerCompany_Title#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-users-1"></i> Toplantı
+                    </span>
+                    <span class="val">
+                        #:TotalContact == null ? '-' : TotalContact#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-dollar-1"></i> Tahmini Ciro
+                    </span>
+                    <span class="val">
+                        #:VodafoneOffer == null ? '-' : kendo.toString(VodafoneOffer, 'N2')#
+                        #if(VodafoneOffer != null) { # <small>₺</small> #}#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-dollar-1"></i> Son Teklif
+                    </span>
+                    <span class="val">
+                        #:lastTenderTotalAmount == null ? '-' : kendo.toString(lastTenderTotalAmount, 'N2')#
+                        #if(lastTenderTotalAmount != null) { # <small>₺</small> #}#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-award-1"></i> Son Toplantı
+                    </span>
+                    <span class="val">
+                        #:LastStatus == null ? '-' : LastStatus#
+                    </span>
+                </div>
+
+                <div class="opt">
+                    <span class="key">
+                        <i class="icon-megaphone-2"></i> Geçen Gün
+                    </span>
+                    <span class="val">
+                        #:DaysSinceVisit == null ? '-' : DaysSinceVisit#
+                    </span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+</script>
+
+<script type="text/javascript">
+
+    $(document)
+
+        .on('click', '[data-event="Insert"]', function () {
+
+            page.filters.modalStage.modal('show');
+
+        })
+
+        .on('click', '[data-event="Filter"]', function () {
+
+            page.filters.modalFilter.modal('show');
+
+        })
+
+        .on('click', '[data-event="CancelFilter"]', function () {
+
+        })
+
+        .on('click', '[data-event="SaveFilter"]', function () {
+
+            page.Agile.AgileStages.UpdateFilter();
+            page.filters.modalFilter.modal('hide');
+            return;
+
+        })
+
+        ;
+
+    var page = {
+
+        Stages: [
+            { id: "4E46C779-F940-4BE0-A577-20558C764F64", Name: "DENEME AŞAMA", Code: "VL3417", Description: "DNM AŞM2", color: "#8b4513", IsSalesCompleted: "0" },
+            { id: "0FE7FA27-C48C-479C-9028-31E7FB850354", Name: "Satış Personeli Ataması Yapıldı", Code: "S5", Description: "null", color: "#4682b4", IsSalesCompleted: "0" },
+            { id: "9FA54A16-5A66-422B-9803-3335A0A9E9F1", Name: "ÇATKAPI", Code: "S00098", Description: "null", color: "#191970", IsSalesCompleted: "0" },
+            { id: "485B3B8C-D7C3-4849-A25B-5B8D575B74F7", Name: "Demo Tamamlanmadı", Code: "004", Description: "null", color: "#20b2aa", IsSalesCompleted: "0" },
+            { id: "7E2B85BB-4F6F-4A9B-B4BE-650F97415500", Name: "Demo Tamamlandı", Code: "003", Description: "null", color: "#2e8b57", IsSalesCompleted: "0" },
+            { id: "756AE883-D52A-4093-9872-8A3F973CC5FD", Name: "Montaj Yapıldı Demo Sürecinde", Code: "006", Description: "null", color: "#8b0000", IsSalesCompleted: "0" },
+            { id: "61668401-773D-4958-B1D1-8E839D266740", Name: "Satış Tamamlandı / Montaj Bekliyor", Code: "005", Description: "null", color: "#00ff00", IsSalesCompleted: "1" },
+            { id: "3175B2F8-E893-42A8-BE61-94CF6CB5B39E", Name: "Ulaşılamadı", Code: "S2", Description: "null", color: "#ff4500", IsSalesCompleted: "0" },
+            { id: "3012B9BC-A6A2-4572-8CA3-C403EDA76E46", Name: "Müşteri Beğendi", Code: "002", Description: "null", color: "#0000ff", IsSalesCompleted: "0" },
+            { id: "EDDFB2B1-4591-4060-9E72-C75CCFEBE50A", Name: "Tanıtım Yapıldı", Code: "001", Description: "null", color: "#b0c4de", IsSalesCompleted: "0" },
+            { id: "74E098B0-CBCE-43B4-812F-C7B54C073BEA", Name: "Potansiyel Fırsat / Aday Müşteri", Code: "S4", Description: "null", color: "#c71585", IsSalesCompleted: "0" },
+            { id: "69FC4B2D-F205-4EBC-B8ED-CB3A8DBF73D4", Name: "Müşteri Tanımlandı", Code: "S000001", Description: "null", color: "#40e0d0", IsSalesCompleted: "0" },
+            { id: "66F54BEA-B7F6-42A1-848B-D449D3CF49D7", Name: "Olumlu", Code: "S6", Description: "null", color: "#008080", IsSalesCompleted: "1" },
+            { id: "E5D1B356-2687-477F-8031-DF126EF6DED8", Name: "Olumsuz", Code: "S8", Description: "null", color: "#ff0000", IsSalesCompleted: "0" },
+            { id: "018CFC1B-BDB1-4861-A4F5-EA30F48F8A43", Name: "İptal İlgisiz", Code: "S3", Description: "null", color: "#32cd32", IsSalesCompleted: "0" },
+            { id: "D2ED5CC9-326B-40B7-9FC6-F29E81C3C9DD", Name: "Lead/Kayıt Geldi", Code: "S1", Description: "null", color: "#fa8072", IsSalesCompleted: "0" }
+        ],
+
+        filters: {
+            modalFilter: $('#ModalFilter'),
+            modalStage: $('#ModalAgileColumns'),
+            items: [
+
+                { type: 'm', field: 'CustomerCompanyId', element: '#Filter_CustomerCompanyId' },
+                { type: 'm', field: 'SalesPersonId', element: '#Filter_SalesPersonId' },
+                { type: 'm', field: 'ChannelCompanyId', element: '#Filter_ChannelCompanyId' },
+                { type: 'n', field: 'CompletionRate', element: '#Filter_CompletionRate' },
+
+            ],
+            getFilter: function (element) {
+
+                if (element != undefined) {
+                    return $('#' + element).data('handler').dataItem();
+                }
+
+                $.each(page.filters.items, function (i, item) {
+                    var val = $(item.element).data('handler').value();
+                    if (val != '' && val != null) {
+                        item.value = val;
+                    } else {
+                        item.value = null;
+                    }
+                });
+
+                return page.filters.items;
+
+            },
+            getKendoFilter: function () {
+
+                var Filter = "(" + page.filters.getFilter().filter(a => a.value != null).map(function (c) {
+
+                    if (c.type == 's') {
+                        return "(" + c.field + "~eq~'" + c.value + ")";
+                    } else if (c.type == 'm') {
+                        return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
+                    } else if (c.type == 'n') {
+                        return "(" + c.field + "~gte~'" + c.value + ")";
+                    }
+
+                }).join("~and~") + ")";
+
+                return kendo.filterParser(Filter);
+
+            },
+
+        },
+
+        init: function () {
+
+            page.Stages = $.Enumerable.From(page.Stages).OrderBy(a => { return a.Name }).ToArray();
+
+            var saved = JSON.parse(localStorage.getItem('list'));
+
+            $.each(page.Stages, function (is, stage) {
+
+                var _index = saved != null && saved[stage.id] != null ? saved[stage.id].index : is;
+                var _active = saved != null && saved[stage.id] != null ? saved[stage.id].active : false;
+
+                var agile = page.Agile.AgileStages.MakeAgileStage(stage, _index, _active);
+                agile.renderStage();
+                agile.render();
+
+            });
+
+            $('[data-target="StagesContainer"]').sortable({
+                connectWith: '.miniStage',
+                update: function (event, ui) {
+
+                    var target = $('[data-target="StagesContainer"]');
+                    var elems = target.children('div');
+
+                    $.Enumerable.From(elems)
+                        .Select((a, i) => {
+
+                            var _id = $(a).attr('data-id');
+
+                            var agile = page.Agile.AgileStages.list[_id];
+                            agile.index = i;
+
+                            agile.renderStage();
+                            agile.render();
+
+                            return null;
+                        })
+                        .ToArray();
+
+                }
+            });
+
+            page.filters.modalStage.modal('show');
+
+        },
+        Agile: {
+
+            AgileStages: {
+
+                list: {},
+
+                MakeAgileStage: function (_stage, _index, _active) {
+
+                    var agileItem = {
+                        id: _stage.id,
+                        title: _stage.Name,
+                        index: _index,
+                        active: _active,
+                        stage: _stage,
+
+                        ListView: null,
+                        miniStage: $('[data-target="StagesContainer"] [data-id="' + _stage.id + '"]'),
+
+                        renderStage: function(){
+
+                            var $this = this;
+                            var target = $('[data-target="StagesContainer"]');
+
+                            target.find('[data-id="' + _stage.id + '"]').remove();
+                            
+                            var temp = $(
+                                $('#miniStageTemplate').html()
+                                    .replace(/{{color}}/g, $this.stage.color)
+                                    .replace(/{{Name}}/g, $this.stage.Name)
+                                    .replace(/{{Code}}/g, $this.stage.Code)
+                                    .replace(/{{id}}/g, $this.stage.id)
+                                    .replace(/{{IsSalesCompleted}}/g, ($this.stage.IsSalesCompleted == '1' ? 'block' : 'none'))
+                            );
+
+                            temp.find('.cbox input').prop('checked', $this.active);
+
+                            temp.find('.cbox input').on('change', function () {
+
+                                var checked = $(this).prop('checked');
+
+                                page.Agile.AgileStages.list[_stage.id].active = checked;
+
+                                //  indexler yeniden oluşturuldu.
+                                $.Enumerable.From(page.Agile.AgileStages.list)
+                                    .OrderBy(a => { return a.Value.active ? 0 : 1; })
+                                    .ThenBy(a => { return a.Value.index; })
+                                    .Select((a, i) => {
+
+                                        var agile = page.Agile.AgileStages.list[a.Key];
+                                        agile.index = i;
+
+                                        agile.renderStage();
+                                        agile.render();
+
+                                    })
+                                    .ToArray();
+
+                                return;
+
+
+                                var miniStages = target.children("div");
+                                miniStages.detach();
+
+                                $.Enumerable.From(page.Agile.AgileStages.list)
+                                    .Where(a => {
+                                        return a.Value.index >= page.Agile.AgileStages.list[_stage.id];
+                                    })
+                                    .Select(a => {
+                                        a.Value.index = a.Value.index + 1;
+                                        return a;
+                                    }).ToArray()[0].Value.index;
+
+                                $.each(page.Agile.AgileStages.list, function (is, stage) {
+
+                                    stage.index = $('[data-id="' + stage.id + '"]').index();
+
+                                });
+
+                                return;
+
+                                var checked = $(this).prop('checked');
+
+                                if (checked) {
+
+                                    var stages = target.children("div");
+
+
+                                    page.Agile.AgileColumns.Insert(item.id);
+
+                                    stages.detach();
+                                    var newItems = $.Enumerable.From(stages)
+                                        .OrderBy(a => {
+                                            var _id = $(a).attr('data-id');
+                                            return page.Agile.AgileColumns.list[_id] == undefined ? 1 : 0;
+                                        })
+                                        .ThenBy(a => {
+                                            var _id = $(a).attr('data-id');
+                                            return page.Agile.AgileColumns.list[_id] == undefined ? $(a).find('h4').text() : null;
+                                        })
+                                        .ToArray();
+
+                                    target.append(newItems);
+
+                                    page.Agile.AgileColumns.list[item.id].render();
+
+                                } else {
+
+                                    page.Agile.AgileColumns.Delete(item.id);
+
+
+                                }
+
+                            });
+
+                            target.append(temp);
+
+                        },
+
+                        render: function () {
+
+                            var $this = this;
+
+                            $('[data-target="AgileColumn"][data-id="' + $this.id + '"]').remove();
+                            if ($this.active == false) {
+                                return;
+                            }
+
+                            var temp = $(
+                                page.Agile.Template.html()
+                                    .replace(/{{id}}/g, $this.id)
+                                    .replace(/{{title}}/g, $this.title)
+                                    //  .replace(/{{PresentationStageId}}/g, $this.PresentationStageId)
+                            );
+
+                            temp.find('[data-event="Delete"]').on('click', function () {
+
+
+                                swal({
+                                    title: "Devam Et ?",
+                                    text: 'Bu Sütunu kaldırmak istediğinizden emin misiniz?',
+                                    type: "warning",
+                                    showCancelButton: true,
+                                    confirmButtonColor: "#DD6B55",
+                                    confirmButtonText: "Evet",
+                                    cancelButtonText: "Hayır",
+                                    closeOnConfirm: false,
+                                    closeOnCancel: false
+                                }, function (isConfirm) {
+
+                                    if (isConfirm) {
+
+                                        $this.delete();
+
+                                    }
+                                    swal.close();
+                                });
+
+                            });
+
+                            page.Agile.Target.append(temp);
+
+                            var gridElem = temp.find('[data-target="AgileGrid"]');
+                            $this.ListView = gridElem
+                                .html(null)
+                                .kendoListView({
+                                    dataSource: new kendo.data.DataSource({
+                                        type: 'aspnetmvc-ajax',
+                                        transport: {
+                                            read: {
+                                                url: '/CRM/VWCRM_Presentation/DataSourceDropDown'
+                                            }
+                                        },
+                                        "serverPaging": true,
+                                        "serverSorting": true,
+                                        "serverFiltering": true,
+                                        "serverGrouping": true,
+                                        "serverAggregates": true,
+                                        "pageSize": 999,
+                                        "page": 1,
+                                        "total": 0,
+                                        filter: $this.getKendoFilter()
+                                    }),
+                                    template: kendo.template($("#template").html())
+                                });
+
+                            gridElem.sortable({
+                                connectWith: '[data-target="AgileGrid"]',
+                                update: function (event, ui) {
+
+                                    var _id = ui.item.attr('data-id');
+                                    var preId = ui.item.attr('data-presentationstageid');
+                                    var _PresentationStageId = $(event.target).parents('[data-target="AgileColumn"]').attr('data-id');
+
+                                    //  duplicate event
+                                    if (preId.toLowerCase() == _PresentationStageId.toLowerCase()) {
+                                        return;
+                                    }
+
+                                    ReadData('/CRM/VWCRM_Presentation/UpdateState', { id: _id, PresentationStageId: _PresentationStageId }, function (res) {
+
+                                        var stageColor = $.Enumerable.From(page.Stages).Where(a => a.id.toLowerCase() == res.PresentationStageId.toLowerCase()).FirstOrDefault().color;
+                                        var agileElement = $('.agileItem[data-id="' + _id + '"]');
+                                        agileElement.find('[data-target="StageColor"]').attr('style', 'background-color: ' + stageColor);
+                                        agileElement.attr('data-presentationstageid', res.PresentationStageId);
+
+                                    });
+
+                                }
+                            }).disableSelection();
+
+                        },
+                        delete: function () {
+
+                            var agile = page.Agile.AgileStages.list[_stage.id];
+                            agile.active = false;
+                            agile.render();
+                            agile.renderStage();
+
+                        },
+                        getKendoFilter: function () {
+
+                            var defaultFilter = [{ type: 's', field: 'PresentationStageId', value: _stage.id }];
+                            var filters = $.merge(defaultFilter, page.filters.getFilter());
+
+                            var Filter = "(" + filters.filter(a => a.value != null).map(function (c) {
+
+                                if (c.type == 's') {
+                                    return "(" + c.field + "~eq~'" + c.value + ")";
+                                } else if (c.type == 'm') {
+                                    return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
+                                } else if (c.type == 'n') {
+                                    return "(" + c.field + "~gte~'" + c.value + ")";
+                                }
+
+                            }).join("~and~") + ")";
+
+                            return kendo.filterParser(Filter);
+
+                        }
+                    };
+
+                    this.list[_stage.id] = agileItem;
+                    return agileItem;
+
+                },
+                UpdateFilter: function () {
+
+                    $.each(page.Agile.AgileStages.list, function (i, item) {
+
+                        if (item.ListView == null || item.ListView.data('handler') == undefined) {
+                            return;
+                        }
+
+                        item.ListView.data('handler').dataSource.filter(item.getKendoFilter());
+
+                    });
+
+                }
+
+            },
+
+            Template: $('#AgileColumnTemplate'),
+            Target: $('[data-target="AgileColumnsContainer"]'),
+
+        },
+
+    };
+
+    $(document)
+
+        .on('ready', function () {
+
+            page.init();
+
+        })
+
+        ;
+</script>
+
+<script type="text/template" id="miniStageTemplate">
+    <div class="col-md-3 miniStage" data-id="{{id}}">
+        <div>
+
+            <div class="cbox">
+                <label class="control-label" for="ShowAgile_{{id}}">Gösterilsin</label>
+                <input type="checkbox" id="ShowAgile_{{id}}" />
+            </div>
+
+            <span class="color" style="background-color:{{color}}"></span>
+            <h4>{{Name}}</h4>
+            <small>{{Code}}</small>
+            <small class="text-success" style="display: {{IsSalesCompleted}}">Satış Gerçekleşti</small>
+
+        </div>
+    </div>
+</script>
+
+<div class="fixedStart">
+    <input type="checkbox" checked id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="icon-cogs"></i></label>
+    <div class="fix-buttons">
+
+        <a data-event="Insert" href="#"><i data-toggle="tooltip" title="Aşamaları Yapılandır" class="icon-tags"></i></a>
+        <a data-event="Filter" href="#"><i data-toggle="tooltip" title="Filtre Yapılandır" class="icon-filter-1"></i></a>
+
+        <a data-event="KanbanDelete" href="#"><i data-toggle="tooltip" title="Kanban Sil" class="icon-trash-1"></i></a>
+        <a data-event="KanbanSave" href="#"><i data-toggle="tooltip" title="Kanban Kaydet" class="icon-floppy-1"></i></a>
+        
+    </div>
+</div>

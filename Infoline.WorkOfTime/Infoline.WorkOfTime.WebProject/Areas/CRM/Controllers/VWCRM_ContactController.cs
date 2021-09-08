@@ -196,7 +196,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 UserType = GetUserByType(a)
             }), trans);
 
-            if (item.PresentationStageId != null)
+            if (item.PresentationStageId != null && item.PresentationId.HasValue)
             {
                 var presetation = db.GetCRM_PresentationById(item.PresentationId.Value);
                 if (presetation.PresentationStageId != item.PresentationStageId)
