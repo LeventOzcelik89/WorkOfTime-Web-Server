@@ -1,10 +1,10 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWSH_AgileBoards
+﻿@model Infoline.WorkOfTime.BusinessAccess.VWAgileBoardModel
 @{
-    ViewBag.Title = "Kayıt Ekleme";
+    ViewBag.Title = "Kanban Kayıt Ekleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@using(Html.BeginForm("Insert", "VWSH_AgileBoards", FormMethod.Post, new Dictionary<string, object>() {  
+@using (Html.BeginForm("Insert", "VWSH_AgileBoards", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
@@ -14,44 +14,17 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="userId">userId</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.userId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen userId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
+    @Html.HiddenFor(a => a.json)
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="name">name</label>
+            <label class="control-label label-md" for="name">Kanban Adı</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>() 
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
             {
                 {"class", "form-control"},
-                {"placeholder", "Lütfen name Girin.."},
+                {"placeholder", "Lütfen Kanban Adını Girin.."},
             }).Validate(Validations.Required)
         </div>
     </div>
@@ -59,77 +32,24 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="description">description</label>
+            <label class="control-label label-md" for="description">Açıklama</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.description, new Dictionary<string, object>() 
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
             {
                 {"class", "form-control"},
-                {"placeholder", "Lütfen description Girin.."},
+                {"placeholder", "Lütfen Açıklama Girin.."},
             }).Validate(Validations.Required)
         </div>
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="json">json</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.json, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen json Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="userId_Title">userId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.userId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen userId_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        @if (Model.IsUpdate)
+        {
+            <button class="btn btn-md btn-primary pull-right" data-task="Update">Güncelle</button>
+        }
     </div>
 
 }
