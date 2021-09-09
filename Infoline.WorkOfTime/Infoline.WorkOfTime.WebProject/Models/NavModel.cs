@@ -97,7 +97,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Benim Bilgilerim", "/Account/Profile"));
             menu.AddChild(new Menu("Takvim", "/INV/VWINV_CompanyPersonCalendar/Calendar"));
             menu.AddChild(new Menu("Şirket Rehberi", "/SH/VWSH_User/ContactOffice"));
-            menu.AddChild(new Menu("Şirket Yönetmelikleri", "/CMP/VWCMP_Company/PersonnelRegulationDocument"));
+            menu.AddChild(new Menu("Şirket Kütüphanesi", "/CMP/VWCMP_Company/PersonnelRegulationDocument"));
             menu.AddChild(new Menu("Şirket Organizasyon", "/INV/VWINV_CompanyDepartments/Preview"));
             menu.AddChild(new Menu("Şirket Portalı", "#"));
             menu.AddChild(new Menu("Şirket Bilgileri", "/CMP/VWCMP_Company/IndexMy"));

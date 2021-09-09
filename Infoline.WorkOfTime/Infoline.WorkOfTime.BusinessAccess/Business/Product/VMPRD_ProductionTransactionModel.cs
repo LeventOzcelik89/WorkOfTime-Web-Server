@@ -166,12 +166,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
 
-			if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
-			{
-				this.inputId = null;
-				this.inputCompanyId = null;
-				this.inputTable = null;
-			}
+			//if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			//{
+			//	this.inputId = null;
+			//	this.inputCompanyId = null;
+			//	this.inputTable = null;
+			//}
 
 			var productids = this.items.Select(a => a.productId.Value).ToArray();
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
@@ -615,6 +615,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
 
+
+
 				var rs = new ResultStatus { result = true };
 				if (inventoryActions.Count() > 0)
 				{
@@ -623,6 +625,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					var deleteactions = inventoryActions.Where(a => inventories.Select(c => c.lastTransactionItemId).Contains(a.transactionItemId)).ToArray();
 					rs &= db.BulkDeletePRD_InventoryAction(deleteactions, trans);
 					rs &= db.BulkDeletePRD_Inventory(deleteinventories, trans);
+				}
+
+				if (productionOperation != null && productionOperation.productionId.HasValue)
+				{
+					if (productionOperation != null)
+					{
+
+					}
+					var productionProducts = db.GetVWPRD_ProductionProductByProductId(productionOperation.productionId.Value);
+
+					if (productionProducts.Count() > 0 && transactionItems.Count() > 0)
+					{
+						var transactionProductIds = transactionItems.Where(a => a.productId.HasValue).Select(a => a.productId.Value).ToArray();
+
+						var productProductList = new List<PRD_ProductionProduct>();
+
+
+						foreach (var item in transactionProductIds)
+						{
+							var product = productionProducts.Where(x => x.materialId == item).FirstOrDefault();
+							product.amountSpent = 0;
+							productProductList.Add(new PRD_ProductionProduct().B_EntityDataCopyForMaterial(product));
+						}
+
+						rs &= db.BulkUpdatePRD_ProductionProduct(productProductList);
+					}
 				}
 
 				rs &= db.DeletePRD_ProductionOperation(productionOperation, trans);
