@@ -12,16 +12,17 @@
     var page = {
         defines: {
             isAllCompanies: 1,
+            productTarget : 2
         },
         functions: {
             changeForAllCompanies: function (i) {
-                if (i == 1 && page.defines.isAllCompanies == 0) {
+                if (i == 1 && page.defines.isAllCompanies != 1) {
                     $("#companyId").data("kendoDropDownList").value("");
                     $("#companyId").data("kendoDropDownList").readonly()
                     page.defines.isAllCompanies = 1;
                     $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                     $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                } else if (i == 0 && page.defines.isAllCompanies == 1) {
+                } else if (i == 0 && page.defines.isAllCompanies != 0) {
                     $("#companyId").data("kendoDropDownList").readonly(false);
                     page.defines.isAllCompanies = 0;
                     $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
@@ -29,12 +30,33 @@
 
                 }
             },
-            changeProductSetting: function (i) {
-
+            changeProductTarget: function (i) {
+                if (i == 2 && page.defines.productTarget != 2) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#productId").data("kendoDropDownList").readonly()
+                    page.defines.productTarget = 2;
+                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                } else if (i == 1 && page.defines.isAllCompanies != 1) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#categoryDropDown").removeAttr("style");
+                    $("#productDropDown").attr("style", "display:none;");
+                    page.defines.productTarget = 1;
+                } else if (i == 0 && page.defines.isAllCompanies != 0) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#productDropDown").find(".k-input").text("Seçili Ürünlere Uygula");
+                    $("#productDropDown").removeAttr("style");
+                    $("#categoryDropDown").attr("style", "display:none;");
+                    page.defines.productTarget = 0;
+                }
             },
             setCompanyDropDownTitle: function (e) {
                 $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                 $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            },
+            setProductDropDownTitle: function (e) {
+                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
             }
         }
     }
@@ -84,16 +106,16 @@
     <div class="form-group">
         <div class="col-md-5">
             <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="1">
-                <label tabindex="0" onClick="" class="radio-label bg-focus" for="all_products">
+                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
+                <label tabindex="0" onClick="page.function.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
                     Tüm Ürünlere
                 </label>
-                <input type="radio" name="target" id="all_categories" value="0">
-                <label tabindex="0" onClick="" class="radio-label" for="all_categories">
+                <input type="radio" name="target" id="all_categories" value="1">
+                <label tabindex="0" onClick="page.function.changeProductTarget(1)" class="radio-label" for="all_categories">
                     Seçili Kategoriye
                 </label>
                 <input type="radio" name="target" id="spesific_product" value="0">
-                <label tabindex="0" onClick="" class="radio-label" for="spesific_product">
+                <label tabindex="0" onClick="page.function.changeProductTarget(0)" class="radio-label" for="spesific_product">
                     Seçili Ürüne
                 </label>
             </div>
@@ -101,15 +123,16 @@
 
         <div class="col-md-7" id="productDropDown">
             @(
-                Html.Akilli()
-                .DropDownListFor(model => model.productId)
-                .OptionLabel("Lütfen Ürün seçiniz..")
-                .DataTextField("fullName")
-                .DataValueField("id")
-                .Template("#=TemplateEngine('productTemplate',data)#")
-                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-                .Sort(x => x.Add("code").Ascending())
-                .Execute()
+            Html.Akilli()
+            .DropDownListFor(model => model.productId)
+            .OptionLabel("Lütfen Ürün seçiniz..")
+            .DataTextField("fullName")
+            .DataValueField("id")
+            .Template("#=TemplateEngine('productTemplate',data)#")
+            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+            .Sort(x => x.Add("code").Ascending())
+            .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
+            .Execute()
             )
         </div>
 
@@ -288,6 +311,3 @@
     </div>
 
 }
-<script data-selector="modalContainer">
-    console.log("aa");
-</script>
