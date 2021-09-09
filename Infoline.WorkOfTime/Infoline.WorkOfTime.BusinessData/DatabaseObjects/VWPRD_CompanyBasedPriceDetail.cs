@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? monthCount { get; set;}
         public DateTime? startDate { get; set;}
         public DateTime? endDate { get; set;}
+        public double? price { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string companyId_Title { get; set;}

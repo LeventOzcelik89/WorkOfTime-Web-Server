@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UretimIptalEdildi = 4,
         [Description("Aşama Geçişi Yapıldı"), Generic("icon", "fa fa-retweet", "color", "4f8ea5", "description", "Aşama Bildirimi Yapıldı")]
         AsamaBildirimi = 5,
-        [Description("Biten Ürün Bildirildi"), Generic("icon", "fa fa-dropbox", "color", "#AD1000", "description", "Biten Ürün Bldirimi Yapıldı")]
+        [Description("Biten Ürün Bildirildi"), Generic("icon", "fa fa-dropbox", "color", "AD1000", "description", "Biten Ürün Bldirimi Yapıldı")]
         BitenUrunBildirimi = 6,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "4E5EF1", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 100,

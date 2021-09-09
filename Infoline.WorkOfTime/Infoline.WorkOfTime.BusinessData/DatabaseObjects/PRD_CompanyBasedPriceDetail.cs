@@ -33,5 +33,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Bitiş Tarihi
         /// </summary>
         public DateTime? endDate { get; set;}
+        public double? price { get; set;}
     }
 }

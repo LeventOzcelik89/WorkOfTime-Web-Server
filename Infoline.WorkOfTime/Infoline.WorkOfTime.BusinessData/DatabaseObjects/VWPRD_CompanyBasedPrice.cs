@@ -15,6 +15,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public string productId_Title { get; set;}
         public string companyId_Title { get; set;}
         public string categoryId_Title { get; set;}
-
     }
 }
