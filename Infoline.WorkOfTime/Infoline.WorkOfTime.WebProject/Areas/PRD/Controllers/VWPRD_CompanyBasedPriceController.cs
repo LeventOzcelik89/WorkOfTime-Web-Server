@@ -13,12 +13,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
 	public class VWPRD_CompanyBasedPriceController : Controller
 	{
+		[AllowEveryone]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-
+		[AllowEveryone]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +46,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Insert()
 		{
 		    var data = new VWPRD_CompanyBasedPrice { id = Guid.NewGuid() };
@@ -60,6 +64,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
 		public JsonResult Insert(PRD_CompanyBasedPrice item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -78,6 +83,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -87,6 +93,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
 		public JsonResult Update(PRD_CompanyBasedPrice item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -108,6 +115,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[HttpPost]
+		[AllowEveryone]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();

@@ -18,88 +18,68 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="companyId">companyId</label>
+            <label class="control-label label-md" for="companyId">Şirket</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.companyId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen companyId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @(Html.Akilli()
+                .DropDownListFor(model => model.companyId)
+                .OptionLabel("Lütfen İşletme Seçiniz..")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                .Sort(x => x.Add("name").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                )
         </div>
     </div>
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="productId">productId</label>
+            <label class="control-label label-md" for="productId">Ürün</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.productId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen productId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.productId)
+                .OptionLabel("Lütfen Ürün seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('productTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                .Sort(x => x.Add("code").Ascending())
+                .Execute()
+            )
         </div>
     </div>
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="categoryId">categoryId</label>
+            <label class="control-label label-md" for="categoryId">Kategori</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.categoryId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen categoryId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @(
+            Html.Akilli()
+            .DropDownListFor(model => model.categoryId)
+            .OptionLabel("Lütfen Kategori seçiniz..")
+            .DataTextField("fullname")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+            //.Filter<VWPRD_Category>(a => a.generation > 0)
+            .Sort(x => x.Add("fullname").Ascending())
+            .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
+            .Execute("id")
+        )
         </div>
     </div>
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="conditionType">conditionType</label>
+            <label class="control-label label-md" for="conditionType">Koşul Seçeneği</label>
         </div>
         <div class="col-md-8">
             @Html.TextBoxFor(model => model.conditionType, new Dictionary<string, object>() 
@@ -113,83 +93,13 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="sellingType">sellingType</label>
+            <label class="control-label label-md" for="sellingType">Satış Türü</label>
         </div>
         <div class="col-md-8">
             @Html.TextBoxFor(model => model.sellingType, new Dictionary<string, object>() 
             {
                 {"class", "form-control"},
                 {"placeholder", "Lütfen sellingType Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="productId_Title">productId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.productId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen productId_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyId_Title">companyId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.companyId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen companyId_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="categoryId_Title">categoryId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.categoryId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen categoryId_Title Girin.."},
             }).Validate(Validations.Required)
         </div>
     </div>

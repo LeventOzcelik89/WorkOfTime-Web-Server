@@ -12,5 +12,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string name { get; set;}
         public string description { get; set;}
         public string json { get; set;}
+        public DateTime? lastUsedDate { get; set;}
     }
 }
