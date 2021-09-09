@@ -10,12 +10,12 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_ProductBasedPriceModel: VWPRD_CompanyBasedPrice
+    public class VMPRD_ProductBasedPriceDetailModel: VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMPRD_ProductBasedPriceModel Load()
+        public VMPRD_ProductBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
@@ -29,7 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            var data = db.GetPRD_CompanyBasedPriceById(this.id);
+            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
             if (validation.result == false)
@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             //Validasyonlarını yap
-            var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
+            var dbresult = db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -90,7 +90,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdatePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), false, this.trans);
+            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), false, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -114,7 +114,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
+            var dbresult = db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail { id = this.id }, trans);
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();
