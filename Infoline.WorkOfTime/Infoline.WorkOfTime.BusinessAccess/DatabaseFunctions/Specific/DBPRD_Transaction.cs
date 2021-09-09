@@ -59,6 +59,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Transfer = 99,
         [Description("Harcama Bildirimi"), Generic("icon", "ii-sermayeuretim")]
         HarcamaBildirimi = 100,
+        [Description("Uretim Bildirimi"), Generic("icon", "ii-isletme-envanteri")]
+        UretimBildirimi = 101,
+
     }
 
     partial class WorkOfTimeDatabase

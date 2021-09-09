@@ -10,20 +10,21 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_ProductBasedPriceModel: VWPRD_CompanyBasedPrice
+    public class VMPRD_ProductBasedPriceModel : VWPRD_CompanyBasedPrice
     {
-
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMPRD_ProductBasedPriceModel Load()
+        public VWPRD_CompanyBasedPrice BasePrice { get; set; }
+        public VWPRD_CompanyBasedPriceDetail BasePriceDetailList { get; set; }
+        public VMPRD_ProductBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceById(this.id);
+            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
             }
-            return this;
+            return null;
         }
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
@@ -40,7 +41,15 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
-                res = Insert();
+                if (!ValidatorForUpsert().result)
+                {
+                    res = Insert();
+                }
+                else
+                {
+                    res = Update();
+                }
+               
             }
             else
             {
@@ -67,8 +76,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            //Validasyonlarını yap
-            var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
+            
+            var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(BasePrice), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -134,5 +143,22 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
+        private ResultStatus ValidatorForUpsert()
+        {
+            var db = new WorkOfTimeDatabase();
+            if (BasePrice!=null)
+            {
+                return new ResultStatus { result = false };
+            }
+            var result = db.GetVWPRD_CompanyBasedIsExistBefore(BasePrice);
+            if (result.Length > 0)
+            {
+                return new ResultStatus { result = false };
+            };
+            return new ResultStatus { result = true };
+        }
     }
 }
+                
+
+

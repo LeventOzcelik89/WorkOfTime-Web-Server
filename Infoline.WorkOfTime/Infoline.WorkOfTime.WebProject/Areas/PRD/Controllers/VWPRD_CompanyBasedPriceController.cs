@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Infoline.WorkOfTime.BusinessAccess.Business.Product;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
@@ -23,7 +24,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
-
 		    var page = request.Page;
 		    request.Filters = new FilterDescriptor[0];
 		    request.Sorts = new SortDescriptor[0];
@@ -49,8 +49,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceById(id);
+			var model = new VMPRD_ProductBasedPriceModel { id=id};
+			var data = model.Load();
 		    return View(data);
 		}
 
@@ -65,14 +65,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Insert(PRD_CompanyBasedPrice item)
+		public JsonResult Insert(VMPRD_ProductBasedPriceModel item)
 		{
-		    var db = new WorkOfTimeDatabase();
+
 		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertPRD_CompanyBasedPrice(item);
+			var feedback = new FeedBack();
+		    var dbresult = item.Save();
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
@@ -86,34 +84,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[AllowEveryone]
 		public ActionResult Update(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceById(id);
-		    return View(data);
+			var model = new VMPRD_ProductBasedPriceModel { id = id };
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Update(PRD_CompanyBasedPrice item)
+		public JsonResult Update(VMPRD_ProductBasedPriceModel item)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdatePRD_CompanyBasedPrice(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save();
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+			};
+
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
-
 		[HttpPost]
 		[AllowEveryone]
 		public JsonResult Delete(string[] id)
