@@ -177,7 +177,7 @@
 						</ul>
 					</div>
 				</div>
-				
+
 				<div class="ibox">
 					<div class="ibox-title">
 						<h5><i class="fa text-success fa fa-list-alt"></i> Üretim Operasyon Geçmişi</h5>
@@ -225,15 +225,15 @@
 
 
 													@*@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
-											{
-												if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
-												{
-													if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
-													{
-														<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
-													}
-												}
-											}*@
+														{
+															if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
+															{
+																if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
+																{
+																	<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
+																}
+															}
+														}*@
 
 
 
@@ -299,6 +299,21 @@
 																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-cubes"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Geçişi Yap" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   inputId = Model.centerStorageId,
+																									   inputTable= "CMP_Storage",
+																									   inputCompanyId = Model.centerCompanyId,
+																									   outputId= Model.productionStorageId,
+																									   outputTable = "CMP_Storage",
+																									   outputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.UretimBildirimi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
+																									   companyId = Model.centerCompanyId
+																								   })"><i data-toggle="tooltip" title="Biten Ürün Bildir" class="fa fa-dropbox"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi })"><i data-toggle="tooltip" title="Fire Bildirimi Yap" class="fa fa-trash"></i></a>
+
+
 			}
 
 			if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)

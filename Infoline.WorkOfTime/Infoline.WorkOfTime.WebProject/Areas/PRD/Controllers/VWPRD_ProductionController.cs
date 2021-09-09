@@ -134,6 +134,36 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
+
+		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel)]
+		public ActionResult FinishedProductNotification(VMPRD_ProductionTransactionModel model, int? direction)
+		{
+			model.status = (int)EnumPRD_TransactionStatus.beklemede;
+			var data = model.Load();
+
+			if (data.items.Count() == 1 && !data.items.Select(x => x.productId.HasValue).FirstOrDefault())
+			{
+				data.items = new List<VMPRD_TransactionItems>();
+			}
+			ViewBag.Direction = direction;
+			return View(data);
+		}
+
+		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.Personel)]
+		[HttpPost, ValidateAntiForgeryToken]
+		public JsonResult FinishedProductNotification(VMPRD_ProductionTransactionModel item, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save(userStatus.user.id);
+
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+			}, JsonRequestBehavior.AllowGet);
+		}
+
 		[PageInfo("Ürünlere ait depolarda ki stok miktarlarıni dönen method", SHRoles.Personel)]
 		public JsonResult GetProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
 		{
