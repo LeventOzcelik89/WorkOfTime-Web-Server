@@ -533,6 +533,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					if (productionProducts.Count() > 0)
 					{
 						var insertProductionProduct = new List<PRD_ProductionProduct>();
+						var newInsertProductionProduct = new List<PRD_ProductionProduct>();
+
 						foreach (var transactionItem in this.items)
 						{
 							if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
@@ -544,8 +546,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 								insertProductionProduct.Add(production);
 							}
+							else
+							{
+								newInsertProductionProduct.Add(new PRD_ProductionProduct
+								{
+									id = Guid.NewGuid(),
+									materialId = transactionItem.productId,
+									price = transactionItem.unitPrice,
+									quantity = 0,
+									productionId = this.productionId.Value,
+									amountSpent = transactionItem.quantity,
+									totalQuantity = 0,
+									type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
+								});
+							}
 						}
 
+						DBResult &= db.BulkInsertPRD_ProductionProduct(newInsertProductionProduct);
 						DBResult &= db.BulkUpdatePRD_ProductionProduct(insertProductionProduct, true);
 
 						if (DBResult.result)
@@ -629,10 +646,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (productionOperation != null && productionOperation.productionId.HasValue)
 				{
-					if (productionOperation != null)
-					{
-
-					}
 					var productionProducts = db.GetVWPRD_ProductionProductByProductId(productionOperation.productionId.Value);
 
 					if (productionProducts.Count() > 0 && transactionItems.Count() > 0)
@@ -645,8 +658,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						foreach (var item in transactionProductIds)
 						{
 							var product = productionProducts.Where(x => x.materialId == item).FirstOrDefault();
-							product.amountSpent = 0;
-							productProductList.Add(new PRD_ProductionProduct().B_EntityDataCopyForMaterial(product));
+							if (product != null)
+							{
+								product.amountSpent = 0;
+								productProductList.Add(new PRD_ProductionProduct().B_EntityDataCopyForMaterial(product));
+							}
 						}
 
 						rs &= db.BulkUpdatePRD_ProductionProduct(productProductList);
