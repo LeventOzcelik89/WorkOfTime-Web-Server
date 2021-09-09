@@ -12,16 +12,17 @@
     var page = {
         defines: {
             isAllCompanies: 1,
+            productTarget: 2
         },
         functions: {
             changeForAllCompanies: function (i) {
-                if (i == 1 && page.defines.isAllCompanies == 0) {
+                if (i == 1 && page.defines.isAllCompanies != 1) {
                     $("#companyId").data("kendoDropDownList").value("");
                     $("#companyId").data("kendoDropDownList").readonly()
                     page.defines.isAllCompanies = 1;
                     $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                     $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                } else if (i == 0 && page.defines.isAllCompanies == 1) {
+                } else if (i == 0 && page.defines.isAllCompanies != 0) {
                     $("#companyId").data("kendoDropDownList").readonly(false);
                     page.defines.isAllCompanies = 0;
                     $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
@@ -29,12 +30,41 @@
 
                 }
             },
-            changeProductSetting: function (i) {
-
+            changeProductTarget: function (i) {
+                debugger;
+                if (i == 2 && page.defines.productTarget != 2) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#categoryId").data("kendoDropDownList").value("");
+                    $("#productId").data("kendoDropDownList").readonly()
+                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                    $("#productDropDown").removeAttr("style");
+                    $("#categoryDropDown").attr("style", "display:none;");
+                    $("#productId").data("kendoDropDownList").readonly();
+                    page.defines.productTarget = 2;
+                } else if (i == 1 && page.defines.productTarget != 1) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#categoryDropDown").removeAttr("style");
+                    $("#productDropDown").attr("style", "display:none;");
+                    page.defines.productTarget = 1;
+                } else if (i == 0 && page.defines.productTarget != 0) {
+                    $("#productId").data("kendoDropDownList").value("");
+                    $("#categoryId").data("kendoDropDownList").value("");
+                    $("#productDropDown").find(".k-input").text("Seçili Ürünlere Uygula");
+                    $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
+                    $("#productDropDown").removeAttr("style");
+                    $("#categoryDropDown").attr("style", "display:none;");
+                    $("#productId").data("kendoDropDownList").readonly(false);
+                    page.defines.productTarget = 0;
+                }
             },
             setCompanyDropDownTitle: function (e) {
                 $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                 $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            },
+            setProductDropDownTitle: function (e) {
+                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
             }
         }
     }
@@ -84,16 +114,16 @@
     <div class="form-group">
         <div class="col-md-5">
             <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="1">
-                <label tabindex="0" onClick="" class="radio-label bg-focus" for="all_products">
+                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
+                <label tabindex="0" onClick="page.functions.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
                     Tüm Ürünlere
                 </label>
-                <input type="radio" name="target" id="all_categories" value="0">
-                <label tabindex="0" onClick="" class="radio-label" for="all_categories">
+                <input type="radio" name="target" id="all_categories" value="1">
+                <label tabindex="0" onClick="page.functions.changeProductTarget(1)" class="radio-label" for="all_categories">
                     Seçili Kategoriye
                 </label>
                 <input type="radio" name="target" id="spesific_product" value="0">
-                <label tabindex="0" onClick="" class="radio-label" for="spesific_product">
+                <label tabindex="0" onClick="page.functions.changeProductTarget(0)" class="radio-label" for="spesific_product">
                     Seçili Ürüne
                 </label>
             </div>
@@ -101,15 +131,16 @@
 
         <div class="col-md-7" id="productDropDown">
             @(
-                Html.Akilli()
-                .DropDownListFor(model => model.productId)
-                .OptionLabel("Lütfen Ürün seçiniz..")
-                .DataTextField("fullName")
-                .DataValueField("id")
-                .Template("#=TemplateEngine('productTemplate',data)#")
-                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-                .Sort(x => x.Add("code").Ascending())
-                .Execute()
+            Html.Akilli()
+            .DropDownListFor(model => model.productId)
+            .OptionLabel("Lütfen Ürün seçiniz..")
+            .DataTextField("fullName")
+            .DataValueField("id")
+            .Template("#=TemplateEngine('productTemplate',data)#")
+            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+            .Sort(x => x.Add("code").Ascending())
+            .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
+            .Execute()
             )
         </div>
 
@@ -131,6 +162,22 @@
     </div>
 
     <div class="form-group">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+            </div>
+        </div>
+    </div>
+
+    <div class="form-group">
         <div class="col-md-4">
             <label class="control-label label-md" for="minCondition">Minimum Koşul</label>
         </div>
@@ -142,19 +189,6 @@
             }).Validate(Validations.Required)
         </div>
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="type">Fiyat mı İskonto mu</label>
-        </div>
-        <div class="col-md-8">
-            <div class="pull-right">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-            </div>
-        </div>
-    </div>
-
 
     <div class="form-group">
         <div class="col-md-4">
@@ -168,29 +202,6 @@
             }).Validate(Validations.Required)
         </div>
     </div>
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="discount">Satış Tipi</label>
-        </div>
-        <div class="col-md-8">
-            <div class="pull-right">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="discount">Koşul Türü</label>
-        </div>
-        <div class="col-md-8">
-            <div class="pull-right">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-            </div>
-        </div>
-    </div>
-
 
 
     <div class="form-group">
@@ -241,46 +252,6 @@
     </div>
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="productId">Ürün</label>
-        </div>
-        <div class="col-md-8">
-            @(
-                Html.Akilli()
-                .DropDownListFor(model => model.productId)
-                .OptionLabel("Lütfen Ürün seçiniz..")
-                .DataTextField("fullName")
-                .DataValueField("id")
-                .Template("#=TemplateEngine('productTemplate',data)#")
-                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-                .Sort(x => x.Add("code").Ascending())
-                .Execute()
-            )
-        </div>
-    </div>
-
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="categoryId">Kategori</label>
-        </div>
-        <div class="col-md-8">
-            @(
-            Html.Akilli()
-            .DropDownListFor(model => model.categoryId)
-            .OptionLabel("Lütfen Kategori seçiniz..")
-            .DataTextField("fullname")
-            .DataValueField("id")
-            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
-            //.Filter<VWPRD_Category>(a => a.generation > 0)
-            .Sort(x => x.Add("fullname").Ascending())
-            .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
-            .Execute("id")
-        )
-        </div>
-    </div>
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
@@ -288,6 +259,3 @@
     </div>
 
 }
-<script data-selector="modalContainer">
-    console.log("aa");
-</script>
