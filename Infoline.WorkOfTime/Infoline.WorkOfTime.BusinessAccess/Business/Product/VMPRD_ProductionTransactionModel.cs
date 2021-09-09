@@ -26,8 +26,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid? companyId { get; set; }
 		public Guid productId { get; set; }
 		public string productId_Title { get; set; }
-		public int quantity { get; set; }
-		public int totalQuantity { get; set; }
+		public double? quantity { get; set; }
+		public double? totalQuantity { get; set; }
 
 		public VMPRD_ProductionTransactionModel Load()
 		{
@@ -121,6 +121,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					{
 						this.productId = productionProduct.productId.Value;
 						this.productId_Title = productionProduct.productId_Title;
+						this.totalQuantity = productionProduct.quantity;
 						//this.items.Add(new VMPRD_TransactionItems
 						//{
 						//	productId = productionProduct.productId,
@@ -184,7 +185,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.status = this.status ?? (int)EnumPRD_TransactionStatus.beklemede;
 			this.date = this.date ?? DateTime.Now;
 			if (this.type == null) return new ResultStatus { result = false, message = "İşlem tipi seçilmeli." };
-			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
+			if (this.items.Count() == 0 && this.type != (int)EnumPRD_TransactionType.UretimBildirimi){
+				return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
+			}
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
 
 			if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
@@ -192,10 +195,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.inputId = null;
 				this.inputTable = null;
 			}
-			else if (this.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
 			{
 				this.outputId = null;
 				this.outputTable = null;
+
+				this.items.Add(new VMPRD_TransactionItems
+				{
+					productId = this.productId,
+					quantity = this.quantity
+				});
 			}
 
 
@@ -610,7 +619,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					}
 					else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
 					{
-
+						db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
+						{
+							id = Guid.NewGuid(),
+							productionId = this.productionId,
+							dataId = this.id,
+							createdby = this.createdby,
+							dataTable = "PRD_Transaction",
+							userId = this.createdby,
+							description = "Biten Ürün Bildirimi Gerçekleşti.",
+							status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
+							created = DateTime.Now
+						});
 					}
 				}
 			}
