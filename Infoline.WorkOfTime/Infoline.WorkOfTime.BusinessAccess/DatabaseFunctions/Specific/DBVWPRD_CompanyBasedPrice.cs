@@ -42,11 +42,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return db.Table<VWPRD_CompanyBasedPriceDetail>().Where(a => a.companyBasedPriceId == id).Execute().ToArray();
             }
-
-
-
         }
 
     }
+    partial class WorkOfTimeDatabase
+    {
+        public VWPRD_CompanyBasedPrice[] GetVWPRD_CompanyBasedIsExistBefore(VWPRD_CompanyBasedPrice item, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_CompanyBasedPrice>().Where(a =>
+                a.companyId==item.companyId&&
+                a.productId==item.productId&&
+                a.categoryId==item.categoryId&&
+                a.conditionType==item.conditionType&&
+                a.sellingType==item.sellingType
+                &&a.id!=item.id)
+                .Execute().ToArray();
+            }
+        }
+
+    }
+
 }
 
