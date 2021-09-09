@@ -134,5 +134,21 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
+        public ResultStatus ValidateCompanyBasedIsExistBefore()
+        {
+            var db = new WorkOfTimeDatabase();
+            var result=db.GetVWPRD_CompanyBasedDetailIsExistBefore(this);
+            if (result==null)
+            {
+                return new ResultStatus { result = false };
+            }
+            else
+            {
+               
+
+
+                return new ResultStatus { result = true, objects = result };
+            }
+        }
     }
 }

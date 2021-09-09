@@ -14,8 +14,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VWPRD_CompanyBasedPrice BasePrice { get; set; }
-        public VWPRD_CompanyBasedPriceDetail BasePriceDetailList { get; set; }
+        public VMPRD_ProductBasedPriceModel BasePrice { get; set; }
+        public VMPRD_ProductBasedPriceDetailModel[] BasePriceDetailList { get; set; }
         public VMPRD_ProductBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -32,6 +32,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
             var res = new ResultStatus { result = true };
+            if (BasePrice == null)
+            {
+                return new ResultStatus { message = "Nesne boş olamaz", result = false };
+            }
+            if (BasePriceDetailList == null)
+            {
+                return new ResultStatus { message = "Ürün detayları boş olamaz", result = false };
+            }
             var validation = Validator();
             if (validation.result == false)
             {
@@ -41,7 +49,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
-                if (!ValidatorForUpsert().result)
+                
+                if (ValidatorForUpsert().result)
                 {
                     res = Insert();
                 }
@@ -49,7 +58,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 {
                     res = Update();
                 }
-               
+
             }
             else
             {
@@ -76,8 +85,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            
             var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(BasePrice), this.trans);
+            foreach (var item in BasePriceDetailList)
+            {
+                item.companyBasedPriceId = BasePrice.id;
+                item.Save();
+            }
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -100,6 +113,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             var dbresult = new ResultStatus { result = true };
             dbresult &= db.UpdatePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), false, this.trans);
+            foreach (var item in BasePriceDetailList)
+            {
+                item.companyBasedPriceId = BasePrice.id;
+                item.Save();
+            }
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -122,8 +140,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
+            //İlişkili kayıtlar kontol edilerek silme işlemine müsade edilecek;
+            var result= db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(BasePrice.id);
+            var dbresult = new ResultStatus();
+            if (result!=null)
+            { 
+               dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result);
+            }
+            dbresult&= db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();
@@ -146,19 +170,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus ValidatorForUpsert()
         {
             var db = new WorkOfTimeDatabase();
-            if (BasePrice!=null)
-            {
-                return new ResultStatus { result = false };
-            }
-            var result = db.GetVWPRD_CompanyBasedIsExistBefore(BasePrice);
-            if (result.Length > 0)
-            {
-                return new ResultStatus { result = false };
-            };
+          
             return new ResultStatus { result = true };
         }
     }
 }
-                
+
 
 

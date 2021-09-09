@@ -49,18 +49,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
     partial class WorkOfTimeDatabase
     {
-        public VWPRD_CompanyBasedPrice[] GetVWPRD_CompanyBasedIsExistBefore(VWPRD_CompanyBasedPrice item, DbTransaction tran = null)
+        public VWPRD_CompanyBasedPriceDetail GetVWPRD_CompanyBasedDetailIsExistBefore(VWPRD_CompanyBasedPriceDetail item, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_CompanyBasedPrice>().Where(a =>
+                return db.Table<VWPRD_CompanyBasedPriceDetail>().Where(a =>
                 a.companyId==item.companyId&&
                 a.productId==item.productId&&
                 a.categoryId==item.categoryId&&
                 a.conditionType==item.conditionType&&
-                a.sellingType==item.sellingType
+                a.sellingType==item.sellingType&&
+                a.minCondition==item.minCondition&&
+                a.monthCount==item.monthCount&&
+                a.companyBasedPriceId==item.companyBasedPriceId
                 &&a.id!=item.id)
-                .Execute().ToArray();
+                .Execute().FirstOrDefault();
             }
         }
 
