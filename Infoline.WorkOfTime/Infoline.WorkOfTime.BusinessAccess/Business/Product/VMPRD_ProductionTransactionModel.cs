@@ -988,6 +988,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					return EnumPRD_InventoryActionType.Kayboldu;
 				case EnumPRD_TransactionType.Transfer:
 					return EnumPRD_InventoryActionType.Depoda;
+				case EnumPRD_TransactionType.HarcamaBildirimi:
+					return EnumPRD_InventoryActionType.Harcandi;
 				default:
 					return null;
 			}

@@ -155,7 +155,7 @@
 
             },
             addRow: function (data) {
-
+                debugger;
                 if (page.events.ValidateRows() == false) {
                     return false;
                 }
@@ -188,6 +188,7 @@
                         {
                             "value": (data != undefined ? data.productId : null),
                             "change": page.events.productChange,
+							"dataBound": page.events.productChange,
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
                                 "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
@@ -263,9 +264,10 @@
 
                         }
 
+                        debugger;
                         var whitelist = $.ajax({
                             url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-                            data: { productId: data.id, lastActionDataId: page.outputId, lastActionDataCompanyId: page.outputCompanyId },
+							data: { productId: data.id, lastActionDataId: page.Model.outputId, lastActionDataCompanyId: page.Model.outputCompanyId },
                             async: false,
                         }).responseJSON || [];
 
@@ -319,10 +321,10 @@
                 $("#productTable")[value ? "slideDown" : "slideUp"]();
                 //return;
                 $("#productTable").find('[data-item="productId"]').each(function (c) {
-                    debugger;
                     var product = $(this).data("kendoDropDownList");
                     product.enable(true);
                     product.one("dataBound", function (e) {
+                        debugger;
                         product.trigger("change");
                         if (page.status == 1) {
                             product.readonly(true);
@@ -503,7 +505,7 @@
 
 	<div class="row">
 		<div class="col-md-12">
-			<div class="alert alert-info"><i class="fa fa-info-circle"></i> Ürünler <b>@Model.outputCompanyId_Title</b> deposundan temin edilmektedir. </div>
+			<div class="alert alert-info"><i class="fa fa-info-circle"></i> Ürünler <b>@Model.outputId_Title</b> deposundan temin edilmektedir. </div>
 		</div>
 	</div>
 

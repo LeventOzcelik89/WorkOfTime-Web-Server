@@ -174,7 +174,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (rs.result == true)
 			{
 				if (trans == null) transaction.Commit();
-				return new ResultStatus { result = true, message = "xxx Kodlu Üretim emri başarıyla oluşturuldu." };
+				return new ResultStatus { result = true, message = this.code + " kodlu üretim emri başarıyla oluşturuldu." };
 			}
 			else
 			{
@@ -381,41 +381,48 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(productionOperations.Where(a => a.dataId.HasValue).Select(x => x.dataId.Value).ToArray());
 
-				foreach (var transactionItem in transactionItems)
+				foreach (var productionItem in data.productionProducts)
 				{
-					var product = data.productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+					var transactionItem = transactionItems.Where(x => x.productId == productionItem.materialId).FirstOrDefault();
 
-					if (product != null)
+					if (transactionItem != null)
 					{
-						if (productionProductList.Where(x => x.materialId == product.materialId).Count() > 0)
+						var product = data.productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+						if (product != null)
 						{
-							continue;
+							if (productionProductList.Where(x => x.materialId == product.materialId).Count() > 0)
+							{
+								continue;
+							}
+
+							var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
+							var amountSpent = transaction.Sum();
+							product.amountSpent = amountSpent;
+							productionProductList.Add(product);
 						}
+						else
+						{
+							newProductionProductList.Add(new VWPRD_ProductionProduct
+							{
+								id = Guid.NewGuid(),
+								price = transactionItem.unitPrice,
+								productionId = productionId,
+								materialId = transactionItem.productId,
+								serialCodes = transactionItem.serialCodes,
+								type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+								amountSpent = transactionItem.quantity,
+								totalQuantity = 0,
+								quantity = 0,
+								productId = this.productId
+							});
 
-						var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
-						var amountSpent = transaction.Sum();
-						product.amountSpent = amountSpent;
-						productionProductList.Add(product);
-
-						
+						}
 					}
 					else
 					{
-						newProductionProductList.Add(new VWPRD_ProductionProduct
-						{
-							id = Guid.NewGuid(),
-							price = transactionItem.unitPrice,
-							productionId = productionId,
-							materialId = transactionItem.productId,
-							serialCodes = transactionItem.serialCodes,
-							type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
-							amountSpent = transactionItem.quantity,
-							totalQuantity = 0,
-							quantity = 0,
-							productId = this.productId
-						});
-
+						productionProductList.Add(productionItem);
 					}
+
 				}
 				db.BulkUpdatePRD_ProductionProduct(productionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));
 				db.BulkInsertPRD_ProductionProduct(newProductionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));

@@ -3,6 +3,11 @@
 	ViewBag.Title = Model.code + " Kodlu Üretim Detayı";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
+
+	decimal remainingCal = ((decimal)30 - (decimal)20);
+	decimal result = ((remainingCal / (decimal)30) * 100);
+
+
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
@@ -45,7 +50,7 @@
 			$("#productProductsGrid").kendoGrid({
 				dataSource: res,
 				pageSize: 100,
-				height: 550,
+				height: 540,
 				sortable: true,
 				filterable: {
 					operators: {
@@ -131,38 +136,25 @@
 	<div class="wrapper wrapper-content  animated slideInRight">
 		<div class="row">
 			<div class="col-lg-8">
-				<div class="tabs-container">
+				@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
 
-					<div class="tab-content">
-						<div class="tab-pane active" id="gorevdetay">
-							<div class="ibox">
-
-								@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
-
-								<div class="wrapper">
-									<div class="row">
-										<div class="ibox">
-											<div class="ibox-title">
-												<h5><i class="fa text-success fa fa-list-alt"></i> Kullanılan Ürünler</h5>
-											</div>
-											<div class="ibox-content" style="padding:25px;height:575px;">
-												<div id="productProductsGrid"></div>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-						</div>
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5><i class="fa text-success fa fa-list-alt"></i> Kullanılan Ürünler</h5>
 					</div>
-
+					<div class="ibox-content" style="height:575px;">
+						<div id="productProductsGrid"></div>
+					</div>
 				</div>
 			</div>
 			<div class="col-lg-4">
-				<div class="ibox ">
+
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5><i class="fa text-success fa fa-list-alt"></i> Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "("+Model.lastProductionStage_Title+")" : "")</h5>
+					</div>
 					<div class="ibox-content">
-						<h4>Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "("+Model.lastProductionStage_Title+")" : "")</h4> 
-						<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
-						<ul class="todo-list m-t small-list">
+						<ul class="todo-list small-list">
 							@foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
 							{
 								if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
@@ -185,9 +177,10 @@
 						</ul>
 					</div>
 				</div>
+				
 				<div class="ibox">
 					<div class="ibox-title">
-						<h5>Üretim Operasyon Geçmişi</h5>
+						<h5><i class="fa text-success fa fa-list-alt"></i> Üretim Operasyon Geçmişi</h5>
 					</div>
 					<div class="ibox-content">
 						<div class="tab-content" style="max-height: 530px;overflow: scroll;">
@@ -232,15 +225,15 @@
 
 
 													@*@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
-														{
-															if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
-															{
-																if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
-																{
-																	<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
-																}
-															}
-														}*@
+											{
+												if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
+												{
+													if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
+													{
+														<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
+													}
+												}
+											}*@
 
 
 
