@@ -128,7 +128,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						//});
 					}
 				}
-
+				else if (this.type == (int)EnumPRD_TransactionType.FireFisi)
+				{
+					var productionProducts = db.GetVWPRD_ProductionProductByProductId(this.productionId.Value);
+					this.items.AddRange(productionProducts.Select(x => new VMPRD_TransactionItems
+					{
+						productId = x.materialId,
+						unitPrice = x.price
+					}));
+				}
 			}
 
 
@@ -185,7 +193,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.status = this.status ?? (int)EnumPRD_TransactionStatus.beklemede;
 			this.date = this.date ?? DateTime.Now;
 			if (this.type == null) return new ResultStatus { result = false, message = "İşlem tipi seçilmeli." };
-			if (this.items.Count() == 0 && this.type != (int)EnumPRD_TransactionType.UretimBildirimi){
+			if (this.items.Count() == 0 && this.type != (int)EnumPRD_TransactionType.UretimBildirimi)
+			{
 				return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
 			}
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
@@ -205,6 +214,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					productId = this.productId,
 					quantity = this.quantity
 				});
+			}
+			else if (this.type == (int)EnumPRD_TransactionType.FireFisi)
+			{
+				this.inputId = null;
+				this.inputTable = null;
+				this.inputCompanyId = null;
 			}
 
 
@@ -627,8 +642,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							createdby = this.createdby,
 							dataTable = "PRD_Transaction",
 							userId = this.createdby,
-							description = this.quantity+" Adet Biten Ürün Bildirimi Gerçekleşti.",
+							description = this.quantity + " Adet Biten Ürün Bildirimi Gerçekleşti.",
 							status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
+							created = DateTime.Now
+						});
+					}
+					else if (this.type == (int)EnumPRD_TransactionType.FireFisi)
+					{
+						db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
+						{
+							id = Guid.NewGuid(),
+							productionId = this.productionId,
+							dataId = this.id,
+							createdby = this.createdby,
+							dataTable = "PRD_Transaction",
+							userId = this.createdby,
+							description = "Fire Bildirimi Gerçekleştirildi.",
+							status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
 							created = DateTime.Now
 						});
 					}

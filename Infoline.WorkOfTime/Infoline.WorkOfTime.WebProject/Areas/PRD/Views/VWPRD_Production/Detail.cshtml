@@ -229,7 +229,7 @@
 												<div class="btnns m-t-xs">
 
 													<a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi)
+													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi)
 													{
 														<a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", id = item.dataId })" data-task="Insert" data-ask="Harcama Bildirimi İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
 													}
@@ -322,7 +322,18 @@
 																									   status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
 																									   companyId = Model.centerCompanyId
 																								   })"><i data-toggle="tooltip" title="Biten Ürün Bildir" class="fa fa-dropbox"></i></a>
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi })"><i data-toggle="tooltip" title="Fire Bildirimi Yap" class="fa fa-trash"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   outputId = Model.centerStorageId,
+																									   outputTable= "CMP_Storage",
+																									   outputCompanyId = Model.centerCompanyId,
+																									   inputId= Model.productionStorageId,
+																									   inputTable = "CMP_Storage",
+																									   inputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.FireFisi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
+																									   companyId = Model.centerCompanyId
+																								   })"><i data-toggle="tooltip" title="Fire Bildirimi Yap" class="fa fa-trash"></i></a>
 
 
 			}
