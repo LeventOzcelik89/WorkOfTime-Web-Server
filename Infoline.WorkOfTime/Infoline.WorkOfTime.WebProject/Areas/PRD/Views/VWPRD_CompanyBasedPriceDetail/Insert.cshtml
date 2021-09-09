@@ -1,8 +1,44 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail
 @{
-    ViewBag.Title = "Kayıt Ekleme";
+    ViewBag.Title = "Özel Fiyat Belirleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style>
+    .bg-focus {
+        background-color: #1ab394 !important;
+    }
+</style>
+<script data-selector="modalContainer">
+    var page = {
+        defines: {
+            isAllCompanies: 1,
+        },
+        functions: {
+            changeForAllCompanies: function (i) {
+                if (i == 1 && page.defines.isAllCompanies == 0) {
+                    $("#companyId").data("kendoDropDownList").value("");
+                    $("#companyId").data("kendoDropDownList").readonly()
+                    page.defines.isAllCompanies = 1;
+                    $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                    $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                } else if (i == 0 && page.defines.isAllCompanies == 1) {
+                    $("#companyId").data("kendoDropDownList").readonly(false);
+                    page.defines.isAllCompanies = 0;
+                    $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
+                    $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
+
+                }
+            },
+            changeProductSetting: function (i) {
+
+            },
+            setCompanyDropDownTitle: function (e) {
+                $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            }
+        }
+    }
+</script>
 
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -16,6 +52,83 @@
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
 
+
+    <div class="form-group">
+        <div class="col-md-5">
+            <div class="radio akilliRadioGrup clearfix">
+                <input type="radio" class="bg-focus" name="isForAllCompany" id="all_company_check_1" checked value="1">
+                <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
+                    Tüm Şirketlere
+                </label>
+                <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
+                <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
+                    Seçili Şirkete
+                </label>
+            </div>
+        </div>
+        <div class="col-md-7" id="companyDropDown">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.companyId)
+                .OptionLabel("Lütfen Şirket Seçiniz..")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Sort(x => x.Add("name").Ascending())
+                .Readonly(true)
+                .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
+                .Execute()
+                )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-5">
+            <div class="radio akilliRadioGrup clearfix">
+                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="1">
+                <label tabindex="0" onClick="" class="radio-label bg-focus" for="all_products">
+                    Tüm Ürünlere
+                </label>
+                <input type="radio" name="target" id="all_categories" value="0">
+                <label tabindex="0" onClick="" class="radio-label" for="all_categories">
+                    Seçili Kategoriye
+                </label>
+                <input type="radio" name="target" id="spesific_product" value="0">
+                <label tabindex="0" onClick="" class="radio-label" for="spesific_product">
+                    Seçili Ürüne
+                </label>
+            </div>
+        </div>
+
+        <div class="col-md-7" id="productDropDown">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.productId)
+                .OptionLabel("Lütfen Ürün seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('productTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                .Sort(x => x.Add("code").Ascending())
+                .Execute()
+            )
+        </div>
+
+        <div class="col-md-7" id="categoryDropDown" style="display:none;">
+            @(
+            Html.Akilli()
+            .DropDownListFor(model => model.categoryId)
+            .OptionLabel("Lütfen Kategori seçiniz..")
+            .DataTextField("fullname")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+            //.Filter<VWPRD_Category>(a => a.generation > 0)
+            .Sort(x => x.Add("fullname").Ascending())
+            .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
+            .Execute("id")
+        )
+        </div>
+
+    </div>
 
     <div class="form-group">
         <div class="col-md-4">
@@ -36,11 +149,9 @@
             <label class="control-label label-md" for="type">Fiyat mı İskonto mu</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.type, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen type Girin.."},
-            }).Validate(Validations.Required)
+            <div class="pull-right">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+            </div>
         </div>
     </div>
 
@@ -63,11 +174,9 @@
             <label class="control-label label-md" for="discount">Satış Tipi</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.sellingType, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen discount Girin.."},
-            }).Validate(Validations.Required)
+            <div class="pull-right">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+            </div>
         </div>
     </div>
 
@@ -76,11 +185,9 @@
             <label class="control-label label-md" for="discount">Koşul Türü</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.conditionType, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen discount Girin.."},
-            }).Validate(Validations.Required)
+            <div class="pull-right">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+            </div>
         </div>
     </div>
 
@@ -133,25 +240,6 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyId">Şirket</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Akilli()
-                .DropDownListFor(model => model.companyId)
-                .OptionLabel("Lütfen İşletme Seçiniz..")
-                .DataTextField("name")
-                .DataValueField("id")
-                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
-                .Sort(x => x.Add("name").Ascending())
-                .Validate(Validations.Required)
-                .Execute()
-                )
-        </div>
-    </div>
-
 
     <div class="form-group">
         <div class="col-md-4">
@@ -200,3 +288,6 @@
     </div>
 
 }
+<script data-selector="modalContainer">
+    console.log("aa");
+</script>

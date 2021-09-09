@@ -30,9 +30,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
     public enum EnumPRD_CompanyBasedPriceConditionType
     {
         [Description("Genel")]
-        Oran = 0,
-        [Description("Satış Fiyatına Göre")]
-        Fiyat
+        Genel = 0,
+        [Description("Minimum Satış Fiyatına Göre")]
+        Fiyat,
+        [Description("Minimum Adete Göre")]
+        Adet
     }
     partial class WorkOfTimeDatabase
     {
