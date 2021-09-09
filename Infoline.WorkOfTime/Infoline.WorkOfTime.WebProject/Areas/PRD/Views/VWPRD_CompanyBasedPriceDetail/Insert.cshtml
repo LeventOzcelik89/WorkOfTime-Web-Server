@@ -1,0 +1,202 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.companyBasedPriceId)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="minCondition">Minimum Koşul</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.minCondition, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen minCondition Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="type">Fiyat mı İskonto mu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.type, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen type Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="discount">İskonto oranı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.discount, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen discount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="discount">Satış Tipi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.sellingType, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen discount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="discount">Koşul Türü</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.conditionType, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen discount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="monthCount">Ay Sayısı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.monthCount, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen monthCount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="startDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen startDate Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="endDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen endDate Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="companyId">Şirket</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.companyId)
+                .OptionLabel("Lütfen İşletme Seçiniz..")
+                .DataTextField("name")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Filter<CMP_Company>(c => c.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                .Sort(x => x.Add("name").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                )
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="productId">Ürün</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DropDownListFor(model => model.productId)
+                .OptionLabel("Lütfen Ürün seçiniz..")
+                .DataTextField("fullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('productTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                .Sort(x => x.Add("code").Ascending())
+                .Execute()
+            )
+        </div>
+    </div>
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="categoryId">Kategori</label>
+        </div>
+        <div class="col-md-8">
+            @(
+            Html.Akilli()
+            .DropDownListFor(model => model.categoryId)
+            .OptionLabel("Lütfen Kategori seçiniz..")
+            .DataTextField("fullname")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+            //.Filter<VWPRD_Category>(a => a.generation > 0)
+            .Sort(x => x.Add("fullname").Ascending())
+            .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
+            .Execute("id")
+        )
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
