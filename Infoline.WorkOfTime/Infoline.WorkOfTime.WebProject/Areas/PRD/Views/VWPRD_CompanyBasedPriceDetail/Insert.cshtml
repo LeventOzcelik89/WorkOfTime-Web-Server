@@ -23,7 +23,7 @@
                     $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                     $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
                 } else if (i == 0 && page.defines.isAllCompanies != 0) {
-                    $("#companyId").data("kendoDropDownList").readonly(false);
+                    $("#companyId").data("kendoDropDownList")?.readonly(false);
                     page.defines.isAllCompanies = 0;
                     $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
                     $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
@@ -65,10 +65,60 @@
             setProductDropDownTitle: function (e) {
                 $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
                 $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            },
+            setSellingTypeCheckbox: function () {
+                $(document).on("change", "[name='sellingType']", function () {
+                    let value = $("[name='sellingType']:checked").val();
+                    if (value == 0 || value == 1) {
+                        $("#month").hide();
+                    }
+                    else {
+                        if (value == 2) {
+                            $("#vadeay").text("Taksit Sayısı")
+                            $("#monthCount").attr("placeholder", "Lütfen taksit sayısını giriniz");
+                        }
+                        if (value == 3) {
+                            $("#vadeay").text("Vade Sayısı")
+                            $("#monthCount").attr("placeholder", "Lütfen vade sayısını giriniz");
+                        }
+                        $("#month").show();
+                    }
+                });
+            },
+            setconditionTypeCheckbox: function () {
+                $(document).on("change", "[name='conditionType']", function () {
+                    let value = $("[name='conditionType']:checked").val();
+                    if (value == 0) {
+                        $("#minConditionDiv").hide();
+
+                    }
+                    else {
+                        $("#minConditionDiv").show();
+                        if (value == 1) {
+                            $("#minCondition").attr("placeholder", "Lütfen minimum satış fiyatını sayısını giriniz");
+                            $("#minConLabel").text("Minimum Satış Miktarı")
+                        }
+                        if (value == 2) {
+                            $("#minCondition").attr("placeholder", "Lütfen minimum adet sayısını giriniz");
+                            $("#minConLabel").text("Minimum Adet Sayısı")
+                        }
+
+
+                    }
+                });
             }
         }
     }
+
+    page.functions.setSellingTypeCheckbox();
+    page.functions.setconditionTypeCheckbox();
+
+
+
+
+
 </script>
+
 
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -165,6 +215,7 @@
         <div class="col-md-12">
             <div class="">
                 @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+
             </div>
         </div>
     </div>
@@ -177,9 +228,9 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" id="minConditionDiv" style="display:none">
         <div class="col-md-4">
-            <label class="control-label label-md" for="minCondition">Minimum Koşul</label>
+            <label class="control-label label-md" id="minConLabel" for="minCondition">Minimum Koşul</label>
         </div>
         <div class="col-md-8">
             @Html.TextBoxFor(model => model.minCondition, new Dictionary<string, object>()
@@ -189,73 +240,83 @@
             }).Validate(Validations.Required)
         </div>
     </div>
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="discount">İskonto oranı</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.discount, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen discount Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
+   
 
 
     <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="monthCount">Ay Sayısı</label>
+        <div class="col-sm-12">
+            <div id="example">
+                <div id="grid"></div>
+
+                <script>
+                    $(document).ready(function () {
+                        var crudServiceBaseUrl = "https://demos.telerik.com/kendo-ui/service",
+                            dataSource = new kendo.data.DataSource({
+                                transport: {
+                                    read: {
+                                        url: crudServiceBaseUrl + "/Products?id=@Model.id",
+                                        dataType: "jsonp"
+                                    },
+                                    update: {
+                                        url: crudServiceBaseUrl + "/Products/Update",
+                                        dataType: "jsonp"
+                                    },
+                                    destroy: {
+                                        url: crudServiceBaseUrl + "/Products/Destroy",
+                                        dataType: "jsonp"
+                                    },
+                                    create: {
+                                        url: crudServiceBaseUrl + "/Products/Create",
+                                        dataType: "jsonp"
+                                    },
+                                    parameterMap: function (options, operation) {
+                                        if (operation !== "read" && options.models) {
+                                            return { models: kendo.stringify(options.models) };
+                                        }
+                                    }
+                                },
+                                batch: true,
+                                pageSize: 20,
+                                schema: {
+                                    model: {
+                                        id: "ProductID",
+                                        fields: {
+                                            ProductID: { editable: false, nullable: true },
+                                            ProductName: { validation: { required: true } },
+                                            UnitPrice: { type: "number", validation: { required: true, min: 1 } },
+                                            Discontinued: { type: "boolean" },
+                                            UnitsInStock: { type: "number", validation: { min: 0, required: true } }
+                                        }
+                                    }
+                                }
+                            });
+
+                        $("#grid").kendoGrid({
+                            dataSource: dataSource,
+                            pageable: true,
+                            height: 400,
+                            toolbar: ["create"],
+                            columns: [
+                                "ProductName",
+                                { field: "UnitPrice", title: "Unit Price", format: "{0:c}", width: "120px" },
+                                { field: "UnitsInStock", title: "Units In Stock", width: "120px" },
+                                { field: "Discontinued", width: "120px", editor: customBoolEditor },
+                                { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }],
+                            editable: "inline"
+                        });
+                    });
+
+                    function customBoolEditor(container, options) {
+                        $('<input class="k-checkbox" type="checkbox" name="Discontinued" data-type="boolean" data-bind="checked:Discontinued">').appendTo(container);
+                    }
+                </script>
+            </div>
         </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.monthCount, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen monthCount Girin.."},
-            }).Validate(Validations.Required)
+</div>
+
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
         </div>
-    </div>
 
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="startDate">Başlangıç Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen startDate Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
-            )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="endDate">Bitiş Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(Html.Kendo().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen endDate Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
-            )
-        </div>
-    </div>
-
-
-
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
-
-}
+        }
