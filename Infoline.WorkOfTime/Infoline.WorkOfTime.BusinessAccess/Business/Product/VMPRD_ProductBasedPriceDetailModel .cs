@@ -10,12 +10,12 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_ProductBasedPriceDetailModel: VWPRD_CompanyBasedPriceDetail
+    public class VMPRD_CompanyBasedPriceDetailModel: VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMPRD_ProductBasedPriceDetailModel Load()
+        public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
@@ -40,7 +40,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
-                res = Insert();
+                //res = Insert();
             }
             else
             {
@@ -64,10 +64,51 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var res = new ResultStatus { result = true };
             return res;
         }
-        private ResultStatus Insert()
+        public ResultStatus Insert(Guid id)
         {
             db = db ?? new WorkOfTimeDatabase();
             //Validasyonlarını yap
+
+            //Bağlı Olduğu CompanyBasedPrice Varsa Al
+            var companyId = this.companyId; 
+            var productId = this.productId; 
+            var categoryId = this.categoryId; 
+            var conditionType = this.conditionType; 
+            var sellingType = this.sellingType;
+
+            var companyBasedPrice = new PRD_CompanyBasedPrice
+            {
+                companyId = companyId,
+                productId = productId,
+                categoryId = categoryId,
+                conditionType = conditionType,
+                sellingType = sellingType
+            };
+            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPrice);
+            if(companyBasedPriceRecord == null) //yeni bir tane oluştur
+            {
+                companyBasedPrice.id = Guid.NewGuid();
+                companyBasedPrice.createdby = id;
+                companyBasedPrice.created = DateTime.Now;
+                db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
+            }
+            var companyBasedPriceId = companyBasedPriceRecord == null ? companyBasedPriceRecord.id : companyBasedPrice.id;
+
+            var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
+            {
+                companyBasedPriceId = companyBasedPriceId,
+                minCondition = this.minCondition,
+                type = this.type,
+                discount = this.type,
+                //price = this.price,
+                startDate = this.startDate,
+                endDate = this.endDate,
+                created = DateTime.Now,
+                createdby = id
+            };
+
+
+
             var dbresult = db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
             if (!dbresult.result)
             {

@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Infoline.WorkOfTime.BusinessAccess.Business.Product;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
@@ -65,21 +66,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Insert(PRD_CompanyBasedPriceDetail item)
+		public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertPRD_CompanyBasedPriceDetail(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			item.Insert(userStatus.user.id);
+		    return Json(null, JsonRequestBehavior.AllowGet);
 		}
 
 
