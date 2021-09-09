@@ -627,7 +627,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							createdby = this.createdby,
 							dataTable = "PRD_Transaction",
 							userId = this.createdby,
-							description = "Biten Ürün Bildirimi Gerçekleşti.",
+							description = this.quantity+" Adet Biten Ürün Bildirimi Gerçekleşti.",
 							status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
 							created = DateTime.Now
 						});

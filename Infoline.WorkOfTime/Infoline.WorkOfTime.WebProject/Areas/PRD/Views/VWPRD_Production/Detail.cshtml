@@ -4,9 +4,7 @@
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
 
-	decimal remainingCal = ((decimal)30 - (decimal)20);
-	decimal result = ((remainingCal / (decimal)30) * 100);
-
+	var productionStageCount = 0;
 
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
@@ -164,6 +162,7 @@
 										<small class="label label-primary"> Bildirim Yapıldı</small>
 										<small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count()</small>
 									</li>
+									productionStageCount++;
 								}
 								else
 								{
@@ -173,6 +172,15 @@
 										<small class="label label-warning" style="float:right"> 0</small>
 									</li>
 								}
+
+
+							}
+							@if (productionStageCount > 0)
+							{
+								<li>
+									<span class="m-l-xs"><b>TOPLAM AŞAMA</b></span>
+									<small class="label label-primary" style="float:right"> @productionStageCount</small>
+								</li>
 							}
 						</ul>
 					</div>
@@ -212,13 +220,16 @@
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
 												@if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
 												{<div class="small text-muted"> Aşama : <strong>@item.dataId_Title</strong> </div>}
+
 												@if (item.description != null)
 												{<div class="small text-muted"> Açıklama : @item.description </div>}
+
+
 
 												<div class="btnns m-t-xs">
 
 													<a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi)
+													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi)
 													{
 														<a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", id = item.dataId })" data-task="Insert" data-ask="Harcama Bildirimi İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
 													}

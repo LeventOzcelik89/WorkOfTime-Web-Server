@@ -5,8 +5,15 @@
 	//var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
 
 
-	decimal remainingCal = ((decimal)30 - (decimal)20);
-	decimal result = ((remainingCal / (decimal)30) * 100);
+	decimal result = 0;
+	if (Model.producedQuantity.HasValue)
+	{
+		result = ((decimal)Model.producedQuantity / (decimal)Model.quantity) * 100;
+	}
+	else
+	{
+		Model.producedQuantity = 0;
+	}
 
 }
 
@@ -43,7 +50,7 @@
 			</dl>
 
 			<dl class="dl-horizontal">
-				<dt>Son Bitiş Tarihi: </dt>
+				<dt>Hedef Bitiş Tarihi: </dt>
 				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastProductionDate) </dd>
 			</dl>
 
@@ -55,8 +62,8 @@
 			<dl class="dl-horizontal">
 				<dt></dt>
 				<dd>
-					<small class="label label-info" data-toggle="alert" data-original-title="Üretilecek ürün adedi"><i class="fa fa-info-circle"></i> 100</small>
-					<small class="label label-danger" data-toggle="alert" data-original-title="Üretilen ürün adedi"><i class="fa fa-info-circle"></i> 200</small>
+					<small class="label label-info" data-toggle="alert" data-original-title="Üretilecek ürün adedi"><i class="fa fa-info-circle"></i> @Model.quantity</small>
+					<small class="label label-@(Model.quantity > Model.producedQuantity ? "warning" : Model.quantity == Model.producedQuantity ? "primary" : Model.quantity < Model.producedQuantity ? "danger" : "warning")" data-toggle="alert" data-original-title="Üretilen ürün adedi"><i class="fa fa-info-circle"></i> @Model.producedQuantity</small>
 				</dd>
 			</dl>
 
