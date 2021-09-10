@@ -701,12 +701,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return DBResult;
 		}
 
-		public ResultStatus Delete(DbTransaction _trans = null)
+		public ResultStatus Delete(Guid? userId, DbTransaction _trans = null)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetPRD_TransactionById(this.id);
 			if (transaction != null)
 			{
+				if (transaction.createdby != userId)
+				{
+					return new ResultStatus { message = "Stok işlemlerini ancak oluşturan silebilir..", result = true, };
+				}
+
 				this.trans = _trans ?? db.BeginTransaction();
 				var transactionItems = db.GetPRD_TransactionItemByTransactionId(transaction.id);
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
