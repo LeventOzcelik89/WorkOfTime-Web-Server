@@ -11,7 +11,7 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
     {
         public Guid? companyBasedPriceId { get; set; }
         public double? minCondition { get; set; }
-        public short? type { get; set; }
+        public short? type { get; set; }      
         public double? discount { get; set; }
         public int? monthCount { get; set; }
         [DataType(DataType.Date)]

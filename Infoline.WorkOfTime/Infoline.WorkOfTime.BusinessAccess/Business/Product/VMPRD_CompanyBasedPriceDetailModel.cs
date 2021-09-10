@@ -82,10 +82,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                     {
                         var companyBaseList = Infoline.Helper.Json.Deserialize<List<VWPRD_CompanyBasedPriceDetailDto>>(this._CompanyBasedPriceDetailModels);
                         if (companyBaseList.Count > 0)
-                        {
-                            var companyBasedConvertedList = new List<VMPRD_CompanyBasedPriceDetailModel>();
-                            foreach (var item in companyBasedConvertedList)
+                        {                         
+                            foreach (var item in companyBaseList)
                             {
+                                item.companyBasedPriceId = this.companyBasedPriceId;
+                                
                                 dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
                             }
                         }
@@ -244,9 +245,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return list.ToArray();
         }
 
-        public bool checkDates()
+        public bool checkDates(VWPRD_CompanyBasedPriceDetailDto obje)
         {
-            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
+            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(obje);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
             if (sameRecordList == null)
             {

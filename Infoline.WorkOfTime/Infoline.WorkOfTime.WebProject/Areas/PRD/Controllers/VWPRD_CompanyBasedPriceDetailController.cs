@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Insert()
         {
-            var data = new VWPRD_CompanyBasedPriceDetail { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
