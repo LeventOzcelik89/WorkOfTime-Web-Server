@@ -60,14 +60,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Insert()
         {
-            var data = new VWPRD_CompanyBasedPriceDetail { id = Guid.NewGuid(), companyBasedPriceId = new Guid() };
+            var data = new VWPRD_CompanyBasedPriceDetail { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
             return View(data);
         }
-
-
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
+        public JsonResult Insert(VMPRD_ProductBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.createdby = userStatus.user.id;
@@ -94,7 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Update(VMPRD_CompanyBasedPriceDetailModel item)
+        public JsonResult Update(VMPRD_ProductBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.changedby = userStatus.user.id;
@@ -110,41 +108,41 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             //var db = new WorkOfTimeDatabase();
             //var feedback = new FeedBack();
 
-            var result = new VMPRD_CompanyBasedPriceDetailModel { id = id }.Delete();
+            var result = new VMPRD_ProductBasedPriceModel { id = id }.Delete();
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
         [AllowEveryone]
         public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
         {
-            var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
+            var VWCompanyBasedPriceDetailList = new VMPRD_ProductBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
             return Json(VWCompanyBasedPriceDetailList);
           
         }
 
-        [HttpPost]
-        [AllowEveryone]
-        public ActionResult insertInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
-        {
-            var rs = item.Insert();
-            return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        }
+        //[HttpPost]
+        //[AllowEveryone]
+        //public ActionResult InsertInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
+        //{
+        //    var rs = item.Insert();
+        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [HttpPost]
-        [AllowEveryone]
-        public ActionResult updateInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
-        {
-            var rs = item.Update();
-            return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        }
+        //[HttpPost]
+        //[AllowEveryone]
+        //public ActionResult UpdateInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
+        //{
+        //    var rs = item.Update();
+        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
+        //}
 
-        [HttpPost]
-        [AllowEveryone]
-        public ActionResult deleteInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
-        {
-            var rs = item.Delete();
-            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
-        }
+        //[HttpPost]
+        //[AllowEveryone]
+        //public ActionResult DeleteInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
+        //{
+        //    var rs = item.Delete();
+        //    return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        //}
 
 
     }

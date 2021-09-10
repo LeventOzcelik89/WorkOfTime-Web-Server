@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public VMPRD_ProductBasedPriceModel BasePrice { get; set; }
-        //public VMPRD_ProductBasedPriceDetailModel[] BasePriceDetailList { get; set; }
+        //public VMPRD_ProductBasedPriceDetailMode[] BasePriceDetailList { get; set; }
         //public VMPRD_ProductBasedPriceDetailModel Load()
         //{
         //    this.db = this.db ?? new WorkOfTimeDatabase();
