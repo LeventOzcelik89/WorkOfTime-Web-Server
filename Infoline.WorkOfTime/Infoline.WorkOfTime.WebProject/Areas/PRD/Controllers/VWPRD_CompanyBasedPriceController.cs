@@ -125,7 +125,5 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-
-
 	}
 }
