@@ -10,7 +10,7 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_CompanyBasedPriceDetailModel: VWPRD_CompanyBasedPriceDetail
+    public class VMPRD_CompanyBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
@@ -65,30 +65,17 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var dbresult = new ResultStatus { result = true};
+            var dbresult = new ResultStatus { result = true };
             //Validasyonlarını yap
 
             //Bağlı Olduğu CompanyBasedPrice Varsa Al
-            var companyId = this.companyId; 
-            var productId = this.productId; 
-            var categoryId = this.categoryId; 
-            var conditionType = this.conditionType; 
-            var sellingType = this.sellingType;
-
-            var companyBasedPrice = new PRD_CompanyBasedPrice
+            var companyBasedPriceDto = new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this);
+            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPriceDto);
+            if (companyBasedPriceRecord == null) //yeni bir tane oluştur
             {
-                companyId = companyId,
-                productId = productId,
-                categoryId = categoryId,
-                conditionType = conditionType,
-                sellingType = sellingType
-            };
-            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPrice);
-            if(companyBasedPriceRecord == null) //yeni bir tane oluştur
-            {
-                companyBasedPrice.createdby = this.createdby;
-                companyBasedPrice.created = DateTime.Now;
-                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
+                companyBasedPriceDto.createdby = this.createdby;
+                companyBasedPriceDto.created = DateTime.Now;
+                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPriceDto), this.trans);
                 if (!dbresult.result)
                 {
                     return new ResultStatus
@@ -101,7 +88,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 
             var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
             {
-                companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPrice.id,
+                companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPriceDto.id,
                 minCondition = this.minCondition,
                 type = this.type,
                 discount = this.type,
@@ -135,7 +122,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             var dbresult = new ResultStatus { result = true };
             var companyBasedPriceDetail = db.GetPRD_CompanyBasedPriceDetailById(this.id);
-            if(companyBasedPriceDetail != null)
+            if (companyBasedPriceDetail != null)
             {
                 dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), false, this.trans);
             }
@@ -194,8 +181,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus ValidateCompanyBasedIsExistBefore()
         {
             var db = new WorkOfTimeDatabase();
-            var result=db.GetVWPRD_CompanyBasedDetailIsExistBefore(this);
-            if (result==null)
+            var result = db.GetVWPRD_CompanyBasedDetailIsExistBefore(this);
+            if (result == null)
             {
                 return new ResultStatus { result = false };
             }
