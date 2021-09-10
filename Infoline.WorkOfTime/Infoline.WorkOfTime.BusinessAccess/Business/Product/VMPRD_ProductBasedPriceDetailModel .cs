@@ -2,6 +2,7 @@
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -15,6 +16,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        [DataType(DataType.Date)]
+        public new DateTime startDate { get; set; }
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -178,6 +181,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
+       
         public VWPRD_CompanyBasedPriceDetail[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
         {
             var db = new WorkOfTimeDatabase();

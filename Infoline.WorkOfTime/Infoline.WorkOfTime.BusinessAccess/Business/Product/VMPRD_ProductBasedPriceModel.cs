@@ -145,7 +145,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var dbresult = new ResultStatus();
             if (result!=null)
             { 
-               dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result);
+               //dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result);
             }
             dbresult&= db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
             if (!dbresult.result)
