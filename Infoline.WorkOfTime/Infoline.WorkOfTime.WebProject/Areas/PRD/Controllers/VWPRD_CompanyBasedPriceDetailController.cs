@@ -70,8 +70,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			item.createdby = userStatus.user.id;
-			item.created = DateTime.Now; 			
-		    return Json(item.Save(), JsonRequestBehavior.AllowGet);
+			item.created = DateTime.Now;
+			var dbresult = item.Save();
+
+			var feedback = new FeedBack();
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız")
+			};
+
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
 		[AllowEveryone]
@@ -102,6 +111,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		
 		    var result = new VMPRD_CompanyBasedPriceDetailModel { id = id }.Delete();
 		    return Json(result, JsonRequestBehavior.AllowGet);
+		}
+
+		[AllowEveryone]
+		public JsonResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
+		{
+			var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id);
+			return Json(VWCompanyBasedPriceDetailList, JsonRequestBehavior.AllowGet);
 		}
 
 

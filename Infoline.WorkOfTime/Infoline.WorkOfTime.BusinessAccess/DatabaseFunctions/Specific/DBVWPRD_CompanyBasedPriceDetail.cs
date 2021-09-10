@@ -9,11 +9,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
     
     partial class WorkOfTimeDatabase
     {
-        public PRD_CompanyBasedPriceDetail[] GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(Guid id, DbTransaction tran = null)
+        public VWPRD_CompanyBasedPriceDetail[] GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(Guid id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_CompanyBasedPriceDetail>().Where(a => a.companyBasedPriceId == id).Execute().ToArray();
+                return db.Table<VWPRD_CompanyBasedPriceDetail>().Where(a => a.companyBasedPriceId == id).Execute().ToArray();
             }
         }
 
