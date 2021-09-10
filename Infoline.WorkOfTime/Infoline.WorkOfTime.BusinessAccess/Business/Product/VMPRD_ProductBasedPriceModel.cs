@@ -10,11 +10,11 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_ProductBasedPriceModel : VWPRD_CompanyBasedPrice
+    public class VMPRD_CompanyBasedPriceModel : VWPRD_CompanyBasedPrice
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMPRD_ProductBasedPriceModel BasePrice { get; set; }
+        public VMPRD_CompanyBasedPriceModel BasePrice { get; set; }
         //public VMPRD_ProductBasedPriceDetailMode[] BasePriceDetailList { get; set; }
         //public VMPRD_ProductBasedPriceDetailModel Load()
         //{
