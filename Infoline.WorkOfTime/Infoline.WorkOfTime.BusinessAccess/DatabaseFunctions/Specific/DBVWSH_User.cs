@@ -3,6 +3,7 @@ using System.Data.Common;
 using System.Linq;
 using Infoline.WorkOfTime.BusinessData;
 using Infoline.Framework.Database;
+using System.Collections.Generic;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
@@ -26,6 +27,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWSH_User[] GetVWSH_UserMyPersonIsWorkingIDS(IEnumerable<Guid> userids, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWSH_User>().Where(a =>
+                        a.type == (int)EnumSH_UserType.MyPerson &&
+                        a.IsWorking == true &&
+                        a.id.In(userids.ToArray())
+                    ).Execute().ToArray();
+            }
+        }
+
         public VWSH_User[] GetVWSH_UserOtherPerson(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
@@ -44,7 +57,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWSH_User[] GetVWSH_UserByIds(Guid[] id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
-            { 
+            {
                 return db.ExecuteReader<VWSH_User>("SELECT * From VWSH_User with(nolock) where id in(" + string.Format("'{0}'", string.Join("','", id)) + ")").ToArray();
             }
         }

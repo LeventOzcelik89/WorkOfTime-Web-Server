@@ -62,6 +62,8 @@
                     $("#productId").data("kendoDropDownList").readonly(false);
                     page.defines.productTarget = 0;
                     $("#priceorDiscountDiv").show();
+                    $("#priceDiscount0").prop("checked", true);
+                    $("#priceDiscount1").prop("checked", false);
                     grid.showColumn("price");
                     grid.hideColumn("discount");
                 }
@@ -95,21 +97,20 @@
             },
             setconditionTypeCheckbox: function () {
                 $(document).on("change", "[name='conditionType']", function () {
+                    debugger;
                     let value = $("[name='conditionType']:checked").val();
+                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                     if (value == 0) {
-                        $("#minConditionDiv").hide();
-
+                        grid.hideColumn("minCondition");
                     }
                     else {
-                        $("#minConditionDiv").show();
                         if (value == 1) {
-                            $("#minCondition").attr("placeholder", "Lütfen minimum satış fiyatını sayısını giriniz");
-                            $("#minConLabel").text("Minimum Satış Miktarı")
+                            $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
                         }
                         if (value == 2) {
-                            $("#minCondition").attr("placeholder", "Lütfen minimum adet sayısını giriniz");
-                            $("#minConLabel").text("Minimum Adet Sayısı")
+                            $("[data-field='minCondition']").find("a").last().text("Minimum Birim")
                         }
+                        grid.showColumn("minCondition");
                     }
                 });
             },
@@ -250,18 +251,6 @@
             </div>
         </div>
 
-        <div class="form-group" id="minConditionDiv" style="display:none">
-            <div class="col-md-4">
-                <label class="control-label label-md" id="minConLabel" for="minCondition">Minimum Koşul</label>
-            </div>
-            <div class="col-md-8">
-                @Html.TextBoxFor(model => model.minCondition, new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"placeholder", "Lütfen minCondition Girin.."},
-                })
-            </div>
-        </div>
         <div class="form-group" id="priceorDiscountDiv" style="display:none">
             <div class="col-md-12">
                 <div class="radio akilliRadioGrup clearfix">
@@ -286,18 +275,16 @@
     .Events(x => x.DataBound("onDataGridBound"))
     .Columns(columns =>
     {
-        //columns.Bound(p => p.basePrice).Title("Fiyat");
+        columns.Bound(p => p.companyBasedPriceId).Hidden(true);
+        columns.Bound(p => p.id).Hidden(true);
+        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
+        columns.Bound(p => p.endDate).Format("{0:dd/MM/yyyy}").Title("Bitiş Tarihi");
         columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
-        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti");
+        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
         columns.Bound(p => p.discount).Title("Iskonto Oranı");
         columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
-        //columns.Bound(p => p.afterPrice).Title("Iskonto Sonrası Fiyat");
-        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
-        columns.Bound(p => p.endDate).Width(120).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
-        columns.Bound(p => p.companyBasedPriceId).Hidden(true);
-        columns.Command(command => { command.Edit().Text("&nbsp;"); command.Destroy().Text("&nbsp;"); }).Width(250);
     })
-    .ToolBar(toolbar => toolbar.Create())
+    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
     .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
     .Pageable()
     .Sortable()
@@ -345,18 +332,11 @@
 
     function onDataGridBound(e) {
         var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var inputs = $("#options").find("input");
         var griddata = grid.dataSource.data();
         if (griddata.length != 0) {
-            page.defines.disabledInput = 1;
-            for (var i = 0; i < inputs.length; i++) {
-                $(inputs[i]).attr("readonly", "");
-            }
+            $("#options").attr("style","pointer-events:none;")
         } else {
-            for (var i = 0; i < inputs.length; i++) {
-                $(inputs[i]).removeAttr("readonly", "");
-            }
-            page.defines.disabledInput = 0;
+            $("#options").attr("style", "pointer-events:auto;")
         }
     }
 

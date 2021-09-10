@@ -9,6 +9,7 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
 {
     public class VWPRD_CompanyBasedPriceDetailDto
     {
+        public Guid? id { get; set; }
         public Guid? companyBasedPriceId { get; set; }
         public double? minCondition { get; set; }
         public short? type { get; set; }      

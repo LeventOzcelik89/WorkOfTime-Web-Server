@@ -641,6 +641,7 @@ function fn_RunFormValidators() {
 
             if (_this.attr('data-formType') == "Ajax") {
                 if (formResult) {
+                    if (location.href.indexOf('localhost') > -1) { console.log(_this); console.log('validate:submit'); }
                     _this.trigger("validate:submit");
                 }
                 return false;
@@ -703,6 +704,7 @@ function Kendo_GetRequest(_url, _data, _button, _modalType, _selector) {
                 feedback(response.objects);
                 $isJSON = true;
                 if (response.result) {
+                    if (location.href.indexOf('localhost') > -1) { console.log(response); console.log('success:json'); }
                     $(document).trigger("success:json", response);
                 }
                 return;
@@ -713,6 +715,7 @@ function Kendo_GetRequest(_url, _data, _button, _modalType, _selector) {
                 feedback(response.FeedBack);
                 $isJSON = true;
                 $(document).trigger("success:json", response);
+                if (location.href.indexOf('localhost') > -1) { console.log(response); console.log('success:json'); }
                 return;
             }
 
@@ -749,6 +752,7 @@ function Kendo_GetRequest(_url, _data, _button, _modalType, _selector) {
                         $($(dialogRef.$modalHeader).find('.bootstrap-dialog-close-button')).removeAttr('style');
                         $.each(haritalar, function (i, item) { item.map.updateSize(); });
                         $(document).trigger("shown:modal", dialogRef);
+                        if (location.href.indexOf('localhost') > -1) { console.log(dialogRef); console.log('shown:modal'); }
                     },
                 });
 
@@ -965,6 +969,7 @@ function Kendo_GridChange(e) {
     }
 
     $("#" + _name).trigger("selected:grid", _selectedObjects);
+    if (location.href.indexOf('localhost') > -1) { console.log(_selectedObjects); console.log('selected:grid'); }
 
 }
 
@@ -1024,6 +1029,7 @@ function Kendo_GridLoad(e) {
     });
 
     $("#" + _name).trigger("load:grid", _datasource);
+    if (location.href.indexOf('localhost') > -1) { console.log(_datasource); console.log('load:grid'); }
 
 }
 
@@ -2377,6 +2383,7 @@ $(document)
     .on('validate:submit', '[data-formType="Ajax"]', function (e) {
 
         $(this).trigger("before:submit");
+        if (location.href.indexOf('localhost') > -1) { console.log(this); console.log('before:submit'); }
 
         e.preventDefault();
 
@@ -2446,6 +2453,7 @@ $(document)
                     });
                 }
                 _this.trigger("success", response);
+                if (location.href.indexOf('localhost') > -1) { console.log(response); console.log('success'); }
             },
             error: function () {
                 feedback("SERVER");
@@ -2453,6 +2461,7 @@ $(document)
             complete: function (response) {
                 $('body').loadingModal('destroy');
                 _this.trigger("complete", response.responseJSON, response.responseText);
+                if (location.href.indexOf('localhost') > -1) { console.log(response.responseJSON); console.log('complete'); }
             }
         };
 
@@ -2477,6 +2486,7 @@ $(document)
         }
 
         $(this).parents("form").trigger("back");
+        if (location.href.indexOf('localhost') > -1) { console.log($(this).parents("form")); console.log('back'); }
         return false;
 
     })

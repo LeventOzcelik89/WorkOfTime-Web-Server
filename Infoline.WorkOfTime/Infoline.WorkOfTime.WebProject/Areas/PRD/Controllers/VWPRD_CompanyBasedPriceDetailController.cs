@@ -102,19 +102,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             item.changed = DateTime.Now;
             return Json(item.Save(), JsonRequestBehavior.AllowGet);
         }
-
-
-        [HttpPost]
-        [AllowEveryone]
-        public JsonResult Delete(Guid id)
-        {
-            //var db = new WorkOfTimeDatabase();
-            //var feedback = new FeedBack();
-
-            var result = new VMPRD_CompanyBasedPriceModel { id = id }.Delete();
-            return Json(result, JsonRequestBehavior.AllowGet);
-        }
-
         [AllowEveryone]
         public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
         {
@@ -123,29 +110,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
           
         }
 
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult InsertInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Insert();
-        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult UpdateInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Update();
-        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        //}
-
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult DeleteInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Delete();
-        //    return Json(new[] { item }.ToDataSourceResult(request, ModelState));
-        //}
+      
+        [HttpPost]
+        [AllowEveryone]
+        public ActionResult DeleteInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        {
+            var rs = item.Delete();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
 
 
     }

@@ -4,18 +4,34 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<script type="text/javascript">
+
+    $(document)
+
+        .on('[data-task="Update"]', 'click', function () {
+
+            $('#IsUpdate').val('true');
+
+        })
+
+        ;
+
+</script>
+
 @using (Html.BeginForm("Insert", "VWSH_AgileBoards", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+    { "data-formType", "Ajax" },
+    { "id", "VWSH_AgileBoardsInsertForm" }
 }))
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(a => a.json)
-
+    @Html.HiddenFor(a => a.IsUpdate)
+    
     <div class="form-group">
         <div class="col-md-4">
             <label class="control-label label-md" for="name">Kanban Adı</label>
@@ -45,10 +61,14 @@
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
         @if (Model.IsUpdate)
         {
-            <button class="btn btn-md btn-primary pull-right" data-task="Update">Güncelle</button>
+            <button class="btn btn-md btn-success pull-right" data-event="Insert" type="submit">Farklı Kaydet</button>
+            <button class="btn btn-md btn-primary pull-right" style="margin-right: 10px;">Güncelle</button>
+        }
+        else
+        {
+            <button class="btn btn-md btn-success pull-right" data-event="Insert" type="submit">Kaydet</button>
         }
     </div>
 

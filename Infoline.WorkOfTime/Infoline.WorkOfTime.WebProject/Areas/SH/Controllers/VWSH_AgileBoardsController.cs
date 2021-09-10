@@ -62,7 +62,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
         [PageInfo("Yeni Kanban Tanımlama", SHRoles.SistemYonetici, SHRoles.IKYonetici, SHRoles.IdariPersonelYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Insert(VWAgileBoardModel item, bool isPost)
+        public JsonResult Insert(VWAgileBoardModel item, bool? isPost)
         {
 
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -72,6 +72,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 Result = dbresult.result,
                 FeedBack = dbresult.result ? new FeedBack().Success(dbresult.message) : new FeedBack().Error(dbresult.message)
             };
+
+            result.Object = item;
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
