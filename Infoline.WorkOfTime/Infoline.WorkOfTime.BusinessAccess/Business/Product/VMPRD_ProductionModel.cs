@@ -258,14 +258,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Üretim emri silinmiş." };
 			}
 
-			//	THİS.LOAD()
 			var _productionOperations = db.GetPRD_ProductionOperationByProductionId(production.id);
 			var _productionUsers = db.GetPRD_ProductionUsersByProductionId(production.id);
 			var _productionStages = db.GetPRD_ProductionStageByProductionId(production.id);
 			var _productionProduct = db.GetPRD_ProductionProductByProductionId(production.id);
 
-			//	üretim gerçekleştirildiyse silinemez !...
-			//	50 üretildi gridinde sil olacak.
+			if (_productionOperations.Count() > 0)
+			{
+				var dataIds = _productionOperations.Where(x => x.dataId.HasValue).Select(x => x.dataId.Value).ToArray();
+				var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(dataIds);
+				if (transactionItems.Count() > 0)
+				{
+					return new ResultStatus
+					{
+						result = false,
+						message = "Üretim başladığı için silinemez. Lütfen üretim içerisinden stok işlemlerini temizledikten sonra tekrar silme işlemini gerçekleştiriniz."
+					};
+				}
+			}
 
 			var rs = db.BulkDeletePRD_ProductionUser(_productionUsers, trans);
 			rs &= db.BulkDeletePRD_ProductionOperation(_productionOperations, trans);

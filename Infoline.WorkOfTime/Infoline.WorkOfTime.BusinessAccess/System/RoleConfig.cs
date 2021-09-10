@@ -85,6 +85,15 @@ namespace System
         public const string SahaGorevMusteri = "00000000-0000-0000-0000-110000000000";
         //Saha Görev
 
+
+        //Uretim 
+        [PropInfo("Üretim Süreci Yönetici Rolü", "Üretim Sürec Modülü üzerinde tüm işlemleri gerçekleştirebilir.")]
+        public const string UretimYonetici = "00000000-0000-0000-0000-101000000000";
+        [PropInfo("Üretim Süreci Yönetici Rolü", "Üretim Sürec Modülü üzerinde operasyon işlemlerini gerçekleştirebilir.")]
+        public const string UretimPersonel = "00000000-0000-0000-0000-102000000000";
+        //Uretim
+
+
         //Proje
         [PropInfo("Proje Personeli Rolü", "Projeleri Görüntüleyebilir.")]
         public const string ProjePersonel = "00000000-0000-0000-0000-800000000000";

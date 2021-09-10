@@ -31,12 +31,10 @@
 </style>
 
 <script type="text/javascript">
-	var first = false;
 	$(document).on("ready", function () {
 		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
-			debugger;
 			var cols = [
-				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
 				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#=quantity# Adet" },
 				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#=totalQuantity# Adet"},
 				{
@@ -78,7 +76,7 @@
 			var cols = [
 				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
 				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
-				{ field: 'createdby_Title', title: 'Gerçekleştiren Personel', width: 200 },
+				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
 
 
 			];
@@ -92,6 +90,7 @@
 				pageSize: 100,
 				height: 540,
 				sortable: true,
+				selectable: true,
 				filterable: {
 					operators: {
 						string: {
@@ -112,12 +111,15 @@
 			var cols = [
 				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
 				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
-				{ field: 'createdby_Title', title: 'Gerçekleştiren Personel', width: 200 },
+				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
 
 			];
 
 			$("#producedProducts").kendoGrid({
-				toolbar: [{ name: "excel", text: "" }],
+				toolbar: [
+					{ name: "excel", text: "" },
+				//	{ template: '<a class="k-button k-button-icontext" id="producedProductsDelete" data-ask="TEST" data-href="/PRD/VWPRD_ProductionOperation" data-show="default" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
+				],
 				excel: {
 					fileName: "Uretim_Bildirimleri.xlsx"
 				},
@@ -125,6 +127,7 @@
 				pageSize: 100,
 				height: 540,
 				sortable: true,
+				selectable: true,
 				filterable: {
 					operators: {
 						string: {
@@ -152,6 +155,14 @@
 	$(document).on('shown.bs.tab', 'a[href="#uretimBildirimleri"]', function (e) {
 		$("#producedProducts").data("kendoGrid").dataSource.page(1);
 	});
+
+
+	$(document)
+		.on("selected:grid", "#producedProducts", function (e, res) {
+			debugger;
+			var detail = $("#producedProductsDelete");
+			$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?id=" + res.formId);
+		})
 
 
 	function ImageErrorData(element, image, id) {
@@ -218,15 +229,15 @@
 				<div class="tabs-container">
 					<ul class="nav nav-tabs">
 						<li class="active" data-toggle="tooltip" data-placement="top" title="Üretimde Kullanılan Ürünler">
-							<a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-spread text-success"></i></a>
+							<a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
 						</li>
 
 						<li data-toggle="tooltip" data-placement="top" title="Üretim Bildirimleri">
-							<a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="icon-picture text-success" aria-hidden="true"></i></a>
+							<a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="icon-dropbox-1 text-success" aria-hidden="true"></i></a>
 						</li>
 
 						<li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
-							<a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-money text-success" aria-hidden="true"></i></a>
+							<a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-trash-1 text-success" aria-hidden="true"></i></a>
 						</li>
 					</ul>
 

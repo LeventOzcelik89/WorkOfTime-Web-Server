@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Üretim Emri Operasyon Detayı", SHRoles.Personel)]
+		[PageInfo("Üretim Emri Operasyon Detayı", SHRoles.Personel, SHRoles.UretimYonetici)]
 		public ActionResult Detail(VMPRD_ProductionOperationModel request)
 		{
 			var model = request.Load();
@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[AllowEveryone]
-		[PageInfo("Üretim Emri Operasyon Ekleme", SHRoles.Personel, SHRoles.YukleniciPersoneli)]
+		[PageInfo("Üretim Emri Operasyon Ekleme", SHRoles.Personel, SHRoles.UretimYonetici)]
 		public ActionResult Insert(VMPRD_ProductionOperationModel request)
 		{
 			var model = request.Load();
@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Üretim Emri Operasyon Ekleme Metodu", SHRoles.Personel)]
+		[PageInfo("Üretim Emri Operasyon Ekleme Metodu", SHRoles.Personel, SHRoles.UretimYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMPRD_ProductionOperationModel item, bool? isPost)
 		{
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Üretim Emri Operasyon Düzenleme", SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici)]
+		[PageInfo("Üretim Emri Operasyon Düzenleme", SHRoles.Personel, SHRoles.UretimYonetici)]
 		public ActionResult Update(VMPRD_ProductionOperationModel request)
 		{
 			var model = request.Load();
@@ -81,7 +81,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			model.productionOperations = model.productionOperations.Where(a => a.id == operationId).ToList();
 			return View(model);
 		}
-		[PageInfo("Üretim Emri Operasyon Düzenleme Metodu", SHRoles.Personel)]
+
+		[PageInfo("Üretim Emri Operasyon Düzenleme Metodu", SHRoles.Personel, SHRoles.UretimYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMPRD_ProductionOperationModel item, bool? isPost)
 		{
@@ -102,9 +103,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
-		[AllowAnonymous]
 		[HttpPost]
-		[PageInfo("Stok&Envanter İşlem Yazdır", SHRoles.Personel)]
+		[PageInfo("Stok&Envanter İşlem Sil", SHRoles.Personel, SHRoles.UretimYonetici)]
 		public JsonResult Delete(Guid id)
 		{
 			var feedback = new FeedBack();
