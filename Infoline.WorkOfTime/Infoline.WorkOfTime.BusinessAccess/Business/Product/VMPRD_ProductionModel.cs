@@ -304,6 +304,34 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
+		{
+			BEXP filter = null;
+
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
+			{
+				filter |= new BEXP
+				{
+					Operand1 = (COL)"createdby",
+					Operator = BinaryOperator.Equal,
+					Operand2 = (VAL)userStatus.user.id
+				};
+			}
+			else
+			{
+				filter |= new BEXP
+				{
+					Operand1 = (COL)"assignableUserIds",
+					Operator = BinaryOperator.Like,
+					Operand2 = (VAL)string.Format("%{0}%", userStatus.user.id.ToString())
+				};
+			}
+
+			query.Filter &= filter;
+
+			return query;
+
+		}
 
 		public ResultStatus Validator()
 		{
