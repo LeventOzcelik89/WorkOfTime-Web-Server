@@ -111,7 +111,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var feedback = new FeedBack();
 			var dbresult = new ResultStatus { result = true };
 
-			dbresult &= new VMPRD_ProductionTransactionModel { id = transactionId }.Delete(userStatus.user.id);
+			dbresult &= new VMPRD_ProductionTransactionModel { id = transactionId }.Delete(userStatus);
 
 			var result = new ResultStatusUI
 			{

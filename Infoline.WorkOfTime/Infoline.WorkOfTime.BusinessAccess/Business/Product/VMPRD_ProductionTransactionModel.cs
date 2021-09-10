@@ -701,22 +701,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return DBResult;
 		}
 
-		public ResultStatus Delete(Guid? userId, DbTransaction _trans = null)
+		public ResultStatus Delete(PageSecurity userStatus, DbTransaction _trans = null)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetPRD_TransactionById(this.id);
 			if (transaction != null)
 			{
-				if (transaction.createdby != userId)
+				if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
 				{
-					return new ResultStatus { message = "Stok işlemlerini ancak oluşturan silebilir..", result = true, };
+					if (transaction.createdby != userStatus.user.id)
+					{
+						return new ResultStatus { message = "Bildirimi siz oluşturmadığınız için silemezsiniz.", result = false, };
+					}
 				}
 
 				this.trans = _trans ?? db.BeginTransaction();
 				var transactionItems = db.GetPRD_TransactionItemByTransactionId(transaction.id);
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
-
 
 
 				var rs = new ResultStatus { result = true };
@@ -775,6 +777,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { message = "İşlem kaydı bulunamadı.", result = false, };
 			}
 		}
+
 		private List<string> Validator(VWPRD_TransactionItem item)
 		{
 			var errorList = new List<string>();
