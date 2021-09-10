@@ -2,6 +2,7 @@
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Data.Common;
 using System.Linq;
 using System.Text;
@@ -10,11 +11,13 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_CompanyBasedPriceDetailModel: VWPRD_CompanyBasedPriceDetail
+    public class VMPRD_CompanyBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        [DataType(DataType.Date)]
+        public new DateTime startDate { get; set; }
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -65,31 +68,17 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var dbresult = new ResultStatus();
+            var dbresult = new ResultStatus { result = true };
             //Validasyonlarını yap
 
             //Bağlı Olduğu CompanyBasedPrice Varsa Al
-            var companyId = this.companyId; 
-            var productId = this.productId; 
-            var categoryId = this.categoryId; 
-            var conditionType = this.conditionType; 
-            var sellingType = this.sellingType;
-
-            var companyBasedPrice = new PRD_CompanyBasedPrice
+            var companyBasedPriceDto = new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this);
+            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPriceDto);
+            if (companyBasedPriceRecord == null) //yeni bir tane oluştur
             {
-                companyId = companyId,
-                productId = productId,
-                categoryId = categoryId,
-                conditionType = conditionType,
-                sellingType = sellingType
-            };
-            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPrice);
-            if(companyBasedPriceRecord == null) //yeni bir tane oluştur
-            {
-                companyBasedPrice.id = Guid.NewGuid();
-                companyBasedPrice.createdby = this.createdby;
-                companyBasedPrice.created = DateTime.Now;
-                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
+                companyBasedPriceDto.createdby = this.createdby;
+                companyBasedPriceDto.created = DateTime.Now;
+                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPriceDto), this.trans);
                 if (!dbresult.result)
                 {
                     return new ResultStatus
@@ -100,10 +89,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 }
             }
 
-            var companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPrice.id;
             var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
             {
-                companyBasedPriceId = companyBasedPriceId,
+                companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPriceDto.id,
                 minCondition = this.minCondition,
                 type = this.type,
                 discount = this.type,
@@ -113,8 +101,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 created = DateTime.Now,
                 createdby = this.createdby
             };
-            db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
-            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
+            //dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -137,7 +125,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             var dbresult = new ResultStatus { result = true };
             var companyBasedPriceDetail = db.GetPRD_CompanyBasedPriceDetailById(this.id);
-            if(companyBasedPriceDetail != null)
+            if (companyBasedPriceDetail != null)
             {
                 dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), false, this.trans);
             }
@@ -193,18 +181,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
-        public ResultStatus ValidateCompanyBasedIsExistBefore()
+       
+        public VWPRD_CompanyBasedPriceDetail[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
         {
             var db = new WorkOfTimeDatabase();
-            var result=db.GetVWPRD_CompanyBasedDetailIsExistBefore(this);
-            if (result==null)
-            {
-                return new ResultStatus { result = false };
-            }
-            else
-            {
-                return new ResultStatus { result = true, objects = result };
-            }
+            return db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
         }
     }
 }
+
