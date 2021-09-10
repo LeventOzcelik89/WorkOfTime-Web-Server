@@ -31,9 +31,10 @@
 </style>
 
 <script type="text/javascript">
-
+	var first = false;
 	$(document).on("ready", function () {
-		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId : '@Model.id'}, function (res) {
+		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
+			debugger;
 			var cols = [
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
 				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#=quantity# Adet" },
@@ -46,7 +47,11 @@
 			];
 
 			$("#productProductsGrid").kendoGrid({
-				dataSource: res,
+				toolbar: [{ name: "excel", text: "" }],
+				excel: {
+					fileName: "Kullanilan_Urunler.xlsx"
+				},
+				dataSource: res.objects.productionProducts,
 				pageSize: 100,
 				height: 540,
 				sortable: true,
@@ -70,9 +75,83 @@
 			var grid = $("#productProductsGrid").data("kendoGrid");
 			grid.dataSource.page(1);
 
+			var cols = [
+				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'createdby_Title', title: 'Gerçekleştiren Personel', width: 200 },
+
+
+			];
+
+			$("#wastageProductsGrid").kendoGrid({
+				toolbar: [{ name: "excel", text: "" }],
+				excel: {
+					fileName: "Fire_Bildirimleri.xlsx"
+				},
+				dataSource: res.objects.wastageProducts,
+				pageSize: 100,
+				height: 540,
+				sortable: true,
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: cols
+			});
+
+			var cols = [
+				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'createdby_Title', title: 'Gerçekleştiren Personel', width: 200 },
+
+			];
+
+			$("#producedProducts").kendoGrid({
+				toolbar: [{ name: "excel", text: "" }],
+				excel: {
+					fileName: "Uretim_Bildirimleri.xlsx"
+				},
+				dataSource: res.objects.producedProducts,
+				pageSize: 100,
+				height: 540,
+				sortable: true,
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: cols
+			});
 
 		})
 	})
+
+	$(document).on('shown.bs.tab', 'a[href="#fireBildirimleri"]', function (e) {
+		$("#wastageProductsGrid").data("kendoGrid").dataSource.page(1);
+	});
+
+	$(document).on('shown.bs.tab', 'a[href="#uretimBildirimleri"]', function (e) {
+		$("#producedProducts").data("kendoGrid").dataSource.page(1);
+	});
 
 
 	function ImageErrorData(element, image, id) {
@@ -136,14 +215,59 @@
 			<div class="col-lg-8">
 				@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
 
-				<div class="ibox">
-					<div class="ibox-title">
-						<h5><i class="fa text-success fa fa-list-alt"></i> Kullanılan Ürünler</h5>
+				<div class="tabs-container">
+					<ul class="nav nav-tabs">
+						<li class="active" data-toggle="tooltip" data-placement="top" title="Üretimde Kullanılan Ürünler">
+							<a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-spread text-success"></i></a>
+						</li>
+
+						<li data-toggle="tooltip" data-placement="top" title="Üretim Bildirimleri">
+							<a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="icon-picture text-success" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
+							<a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-money text-success" aria-hidden="true"></i></a>
+						</li>
+					</ul>
+
+					<div class="tab-content">
+						<div class="tab-pane active" id="kullanilanUrunler">
+							<div class="ibox">
+								<div class="ibox-title">
+									<h5>Kullanılan Ürünler</h5>
+								</div>
+								<div class="ibox-content clearfix">
+									<div id="productProductsGrid"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane" id="uretimBildirimleri">
+							<div class="ibox">
+								<div class="ibox-title">
+									<h5>Üretim Bildirimleri</h5>
+								</div>
+								<div class="ibox-content clearfix">
+									<div id="producedProducts"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane" id="fireBildirimleri">
+							<div class="ibox">
+								<div class="ibox-title">
+									<h5>Fire Bildirimleri</h5>
+								</div>
+								<div class="ibox-content clearfix" style="height:600px">
+									<div id="wastageProductsGrid"></div>
+								</div>
+							</div>
+						</div>
+
 					</div>
-					<div class="ibox-content" style="height:575px;">
-						<div id="productProductsGrid"></div>
-					</div>
+
 				</div>
+
 			</div>
 			<div class="col-lg-4">
 
@@ -233,20 +357,6 @@
 													{
 														<a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", id = item.dataId })" data-task="Insert" data-ask="Harcama Bildirimi İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
 													}
-
-
-													@*@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
-														{
-															if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
-															{
-																if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
-																{
-																	<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
-																}
-															}
-														}*@
-
-
 
 													@if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
 													{
