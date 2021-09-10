@@ -10,7 +10,8 @@
     page = {
         defines: {
             isAllCompanies: 1,
-            productTarget: 2
+            productTarget: 2,
+            disabledInput: 0
         },
         functions: {
             changeForAllCompanies: function (i) {
@@ -134,7 +135,7 @@
                 var dataitem = value.dataItem();
                 var price = dataitem.currentSellingPrice;
                 $("#basePrice").val(price);
-                
+
             }
         }
     }
@@ -149,12 +150,12 @@
     { "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-    @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.companyBasedPriceId)
+@Html.AntiForgeryToken()
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.id)
+@Html.HiddenFor(model => model.companyBasedPriceId)
 
-
+<div id="options">
     <div class="form-group">
         <div class="col-md-5">
             <div class="radio akilliRadioGrup clearfix">
@@ -266,24 +267,25 @@
     <div class="form-group" id="priceorDiscountDiv" style="display:none">
         <div class="col-md-12">
             <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="isPrice" checked  id="priceDiscount0" value="0">
-                <label tabindex="0"  class="radio-label bg-focus"  for="priceDiscount0" >
+                <input type="radio" class="bg-focus" name="isPrice" checked id="priceDiscount0" value="0">
+                <label tabindex="0" class="radio-label bg-focus" for="priceDiscount0">
                     Fiyat
                 </label>
-                <input type="radio"  name="isPrice" id="priceDiscount1" value="1">
-                <label tabindex="0"   class="radio-label" for="priceDiscount1">
+                <input type="radio" name="isPrice" id="priceDiscount1" value="1">
+                <label tabindex="0" class="radio-label" for="priceDiscount1">
                     İskonto
                 </label>
             </div>
         </div>
     </div>
-   
 
+</div>
 
-    <div class="form-group">
-        <div class="col-sm-12">
-            @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
-    .Name("grid")
+<div class="form-group">
+    <div class="col-sm-12">
+        @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
+    .Name("VWPRD_CompanyBasedPriceDetail")
+    .Events(x => x.DataBound("onDataGridBound"))  
     .Columns(columns =>
     {
         //columns.Bound(p => p.basePrice).Title("Fiyat");
@@ -314,38 +316,48 @@
     )
 )
 
-
-
-        </div>
     </div>
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
+</div>
+<div class="buttons">
+    <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+</div>
 
 }
 
-<script>
+<script type="text/javascript">
     page.functions.setSellingTypeCheckbox();
     page.functions.setconditionTypeCheckbox();
     page.functions.setCompanyDropDownTitle();
     page.functions.setGridDiscountOrPrice();
     let model = [];
-   
+
     $('#form').submit(function (eventObj) {
         var grid = $("#grid").data("kendoGrid");
-        var griddata = grid.dataSource.data()
+        var griddata = grid.dataSource.data();
         for (var i = 0; i < griddata.length; i++) {
             model.push(griddata[i])
         }
         $('<input />').attr('type', 'hidden')
             .attr('name', "_CompanyBasedPriceDetailModels")
-            .attr('value',model))
+            .attr('value', model)
             .appendTo('#form');
         return true;
     });
 
-
+    function onDataGridBound(e) {
+        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
+        var griddata = grid.dataSource.data();
+        if (griddata.length != 0) {
+            page.defines.disabledInput = 1;
+            var inputs = $("#options").find("input");
+            for (var i = 0; i < inputs.length; i++) {
+                $(inputs[i]).attr("disabled", "");
+            }
+        } else {
+            page.defines.disabledInput = 0;
+        }
+    }
 
 
 </script>
