@@ -202,6 +202,7 @@
             .DataTextField("fullname")
             .DataValueField("id")
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
+            //.Filter<VWPRD_Category>(a => a.generation > 0)
             .Sort(x => x.Add("fullname").Ascending())
             .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
             .Execute("id")
@@ -239,7 +240,7 @@
             })
         </div>
     </div>
-   
+
 
 
     <div class="form-group">
@@ -248,62 +249,61 @@
                 <div id="grid"></div>
 
                 <script>
-            $(document).ready(function () {
-                var crudServiceBaseUrl = "https://demos.telerik.com/kendo-ui/service",
-                    dataSource = new kendo.data.DataSource({
-                        transport: {
-                            read: {
-                                url: crudServiceBaseUrl + "/Products?id=@Model.id",
-                                dataType: "jsonp"
-                            },
-                            update: {
-                                url: crudServiceBaseUrl + "/Products/Update",
-                                dataType: "jsonp"
-                            },
-                            destroy: {
-                                url: crudServiceBaseUrl + "/Products/Destroy",
-                                dataType: "jsonp"
-                            },
-                            create: {
-                                url: crudServiceBaseUrl + "/Products/Create",
-                                dataType: "jsonp"
-                            },
-                            parameterMap: function (options, operation) {
-                                if (operation !== "read" && options.models) {
-                                    return { models: kendo.stringify(options.models) };
+                    $(document).ready(function () {
+                        var crudServiceBaseUrl = "https://demos.telerik.com/kendo-ui/service",
+                            dataSource = new kendo.data.DataSource({
+                                transport: {
+                                    read: {
+                                        url: crudServiceBaseUrl + "/Products",
+                                        dataType: "jsonp"
+                                    },
+                                    update: {
+                                        url: crudServiceBaseUrl + "/Products/Update",
+                                        dataType: "jsonp"
+                                    },
+                                    destroy: {
+                                        url: crudServiceBaseUrl + "/Products/Destroy",
+                                        dataType: "jsonp"
+                                    },
+                                    create: {
+                                        url: crudServiceBaseUrl + "/Products/Create",
+                                        dataType: "jsonp"
+                                    },
+                                    parameterMap: function (options, operation) {
+                                        if (operation !== "read" && options.models) {
+                                            return { models: kendo.stringify(options.models) };
+                                        }
+                                    }
+                                },
+                                batch: true,
+                                pageSize: 20,
+                                schema: {
+                                    model: {
+                                        fields: {
+                                            startDate: { editable: true, nullable: true, type: "date", format:'dd/mm/yyyy' },
+                                            endDate: { editable: true, nullable: true, type: "date", format: 'dd/mm/yyyy' },
+                                            InstallmentAmount: { type: "number", validation: { required: false, min: 1  } },
+                                            Discontinued: { type: "boolean" },
+                                            UnitsInStock: { type: "number", validation: { min: 0, required: true } }
+                                        }
+                                    }
                                 }
-                            }
-                        },
-                        batch: true,
-                        pageSize: 20,
-                        schema: {
-                            model: {
-                                id: "ProductID",
-                                fields: {
-                                    ProductID: { editable: false, nullable: true },
-                                    ProductName: { validation: { required: true } },
-                                    UnitPrice: { type: "number", validation: { required: true, min: 1 } },
-                                    Discontinued: { type: "boolean" },
-                                    UnitsInStock: { type: "number", validation: { min: 0, required: true } }
-                                }
-                            }
-                        }
-                    });
+                            });
 
-                $("#grid").kendoGrid({
-                    dataSource: dataSource,
-                    pageable: true,
-                    height: 400,
-                    toolbar: ["create"],
-                    columns: [
-                        "ProductName",
-                        { field: "UnitPrice", title: "Unit Price", format: "{0:c}", width: "120px" },
-                        { field: "UnitsInStock", title: "Units In Stock", width: "120px" },
-                        { field: "Discontinued", width: "120px", editor: customBoolEditor },
-                        { command: ["edit", "destroy"], title: "&nbsp;", width: "250px" }],
-                    editable: "inline"
-                });
-            });
+                        $("#grid").kendoGrid({
+                            dataSource: dataSource,
+                            pageable: true,
+                            height: 550,
+                            toolbar: ["create"],
+                            columns: [
+                                { field: "startDate", title: "Başlangıç Tarihi",format:'{0:dd/MM/yyyy}', width: "120px" },
+                                { field: "endDate", title: "Bitiş Tarihi", width: "120px", format: '{0:dd/MM/yyyy}'},
+                                { field: "InstallmentAmount", title: "Taksit/Vade Sayısı", width: "150px" },
+                                { field: "minCondition", width: "120px", editor: customBoolEditor },
+                                { command: ["destroy"], title: "", width: "150px" }],
+                            editable:true
+                        });
+                    });
 
             function customBoolEditor(container, options) {
                 $('<input class="k-checkbox" type="checkbox" name="Discontinued" data-type="boolean" data-bind="checked:Discontinued">').appendTo(container);
@@ -313,11 +313,10 @@
 
             </div>
         </div>
-</div>
+   </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
 
-        <div class="buttons">
-            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-        </div>
-
-        }
+}
