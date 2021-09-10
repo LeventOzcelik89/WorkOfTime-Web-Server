@@ -210,7 +210,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.BayiGorevPersoneli,
             SHRoles.CagriMerkezi,
             SHRoles.DokumanYonetimRolu,
-            SHRoles.YukleniciPersoneli
+            SHRoles.YukleniciPersoneli,
+            SHRoles.UretimYonetici,
+            SHRoles.UretimPersonel
         };
         public IysInformation IysInformations { get; set; }
         public ICallCenterService CallCenterService { get; set; }
