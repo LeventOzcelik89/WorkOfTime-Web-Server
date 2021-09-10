@@ -89,7 +89,7 @@ namespace System
         //Uretim 
         [PropInfo("Üretim Süreci Yönetici Rolü", "Üretim Sürec Modülü üzerinde tüm işlemleri gerçekleştirebilir.")]
         public const string UretimYonetici = "00000000-0000-0000-0000-101000000000";
-        [PropInfo("Üretim Süreci Yönetici Rolü", "Üretim Sürec Modülü üzerinde operasyon işlemlerini gerçekleştirebilir.")]
+        [PropInfo("Üretim Süreci Personel Rolü", "Üretim Sürec Modülü üzerinde operasyon işlemlerini gerçekleştirebilir.")]
         public const string UretimPersonel = "00000000-0000-0000-0000-102000000000";
         //Uretim
 

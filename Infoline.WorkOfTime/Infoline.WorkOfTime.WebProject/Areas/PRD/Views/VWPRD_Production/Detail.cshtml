@@ -15,7 +15,6 @@
 	a.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi
-
 	).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti || a.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
@@ -28,9 +27,27 @@
 	li {
 		list-style: none;
 	}
+
+	
 </style>
 
 <script type="text/javascript">
+
+	function producedProductChange(e) {
+		var data = e.sender.dataItem(e.sender.select())
+		var detail = $("#producedProductsDelete");
+		$(detail).removeClass("hidden")
+		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+	}
+
+	function wastageProductsChange(e) {
+		debugger;
+		var data = e.sender.dataItem(e.sender.select())
+		var detail = $("#wastageProductsDelete");
+		$(detail).removeClass("hidden")
+		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+	}
+
 	$(document).on("ready", function () {
 		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
@@ -82,15 +99,18 @@
 			];
 
 			$("#wastageProductsGrid").kendoGrid({
-				toolbar: [{ name: "excel", text: "" }],
-				excel: {
+				toolbar: [
+					{ name: "excel", text: "" },
+					{ template: '<a class="k-button hidden" id="wastageProductsDelete" data-ask="Fire bildirimini silmek istediğinizden emin misiniz?" data-href="/PRD/VWPRD_ProductionOperation/Delete" data-show="single" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
+				],				excel: {
 					fileName: "Fire_Bildirimleri.xlsx"
 				},
 				dataSource: res.objects.wastageProducts,
 				pageSize: 100,
 				height: 540,
 				sortable: true,
-				selectable: true,
+				selectable: 'Single, Row',
+				change: function (e) { wastageProductsChange(e) },
 				filterable: {
 					operators: {
 						string: {
@@ -112,13 +132,12 @@
 				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
 				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
 				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
-
 			];
 
 			$("#producedProducts").kendoGrid({
 				toolbar: [
 					{ name: "excel", text: "" },
-				//	{ template: '<a class="k-button k-button-icontext" id="producedProductsDelete" data-ask="TEST" data-href="/PRD/VWPRD_ProductionOperation" data-show="default" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
+					{ template: '<a class="k-button hidden" id="producedProductsDelete" data-ask="Üretim Emrini silmek istediğinizden emin misiniz?" data-href="/PRD/VWPRD_ProductionOperation/Delete" data-show="single" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
 				],
 				excel: {
 					fileName: "Uretim_Bildirimleri.xlsx"
@@ -127,7 +146,8 @@
 				pageSize: 100,
 				height: 540,
 				sortable: true,
-				selectable: true,
+				selectable: 'Single, Row',
+				change: function (e) { producedProductChange(e) },
 				filterable: {
 					operators: {
 						string: {
@@ -148,6 +168,8 @@
 		})
 	})
 
+	
+
 	$(document).on('shown.bs.tab', 'a[href="#fireBildirimleri"]', function (e) {
 		$("#wastageProductsGrid").data("kendoGrid").dataSource.page(1);
 	});
@@ -157,12 +179,6 @@
 	});
 
 
-	$(document)
-		.on("selected:grid", "#producedProducts", function (e, res) {
-			debugger;
-			var detail = $("#producedProductsDelete");
-			$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?id=" + res.formId);
-		})
 
 
 	function ImageErrorData(element, image, id) {
