@@ -6,7 +6,14 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    
+    [EnumInfo(typeof(PRD_CompanyBasedPriceDetail), "type")]
+    public enum EnumPRD_CompanyBasedPriceType
+    {
+        [Description("Oran")]
+        Oran = 0,
+        [Description("Fiyat")]
+        Fiyat,
+    }
     partial class WorkOfTimeDatabase
     {
         public VWPRD_CompanyBasedPriceDetail[] GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(Guid id, DbTransaction tran = null)

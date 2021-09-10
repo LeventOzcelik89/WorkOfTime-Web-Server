@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceSellingType")]
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "sellingType")]
     public enum EnumPRD_CompanyBasedPriceSellingType
     {
         [Description("Genel")]
@@ -18,15 +18,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Vadeli")]
         Vadeli
     }
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceType")]
-    public enum EnumPRD_CompanyBasedPriceType
-    {
-        [Description("Oran")]
-        Oran = 0,
-        [Description("Fiyat")]
-        Fiyat,
-    }
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceConditionType")]
+
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "conditionType")]
     public enum EnumPRD_CompanyBasedPriceConditionType
     {
         [Description("Genel")]
