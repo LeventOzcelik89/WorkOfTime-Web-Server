@@ -29,7 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
+            var data = db.GetVWPRD_CompanyBasedPriceDetailById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
             if (validation.result == false)
@@ -38,9 +38,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             if (data == null)
             {
-                this.createdby = userId;
-                this.created = DateTime.Now;
-                //res = Insert();
+                res = Insert();
             }
             else
             {
@@ -64,9 +62,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var res = new ResultStatus { result = true };
             return res;
         }
-        public ResultStatus Insert(Guid id)
+        public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
+            var dbresult = new ResultStatus();
             //Validasyonlarını yap
 
             //Bağlı Olduğu CompanyBasedPrice Varsa Al
@@ -88,35 +87,41 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             if(companyBasedPriceRecord == null) //yeni bir tane oluştur
             {
                 companyBasedPrice.id = Guid.NewGuid();
-                companyBasedPrice.createdby = id;
+                companyBasedPrice.createdby = this.createdby;
                 companyBasedPrice.created = DateTime.Now;
-                db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
+                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
+                if (!dbresult.result)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Kayıt Başarısız"
+                    };
+                }
             }
-            var companyBasedPriceId = companyBasedPriceRecord == null ? companyBasedPriceRecord.id : companyBasedPrice.id;
 
+            var companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPrice.id;
             var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
             {
                 companyBasedPriceId = companyBasedPriceId,
                 minCondition = this.minCondition,
                 type = this.type,
                 discount = this.type,
-                //price = this.price,
+                price = this.price,
                 startDate = this.startDate,
                 endDate = this.endDate,
                 created = DateTime.Now,
-                createdby = id
+                createdby = this.createdby
             };
-
-
-
-            var dbresult = db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
+            db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Çalışan Durum Değişiklikleri oluşturma işlemi başarısız oldu."
+                    message = "Kayıt Başarısız"
                 };
             }
             else
@@ -124,21 +129,34 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Çalışan Durum Değişiklikleri oluşturma işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Kayıt Başarılı"
                 };
             }
         }
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), false, this.trans);
+            var companyBasedPriceDetail = db.GetPRD_CompanyBasedPriceDetailById(this.id);
+            if(companyBasedPriceDetail != null)
+            {
+                dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), false, this.trans);
+            }
+            else
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Kayıt Silinmiş"
+                };
+            }
+
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Çalışan Durum Değişiklikleri güncelleme işlemi başarısız oldu."
+                    message = "Güncelleme Başarısız"
                 };
             }
             else
@@ -146,7 +164,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Çalışan Durum Değişiklikleri güncelleme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Güncelleme Başarılı"
                 };
             }
         }
@@ -162,7 +180,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Çalışan Durum Değişiklikleri silme işlemi başarısız oldu."
+                    message = "Silme İşlemi Başarısız"
                 };
             }
             else
@@ -171,7 +189,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Çalışan Durum Değişiklikleri silme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Silme İşlemi Başarılı"
                 };
             }
         }
@@ -185,9 +203,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             else
             {
-               
-
-
                 return new ResultStatus { result = true, objects = result };
             }
         }

@@ -69,10 +69,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
-			item.Insert(userStatus.user.id);
-		    return Json(null, JsonRequestBehavior.AllowGet);
+			item.createdby = userStatus.user.id;
+			item.created = DateTime.Now; 			
+		    return Json(item.Save(), JsonRequestBehavior.AllowGet);
 		}
-
 
 		[AllowEveryone]
 		public ActionResult Update(Guid id)
@@ -82,46 +82,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return View(data);
 		}
 
-
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Update(PRD_CompanyBasedPriceDetail item)
+		public JsonResult Update(VMPRD_CompanyBasedPriceDetailModel item)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdatePRD_CompanyBasedPriceDetail(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			item.changedby = userStatus.user.id;
+			item.changed = DateTime.Now;
+			return Json(item.Save(), JsonRequestBehavior.AllowGet);
 		}
 
 
 		[HttpPost]
 		[AllowEveryone]
-		public JsonResult Delete(string[] id)
+		public JsonResult Delete(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var feedback = new FeedBack();
+		    //var db = new WorkOfTimeDatabase();
+		    //var feedback = new FeedBack();
 		
-		    var item = id.Select(a => new PRD_CompanyBasedPriceDetail { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeletePRD_CompanyBasedPriceDetail(item);
-		
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-		    };
-		
+		    var result = new VMPRD_CompanyBasedPriceDetailModel { id = id }.Delete();
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
