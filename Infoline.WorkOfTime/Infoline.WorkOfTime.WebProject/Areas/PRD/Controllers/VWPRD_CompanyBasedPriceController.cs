@@ -49,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
-			var model = new VMPRD_CompanyBasedPriceModel { id=id};
+			var model = new VMPRD_ProductBasedPriceModel { id=id};
 			//var data = model.Load();
 		    return View(model);
 		}
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Insert(VMPRD_CompanyBasedPriceModel item)
+		public JsonResult Insert(VMPRD_ProductBasedPriceModel item)
 		{
 
 		    var userStatus = (PageSecurity)Session["userStatus"];
@@ -84,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		[AllowEveryone]
 		public ActionResult Update(Guid id)
 		{
-			var model = new VMPRD_CompanyBasedPriceModel { id = id };
+			var model = new VMPRD_ProductBasedPriceModel { id = id };
 			//var data = model.Load();
 			return View(model);
 		}
@@ -92,7 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
-		public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
+		public JsonResult Update(VMPRD_ProductBasedPriceModel item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();

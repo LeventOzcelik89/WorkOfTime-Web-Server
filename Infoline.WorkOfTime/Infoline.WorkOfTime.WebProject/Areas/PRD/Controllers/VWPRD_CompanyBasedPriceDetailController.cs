@@ -65,12 +65,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Insert(VMPRD_ProductBasedPriceModel item)
+        public JsonResult Insert(VMPRD_ProductBasedPriceDetailModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.createdby = userStatus.user.id;
             item.created = DateTime.Now;
             var dbresult = item.Save();
+
+
+            
 
             var feedback = new FeedBack();
             var result = new ResultStatusUI

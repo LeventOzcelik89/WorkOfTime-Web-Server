@@ -143,6 +143,7 @@
 
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
+    { "id", "form" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
     { "data-formType", "Ajax" }
@@ -294,7 +295,7 @@
         columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
         columns.Bound(p => p.endDate).Width(120).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
         columns.Bound(p => p.companyBasedPriceId).Hidden(true);
-        columns.Command(command => { command.Edit().Text(" "); command.Destroy().Text(" "); }).Width(250);
+        columns.Command(command => { command.Edit().Text("&nbsp;"); command.Destroy().Text("&nbsp;"); }).Width(250);
     })
     .ToolBar(toolbar => toolbar.Create())
     .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
@@ -307,8 +308,7 @@
         .Ajax()
         .PageSize(20)
         .Model(model => model.Id(p => p.companyBasedPriceId))
-        .Create(update => update.Action("EditingInline_Create", "Grid"))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=new Guid("4c304bc6-f842-47f2-95fa-933c94acd87c") }))
+        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=Model.companyBasedPriceId }))
         .Update(update => update.Action("EditingInline_Update", "Grid"))
         .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
     )
@@ -330,5 +330,25 @@
     page.functions.setconditionTypeCheckbox();
     page.functions.setCompanyDropDownTitle();
     page.functions.setGridDiscountOrPrice();
+    let model = [];
+   
+    $('#form').submit(function (eventObj) {
+        var grid = $("#grid").data("kendoGrid");
+        var griddata = grid.dataSource.data()
+        for (var i = 0; i < griddata.length; i++) {
+            model.push(griddata[i])
+        }
+        $('<input />').attr('type', 'hidden')
+            .attr('name', "_CompanyBasedPriceDetailModels")
+            .attr('value',model))
+            .appendTo('#form');
+        return true;
+    });
+
+
+
 
 </script>
+
+
+
