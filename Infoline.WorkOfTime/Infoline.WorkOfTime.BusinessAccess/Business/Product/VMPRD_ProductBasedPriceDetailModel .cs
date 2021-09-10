@@ -1,5 +1,6 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
+using Infoline.WorkOfTime.BusinessData.Specific;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -182,10 +183,20 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
         }
        
-        public VWPRD_CompanyBasedPriceDetail[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
+        public VWPRD_CompanyBasedPriceDetailDto[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
         {
             var db = new WorkOfTimeDatabase();
-            return db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
+            var values= db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
+            List<VWPRD_CompanyBasedPriceDetailDto> list = new List<VWPRD_CompanyBasedPriceDetailDto>();
+            if (values!=null)
+            {
+                foreach (var item in values)
+                {
+                    list.Add(new VWPRD_CompanyBasedPriceDetailDto().B_EntityDataCopyForMaterial(item));
+                }
+            }
+
+            return list.ToArray();
         }
     }
 }
