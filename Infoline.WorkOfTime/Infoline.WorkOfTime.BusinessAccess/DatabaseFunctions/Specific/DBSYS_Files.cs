@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<SYS_Files>().Where(x => x.DataId == Id && x.DataTable == dataTable).OrderByDesc(a => a.created).Execute().ToArray();
+                return db.Table<SYS_Files>().Where(x => x.DataId == Id && x.DataTable == dataTable).OrderBy(a => a.FileGroup).Execute().ToArray();
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿@{
 	ViewBag.Title = "Tüm Üretim Emirleri";
 	Layout = "~/Views/Shared/_Layout.cshtml";
+	var now = DateTime.Now;
 	var userStatus = (PageSecurity)Session["userStatus"];
 }
 
@@ -19,12 +20,17 @@
 
 <script type="text/x-kendo-template" id="productListTemplate" data-selector="modalContainer">
 
-    <table class="table shoping-cart-table">
+	  <table class="table shoping-cart-table">
         <tbody>
             <tr>
-                <td class="desc" style="width:55%;">
+                <td style="width:3%;text-align: center;vertical-align: inherit;">
+                    <span>
 
-                    #if(code!=null){#
+                    </span>
+                </td>
+
+                <td class="desc" style="width:55%;">
+                     #if(code!=null){#
                     <div style="font-size:13px;"><strong>Üretim Kodu : </strong>#=code#</div>
                     #}#
 
@@ -32,22 +38,34 @@
                     <div style="font-size:13px;"><strong>Üretilecek Ürün : </strong>#=productId_Title#</div>
                     #}#
 
-                    #if(centerCompanyId_Title!=null){#
-                    <div style="font-size:13px;"><strong>Merkez İşletme : </strong>#=centerCompanyId_Title#</div>
-                    #}#
-
-                    #if(centerStorageId_Title!=null){#
-                    <div style="font-size:13px;"><strong>Merkez Depo : </strong>#=centerStorageId_Title#</div>
-                    #}#
-
                     #if(productionCompanyId_Title!=null){#
                     <div style="font-size:13px;"><strong>Üretilecek İşletme : </strong>#=productionCompanyId_Title#</div>
                     #}#
 
+	                #if(productionCompanyId_Title!=null){#
+                    <div style="font-size:13px;"><strong>
+
+	Üretilecek/Üretilen Adet : </strong><small class='label label-info'>#=quantity# Adet</small>
+
+	| #if (producedQuantity == 0 || producedQuantity == null) {#<small class='label label-warning'>0 Adet</small>#}
+
+	else if(quantity < producedQuantity)
+
+	{#<small class='label label-warning'>#=producedQuantity# Adet</small>#}
+
+	else if(quantity == producedQuantity) {#<small class='label label-info'>#=producedQuantity# Adet</small>#}
+
+	else if(producedQuantity > quantity)
+
+	{#<small class='label label-danger'>#=producedQuantity# Adet</small>#}#</div>
+                    #}#
+
+
+
+
                     #if(productionStorageId_Title!=null){#
                     <div style="font-size:13px;"><strong>Üretilecek Depo : </strong>#=productionStorageId_Title#</div>
                     #}#
-
 
 
                     @*<div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>*@
@@ -55,8 +73,10 @@
                     #if(lastOperationStatus_Title!=null){#
                     <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
                     #}#
-
 	            </td>
+                <td style="width:10%;vertical-align: inherit;">
+
+                </td>
             </tr>
         </tbody>
     </table>
@@ -68,7 +88,7 @@
 		<div class="ibox m-b-none">
 			<div class="ibox-title">
 				<div class="col-md-9">
-					<h5>Üretim Emirleri Listesi</h5>
+					<h5>Üretim Emirleri</h5>
 				</div>
 				<div class="col-md-3">
 					<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/PRD/VWPRD_Production/Insert"> <i class="fa fa-plus-circle"></i> Yeni Üretim Emri </a>
@@ -86,11 +106,18 @@
 			x.Bound(y => y.lastOperationStatus_Title).Title("Son Durumu").Width(180);
 			x.Bound(y => y.productId_Title).Title("Üretim Emri").Width(180);
 			x.Bound(y => y.quantity).Title("Üretilecek Miktar").Width(180).ClientTemplate("#=quantity# Adet");
-			x.Bound(y => y.name).Title("Üretilen Miktar").Width(180);
-			x.Bound(y => y.productionOrderDate).Title("Üretim Emri Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
-			x.Bound(y => y.scheduledProductionDate).Title("Üretim Plan Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
-			x.Bound(y => y.lastProductionDate).Title("Son Üretim Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.producedQuantity).Title("Üretilen Miktar").Width(180).ClientTemplate("#=producedQuantity ?? 0# Adet"); ;
+			x.Bound(y => y.productionOrderDate).Title("Üretim Emir Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.scheduledProductionDate).Title("Üretim Başlama Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.lastProductionDate).Title("Hedef Bitiş Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
 			x.Bound(y => y.lastOperationDate).Title("Üretim Bitiş Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+			x.Bound(y => y.centerCompanyId_Title).Title("Merkez İşletme").Width(180);
+			x.Bound(y => y.centerStorageId_Title).Title("Merkez Depo").Width(180);
+			x.Bound(y => y.productionCompanyId_Title).Title("Üretilen İşletme").Width(180);
+			x.Bound(y => y.productionStorageId_Title).Title("Üretilen Depo").Width(180);
+
+
+
 		})
 		.Selectable(x => x.Mode(GridSelectionMode.Single))
 		.ToolBar(x =>
@@ -104,6 +131,84 @@
 		</div>
 	</div>
 </div>
+
+<div class="theme-config">
+	<div class="theme-config-box">
+		<div class="spin-icon">
+			<i class="fa fa-filter"></i>
+		</div>
+		<div class="skin-setttings">
+			<div class="title">FİLTRELEME</div>
+			<div class="file-manager">
+				<h5> ÜRETİM DURUMU </h5>
+				<ul class="folder-list" style="padding: 0">
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWPRD_Production" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~'1'~or~lastOperationStatus~eq~'0~or~lastOperationStatus~eq~'200)">
+							<i class="fa fa-spinner"></i>  İşlem Bekleyenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWPRD_Production" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~'1'~or~lastOperationStatus~eq~'5'~or~lastOperationStatus~eq~'6'~or~lastOperationStatus~eq~'100'~or~lastOperationStatus~eq~'101'~or~lastOperationStatus~eq~'200'~or~lastOperationStatus~eq~'202'~or~)">
+							<i class="icon-clock"></i>  Devam Edenler
+						</a>
+					</li>
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWPRD_Production" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~'2')">
+							<i class="fa fa-pause"></i>  Durdurulanlar
+						</a>
+					</li>
+
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWPRD_Production" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~'3')">
+							<i class="fa fa-check"></i>  Üretimi Bitenler
+						</a>
+					</li>
+
+					<li class="clearfix">
+						<a class="pull-left" href="#" data-grid="VWPRD_Production" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~'4')">
+							<i class="fa fa-times"></i>  Üretimi İptal Olanlar
+						</a>
+					</li>
+				</ul>
+
+
+				<div class="space-25"></div>
+				<h5> HEDEF BİTİŞ TARİHİ </h5>
+				<ul class="category-list" style="padding: 0">
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="2" data-query="(lastProductionDate~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~lastProductionDate~lte~datetime'@now.AddDays(30).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yaklaşanlar(30 günden az) </a>
+					</li>
+
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="2" data-query="(lastProductionDate~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="2" data-query="(lastProductionDate~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~lastProductionDate~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="2" data-query="(lastProductionDate~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+					</li>
+				</ul>
+				<div class="space-25"></div>
+				<h5> OLUŞTURULMA TARİHİ </h5>
+				<ul class="category-list" style="padding: 0">
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="3" data-query="(created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+					</li>
+					<li class="clearfix">
+						<a href="#" class="pull-left" data-grid="VWPRD_Production" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+					</li>
+				</ul>
+
+
+			</div>
+		</div>
+	</div>
+</div>
+
 
 <link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
 <script src="~/Content/Custom/js/filter.js"></script>

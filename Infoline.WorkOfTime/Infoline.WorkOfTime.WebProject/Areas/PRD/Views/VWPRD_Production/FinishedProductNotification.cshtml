@@ -1,0 +1,141 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductionTransactionModel
+@{
+	if (Model.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+	{
+		ViewBag.Title = "Harcama Bildirimi";
+	}
+	else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+	{
+		ViewBag.Title = "Biten Ürün Bildirimi";
+	}
+	else if (Model.type == (int)EnumPRD_TransactionType.FireFisi)
+	{
+		ViewBag.Title = "Fire Bildirimi";
+	}
+
+
+
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
+
+	if (ViewBag.Direction == -1)
+	{
+		types = types.Where(a => Convert.ToInt32(a.Key) >= 10 && Convert.ToInt32(a.Key) < 20);
+	}
+	else if (ViewBag.Direction == 1)
+	{
+		types = types.Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 10);
+	}
+	var count = types.Count();
+
+}
+
+
+
+
+
+<script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
+	<div class="clearfix" style="padding: 8px 0;">
+		<img class="img-circle img-responsive pull-left" style="width: 40px;height: 40px;" src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
+		<div style=" width: calc(100% - 50px); height: 40px; float: right;">
+			<div class="template-item">
+				<strong>#:name#</strong>
+			</div>
+			<div class="template-item">
+				<small>
+					#:code !=null ? code+' | ' : ''#
+					#:barcode !=null ? barcode+' | ' : ''#
+					#:brandId_Title !=null ? brandId_Title+' | ' : ''#
+				</small>
+			</div>
+		</div>
+	</div>
+</script>
+
+<script type="text/x-kendo-template" id="typeTemplate" data-selector="modalContainer">
+	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(types))#
+	<div class="clearfix"><i style="margin-right:15px;" class="#:types.filter(function(a){return a.Key == Id}).map(a=>a.Generic['icon'])#"></i><strong>#=enumDescription#</strong></div>
+</script>
+
+
+
+
+@using (Html.BeginForm("Upsert", "VWPRD_Transaction", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id, new { @Value = Model.id })
+	@Html.HiddenFor(model => model.invoiceId)
+	@Html.HiddenFor(model => model.orderId)
+	@Html.HiddenFor(model => model.tenderIds)
+
+	@Html.HiddenFor(m => m.outputId);
+	@Html.HiddenFor(m => m.outputCompanyId);
+	@Html.HiddenFor(m => m.outputTable);
+
+	@Html.HiddenFor(m => m.inputId);
+	@Html.HiddenFor(m => m.inputCompanyId);
+	@Html.HiddenFor(m => m.inputTable);
+
+	@Html.HiddenFor(m => m.code);
+	@Html.HiddenFor(m => m.date);
+	@Html.HiddenFor(m => m.description);
+	@Html.HiddenFor(m => m.productionId);
+	@Html.HiddenFor(m => m.productId);
+	@Html.HiddenFor(m => m.type);
+
+
+	<div class="row">
+		<div class="col-md-12">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="type">Üretilen Ürün</label>
+				</div>
+				<div class="col-md-8">
+					@Html.TextBoxFor(model => model.productId_Title, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"disabled",true }
+						})
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="type">Üretilecek Adet</label>
+				</div>
+				<div class="col-md-8">
+					@Html.TextBoxFor(model => model.totalQuantity, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"disabled",true }
+
+						}).Validate(Validations.Number(true))
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="type">Üretilen Ürün Adedi</label>
+				</div>
+				<div class="col-md-8">
+					@Html.TextBoxFor(model => model.quantity, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen üretilen ürün adedini giriniz" },
+						}).Validate(Validations.Number(true))
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="buttons">
+		<div class="hr-line-dashed"></div>
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" formaction="@Url.Action("FinishedProductNotification","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit">Bildir</button>
+	</div>
+}
+

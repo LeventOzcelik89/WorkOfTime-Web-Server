@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UretimEmriVerildi = 0,
         [Description("Üretime Başlandı"), Generic("icon", "fa fa-play", "color", "0E5B66", "description", "Üretim Başlanması Bekleniyor")]
         UretimBasladi = 1,
-        [Description("Üretim Durduruldu"), Generic("icon", "fa fa-cogs", "color", "f8ac59", "description", "Üretim Durduruldu")]
+        [Description("Üretim Durduruldu"), Generic("icon", "fa fa-pause", "color", "f8ac59", "description", "Üretim Durduruldu")]
         UretimDurduruldu = 2,
         [Description("Üretim Bitti"), Generic("icon", "fa fa-check-circle", "color", "173270", "description", "Üretim Bitti")]
         UretimBitti = 3,
@@ -24,6 +24,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UretimIptalEdildi = 4,
         [Description("Aşama Geçişi Yapıldı"), Generic("icon", "fa fa-retweet", "color", "4f8ea5", "description", "Aşama Bildirimi Yapıldı")]
         AsamaBildirimi = 5,
+        [Description("Biten Ürün Bildirildi"), Generic("icon", "fa fa-dropbox", "color", "AD1000", "description", "Biten Ürün Bldirimi Yapıldı")]
+        BitenUrunBildirimi = 6,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "4E5EF1", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 100,
         [Description("Fire Bildirimi Yapıldı"), Generic("icon", "fa fa-trash", "color", "21b9bb", "description", "Fire Bildirimi Yapıldı")]

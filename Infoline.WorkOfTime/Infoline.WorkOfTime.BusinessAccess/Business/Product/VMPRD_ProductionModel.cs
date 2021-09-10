@@ -26,6 +26,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VWPRD_ProductionStage> productionStages { get; set; } = new List<VWPRD_ProductionStage>();
 		public List<VWPRD_ProductMateriel> productMaterials { get; set; } = new List<VWPRD_ProductMateriel>();
 		public List<VWPRD_ProductionProduct> productionProducts { get; set; } = new List<VWPRD_ProductionProduct>();
+		public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+		public List<VWPRD_TransactionItem> producedProducts { get; set; } = new List<VWPRD_TransactionItem>();
+		public List<VWPRD_TransactionItem> transactionItems { get; set; } = new List<VWPRD_TransactionItem>();
+		public List<VWPRD_ProductionProduct> productionProductList { get; set; } = new List<VWPRD_ProductionProduct>();
+
 		public Guid? productionSchemaId { get; set; }
 		public string materialString { get; set; }
 
@@ -174,7 +179,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (rs.result == true)
 			{
 				if (trans == null) transaction.Commit();
-				return new ResultStatus { result = true, message = "xxx Kodlu Üretim emri başarıyla oluşturuldu." };
+				return new ResultStatus { result = true, message = this.code + " kodlu üretim emri başarıyla oluşturuldu." };
 			}
 			else
 			{
@@ -253,14 +258,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Üretim emri silinmiş." };
 			}
 
-			//	THİS.LOAD()
 			var _productionOperations = db.GetPRD_ProductionOperationByProductionId(production.id);
 			var _productionUsers = db.GetPRD_ProductionUsersByProductionId(production.id);
 			var _productionStages = db.GetPRD_ProductionStageByProductionId(production.id);
 			var _productionProduct = db.GetPRD_ProductionProductByProductionId(production.id);
 
-			//	üretim gerçekleştirildiyse silinemez !...
-			//	50 üretildi gridinde sil olacak.
+			if (_productionOperations.Count() > 0)
+			{
+				var dataIds = _productionOperations.Where(x => x.dataId.HasValue).Select(x => x.dataId.Value).ToArray();
+				var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(dataIds);
+				if (transactionItems.Count() > 0)
+				{
+					return new ResultStatus
+					{
+						result = false,
+						message = "Üretim başladığı için silinemez. Lütfen üretim içerisinden stok işlemlerini temizledikten sonra tekrar silme işlemini gerçekleştiriniz."
+					};
+				}
+			}
 
 			var rs = db.BulkDeletePRD_ProductionUser(_productionUsers, trans);
 			rs &= db.BulkDeletePRD_ProductionOperation(_productionOperations, trans);
@@ -289,6 +304,34 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
+		{
+			BEXP filter = null;
+
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
+			{
+				filter |= new BEXP
+				{
+					Operand1 = (COL)"createdby",
+					Operator = BinaryOperator.Equal,
+					Operand2 = (VAL)userStatus.user.id
+				};
+			}
+			else
+			{
+				filter |= new BEXP
+				{
+					Operand1 = (COL)"assignableUserIds",
+					Operator = BinaryOperator.Like,
+					Operand2 = (VAL)string.Format("%{0}%", userStatus.user.id.ToString())
+				};
+			}
+
+			query.Filter &= filter;
+
+			return query;
+
+		}
 
 		public ResultStatus Validator()
 		{
@@ -368,65 +411,67 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return stockSummary;
 		}
 
-		public VWPRD_ProductionProduct[] GetProductionProductAndTransaction(Guid productionId)
+		public ResultStatus GetProductionProductAndTransaction(Guid productionId, DbTransaction _trans = null)
 		{
 			var db = new WorkOfTimeDatabase();
-			var productionProductList = new List<VWPRD_ProductionProduct>();
-			var newProductionProductList = new List<VWPRD_ProductionProduct>();
-
+			var beginTrans = _trans ?? db.BeginTransaction();
 			var data = new VMPRD_ProductionModel { id = productionId }.Load();
-			var productionOperations = data.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi).ToList();
-
-			if (productionOperations.Count() > 0)
+			var productionOperations = data.productionOperations.ToList();
+			if (productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi).Count() > 0)
 			{
 				var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(productionOperations.Where(a => a.dataId.HasValue).Select(x => x.dataId.Value).ToArray());
-
-				foreach (var transactionItem in transactionItems)
+				foreach (var productionItem in data.productionProducts)
 				{
-					var product = data.productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
-
-					if (product != null)
+					var transactionItem = transactionItems.Where(x => x.productId == productionItem.materialId).FirstOrDefault();
+					if (transactionItem != null)
 					{
-						if (productionProductList.Where(x => x.materialId == product.materialId).Count() > 0)
+						var product = data.productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+						if (product != null)
 						{
-							continue;
+							if (productionProductList.Where(x => x.materialId == product.materialId).Count() > 0)
+							{
+								continue;
+							}
+
+							var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
+							var amountSpent = transaction.Sum();
+							product.amountSpent = amountSpent;
+							productionProductList.Add(product);
 						}
-
-						var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
-						var amountSpent = transaction.Sum();
-						product.amountSpent = amountSpent;
-						productionProductList.Add(product);
-
-						
 					}
 					else
 					{
-						newProductionProductList.Add(new VWPRD_ProductionProduct
-						{
-							id = Guid.NewGuid(),
-							price = transactionItem.unitPrice,
-							productionId = productionId,
-							materialId = transactionItem.productId,
-							serialCodes = transactionItem.serialCodes,
-							type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
-							amountSpent = transactionItem.quantity,
-							totalQuantity = 0,
-							quantity = 0,
-							productId = this.productId
-						});
-
+						productionProductList.Add(productionItem);
 					}
+
 				}
-				db.BulkUpdatePRD_ProductionProduct(productionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));
-				db.BulkInsertPRD_ProductionProduct(newProductionProductList.Select(a => new PRD_ProductionProduct().B_EntityDataCopyForMaterial(a, true)));
 			}
-			else
+
+			if (productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi).Count() > 0)
 			{
-				return data.productionProducts.ToArray();
+				var operationDatas = productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi).ToList();
+				var transactionIds = operationDatas.Where(a => a.dataId.HasValue).Select(a => a.dataId.Value).ToArray();
+				if (transactionIds.Count() > 0)
+				{
+					data.wastageProducts = db.GetVWPRD_TransactionItemByTransactionIds(transactionIds).ToList();
+				}
 			}
 
-			return productionProductList.ToArray();
-		}
+			if (productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi).Count() > 0)
+			{
+				var operationDatas = productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi).ToList();
+				var transactionIds = operationDatas.Where(a => a.dataId.HasValue).Select(a => a.dataId.Value).ToArray();
+				if (transactionIds.Count() > 0)
+				{
+					data.producedProducts = db.GetVWPRD_TransactionItemByTransactionIds(transactionIds).ToList();
+				}
+			}
 
+			return new ResultStatus
+			{
+				result = true,
+				objects = data
+			};
+		}
 	}
 }

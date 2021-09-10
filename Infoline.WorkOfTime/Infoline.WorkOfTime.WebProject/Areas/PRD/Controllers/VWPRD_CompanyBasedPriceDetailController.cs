@@ -8,125 +8,117 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Infoline.WorkOfTime.BusinessAccess.Business.Product;
+using Infoline.WorkOfTime.BusinessData.Specific;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
-	public class VWPRD_CompanyBasedPriceDetailController : Controller
-	{
-		public ActionResult Index()
-		{
-		    return View();
-		}
+    public class VWPRD_CompanyBasedPriceDetailController : Controller
+    {
+        [AllowEveryone]
+        public ActionResult Index()
+        {
+            return View();
+        }
+
+        [AllowEveryone]
+        public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+
+            var page = request.Page;
+            request.Filters = new FilterDescriptor[0];
+            request.Sorts = new SortDescriptor[0];
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWPRD_CompanyBasedPriceDetail(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWPRD_CompanyBasedPriceDetailCount(condition.Filter);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
 
 
-		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
-		{
-		    var condition = KendoToExpression.Convert(request);
+        [AllowEveryone]
+        public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
 
-		    var page = request.Page;
-		    request.Filters = new FilterDescriptor[0];
-		    request.Sorts = new SortDescriptor[0];
-		    request.Page = 1;
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceDetail(condition).RemoveGeographies().ToDataSourceResult(request);
-		    data.Total = db.GetVWPRD_CompanyBasedPriceDetailCount(condition.Filter);
-		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
-		}
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWPRD_CompanyBasedPriceDetail(condition);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
 
 
-		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
-		{
-		    var condition = KendoToExpression.Convert(request);
-
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceDetail(condition);
-		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
-		}
-
-
-		public ActionResult Detail(Guid id)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
-		    return View(data);
-		}
+        [AllowEveryone]
+        public ActionResult Detail(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
+            return View(data);
+        }
 
 
-		public ActionResult Insert()
-		{
-		    var data = new VWPRD_CompanyBasedPriceDetail { id = Guid.NewGuid() };
-		    return View(data);
-		}
+        [AllowEveryone]
+        public ActionResult Insert()
+        {
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
+            return View(data);
+        }
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowEveryone]
+        public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.createdby = userStatus.user.id;
+            item.created = DateTime.Now;
+            var dbresult = item.Save();
 
 
-		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(PRD_CompanyBasedPriceDetail item)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertPRD_CompanyBasedPriceDetail(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
-		}
+            
+
+            var feedback = new FeedBack();
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowEveryone]
+        public ActionResult Update(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
+            return View(data);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowEveryone]
+        public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.changedby = userStatus.user.id;
+            item.changed = DateTime.Now;
+            return Json(item.Save(), JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
+        {
+            var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
+            return Json(VWCompanyBasedPriceDetailList);
+          
+        }
+
+      
+        [HttpPost]
+        [AllowEveryone]
+        public ActionResult DeleteInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        {
+            var rs = item.Delete();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
 
 
-		public ActionResult Update(Guid id)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
-		    return View(data);
-		}
-
-
-		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(PRD_CompanyBasedPriceDetail item)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdatePRD_CompanyBasedPriceDetail(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
-		}
-
-
-		[HttpPost]
-		public JsonResult Delete(string[] id)
-		{
-		    var db = new WorkOfTimeDatabase();
-		    var feedback = new FeedBack();
-		
-		    var item = id.Select(a => new PRD_CompanyBasedPriceDetail { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeletePRD_CompanyBasedPriceDetail(item);
-		
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
-		}
-
-
-
-	}
+    }
 }

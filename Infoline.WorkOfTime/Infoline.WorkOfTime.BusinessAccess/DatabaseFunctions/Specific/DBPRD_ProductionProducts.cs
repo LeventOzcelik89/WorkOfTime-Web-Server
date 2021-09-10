@@ -9,10 +9,10 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    [EnumInfo(typeof(PRD_ProductionProducts), "type")]
+    [EnumInfo(typeof(PRD_ProductionProduct), "type")]
     public enum EnumPRD_ProductionProductsType
     {
-        [Description("Receteçen Gelen")]
+        [Description("Reçete Ürünü")]
         RecetedenGelen = 0,
         [Description("Sonradan Eklenen")]
         SonradanEklenen = 1,

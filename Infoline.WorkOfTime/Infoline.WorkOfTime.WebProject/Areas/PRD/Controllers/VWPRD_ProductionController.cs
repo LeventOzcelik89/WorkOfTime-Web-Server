@@ -11,21 +11,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
 	public class VWPRD_ProductionController : Controller
 	{
-		[PageInfo("Üretim Emirleri", SHRoles.SistemYonetici)]
+		[PageInfo("Üretim Emirleri", SHRoles.UretimYonetici, SHRoles.UretimPersonel)]
 		public ActionResult Index()
 		{
 			return View();
 		}
 
 
-		[PageInfo("Üretim Emri Oluştur", SHRoles.SistemYonetici)]
+		[PageInfo("Üretim Emri Oluştur", SHRoles.UretimYonetici)]
 		public ActionResult Insert(VMPRD_ProductionModel data)
 		{
 			return View(data.Load());
 		}
 
 		[HttpPost]
-		[PageInfo("Üretim Emri Oluştur", SHRoles.SistemYonetici)]
+		[PageInfo("Üretim Emri Oluştur", SHRoles.UretimYonetici)]
 		public JsonResult Insert(VMPRD_ProductionModel data, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -43,14 +43,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Üretim Emri Güncelle", SHRoles.SistemYonetici)]
+		[PageInfo("Üretim Emri Güncelle", SHRoles.UretimYonetici)]
 		public ActionResult Update(VMPRD_ProductionModel data)
 		{
 			return View(data.Load());
 		}
 
 		[HttpPost]
-		[PageInfo("Üretim Emri Güncelle", SHRoles.SistemYonetici)]
+		[PageInfo("Üretim Emri Güncelle", SHRoles.UretimYonetici)]
 		public JsonResult Update(VMPRD_ProductionModel data, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
-		[PageInfo("Üretim Emri Detay", SHRoles.Personel)]
+		[PageInfo("Üretim Emri Detay", SHRoles.UretimYonetici, SHRoles.UretimPersonel)]
 		public ActionResult Detail(VMPRD_ProductionModel request)
 		{
 			var data = request.Load();
@@ -81,6 +81,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		{
 			var condition = KendoToExpression.Convert(request);
 			var userStatus = (PageSecurity)Session["userStatus"];
+			condition = VMPRD_ProductionModel.UpdateQuery(condition, userStatus);
 			request.Page = 1;
 			var db = new WorkOfTimeDatabase();
 			var data = db.GetVWPRD_Production(condition).ToDataSourceResult(request);
@@ -88,8 +89,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
+
 		[AllowEveryone]
-		[PageInfo("Üretim Emri Sil)", SHRoles.Personel)]
+		[PageInfo("Üretim Emri Sil)", SHRoles.UretimYonetici)]
 		[HttpPost]
 		public JsonResult Delete(Guid id)
 		{
@@ -100,12 +102,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var result = new ResultStatusUI
 			{
 				Result = res.result,
-				FeedBack = res.result == false ? feedback.Error(res.message, "Üretim emirlerinin bir kaçı silinemedi.") : feedback.Success("Üretim emri silme işlemi başarılı")
+				FeedBack = res.result == false ? feedback.Warning(res.message) : feedback.Success("Üretim emri silme işlemi başarılı")
 			};
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel)]
+		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel, SHRoles.UretimYonetici)]
 		public ActionResult Upsert(VMPRD_ProductionTransactionModel model, int? direction)
 		{
 			model.status = (int)EnumPRD_TransactionStatus.beklemede;
@@ -119,9 +121,39 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return View(data);
 		}
 
-		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.Personel)]
+		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.UretimYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Upsert(VMPRD_ProductionTransactionModel item, bool? isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = item.Save(userStatus.user.id);
+
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+			}, JsonRequestBehavior.AllowGet);
+		}
+
+
+		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.UretimYonetici, SHRoles.UretimPersonel)]
+		public ActionResult FinishedProductNotification(VMPRD_ProductionTransactionModel model, int? direction)
+		{
+			model.status = (int)EnumPRD_TransactionStatus.beklemede;
+			var data = model.Load();
+
+			if (data.items.Count() == 1 && !data.items.Select(x => x.productId.HasValue).FirstOrDefault())
+			{
+				data.items = new List<VMPRD_TransactionItems>();
+			}
+			ViewBag.Direction = direction;
+			return View(data);
+		}
+
+		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.UretimYonetici, SHRoles.UretimPersonel)]
+		[HttpPost, ValidateAntiForgeryToken]
+		public JsonResult FinishedProductNotification(VMPRD_ProductionTransactionModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -148,7 +180,5 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
 			return Json(productionProducts, JsonRequestBehavior.AllowGet);
 		}
-
-		
 	}
 }

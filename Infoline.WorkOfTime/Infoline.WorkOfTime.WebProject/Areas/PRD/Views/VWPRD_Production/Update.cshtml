@@ -174,7 +174,7 @@
 		<div class="col-md-6">
 			<div class="form-group">
 				<div class="col-md-5">
-					<label class="control-label label-md" for="code">Üretim Emri Kodu</label>
+					<label class="control-label label-md" for="code">Üretim Emir Kodu</label>
 				</div>
 				<div class="col-md-7">
 					@Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
@@ -210,7 +210,7 @@
 		<div class="col-md-6">
 			<div class="form-group">
 				<div class="col-md-5">
-					<label class="control-label label-md" for="productionOrderDate">Üretim Emri Tarihi</label>
+					<label class="control-label label-md" for="productionOrderDate">Üretim Emir Tarihi</label>
 				</div>
 				<div class="col-md-7">
 					@(
@@ -248,7 +248,7 @@
 		<div class="col-md-6">
 			<div class="form-group">
 				<div class="col-md-5">
-					<label class="control-label label-md" for="scheduledProductionDate">Üretim Plan Tarihi</label>
+					<label class="control-label label-md" for="scheduledProductionDate">Üretim Başlama Tarihi</label>
 				</div>
 				<div class="col-md-7">
 					@(
@@ -286,13 +286,13 @@
 
 			<div class="form-group">
 				<div class="col-md-5">
-					<label class="control-label label-md" for="lastProductionDate">Son Üretim Tarihi</label>
+					<label class="control-label label-md" for="lastProductionDate">Hedef Bitiş Tarihi</label>
 				</div>
 				<div class="col-md-7">
 					@(
 			Html.Akilli().
 			DateTimePickerFor(model => model.lastProductionDate).
-			Placeholder("Son Üretim Tarihi").
+			Placeholder("Hedef Bitiş Tarihi").
 			Format(Extensions.DateFormatFull()).
 			Value(DateTime.Now)
 				)
@@ -313,8 +313,6 @@
 				</div>
 			</div>
 		</div>
-
-
 	</div>
 
 	<div class="row">
@@ -377,15 +375,16 @@
 				</div>
 				<div class="col-md-7">
 					@(
-        Html.Akilli()
-        .MultiSelectFor(a => a.assignableUsers)
-        .Placeholder("Lütfen Görevli Personel Seçiniz..")
-        .DataValueField("id")
-        .DataTextField("FullName")
-        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-        .Sort(x => x.Add("FullName").Ascending())
-        .Execute()
+		Html.Akilli()
+		.MultiSelectFor(a => a.assignableUsers)
+		.Placeholder("Lütfen Görevli Personel Seçiniz..")
+		.DataValueField("id")
+		.DataTextField("FullName")
+		.Filter<VWSH_User>(x => x.RoleIds.Contains(SHRoles.UretimPersonel))
+		.ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+		.Sort(x => x.Add("FullName").Ascending())
+		.Execute()
             )
 				</div>
 			</div>

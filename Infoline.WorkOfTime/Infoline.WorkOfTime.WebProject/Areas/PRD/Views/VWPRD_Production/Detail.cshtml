@@ -3,6 +3,9 @@
 	ViewBag.Title = Model.code + " Kodlu Üretim Detayı";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
+
+	var productionStageCount = 0;
+
 	var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
 	var step1 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimEmriVerildi || a.status == (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step2 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm} <br/>", a.createdby_Title, a.created)).FirstOrDefault();
@@ -12,7 +15,6 @@
 	a.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.PersonelUretimdenAlindi ||
 	a.status == (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi
-
 	).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 	var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti || a.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
@@ -25,14 +27,31 @@
 	li {
 		list-style: none;
 	}
+
+	
 </style>
 
 <script type="text/javascript">
 
+	function producedProductChange(e) {
+		var data = e.sender.dataItem(e.sender.select())
+		var detail = $("#producedProductsDelete");
+		$(detail).removeClass("hidden")
+		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+	}
+
+	function wastageProductsChange(e) {
+		debugger;
+		var data = e.sender.dataItem(e.sender.select())
+		var detail = $("#wastageProductsDelete");
+		$(detail).removeClass("hidden")
+		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+	}
+
 	$(document).on("ready", function () {
-		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId : '@Model.id'}, function (res) {
+		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
-				{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
 				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#=quantity# Adet" },
 				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#=totalQuantity# Adet"},
 				{
@@ -43,9 +62,13 @@
 			];
 
 			$("#productProductsGrid").kendoGrid({
-				dataSource: res,
+				toolbar: [{ name: "excel", text: "" }],
+				excel: {
+					fileName: "Kullanilan_Urunler.xlsx"
+				},
+				dataSource: res.objects.productionProducts,
 				pageSize: 100,
-				height: 550,
+				height: 540,
 				sortable: true,
 				filterable: {
 					operators: {
@@ -67,9 +90,95 @@
 			var grid = $("#productProductsGrid").data("kendoGrid");
 			grid.dataSource.page(1);
 
+			var cols = [
+				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+
+
+			];
+
+			$("#wastageProductsGrid").kendoGrid({
+				toolbar: [
+					{ name: "excel", text: "" },
+					{ template: '<a class="k-button hidden" id="wastageProductsDelete" data-ask="Fire bildirimini silmek istediğinizden emin misiniz?" data-href="/PRD/VWPRD_ProductionOperation/Delete" data-show="single" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
+				],				excel: {
+					fileName: "Fire_Bildirimleri.xlsx"
+				},
+				dataSource: res.objects.wastageProducts,
+				pageSize: 100,
+				height: 540,
+				sortable: true,
+				selectable: 'Single, Row',
+				change: function (e) { wastageProductsChange(e) },
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: cols
+			});
+
+			var cols = [
+				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
+				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+			];
+
+			$("#producedProducts").kendoGrid({
+				toolbar: [
+					{ name: "excel", text: "" },
+					{ template: '<a class="k-button hidden" id="producedProductsDelete" data-ask="Üretim Emrini silmek istediğinizden emin misiniz?" data-href="/PRD/VWPRD_ProductionOperation/Delete" data-show="single" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Sil"></i></a>' }
+				],
+				excel: {
+					fileName: "Uretim_Bildirimleri.xlsx"
+				},
+				dataSource: res.objects.producedProducts,
+				pageSize: 100,
+				height: 540,
+				sortable: true,
+				selectable: 'Single, Row',
+				change: function (e) { producedProductChange(e) },
+				filterable: {
+					operators: {
+						string: {
+							contains: "İçeriyor",
+							eq: "Eşittir",
+							neq: "Eşit Değil",
+						}
+					}
+				},
+				pageable: {
+					refresh: true,
+					pageSizes: true,
+					buttonCount: 5
+				},
+				columns: cols
+			});
 
 		})
 	})
+
+	
+
+	$(document).on('shown.bs.tab', 'a[href="#fireBildirimleri"]', function (e) {
+		$("#wastageProductsGrid").data("kendoGrid").dataSource.page(1);
+	});
+
+	$(document).on('shown.bs.tab', 'a[href="#uretimBildirimleri"]', function (e) {
+		$("#producedProducts").data("kendoGrid").dataSource.page(1);
+	});
+
+
 
 
 	function ImageErrorData(element, image, id) {
@@ -131,38 +240,70 @@
 	<div class="wrapper wrapper-content  animated slideInRight">
 		<div class="row">
 			<div class="col-lg-8">
+				@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
+
 				<div class="tabs-container">
+					<ul class="nav nav-tabs">
+						<li class="active" data-toggle="tooltip" data-placement="top" title="Üretimde Kullanılan Ürünler">
+							<a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+						</li>
+
+						<li data-toggle="tooltip" data-placement="top" title="Üretim Bildirimleri">
+							<a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="icon-dropbox-1 text-success" aria-hidden="true"></i></a>
+						</li>
+
+						<li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
+							<a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-trash-1 text-success" aria-hidden="true"></i></a>
+						</li>
+					</ul>
 
 					<div class="tab-content">
-						<div class="tab-pane active" id="gorevdetay">
+						<div class="tab-pane active" id="kullanilanUrunler">
 							<div class="ibox">
-
-								@Html.Partial("~/Areas/PRD/Views/VWPRD_Production/_ProductionDetail.cshtml", Model)
-
-								<div class="wrapper">
-									<div class="row">
-										<div class="ibox">
-											<div class="ibox-title">
-												<h5><i class="fa text-success fa fa-list-alt"></i> Kullanılan Ürünler</h5>
-											</div>
-											<div class="ibox-content" style="padding:25px;height:575px;">
-												<div id="productProductsGrid"></div>
-											</div>
-										</div>
-									</div>
+								<div class="ibox-title">
+									<h5>Kullanılan Ürünler</h5>
+								</div>
+								<div class="ibox-content clearfix">
+									<div id="productProductsGrid"></div>
 								</div>
 							</div>
 						</div>
+
+						<div class="tab-pane" id="uretimBildirimleri">
+							<div class="ibox">
+								<div class="ibox-title">
+									<h5>Üretim Bildirimleri</h5>
+								</div>
+								<div class="ibox-content clearfix">
+									<div id="producedProducts"></div>
+								</div>
+							</div>
+						</div>
+
+						<div class="tab-pane" id="fireBildirimleri">
+							<div class="ibox">
+								<div class="ibox-title">
+									<h5>Fire Bildirimleri</h5>
+								</div>
+								<div class="ibox-content clearfix" style="height:600px">
+									<div id="wastageProductsGrid"></div>
+								</div>
+							</div>
+						</div>
+
 					</div>
 
 				</div>
+
 			</div>
 			<div class="col-lg-4">
-				<div class="ibox ">
+
+				<div class="ibox">
+					<div class="ibox-title">
+						<h5><i class="fa text-success fa fa-list-alt"></i> Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "("+Model.lastProductionStage_Title+")" : "")</h5>
+					</div>
 					<div class="ibox-content">
-						<h4>Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "("+Model.lastProductionStage_Title+")" : "")</h4> 
-						<small>Üretim aşamalarını bu kısımdan takip edebilirsiniz.</small>
-						<ul class="todo-list m-t small-list">
+						<ul class="todo-list small-list">
 							@foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
 							{
 								if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
@@ -172,6 +313,7 @@
 										<small class="label label-primary"> Bildirim Yapıldı</small>
 										<small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count()</small>
 									</li>
+									productionStageCount++;
 								}
 								else
 								{
@@ -181,13 +323,23 @@
 										<small class="label label-warning" style="float:right"> 0</small>
 									</li>
 								}
+
+
+							}
+							@if (productionStageCount > 0)
+							{
+								<li>
+									<span class="m-l-xs"><b>TOPLAM AŞAMA</b></span>
+									<small class="label label-primary" style="float:right"> @productionStageCount</small>
+								</li>
 							}
 						</ul>
 					</div>
 				</div>
+
 				<div class="ibox">
 					<div class="ibox-title">
-						<h5>Üretim Operasyon Geçmişi</h5>
+						<h5><i class="fa text-success fa fa-list-alt"></i> Üretim Operasyon Geçmişi</h5>
 					</div>
 					<div class="ibox-content">
 						<div class="tab-content" style="max-height: 530px;overflow: scroll;">
@@ -219,30 +371,19 @@
 												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
 												@if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
 												{<div class="small text-muted"> Aşama : <strong>@item.dataId_Title</strong> </div>}
+
 												@if (item.description != null)
 												{<div class="small text-muted"> Açıklama : @item.description </div>}
+
+
 
 												<div class="btnns m-t-xs">
 
 													<a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi)
+													@if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi)
 													{
-														<a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", id = item.dataId })" data-task="Insert" data-ask="Harcama Bildirimi İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
+														<a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", transactionId = item.dataId })" data-task="Insert" data-ask="Harcama Bildirimi İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
 													}
-
-
-													@*@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
-														{
-															if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
-															{
-																if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi)
-																{
-																	<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
-																}
-															}
-														}*@
-
-
 
 													@if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
 													{
@@ -306,9 +447,35 @@
 																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-cubes"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Geçişi Yap" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("FinishedProductNotification", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   inputId = Model.centerStorageId,
+																									   inputTable= "CMP_Storage",
+																									   inputCompanyId = Model.centerCompanyId,
+																									   outputId= Model.productionStorageId,
+																									   outputTable = "CMP_Storage",
+																									   outputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.UretimBildirimi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
+																									   companyId = Model.centerCompanyId
+																								   })"><i data-toggle="tooltip" title="Biten Ürün Bildir" class="fa fa-dropbox"></i></a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   outputId = Model.centerStorageId,
+																									   outputTable= "CMP_Storage",
+																									   outputCompanyId = Model.centerCompanyId,
+																									   inputId= Model.productionStorageId,
+																									   inputTable = "CMP_Storage",
+																									   inputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.FireFisi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
+																									   companyId = Model.centerCompanyId
+																								   })"><i data-toggle="tooltip" title="Fire Bildirimi Yap" class="fa fa-trash"></i></a>
+
+
 			}
 
-			if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
+			if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))))
 			{
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimDurduruldu })"><i data-toggle="tooltip" title="Üretimi Durdur" class="fa fa-pause"></i> </a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>

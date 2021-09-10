@@ -147,24 +147,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     new FileBase("KKD Zimmet Formu",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
                     new string[] {SHRoles.IKYonetici},
                      new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Şirket ve Marka Logoları",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Antetli Kağıtlar",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Teklif Formatları",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Kurumsal Kimlik Kılavuzu",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Sunumlar",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici }),
-                    new FileBase("Mail formatları",".jpg,.jpeg,.png,*.doc,*.docx,*.xls,*.xlsx,*.pdf,*.rar", 99, new string[] {SHRoles.IKYonetici  },
-                    new string[] {SHRoles.IKYonetici},
-                     new string[] {SHRoles.IKYonetici })
                 }
             },
 
@@ -410,7 +392,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     new FileBase("İş Sağlığı ve Güvenliği Yönetmeliği",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
                     new FileBase("İşten Ayrılma Yönetmeliği",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
                     new FileBase("Koronavirüs(Covid-19) Korunma Talimatları",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
-
+                    new FileBase("Şirket ve Marka Logoları",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
+                    new FileBase("Antetli Kağıtlar",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
+                    new FileBase("Teklif Formatları",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
+                    new FileBase("Kurumsal Kimlik Kılavuzu",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
+                    new FileBase("Sunumlar",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
+                    new FileBase("Mail formatları",  "*.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  5,new string [] {SHRoles.IKYonetici },new string [] {SHRoles.IKYonetici },new string [] {SHRoles.Personel }),
                 }
             },
             {

@@ -155,15 +155,15 @@ namespace Infoline.WorkOfTime.WebService
                         company = user.companyCellPhone,
                     };
                 }
-                if (model.status.HasValue && model.status != 14)
+                if (!model.status.HasValue)
                 {
                     var rs = model.Save(userId, model.status, null);
                     RenderResponse(context, new ResultStatus() { result = true, message = "İşlem Başarılı Bir Şekilde Gerçekleştirildi.", objects = null });
                 }
                 else
-                {
-                    var rs = model.Load().Save(userId, model.status, null);
-                    RenderResponse(context, new ResultStatus() { result = true, message = "Talep Başarılı Bir Şekilde Oluşturuldu.", objects = null });
+                {   
+                    var rs = model.Load(model.status).Save(userId, model.status, null);
+                    RenderResponse(context, new ResultStatus() { result = true, message = "İşlem Başarılı Bir Şekilde Gerçekleştirildi.", objects = null });
                 }
             }
             catch (Exception ex)
