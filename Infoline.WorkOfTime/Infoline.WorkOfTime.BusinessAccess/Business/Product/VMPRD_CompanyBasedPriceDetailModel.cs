@@ -12,15 +12,14 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_ProductBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
+    public class VMPRD_CompanyBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public bool isPrice { get; set; }
-        public VMPRD_ProductBasedPriceDetailModel _CompanyBasedPriceModel { get; set; }
         public string _CompanyBasedPriceDetailModels { get; set; }
-        public VMPRD_ProductBasedPriceDetailModel Load()
+        public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
@@ -31,7 +30,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return this;
         }
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
-        {
+       {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWPRD_CompanyBasedPriceDetailById(this.id);
@@ -72,22 +71,27 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
 
-            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this._CompanyBasedPriceModel));
+            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this));
             if (companyBasedPriceRecord == null)
             {
-                this._CompanyBasedPriceModel.created = this.created;
-                this._CompanyBasedPriceModel.createdby = this.createdby;
-                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(_CompanyBasedPriceModel), this.trans);
+   
+                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
                 if (dbresult.result)
                 {
-                    if (_CompanyBasedPriceDetailModels.Length > 0)
+                    if (_CompanyBasedPriceDetailModels != null)
                     {
-
+                        var companyBaseList = Infoline.Helper.Json.Deserialize<List<VWPRD_CompanyBasedPriceDetailDto>>(this._CompanyBasedPriceDetailModels);
+                        if (companyBaseList.Count > 0)
+                        {                         
+                            foreach (var item in companyBaseList)
+                            {
+                                item.companyBasedPriceId = this.companyBasedPriceId;
+                                
+                                dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
+                            }
+                        }
                     }
-                    foreach (var item in _CompanyBasedPriceDetailModels)
-                    {
-                        dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
-                    }
+                                     
                 }
                 if (dbresult.result)
                 {
@@ -241,9 +245,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return list.ToArray();
         }
 
-        public bool checkDates()
+        public bool checkDates(VWPRD_CompanyBasedPriceDetailDto obje)
         {
-            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
+            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(obje);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
             if (sameRecordList == null)
             {
