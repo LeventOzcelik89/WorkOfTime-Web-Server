@@ -4,12 +4,10 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <style>
-    .bg-focus {
-        background-color: #1ab394 !important;
-    }
 </style>
-<script data-selector="modalContainer">
-    var page = {
+<script>
+    var page = {};
+    page = {
         defines: {
             isAllCompanies: 1,
             productTarget: 2
@@ -22,6 +20,7 @@
                     page.defines.isAllCompanies = 1;
                     $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                     $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+
                 } else if (i == 0 && page.defines.isAllCompanies != 0) {
                     $("#companyId").data("kendoDropDownList")?.readonly(false);
                     page.defines.isAllCompanies = 0;
@@ -31,7 +30,7 @@
                 }
             },
             changeProductTarget: function (i) {
-                debugger;
+                var grid = $("#grid").data("kendoGrid");
                 if (i == 2 && page.defines.productTarget != 2) {
                     $("#productId").data("kendoDropDownList").value("");
                     $("#categoryId").data("kendoDropDownList").value("");
@@ -40,13 +39,19 @@
                     $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
                     $("#productDropDown").removeAttr("style");
                     $("#categoryDropDown").attr("style", "display:none;");
-                    $("#productId").data("kendoDropDownList").readonly();
+                    $("#priceorDiscountDiv").hide();
+                    grid.hideColumn("price");
+                    grid.showColumn("discount");
+
                     page.defines.productTarget = 2;
                 } else if (i == 1 && page.defines.productTarget != 1) {
                     $("#productId").data("kendoDropDownList").value("");
                     $("#categoryDropDown").removeAttr("style");
                     $("#productDropDown").attr("style", "display:none;");
                     page.defines.productTarget = 1;
+                    $("#priceorDiscountDiv").hide();
+                    grid.hideColumn("price");
+                    grid.showColumn("discount");
                 } else if (i == 0 && page.defines.productTarget != 0) {
                     $("#productId").data("kendoDropDownList").value("");
                     $("#categoryId").data("kendoDropDownList").value("");
@@ -56,6 +61,11 @@
                     $("#categoryDropDown").attr("style", "display:none;");
                     $("#productId").data("kendoDropDownList").readonly(false);
                     page.defines.productTarget = 0;
+                    $("#priceorDiscountDiv").show();
+                    grid.showColumn("price");
+                    grid.hideColumn("discount");
+
+
                 }
             },
             setCompanyDropDownTitle: function (e) {
@@ -106,19 +116,45 @@
 
                     }
                 });
+            },
+            setGridDiscountOrPrice() {
+                $(document).on("change", "[name='isPrice']", function () {
+                    let value = $("[name='isPrice']:checked").val();
+                    var grid = $("#grid").data("kendoGrid");
+                    if (value == 0) {
+                        grid.hideColumn("discount");
+                        grid.showColumn("price");
+                    }
+                    else {
+                        grid.hideColumn("price");
+                        grid.showColumn("discount");
+                    }
+
+
+                });
+            },
+            onChangeProduct(e) {
+                var value = this;
+                var grid = $("#grid").data("kendoGrid");
+                var dataitem = value.dataItem();
+                var price = dataitem.currentSellingPrice;
+                $("#basePrice").val(price);
+                
             }
         }
     }
-
     page.functions.setSellingTypeCheckbox();
     page.functions.setconditionTypeCheckbox();
+    page.functions.setCompanyDropDownTitle();
+    page.functions.setGridDiscountOrPrice();
+
+
 
 
 
 
 
 </script>
-
 
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -136,7 +172,7 @@
     <div class="form-group">
         <div class="col-md-5">
             <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="isForAllCompany" id="all_company_check_1" checked value="1">
+                <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
                 <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
                     Tüm Şirketlere
                 </label>
@@ -155,7 +191,6 @@
                 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                 .Sort(x => x.Add("name").Ascending())
                 .Readonly(true)
-                .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
                 .Execute()
                 )
         </div>
@@ -189,7 +224,8 @@
             .Template("#=TemplateEngine('productTemplate',data)#")
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
             .Sort(x => x.Add("code").Ascending())
-            .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
+            .Events(x => x.DataBound("page.functions.setProductDropDownTitle").Change("page.functions.onChangeProduct"))
+            .Readonly(true)
             .Execute()
             )
         </div>
@@ -240,7 +276,21 @@
             })
         </div>
     </div>
-
+    <div class="form-group" id="priceorDiscountDiv" style="display:none">
+        <div class="col-md-12">
+            <div class="radio akilliRadioGrup clearfix">
+                <input type="radio" class="bg-focus" name="isPrice" checked  id="priceDiscount0" value="0">
+                <label tabindex="0"  class="radio-label bg-focus"  for="priceDiscount0" >
+                    Fiyat
+                </label>
+                <input type="radio"  name="isPrice" id="priceDiscount1" value="1">
+                <label tabindex="0"   class="radio-label" for="priceDiscount1">
+                    İskonto
+                </label>
+            </div>
+        </div>
+    </div>
+   
 
 
     <div class="form-group">
@@ -249,13 +299,19 @@
     .Name("grid")
     .Columns(columns =>
     {
-        columns.Bound(p => p.startDate).Format("0:{dd/MM/yyyy}");
-        columns.Bound(p => p.endDate).Width(120);
-        columns.Bound(p => p.companyBasedPriceId).Hidden(false);
-        columns.Command(command => { command.Edit(); command.Destroy(); }).Width(250);
+        //columns.Bound(p => p.basePrice).Title("Fiyat");
+        columns.Bound(p => p.monthCount).Title("Taksit Sayısı");
+        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti");
+        columns.Bound(p => p.discount).Title("Iskonto Oranı");
+        columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
+        //columns.Bound(p => p.afterPrice).Title("Iskonto Sonrası Fiyat");
+        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
+        columns.Bound(p => p.endDate).Width(120).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
+        columns.Bound(p => p.companyBasedPriceId);
+        columns.Command(command => { command.Edit().Text(" "); command.Destroy().Text(" "); }).Width(250);
     })
     .ToolBar(toolbar => toolbar.Create())
-    .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
+    .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
     .Pageable()
     .Sortable()
     .Filterable()
@@ -267,17 +323,19 @@
         .Model(model => model.Id(p => p.companyBasedPriceId))
         .Create(update => update.Action("EditingInline_Create", "Grid"))
         .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=new Guid("4c304bc6-f842-47f2-95fa-933c94acd87c") }))
-        .Update(update => update.Action("EditingInline_Update", "Grid"))        .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
+        .Update(update => update.Action("EditingInline_Update", "Grid"))
+        .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
     )
 )
-       
-          
+
+
 
         </div>
-   </div>
+    </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
 
 }
+

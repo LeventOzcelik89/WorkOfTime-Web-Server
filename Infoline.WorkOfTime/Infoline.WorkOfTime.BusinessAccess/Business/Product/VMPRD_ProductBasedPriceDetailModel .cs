@@ -17,8 +17,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        [DataType(DataType.Date)]
-        public new DateTime startDate { get; set; }
+        public bool isPrice { get; set; }
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();

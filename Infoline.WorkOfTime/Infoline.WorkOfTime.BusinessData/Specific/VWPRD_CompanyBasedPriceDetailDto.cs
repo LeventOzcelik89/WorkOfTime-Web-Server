@@ -30,5 +30,8 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public Guid? categoryId { get; set; }
         public short? conditionType { get; set; }
         public short? sellingType { get; set; }
+        public double? basePrice{ get; set; }
+        public double afterPrice { get; set; }
+        public bool isPrice { get; set; }
     }
 }
