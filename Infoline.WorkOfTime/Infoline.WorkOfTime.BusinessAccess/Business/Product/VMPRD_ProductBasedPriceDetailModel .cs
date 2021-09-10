@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var dbresult = new ResultStatus();
+            var dbresult = new ResultStatus { result = true};
             //Validasyonlarını yap
 
             //Bağlı Olduğu CompanyBasedPrice Varsa Al
@@ -86,7 +86,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPrice);
             if(companyBasedPriceRecord == null) //yeni bir tane oluştur
             {
-                companyBasedPrice.id = Guid.NewGuid();
                 companyBasedPrice.createdby = this.createdby;
                 companyBasedPrice.created = DateTime.Now;
                 dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPrice),this.trans);
@@ -100,10 +99,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 }
             }
 
-            var companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPrice.id;
             var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
             {
-                companyBasedPriceId = companyBasedPriceId,
+                companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPrice.id,
                 minCondition = this.minCondition,
                 type = this.type,
                 discount = this.type,
@@ -113,8 +111,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 created = DateTime.Now,
                 createdby = this.createdby
             };
-            db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
-            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
+            //dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
