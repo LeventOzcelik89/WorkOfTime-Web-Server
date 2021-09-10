@@ -85,7 +85,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                     return new ResultStatus
                     {
                         result = false,
-                        message = "Kayıt Başarısız"
+                        message = "Kayıt Başarısız",
+                        objects = null
                     };
                 }
             }
@@ -110,7 +111,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Kayıt Başarısız"
+                    message = "Kayıt Başarısız",
+                    objects = null
                 };
             }
             else
@@ -118,24 +120,26 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Kayıt Başarılı"
+                    message = "Kayıt Başarılı",
+                    objects = db.GetVWPRD_CompanyBasedPriceDetailById(companyBasedPriceDetail.id)
                 };
             }
         }
-        private ResultStatus Update()
+        public ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
             var companyBasedPriceDetail = db.GetPRD_CompanyBasedPriceDetailById(this.id);
             if (companyBasedPriceDetail != null)
             {
-                dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), false, this.trans);
+                dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), false, this.trans);
             }
             else
             {
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Kayıt Silinmiş"
+                    message = "Kayıt Silinmiş",
+                    objects = null
                 };
             }
 
@@ -145,7 +149,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Güncelleme Başarısız"
+                    message = "Güncelleme Başarısız",
+                    objects = null
                 };
             }
             else
@@ -153,7 +158,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Güncelleme Başarılı"
+                    message = "Güncelleme Başarılı",
+                    objects = this
                 };
             }
         }
