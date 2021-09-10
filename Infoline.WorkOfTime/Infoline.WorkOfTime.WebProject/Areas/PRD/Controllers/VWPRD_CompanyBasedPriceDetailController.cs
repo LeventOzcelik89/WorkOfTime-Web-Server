@@ -122,6 +122,29 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
           
         }
 
+        [HttpPost]
+        [AllowEveryone]
+        public ActionResult insertInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        {
+            var rs = item.Insert();
+            return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        [AllowEveryone]
+        public ActionResult updateInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        {
+            var rs = item.Update();
+            return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
+        }
+
+        [HttpPost]
+        [AllowEveryone]
+        public ActionResult deleteInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        {
+            var rs = item.Delete();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
 
 
     }
