@@ -1,5 +1,4 @@
 ﻿using System;
-using System.ComponentModel.DataAnnotations;
 using GeoAPI.Geometries;
 
 namespace Infoline.WorkOfTime.BusinessData
