@@ -151,7 +151,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Json(new ResultStatusUI
             {
                 Result = res.result,
-                FeedBack = res.result ? feedback.Success(res.message, false, AbsoluteUri) : feedback.Warning(res.message)
+                FeedBack = res.result ? feedback.Success(res.message, false, (AbsoluteUri.EndsWith("AgileBoard") ? "" : AbsoluteUri)) : feedback.Warning(res.message)
 
             }, JsonRequestBehavior.AllowGet);
         }
@@ -631,9 +631,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
         [AllowEveryone]
-        public ActionResult AgileBoard()
+        public ActionResult AgileBoard(VWAgileBoardDashboardModel item)
         {
-            return View();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.Load(userStatus.user.id);
+            return View(item);
         }
 
     }
