@@ -14,7 +14,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<Guid?> IssueIds { get; set; }
         public SH_User[] PersonelUsers { get; set; }
     }
-
     public class VWHDM_TicketMessageFiles : VWHDM_TicketMessage
     {
         public SYS_Files[] files { get; set; }
