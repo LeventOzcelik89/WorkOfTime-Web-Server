@@ -9,7 +9,7 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
 {
     public class VWPRD_CompanyBasedPriceDetailDto
     {
-        public Guid companyBasedPriceId { get; set; }
+        public Guid? companyBasedPriceId { get; set; }
         public double? minCondition { get; set; }
         public short? type { get; set; }
         public double? discount { get; set; }
@@ -18,7 +18,6 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public DateTime? startDate { get; set; }
         [DataType(DataType.Date)]
         public DateTime? endDate { get; set; }
-        [DataType(DataType.Currency)]
         public double? price { get; set; }
         public string createdby_Title { get; set; }
         public string changedby_Title { get; set; }
@@ -30,5 +29,8 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public Guid? categoryId { get; set; }
         public short? conditionType { get; set; }
         public short? sellingType { get; set; }
+        public double? basePrice{ get; set; }
+        public double afterPrice { get; set; }
+        public bool isPrice { get; set; }
     }
 }
