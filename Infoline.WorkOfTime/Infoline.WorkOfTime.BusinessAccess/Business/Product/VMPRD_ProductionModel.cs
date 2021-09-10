@@ -308,16 +308,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			BEXP filter = null;
 
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
-			{
-				filter |= new BEXP
-				{
-					Operand1 = (COL)"createdby",
-					Operator = BinaryOperator.Equal,
-					Operand2 = (VAL)userStatus.user.id
-				};
-			}
-			else
+			if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
 			{
 				filter |= new BEXP
 				{

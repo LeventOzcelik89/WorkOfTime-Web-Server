@@ -720,6 +720,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
 
+				if (productionOperation != null && productionOperation.productionId.HasValue)
+				{
+					var productionOperations = db.GetVWPRD_ProductionOperationByProductionId(productionOperation.productionId.Value);
+
+					if (productionOperations.Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu).Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).Count() > 0
+						)
+					{
+						return new ResultStatus { message = "Üretim bittiği veya durdurulduğu için operasyon silinemez..", result = false, };
+					}
+				}
+
 
 				var rs = new ResultStatus { result = true };
 				if (inventoryActions.Count() > 0)
@@ -784,10 +798,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
 			var type = (EnumPRD_TransactionType)this.type;
 			var serialCodes = (item.serialCodes ?? "").Split(',');
-			//if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
-			//{
-			//	errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
-			//}
+
+			if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
+			{
+				errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
+			}
 
 			var maintanceInventory = new List<string>();
 			var unvalidInventory = new List<string>();

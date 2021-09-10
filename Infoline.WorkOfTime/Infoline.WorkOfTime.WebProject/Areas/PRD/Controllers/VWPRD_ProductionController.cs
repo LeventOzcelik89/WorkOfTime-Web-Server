@@ -90,7 +90,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 
-		[AllowEveryone]
 		[PageInfo("Üretim Emri Sil)", SHRoles.UretimYonetici)]
 		[HttpPost]
 		public JsonResult Delete(Guid id)
