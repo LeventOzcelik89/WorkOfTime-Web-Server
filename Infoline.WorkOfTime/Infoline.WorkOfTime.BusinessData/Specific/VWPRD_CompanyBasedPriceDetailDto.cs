@@ -18,7 +18,6 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public DateTime? startDate { get; set; }
         [DataType(DataType.Date)]
         public DateTime? endDate { get; set; }
-        [DataType(DataType.Currency)]
         public double? price { get; set; }
         public string createdby_Title { get; set; }
         public string changedby_Title { get; set; }

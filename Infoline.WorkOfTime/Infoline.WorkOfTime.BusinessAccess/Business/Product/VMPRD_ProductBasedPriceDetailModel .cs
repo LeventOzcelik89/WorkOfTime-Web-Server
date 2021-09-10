@@ -12,13 +12,15 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    public class VMPRD_CompanyBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
+    public class VMPRD_ProductBasedPriceDetailModel : VWPRD_CompanyBasedPriceDetail
     {
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public bool isPrice { get; set; }
-        public VMPRD_CompanyBasedPriceDetailModel Load()
+        public VMPRD_ProductBasedPriceDetailModel _CompanyBasedPriceModel { get; set; }
+        public VMPRD_ProductBasedPriceDetailModel[] _CompanyBasedPriceDetailModels { get; set; }
+        public VMPRD_ProductBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
@@ -69,60 +71,95 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
-            //Validasyonlarını yap
 
-            //Bağlı Olduğu CompanyBasedPrice Varsa Al
-            var companyBasedPriceDto = new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this);
-            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPriceDto);
-            if (companyBasedPriceRecord == null) //yeni bir tane oluştur
+            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this._CompanyBasedPriceModel));
+            if (companyBasedPriceRecord == null)
             {
-                companyBasedPriceDto.createdby = this.createdby;
-                companyBasedPriceDto.created = DateTime.Now;
-                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPriceDto), this.trans);
-                if (!dbresult.result)
+                this._CompanyBasedPriceModel.created = this.created;
+                this._CompanyBasedPriceModel.createdby = this.createdby;
+                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(_CompanyBasedPriceModel), this.trans);
+                if (dbresult.result)
+                {
+                    if (_CompanyBasedPriceDetailModels.Length > 0)
+                    {
+
+                    }
+                    foreach (var item in _CompanyBasedPriceDetailModels)
+                    {
+                        dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
+                    }
+                }
+                if (dbresult.result)
                 {
                     return new ResultStatus
                     {
-                        result = false,
-                        message = "Kayıt Başarısız",
-                        objects = null
+                        result = true,
+                        message = "Kayıt Başarılı"
                     };
                 }
             }
-
-            var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
+            return new ResultStatus
             {
-                companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPriceDto.id,
-                minCondition = this.minCondition,
-                type = this.type,
-                discount = this.type,
-                price = this.price,
-                startDate = this.startDate,
-                endDate = this.endDate,
-                created = DateTime.Now,
-                createdby = this.createdby
+                result = false,
+                message = "Daha önceden böyle bir kayıt girilmiştir"
             };
-            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
-            //dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
-            if (!dbresult.result)
-            {
-                Log.Error(dbresult.message);
-                return new ResultStatus
-                {
-                    result = false,
-                    message = "Kayıt Başarısız",
-                    objects = null
-                };
-            }
-            else
-            {
-                return new ResultStatus
-                {
-                    result = true,
-                    message = "Kayıt Başarılı",
-                    objects = db.GetVWPRD_CompanyBasedPriceDetailById(companyBasedPriceDetail.id)
-                };
-            }
+
+
+
+            //Validasyonlarını yap
+
+            //Bağlı Olduğu CompanyBasedPrice Varsa Al
+            //var companyBasedPriceDto = new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this);
+            //var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(companyBasedPriceDto);
+            //if (companyBasedPriceRecord == null) //yeni bir tane oluştur
+            //{
+            //    companyBasedPriceDto.createdby = this.createdby;
+            //    companyBasedPriceDto.created = DateTime.Now;
+            //    dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(companyBasedPriceDto), this.trans);
+            //    if (!dbresult.result)
+            //    {
+            //        return new ResultStatus
+            //        {
+            //            result = false,
+            //            message = "Kayıt Başarısız",
+            //            objects = null
+            //        };
+            //    }
+            //}
+
+            //var companyBasedPriceDetail = new PRD_CompanyBasedPriceDetail
+            //{
+            //    companyBasedPriceId = companyBasedPriceRecord != null ? companyBasedPriceRecord.id : companyBasedPriceDto.id,
+            //    minCondition = this.minCondition,
+            //    type = this.type,
+            //    discount = this.type,
+            //    price = this.price,
+            //    startDate = this.startDate,
+            //    endDate = this.endDate,
+            //    created = DateTime.Now,
+            //    createdby = this.createdby
+            //};
+            //dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(companyBasedPriceDetail), this.trans);
+            ////dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
+            //if (!dbresult.result)
+            //{
+            //    Log.Error(dbresult.message);
+            //    return new ResultStatus
+            //    {
+            //        result = false,
+            //        message = "Kayıt Başarısız",
+            //        objects = null
+            //    };
+            //}
+            //else
+            //{
+            //    return new ResultStatus
+            //    {
+            //        result = true,
+            //        message = "Kayıt Başarılı",
+            //        objects = db.GetVWPRD_CompanyBasedPriceDetailById(companyBasedPriceDetail.id)
+            //    };
+            //}
         }
         public ResultStatus Update()
         {
@@ -187,13 +224,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
-       
+
         public VWPRD_CompanyBasedPriceDetailDto[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
         {
             var db = new WorkOfTimeDatabase();
-            var values= db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
+            var values = db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
             List<VWPRD_CompanyBasedPriceDetailDto> list = new List<VWPRD_CompanyBasedPriceDetailDto>();
-            if (values!=null)
+            if (values != null)
             {
                 foreach (var item in values)
                 {
@@ -212,11 +249,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 return true;
             }
-            else {
+            else
+            {
                 //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
-                foreach(var record in sameRecordList)
+                foreach (var record in sameRecordList)
                 {
-                    if(this.endDate >= record.startDate && this.startDate <= record.endDate)
+                    if (this.endDate >= record.startDate && this.startDate <= record.endDate)
                     {
                         return false;
                     }
