@@ -42,7 +42,6 @@
                     $("#priceorDiscountDiv").hide();
                     grid.hideColumn("price");
                     grid.showColumn("discount");
-
                     page.defines.productTarget = 2;
                 } else if (i == 1 && page.defines.productTarget != 1) {
                     $("#productId").data("kendoDropDownList").value("");
@@ -64,8 +63,6 @@
                     $("#priceorDiscountDiv").show();
                     grid.showColumn("price");
                     grid.hideColumn("discount");
-
-
                 }
             },
             setCompanyDropDownTitle: function (e) {
@@ -78,20 +75,20 @@
             },
             setSellingTypeCheckbox: function () {
                 $(document).on("change", "[name='sellingType']", function () {
+                    debugger;
                     let value = $("[name='sellingType']:checked").val();
+                    var grid = $("#grid").data("kendoGrid");
                     if (value == 0 || value == 1) {
-                        $("#month").hide();
+                        grid.hideColumn("monthCount");
                     }
                     else {
                         if (value == 2) {
-                            $("#vadeay").text("Taksit Sayısı")
-                            $("#monthCount").attr("placeholder", "Lütfen taksit sayısını giriniz");
+                            $("[data-field='monthCount']").find("a").last().text("Taksit Sayısı")
                         }
                         if (value == 3) {
-                            $("#vadeay").text("Vade Sayısı")
-                            $("#monthCount").attr("placeholder", "Lütfen vade sayısını giriniz");
+                            $("[data-field='monthCount']").find("a").last().text("Vade Sayısı")
                         }
-                        $("#month").show();
+                        grid.showColumn("monthCount");
                     }
                 });
             },
@@ -112,8 +109,6 @@
                             $("#minCondition").attr("placeholder", "Lütfen minimum adet sayısını giriniz");
                             $("#minConLabel").text("Minimum Adet Sayısı")
                         }
-
-
                     }
                 });
             },
@@ -143,16 +138,6 @@
             }
         }
     }
-    page.functions.setSellingTypeCheckbox();
-    page.functions.setconditionTypeCheckbox();
-    page.functions.setCompanyDropDownTitle();
-    page.functions.setGridDiscountOrPrice();
-
-
-
-
-
-
 
 </script>
 
@@ -190,6 +175,7 @@
                 .DataValueField("id")
                 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                 .Sort(x => x.Add("name").Ascending())
+                .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
                 .Readonly(true)
                 .Execute()
                 )
@@ -300,14 +286,14 @@
     .Columns(columns =>
     {
         //columns.Bound(p => p.basePrice).Title("Fiyat");
-        columns.Bound(p => p.monthCount).Title("Taksit Sayısı");
+        columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
         columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti");
         columns.Bound(p => p.discount).Title("Iskonto Oranı");
         columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
         //columns.Bound(p => p.afterPrice).Title("Iskonto Sonrası Fiyat");
         columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
         columns.Bound(p => p.endDate).Width(120).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
-        columns.Bound(p => p.companyBasedPriceId);
+        columns.Bound(p => p.companyBasedPriceId).Hidden(true);
         columns.Command(command => { command.Edit().Text(" "); command.Destroy().Text(" "); }).Width(250);
     })
     .ToolBar(toolbar => toolbar.Create())
@@ -339,3 +325,10 @@
 
 }
 
+<script>
+    page.functions.setSellingTypeCheckbox();
+    page.functions.setconditionTypeCheckbox();
+    page.functions.setCompanyDropDownTitle();
+    page.functions.setGridDiscountOrPrice();
+
+</script>
