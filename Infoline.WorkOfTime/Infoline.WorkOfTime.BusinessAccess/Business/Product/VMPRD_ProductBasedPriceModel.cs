@@ -15,17 +15,17 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public VMPRD_ProductBasedPriceModel BasePrice { get; set; }
-        public VMPRD_ProductBasedPriceDetailModel[] BasePriceDetailList { get; set; }
-        public VMPRD_ProductBasedPriceDetailModel Load()
-        {
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
-            if (data != null)
-            {
-                this.B_EntityDataCopyForMaterial(data, true);
-            }
-            return null;
-        }
+        //public VMPRD_ProductBasedPriceDetailModel[] BasePriceDetailList { get; set; }
+        //public VMPRD_ProductBasedPriceDetailModel Load()
+        //{
+        //    this.db = this.db ?? new WorkOfTimeDatabase();
+        //    var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
+        //    if (data != null)
+        //    {
+        //        this.B_EntityDataCopyForMaterial(data, true);
+        //    }
+        //    return null;
+        //}
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -36,10 +36,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 return new ResultStatus { message = "Nesne boş olamaz", result = false };
             }
-            if (BasePriceDetailList == null)
-            {
-                return new ResultStatus { message = "Ürün detayları boş olamaz", result = false };
-            }
+            //if (BasePriceDetailList == null)
+            //{
+            //    return new ResultStatus { message = "Ürün detayları boş olamaz", result = false };
+            //}
             var validation = Validator();
             if (validation.result == false)
             {
@@ -86,11 +86,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(BasePrice), this.trans);
-            foreach (var item in BasePriceDetailList)
-            {
-                item.companyBasedPriceId = BasePrice.id;
-                item.Save();
-            }
+            //foreach (var item in BasePriceDetailList)
+            //{
+            //    item.companyBasedPriceId = BasePrice.id;
+            //    item.Save();
+            //}
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -113,11 +113,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             var dbresult = new ResultStatus { result = true };
             dbresult &= db.UpdatePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), false, this.trans);
-            foreach (var item in BasePriceDetailList)
-            {
-                item.companyBasedPriceId = BasePrice.id;
-                item.Save();
-            }
+            //foreach (var item in BasePriceDetailList)
+            //{
+            //    item.companyBasedPriceId = BasePrice.id;
+            //    item.Save();
+            //}
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);

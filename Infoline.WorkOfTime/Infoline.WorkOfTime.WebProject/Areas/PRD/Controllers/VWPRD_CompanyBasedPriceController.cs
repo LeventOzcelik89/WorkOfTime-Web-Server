@@ -50,8 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public ActionResult Detail(Guid id)
 		{
 			var model = new VMPRD_ProductBasedPriceModel { id=id};
-			var data = model.Load();
-		    return View(data);
+			//var data = model.Load();
+		    return View(model);
 		}
 
 
@@ -85,8 +85,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public ActionResult Update(Guid id)
 		{
 			var model = new VMPRD_ProductBasedPriceModel { id = id };
-			var data = model.Load();
-			return View(data);
+			//var data = model.Load();
+			return View(model);
 		}
 
 
