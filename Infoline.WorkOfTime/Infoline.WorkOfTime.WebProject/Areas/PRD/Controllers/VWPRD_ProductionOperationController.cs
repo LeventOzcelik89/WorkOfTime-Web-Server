@@ -105,18 +105,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost]
 		[PageInfo("Stok&Envanter İşlem Sil", SHRoles.Personel, SHRoles.UretimYonetici)]
-		public JsonResult Delete(Guid transactionId)
+		public JsonResult Delete(Guid transactionId, string status_Title)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
 			var dbresult = new ResultStatus { result = true };
 
-			dbresult &= new VMPRD_ProductionTransactionModel { id = transactionId }.Delete(userStatus);
+			dbresult &= new VMPRD_ProductionTransactionModel { id = transactionId }.Delete(userStatus, status_Title);
 
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Warning(dbresult.message)
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
 			};
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}

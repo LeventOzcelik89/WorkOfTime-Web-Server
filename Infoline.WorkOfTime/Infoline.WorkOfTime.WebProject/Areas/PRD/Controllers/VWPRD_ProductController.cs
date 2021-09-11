@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductController : Controller
     {
-        [PageInfo("Ürün&Hizmet Listesi", SHRoles.StokYoneticisi)]
+        [PageInfo("Ürün&Hizmet Listesi", SHRoles.StokYoneticisi,SHRoles.UretimYonetici)]
         public ActionResult Index()
         {
             return View();
@@ -53,7 +53,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return db.GetVWPRD_ProductCount(condition.Filter);
         }
 
-        [PageInfo("Ürün Tanımları Detayı", SHRoles.StokYoneticisi)]
+        [PageInfo("Ürün Tanımları Detayı", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
         public ActionResult Detail(VMPRD_ProductModel item)
         {
             var data = item.Load();

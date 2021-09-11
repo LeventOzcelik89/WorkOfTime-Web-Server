@@ -584,30 +584,41 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							var insertProductionProduct = new List<PRD_ProductionProduct>();
 							var newInsertProductionProduct = new List<PRD_ProductionProduct>();
 
-							foreach (var transactionItem in this.items)
-							{
-								if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
-								{
-									var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
-									//production.quantity = transactionItem.quantity;
-									production.price = transactionItem.unitPrice;
-									production.serialCodes = transactionItem.serialCodes;
+							var transactionGroups = this.items.GroupBy(x => x.productId).ToList();
 
-									insertProductionProduct.Add(production);
-								}
-								else
+							foreach (var transactionItems in transactionGroups)
+							{
+
+								foreach (var transactionItem in transactionItems)
 								{
-									newInsertProductionProduct.Add(new PRD_ProductionProduct
+									if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
 									{
-										id = Guid.NewGuid(),
-										materialId = transactionItem.productId,
-										price = transactionItem.unitPrice,
-										quantity = 0,
-										productionId = this.productionId.Value,
-										amountSpent = transactionItem.quantity,
-										totalQuantity = 0,
-										type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
-									});
+										var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+										production.price = transactionItem.unitPrice;
+										production.serialCodes = transactionItem.serialCodes;
+
+										insertProductionProduct.Add(production);
+									}
+									else
+									{
+										if (newInsertProductionProduct.Where(x=>x.materialId == transactionItem.productId).Count() > 0)
+										{
+											continue;
+										}
+
+										newInsertProductionProduct.Add(new PRD_ProductionProduct
+										{
+											id = Guid.NewGuid(),
+											materialId = items.Where(a => a.productId == transactionItem.productId).Select(a => a.productId).FirstOrDefault(),
+											price = items.Where(a => a.productId == transactionItem.productId).Select(a => a.unitPrice).FirstOrDefault(),
+											quantity = 0,
+											productionId = this.productionId.Value,
+											amountSpent = items.Where(a => a.productId == transactionItem.productId).Select(a => a.quantity).Sum(),
+											totalQuantity = 0,
+											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
+										});
+
+									}
 								}
 							}
 
@@ -701,7 +712,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return DBResult;
 		}
 
-		public ResultStatus Delete(PageSecurity userStatus, DbTransaction _trans = null)
+		public ResultStatus Delete(PageSecurity userStatus, string status_Title, DbTransaction _trans = null)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetPRD_TransactionById(this.id);
@@ -777,18 +788,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (rs.result == true)
 				{
 					if (_trans == null) trans.Commit();
-					return new ResultStatus { message = "İşlem başarıyla silindi.", result = true, };
+					return new ResultStatus { message = status_Title + " operasyonu başarıyla silindi.", result = true, };
 				}
 				else
 				{
 					if (_trans == null) trans.Rollback();
-					return new ResultStatus { message = "İşlem silinirken sorunlar oluştu.", result = false, };
+					return new ResultStatus { message = status_Title + " operasyonu silinirken sorunlar oluştu.", result = false, };
 				}
 
 			}
 			else
 			{
-				return new ResultStatus { message = "İşlem kaydı bulunamadı.", result = false, };
+				return new ResultStatus { message = "Operasyon kaydı bulunamadı.", result = false, };
 			}
 		}
 
