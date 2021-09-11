@@ -43,7 +43,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.B_EntityDataCopyForMaterial(production, true);
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
-				productionProducts = db.GetVWPRD_ProductionProductByProductId(this.id).ToList();
+				productionProducts = db.GetVWPRD_ProductionProductByProductId(this.id).ToList().OrderBy(x=>x.type == (int)EnumPRD_ProductionProductsType.SonradanEklenen).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
 				assignableUsers = productionUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
