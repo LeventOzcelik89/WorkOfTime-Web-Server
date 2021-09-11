@@ -195,9 +195,9 @@ namespace System.Web.Mvc
             var crm = new Menu("CRM - Müşteri İlişkileri", "#", "fa fa-dollar");
 
             crm.AddChild(new Menu("Potansiyel Fırsatlar", "/CRM/VWCRM_Presentation/Index"));
-            crm.AddChild(new Menu("Satış Personeli Toplantı Takvimi", "/CRM/VWCRM_Contact/ContactCalendar"));
             crm.AddChild(new Menu("Aktivite ve Randevular", "/CRM/VWCRM_Contact/Index"));
-            crm.AddChild(new Menu("Satış ve Müşteri Raporu", "/CRM/VWCRM_Presentation/SalesReport"));
+            crm.AddChild(new Menu("Toplantı Raporu", "/CRM/VWCRM_Contact/ContactCalendar"));
+            crm.AddChild(new Menu("Satış Raporu", "/CRM/VWCRM_Presentation/SalesReport"));
 
 
             var musteriler = new Menu("Müşteriler");
@@ -299,7 +299,7 @@ namespace System.Web.Mvc
 
         private Menu GetStokSevkiyat()
         {
-            var menu = new Menu("Depo ve Stok", "#", "fa fa-qrcode");
+            var menu = new Menu("Depo ve Stok", "#", "fa fa-cubes");
             menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
@@ -316,7 +316,7 @@ namespace System.Web.Mvc
 
         private Menu GetProduction()
         {
-            var menu = new Menu("Üretim", "#", "fa fa-cubes");
+            var menu = new Menu("Üretim", "#", "fa fa-qrcode");
             menu.AddChild(new Menu("Üretim", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
