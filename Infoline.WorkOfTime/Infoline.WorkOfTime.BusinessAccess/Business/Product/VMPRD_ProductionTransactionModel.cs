@@ -28,6 +28,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string productId_Title { get; set; }
 		public double? quantity { get; set; }
 		public double? totalQuantity { get; set; }
+		public bool isExpense { get; set; }
 
 		public VMPRD_ProductionTransactionModel Load()
 		{
@@ -50,6 +51,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.date = this.date ?? DateTime.Now;
 				this.type_Title = this.type != null ? ((EnumPRD_TransactionType)this.type).B_ToDescription() : "";
 				this.status_Title = this.status != null ? ((EnumPRD_TransactionStatus)this.status).B_ToDescription() : "";
+
+				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				{
+					if (this.productionId.HasValue)
+					{
+						var operation = db.GetVWPRD_ProductionOperationByProductionId(this.productionId.Value);
+
+						if (operation != null && operation.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi).Count() > 0)
+						{
+							isExpense = true;
+						}
+					}
+				}
+
 				//Sipariş altından irsaliye
 				if (this.orderId.HasValue)
 				{
@@ -468,9 +483,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var PRDTransactionItems = new List<PRD_TransactionItem>();
 			var PRDInventories = new List<PRD_Inventory>();
 			var PRDInventoryActions = new List<PRD_InventoryAction>();
-
-
-
 
 			for (int i = 0; i < this.items.Count(); i++)
 			{
