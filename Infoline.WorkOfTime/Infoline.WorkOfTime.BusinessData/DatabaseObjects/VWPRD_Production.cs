@@ -26,6 +26,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string productId_Title { get; set;}
         public string centerStorageId_Title { get; set;}
         public double? producedQuantity { get; set;}
+        public string assignableUserTitles { get; set;}
         public string assignableUserIds { get; set;}
         public string lastProductionStage_Title { get; set;}
         public string lastOperationStatus_Title { get; set;}
