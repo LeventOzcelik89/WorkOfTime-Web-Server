@@ -308,7 +308,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			BEXP filter = null;
 
-			if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)))
+			if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)) && !userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
 			{
 				filter |= new BEXP
 				{
@@ -319,7 +319,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 
 			query.Filter &= filter;
-
 			return query;
 
 		}

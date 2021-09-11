@@ -799,7 +799,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var type = (EnumPRD_TransactionType)this.type;
 			var serialCodes = (item.serialCodes ?? "").Split(',');
 
-			if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
+			if (serialCodes.Count(a => a != "" && a != null) != item.quantity && this.type != (int)EnumPRD_TransactionType.UretimBildirimi)
 			{
 				errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
 			}

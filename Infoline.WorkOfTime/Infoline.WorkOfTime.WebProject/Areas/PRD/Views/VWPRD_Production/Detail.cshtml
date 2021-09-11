@@ -52,11 +52,11 @@
 		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
-				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#=quantity ?? 0# Adet" },
-				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#=totalQuantity ?? 0# Adet"},
+				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#:kendo.toString(quantity ?? 0,'N0')# Adet" },
+				{ field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#:kendo.toString(totalQuantity ?? 0,'N0')# Adet"},
 				{
 					field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}', width: 200,
-					template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 Adet</small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#=amountSpent ?? 0# Adet</small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#=amountSpent ?? 0# Adet</small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#=amountSpent ?? 0# Adet</small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 Adet</small>#}#"
+					template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 Adet</small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#:kendo.toString(amountSpent ?? 0,'N0')# Adet</small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#:kendo.toString(amountSpent ?? 0,'N0')# Adet</small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#:kendo.toString(amountSpent ?? 0,'N0')# Adet</small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 Adet</small>#}#"
 				},
 
 			];
@@ -92,7 +92,7 @@
 
 			var cols = [
 				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
-				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# Adet" },
 				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
 
 
@@ -130,7 +130,7 @@
 
 			var cols = [
 				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
-				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#=quantity# Adet" },
+				{ field: 'quantity', title: 'Ürün Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# Adet" },
 				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
 			];
 
@@ -261,7 +261,7 @@
 						<div class="tab-pane active" id="kullanilanUrunler">
 							<div class="ibox">
 								<div class="ibox-title">
-									<h5>Kullanılan Ürünler</h5>
+									<h5>@Model.productId_Title Reçetesi</h5>
 								</div>
 								<div class="ibox-content clearfix">
 									<div id="productProductsGrid"></div>
@@ -311,7 +311,7 @@
 									<li>
 										<span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
 										<small class="label label-primary"> Bildirim Yapıldı</small>
-										<small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count()</small>
+										<small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0")</small>
 									</li>
 									productionStageCount++;
 								}
@@ -330,7 +330,7 @@
 							{
 								<li>
 									<span class="m-l-xs"><b>TOPLAM BİLDİRİM</b></span>
-									<small class="label label-primary" style="float:right"> @productionStageCount</small>
+									<small class="label label-primary" style="float:right"> @productionStageCount.ToString("N0")</small>
 								</li>
 							}
 						</ul>
@@ -431,7 +431,7 @@
 
 			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0 || Model.lastOperationStatus == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
 			{
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-location-arrow"></i> </a>
+				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-play"></i> </a>
 			}
 
 			if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
@@ -450,7 +450,7 @@
 																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-cubes"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Geçişi Yap" class="fa fa-retweet"></i></a>
 				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("FinishedProductNotification", "VWPRD_Production", new { area = "PRD",
+				<a data-task="Insert" style="background:#25c32d" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("FinishedProductNotification", "VWPRD_Production", new { area = "PRD",
 																									   productionId = Model.id,
 																									   inputId = Model.centerStorageId,
 																									   inputTable= "CMP_Storage",
@@ -462,7 +462,7 @@
 																									   status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
 																									   companyId = Model.centerCompanyId
 																								   })"><i data-toggle="tooltip" title="Biten Ürün Bildir" class="fa fa-dropbox"></i></a>
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+				<a data-task="Insert" style="background:#dc1212" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
 																									   productionId = Model.id,
 																									   outputId = Model.centerStorageId,
 																									   outputTable= "CMP_Storage",
