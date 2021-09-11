@@ -30,18 +30,19 @@ namespace System.Web.Mvc
                 else
                 {
                     _root.Add(GetHomePage());
+                    _root.Add(MyJobs());
                     _root.Add(GetOfisYonetimi());
                     _root.Add(GetIK(userStatus));
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
                     _root.Add(GetStokSevkiyat());
+                    _root.Add(GetProduction());
                     _root.Add(GetProje());
                     if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
                     {
                         _root.Add(GetGorevYonetimi());
                     }
-                    //_root.Add(GetCustomerInventories());
                     _root.Add(GetIsletmeCariler());
                     _root.Add(GetMuhasabeYonetimi());
                     _root.Add(GetYardimDestekYonetimi());
@@ -90,19 +91,34 @@ namespace System.Web.Mvc
             return mypage;
         }
 
+        private Menu MyJobs()
+        {
+            var menu = new Menu("Benim İşlemlerim", "#", "fa fa-user");
+            menu.AddChild(new Menu("Bilgilerim", "/Account/Profile"));
+            menu.AddChild(new Menu("İzinlerim", "/INV/VWINV_Permit/MyIndex"));
+            menu.AddChild(new Menu("İzin Onaylar", "/INV/VWINV_Permit/MyAboutIndex"));
+            menu.AddChild(new Menu("Masraflarım", "/PA/VWPA_Transaction/IndexMyRequest"));
+            menu.AddChild(new Menu("Masraf Onaylar", "/PA/VWPA_Transaction/IndexRequest"));
+            menu.AddChild(new Menu("Avanslarım", "/PA/VWPA_Advance/IndexMyRequest"));
+            menu.AddChild(new Menu("Avans Onaylar", "/PA/VWPA_Advance/IndexRequest"));
+            menu.AddChild(new Menu("Seyahat/Görevlendirmelerim", "/INV/VWINV_Commissions/MyIndex"));
+            menu.AddChild(new Menu("Seyahat/Görevlendirme Onaylar", "/INV/VWINV_Commissions/MyAboutIndex"));
+            menu.AddChild(new Menu("Değerlendirmelerim", "/PDS/VWPDS_FormPermitTaskUser"));
+            menu.AddChild(new Menu("Yeni Personel Değerledir", "/INV/VWINV_CompanyPersonAssessment"));
+            menu.AddChild(new Menu("Araç Kilometre Bilgilerim", "/CMP/VWCMP_CompanyCarKilometer/Index"));
+            return menu;
+        }
+
         private Menu GetOfisYonetimi()
         {
-            var menu = new Menu("Ofis Yönetimi", "#", "fa fa-th-large");
-            //menu.AddChild(new Menu("Benim Takvimim", "/INV/VWINV_CompanyPersonCalendar/MyCalendar"));
-            menu.AddChild(new Menu("Benim Bilgilerim", "/Account/Profile"));
-            menu.AddChild(new Menu("Takvim", "/INV/VWINV_CompanyPersonCalendar/Calendar"));
+            var menu = new Menu("Ofis Yönetimi", "#", "fa fa-building-o");
+            menu.AddChild(new Menu("Takvim / Gündem", "/INV/VWINV_CompanyPersonCalendar/Calendar"));
             menu.AddChild(new Menu("Şirket Rehberi", "/SH/VWSH_User/ContactOffice"));
             menu.AddChild(new Menu("Şirket Kütüphanesi", "/CMP/VWCMP_Company/PersonnelRegulationDocument"));
             menu.AddChild(new Menu("Şirket Organizasyon", "/INV/VWINV_CompanyDepartments/Preview"));
             menu.AddChild(new Menu("Şirket Portalı", "#"));
             menu.AddChild(new Menu("Şirket Bilgileri", "/CMP/VWCMP_Company/IndexMy"));
             menu.AddChild(new Menu("Şirket Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/IndexMy"));
-            menu.AddChild(new Menu("Araç Kilometre Bilgilerim", "/CMP/VWCMP_CompanyCarKilometer/Index"));
             var dokuman = new Menu("Doküman Yönetimi");
             dokuman.AddChild(new Menu("Dokümanlar", "/DOC/VWDOC_Document/Index"));
             dokuman.AddChild(new Menu("Tüm Revizyon Talepleri", "/DOC/VWDOC_DocumentRevisionRequest/Index"));
@@ -137,8 +153,6 @@ namespace System.Web.Mvc
             izinislemleri.AddChild(new Menu("Tüm İzinler", "/INV/VWINV_Permit/Index"));
             izinislemleri.AddChild(new Menu("İzin Raporları", "/INV/VWINV_Permit/Dashboard"));
             izinislemleri.AddChild(new Menu("Yıl Bazlı Personel İzin Raporları", "/INV/VWINV_Permit/YearlyStaffReport"));
-            izinislemleri.AddChild(new Menu("İzin Taleplerim", "/INV/VWINV_Permit/MyIndex"));
-            izinislemleri.AddChild(new Menu("İzin Talepleri (Onay)", "/INV/VWINV_Permit/MyAboutIndex"));
             izinislemleri.AddChild(new Menu("İzin Tipi Tanımları", "/INV/INV_PermitType/Index"));
             izinislemleri.AddChild(new Menu("Resmi İzin Tanımları", "/INV/VWINV_PermitOffical/Index"));
             ik.AddChild(izinislemleri);
@@ -146,8 +160,7 @@ namespace System.Web.Mvc
             var görevlendirme = new Menu("Görevlendirme İşlemleri");
             görevlendirme.AddChild(new Menu("Tüm Görevlendirmeler", "/INV/VWINV_Commissions/Index"));
             görevlendirme.AddChild(new Menu("Görevlendirme Raporları", "/INV/VWINV_Commissions/Dashboard"));
-            görevlendirme.AddChild(new Menu("Görevlendirme Taleplerim", "/INV/VWINV_Commissions/MyIndex"));
-            görevlendirme.AddChild(new Menu("Görevlendirme Talepleri (Onay)", "/INV/VWINV_Commissions/MyAboutIndex"));
+          
             ik.AddChild(görevlendirme);
 
             var maas = new Menu("Maaş İşlemleri");
@@ -156,28 +169,15 @@ namespace System.Web.Mvc
             maas.AddChild(new Menu("Maaş Geçmişim", "#"));
             ik.AddChild(maas);
 
-
-            var harcirah = new Menu("Harcırah İşlemleri");
-            harcirah.AddChild(new Menu("Tüm Harcırahlar"));
-            harcirah.AddChild(new Menu("Harcırah Talepleri"));
-            harcirah.AddChild(new Menu("Harcırah Taleplerim"));
-            ik.AddChild(harcirah);
-
             var masraf = new Menu("Masraf İşlemleri");
             masraf.AddChild(new Menu("Tüm Masraf Talepleri", "/PA/VWPA_Transaction/IndexAllRequest"));
-            masraf.AddChild(new Menu("Masraf Taleplerim", "/PA/VWPA_Transaction/IndexMyRequest"));
-            masraf.AddChild(new Menu("Masraf Talepleri (Onay)", "/PA/VWPA_Transaction/IndexRequest"));
             ik.AddChild(masraf);
 
             var avans = new Menu("Avans İşlemleri");
             avans.AddChild(new Menu("Tüm Avanslar", "/PA/VWPA_Advance/IndexAllRequest"));
-            avans.AddChild(new Menu("Avans Taleplerim", "/PA/VWPA_Advance/IndexMyRequest"));
-            avans.AddChild(new Menu("Avans Talepleri (Onay)", "/PA/VWPA_Advance/IndexRequest"));
             ik.AddChild(avans);
 
             var degerlendirme = new Menu("Performans 360");
-            degerlendirme.AddChild(new Menu("İşe Giren Personel Değerlendirmeleri", "/INV/VWINV_CompanyPersonAssessment"));
-            degerlendirme.AddChild(new Menu("Değerlendirmelerim", "/PDS/VWPDS_FormPermitTaskUser"));
             degerlendirme.AddChild(new Menu("Tüm Değerlendirmeler", "/PDS/VWPDS_FormResult/AllIndex"));
             degerlendirme.AddChild(new Menu("Değerlendirme Formları", "/PDS/VWPDS_EvaluateForm"));
             ik.AddChild(degerlendirme);
@@ -276,17 +276,8 @@ namespace System.Web.Mvc
             gorevRaporlari.AddChild(new Menu("Personel Raporu", "/FTM/VWFTM_Task/StaffReport"));
             sahayonetimi.AddChild(gorevRaporlari);
 
-
             return sahayonetimi;
         }
-
-        //private Menu GetCustomerInventories()
-        //{
-        //	var menu = new Menu("Arıza/Bakım Yönetimi", "#", "fa fa-wrench");
-        //	menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/IndexCustomer"));
-        //	menu.AddChild(new Menu("Geçmiş Arıza Bakımlar", "/FTM/VWFTM_Task/IndexCustomer"));
-        //	return menu;
-        //}
 
         private Menu GetSatinAlma()
         {
@@ -308,22 +299,26 @@ namespace System.Web.Mvc
 
         private Menu GetStokSevkiyat()
         {
-            var menu = new Menu("Ürün&Stok Yönetimi", "#", "fa fa-cubes");
-            menu.AddChild(new Menu("Ürün&Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
+            var menu = new Menu("Depo ve Stok", "#", "fa fa-qrcode");
+            menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
-            menu.AddChild(new Menu("Şirket Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/IndexMy"));
-            menu.AddChild(new Menu("Firma&Cari Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/Index"));
-            if (TenantConfig.Tenant.TenantCode == 1100 || TenantConfig.Tenant.TenantCode == 1130)
-            {
-                menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
-            }
-            menu.AddChild(new Menu("Araç Listesi", "/CMP/VWCMP_CompanyCars/Index"));
+            menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
-            menu.AddChild(new Menu("Üretim", "/PRD/VWPRD_Production/Index"));
+            menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
+            menu.AddChild(new Menu("Cari Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/Index"));
+            menu.AddChild(new Menu("Araç Listesi", "/CMP/VWCMP_CompanyCars/Index"));
 
+            return menu;
+        }
+
+        private Menu GetProduction()
+        {
+            var menu = new Menu("Üretim", "#", "fa fa-cubes");
+            menu.AddChild(new Menu("Üretim", "/PRD/VWPRD_Production/Index"));
+            menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
         }
 
@@ -333,7 +328,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Firma&Cari Listesi", "/CMP/VWCMP_Company/Index"));
             menu.AddChild(new Menu("Firma&Cari Şube/Depo/Kısımları", "/CMP/VWCMP_Storage/Index"));
             menu.AddChild(new Menu("Şube/Depo/Kısım Haritası", "/CMP/VWCMP_Storage/Map"));
-            menu.AddChild(new Menu("Rehber", "/SH/VWSH_User/ContactCustomerPersons"));
+            menu.AddChild(new Menu("Müşteri Rehberi", "/SH/VWSH_User/ContactCustomerPersons"));
             return menu;
         }
 
