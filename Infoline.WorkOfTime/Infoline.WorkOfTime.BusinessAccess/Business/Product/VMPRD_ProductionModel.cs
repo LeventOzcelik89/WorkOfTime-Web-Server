@@ -221,7 +221,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					createdby = userId,
 					created = DateTime.Now,
 					productionId = this.id,
-					status = (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					status = (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi,
 					description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcılarına atama yapıldı."
 				});
 
