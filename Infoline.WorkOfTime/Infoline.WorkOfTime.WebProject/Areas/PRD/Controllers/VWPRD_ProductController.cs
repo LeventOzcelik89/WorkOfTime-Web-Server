@@ -45,6 +45,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [PageInfo("Ürün Tanımları Dropdown Metodu", SHRoles.Personel)]
+        public ContentResult DataSourceDropDownForInventory([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var db = new WorkOfTimeDatabase();
+            var data = new VWPRD_Product[0];
+            var inventory = db.GetVWPRD_Inventory(condition);
+			if (inventory.Count() > 0)
+			{
+                data = db.GetVWPRD_ProductByIds(inventory.Where(x=>x.productId.HasValue).Select(x => x.productId.Value).ToArray());
+			}
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
+
         [PageInfo("Ürün Tanımları Adet Metodu", SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
         public int DataSourceCount([DataSourceRequest]DataSourceRequest request)
         {
