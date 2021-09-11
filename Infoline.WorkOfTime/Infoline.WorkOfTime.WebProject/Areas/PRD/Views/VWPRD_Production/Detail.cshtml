@@ -48,7 +48,8 @@
 		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
 	}
 
-	$(document).on("ready", function () {
+	$(document)
+		.on("ready", function () {
 		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
@@ -166,7 +167,13 @@
 			});
 
 		})
-	})
+		})
+		.on('success', '#VWPRD_ProductionUpsertForm', function (e, i) {
+			window.location.reload(1);
+		})
+		.on('success', '#VWPRD_ProductionUpsertOperationForm', function (e, i) {
+			window.location.reload(1);
+		})
 
 	
 
@@ -489,7 +496,7 @@
 
 			if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))))
 			{
-				<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>
+				<a data-task="Insert" data-method="GET" style="background:#89b743" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>
 				@*<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi })"><i data-toggle="tooltip" title="Üretimi İptal Et" class="fa fa-times"></i> </a>*@
 			}
 		}
