@@ -169,7 +169,6 @@
 
             },
             addRow: function (data) {
-                debugger;
                 if (page.events.ValidateRows() == false) {
                     return false;
                 }
@@ -190,7 +189,6 @@
                     .attr('name', 'items[' + page.Counter + '].quantity')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
 
-                debugger;
                 temp.find('[data-item="serialCodes"]')
                     .attr('name', 'items[' + page.Counter + '].serialCodes')
                     .attr('value', data != undefined ? data.serialCodes : '')
@@ -205,7 +203,7 @@
 							"dataBound": page.events.productChange,
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
-                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
+								"transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDownForInventory" } },
                                 "pageSize": 100,
                                 "page": 1,
                                 "total": 0,
@@ -216,6 +214,8 @@
                                     { "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
                                     { "field": "fullName", "dir": "asc" },
                                 ],
+								"filter": [{ "field": "lastActionDataId", "operator": "eq", "value": '@Model.outputId' }]
+
                             },
                             "dataTextField": "fullName",
                             "delay": 1000,
@@ -278,7 +278,6 @@
 
                         }
 
-                        debugger;
                         var whitelist = $.ajax({
                             url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
 							data: { productId: data.id, lastActionDataId: page.Model.outputId, lastActionDataCompanyId: page.Model.outputCompanyId },
@@ -338,7 +337,6 @@
                     var product = $(this).data("kendoDropDownList");
                     product.enable(true);
                     product.one("dataBound", function (e) {
-                        debugger;
                         product.trigger("change");
                         if (page.status == 1) {
                             product.readonly(true);
@@ -522,7 +520,7 @@
 		<div class="col-md-12">
 			<div class="alert alert-warning text-center">
 				<b>KEREM MERKEZ (20210910916678) | Ana Şube/Depo/Kısım</b>
-				<br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için harcama bildirimi yapamazsınız.
+				<br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için @Model.type_Title yapamazsınız.
 			</div>
 
 		</div>

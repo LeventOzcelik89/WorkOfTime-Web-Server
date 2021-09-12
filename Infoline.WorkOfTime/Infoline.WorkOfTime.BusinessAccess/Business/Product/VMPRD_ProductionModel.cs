@@ -43,7 +43,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.B_EntityDataCopyForMaterial(production, true);
 				productionUsers = db.GetVWPRD_ProductionUserByProductionId(this.id).ToList();
-				productionProducts = db.GetVWPRD_ProductionProductByProductId(this.id).ToList().OrderBy(x=>x.type == (int)EnumPRD_ProductionProductsType.SonradanEklenen).ToList();
+				productionProducts = db.GetVWPRD_ProductionProductByProductId(this.id).ToList().OrderBy(x => x.type == (int)EnumPRD_ProductionProductsType.SonradanEklenen).ToList();
 				productionOperations = db.GetVWPRD_ProductionOperationByProductionId(this.id).ToList();
 				productionStages = db.GetVWPRD_ProductionStagesByProductionId(this.id).ToList();
 				assignableUsers = productionUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
@@ -200,6 +200,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var currentUserDatas = db.GetPRD_ProductionUsersByProductionId(this.id);
 			var deletedUsers = currentUserDatas.Where(a => !this.assignableUsers.Contains(a.userId.Value));
 			var newInsertUsers = this.assignableUsers.Where(a => !currentUserDatas.Select(c => c.userId).Contains(a)).ToArray();
+			var productionProducts = db.GetPRD_ProductionProductByProductionId(this.id);
+			if (productionProducts.Count() > 0)
+			{
+				rs &= db.BulkDeletePRD_ProductionProduct(productionProducts);
+			}
 
 			if (newInsertUsers.Count() > 0)
 			{
@@ -216,7 +221,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					createdby = userId,
 					created = DateTime.Now,
 					productionId = this.id,
-					status = (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					status = (int)EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi,
 					description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcılarına atama yapıldı."
 				});
 
@@ -229,12 +234,38 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}).ToList();
 			}
 
+
+			if (!string.IsNullOrEmpty(this.materialString))
+			{
+				var materials = Infoline.Helper.Json.Deserialize<List<VWPRD_ProductMateriel>>(this.materialString);
+				if (materials.Count() > 0)
+				{
+					var productionProductDatas = new List<PRD_ProductionProduct>();
+
+					productionProductDatas.AddRange(materials.Select(x => new PRD_ProductionProduct
+					{
+						id = Guid.NewGuid(),
+						createdby = userId,
+						productId = x.productId,
+						price = x.price,
+						materialId = x.materialId,
+						quantity = x.quantity,
+						productionId = this.id,
+						totalQuantity = x.totalQuantity,
+						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
+					}));
+
+					rs &= db.BulkInsertPRD_ProductionProduct(productionProductDatas);
+				}
+			}
+
+
 			rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(x => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(x, true)), trans);
 			rs &= db.BulkDeletePRD_ProductionUser(deletedUsers, trans);
 			rs &= db.BulkInsertPRD_ProductionUser(insertUsers, trans);
 
 			var production = new PRD_Production().B_EntityDataCopyForMaterial(this, true);
-			rs &= db.UpdatePRD_Production(production, true, transaction);
+			rs &= db.UpdatePRD_Production(production, false, transaction);
 
 			if (rs.result == true)
 			{
