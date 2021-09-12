@@ -310,8 +310,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			var rs = db.BulkDeletePRD_ProductionUser(_productionUsers, trans);
 			rs &= db.BulkDeletePRD_ProductionOperation(_productionOperations, trans);
-			rs &= db.BulkDeletePRD_ProductionStage(_productionStages);
-			rs &= db.BulkDeletePRD_ProductionProduct(_productionProduct);
+			rs &= db.BulkDeletePRD_ProductionStage(_productionStages,trans);
+			rs &= db.BulkDeletePRD_ProductionProduct(_productionProduct,trans);
 			rs &= db.DeletePRD_Production(production, trans);
 
 
