@@ -92,14 +92,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return View(data.Load()) ;
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public JsonResult Update(VMPRD_CompanyBasedPriceDetailModel item)
+        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
-            var userStatus = (PageSecurity)Session["userStatus"];
-            item.changedby = userStatus.user.id;
-            item.changed = DateTime.Now;
-            return Json(item.Save(), JsonRequestBehavior.AllowGet);
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var userStatus = (PageSecurity)Session["userStatus"];   
+            return Json(model.Save(), JsonRequestBehavior.AllowGet);
         }
         [AllowEveryone]
         public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
@@ -109,15 +108,52 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
           
         }
 
-      
-        [HttpPost]
+
+        [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public ActionResult DeleteInline(VMPRD_CompanyBasedPriceDetailModel item, [DataSourceRequest] DataSourceRequest request)
+        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item )
         {
-            var rs = item.Delete();
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.Delete();
             return Json(new[] { item }.ToDataSourceResult(request, ModelState));
         }
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public ActionResult UpdateInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        {
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.UpdateInline();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        {
+             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.InsertInline();
+            var feedback = new FeedBack();
+            if (rs.result==true)
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                 return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
 
+                return Json(result, JsonRequestBehavior.AllowGet);
+
+            }
+           
+        }
 
     }
 }
