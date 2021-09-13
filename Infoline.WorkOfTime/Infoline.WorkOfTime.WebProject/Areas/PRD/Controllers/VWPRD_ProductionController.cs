@@ -140,6 +140,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public ActionResult FinishedProductNotification(VMPRD_ProductionTransactionModel model, int? direction)
 		{
 			model.status = (int)EnumPRD_TransactionStatus.beklemede;
+			model.type =(int)EnumPRD_TransactionType.GelenIrsaliye;
 			var data = model.Load();
 
 			if (data.items.Count() == 1 && !data.items.Select(x => x.productId.HasValue).FirstOrDefault())
@@ -156,6 +157,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
+			item.type = (int)EnumPRD_TransactionType.UretimBildirimi;
+
 			var dbresult = item.Save(userStatus.user.id);
 
 			return Json(new ResultStatusUI

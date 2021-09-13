@@ -172,11 +172,11 @@
                     }
                     @if (Model.companyId == null)
                     {
-                        <input type="radio" class="bg-focus" name="isForAllCompany"  checked id="all_company_check_1" value="1">
+                        <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
                         <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
                             Tüm Şirketlere
                         </label>
-                        <input type="radio" name="isForAllCompany" id="all_company_check_0"  value="0">
+                        <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
                         <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
                             Seçili Şirkete
                         </label>
@@ -264,7 +264,6 @@
                 </div>
             </div>
         </div>
-
         <div class="form-group" id="priceorDiscountDiv" style="display:none">
             <div class="col-md-12">
                 <div class="radio akilliRadioGrup clearfix">
@@ -285,42 +284,46 @@
     <div class="form-group">
         <div class="col-sm-12">
             @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
-    .Name("VWPRD_CompanyBasedPriceDetail")
-    .Events(x => x.DataBound("onDataGridBound"))
+    .Name("VWPRD_CompanyBasedPriceDetail").Events(x=>x.DataBound("onDataGridBound"))
     .Columns(columns =>
     {
         columns.Bound(p => p.companyBasedPriceId).Hidden(true);
         columns.Bound(p => p.id).Hidden(true);
+        columns.Bound(p => p.companyId).Hidden(true);
+        columns.Bound(p => p.categoryId).Hidden(true);
+        columns.Bound(p => p.sellingType).Hidden(true);
+        columns.Bound(p => p.conditionType).Hidden(true);
+        columns.Bound(p => p.productId).Hidden(true);
         columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
         columns.Bound(p => p.endDate).Format("{0:dd/MM/yyyy}").Title("Bitiş Tarihi");
         columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
         columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
         columns.Bound(p => p.discount).Title("Iskonto Oranı");
         columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
-        columns.Command(command => { command.Destroy().Text("Sil"); });
+        columns.Command(command => { command.Destroy().Text("Sil");command.Edit().Text("Düzenle"); }).Width(250);
     })
-    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
-    .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Silmek İstediğinize Emin misiniz?").DisplayDeleteConfirmation("Silmek istediğinize emin misiniz?"))
+    .ToolBar(toolbar => toolbar.Create())
+    .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
     .Pageable()
     .Sortable()
-    .Filterable()
     .Scrollable()
     .HtmlAttributes(new { style = "height:550px;" })
     .DataSource(dataSource => dataSource
         .Ajax()
+        .Events(events=>events.Error("error_handler").RequestEnd("onPush"))
         .PageSize(20)
-        .Model(model => model.Id(p => p.companyBasedPriceId))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=Model.id }))
-        .Update(update => update.Action("EditingInline_Update", "Grid"))
-        .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
+        .Model(model => model.Id(p => p.id))
+        .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail"))
+        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
+        .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail"))
+        .Destroy(update => update.Action("DeleteInline", "VWPRD_CompanyBasedPriceDetail"))
     )
 )
-
         </div>
     </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+ 
     </div>
 
 }
@@ -349,12 +352,39 @@
         var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
         var griddata = grid.dataSource.data();
         if (griddata.length != 0) {
-            $("#options").attr("style","pointer-events:none;")
+            $("#options").attr("style", "pointer-events:none;")
         } else {
             $("#options").attr("style", "pointer-events:auto;")
         }
     }
 
+    function error_handler(e) {
+        if (e.errors) {
+            var message = "Errors:\n";
+            $.each(e.errors, function (key, value) {
+                if ('errors' in value) {
+                    $.each(value.errors, function () {
+                        message += this + "\n";
+                    });
+                }
+            });
+            alert(message);
+        }
+    }
+    function onPush(e) {
+        console.log(e);
+        if (e.response.Result != null || e.response.Result != undefined) {
+            if (e.response?.Result == false) {
+                e.preventDefault();
+                MesajWarning(e.response.FeedBack.title, e.response.FeedBack.message);
+            }
+            else {
+                MesajSuccess("Özel Fiyat Belirleme Kayıt Başarılı", "Kayıt Ekleme Başarılı");
+            }
+        }
+
+
+    }
 
 </script>
 
