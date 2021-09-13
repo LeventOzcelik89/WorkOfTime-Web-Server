@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceById(this.id);
+            var data = db.GetPRD_CompanyBasedPriceById(this.companyBasedPriceId);
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -185,6 +185,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 result = false,
                 message = "Daha önceden böyle bir kayıt girilmiştir"
             };
+        }
+        public ResultStatus Update(String id)
+        {
+            return null;
         }
         public ResultStatus Update()
         {
