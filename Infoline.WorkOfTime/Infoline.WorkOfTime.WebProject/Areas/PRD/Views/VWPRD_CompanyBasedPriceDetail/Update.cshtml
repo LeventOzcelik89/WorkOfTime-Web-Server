@@ -51,6 +51,13 @@
             $("#productDropDown").hide();
            
         }
+
+        if ('@Model.type==0') {
+            grid.showColumn('price');
+            grid.hideColumn('discount');
+        }
+
+
         if ('@Model.companyType'==0) {
             $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
            
@@ -182,7 +189,7 @@
         columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
         columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
         columns.Bound(p => p.discount).Title("Iskonto Oranı");
-        columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
+        columns.Bound(p => p.price).Title("Fiyat").Hidden(true).ClientTemplate("#=currencyFunction(data.price)#");
         columns.Command(command => { command.Destroy().Text("Sil");command.Edit().Text("Düzenle"); }).Width(250);
     })
     .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
@@ -265,7 +272,23 @@
 
 
     }
-
+    function currencyFunction(data) {
+        var dropdownlist = $("#productId").data("kendoDropDownList");
+        var selectedIndex = dropdownlist.select();
+        if (!data) {
+            return "-";
+        }
+        var currency_Symbol = "₺"
+        if (selectedIndex > 0) {
+            var selectedValue = dropdownlist.dataSource.data()[selectedIndex];
+            if (selectedValue != null) {
+                if (selectedValue.currentSellingCurrencyId_Title != null) {
+                    currency_Symbol = selectedValue.currentSellingCurrencyId_Title;
+                }
+            }
+        }
+        return kendo.toString(data, "N2") + " " + currency_Symbol;
+    }
 </script>
 
 
