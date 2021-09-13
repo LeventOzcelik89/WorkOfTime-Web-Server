@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Özel Fiyat Belirleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
+
 }
 <style>
 </style>
@@ -108,30 +109,7 @@
         <div class="form-group">
             <div class="col-md-5">
                 <div class="radio akilliRadioGrup clearfix">
-                    @if (Model.companyId != null)
-                    {
-                        <input type="radio" class="bg-focus" name="isForAllCompany" id="all_company_check_1" value="1">
-                        <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
-                            Tüm Şirketlere
-                        </label>
-                        <input type="radio" name="isForAllCompany" id="all_company_check_0" checked value="0">
-                        <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
-                            Seçili Şirkete
-                        </label>
-
-                    }
-                    @if (Model.companyId == null)
-                    {
-                        <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
-                        <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
-                            Tüm Şirketlere
-                        </label>
-                        <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
-                        <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
-                            Seçili Şirkete
-                        </label>
-                    }
-
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Readonly(true).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
                 </div>
             </div>
             <div class="col-md-7" id="companyDropDown">
@@ -144,26 +122,14 @@
                 .Sort(x => x.Add("name").Ascending())
                 .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
                 .Execute()
+                .Readonly(true)
                 )
             </div>
         </div>
 
         <div class="form-group">
             <div class="col-md-5">
-                <div class="radio akilliRadioGrup clearfix">
-                    <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
-                        Tüm Ürünlere
-                    </label>
-                    <input type="radio" name="target" id="all_categories" value="1">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(1)" class="radio-label" for="all_categories">
-                        Seçili Kategoriye
-                    </label>
-                    <input type="radio" name="target" id="spesific_product" value="0">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(0)" class="radio-label" for="spesific_product">
-                        Seçili Ürüne
-                    </label>
-                </div>
+                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Readonly(true).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
             </div>
 
             <div class="col-md-7" id="productDropDown">
@@ -177,7 +143,7 @@
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
             .Sort(x => x.Add("code").Ascending())
             .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
-
+            .Readonly(true)
             .Execute()
             )
             </div>
@@ -192,6 +158,7 @@
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
             .Sort(x => x.Add("fullname").Ascending())
             .Execute("id")
+            .Readonly(true)
         )
             </div>
 
@@ -200,7 +167,7 @@
         <div class="form-group">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Readonly(true).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
 
                 </div>
             </div>
@@ -209,7 +176,7 @@
         <div class="form-group">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Readonly(true).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
                 </div>
             </div>
         </div>
@@ -261,8 +228,8 @@
         .Ajax()
         .Events(events=>events.Error("error_handler").RequestEnd("onPush"))
         .PageSize(20)
-        .Model(model => model.Id(p => p.id))
-        .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail"))
+        .Model(model => model.Id(p => p.companyBasedPriceId))
+        .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail", new { CompanyBasedPriceId = Model.companyBasedPriceId }))
         .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
         .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail"))
         .Destroy(update => update.Action("DeleteInline", "VWPRD_CompanyBasedPriceDetail"))

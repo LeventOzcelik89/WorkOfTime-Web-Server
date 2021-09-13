@@ -148,7 +148,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                             {
                                 if (this.CheckDates(item))
                                 {
-                                    item.companyBasedPriceId = this.companyBasedPriceId;
+                                    item.companyBasedPriceId = this.id;
                                     dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
                                 }
                                 else
