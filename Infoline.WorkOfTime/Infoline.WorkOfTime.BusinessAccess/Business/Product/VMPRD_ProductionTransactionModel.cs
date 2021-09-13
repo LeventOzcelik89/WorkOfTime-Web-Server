@@ -52,7 +52,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.type_Title = this.type != null ? ((EnumPRD_TransactionType)this.type).B_ToDescription() : "";
 				this.status_Title = this.status != null ? ((EnumPRD_TransactionStatus)this.status).B_ToDescription() : "";
 
-				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
 					if (this.productionId.HasValue)
 					{
@@ -165,19 +165,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.printInfo.user = db.GetVWSH_UserById(this.inputId.Value);
 			}
 
-			if (this.items != null && this.items.Count() > 0)
-			{
-				var products = db.GetVWPRD_ProductByIds(this.items.GroupBy(a => a.productId).Where(a => a.Key != null).Select(a => a.Key.Value).ToArray());
-				foreach (var item in this.items)
-				{
-					item.productId_Title = products.Where(x => x.id == item.productId).Select(a => a.fullName).FirstOrDefault();
-					item.brand_Title = products.Where(x => x.id == item.productId).Select(a => a.brandId_Title).FirstOrDefault();
-					item.categoryId_Title = products.Where(x => x.id == item.productId).Select(a => a.categoryId_Title).FirstOrDefault();
-					item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
-					item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
-					item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
-				}
-			}
+			//if (this.items != null && this.items.Count() > 0)
+			//{
+			//	var products = db.GetVWPRD_ProductByIds(this.items.GroupBy(a => a.productId).Where(a => a.Key != null).Select(a => a.Key.Value).ToArray());
+			//	foreach (var item in this.items)
+			//	{
+			//		item.productId_Title = products.Where(x => x.id == item.productId).Select(a => a.fullName).FirstOrDefault();
+			//		item.brand_Title = products.Where(x => x.id == item.productId).Select(a => a.brandId_Title).FirstOrDefault();
+			//		item.categoryId_Title = products.Where(x => x.id == item.productId).Select(a => a.categoryId_Title).FirstOrDefault();
+			//		item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
+			//		item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
+			//		item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
+			//	}
+			//}
 
 
 
@@ -610,12 +610,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 										var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
 										production.price = transactionItem.unitPrice;
 										production.serialCodes = transactionItem.serialCodes;
+										production.transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi;
 
 										insertProductionProduct.Add(production);
 									}
 									else
 									{
-										if (newInsertProductionProduct.Where(x=>x.materialId == transactionItem.productId).Count() > 0)
+										if (newInsertProductionProduct.Where(x => x.materialId == transactionItem.productId).Count() > 0)
 										{
 											continue;
 										}
@@ -629,7 +630,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 											productionId = this.productionId.Value,
 											amountSpent = items.Where(a => a.productId == transactionItem.productId).Select(a => a.quantity).Sum(),
 											totalQuantity = 0,
-											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
+											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+											transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
 										});
 
 									}
