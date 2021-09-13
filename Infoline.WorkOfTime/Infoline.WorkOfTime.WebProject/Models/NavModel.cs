@@ -55,7 +55,6 @@ namespace System.Web.Mvc
           
         }
 
-
         private Menu GetExternalLinks()
         {
             var menu = new Menu("Dış Bağlantılar", "#", "fa fa-link");
@@ -128,11 +127,6 @@ namespace System.Web.Mvc
 
             return menu;
         }
-        //private Menu GetDokumanYonetimi()
-        //{
-           
-        //    return menu;
-        //}
 
         private Menu GetIK(PageSecurity userStatus)
         {
@@ -317,7 +311,7 @@ namespace System.Web.Mvc
 
         private Menu GetProduction()
         {
-            var menu = new Menu("Üretim", "#", "fa fa-qrcode");
+            var menu = new Menu("Üretim Yönetimi", "#", "fa fa-qrcode");
             menu.AddChild(new Menu("Üretimler", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
