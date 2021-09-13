@@ -1,4 +1,4 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail
+﻿@model Infoline.WorkOfTime.BusinessAccess.Business.Product.VMPRD_CompanyBasedPriceDetailModel
 @{
     ViewBag.Title = "Özel Fiyat Belirleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -10,30 +10,30 @@
     page = {
         defines: {
             isAllCompanies: 1,
-            productTarget: 2
+            productTarget: 2,
+            disabledInput: 0,
+            isThereRecord : 0
         },
         functions: {
             changeForAllCompanies: function (i) {
                 if (i == 1 && page.defines.isAllCompanies != 1) {
-                    $("#companyId").data("kendoDropDownList").value("");
+                    $("#companyId").data("kendoDropDownList").value(-1);
                     $("#companyId").data("kendoDropDownList").readonly()
                     page.defines.isAllCompanies = 1;
                     $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
                     $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-
                 } else if (i == 0 && page.defines.isAllCompanies != 0) {
                     $("#companyId").data("kendoDropDownList")?.readonly(false);
                     page.defines.isAllCompanies = 0;
                     $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
                     $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
-
                 }
             },
             changeProductTarget: function (i) {
-                var grid = $("#grid").data("kendoGrid");
+                var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                 if (i == 2 && page.defines.productTarget != 2) {
-                    $("#productId").data("kendoDropDownList").value("");
-                    $("#categoryId").data("kendoDropDownList").value("");
+                    $("#productId").data("kendoDropDownList").value(-1);
+                    $("#categoryId").data("kendoDropDownList").value(-1);
                     $("#productId").data("kendoDropDownList").readonly()
                     $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
                     $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
@@ -44,7 +44,7 @@
                     grid.showColumn("discount");
                     page.defines.productTarget = 2;
                 } else if (i == 1 && page.defines.productTarget != 1) {
-                    $("#productId").data("kendoDropDownList").value("");
+                    $("#productId").data("kendoDropDownList").value(-1);
                     $("#categoryDropDown").removeAttr("style");
                     $("#productDropDown").attr("style", "display:none;");
                     page.defines.productTarget = 1;
@@ -52,8 +52,8 @@
                     grid.hideColumn("price");
                     grid.showColumn("discount");
                 } else if (i == 0 && page.defines.productTarget != 0) {
-                    $("#productId").data("kendoDropDownList").value("");
-                    $("#categoryId").data("kendoDropDownList").value("");
+                    $("#productId").data("kendoDropDownList").value(-1);
+                    $("#categoryId").data("kendoDropDownList").value(-1);
                     $("#productDropDown").find(".k-input").text("Seçili Ürünlere Uygula");
                     $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
                     $("#productDropDown").removeAttr("style");
@@ -61,6 +61,8 @@
                     $("#productId").data("kendoDropDownList").readonly(false);
                     page.defines.productTarget = 0;
                     $("#priceorDiscountDiv").show();
+                    $("#priceDiscount0").prop("checked", true);
+                    $("#priceDiscount1").prop("checked", false);
                     grid.showColumn("price");
                     grid.hideColumn("discount");
                 }
@@ -77,7 +79,7 @@
                 $(document).on("change", "[name='sellingType']", function () {
                     debugger;
                     let value = $("[name='sellingType']:checked").val();
-                    var grid = $("#grid").data("kendoGrid");
+                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                     if (value == 0 || value == 1) {
                         grid.hideColumn("monthCount");
                     }
@@ -94,28 +96,27 @@
             },
             setconditionTypeCheckbox: function () {
                 $(document).on("change", "[name='conditionType']", function () {
+                    debugger;
                     let value = $("[name='conditionType']:checked").val();
+                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                     if (value == 0) {
-                        $("#minConditionDiv").hide();
-
+                        grid.hideColumn("minCondition");
                     }
                     else {
-                        $("#minConditionDiv").show();
                         if (value == 1) {
-                            $("#minCondition").attr("placeholder", "Lütfen minimum satış fiyatını sayısını giriniz");
-                            $("#minConLabel").text("Minimum Satış Miktarı")
+                            $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
                         }
                         if (value == 2) {
-                            $("#minCondition").attr("placeholder", "Lütfen minimum adet sayısını giriniz");
-                            $("#minConLabel").text("Minimum Adet Sayısı")
+                            $("[data-field='minCondition']").find("a").last().text("Minimum Birim")
                         }
+                        grid.showColumn("minCondition");
                     }
                 });
             },
             setGridDiscountOrPrice() {
                 $(document).on("change", "[name='isPrice']", function () {
                     let value = $("[name='isPrice']:checked").val();
-                    var grid = $("#grid").data("kendoGrid");
+                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                     if (value == 0) {
                         grid.hideColumn("discount");
                         grid.showColumn("price");
@@ -124,23 +125,18 @@
                         grid.hideColumn("price");
                         grid.showColumn("discount");
                     }
-
-
                 });
             },
             onChangeProduct(e) {
                 var value = this;
-                var grid = $("#grid").data("kendoGrid");
+                var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                 var dataitem = value.dataItem();
                 var price = dataitem.currentSellingPrice;
                 $("#basePrice").val(price);
-                
             }
         }
     }
-
 </script>
-
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "id", "form" },
@@ -153,23 +149,22 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
-
-
-    <div class="form-group">
-        <div class="col-md-5">
-            <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
-                <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
-                    Tüm Şirketlere
-                </label>
-                <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
-                <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
-                    Seçili Şirkete
-                </label>
+    <div id="options">
+        <div class="form-group" id="companyOptions">
+            <div class="col-md-5">
+                <div class="radio akilliRadioGrup clearfix">
+                    <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
+                    <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
+                        Tüm Şirketlere
+                    </label>
+                    <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
+                    <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
+                        Seçili Şirkete
+                    </label>
+                </div>
             </div>
-        </div>
-        <div class="col-md-7" id="companyDropDown">
-            @(Html.Akilli()
+            <div class="col-md-7" id="companyDropDown">
+                @(Html.Akilli()
                 .DropDownListFor(model => model.companyId)
                 .OptionLabel("Lütfen Şirket Seçiniz..")
                 .DataTextField("name")
@@ -180,29 +175,28 @@
                 .Readonly(true)
                 .Execute()
                 )
-        </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-5">
-            <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
-                <label tabindex="0" onClick="page.functions.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
-                    Tüm Ürünlere
-                </label>
-                <input type="radio" name="target" id="all_categories" value="1">
-                <label tabindex="0" onClick="page.functions.changeProductTarget(1)" class="radio-label" for="all_categories">
-                    Seçili Kategoriye
-                </label>
-                <input type="radio" name="target" id="spesific_product" value="0">
-                <label tabindex="0" onClick="page.functions.changeProductTarget(0)" class="radio-label" for="spesific_product">
-                    Seçili Ürüne
-                </label>
             </div>
         </div>
 
-        <div class="col-md-7" id="productDropDown">
-            @(
+        <div class="form-group"  id="productOptions">
+            <div class="col-md-5">
+                <div class="radio akilliRadioGrup clearfix">
+                    <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
+                    <label tabindex="0" onClick="page.functions.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
+                        Tüm Ürünlere
+                    </label>
+                    <input type="radio" name="target" id="all_categories" value="1">
+                    <label tabindex="0" onClick="page.functions.changeProductTarget(1)" class="radio-label" for="all_categories">
+                        Seçili Kategoriye
+                    </label>
+                    <input type="radio" name="target" id="spesific_product" value="0">
+                    <label tabindex="0" onClick="page.functions.changeProductTarget(0)" class="radio-label" for="spesific_product">
+                        Seçili Ürüne
+                    </label>
+                </div>
+            </div>
+            <div class="col-md-7" id="productDropDown">
+                @(
             Html.Akilli()
             .DropDownListFor(model => model.productId)
             .OptionLabel("Lütfen Ürün seçiniz..")
@@ -215,140 +209,131 @@
             .Readonly(true)
             .Execute()
             )
-        </div>
-
-        <div class="col-md-7" id="categoryDropDown" style="display:none;">
-            @(
+            </div>
+            <div class="col-md-7" id="categoryDropDown" style="display:none;">
+                @(
             Html.Akilli()
             .DropDownListFor(model => model.categoryId)
             .OptionLabel("Lütfen Kategori seçiniz..")
             .DataTextField("fullname")
             .DataValueField("id")
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
-            //.Filter<VWPRD_Category>(a => a.generation > 0)
             .Sort(x => x.Add("fullname").Ascending())
-            .BasicInsert(Url.Action("Insert", "VWPRD_Category", new { area = "PRD" }), "name", true)
             .Execute("id")
         )
+            </div>
         </div>
-
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-12">
-            <div class="">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-
+        <div class="form-group">
+            <div class="col-md-12">
+                <div class="">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-12">
+                <div class="">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+                </div>
+            </div>
+        </div>
+        <div class="form-group" id="priceorDiscountDiv" style="display:none">
+            <div class="col-md-12">
+                <div class="radio akilliRadioGrup clearfix">
+                    <input type="radio" class="bg-focus" name="isPrice" checked id="priceDiscount0" value="0">
+                    <label tabindex="0" class="radio-label bg-focus" for="priceDiscount0">
+                        Fiyat
+                    </label>
+                    <input type="radio" name="isPrice" id="priceDiscount1" value="1">
+                    <label tabindex="0" class="radio-label" for="priceDiscount1">
+                        İskonto
+                    </label>
+                </div>
             </div>
         </div>
     </div>
-
-    <div class="form-group">
-        <div class="col-md-12">
-            <div class="">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-            </div>
-        </div>
-    </div>
-
-    <div class="form-group" id="minConditionDiv" style="display:none">
-        <div class="col-md-4">
-            <label class="control-label label-md" id="minConLabel" for="minCondition">Minimum Koşul</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.minCondition, new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen minCondition Girin.."},
-            })
-        </div>
-    </div>
-    <div class="form-group" id="priceorDiscountDiv" style="display:none">
-        <div class="col-md-12">
-            <div class="radio akilliRadioGrup clearfix">
-                <input type="radio" class="bg-focus" name="isPrice" checked  id="priceDiscount0" value="0">
-                <label tabindex="0"  class="radio-label bg-focus"  for="priceDiscount0" >
-                    Fiyat
-                </label>
-                <input type="radio"  name="isPrice" id="priceDiscount1" value="1">
-                <label tabindex="0"   class="radio-label" for="priceDiscount1">
-                    İskonto
-                </label>
-            </div>
-        </div>
-    </div>
-   
-
-
     <div class="form-group">
         <div class="col-sm-12">
             @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
-    .Name("grid")
+    .Name("VWPRD_CompanyBasedPriceDetail")
+    .Events(x => x.DataBound("onDataGridBound"))
     .Columns(columns =>
     {
-        //columns.Bound(p => p.basePrice).Title("Fiyat");
-        columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
-        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti");
-        columns.Bound(p => p.discount).Title("Iskonto Oranı");
-        columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
-        //columns.Bound(p => p.afterPrice).Title("Iskonto Sonrası Fiyat");
-        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
-        columns.Bound(p => p.endDate).Width(120).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
         columns.Bound(p => p.companyBasedPriceId).Hidden(true);
-        columns.Command(command => { command.Edit().Text("&nbsp;"); command.Destroy().Text("&nbsp;"); }).Width(250);
+        columns.Bound(p => p.id).Hidden(true);
+        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
+        columns.Bound(p => p.endDate).Format("{0:dd/MM/yyyy}").Title("Bitiş Tarihi");
+        columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
+        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
+        columns.Bound(p => p.discount).Title("Iskonto Oranı");
+        columns.Bound(p => p.price).Title("Fiyat").Hidden(true).ClientTemplate("#=currencyFunction(data.price)#");
+        columns.Command(command => { command.Destroy().Text("Sil"); });
     })
-    .ToolBar(toolbar => toolbar.Create())
-    .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
+    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
+    .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Silmek İstediğinize Emin misiniz?").DisplayDeleteConfirmation("Silmek istediğinize emin misiniz?"))
     .Pageable()
     .Sortable()
     .Filterable()
     .Scrollable()
-    .HtmlAttributes(new { style = "height:550px;" })
+    .HtmlAttributes(new { style = "height:600px;" })
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
         .Model(model => model.Id(p => p.companyBasedPriceId))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=Model.companyBasedPriceId }))
-        .Update(update => update.Action("EditingInline_Update", "Grid"))
-        .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
+   
     )
 )
-
-
-
         </div>
     </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
-
 }
-
-<script>
+<script type="text/javascript">
     page.functions.setSellingTypeCheckbox();
     page.functions.setconditionTypeCheckbox();
     page.functions.setCompanyDropDownTitle();
     page.functions.setGridDiscountOrPrice();
     let model = [];
-   
     $('#form').submit(function (eventObj) {
-        var grid = $("#grid").data("kendoGrid");
-        var griddata = grid.dataSource.data()
+        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
+        var griddata = grid.dataSource.data();
         for (var i = 0; i < griddata.length; i++) {
             model.push(griddata[i])
         }
         $('<input />').attr('type', 'hidden')
             .attr('name', "_CompanyBasedPriceDetailModels")
-            .attr('value',model))
+            .attr('value', JSON.stringify(model))
             .appendTo('#form');
         return true;
     });
-
-
-
-
+    function onDataGridBound(e) {
+        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
+        var griddata = grid.dataSource.data();
+        if (griddata.length != 0) {
+            $("#options").attr("style", "pointer-events:none;");
+            page.defines.isThereRecord = 1;
+        } else {
+            $("#options").attr("style", "pointer-events:auto;");
+            page.defines.isThereRecord = 0;
+        }
+    }
+    function currencyFunction(data) {
+        var dropdownlist = $("#productId").data("kendoDropDownList");
+        var selectedIndex = dropdownlist.select();
+        if (!data) {
+            return "-";
+        }
+        var currency_Symbol = "₺"
+        if (selectedIndex > 0) {
+            var selectedValue = dropdownlist.dataSource.data()[selectedIndex];
+            if (selectedValue != null) {
+                if (selectedValue.currentSellingCurrencyId_Title != null) {
+                    currency_Symbol = selectedValue.currentSellingCurrencyId_Title;
+                }
+            }
+        }
+        return kendo.toString(data, "N2") + " " + currency_Symbol;
+    }
 </script>
-
-
-

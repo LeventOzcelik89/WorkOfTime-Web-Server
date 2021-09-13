@@ -14,7 +14,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<Guid?> IssueIds { get; set; }
         public SH_User[] PersonelUsers { get; set; }
     }
-
     public class VWHDM_TicketMessageFiles : VWHDM_TicketMessage
     {
         public SYS_Files[] files { get; set; }
@@ -33,7 +32,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWSH_User AssignUser { get; set; }
         public VWHDM_TicketMessageFiles[] Messages { get; set; }
 
-        public VMHDM_TicketModel Load()
+        public VMHDM_TicketModel Load(short? status = null)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var ticket = this.db.GetVWHDM_TicketById(this.id);
@@ -41,6 +40,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (ticket != null)
             {
                 this.B_EntityDataCopyForMaterial(ticket, true);
+                if (status.HasValue) { this.status = status; }
                 this.Actions = this.db.GetVWHDM_TicketActionByTicketId(this.id);
                 var Messages = this.db.GetVWHDM_TicketMessageByTicketId(this.id);
                 var filesList = new List<VWHDM_TicketMessageFiles>();
@@ -105,7 +105,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             this.trans = trans ?? this.db.BeginTransaction();
             var ticket = this.db.GetVWHDM_TicketById(this.id);
-
             var rs = IsExistTicketProperty();
 
             if (rs.result == false)
@@ -310,7 +309,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 type = (short)type,
                 ticketStatus = this.status,
             };
-
+            var ticket = this.db.GetVWHDM_TicketById(this.id);
             var managerRol = new Guid(SHRoles.YardimMasaYonetim);
             var personelRol = new Guid(SHRoles.YardimMasaPersonel);
             var talepRol = new Guid(SHRoles.YardimMasaTalep);
@@ -379,6 +378,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     action.description = "Talep beklemeye alındı";
                     break;
                 case (int)EnumHDM_TicketActionType.Degerlendirme:
+                    this.status = ticket.status;
                     action.description = "Talebin çözümü değerlendirildi";
                     break;
                 case (int)EnumHDM_TicketActionType.IsBaslangic:
@@ -438,7 +438,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     action.ticketStatus = (int)EnumHDM_TicketStatus.Done;
                     action.description = "Talep için çözüm sağlandı";
 
-                    if (this.IssueManagers.Count() > 0)
+                    if (this.IssueManagers != null && this.IssueManagers.Count() > 0)
                     {
                         foreach (var manager in this.IssueManagers)
                         {

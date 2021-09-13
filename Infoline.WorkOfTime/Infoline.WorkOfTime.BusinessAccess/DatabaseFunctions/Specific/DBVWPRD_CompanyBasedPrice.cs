@@ -6,7 +6,7 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceSellingType")]
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "sellingType")]
     public enum EnumPRD_CompanyBasedPriceSellingType
     {
         [Description("Genel")]
@@ -18,15 +18,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Vadeli")]
         Vadeli
     }
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceType")]
-    public enum EnumPRD_CompanyBasedPriceType
-    {
-        [Description("Oran")]
-        Oran = 0,
-        [Description("Fiyat")]
-        Fiyat,
-    }
-    [EnumInfo(typeof(VWPRD_CompanyBasedPrice), "EnumPRD_CompanyBasedPriceConditionType")]
+
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "conditionType")]
     public enum EnumPRD_CompanyBasedPriceConditionType
     {
         [Description("Genel")]
@@ -36,6 +29,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Minimum Adete Göre")]
         Adet
     }
+
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "companyType")]
+    public enum EnumPRD_CompanyBasedPriceCompanyType
+    {
+        [Description("Tüm Şirketlere")]
+        AllCompanies = 0,
+        [Description("Seçili Şirkete")]
+        SelectedCompany,
+
+    }
+    
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "productType")]
+    public enum EnumPRD_CompanyBasedPriceProductType
+    {
+        [Description("Tüm Ürünlere")]
+        AllProducts = 0,
+        [Description("Seçili Kategoriye")]
+        SelectedCategory,
+        [Description("Seçili Ürüne")]
+        SelectedProduct,
+
+    }
+
     partial class WorkOfTimeDatabase
     {
         public VWPRD_CompanyBasedPriceDetail[] GetVWPRD_CompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, DbTransaction tran = null)

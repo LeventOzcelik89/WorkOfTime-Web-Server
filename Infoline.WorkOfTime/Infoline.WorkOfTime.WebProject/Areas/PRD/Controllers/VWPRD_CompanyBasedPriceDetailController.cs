@@ -60,21 +60,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Insert()
         {
-            var data = new VWPRD_CompanyBasedPriceDetail { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Insert(VMPRD_ProductBasedPriceDetailModel item)
+        public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.createdby = userStatus.user.id;
             item.created = DateTime.Now;
             var dbresult = item.Save();
-
-
-            
-
             var feedback = new FeedBack();
             var result = new ResultStatusUI
             {
@@ -88,65 +84,72 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
-            return View(data);
+            var data = new VMPRD_CompanyBasedPriceDetailModel {id = id };
+            return View(data.Load()) ;
         }
 
-        [HttpPost, ValidateAntiForgeryToken]
+        [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public JsonResult Update(VMPRD_ProductBasedPriceModel item)
+        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
-            var userStatus = (PageSecurity)Session["userStatus"];
-            item.changedby = userStatus.user.id;
-            item.changed = DateTime.Now;
-            return Json(item.Save(), JsonRequestBehavior.AllowGet);
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var userStatus = (PageSecurity)Session["userStatus"];   
+            return Json(model.Save(), JsonRequestBehavior.AllowGet);
         }
-
-
-        [HttpPost]
-        [AllowEveryone]
-        public JsonResult Delete(Guid id)
-        {
-            //var db = new WorkOfTimeDatabase();
-            //var feedback = new FeedBack();
-
-            var result = new VMPRD_ProductBasedPriceModel { id = id }.Delete();
-            return Json(result, JsonRequestBehavior.AllowGet);
-        }
-
         [AllowEveryone]
         public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
         {
-            var VWCompanyBasedPriceDetailList = new VMPRD_ProductBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
+            var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
             return Json(VWCompanyBasedPriceDetailList);
           
         }
 
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult InsertInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Insert();
-        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        //}
 
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult UpdateInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Update();
-        //    return Json(new[] { rs.objects }.ToDataSourceResult(request, ModelState));
-        //}
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item )
+        {
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.Delete();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public ActionResult UpdateInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        {
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.UpdateInline();
+            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+        }
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        {
+             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var rs = model.InsertInline();
+            var feedback = new FeedBack();
+            if (rs.result==true)
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                 return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
 
-        //[HttpPost]
-        //[AllowEveryone]
-        //public ActionResult DeleteInline(VMPRD_ProductBasedPriceModel item, [DataSourceRequest] DataSourceRequest request)
-        //{
-        //    var rs = item.Delete();
-        //    return Json(new[] { item }.ToDataSourceResult(request, ModelState));
-        //}
+                return Json(result, JsonRequestBehavior.AllowGet);
 
+            }
+           
+        }
 
     }
 }

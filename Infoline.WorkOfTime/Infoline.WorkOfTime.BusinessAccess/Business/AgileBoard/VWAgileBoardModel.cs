@@ -21,15 +21,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWAgileBoardModel Load(Guid? userId = null)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var task = db.GetVWFTM_TaskById(this.id);
-            if (task != null)
+            var agile = db.GetVWSH_AgileBoardsById(this.id);
+            if (agile != null)
             {
-                this.B_EntityDataCopyForMaterial(task, true);
+                this.B_EntityDataCopyForMaterial(agile, true);
                 this.IsUpdate = true;
             }
             else
             {
-
+                this.IsUpdate = false;
             }
 
             return this;
@@ -42,10 +42,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var product = db.GetVWSH_AgileBoardsById(this.id);
             var rs = new ResultStatus { result = true };
 
+            this.userId = userId;
+            this.lastUsedDate = DateTime.Now;
+
             if (product == null)
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
+
                 rs = Insert(trans);
             }
             else
@@ -90,9 +94,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
-            var agile = new PRD_Product().B_EntityDataCopyForMaterial(this, true);
+            var agile = new SH_AgileBoards().B_EntityDataCopyForMaterial(this, true);
 
-            var rs = db.UpdatePRD_Product(agile, true, transaction);
+            var rs = db.UpdateSH_AgileBoards(agile, true, transaction);
 
             if (rs.result == true)
             {
