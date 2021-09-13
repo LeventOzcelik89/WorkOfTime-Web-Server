@@ -20,10 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return db.Table<PRD_CompanyBasedPriceDetail>().Where(a => a.companyBasedPriceId == item.companyBasedPriceId && 
                                                                      a.minCondition == item.minCondition && 
-                                                                     a.type == item.type && 
-                                                                     a.discount == item.discount && 
-                                                                     a.price == item.price && 
-                                                                     a.monthCount == item.monthCount&&a.id!=item.id).Execute().ToArray();
+                                                                     a.monthCount == item.monthCount && a.id!=item.id).Execute().ToArray();
             }
         }
     }
