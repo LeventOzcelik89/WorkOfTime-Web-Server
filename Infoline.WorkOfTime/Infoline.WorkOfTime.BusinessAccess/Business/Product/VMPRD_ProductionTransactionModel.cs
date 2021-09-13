@@ -28,6 +28,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string productId_Title { get; set; }
 		public double? quantity { get; set; }
 		public double? totalQuantity { get; set; }
+		public bool isExpense { get; set; }
 
 		public VMPRD_ProductionTransactionModel Load()
 		{
@@ -50,6 +51,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.date = this.date ?? DateTime.Now;
 				this.type_Title = this.type != null ? ((EnumPRD_TransactionType)this.type).B_ToDescription() : "";
 				this.status_Title = this.status != null ? ((EnumPRD_TransactionStatus)this.status).B_ToDescription() : "";
+
+				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				{
+					if (this.productionId.HasValue)
+					{
+						var operation = db.GetVWPRD_ProductionOperationByProductionId(this.productionId.Value);
+
+						if (operation != null && operation.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi).Count() > 0)
+						{
+							isExpense = true;
+						}
+					}
+				}
+
 				//Sipariş altından irsaliye
 				if (this.orderId.HasValue)
 				{
@@ -114,7 +129,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						unitPrice = x.price
 					}));
 				}
-				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
 					var productionProduct = db.GetVWPRD_ProductionById(this.productionId.Value);
 					if (productionProduct != null)
@@ -203,11 +218,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.inputId = null;
 				this.inputTable = null;
+				this.inputCompanyId = null;
 			}
 			else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
 			{
 				this.outputId = null;
 				this.outputTable = null;
+				this.outputCompanyId = null;
 
 				this.items.Add(new VMPRD_TransactionItems
 				{
@@ -469,9 +486,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var PRDInventories = new List<PRD_Inventory>();
 			var PRDInventoryActions = new List<PRD_InventoryAction>();
 
-
-
-
 			for (int i = 0; i < this.items.Count(); i++)
 			{
 				var item = this.items[i];
@@ -584,30 +598,41 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							var insertProductionProduct = new List<PRD_ProductionProduct>();
 							var newInsertProductionProduct = new List<PRD_ProductionProduct>();
 
-							foreach (var transactionItem in this.items)
-							{
-								if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
-								{
-									var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
-									//production.quantity = transactionItem.quantity;
-									production.price = transactionItem.unitPrice;
-									production.serialCodes = transactionItem.serialCodes;
+							var transactionGroups = this.items.GroupBy(x => x.productId).ToList();
 
-									insertProductionProduct.Add(production);
-								}
-								else
+							foreach (var transactionItems in transactionGroups)
+							{
+
+								foreach (var transactionItem in transactionItems)
 								{
-									newInsertProductionProduct.Add(new PRD_ProductionProduct
+									if (productionProducts.Where(x => x.materialId == transactionItem.productId).Count() > 0)
 									{
-										id = Guid.NewGuid(),
-										materialId = transactionItem.productId,
-										price = transactionItem.unitPrice,
-										quantity = 0,
-										productionId = this.productionId.Value,
-										amountSpent = transactionItem.quantity,
-										totalQuantity = 0,
-										type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
-									});
+										var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
+										production.price = transactionItem.unitPrice;
+										production.serialCodes = transactionItem.serialCodes;
+
+										insertProductionProduct.Add(production);
+									}
+									else
+									{
+										if (newInsertProductionProduct.Where(x=>x.materialId == transactionItem.productId).Count() > 0)
+										{
+											continue;
+										}
+
+										newInsertProductionProduct.Add(new PRD_ProductionProduct
+										{
+											id = Guid.NewGuid(),
+											materialId = items.Where(a => a.productId == transactionItem.productId).Select(a => a.productId).FirstOrDefault(),
+											price = items.Where(a => a.productId == transactionItem.productId).Select(a => a.unitPrice).FirstOrDefault(),
+											quantity = 0,
+											productionId = this.productionId.Value,
+											amountSpent = items.Where(a => a.productId == transactionItem.productId).Select(a => a.quantity).Sum(),
+											totalQuantity = 0,
+											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
+										});
+
+									}
 								}
 							}
 
@@ -701,7 +726,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return DBResult;
 		}
 
-		public ResultStatus Delete(PageSecurity userStatus, DbTransaction _trans = null)
+		public ResultStatus Delete(PageSecurity userStatus, string status_Title, DbTransaction _trans = null)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetPRD_TransactionById(this.id);
@@ -719,6 +744,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var transactionItems = db.GetPRD_TransactionItemByTransactionId(transaction.id);
 				var inventoryActions = db.GetPRD_InventoryActionByTransactionId(transaction.id);
 				var productionOperation = db.GetPRD_ProductionOperationByDataId(transaction.id);
+
+				if (productionOperation != null && productionOperation.productionId.HasValue)
+				{
+					var productionOperations = db.GetVWPRD_ProductionOperationByProductionId(productionOperation.productionId.Value);
+
+					if (productionOperations.Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu).Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).Count() > 0 &&
+						productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).Count() > 0
+						)
+					{
+						return new ResultStatus { message = "Üretim bittiği veya durdurulduğu için operasyon silinemez..", result = false, };
+					}
+				}
 
 
 				var rs = new ResultStatus { result = true };
@@ -763,18 +802,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (rs.result == true)
 				{
 					if (_trans == null) trans.Commit();
-					return new ResultStatus { message = "İşlem başarıyla silindi.", result = true, };
+					return new ResultStatus { message = status_Title + " operasyonu başarıyla silindi.", result = true, };
 				}
 				else
 				{
 					if (_trans == null) trans.Rollback();
-					return new ResultStatus { message = "İşlem silinirken sorunlar oluştu.", result = false, };
+					return new ResultStatus { message = status_Title + " operasyonu silinirken sorunlar oluştu.", result = false, };
 				}
 
 			}
 			else
 			{
-				return new ResultStatus { message = "İşlem kaydı bulunamadı.", result = false, };
+				return new ResultStatus { message = "Operasyon kaydı bulunamadı.", result = false, };
 			}
 		}
 
@@ -784,10 +823,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
 			var type = (EnumPRD_TransactionType)this.type;
 			var serialCodes = (item.serialCodes ?? "").Split(',');
-			//if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
-			//{
-			//	errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
-			//}
+
+			if (serialCodes.Count(a => a != "" && a != null) != item.quantity && this.type != (int)EnumPRD_TransactionType.UretimBildirimi)
+			{
+				errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
+			}
 
 			var maintanceInventory = new List<string>();
 			var unvalidInventory = new List<string>();

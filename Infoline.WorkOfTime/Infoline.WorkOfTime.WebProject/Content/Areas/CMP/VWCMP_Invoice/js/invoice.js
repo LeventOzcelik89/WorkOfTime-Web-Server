@@ -371,7 +371,8 @@
             var exchange = _invoice.GetCrossExchange(_invoice.afterCurrencyCode, _invoice.beforeCurrencyCode);
 
             if (priceElem.value() && priceElem.value() > 0) {
-                priceElem.value(priceElem.value() / exchange);
+                // priceElem.value(priceElem.value() / exchange);
+                priceElem.value(priceElem.value());
             } else {
                 priceElem.value(productDataItem.currentSellingPrice / exchange);
             }
@@ -883,7 +884,7 @@
         }
     },
     LoadProducts: function () {
-
+        debugger;
         _invoice.LoadControl.loaded = true;
         var percent = _invoice.EnumDiscountType.find(a => a.EnumKey == "Yuzde");
         $.each(_model.InvoiceItems, function (i, item) {

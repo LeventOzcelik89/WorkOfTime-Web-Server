@@ -16,16 +16,16 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private DbTransaction trans { get; set; }
         public VMPRD_CompanyBasedPriceModel BasePrice { get; set; }
         //public VMPRD_ProductBasedPriceDetailMode[] BasePriceDetailList { get; set; }
-        //public VMPRD_ProductBasedPriceDetailModel Load()
-        //{
-        //    this.db = this.db ?? new WorkOfTimeDatabase();
-        //    var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
-        //    if (data != null)
-        //    {
-        //        this.B_EntityDataCopyForMaterial(data, true);
-        //    }
-        //    return null;
-        //}
+        public VMPRD_CompanyBasedPriceModel Load()
+        {
+            this.db = this.db ?? new WorkOfTimeDatabase();
+            var data = db.GetPRD_CompanyBasedPriceById(id);
+            if (data != null)
+            {
+               return this.B_EntityDataCopyForMaterial(data, true);
+            }
+            return this;
+        }
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();

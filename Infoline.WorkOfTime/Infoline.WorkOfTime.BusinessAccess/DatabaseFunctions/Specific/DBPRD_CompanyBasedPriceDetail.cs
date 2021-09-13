@@ -23,7 +23,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                      a.type == item.type && 
                                                                      a.discount == item.discount && 
                                                                      a.price == item.price && 
-                                                                     a.monthCount == item.monthCount).Execute().ToArray();
+                                                                     a.monthCount == item.monthCount&&a.id!=item.id).Execute().ToArray();
             }
         }
     }

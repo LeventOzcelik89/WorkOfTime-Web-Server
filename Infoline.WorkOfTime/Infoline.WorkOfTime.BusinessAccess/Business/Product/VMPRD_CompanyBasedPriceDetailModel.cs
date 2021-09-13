@@ -60,6 +60,75 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var res = new ResultStatus { result = true };
             return res;
         }
+
+        public ResultStatus InsertInline()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = db.BeginTransaction();
+            if (CheckDates()!=true)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Aynı tarhiler arasında kayıt vardır!"
+                };
+            }
+            var dbresult = new ResultStatus { result = true };
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
+            if (dbresult.result==true)
+            {
+                trans.Commit();
+                return new ResultStatus
+                {
+                    result = true,
+                    message = "Kayıt Başarılı"
+                };
+            }
+            else
+            {
+                trans.Rollback();
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Kayıt Başarısız"
+                };
+            }
+        }
+        public ResultStatus UpdateInline()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = db.BeginTransaction();
+            var dbresult = new ResultStatus { result = true };
+            if (CheckDates() != true)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Aynı tarhiler arasında kayıt vardır!"
+                };
+            }
+            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this),true, this.trans);
+
+            if (dbresult.result == true)
+            {
+                trans.Commit();
+                return new ResultStatus
+                {
+                    result = true,
+                    message = "Kayıt Başarılı"
+                };
+            }
+            else
+            {
+                trans.Rollback();
+                return new ResultStatus
+                {
+                    result = true,
+                    message = "Kayıt Başarısız"
+                };
+            }
+        }
+
         public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -77,9 +146,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                         {
                             foreach (var item in companyBaseList)
                             {
-                                if (this.checkDates(item))
+                                if (this.CheckDates(item))
                                 {
-                                    item.companyBasedPriceId = this.companyBasedPriceId;
+                                    item.companyBasedPriceId = this.id;
                                     dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
                                 }
                                 else
@@ -108,7 +177,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Daha önceden böyle bir kayıt girilmiştir"
+                    message = "Seçmiş olduğunuz şirket - ürün - satış tipi ve koşul tipi aynı olan bir kayıt vardır. Eklemek istediğiniz yeni fiyat/iskonto bilgileri lütfen o kayıt altına giriniz."
                 };
             }
             return new ResultStatus
@@ -161,8 +230,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail { id = this.id }, trans);
+           var dbresult = db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail { id = this.id }, trans);
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();
@@ -196,11 +264,40 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             return list.ToArray();
         }
-        public bool checkDates(VWPRD_CompanyBasedPriceDetailDto obje)
+        public bool CheckDates(VWPRD_CompanyBasedPriceDetailDto obje)
         {
             var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(obje);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
-            if (sameRecordList == null)
+            if (sameRecordList.Length==0)
+            {
+                return true;
+            }
+            else
+            {
+                //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
+                foreach (var record in sameRecordList)
+                {
+                    if (this.endDate >= record.startDate && this.startDate <= record.endDate)
+                    {
+                        return false;
+                    }
+                    if (this.startDate <= record.endDate && this.endDate >= record.startDate)
+                    {
+                        return false;
+                    }
+                    if (this.startDate <= record.startDate && this.endDate >= record.endDate)
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        public bool CheckDates()
+        {
+            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
+            var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
+            if (sameRecordList.Length==0)
             {
                 return true;
             }

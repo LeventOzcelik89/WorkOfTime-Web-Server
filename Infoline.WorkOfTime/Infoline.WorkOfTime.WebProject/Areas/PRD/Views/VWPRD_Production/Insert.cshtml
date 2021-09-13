@@ -29,7 +29,6 @@
 			if ($(this).val() == "") {
 				return;
 			}
-			debugger;
 			var quantity = parseInt($(this).val());
 			$.each(data, function (index, value) {
 				value.totalQuantity = quantity * value.quantity;
@@ -98,13 +97,12 @@
 
 
 			GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
-				debugger;
 				var cols = [
-					{ field: 'materialId_Title', title: 'Ürün Adı', width: 200 },
-					{ field: 'quantity', title: 'Birim Miktar', format: '{0:N0}', width: 200 },
-					{ field: 'price', title: 'Birim Fiyat', width: 200, format: '{0:N2}', template: "#if(price == null){##} else if(currencySymbol == null) {##=price# ₺#} else{# #=price# #=currencySymbol# #}#"},
-					{ field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', width: 200 },
-					{ field: 'stockTotal', title: 'Toplam Stok Durumu', format: '{0:N0}', width: 200 },
+					{ field: 'materialId_Title', title: 'Ürün Adı', width: 200, editable: false },
+					{ field: 'quantity', title: 'Birim Miktar (Adet)', format: '{0:N0}', width: 200 },
+					{ field: 'price', title: 'Birim Fiyat', editable: true, width: 200, format: '{0:N0}', template: "#if(price == null){##} else if(currencySymbol == null) {# #=price# ₺#} else{# #=price# #=currencySymbol# #}#" },
+					{ field: 'totalQuantity', title: 'Toplam Miktar (Adet)', format: '{0:N0}', width: 200, template:"#=totalQuantity == null || totalQuantity == 0 ? quantity : totalQuantity#" },
+					{ field: 'stockTotal', title: 'Toplam Stok Durumu (Adet)', format: '{0:N0}', width: 200 },
 
 				];
 
@@ -423,6 +421,7 @@
                     Html.Akilli()
                     .NumericTextBoxFor(a => a.quantity)
                     .Min(0)
+					.Step(1)
 					.Enable(false)
                     .Format("N0").Validate(Validations.Required)
                 )
@@ -436,17 +435,17 @@
 				</div>
 				<div class="col-md-7">
 					@(
-        Html.Akilli()
-        .MultiSelectFor(a => a.assignableUsers)
-        .Placeholder("Lütfen Görevli Personel Seçiniz..")
-        .DataValueField("id")
-		.Filter<VWSH_User>(x=>x.RoleIds.Contains(SHRoles.UretimPersonel))
-        .DataTextField("FullName")
-        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-        .Sort(x => x.Add("FullName").Ascending())
-        .Execute()
-            )
+                     Html.Akilli()
+                     .MultiSelectFor(a => a.assignableUsers)
+                     .Placeholder("Lütfen Görevli Personel Seçiniz..")
+                     .DataValueField("id")
+		             .Filter<VWSH_User>(x=>x.RoleIds.Contains(SHRoles.UretimPersonel))
+                     .DataTextField("FullName")
+                     .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                     .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                     .Sort(x => x.Add("FullName").Ascending())
+                     .Execute()
+                    )
 				</div>
 			</div>
 		</div>

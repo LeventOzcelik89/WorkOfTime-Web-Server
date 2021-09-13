@@ -57,6 +57,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             ruleOrder = x.ruleOrder
                         }).ToArray();
                     }
+                    //if (this.IsCopy == true)
+                    //{
+                    //    Files = db.GetSYS_FilesByDataIdAll(this.id);
+                    //    db.BulkInsertSYS_Files(Files.Select(x => new SYS_Files { DataId = this.id, FilePath = x.FilePath, id = Guid.NewGuid(), FileGroup = x.FileGroup, DataTable = x.DataTable, FileExtension = x.FileExtension }));
+                    //}
                 }
             }
             else
@@ -115,6 +120,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = new Guid(this.ProjectId);
                 this.dataTable = "PRJ_Project";
             }
+            //if (this.dataId.HasValue && isService != null && !isService.Value )
+            //{
+            //	this.id = Guid.NewGuid();
+            //}
             var transaction = db.GetVWPA_TransactionById(this.id);
             var res = new ResultStatus { result = true };
             if (this.status == (int)EnumPA_TransactionStatus.Odendi)
@@ -148,7 +157,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             if (this.type == (Int16)EnumPA_TransactionType.Masraf)
             {
-                UpdateDataControl(this.statusDescription, userId);
+                var transactionConfirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
+                UpdateDataControl(transactionConfirmations, this.statusDescription, userId);
             }
             if (res.result && request != null)
             {
@@ -218,6 +228,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 if (dbresult.result)
                 {
+                    if (this.type == (Int16)EnumPA_TransactionType.Masraf)
+                    {
+                        dbresult &= InsertConfirmation(this.createdby.Value, transaction);
+                    }
                     transaction.Commit();
                 }
                 else
@@ -517,9 +531,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.Load();
             return db.GetVWPA_TransactionsMyApprovedByUserId(userId);
         }
-        public ResultStatus InsertConfirmation(Guid userId)
+        public ResultStatus InsertConfirmation(Guid userId, DbTransaction trans = null)
         {
             var dbresult = new ResultStatus { result = true };
+            var _trans = trans ?? db.BeginTransaction();
             this.db = this.db ?? new WorkOfTimeDatabase();
             var transactionCofirmations = new List<PA_TransactionConfirmation>();
             //Kullanıcıya ait masraf kurallarını çektim.
@@ -574,87 +589,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }));
                 }
             }
-            dbresult &= db.BulkInsertPA_TransactionConfirmation(transactionCofirmations);
+            dbresult &= db.BulkInsertPA_TransactionConfirmation(transactionCofirmations, _trans);
             return new ResultStatus
             {
                 result = dbresult.result,
                 message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
             };
         }
-        public void UpdateDataControl(string statusDescription, Guid userId)
+        public void UpdateDataControl(VWPA_TransactionConfirmation[] confirmations, string statusDescription, Guid userId)
         {
             var url = TenantConfig.Tenant.GetWebUrl();
-            this.db = this.db ?? new WorkOfTimeDatabase();
+            var control = false;
+            var mailControl = false;
             var notification = new Notification();
-
-            var confirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
-            if(confirmations.Count() == 0)
-            {
-                var rs = InsertConfirmation(userId);
-                if (rs.result)
-                {
-                    confirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
-                }
-            }
-
-            if (this.direction == -1)
+            var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
+            if (this.direction != 3)
             {
                 confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-                    return;
-                }
             }
-            else if (this.direction == 0)
+            this.db = this.db ?? new WorkOfTimeDatabase();
+            for (int i = 0; i < confirmations.Count(); i++)
             {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-
-                }
-                return;
-            }
-            else if (this.direction == 1)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-
-                }
-            }
-            else if (this.direction == 2)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                //for (int i = 0; i < confirmations.Count(); i++)
-                //{
-                //    return;
-                //}
-            }
-            else if (this.direction == 3)
-            {
-                for (int i = 0; i < confirmations.Count(); i++)
+                if (this.direction == 3)
                 {
                     confirmations[i].status = null;
                     var data = new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
                     db.UpdatePA_TransactionConfirmation(data, true);
                 }
-            }
-            else
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-
-                }
-            }
-
-            var control = false;
-            var mailControl = false;
-
-            var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
-
-            for (int i = 0; i < confirmations.Count(); i++)
-            {
                 if (confirmations[i].confirmationUserIds == null && !control)
                 {
                     if (this.direction == 2)
@@ -673,8 +634,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                             text += "<div><a href='" + url + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                             text += "<p>Bilgilerinize.</p>";
-                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, getDeclineUser.email, "Masraf Talebi Reddi", true);
-                            notification.NotificationSend(getDeclineUser.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
+                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
+                            notification.NotificationSend(user.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
                         }
                     }
                     else if (this.direction != 3)
@@ -695,7 +656,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                     }
                     db.UpdatePA_TransactionConfirmation(new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
-                    UpdateDataControl("", userId);
+                    UpdateDataControl(confirmations, "", userId);
                 }
                 //  RED EDİLDİ 
                 else if (this.direction == 2 && confirmations[i].confirmationUserIds != null)
@@ -714,7 +675,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                         text += "<div><a href='" + url + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
-                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, getDeclineUser.email, "Masraf Talebi Reddi", true);
+                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
                         notification.NotificationSend(getDeclineUser.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
                         //FAZLA MAİL GÖNDERİLMEMESİ İÇİN DÖNDÜNDEN ÇIKILIR.    
                         break;
