@@ -25,5 +25,13 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Genel, Peşin, Taksitli, Vade
         /// </summary>
         public short? sellingType { get; set;}
+        /// <summary>
+        /// Tüm şirketlere yada seçili şirkete ait olduğunu belirtir
+        /// </summary>
+        public short? companyType { get; set;}
+        /// <summary>
+        /// Tüm ürünlere, seçili kategoriye veya seçili ürüne ait olduğunu belirler
+        /// </summary>
+        public short? productType { get; set;}
     }
 }
