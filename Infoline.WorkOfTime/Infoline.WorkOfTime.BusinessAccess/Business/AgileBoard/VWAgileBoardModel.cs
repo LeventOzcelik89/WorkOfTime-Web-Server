@@ -49,6 +49,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
+                this.lastUsedDate = DateTime.Now;
 
                 rs = Insert(trans);
             }
@@ -56,6 +57,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.changedby = userId;
                 this.changed = DateTime.Now;
+                this.lastUsedDate = DateTime.Now;
+
                 rs = Update(trans);
             }
 

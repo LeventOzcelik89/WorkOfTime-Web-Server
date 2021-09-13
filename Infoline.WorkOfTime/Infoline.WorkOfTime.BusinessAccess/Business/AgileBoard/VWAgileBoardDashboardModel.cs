@@ -28,7 +28,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
 
             this.Stages = db.GetVWCRM_ManagerStage().ToList();
-            this.MyAgileBoards = db.GetVWSH_AgileBoardsByUserId(userId).ToList();
+            this.MyAgileBoards = db.GetVWSH_AgileBoardsByUserId(userId).OrderByDescending(a => a.lastUsedDate).ToList();
 
             var satisPersonelleri = db.GetUserByRoleId(SHRoles.SatisPersoneli).ToList();
             this.SalesPersons = db.GetVWSH_UserMyPersonIsWorkingIDS(satisPersonelleri).Select(a => a.id).ToList();
