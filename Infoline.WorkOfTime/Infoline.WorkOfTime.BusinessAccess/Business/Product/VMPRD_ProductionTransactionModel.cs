@@ -129,7 +129,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						unitPrice = x.price
 					}));
 				}
-				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
 					var productionProduct = db.GetVWPRD_ProductionById(this.productionId.Value);
 					if (productionProduct != null)
@@ -218,11 +218,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.inputId = null;
 				this.inputTable = null;
+				this.inputCompanyId = null;
 			}
 			else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
 			{
 				this.outputId = null;
 				this.outputTable = null;
+				this.outputCompanyId = null;
 
 				this.items.Add(new VMPRD_TransactionItems
 				{
