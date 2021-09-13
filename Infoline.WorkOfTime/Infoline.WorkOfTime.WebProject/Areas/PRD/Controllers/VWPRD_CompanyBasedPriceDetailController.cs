@@ -71,10 +71,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             item.createdby = userStatus.user.id;
             item.created = DateTime.Now;
             var dbresult = item.Save();
-
-
-            
-
             var feedback = new FeedBack();
             var result = new ResultStatusUI
             {

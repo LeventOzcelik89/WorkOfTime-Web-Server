@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = db.BeginTransaction();
-            if (checkDates()!=true)
+            if (CheckDates()!=true)
             {
                 return new ResultStatus
                 {
@@ -99,7 +99,16 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             db = db ?? new WorkOfTimeDatabase();
             trans = db.BeginTransaction();
             var dbresult = new ResultStatus { result = true };
+            if (CheckDates() != true)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Aynı tarhiler arasında kayıt vardır!"
+                };
+            }
             dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this),true, this.trans);
+
             if (dbresult.result == true)
             {
                 trans.Commit();
@@ -137,7 +146,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                         {
                             foreach (var item in companyBaseList)
                             {
-                                if (this.checkDates(item))
+                                if (!this.CheckDates(item))
                                 {
                                     item.companyBasedPriceId = this.companyBasedPriceId;
                                     dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
@@ -255,11 +264,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             return list.ToArray();
         }
-        public bool checkDates(VWPRD_CompanyBasedPriceDetailDto obje)
+        public bool CheckDates(VWPRD_CompanyBasedPriceDetailDto obje)
         {
             var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(obje);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
-            if (sameRecordList == null)
+            if (sameRecordList.Length==0)
             {
                 return true;
             }
@@ -284,7 +293,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return true;
             }
         }
-        public bool checkDates()
+        public bool CheckDates()
         {
             var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
