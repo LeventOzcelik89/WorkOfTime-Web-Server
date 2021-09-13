@@ -97,7 +97,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus UpdateInline()
         {
             db = db ?? new WorkOfTimeDatabase();
-            trans = db.BeginTransaction();
+           
             var dbresult = new ResultStatus { result = true };
             if (CheckDates() != true)
             {
@@ -107,11 +107,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                     message = "Aynı tarhiler arasında kayıt vardır!"
                 };
             }
-            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this),true, this.trans);
+            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
 
             if (dbresult.result == true)
             {
-                trans.Commit();
+              
                 return new ResultStatus
                 {
                     result = true,
@@ -120,7 +120,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             else
             {
-                trans.Rollback();
+                
                 return new ResultStatus
                 {
                     result = true,

@@ -1,7 +1,7 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.Business.Product.VMPRD_CompanyBasedPriceDetailModel
 @{
-    //ViewBag.Title = "Özel Fiyat Belirleme";
-    ViewBag.Title = Model.companyBasedPriceId;
+    ViewBag.Title = "Özel Fiyat Belirleme";
+    //ViewBag.Title = Model.companyBasedPriceId;
     Layout = "~/Views/Shared/_Layout.cshtml";
 
 }
@@ -16,80 +16,44 @@
             disabledInput: 0
         },
         functions: {
-            setCompanyDropDownTitle: function (e) {
-                if ($("#companyId") === "") {
-                    $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-                    $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                }
-            },
-            setProductDropDownTitle: function (e) {
-                if ($("#productId") === "") {
-                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
-                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                }
-            },
-            setSellingTypeCheckbox: function () {
-                $(document).on("change", "[name='sellingType']", function () {
-                    debugger;
-                    let value = $("[name='sellingType']:checked").val();
-                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-                    if (value == 0 || value == 1) {
-                        grid.hideColumn("monthCount");
-                    }
-                    else {
-                        if (value == 2) {
-                            $("[data-field='monthCount']").find("a").last().text("Taksit Sayısı")
-                        }
-                        if (value == 3) {
-                            $("[data-field='monthCount']").find("a").last().text("Vade Sayısı")
-                        }
-                        grid.showColumn("monthCount");
-                    }
-                });
-            },
-            setconditionTypeCheckbox: function () {
-                $(document).on("change", "[name='conditionType']", function () {
-                    debugger;
-                    let value = $("[name='conditionType']:checked").val();
-                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-                    if (value == 0) {
-                        grid.hideColumn("minCondition");
-                    }
-                    else {
-                        if (value == 1) {
-                            $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
-                        }
-                        if (value == 2) {
-                            $("[data-field='minCondition']").find("a").last().text("Minimum Birim")
-                        }
-                        grid.showColumn("minCondition");
-                    }
-                });
-            },
-            setGridDiscountOrPrice() {
-                $(document).on("change", "[name='isPrice']", function () {
-                    let value = $("[name='isPrice']:checked").val();
-                    var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-                    if (value == 0) {
-                        grid.hideColumn("discount");
-                        grid.showColumn("price");
-                    }
-                    else {
-                        grid.hideColumn("price");
-                        grid.showColumn("discount");
-                    }
+
+        }
+    }
 
 
-                });
-            },
-            onChangeProduct(e) {
-                var value = this;
-                var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-                var dataitem = value.dataItem();
-                var price = dataitem.currentSellingPrice;
-                $("#basePrice").val(price);
 
+    function setColumns() {
+        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
+        $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+        $("#categoryDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+        $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+        if ('@Model.sellingType' == 2 || '@Model.sellingType' == 3) {
+            if ('@Model.sellingType' == 2) {
+                $("[data-field='monthCount']").find("a").last().text("Taksit Sayısı")
             }
+            if ('@Model.sellingType' == 3) {
+                $("[data-field='monthCount']").find("a").last().text("Vade Sayısı")
+            }
+
+            grid.showColumn('monthCount');
+        }
+        if ('@Model.conditionType' == 2 | '@Model.conditionType'==1) {
+            grid.showColumn('minCondition');
+            if ('@Model.conditionType' == 1) {
+                $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
+            }
+            if ('@Model.conditionType' == 2) {
+                $("[data-field='minCondition']").find("a").last().text("Minimum Adet")
+            }
+        }
+        if ('@Model.productType'==1) {
+            $("#categoryDropDown").show();
+            $("#productDropDown").hide();
+           
+        }
+        if ('@Model.companyType'==0) {
+            $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+           
         }
     }
 
@@ -169,7 +133,7 @@
         <div class="form-group">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Readonly(true).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Readonly(true).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
 
                 </div>
             </div>
@@ -203,6 +167,7 @@
         <div class="col-sm-12">
             @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
     .Name("VWPRD_CompanyBasedPriceDetail").Events(x=>x.DataBound("onDataGridBound"))
+    .Events(y=>y.DataBound("setColumns"))
     .Columns(columns =>
     {
         columns.Bound(p => p.companyBasedPriceId).Hidden(true);
@@ -212,15 +177,15 @@
         columns.Bound(p => p.sellingType).Hidden(true);
         columns.Bound(p => p.conditionType).Hidden(true);
         columns.Bound(p => p.productId).Hidden(true);
-        columns.Bound(p => p.startDate).Format("{0:dd/MM/yyyy}").Title("Başlangıç Tarihi");
-        columns.Bound(p => p.endDate).Format("{0:dd/MM/yyyy}").Title("Bitiş Tarihi");
+        columns.Bound(p => p.startDate).Format(Extensions.DateFormatShort(true)).Title("Başlangıç Tarihi");
+        columns.Bound(p => p.endDate).Format(Extensions.DateFormatShort(true)).Title("Bitiş Tarihi");
         columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
         columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
         columns.Bound(p => p.discount).Title("Iskonto Oranı");
         columns.Bound(p => p.price).Title("Fiyat").Hidden(true);
         columns.Command(command => { command.Destroy().Text("Sil");command.Edit().Text("Düzenle"); }).Width(250);
     })
-    .ToolBar(toolbar => toolbar.Create())
+    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
     .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
     .Pageable()
     .Sortable()
@@ -228,12 +193,12 @@
     .HtmlAttributes(new { style = "height:550px;" })
     .DataSource(dataSource => dataSource
         .Ajax()
-        .Events(events=>events.Error("error_handler").RequestEnd("onPush"))
+        .Events(events=>events.RequestEnd("onPush"))
         .PageSize(20)
-        .Model(model => model.Id(p => p.companyBasedPriceId))
+        .Model(model => model.Id(p => p.id))
         .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail", new { id = Model.companyBasedPriceId }))
         .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
-        .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail"))
+        .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
         .Destroy(update => update.Action("DeleteInline", "VWPRD_CompanyBasedPriceDetail"))
     )
 )
@@ -247,15 +212,6 @@
 }
 
 <script type="text/javascript">
-    $(document).ready(function () {
-
-        page.functions.setCompanyDropDownTitle();
-
-    })
-    page.functions.setSellingTypeCheckbox();
-    page.functions.setconditionTypeCheckbox();
-   
-    page.functions.setGridDiscountOrPrice();
     let model = [];
 
     $('#form').submit(function (eventObj) {
@@ -294,6 +250,7 @@
             alert(message);
         }
     }
+
     function onPush(e) {
         console.log(e);
         if (e.response.Result != null || e.response.Result != undefined) {
