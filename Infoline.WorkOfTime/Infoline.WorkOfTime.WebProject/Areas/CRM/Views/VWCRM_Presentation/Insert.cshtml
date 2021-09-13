@@ -273,7 +273,7 @@
                         </div>
                         <div class="col-md-9">
 
-                            @(
+                            @*@(
                                 Html.Akilli()
                                 .DropDownListFor(model => model.SalesPersonId)
                                 .OptionLabel("Lütfen satış personelini seçiniz..")
@@ -288,28 +288,28 @@
                                 .Sort(x => x.Add("firstname").Ascending())
                                 .Validate(Validations.Required)
                                 .Execute()
+                            )*@
+                            @(
+                                Html.Akilli()
+                                .DropDownListFor(model => model.SalesPersonId)
+                                .OptionLabel("Lütfen satış personelini seçiniz..")
+                                .Template("#=TemplateEngine('userTemplate',data)#")
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Events(e => { e.DataBound("_presentation.Events.onDataBound"); })
+                                .Filter<VWSH_User>(a =>
+                                    a.id == userStatus.user.id ||
+                                    (
+                                        a.type == (int)(EnumSH_UserType.MyPerson) &&
+                                        a.IsWorking == true &&
+                                        Model.SalesPersons.Contains(a.id)
+                                    )
+                                )
+                                .Sort(x => x.Add("firstname").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute()
                             )
-                            @*@(
-            Html.Akilli()
-            .DropDownListFor(model => model.SalesPersonId)
-            .OptionLabel("Lütfen satış personelini seçiniz..")
-            .Template("#=TemplateEngine('userTemplate',data)#")
-            .DataTextField("FullName")
-            .DataValueField("id")
-            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-            .Events(e => { e.DataBound("_presentation.Events.onDataBound"); })
-            .Filter<VWSH_User>(a =>
-                a.id == userStatus.user.id ||
-                (
-                    a.type == (int)(EnumSH_UserType.MyPerson) &&
-                    a.IsWorking == true &&
-                    Model.SalesPersons.Contains(a.id)
-                )
-            )
-            .Sort(x => x.Add("firstname").Ascending())
-            .Validate(Validations.Required)
-            .Execute()
-        )*@
                         </div>
                     </div>
 
