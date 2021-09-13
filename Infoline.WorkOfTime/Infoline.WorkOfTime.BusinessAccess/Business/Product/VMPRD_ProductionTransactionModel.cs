@@ -610,12 +610,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 										var production = productionProducts.Where(x => x.materialId == transactionItem.productId).FirstOrDefault();
 										production.price = transactionItem.unitPrice;
 										production.serialCodes = transactionItem.serialCodes;
+										production.transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi;
 
 										insertProductionProduct.Add(production);
 									}
 									else
 									{
-										if (newInsertProductionProduct.Where(x=>x.materialId == transactionItem.productId).Count() > 0)
+										if (newInsertProductionProduct.Where(x => x.materialId == transactionItem.productId).Count() > 0)
 										{
 											continue;
 										}
@@ -629,7 +630,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 											productionId = this.productionId.Value,
 											amountSpent = items.Where(a => a.productId == transactionItem.productId).Select(a => a.quantity).Sum(),
 											totalQuantity = 0,
-											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen
+											type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+											transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
 										});
 
 									}

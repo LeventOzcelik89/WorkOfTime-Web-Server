@@ -44,5 +44,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Tip
         /// </summary>
         public short? type { get; set;}
+        public short? transactionType { get; set;}
     }
 }

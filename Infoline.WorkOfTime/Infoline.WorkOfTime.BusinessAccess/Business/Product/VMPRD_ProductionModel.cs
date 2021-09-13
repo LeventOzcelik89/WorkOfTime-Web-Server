@@ -163,7 +163,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						quantity = x.quantity,
 						productionId = this.id,
 						totalQuantity = x.totalQuantity,
-						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
+						type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
+						transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
 					}));
 
 					rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
@@ -487,6 +488,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					data.producedProducts = db.GetVWPRD_TransactionItemByTransactionIds(transactionIds).ToList();
 				}
 			}
+
+			data.productionProducts = data.productionProducts.Where(a => a.transactionType == (int)EnumPRD_TransactionType.HarcamaBildirimi).ToList();
 
 			return new ResultStatus
 			{
