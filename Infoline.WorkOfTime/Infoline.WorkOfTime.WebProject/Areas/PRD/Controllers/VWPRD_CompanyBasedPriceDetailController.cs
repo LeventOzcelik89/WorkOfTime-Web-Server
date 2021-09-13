@@ -84,8 +84,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceDetailModel { id = id };
-            return View(data.Load());
+            var data = new VMPRD_CompanyBasedPriceModel { id = id };
+            var companyBasedModal = data.Load();
+            var returnData = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(companyBasedModal);
+            returnData.companyBasedPriceId = companyBasedModal.id;
+            return View(returnData);
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
@@ -119,7 +122,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item, Guid CompanyBasedPriceId)
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.InsertInline();
