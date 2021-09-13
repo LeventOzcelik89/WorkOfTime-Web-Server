@@ -55,7 +55,6 @@ namespace System.Web.Mvc
           
         }
 
-
         private Menu GetExternalLinks()
         {
             var menu = new Menu("Dış Bağlantılar", "#", "fa fa-link");
@@ -128,11 +127,6 @@ namespace System.Web.Mvc
 
             return menu;
         }
-        //private Menu GetDokumanYonetimi()
-        //{
-           
-        //    return menu;
-        //}
 
         private Menu GetIK(PageSecurity userStatus)
         {
@@ -195,6 +189,7 @@ namespace System.Web.Mvc
             var crm = new Menu("CRM - Müşteri İlişkileri", "#", "fa fa-dollar");
 
             crm.AddChild(new Menu("Potansiyel Fırsatlar", "/CRM/VWCRM_Presentation/Index"));
+            crm.AddChild(new Menu("Agile Board", "/CRM/VWCRM_Presentation/AgileBoard"));
             crm.AddChild(new Menu("Aktivite ve Randevular", "/CRM/VWCRM_Contact/Index"));
             crm.AddChild(new Menu("Toplantı Raporu", "/CRM/VWCRM_Contact/ContactCalendar"));
             crm.AddChild(new Menu("Satış Raporu", "/CRM/VWCRM_Presentation/SalesReport"));
@@ -316,7 +311,7 @@ namespace System.Web.Mvc
 
         private Menu GetProduction()
         {
-            var menu = new Menu("Üretim", "#", "fa fa-qrcode");
+            var menu = new Menu("Üretim Yönetimi", "#", "fa fa-qrcode");
             menu.AddChild(new Menu("Üretimler", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
