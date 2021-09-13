@@ -11,7 +11,8 @@
         defines: {
             isAllCompanies: 1,
             productTarget: 2,
-            disabledInput: 0
+            disabledInput: 0,
+            isThereRecord : 0
         },
         functions: {
             changeForAllCompanies: function (i) {
@@ -27,7 +28,6 @@
                     page.defines.isAllCompanies = 0;
                     $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
                     $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
-
                 }
             },
             changeProductTarget: function (i) {
@@ -157,7 +157,7 @@
     @Html.HiddenFor(model => model.companyBasedPriceId)
 
     <div id="options">
-        <div class="form-group">
+        <div class="form-group" id="companyOptions">
             <div class="col-md-5">
                 <div class="radio akilliRadioGrup clearfix">
                     <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
@@ -185,7 +185,7 @@
             </div>
         </div>
 
-        <div class="form-group">
+        <div class="form-group"  id="productOptions">
             <div class="col-md-5">
                 <div class="radio akilliRadioGrup clearfix">
                     <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
@@ -320,7 +320,7 @@
 
     $('#form').submit(function (eventObj) {
         var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var griddata = grid.dataSource.data();
+        var griddata = grid?.dataSource.data();
         for (var i = 0; i < griddata.length; i++) {
             model.push(griddata[i])
         }
@@ -335,9 +335,14 @@
         var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
         var griddata = grid.dataSource.data();
         if (griddata.length != 0) {
-            $("#options").attr("style","pointer-events:none;")
+            $("#options").attr("style", "pointer-events:none;");
+            $("#productOptions").attr("style", "pointer-events:auto;");
+            $("#companyOptions").attr("style", "pointer-events:auto;");
+            $("#priceDiscount1").trigger("click");
+            page.defines.isThereRecord = 1;
         } else {
-            $("#options").attr("style", "pointer-events:auto;")
+            $("#options").attr("style", "pointer-events:auto;");
+            page.defines.isThereRecord = 0;
         }
     }
 
