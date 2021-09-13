@@ -108,72 +108,67 @@
 
 <script id="cardTemplate" type="text/template">
     <div class="agileItem" data-id="#:id#" data-presentationstageid=#:PresentationStageId#>
-        <div class="cont" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
-        <div class="cont">
+
+        <div class="stageColor" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
+        <div class="stageBody">
             <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
-            <span class="info">
-                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#:kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
+
+            <div class="bodyLeft">
+
+                #if(CustomerCompany_Title != null) { #
+                <div class="stageLine">
+                    <span class="badge badge-warning" data-toggle="tooltip" data-placement="bottom" title="Müşteri">#: CustomerCompany_Title #</span>
+                </div>
+                # } #
+
+                #if(VodafoneOffer != null || lastTenderTotalAmount != null) { #
+                <div class="stageLine">
+
+                    #if(VodafoneOffer != null) { #
+                    <span class="badge badge-success" data-toggle="tooltip" data-placement="bottom" title="Tahmini Beklenen Ciro">#: kendo.toString(VodafoneOffer, 'N0') # ₺</span>
+                    # } #
+
+                    #if(lastTenderTotalAmount != null) { #
+                    <span class="badge badge-primary" data-toggle="tooltip" data-placement="bottom" title="Son Teklif">#: kendo.toString(lastTenderTotalAmount, 'N0') # ₺</span>
+                    # } #
+
+                </div>
+                # } #
+
+                #if(Last_ContactDate != null || TotalContact != null) { #
+                <div class="stageLine">
+
+                    #if(Last_ContactDate != null) { #
+                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Son Toplantı Tarihi"><span class="icon-users-1"></span>#: kendo.toString(new Date(Last_ContactDate), 'dd.MM.yyyy HH:mm') #</span>
+                    # } #
+
+                    #if(TotalContact != null) { #
+                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Toplam Aktivite/Randevu">#: kendo.toString(TotalContact, 'N0') #</span>
+                    # } #
+
+                </div>
+                # } #
+
+                #if(DaysSinceVisit != null) { #
+                <div class="stageLine">
+                    <small>Son aktiviteden bugüne geçen <b>#: kendo.toString(DaysSinceVisit, 'N0') #</b> gün</small>
+                </div>
+                # } #
+
+            </div>
+            <div class="bodyRight">
+                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#: kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
                 <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
                     <span style="width: #:CompletionRate ?? 0#%" class="pb">
                         <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
                     </span>
                 </span>
                 <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
-                <img class="spimg" src="/Files/SH_User/442945d4-5a15-4a09-b5b5-2db628f09e6b/PR___2021_09_06_13_56_34.jpg" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" />
-            </span>
-            <div class="optsCont">
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-user-1"></i> Müşteri
-                    </span>
-                    <span class="val">
-                        #:CustomerCompany_Title == null ? '-' : CustomerCompany_Title#
-                    </span>
-                </div>
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-users-1"></i> Toplantı
-                    </span>
-                    <span class="val">
-                        #:TotalContact == null ? '-' : TotalContact#
-                    </span>
-                </div>
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-dollar-1"></i> Tahmini Ciro
-                    </span>
-                    <span class="val">
-                        #:VodafoneOffer == null ? '-' : kendo.toString(VodafoneOffer, 'N2')#
-                        #if(VodafoneOffer != null) { # <small>₺</small> #}#
-                    </span>
-                </div>
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-dollar-1"></i> Son Teklif
-                    </span>
-                    <span class="val">
-                        #:lastTenderTotalAmount == null ? '-' : kendo.toString(lastTenderTotalAmount, 'N2')#
-                        #if(lastTenderTotalAmount != null) { # <small>₺</small> #}#
-                    </span>
-                </div>
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-award-1"></i> Son Toplantı
-                    </span>
-                    <span class="val">
-                        #:LastStatus == null ? '-' : LastStatus#
-                    </span>
-                </div>
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-megaphone-2"></i> Geçen Gün
-                    </span>
-                    <span class="val">
-                        #:DaysSinceVisit == null ? '-' : DaysSinceVisit#
-                    </span>
-                </div>
+                <img class="spimg" src="#: salesPersonPhoto #" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
             </div>
+
         </div>
+
     </div>
 </script>
 
@@ -708,7 +703,7 @@
                     page.filters.init(item.element);
                 });
             }
-            
+
             page.Agile.AgileStages.init();
 
             if (page.Model.AgileBoard == null) {
