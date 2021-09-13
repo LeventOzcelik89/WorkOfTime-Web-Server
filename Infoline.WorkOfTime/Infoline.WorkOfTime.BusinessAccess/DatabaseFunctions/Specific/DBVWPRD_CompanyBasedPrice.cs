@@ -29,6 +29,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Minimum Adete Göre")]
         Adet
     }
+
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "companyType")]
+    public enum EnumPRD_CompanyBasedPriceCompanyType
+    {
+        [Description("Tüm Şirketlere")]
+        AllCompanies = 0,
+        [Description("Seçili Şirkete")]
+        SelectedCompany,
+
+    }
+    
+    [EnumInfo(typeof(PRD_CompanyBasedPrice), "productType")]
+    public enum EnumPRD_CompanyBasedPriceProductType
+    {
+        [Description("Tüm Ürünlere")]
+        AllProducts = 0,
+        [Description("Seçili Kategoriye")]
+        SelectedCategory,
+        [Description("Seçili Ürüne")]
+        SelectedProduct,
+
+    }
+
     partial class WorkOfTimeDatabase
     {
         public VWPRD_CompanyBasedPriceDetail[] GetVWPRD_CompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, DbTransaction tran = null)

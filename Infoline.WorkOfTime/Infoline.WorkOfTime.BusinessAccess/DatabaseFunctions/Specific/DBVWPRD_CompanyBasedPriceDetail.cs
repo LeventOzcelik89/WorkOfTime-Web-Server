@@ -24,6 +24,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public PRD_CompanyBasedPriceDetail[] GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_CompanyBasedPriceDetail>().Where(a => a.companyBasedPriceId == id).Execute().ToArray();
+            }
+        }
+
     }
     
 

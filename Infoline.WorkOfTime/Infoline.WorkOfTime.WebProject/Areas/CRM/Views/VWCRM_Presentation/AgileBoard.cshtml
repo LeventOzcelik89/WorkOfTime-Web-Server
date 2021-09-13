@@ -10,36 +10,11 @@
 
 <link href="~/Content/AgileBoard/css/default.css" rel="stylesheet" />
 
-<script type="text/template" id="AgileColumnTemplate">
-
-    <li class="agileColumn" data-target="AgileColumn" data-id="{{id}}">
-
-        <div class="agileHeader">
-
-            <div class="row">
-                <div class="col-md-10">
-                    <h4>{{title}}</h4>
-                </div>
-                <div class="col-md-2">
-                    <div class="agileHeaderButtons text-right">
-                        <a class="btn btn-xs btn-default text-primary" data-modal="true" data-task="Insert" data-href="/CRM/VWCRM_Presentation/Insert?PresentationStageId={{id}}"><i class="icon-plus" data-toggle="tooltip" data-placement="bottom" title="Yeni Potansiyel"></i></a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div data-target="AgileGrid"></div>
-
-    </li>
-
-</script>
-
 <div class="row agileContainer">
 
     <div class="row kanbanHeader">
         <div class="col-md-8">
-            <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "")</span>
+            <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "Kanban")</span>
             <small data-target="kanban.description" class="text-muted">@(Model.AgileBoard != null ? Model.AgileBoard.description : "")</small>
         </div>
         <div class="col-md-4">
@@ -48,37 +23,33 @@
                 <div class="btn-group">
                     <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">
                         <i class="icon-flash"></i>
-                        <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "")</span>
+                        <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "Kanban")</span>
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="KanbanList"></ul>
                 </div>
 
-                <div class="btn-group">
+                <div class="btn-group" data-target="FilterFilter">
                     <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">
                         <i class="icon-filter-1"></i>
                         <span data-target="filter.name">Filtre</span>
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="FilterList">
-                        <li data-filter="MyTasks">
-                            <i class="icon-user-1"></i>
-                            Benim Görevlerim
-                        </li>
-                        <li>
+                        <li data-filter="OpenedToday" data-event="Filter">
                             <i class="icon-stopwatch"></i>
                             Bu Gün Açılanlar
                         </li>
-                        <li>
+                        <li data-filter="OpenedThisWeek" data-event="Filter">
                             <i class="icon-calendar-empty"></i>
                             Bu Hafta Açılanlar
                         </li>
-                        <li>
+                        <li data-filter="OpenedThisMonth" data-event="Filter">
                             <i class="icon-calendar-empty"></i>
                             Bu Ay Açılanlar
                         </li>
                         <li class="divider"></li>
-                        <li data-event="Filter">
+                        <li data-filter="custom" data-event="Filter">
                             <i class="icon-search-4"></i>
                             Özel
                         </li>
@@ -94,7 +65,7 @@
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="StageList"></ul>
                 </div>
 
-                <button class="btn btn-primary btn-xs" data-task="Insert" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert">
+                <button class="btn btn-primary btn-xs" data-task="Insert" style="display: none;" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert">
                     <i class="icon-floppy-1"></i> Kaydet
                 </button>
 
@@ -108,53 +79,49 @@
 
     <ul class="agileColumns" data-target="AgileColumnsContainer"></ul>
 
+    <div class="noitem" style="display: none;">
+        <h1 class="text-center">
+            Tanımlı hiç bir CRM Aşaması bulunamadı. <br><br>
+            <a target="_blank" href="/CRM/VWCRM_ManagerStage/Index">Buradan aşama tanımlayabilirsiniz.</a>
+        </h1>
+    </div>
+
 </div>
 
-<div class="modal inmodal fade" id="ModalAgileColumns" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Kapat</span></button>
-                <h4 class="modal-title">Görüntülenecek Aşamalar</h4>
-                <small class="font-bold">Görüntülenecek aşamaları belirtip, konumlarını (sürükle bırak) yöntemi ile tanımlayabilirsiniz.</small>
-            </div>
-            <div class="modal-body">
-
-                <div class="row miniStageContainer" data-target="StagesContainer">
-
+<script id="AgileColumnTemplate" type="text/template">
+    <li class="agileColumn" data-target="AgileColumn" data-id="{{id}}">
+        <div class="agileHeader">
+            <div class="row">
+                <div class="col-md-10">
+                    <h4>{{title}}</h4>
                 </div>
-
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Kaydet</button>
+                <div class="col-md-2">
+                    <div class="agileHeaderButtons text-right">
+                        <a class="btn btn-xs btn-default text-primary" data-modal="true" data-task="Insert" data-href="/CRM/VWCRM_Presentation/Insert?PresentationStageId={{id}}"><i class="icon-plus" data-toggle="tooltip" data-placement="bottom" title="Yeni Potansiyel"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+        <div data-target="AgileGrid"></div>
+    </li>
+</script>
 
-<script type="text/template" id="template">
+<script id="cardTemplate" type="text/template">
     <div class="agileItem" data-id="#:id#" data-presentationstageid=#:PresentationStageId#>
         <div class="cont" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
         <div class="cont">
             <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
             <span class="info">
-
                 <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#:kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
-
                 <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
                     <span style="width: #:CompletionRate ?? 0#%" class="pb">
                         <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
                     </span>
                 </span>
-
                 <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
-
                 <img class="spimg" src="/Files/SH_User/442945d4-5a15-4a09-b5b5-2db628f09e6b/PR___2021_09_06_13_56_34.jpg" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" />
-
             </span>
-
             <div class="optsCont">
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-user-1"></i> Müşteri
@@ -163,7 +130,6 @@
                         #:CustomerCompany_Title == null ? '-' : CustomerCompany_Title#
                     </span>
                 </div>
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-users-1"></i> Toplantı
@@ -172,7 +138,6 @@
                         #:TotalContact == null ? '-' : TotalContact#
                     </span>
                 </div>
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-dollar-1"></i> Tahmini Ciro
@@ -182,7 +147,6 @@
                         #if(VodafoneOffer != null) { # <small>₺</small> #}#
                     </span>
                 </div>
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-dollar-1"></i> Son Teklif
@@ -192,7 +156,6 @@
                         #if(lastTenderTotalAmount != null) { # <small>₺</small> #}#
                     </span>
                 </div>
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-award-1"></i> Son Toplantı
@@ -201,7 +164,6 @@
                         #:LastStatus == null ? '-' : LastStatus#
                     </span>
                 </div>
-
                 <div class="opt">
                     <span class="key">
                         <i class="icon-megaphone-2"></i> Geçen Gün
@@ -210,9 +172,7 @@
                         #:DaysSinceVisit == null ? '-' : DaysSinceVisit#
                     </span>
                 </div>
-
             </div>
-
         </div>
     </div>
 </script>
@@ -226,15 +186,39 @@
                 <small class="font-bold">Sütun içerisinde görünecek ögeler için buradan filtreleme yapabilirsiniz.</small>
             </div>
             <div class="modal-body">
-
                 <div class="form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Filter_StartDate">Başlangıç Tarihi</label>
+                        </div>
+                        <div class="col-md-8" data-container>
+                            @(
+                                Html.Akilli()
+                                .DateTimePicker("Filter_StartDate")
+                                .MaxDateElement("Filter_EndDate")
+                                .Interval(15)
+                            )
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="Filter_EndDate">Bitiş Tarihi</label>
+                        </div>
+                        <div class="col-md-8" data-container>
+                            @(
+								Html.Akilli()
+								.DateTimePicker("Filter_EndDate")
+								.Interval(15)
+                            )
+                        </div>
+                    </div>
 
                     <div class="form-group">
                         <div class="col-md-4">
                             <label class="control-label label-md" for="Filter_CustomerCompanyId">Müşteri</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="name"
@@ -246,7 +230,6 @@
                                     id="Filter_CustomerCompanyId"
                                     name="CustomerCompanyId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -255,7 +238,6 @@
                             <label class="control-label label-md" for="Filter_SalesPersonId">Satış Personeli</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="FullName"
@@ -268,7 +250,6 @@
                                     id="Filter_SalesPersonId"
                                     name="SalesPersonId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -277,7 +258,6 @@
                             <label class="control-label label-md " for="Filter_ChannelCompanyId">Kanal</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="name"
@@ -289,7 +269,6 @@
                                     id="Filter_ChannelCompanyId"
                                     name="ChannelCompanyId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -301,10 +280,7 @@
                             @(Html.Akilli().NumericTextBox("Filter_CompletionRate").Min(0).Max(100))
                         </div>
                     </div>
-
                 </div>
-
-
 
             </div>
             <div class="modal-footer">
@@ -315,7 +291,7 @@
     </div>
 </div>
 
-<script type="text/template" id="StageSelectorTemplate">
+<script id="StageSelectorTemplate" type="text/template">
     <li class="h24" data-id="{{id}}">
         <label>
             <span class="color" style="background-color:{{color}}"></span>
@@ -323,52 +299,6 @@
         </label>
     </li>
 </script>
-
-<script type="text/template" id="miniStageTemplate">
-    <div class="col-md-3 miniStage" data-id="{{id}}">
-        <div>
-
-            <div class="cbox">
-                <label class="control-label" for="ShowAgile_{{id}}">Gösterilsin</label>
-                <input type="checkbox" id="ShowAgile_{{id}}" />
-            </div>
-
-            <span class="color" style="background-color:{{color}}"></span>
-            <h4>{{Name}}</h4>
-            <small>{{Code}}</small>
-            <small class="text-success" style="display: {{IsSalesCompleted}}">Satış Gerçekleşti</small>
-
-        </div>
-    </div>
-</script>
-
-<div class="fixedStart hide">
-    <input type="checkbox" checked id="fixed">
-    <label title="" for="fixed" id="fixed"><i class="icon-cogs"></i></label>
-    <div class="fix-buttons">
-
-        <a data-event="UpdateStages" href="#"><i data-toggle="tooltip" title="Aşamaları Yapılandır" class="icon-tags"></i></a>
-        <a data-event="Filter" href="#"><i data-toggle="tooltip" title="Filtre Yapılandır" class="icon-filter-1"></i></a>
-
-        @*<a data-event="KanbanDelete" href="#"><i data-toggle="tooltip" title="Kanban Sil" class="icon-trash-1"></i></a>*@
-        <a href="#" data-task="Insert" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert"><i data-toggle="tooltip" title="Kanban Kaydet" class="icon-floppy-1"></i></a>
-
-        <div class="dropdown" data-target="Kanbans">
-
-            <a href="#" data-event="ChangeKanban" data-toggle="dropdown" class="dropdown-toggle"><i data-toggle="tooltip" title="Kanban Değiştir" class="icon-arrows-cw-3"></i></a>
-
-            <ul class="dropdown-menu">
-                <li>Action</li>
-                <li>Another action</li>
-                <li>Something else here</li>
-                <li>KANBAN 1</li>
-            </ul>
-
-        </div>
-
-    </div>
-
-</div>
 
 <script type="text/javascript">
 
@@ -393,7 +323,7 @@
 
             var savedObject = {
                 AgileStages: page.Agile.AgileStages.GetData(),
-                Filter: $.Enumerable.From(page.filters.getFilter()).Select(a => { return { element: a.element, value: a.value } }).ToArray(),
+                Filter: page.filters.getFilter(),
             };
 
             $('#VWSH_AgileBoardsInsertForm #json').val(JSON.stringify(savedObject));
@@ -408,19 +338,22 @@
 
         .on('click', '[data-event="Filter"]', function () {
 
-            page.filters.modalFilter.modal('show');
 
-        })
+            if ($(this).attr('data-filter') == 'custom') {
+                page.filters.modalFilter.modal('show');
+                return;
+            }
 
-        .on('click', '[data-event="CancelFilter"]', function () {
+            page.filters.type = $(this).attr('data-filter');
+            page.filters.Change();
+
 
         })
 
         .on('click', '[data-event="SaveFilter"]', function () {
 
-            $('[data-target="filter.name"]').text('Özel');
-
-            page.Agile.AgileStages.UpdateFilter();
+            page.filters.type = 'custom';
+            page.filters.Change();
             page.filters.modalFilter.modal('hide');
 
         })
@@ -435,7 +368,23 @@
 
             if (res.Result == true) {
 
-                page.Model.MyAgileBoards.push(res.Object);
+                var upd = $.Enumerable.From(page.Model.MyAgileBoards).Where(a => { return a.id == res.Object.id; }).FirstOrDefault();
+
+                if (res.Object.changed != null) {
+                    res.Object.changed = new Date(parseInt(res.Object.changed.replace('/Date(', '').replace(')/', '')));
+                }
+                if (res.Object.lastUsedDate != null) {
+                    res.Object.lastUsedDate = new Date(parseInt(res.Object.lastUsedDate.replace('/Date(', '').replace(')/', '')));
+                }
+
+                if (upd == null) {
+                    page.Model.MyAgileBoards.push(res.Object);
+                } else {
+                    page.Model.MyAgileBoards[page.Model.MyAgileBoards.indexOf(upd)] = res.Object;
+                }
+
+                page.Model.MyAgileBoards = $.Enumerable.From(page.Model.MyAgileBoards).OrderByDescending(a => { return a.lastUsedDate; }).ToArray();
+
                 page.Kanban.Change(res.Object.id);
 
             }
@@ -465,49 +414,110 @@
         Model: @Html.Raw( Infoline.Helper.Json.Serialize(Model) ),
 
         filters: {
-            CheckValue: function () {
-
-                var val;
-                var value = $.Enumerable.From(page.filters.items).Where(a => { return a.element == ('#' + this.element.attr('id')) }).FirstOrDefault();
-
-                var sort = this.dataSource.sort();
-                var newSort = [];
-
-                if (this.element.attr('data-loaded') == 'true') {
-                    this.value(value.value);
-                    return;
-                }
-
-                if (value.value == null) {
-                    return;
-                }
-
-                //  id:db77785e_713d_44ca_d700_87945a47468a','69b3bfd1_871c_8f2e_ec2b_f00760ffd209','a275cf86_868a_a090_63f5_5855dad834ac','ddac99bf_0572_add0_7254_cc9c29613750-asc~CompanyName-asc
-
-                if (value.type == 'm') {
-                    val = $.Enumerable.From(value.value).Select(a => { return a.replace(/-/g, '_') }).ToArray().join("','");
-                }
-
-                var filt = { field: 'id:' + val, dir: 'asc' };
-                newSort.push(filt);
-                newSort.push(sort[0]);
-
-                this.dataSource.sort(newSort);
-
-                this.element.attr('data-loaded', 'true');
-
-            },
             modalFilter: null,
             modalStage: null,
+            type: null,
+            getMonday: function (date) {
+
+                d = new Date(date);
+
+                var day = d.getDay();
+                var diff = d.getDate() - day + (day == 0 ? -6 : 1);
+                var nd = new Date(d.setDate(diff));
+                nd = new Date(kendo.toString(nd, 'yyyy-MM-ddT00:00:00')).toLocaleString()
+
+                return nd;
+
+            },
+
+            Change: function () {
+
+                $('[data-target="FilterFilter"]').removeClass('active');
+
+                switch (this.type) {
+
+                    case null:
+
+                        $('[data-target="filter.name"]').text('Filtre');
+
+                        break;
+
+                    case 'custom':
+
+                        $('[data-target="filter.name"]').text('Özel');
+                        $('[data-target="FilterFilter"]').addClass('active');
+
+                        break;
+
+                    case 'OpenedToday':
+
+                        $('[data-target="filter.name"]').text('Bu Gün Açılanlar');
+                        $('[data-target="FilterFilter"]').addClass('active');
+
+                        $.each(page.filters.items, function (i, item) {
+                            page.filters.setItemValue(item.element, null);
+                        });
+
+                        page.filters.setItemValue('#Filter_StartDate', new Date(kendo.toString(new Date(), 'yyyy-MM-dd') + 'T00:00:00'));
+                        //  page.filters.setItemValue('#Filter_EndDate', new Date(kendo.toString(new Date(), 'yyyy-MM-dd') + 'T23:59:59'));
+
+                        break;
+
+                    case 'OpenedThisWeek':
+
+                        $('[data-target="filter.name"]').text('Bu Hafta Açılanlar');
+                        $('[data-target="FilterFilter"]').addClass('active');
+
+                        $.each(page.filters.items, function (i, item) {
+                            page.filters.setItemValue(item.element, null);
+                        });
+
+                        page.filters.setItemValue('#Filter_StartDate', page.filters.getMonday(new Date()));
+                        //  page.filters.setItemValue('#Filter_EndDate', new Date(kendo.toString(new Date(), 'yyyy-MM-dd') + 'T23:59:59'));
+
+                        break;
+
+                    case 'OpenedThisMonth':
+
+                        $('[data-target="filter.name"]').text('Bu Ay Açılanlar');
+                        $('[data-target="FilterFilter"]').addClass('active');
+
+                        $.each(page.filters.items, function (i, item) {
+                            page.filters.setItemValue(item.element, null);
+                        });
+
+                        page.filters.setItemValue('#Filter_StartDate', new Date(kendo.toString(new Date(), 'yyyy-MM-01T00:00:00')));
+
+                        break;
+
+                    default:
+                }
+
+                page.Agile.AgileStages.UpdateFilter();
+
+            },
             items: [
 
-                { type: 'm', field: 'CustomerCompanyId', element: '#Filter_CustomerCompanyId' },
-                { type: 'm', field: 'SalesPersonId', element: '#Filter_SalesPersonId' },
-                { type: 'm', field: 'ChannelCompanyId', element: '#Filter_ChannelCompanyId' },
-                { type: 'n', field: 'CompletionRate', element: '#Filter_CompletionRate' },
+                { type: 'minDT', field: 'created', element: '#Filter_StartDate' },
+                { type: 'maxDT', field: 'created', element: '#Filter_EndDate' },
+
+                { type: 'multiple', field: 'CustomerCompanyId', element: '#Filter_CustomerCompanyId' },
+                { type: 'multiple', field: 'SalesPersonId', element: '#Filter_SalesPersonId' },
+                { type: 'multiple', field: 'ChannelCompanyId', element: '#Filter_ChannelCompanyId' },
+                { type: 'number', field: 'CompletionRate', element: '#Filter_CompletionRate' },
 
             ],
-            getFilter: function (element) {
+            getFilter: function () {
+
+                return {
+                    type: page.filters.type,
+                    items: $.Enumerable.From(page.filters.getFilterItems())
+                        .Select(a => { return { element: a.element, value: a.value, type: a.type } })
+                        .ToArray()
+                };
+
+            },
+            getFilterItems: function (element) {
 
                 if (element != undefined) {
                     return $('#' + element).data('handler').dataItem();
@@ -525,33 +535,20 @@
                 return page.filters.items;
 
             },
-            getKendoFilter: function () {
-
-                var Filter = "(" + page.filters.getFilter().filter(a => a.value != null).map(function (c) {
-
-                    if (c.type == 's') {
-                        return "(" + c.field + "~eq~'" + c.value + ")";
-                    } else if (c.type == 'm') {
-                        return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
-                    } else if (c.type == 'n') {
-                        return "(" + c.field + "~gte~'" + c.value + ")";
-                    }
-
-                }).join("~and~") + ")";
-
-                return kendo.filterParser(Filter);
-
-            },
-            init: function (element) {
+            init: function (element, _value) {
 
                 var item = $.Enumerable.From(page.filters.items).Where(a => { return a.element == element; }).FirstOrDefault();
                 if (item == undefined) { return; }
 
                 if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
                     var saved = JSON.parse(page.Model.AgileBoard.json);
-                    var savedFilter = $.Enumerable.From(saved.Filter).Where(a => { return a.element == element; }).FirstOrDefault();
+                    var savedFilter = $.Enumerable.From(saved.Filter.items).Where(a => { return a.element == element; }).FirstOrDefault();
                     if (savedFilter != null && savedFilter.value != null) {
-                        item.value = savedFilter.value;
+                        if (savedFilter.type == 'minDT' || savedFilter.type == 'maxDT') {
+                            item.value = _value ?? new Date(savedFilter.value);
+                        } else {
+                            item.value = _value ?? savedFilter.value;
+                        }
                     } else {
                         item.value = null;
                     }
@@ -560,20 +557,23 @@
                 var el = $(item.element);
                 if (el.length == 0) { return; }
 
-                if (el.data('kendoNumericTextBox') != undefined) {
-                    el.data('kendoNumericTextBox').value(item.value);
+                if (el.data('kendoNumericTextBox') != undefined || el.data('kendoDateTimePicker')) {
+                    el.data('handler').value(_value ?? item.value);
                     return;
                 }
 
-                item.template = el[0].outerHTML;
+                if (item.template == null) {
+                    item.template = el[0].outerHTML;
+                }
 
                 var _textField = el.attr('data-datatextfield') != undefined ? el.attr('data-datatextfield') : 'Name';
                 var _valueField = el.attr('data-dataidfield') != undefined ? el.attr('data-dataidfield') : 'id';
 
                 var _filter = el.attr('data-filter') != undefined ? kendo.filterParser(el.attr('data-filter')) : [];
                 var _sort = [{ field: _textField, dir: 'asc' }];
-                if (item.value != null) {
-                    _sort.unshift({ field: 'id:' + $.Enumerable.From(item.value).Select(a => { return a.replace(/-/g, '_') }).ToArray().join("','"), dir: 'asc' });
+
+                if (_value == null || item.value != null) {
+                    _sort.unshift({ field: 'id:' + $.Enumerable.From(_value ?? item.value).Select(a => { return a.replace(/-/g, '_') }).ToArray().join("','"), dir: 'asc' });
                 }
 
                 item._element = $(item.template);
@@ -586,7 +586,7 @@
                         tagMode: 'single',
                         tagTemplate: el.attr('data-tagtemplate'),
                         itemTemplate: el.attr('data-itemtemplate'),
-                        value: item.value,
+                        value: _value ?? item.value,
                         autoClose: false,
                         dataValueField: _valueField,
                         dataTextField: _textField,
@@ -610,6 +610,17 @@
                 });
 
             },
+            setItemValue: function (element, value) {
+
+                var filterItem = $.Enumerable.From(page.filters.items).Where(a => { return a.element == element; }).FirstOrDefault();
+                if (filterItem == null) {
+                    return;
+                }
+
+                filterItem.value = value;
+                page.filters.init(filterItem.element, filterItem.value);
+
+            }
         },
 
         Kanban: {
@@ -661,18 +672,48 @@
 
         init: function () {
 
+            if (page.Model.Stages == undefined || page.Model.Stages.length == 0) {
+                $('.noitem').show();
+                return;
+            }
+
+            if (page.Model.MyAgileBoards != undefined) {
+
+                $.each(page.Model.MyAgileBoards, function (i, item) {
+                    item.changed = new Date(item.changed);
+                    item.lastUsedDate = new Date(item.lastUsedDate);
+                });
+
+            }
+
             page.filters.modalFilter = $('#ModalFilter');
             page.filters.modalStage = $('#ModalAgileColumns');
 
-            $.each(page.filters.items, function (i, item) {
-                page.filters.init(item.element);
-            });
+            if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
 
+                var saved = JSON.parse(page.Model.AgileBoard.json);
+
+                page.filters.type = saved.Filter.type;
+                $.each(page.filters.items, function (i, item) {
+
+                    var _filter = $.Enumerable.From(saved.Filter.items).Where(a => a.element == item.element).FirstOrDefault();
+                    page.filters.init(item.element, _filter != null && _filter.value != null ? ((_filter.type == 'minDT' || _filter.type == 'maxDT') ? new Date(_filter.value) : _filter.value) : null);
+
+                });
+
+                page.filters.Change();
+
+            } else {
+                $.each(page.filters.items, function (i, item) {
+                    page.filters.init(item.element);
+                });
+            }
+            
             page.Agile.AgileStages.init();
 
             if (page.Model.AgileBoard == null) {
 
-                page.filters.modalStage.modal('show');
+                $('[data-target="StageList"]').parents('.btn-group').addClass('open');
 
             }
 
@@ -691,31 +732,6 @@
                 }
             })
 
-            //  $('[data-target="StagesContainer"]').sortable({
-            //      connectWith: '.miniStage',
-            //      update: function (event, ui) {
-            //
-            //          var target = $('[data-target="StagesContainer"]');
-            //          var elems = target.children('div');
-            //
-            //          $.Enumerable.From(elems)
-            //              .Select((a, i) => {
-            //
-            //                  var _id = $(a).attr('data-id');
-            //
-            //                  var agile = page.Agile.AgileStages.list[_id];
-            //                  agile.index = i;
-            //
-            //                  agile.renderStage();
-            //                  agile.render();
-            //
-            //                  return null;
-            //              })
-            //              .ToArray();
-            //
-            //      }
-            //  });
-
             page.Kanban.init();
 
         },
@@ -727,7 +743,23 @@
 
                 init: function (_stages) {
 
-                    $.each(page.Model.Stages, function (is, stage) {
+                    if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
+                        var saved = JSON.parse(page.Model.AgileBoard.json);
+                        if (saved != null) {
+
+                            $.each(page.Model.Stages, function (i, item) {
+                                item.index = null;
+                            });
+
+                            $.each(saved.AgileStages, function (i, item) {
+                                var stage = $.Enumerable.From(page.Model.Stages).Where(a => { return a.id == item.id }).FirstOrDefault();
+                                stage.index = item.index;
+                            });
+
+                        }
+                    }
+
+                    $.each($.Enumerable.From(page.Model.Stages).OrderBy(a => { return a.index != null ? a.index : 999; }).ThenBy(a => { return a.title; }).ToArray(), function (is, stage) {
 
                         if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
                             var saved = JSON.parse(page.Model.AgileBoard.json);
@@ -857,7 +889,7 @@
                                         "total": 0,
                                         filter: $this.getKendoFilter()
                                     }),
-                                    template: kendo.template($("#template").html())
+                                    template: kendo.template($("#cardTemplate").html())
                                 });
 
                             gridElem.sortable({
@@ -903,17 +935,21 @@
 
                         getKendoFilter: function () {
 
-                            var defaultFilter = [{ type: 's', field: 'PresentationStageId', value: _stage.id }];
-                            var filters = $.merge(defaultFilter, page.filters.getFilter());
+                            var defaultFilter = [{ type: 'single', field: 'PresentationStageId', value: _stage.id }];
+                            var filters = $.merge(defaultFilter, page.filters.getFilterItems());
 
                             var Filter = "(" + filters.filter(a => a.value != null).map(function (c) {
 
-                                if (c.type == 's') {
+                                if (c.type == 'single') {
                                     return "(" + c.field + "~eq~'" + c.value + ")";
-                                } else if (c.type == 'm') {
+                                } else if (c.type == 'multiple') {
                                     return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
-                                } else if (c.type == 'n') {
+                                } else if (c.type == 'number') {
                                     return "(" + c.field + "~gte~'" + c.value + ")";
+                                } else if (c.type == 'minDT') {
+                                    return '(' + c.field + "~gte~datetime'" + kendo.toString(c.value, 'yyyy-MM-ddTHH-mm-ss') + "')";
+                                } else if (c.type == 'maxDT') {
+                                    return '(' + c.field + "~lte~datetime'" + kendo.toString(c.value, 'yyyy-MM-ddTHH-mm-ss') + "')";
                                 }
 
                             }).join("~and~") + ")";
@@ -924,6 +960,9 @@
                     };
 
                     this.list[_stage.id] = agileItem;
+                    if ($.Enumerable.From(page.Agile.AgileStages.list).Count() > 0) {
+                        $('.kanbanHeader [data-task="Insert"]').show();
+                    }
                     return agileItem;
 
                 },
@@ -950,7 +989,8 @@
                             return {
                                 id: a.Value.id,
                                 index: a.Value.index,
-                                active: a.Value.active
+                                active: a.Value.active,
+                                title: a.Value.title
                             };
 
                         })

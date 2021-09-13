@@ -23,5 +23,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? categoryId { get; set;}
         public short? conditionType { get; set;}
         public short? sellingType { get; set;}
+        public short? companyType { get; set;}
+        public short? productType { get; set;}
     }
 }

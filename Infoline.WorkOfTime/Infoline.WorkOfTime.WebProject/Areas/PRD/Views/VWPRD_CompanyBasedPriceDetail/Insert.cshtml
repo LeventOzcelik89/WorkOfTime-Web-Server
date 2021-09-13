@@ -12,60 +12,68 @@
             isAllCompanies: 1,
             productTarget: 2,
             disabledInput: 0,
-            isThereRecord : 0
+            isThereRecord: 0
         },
         functions: {
             changeForAllCompanies: function (i) {
-                if (i == 1 && page.defines.isAllCompanies != 1) {
-                    $("#companyId").data("kendoDropDownList").value(-1);
-                    $("#companyId").data("kendoDropDownList").readonly()
-                    page.defines.isAllCompanies = 1;
-                    $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-                    $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                } else if (i == 0 && page.defines.isAllCompanies != 0) {
-                    $("#companyId").data("kendoDropDownList")?.readonly(false);
-                    page.defines.isAllCompanies = 0;
-                    $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
-                    $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
-                }
+                $(document).on("change", "[name='companyType']", function () {
+                    let value = $("[name='companyType']:checked").val();
+                    if (value == 0) {
+                        $("#companyId").data("kendoDropDownList").value(-1);
+                        $("#companyId").data("kendoDropDownList").readonly()
+                        page.defines.isAllCompanies = 1;
+                        $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                        $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                    }
+                    else {
+                        $("#companyId").data("kendoDropDownList")?.readonly(false);
+                        page.defines.isAllCompanies = 0;
+                        $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
+                        $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
+                    }
+                });
             },
             changeProductTarget: function (i) {
                 var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-                if (i == 2 && page.defines.productTarget != 2) {
-                    $("#productId").data("kendoDropDownList").value(-1);
-                    $("#categoryId").data("kendoDropDownList").value(-1);
-                    $("#productId").data("kendoDropDownList").readonly()
-                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
-                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                    $("#productDropDown").removeAttr("style");
-                    $("#categoryDropDown").attr("style", "display:none;");
-                    $("#priceorDiscountDiv").hide();
-                    grid.hideColumn("price");
-                    grid.showColumn("discount");
-                    page.defines.productTarget = 2;
-                } else if (i == 1 && page.defines.productTarget != 1) {
-                    $("#productId").data("kendoDropDownList").value(-1);
-                    $("#categoryDropDown").removeAttr("style");
-                    $("#productDropDown").attr("style", "display:none;");
-                    page.defines.productTarget = 1;
-                    $("#priceorDiscountDiv").hide();
-                    grid.hideColumn("price");
-                    grid.showColumn("discount");
-                } else if (i == 0 && page.defines.productTarget != 0) {
-                    $("#productId").data("kendoDropDownList").value(-1);
-                    $("#categoryId").data("kendoDropDownList").value(-1);
-                    $("#productDropDown").find(".k-input").text("Seçili Ürünlere Uygula");
-                    $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
-                    $("#productDropDown").removeAttr("style");
-                    $("#categoryDropDown").attr("style", "display:none;");
-                    $("#productId").data("kendoDropDownList").readonly(false);
-                    page.defines.productTarget = 0;
-                    $("#priceorDiscountDiv").show();
-                    $("#priceDiscount0").prop("checked", true);
-                    $("#priceDiscount1").prop("checked", false);
-                    grid.showColumn("price");
-                    grid.hideColumn("discount");
-                }
+                $(document).on("change", "[name='productType']", function () {
+                    let value = $("[name='productType']:checked").val();
+                    if (value == 0) {
+                        $("#productId").data("kendoDropDownList").value(-1);
+                        $("#categoryId").data("kendoDropDownList").value(-1);
+                        $("#productId").data("kendoDropDownList").readonly()
+                        $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                        $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                        $("#productDropDown").removeAttr("style");
+                        $("#categoryDropDown").attr("style", "display:none;");
+                        $("#priceorDiscountDiv").hide();
+                        grid.hideColumn("price");
+                        grid.showColumn("discount");
+                    }
+                    else if (value == 1) {
+                        $("#productId").data("kendoDropDownList").value(-1);
+                        $("#categoryDropDown").removeAttr("style");
+                        $("#productDropDown").attr("style", "display:none;");
+                        page.defines.productTarget = 1;
+                        $("#priceorDiscountDiv").hide();
+                        grid.hideColumn("price");
+                        grid.showColumn("discount");
+                    }
+                    else if (value == 2) {
+                        $("#productId").data("kendoDropDownList").value(-1);
+                        $("#categoryId").data("kendoDropDownList").value(-1);
+                        $("#productDropDown").find(".k-input").text("Seçili Ürünlere Uygula");
+                        $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
+                        $("#productDropDown").removeAttr("style");
+                        $("#categoryDropDown").attr("style", "display:none;");
+                        $("#productId").data("kendoDropDownList").readonly(false);
+                        page.defines.productTarget = 0;
+                        $("#priceorDiscountDiv").show();
+                        $("#priceDiscount0").prop("checked", true);
+                        $("#priceDiscount1").prop("checked", false);
+                        grid.showColumn("price");
+                        grid.hideColumn("discount");
+                    }
+                });
             },
             setCompanyDropDownTitle: function (e) {
                 $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
@@ -96,7 +104,6 @@
             },
             setconditionTypeCheckbox: function () {
                 $(document).on("change", "[name='conditionType']", function () {
-                    debugger;
                     let value = $("[name='conditionType']:checked").val();
                     var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
                     if (value == 0) {
@@ -153,14 +160,7 @@
         <div class="form-group" id="companyOptions">
             <div class="col-md-5">
                 <div class="radio akilliRadioGrup clearfix">
-                    <input type="radio" class="bg-focus" name="isForAllCompany" checked id="all_company_check_1" value="1">
-                    <label tabindex="0" onClick="page.functions.changeForAllCompanies(1)" class="radio-label bg-focus" for="all_company_check_1">
-                        Tüm Şirketlere
-                    </label>
-                    <input type="radio" name="isForAllCompany" id="all_company_check_0" value="0">
-                    <label tabindex="0" onClick="page.functions.changeForAllCompanies(0)" class="radio-label" for="all_company_check_0">
-                        Seçili Şirkete
-                    </label>
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
                 </div>
             </div>
             <div class="col-md-7" id="companyDropDown">
@@ -177,23 +177,9 @@
                 )
             </div>
         </div>
-
-        <div class="form-group"  id="productOptions">
+        <div class="form-group" id="productOptions">
             <div class="col-md-5">
-                <div class="radio akilliRadioGrup clearfix">
-                    <input type="radio" class="bg-focus" name="target" id="all_products" checked value="2">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(2)" class="radio-label bg-focus" for="all_products">
-                        Tüm Ürünlere
-                    </label>
-                    <input type="radio" name="target" id="all_categories" value="1">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(1)" class="radio-label" for="all_categories">
-                        Seçili Kategoriye
-                    </label>
-                    <input type="radio" name="target" id="spesific_product" value="0">
-                    <label tabindex="0" onClick="page.functions.changeProductTarget(0)" class="radio-label" for="spesific_product">
-                        Seçili Ürüne
-                    </label>
-                </div>
+                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
             </div>
             <div class="col-md-7" id="productDropDown">
                 @(
@@ -269,20 +255,18 @@
         columns.Bound(p => p.price).Title("Fiyat").Hidden(true).ClientTemplate("#=currencyFunction(data.price)#");
         columns.Command(command => { command.Destroy().Text("Sil"); });
     })
+
     .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
     .Editable(editable => editable.Mode(GridEditMode.InCell).ConfirmDelete("Silmek İstediğinize Emin misiniz?").DisplayDeleteConfirmation("Silmek istediğinize emin misiniz?"))
     .Pageable()
     .Sortable()
     .Filterable()
     .Scrollable()
-    .HtmlAttributes(new { style = "height:550px;" })
+    .HtmlAttributes(new { style = "height:600px;" })
     .DataSource(dataSource => dataSource
         .Ajax()
         .PageSize(20)
         .Model(model => model.Id(p => p.companyBasedPriceId))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail",new {id=Model.companyBasedPriceId }))
-        .Update(update => update.Action("EditingInline_Update", "Grid"))
-        .Destroy(update => update.Action("EditingInline_Destroy", "Grid"))
     )
 )
         </div>
@@ -297,6 +281,8 @@
     page.functions.setconditionTypeCheckbox();
     page.functions.setCompanyDropDownTitle();
     page.functions.setGridDiscountOrPrice();
+    page.functions.changeForAllCompanies();
+    page.functions.changeProductTarget();
     let model = [];
     $('#form').submit(function (eventObj) {
         var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
@@ -315,9 +301,6 @@
         var griddata = grid.dataSource.data();
         if (griddata.length != 0) {
             $("#options").attr("style", "pointer-events:none;");
-            $("#productOptions").attr("style", "pointer-events:auto;");
-            $("#companyOptions").attr("style", "pointer-events:auto;");
-            $("#priceDiscount1").trigger("click");
             page.defines.isThereRecord = 1;
         } else {
             $("#options").attr("style", "pointer-events:auto;");
