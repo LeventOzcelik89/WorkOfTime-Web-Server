@@ -165,19 +165,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.printInfo.user = db.GetVWSH_UserById(this.inputId.Value);
 			}
 
-			if (this.items != null && this.items.Count() > 0)
-			{
-				var products = db.GetVWPRD_ProductByIds(this.items.GroupBy(a => a.productId).Where(a => a.Key != null).Select(a => a.Key.Value).ToArray());
-				foreach (var item in this.items)
-				{
-					item.productId_Title = products.Where(x => x.id == item.productId).Select(a => a.fullName).FirstOrDefault();
-					item.brand_Title = products.Where(x => x.id == item.productId).Select(a => a.brandId_Title).FirstOrDefault();
-					item.categoryId_Title = products.Where(x => x.id == item.productId).Select(a => a.categoryId_Title).FirstOrDefault();
-					item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
-					item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
-					item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
-				}
-			}
+			//if (this.items != null && this.items.Count() > 0)
+			//{
+			//	var products = db.GetVWPRD_ProductByIds(this.items.GroupBy(a => a.productId).Where(a => a.Key != null).Select(a => a.Key.Value).ToArray());
+			//	foreach (var item in this.items)
+			//	{
+			//		item.productId_Title = products.Where(x => x.id == item.productId).Select(a => a.fullName).FirstOrDefault();
+			//		item.brand_Title = products.Where(x => x.id == item.productId).Select(a => a.brandId_Title).FirstOrDefault();
+			//		item.categoryId_Title = products.Where(x => x.id == item.productId).Select(a => a.categoryId_Title).FirstOrDefault();
+			//		item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
+			//		item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
+			//		item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
+			//	}
+			//}
 
 
 
