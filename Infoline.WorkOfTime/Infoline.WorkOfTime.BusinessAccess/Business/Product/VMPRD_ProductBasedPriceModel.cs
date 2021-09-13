@@ -143,7 +143,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 
             //İlişkili kayıtlar kontol edilerek silme işlemine müsade edilecek;
             var result= db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(this.id);
-            var dbresult = new ResultStatus();
+            var dbresult = new ResultStatus { result = true };
             if (result!=null)
             { 
                dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result,trans);
