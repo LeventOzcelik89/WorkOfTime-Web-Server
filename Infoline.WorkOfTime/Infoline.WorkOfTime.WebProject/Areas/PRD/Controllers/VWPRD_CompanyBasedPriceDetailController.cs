@@ -75,7 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız")
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
