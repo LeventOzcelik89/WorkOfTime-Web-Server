@@ -455,8 +455,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								continue;
 							}
 
-							var transaction = transactionItems.Where(x => x.productId == product.materialId).Select(x => x.quantity);
-							var amountSpent = transaction.Sum();
+							var transaction = transactionItems.Where(x => x.productId == product.materialId && x.transactionType == (int)EnumPRD_TransactionType.HarcamaBildirimi).ToList();
+							var amountSpent = transaction.Select(x => x.quantity).Sum();
 							product.amountSpent = amountSpent;
 							productionProductList.Add(product);
 						}
