@@ -58,6 +58,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         ruleOrder = x.ruleOrder
                     }).ToArray();
                 }
+
+                //if (this.IsCopy == true)
+                //{
+                //	Files = db.GetSYS_FilesByDataIdAll(this.id);
+                //	this.id = Guid.NewGuid();
+                //	this.newId = this.id;
+                //	db.BulkInsertSYS_Files(Files.Select(x => new SYS_Files { DataId = this.id, FilePath = x.FilePath, id = Guid.NewGuid(), FileGroup = x.FileGroup, DataTable = x.DataTable, FileExtension = x.FileExtension }));
+                //}
             }
             else
             {
@@ -134,7 +142,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
             var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
-            UpdateDataControl(this.statusDescription,userId);
+            UpdateDataControl(advanceConfirmations, this.statusDescription);
 
             if (res.result && request != null)
             {
@@ -210,7 +218,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 if (dbresult.result)
                 {
-                    //dbresult &= InsertConfirmation(this.createdby.Value);
+                    dbresult &= InsertConfirmation(this.createdby.Value, transaction);
                     transaction.Commit();
                 }
 
@@ -496,7 +504,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return db.GetVWPA_AdvancesApprovedByUserId(userId);
         }
 
-        public ResultStatus InsertConfirmation(Guid userId)
+        public ResultStatus InsertConfirmation(Guid userId, DbTransaction trans = null)
         {
             var dbresult = new ResultStatus { result = true };
             var _trans = trans ?? db.BeginTransaction();
@@ -617,99 +625,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
 
-        public void UpdateDataControl(string statusDescription, Guid userId)
+        public void UpdateDataControl(VWPA_AdvanceConfirmation[] confirmations, string statusDescription)
         {
-            var url = TenantConfig.Tenant.GetWebUrl();
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            var notification = new Notification();
-
-            var confirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
-            if (confirmations.Count() == 0)
-            {
-                var rs = InsertConfirmation(userId);
-                if (rs.result)
-                {
-                    confirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
-                }
-            }
-
-            if (this.direction == -1)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-                    if(confirmations[i].confirmationUserIds == null)
-                    {
-                        confirmations[i].status = (Int16)EnumPA_TransactionConfirmationStatus.Onay;
-                        confirmations[i].description = "Otomatik Onay";
-                        if (confirmations.Count() == 1)
-                        {
-                            if (confirmations[i].advanceId.HasValue)
-                            {
-                                var transaction = db.GetPA_TransactionById(confirmations[i].advanceId.Value);
-                                if (transaction != null)
-                                {
-                                    transaction.direction = -1;
-                                    db.UpdatePA_Transaction(transaction);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            else if (this.direction == 0)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-                    if (confirmations[i].confirmationUserIds == null)
-                    {
-
-                    }
-                }
-                return;
-            }
-            else if (this.direction == 1)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-                    if (confirmations[i].confirmationUserIds == null)
-                    {
-
-                    }
-                }
-            }
-            else if (this.direction == 2)
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                //for (int i = 0; i < confirmations.Count(); i++)
-                //{
-                //    if (confirmations[i].confirmationUserIds == null)
-                //    {
-
-                //    }
-                //    return;
-                //}
-            }
-            else if (this.direction == 3)
-            {
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-                    confirmations[i].status = null;
-                    var data = new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
-                    db.UpdatePA_TransactionConfirmation(data, true);
-                }
-            }
-            else
-            {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-                for (int i = 0; i < confirmations.Count(); i++)
-                {
-
-                }
-            }
-
             var control = false;
             var mailControl = false;
             var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
@@ -736,6 +653,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                         if (confirmations[i].createdby.HasValue)
                         {
+                            var url = TenantConfig.Tenant.GetWebUrl();
                             var user = db.GetVWSH_UserById(confirmations[i].createdby.Value);
                             var text = "<h3>Sayın " + user.FullName + ",</h3>";
                             text += "<p>Avans talebiniz reddedilmiştir.</p>";
@@ -766,7 +684,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                     }
                     db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
-                    UpdateDataControl("", userId);
+                    UpdateDataControl(confirmations, "");
                 }
                 else
                 {
@@ -799,6 +717,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             if (this.createdby.HasValue)
                             {
                                 var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                                var url = TenantConfig.Tenant.GetWebUrl();
 
                                 foreach (var user in users)
                                 {
