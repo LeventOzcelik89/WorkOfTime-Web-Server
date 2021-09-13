@@ -146,9 +146,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                         {
                             foreach (var item in companyBaseList)
                             {
-                                if (!this.CheckDates(item))
+                                if (this.CheckDates(item))
                                 {
-                                    item.companyBasedPriceId = this.companyBasedPriceId;
+                                    item.companyBasedPriceId = this.id;
                                     dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
                                 }
                                 else
@@ -177,7 +177,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Daha önceden böyle bir kayıt girilmiştir"
+                    message = "Seçmiş olduğunuz şirket - ürün - satış tipi ve koşul tipi aynı olan bir kayıt vardır. Eklemek istediğiniz yeni fiyat/iskonto bilgileri lütfen o kayıt altına giriniz."
                 };
             }
             return new ResultStatus

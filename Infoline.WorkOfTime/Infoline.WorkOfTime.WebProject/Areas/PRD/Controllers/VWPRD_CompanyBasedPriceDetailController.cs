@@ -10,7 +10,6 @@ using System.Linq;
 using System.Web.Mvc;
 using Infoline.WorkOfTime.BusinessAccess.Business.Product;
 using Infoline.WorkOfTime.BusinessData.Specific;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_CompanyBasedPriceDetailController : Controller
@@ -20,12 +19,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             return View();
         }
-
         [AllowEveryone]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
-
             var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
@@ -35,19 +32,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_CompanyBasedPriceDetailCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-
-
         [AllowEveryone]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
-
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWPRD_CompanyBasedPriceDetail(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-
-
         [AllowEveryone]
         public ActionResult Detail(Guid id)
         {
@@ -55,12 +47,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
             return View(data);
         }
-
-
         [AllowEveryone]
         public ActionResult Insert()
         {
-            var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId =Guid.NewGuid() };
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId = Guid.NewGuid() };
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
@@ -72,28 +62,40 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             item.created = DateTime.Now;
             var dbresult = item.Save();
             var feedback = new FeedBack();
-            var result = new ResultStatusUI
+            if (dbresult.result != false)
             {
-                Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız")
-            };
-
-            return Json(result, JsonRequestBehavior.AllowGet);
+                var result = new ResultStatusUI()
+                {
+                    Result = dbresult.result,
+                    FeedBack = feedback.Success("Kaydetme  işlemi tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = dbresult.result,
+                    FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(dbresult.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
         }
-
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceDetailModel {id = id };
-            return View(data.Load()) ;
+            var data = new VMPRD_CompanyBasedPriceModel { id = id };
+            var companyBasedModal = data.Load();
+            var returnData = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(companyBasedModal);
+            returnData.companyBasedPriceId = companyBasedModal.id;
+            return View(returnData);
         }
-
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
         public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var userStatus = (PageSecurity)Session["userStatus"];   
+            var userStatus = (PageSecurity)Session["userStatus"];
             return Json(model.Save(), JsonRequestBehavior.AllowGet);
         }
         [AllowEveryone]
@@ -101,13 +103,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
             return Json(VWCompanyBasedPriceDetailList);
-          
         }
-
-
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item )
+        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.Delete();
@@ -123,19 +122,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item, Guid CompanyBasedPriceId)
         {
-             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
+            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.InsertInline();
             var feedback = new FeedBack();
-            if (rs.result==true)
+            if (rs.result == true)
             {
                 var result = new ResultStatusUI
                 {
                     Result = rs.result,
                     FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
                 };
-                 return Json(result, JsonRequestBehavior.AllowGet);
+                return Json(result, JsonRequestBehavior.AllowGet);
             }
             else
             {
@@ -144,12 +143,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     Result = rs.result,
                     FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
                 };
-
                 return Json(result, JsonRequestBehavior.AllowGet);
-
             }
-           
         }
-
     }
 }
