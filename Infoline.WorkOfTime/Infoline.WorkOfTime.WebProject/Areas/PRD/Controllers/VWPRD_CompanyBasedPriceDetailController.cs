@@ -88,14 +88,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
-            return View(data);
+            var data = new VMPRD_CompanyBasedPriceDetailModel {id = id };
+            return View(data.Load()) ;
         }
 
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
+        public JsonResult Update(VMPRD_CompanyBasedPriceDetailModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.changedby = userStatus.user.id;
