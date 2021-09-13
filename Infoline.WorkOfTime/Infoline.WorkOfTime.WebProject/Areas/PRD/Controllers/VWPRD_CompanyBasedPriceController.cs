@@ -95,7 +95,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message,"Silme işlemi başarılı")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }

@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public string transactionId_Title { get; set;}
         public string productId_Title { get; set;}
+        public short? transactionType { get; set;}
         public string unitId_Title { get; set;}
     }
 }
