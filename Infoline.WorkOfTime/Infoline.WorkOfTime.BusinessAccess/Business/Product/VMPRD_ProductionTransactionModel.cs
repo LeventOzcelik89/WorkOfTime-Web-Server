@@ -52,7 +52,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.type_Title = this.type != null ? ((EnumPRD_TransactionType)this.type).B_ToDescription() : "";
 				this.status_Title = this.status != null ? ((EnumPRD_TransactionStatus)this.status).B_ToDescription() : "";
 
-				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+				if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
 					if (this.productionId.HasValue)
 					{
