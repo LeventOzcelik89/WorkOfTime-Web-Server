@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 
             return res;
         }
-        public ResultStatus Insert()
+        public ResultStatus Insert(DbTransaction trans=null)
         {
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
@@ -91,7 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 return Validator();
             }
-            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this),trans);
             return dbresult;
         }
         public ResultStatus Update()
@@ -180,6 +180,5 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             return false;
         }
-
     }
 }

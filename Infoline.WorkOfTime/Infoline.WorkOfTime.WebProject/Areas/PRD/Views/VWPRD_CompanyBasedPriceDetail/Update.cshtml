@@ -2,73 +2,252 @@
 @{
     ViewBag.Title = "Özel Fiyat Belirleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
 <style>
 </style>
 <script>
+    $(document)
+        .on("change", "[name='companyType']", function () {
+            let value = $("[name='companyType']:checked").val();
+            if (value == 0) { //Tüm Şirketlere
+                $("#companyId").data("kendoDropDownList").value(-1);
+                $("#companyId").data("kendoDropDownList").readonly()
+                $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            }
+            else { //Seçili Şirkete
+                $("#companyId").data("kendoDropDownList").readonly(false);
+                $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
+                $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
+            }
+        })
+        .on("change", "[name='productType']", function () {
+            let value = $("[name='productType']:checked").val();
+            if (value == 0) { //Tüm Ürünlere
+                $("#productId").data("kendoDropDownList").value(-1);
+                $("#categoryId").data("kendoDropDownList").value(-1);
+                $("#productId").data("kendoDropDownList").readonly()
+                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                $("#productDropDown").show();
+                $("#categoryDropDown").hide();
+                $("#priceorDiscountDiv").hide();
+
+
+            }
+            else if (value == 1) { //Seçili Kategoriye
+                $("#productId").data("kendoDropDownList").value(-1);
+                $("#categoryDropDown").show();
+                $("#productDropDown").hide();
+                $("#priceorDiscountDiv").hide();
+
+
+            }
+            else if (value == 2) { //Seçili Ürüne
+                $("#productId").data("kendoDropDownList").value(-1);
+                $("#categoryId").data("kendoDropDownList").value(-1);
+                $("#productDropDown").find(".k-input").text("Lütfen Ürün Seçiniz..");
+                $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
+                $("#productDropDown").show();
+                $("#categoryDropDown").hide();
+                $("#productId").data("kendoDropDownList").readonly(false);
+                $("#priceorDiscountDiv").show();
+                $("#priceDiscount0").prop("checked", true);
+                $("#priceDiscount1").prop("checked", false);
+
+            }
+        })
+        .on("change", "[name='sellingType']", function () {
+            let value = $("[name='sellingType']:checked").val();
+            if (value == 0 || value == 1) { //Genel veya Peşin
+                $("[data-order=4]").hide();
+            }
+            else {
+                if (value == 2) { //Taksitli
+                    $($("[data-order=4]")[0]).text("Taksit Sayısı");
+                }
+                if (value == 3) { //Vadeli
+                    $($("[data-order=4]")[0]).text("Vade Sayısı");
+                }
+                $("[data-order=4]").show();
+            }
+        })
+        .on("change", "[name='conditionType']", function () {
+            let value = $("[name='conditionType']:checked").val();
+            if (value == 0) { //Genel
+                $("[data-order=3]").hide();
+            }
+            else {
+                if (value == 1) { //Minimum Satış Fiyatı
+                    $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
+                }
+                if (value == 2) { // Minimum Adet
+                    $($("[data-order=3]")[0]).text("Minimum Birim");
+                }
+                $("[data-order=3]").show();
+            }
+        })
+        .on("change", "[name='isPrice']", function () {
+            let value = $("[name='isPrice']:checked").val();
+            if (value == 0) { //Fiyat girelecek data-order=5
+                $("[data-order=5]").hide();
+                $("[data-order=6]").show();
+            }
+            else { //Oran Girilecek
+                $("[data-order=6]").hide();
+                $("[data-order=5]").show();
+            }
+        });
+
+
     var page = {};
     page = {
         defines: {
             isAllCompanies: 1,
             productTarget: 2,
-            disabledInput: 0
+            disabledInput: 0,
+            isThereRecord: 0
         },
         functions: {
+            AddRowForProduct: function (control) {
+                //if (control == true) {
+                //    var row = $('[data-row]').first();
+                //    var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
 
+                //    if (product && (!product.value() || product.value() == "" || product.value() == null)) {
+                //        MesajWarning("Lütfen önce ürün seçiniz.");
+                //        return false;
+                //    }
+                //}
+
+                var template = page.functions.GetRowTemplate();
+                var length = $('#productsTable tbody tr:not(.table-row-2lines)').length;
+
+                var ids = [];
+                $(template).find("input").each(function (e) {
+                    var id = $(this).attr("id");
+                    if (id !== undefined) {
+                        ids.push(id);
+                        $(this).attr("id", id + length);
+                    }
+                });
+
+                $(template).find("script").each(function () {
+                    var _this = $(this);
+                    var script = _this.html();
+                    ids.forEach(function (id) {
+                        if (script.includes('jQuery("#' + id + '")')) {
+                            script = script.split('#' + id).join('#' + id + length);
+                        }
+                    });
+                    _this.after($('<script/>').append(script));
+                    _this.remove();
+                });
+
+                debugger
+                var dataItems = $(template).find('[data-item]');
+
+                $.each(dataItems, function (i, item) {
+                    var itemName = $(item).attr("data-item");
+                    $(item).attr("name", "BasePriceDetailItems[" + length + "]." + itemName);
+                    if (item.type == "number") {
+                        $(item).attr("id", newGuid());
+                    }
+                })
+
+                var rowId = newGuid();
+                $(template).find('[data-row="BasePriceDetailItems"]').removeAttr("data-row").attr("data-row", rowId);
+                $(template).find('[data-id="BasePriceDetailItems"]').removeAttr("data-id").attr("data-id", rowId);
+
+                $(template).find('[data-item="itemOrder"]').val(length + 1);
+
+                $('#productsTable').find("tbody").prepend($(template).html());
+
+                $.each($('[type="number"]'), function (i, item) {
+                    var id = $(item).attr("id");
+
+                    if ($(item).attr("name") != undefined && $(item).attr("name").indexOf("price") > -1) {
+                        $('#' + id).kendoNumericTextBox({
+                            format: "N2",
+                            min: 0,
+                            value: 0,
+                            step: 0.01,
+                            decimals: 2,
+                            spinners: false
+                        });
+                    } else {
+                        $('#' + id).kendoNumericTextBox({
+                            format: "N2",
+                            min: 0,
+                            value: 0,
+                            step: 0.01,
+                            spinners: false
+                        });
+
+                    }
+                })
+
+
+            },
+            GetRowTemplate: function () {
+                var templateRow = $('#rowTemplate');
+                var field = $(templateRow)[0].content.querySelector("tbody");
+                var importNode = document.importNode(field, true);
+                return $(importNode);
+            },
+            RowDelete: function (_this) {
+                var row = $(_this).parents(".table-row");
+                var rowId = $(row).attr("data-row");
+
+                $('[data-id="' + rowId + '"]').remove();
+                $(row).remove();
+
+                var length = $('[data-row]').length;
+
+                $.each($('[data-row]'), function (i, mainRow) {
+                    var subRow = $('[data-id="' + $(mainRow).attr("data-row") + '"]');
+                    var names = $(mainRow).find('[name]');
+                    var subRowNames = $(subRow).find('[name]');
+
+                    $.each($(names), function (j, elem) {
+                        var name = $(elem).attr("name");
+                        var field = name.split('.')[1];
+
+                        $(elem).attr("name", 'BasePriceDetailItems[' + i + '].' + field);
+
+                        if (field == "itemOrder") {
+                            $(elem).val(length - i);
+                        }
+                    });
+
+                    $.each($(subRowNames), function (j, elem) {
+                        var name = $(elem).attr("name");
+                        var field = name.split('.')[1];
+
+                        $(elem).attr("name", 'BasePriceDetailItems[' + i + '].' + field);
+                    })
+                })
+
+                _invoice.CalculateProduct(_this);
+            },
+            setCompanyDropDownTitle: function (e) {
+                $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            },
+            setProductDropDownTitle: function (e) {
+                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+            },
+            onChangeProduct(e) {
+                var value = this
+                var dataitem = value.dataItem();
+                var price = dataitem.currentSellingPrice;
+                $("#basePrice").val(price);
+            }
         }
     }
-
-    function setColumns() {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        $("#categoryDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        if ('@Model.sellingType' == 2 || '@Model.sellingType' == 3) {
-            if ('@Model.sellingType' == 2) {
-                $("[data-field='monthCount']").find("a").last().text("Taksit Sayısı")
-            }
-            if ('@Model.sellingType' == 3) {
-                $("[data-field='monthCount']").find("a").last().text("Vade Sayısı")
-            }
-
-            grid.showColumn('monthCount');
-        }
-        if ('@Model.conditionType' == 2 | '@Model.conditionType'==1) {
-            grid.showColumn('minCondition');
-            if ('@Model.conditionType' == 1) {
-                $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
-            }
-            if ('@Model.conditionType' == 2) {
-                $("[data-field='minCondition']").find("a").last().text("Minimum Adet")
-            }
-        }
-        if ('@Model.productType'==1) {
-            $("#categoryDropDown").show();
-            $("#productDropDown").hide();
-            grid.hideColumn('price');
-            grid.showColumn('discount');
-        }
-
-        if ('@Model.type'==0) {
-            grid.showColumn('price');
-            grid.hideColumn('discount');
-        }
-        if ('@Model.type' == 1) {
-            grid.hideColumn('price');
-            grid.showColumn('discount');
-        }
-        if ('@Model.companyType'==0) {
-            $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-
-        }
-
-
-    }
-
 </script>
-
-@using (Html.BeginForm("Update", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "id", "form" },
     { "role", "form" },
@@ -80,11 +259,11 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
-<div id="options">
-        <div class="form-group">
+    <div id="options">
+        <div class="form-group" id="companyOptions">
             <div class="col-md-5">
                 <div class="radio akilliRadioGrup clearfix">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Readonly(true).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
                 </div>
             </div>
             <div class="col-md-7" id="companyDropDown">
@@ -96,33 +275,30 @@
                 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                 .Sort(x => x.Add("name").Ascending())
                 .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
-                .Execute()
                 .Readonly(true)
+                .Execute()
                 )
             </div>
         </div>
-
-        <div class="form-group">
+        <div class="form-group" id="productOptions">
             <div class="col-md-5">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Readonly(true).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
+                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
             </div>
-
             <div class="col-md-7" id="productDropDown">
                 @(
             Html.Akilli()
             .DropDownListFor(model => model.productId)
-            .OptionLabel("Tüm Ürünlere Uygula...")
+            .OptionLabel("Lütfen Ürün seçiniz..")
             .DataTextField("fullName")
             .DataValueField("id")
             .Template("#=TemplateEngine('productTemplate',data)#")
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
             .Sort(x => x.Add("code").Ascending())
-            .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
+            .Events(x => x.DataBound("page.functions.setProductDropDownTitle").Change("page.functions.onChangeProduct"))
             .Readonly(true)
             .Execute()
             )
             </div>
-
             <div class="col-md-7" id="categoryDropDown" style="display:none;">
                 @(
             Html.Akilli()
@@ -133,25 +309,20 @@
             .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
             .Sort(x => x.Add("fullname").Ascending())
             .Execute("id")
-            .Readonly(true)
         )
             </div>
-
         </div>
-
         <div class="form-group">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Readonly(true).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
                 </div>
             </div>
         </div>
-
         <div class="form-group">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Readonly(true).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
                 </div>
             </div>
         </div>
@@ -169,141 +340,100 @@
                 </div>
             </div>
         </div>
-
     </div>
-
     <div class="form-group">
         <div class="col-sm-12">
-            @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
-    .Name("VWPRD_CompanyBasedPriceDetail").Events(x=>x.DataBound("onDataGridBound"))
-    .Events(y=>y.DataBound("setColumns"))
-    .Columns(columns =>
-    {
-        columns.Bound(p => p.companyBasedPriceId).Hidden(true);
-        columns.Bound(p => p.id).Hidden(true);
-        columns.Bound(p => p.companyId).Hidden(true);
-        columns.Bound(p => p.categoryId).Hidden(true);
-        columns.Bound(p => p.sellingType).Hidden(true);
-        columns.Bound(p => p.conditionType).Hidden(true);
-        columns.Bound(p => p.productId).Hidden(true);
-        columns.Bound(p => p.startDate).Format(Extensions.DateFormatShort(true)).Title("Başlangıç Tarihi");
-        columns.Bound(p => p.endDate).Format(Extensions.DateFormatShort(true)).Title("Bitiş Tarihi");
-        columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
-        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
-        columns.Bound(p => p.discount).Title("Iskonto Oranı");
-        columns.Bound(p => p.price).Title("Fiyat").Hidden(true).ClientTemplate("#=currencyFunction(data.price)#");
-        columns.Command(command => { command.Destroy().Text("Sil");command.Edit().Text("Düzenle"); }).Width(250);
-    })
-    .Events(e=>e.Edit("onEdit"))
-    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
-    .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
-    .Pageable()
-    .Sortable()
-    .Scrollable()
-    .HtmlAttributes(new { style = "height:550px;" })
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events=>events.RequestEnd("onPush"))
-        .PageSize(20)
-        .Model(model => model.Id(p => p.id))
-        .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail"))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
-        .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
-        .Destroy(update => update.Action("DeleteInline", "VWPRD_CompanyBasedPriceDetail"))
-    )
-)
+
+            <table id="productsTable" class="table" style="background-color: #f8f8f8;">
+                <thead class="table-header" style="background-color: #c5c4c2;">
+                    <tr>
+                        <th width="20" data-order="0"></th>
+                        <th width="30%" data-order="1">Başlangıç Tarihi</th>
+                        <th width="30%" data-order="2">Bitiş Tarihi</th>
+                        <th width="13%" data-order="3" style="display: none;">Minimum Adet / Fiyat</th>
+                        <th width="15%" data-order="4" style="display: none;">Takit / Vade Sayısı</th>
+                        <th width="20%" data-order="5">İskonto Oranı</th>
+                        <th width="13%" data-order="6" style="display: none;">Fiyat</th>
+                        <th width="70" data-order="7"></th>
+                    </tr>
+                </thead>
+                <tbody class="table-body">
+                    <tr class="table-row table-row-2lines">
+                        <td colspan="11">
+                            <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="page.functions.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ KAYIT EKLE </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
         </div>
     </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
- 
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
-
 }
 
-<script type="text/javascript">
-    let model = [];
-
-    $('#form').submit(function (eventObj) {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var griddata = grid.dataSource.data();
-        for (var i = 0; i < griddata.length; i++) {
-            model.push(griddata[i])
-        }
-        $('<input />').attr('type', 'hidden')
-            .attr('name', "_CompanyBasedPriceDetailModels")
-            .attr('value', JSON.stringify(model))
-            .appendTo('#form');
-        return true;
-    });
-
-    function onDataGridBound(e) {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var griddata = grid.dataSource.data();
-        if (griddata.length != 0) {
-            $("#options").attr("style", "pointer-events:none;")
-        } else {
-            $("#options").attr("style", "pointer-events:auto;")
-        }
-    }
-
-    function error_handler(e) {
-        if (e.errors) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
-                }
-            });
-            alert(message);
-        }
-    }
-
-    function onPush(e) {
-        if (e.response.Result != null || e.response.Result != undefined) {
-            if (e.response?.Result == false) {
-                e.preventDefault();
-                MesajWarning(e.response.FeedBack.title, e.response.FeedBack.message);
-            }
-            else {
-                MesajSuccess("Özel Fiyat Belirleme Kayıt Başarılı", "Kayıt Ekleme Başarılı");
-            }
-        }
-       
-
-
-    }
-    function onEdit(e) {
-
-        if (e.model.isNew() && !e.model.dirty) {
-            e.container
-               .find("[name=companyBasedPriceId]")
-                .val('@Model.companyBasedPriceId')
-                .trigger("change");
-        }
-
-
-    }
-    function currencyFunction(data) {
-        var dropdownlist = $("#productId").data("kendoDropDownList");
-        var selectedIndex = dropdownlist.select();
-        if (!data) {
-            return "-";
-        }
-        var currency_Symbol = "₺"
-        if (selectedIndex > 0) {
-            var selectedValue = dropdownlist.dataSource.data()[selectedIndex];
-            if (selectedValue != null) {
-                if (selectedValue.currentSellingCurrencyId_Title != null) {
-                    currency_Symbol = selectedValue.currentSellingCurrencyId_Title;
-                }
-            }
-        }
-        return kendo.toString(data, "N2") + " " + currency_Symbol;
-    }
-</script>
-
-
+<template id="rowTemplate" data-selector="modalContainer">
+    <tbody>
+        <tr class="table-row" data-row="BasePriceDetailItems">
+            <td data-order="0">
+                <input type="hidden" data-item="companyBasedPriceId" value="@Model.companyBasedPriceId">
+            </td>
+            <td data-order="1">
+                @(Html.Akilli().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .HtmlAttributes(new Dictionary<string, object>() { { "data-item", "startDate" }, { "class", "form-control" } })
+            .Validate(Validations.Required)
+            .Value(Model.startDate != null ? Model.startDate : DateTime.Now)
+            )
+            </td>
+            <td data-order="2">
+                @(Html.Akilli().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .HtmlAttributes(new Dictionary<string, object>() { { "data-item", "endDate" }, { "class", "form-control" } })
+            .Validate(Validations.Required)
+            .Value(Model.endDate != null ? Model.endDate : DateTime.Now)
+            )
+            </td>
+            <td data-order="3">
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="minCondition" data-calculate="keyup" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+                <input type="hidden" data-name="minCondition" value="0" />
+            </td>
+            <td data-order="4">
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="monthCount" data-calculate="keyup" />
+                </div>
+                <input type="hidden" data-name="monthCount" value="0" />
+            </td>
+            <td data-order="5">
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="discount" data-calculate="keyup" />
+                </div>
+                <input type="hidden" data-name="discount" value="0" />
+            </td>
+            <td data-order="6">
+                <div class="input-group m-b">
+                    <input class="form-control" type="number" data-item="price" data-calculate="keyup" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+                <input type="hidden" data-name="price" value="0" />
+            </td>
+            <td data-order="7">
+                <button class="btn btn-md btn-danger" onclick="page.functions.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+            </td>
+        </tr>
+    </tbody>
+</template>
 

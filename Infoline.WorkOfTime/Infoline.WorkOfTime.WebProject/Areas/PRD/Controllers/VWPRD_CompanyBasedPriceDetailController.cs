@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
+        public JsonResult Insert(VMPRD_CompanyBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.createdby = userStatus.user.id;
@@ -89,11 +89,31 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetail item)
+        public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
         {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var userStatus = (PageSecurity)Session["userStatus"];
-            return Json(model.Save(), JsonRequestBehavior.AllowGet);
+            item.createdby = userStatus.user.id;
+            item.created = DateTime.Now;
+            var dbresult = item.Save();
+            var feedback = new FeedBack();
+            if (dbresult.result != false)
+            {
+                var result = new ResultStatusUI()
+                {
+                    Result = dbresult.result,
+                    FeedBack = feedback.Success("Güncelleme  işlemi tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = dbresult.result,
+                    FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(dbresult.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
         }
     }
 }

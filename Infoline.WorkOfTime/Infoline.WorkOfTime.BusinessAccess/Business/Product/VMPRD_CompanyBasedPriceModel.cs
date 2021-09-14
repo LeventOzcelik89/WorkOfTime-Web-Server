@@ -61,7 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             var isExistBefore = db.GetDBPRD_CompanyBasedPriceByAllAttributes(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this));
-            if (isExistBefore!=null)
+            if (isExistBefore != null)
             {
                 return new ResultStatus
                 {
@@ -80,14 +80,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 return validation;
             }
-           
+
             var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
             if (this.BasePriceDetailItems.Count > 0)
             {
                 foreach (var item in BasePriceDetailItems)
                 {
                     item.companyBasedPriceId = this.id;
-                    item.Save(userId, null, this.trans);
+                    dbresult &= item.Insert(this.trans);
                 }
             }
             if (!dbresult.result)
@@ -96,7 +96,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Müşteri bazlı fiyat oluşturma işlemi başarısız oldu."
+                    message = dbresult.message
                 };
             }
             else
@@ -111,7 +111,21 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
+            var validation = Validator();
+            if (validation.result == false)
+            {
+                return validation;
+            }
             dbresult &= db.UpdatePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), false, this.trans);
+
+            if (this.BasePriceDetailItems.Count > 0)
+            {
+                foreach (var item in BasePriceDetailItems)
+                {
+                    item.companyBasedPriceId = this.id;
+                    dbresult &= item.Save(this.changedby,null,this.trans);
+                }
+            }
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -159,6 +173,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
-        
+
     }
 }
