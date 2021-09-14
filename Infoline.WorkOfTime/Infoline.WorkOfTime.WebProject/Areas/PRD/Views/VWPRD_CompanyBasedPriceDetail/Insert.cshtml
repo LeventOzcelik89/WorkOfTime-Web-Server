@@ -77,13 +77,13 @@
             else {
                 if (value == 1) { //Minimum Satış Fiyatı
                     $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
-                    $("#minConditionMoneyCurrency").show();
-                    $("#minConditionCurrency").hide();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
+                    $("[data-conditionCurr=minConditionCurrency]").hide();
                 }
                 if (value == 2) { // Minimum Adet
                     $($("[data-order=3]")[0]).text("Minimum Birim");
-                    $("#minConditionMoneyCurrency").hide();
-                    $("#minConditionCurrency").show();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").hide();
+                    $("[data-conditionCurr=minConditionCurrency]").show();
                 }
                 $("[data-order=3]").show();
             }
@@ -193,6 +193,16 @@
                         });
                     }
                 });
+
+                //gizli - açık columların ayarlanması
+                page.functions.ShowCols();
+            },
+            ShowCols: function () {
+                for (var i = 3; i <= 6; i++) {
+                    if ($("th[data-order=" + i + "]").attr("style") == undefined || $("th[data-order=" + i + "]").attr("style") == '') {
+                        $("[data-order="+i+"]").show();
+                    }
+                }
             },
             GetRowTemplate: function () {
                 var templateRow = $('#rowTemplate');
@@ -397,8 +407,8 @@
             <td data-order="3" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="minCondition" data-calculate="keyup" />
-                    <span class="input-group-addon" data-cur="currency" id="minConditionMoneyCurrency">₺</span>
-                    <span class="input-group-addon" data-cur="currency" id="minConditionCurrency"><i class="icon-circle-empty"></i></span>
+                    <span class="input-group-addon" data-cur="currency" data-conditionCurr="minConditionMoneyCurrency">₺</span>
+                    <span class="input-group-addon" data-cur="currency" data-conditionCurr="minConditionCurrency" style="display:none;"><i class="icon-circle-empty"></i></span>
                 </div>
                 <input type="hidden" data-name="minCondition" value="0" />
             </td>
