@@ -1,12 +1,12 @@
 ﻿@model  Infoline.WorkOfTime.WebProject.Areas.PRJ.Models.VMPRJ_ProjectModel
 @using Infoline.WorkOfTime.BusinessAccess
 @{
-	ViewBag.Title = "Proje İşlemleri (" + Model.ProjectCode + " | " + Model.ProjectName + ")";
-	Layout = "~/Views/Shared/_Layout.cshtml";
-	var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+    ViewBag.Title = "Proje İşlemleri (" + Model.ProjectCode + " | " + Model.ProjectName + ")";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
 
-	decimal remainingCal = ((decimal)Model.ProjectStarEndArea - (decimal)Model.ProjectRemainingDay);
-	decimal result = ((remainingCal / (decimal)Model.ProjectStarEndArea) * 100);
+    decimal remainingCal = ((decimal)Model.ProjectStarEndArea - (decimal)Model.ProjectRemainingDay);
+    decimal result = ((remainingCal / (decimal)(Model.ProjectStarEndArea <= 0 ? 1 : Model.ProjectStarEndArea)) * 100);
 }
 <script type="text/javascript">
 	var first = false;
@@ -548,7 +548,6 @@
                             .Placeholder("Lütfen Proje Başlangıç Tarihi  Seçiniz")
                             .Format(Extensions.DateFormatShort())
                             .Enable(true)
-                            .MinDateElement("ProjectStartDate")
                         )
 					</div>
 
