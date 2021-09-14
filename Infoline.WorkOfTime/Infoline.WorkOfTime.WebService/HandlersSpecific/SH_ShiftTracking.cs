@@ -26,7 +26,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var c = ParseRequest<Condition>(context);
                 var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 var db = new WorkOfTimeDatabase();
-                var data = db.GetSH_ShiftTracking(cond).OrderBy((a)=> a.created);
+                var data = db.GetSH_ShiftTracking(cond).OrderByDescending((a)=> a.created);
                 RenderResponse(context, data);
             }
             catch (Exception ex)
