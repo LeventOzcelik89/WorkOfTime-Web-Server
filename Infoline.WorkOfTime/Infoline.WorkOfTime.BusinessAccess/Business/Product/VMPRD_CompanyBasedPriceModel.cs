@@ -80,12 +80,31 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 return validation;
             }
-
             var dbresult = db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
             if (this.BasePriceDetailItems.Count > 0)
             {
                 foreach (var item in BasePriceDetailItems)
                 {
+                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.AllProducts || this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedCategory)
+                    {
+                        item.price = null;
+                    }
+                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && this.type == (short)EnumPRD_CompanyBasedPriceType.Fiyat)
+                    {
+                        item.discount = null;
+                    }
+                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && this.type == (short)EnumPRD_CompanyBasedPriceType.Oran)
+                    {
+                        item.price = null;
+                    }
+                    if (this.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Genel || this.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Peşin)
+                    {
+                        item.monthCount = null;
+                    }
+                    if (this.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Genel)
+                    {
+                        item.minCondition = null;
+                    }
                     item.companyBasedPriceId = this.id;
                     dbresult &= item.Insert(this.trans);
                 }
@@ -117,13 +136,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return validation;
             }
             dbresult &= db.UpdatePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), false, this.trans);
-
             if (this.BasePriceDetailItems.Count > 0)
             {
                 foreach (var item in BasePriceDetailItems)
                 {
                     item.companyBasedPriceId = this.id;
-                    dbresult &= item.Save(this.changedby,null,this.trans);
+                    dbresult &= item.Save(this.changedby, null, this.trans);
                 }
             }
             if (!dbresult.result)
@@ -173,6 +191,5 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
-
     }
 }
