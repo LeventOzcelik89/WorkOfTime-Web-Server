@@ -189,7 +189,7 @@ namespace System.Web.Mvc
             var crm = new Menu("CRM - Müşteri İlişkileri", "#", "fa fa-dollar");
 
             crm.AddChild(new Menu("Potansiyel Fırsatlar", "/CRM/VWCRM_Presentation/Index"));
-            crm.AddChild(new Menu("Agile Board", "/CRM/VWCRM_Presentation/AgileBoard"));
+            crm.AddChild(new Menu("Satış Duvarı", "/CRM/VWCRM_Presentation/AgileBoard"));
             crm.AddChild(new Menu("Aktivite ve Randevular", "/CRM/VWCRM_Contact/Index"));
             crm.AddChild(new Menu("Toplantı Raporu", "/CRM/VWCRM_Contact/ContactCalendar"));
             crm.AddChild(new Menu("Satış Raporu", "/CRM/VWCRM_Presentation/SalesReport"));
