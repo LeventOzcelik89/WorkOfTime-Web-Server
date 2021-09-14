@@ -32,12 +32,14 @@
                 $("#productDropDown").show();
                 $("#categoryDropDown").hide();
                 $("#priceorDiscountDiv").hide();
+                $("[for=type_0]").trigger("click")
             }
             else if (value == 1) { //Seçili Kategoriye
                 $("#productId").data("kendoDropDownList").value(-1);
                 $("#categoryDropDown").show();
                 $("#productDropDown").hide();
                 $("#priceorDiscountDiv").hide();
+                $("[for=type_0]").trigger("click")
             }
             else if (value == 2) { //Seçili Ürüne
                 $("#productId").data("kendoDropDownList").value(-1);
@@ -75,18 +77,20 @@
             else {
                 if (value == 1) { //Minimum Satış Fiyatı
                     $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
-                    $("#minConditionCurrency").show();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
+                    $("[data-conditionCurr=minConditionCurrency]").hide();
                 }
                 if (value == 2) { // Minimum Adet
                     $($("[data-order=3]")[0]).text("Minimum Birim");
-                    $("#minConditionCurrency").hide();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").hide();
+                    $("[data-conditionCurr=minConditionCurrency]").show();
                 }
                 $("[data-order=3]").show();
             }
         })
-        .on("change", "[name='isPrice']", function () {
-            let value = $("[name='isPrice']:checked").val();
-            if (value == 0) { //Fiyat girelecek data-order=5
+        .on("change", "[name='type']", function () {
+            let value = $("[name='type']:checked").val();
+            if (value == 1) { //Fiyat girelecek 
                 $("[data-order=5]").hide();
                 $("[data-order=6]").show();
             }
@@ -189,6 +193,16 @@
                         });
                     }
                 });
+
+                //gizli - açık columların ayarlanması
+                page.functions.ShowCols();
+            },
+            ShowCols: function () {
+                for (var i = 3; i <= 6; i++) {
+                    if ($("th[data-order=" + i + "]").attr("style") == undefined || $("th[data-order=" + i + "]").attr("style") == '') {
+                        $("[data-order="+i+"]").show();
+                    }
+                }
             },
             GetRowTemplate: function () {
                 var templateRow = $('#rowTemplate');
@@ -197,11 +211,16 @@
                 return $(importNode);
             },
             RowDelete: function (_this) {
+                var length = $('[data-row]').length;
+                if (length <= 1) {
+                    MesajWarning("Kayıt İşleminde en az bir kayıt olmalıdır.", "Silme İşlemi Başarısız");
+                    return false;
+                }
+
                 var row = $(_this).parents(".table-row");
                 var rowId = $(row).attr("data-row");
                 $('[data-id="' + rowId + '"]').remove();
                 $(row).remove();
-                var length = $('[data-row]').length;
                 $.each($('[data-row]'), function (i, mainRow) {
                     var subRow = $('[data-id="' + $(mainRow).attr("data-row") + '"]');
                     var names = $(mainRow).find('[name]');
@@ -320,7 +339,7 @@
         <div class="form-group" id="priceorDiscountDiv" style="display:none;">
             <div class="col-md-12">
                 <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Fiyat))
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Oran))
                 </div>
             </div>
         </div>
@@ -330,14 +349,14 @@
             <table id="productsTable" class="table" style="background-color: #f8f8f8;">
                 <thead class="table-header" style="background-color: #c5c4c2;">
                     <tr>
-                        <th width="20" data-order="0"></th>
-                        <th width="30%" data-order="1">Başlangıç Tarihi</th>
-                        <th width="30%" data-order="2">Bitiş Tarihi</th>
-                        <th width="13%" data-order="3" style="display: none;">Minimum Adet / Fiyat</th>
-                        <th width="15%" data-order="4" style="display: none;">Takit / Vade Sayısı</th>
-                        <th width="20%" data-order="5">İskonto Oranı</th>
-                        <th width="13%" data-order="6" style="display: none;">Fiyat</th>
-                        <th width="70" data-order="7"></th>
+                        <th data-order="0"></th>
+                        <th data-order="1">Başlangıç Tarihi</th>
+                        <th data-order="2">Bitiş Tarihi</th>
+                        <th data-order="3" style="display: none;">Minimum Adet / Fiyat</th>
+                        <th data-order="4" style="display: none;">Takit / Vade Sayısı</th>
+                        <th data-order="5">İskonto Oranı</th>
+                        <th data-order="6" style="display: none;">Fiyat</th>
+                        <th data-order="7"></th>
                     </tr>
                 </thead>
                 <tbody class="table-body">
@@ -388,13 +407,16 @@
             <td data-order="3" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="minCondition" data-calculate="keyup" />
-                    <span class="input-group-addon" data-cur="currency" id="minConditionCurrency">₺</span>
+                    <span class="input-group-addon" data-cur="currency" data-conditionCurr="minConditionMoneyCurrency">₺</span>
+                    <span class="input-group-addon" data-cur="currency" data-conditionCurr="minConditionCurrency" style="display:none;"><i class="icon-circle-empty"></i></span>
                 </div>
                 <input type="hidden" data-name="minCondition" value="0" />
             </td>
             <td data-order="4" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="monthCount" data-calculate="keyup" />
+                    <span class="input-group-addon" data-cur="currency"><i class="icon-money"></i></span>
+
                 </div>
                 <input type="hidden" data-name="monthCount" value="0" />
             </td>

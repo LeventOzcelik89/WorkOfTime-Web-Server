@@ -67,7 +67,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI()
                 {
                     Result = dbresult.result,
-                    FeedBack = feedback.Success("Kaydetme  işlemi tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
+                    FeedBack = feedback.Success("Özel Fiyat Belirleme İşlemi Tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -76,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI
                 {
                     Result = dbresult.result,
-                    FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(dbresult.message)
+                    FeedBack = dbresult.result ? feedback.Success("Özel Fiyat Belirleme İşlemi Başarılı") : feedback.Warning(dbresult.message)
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -84,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceDetailModel { companyBasedPriceId = id };
+            var data = new VMPRD_CompanyBasedPriceModel { id = id };
             return View(data.Load());
         }
         [AcceptVerbs(HttpVerbs.Post)]
@@ -101,7 +101,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI()
                 {
                     Result = dbresult.result,
-                    FeedBack = feedback.Success("Güncelleme  işlemi tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
+                    FeedBack = feedback.Success("Özel Fiyat Belirleme Güncelleme  İşlemi Tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -110,7 +110,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI
                 {
                     Result = dbresult.result,
-                    FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(dbresult.message)
+                    FeedBack = dbresult.result ? feedback.Success("Özel Fiyat Belirleme Güncelleme İşlemi Başarılı") : feedback.Warning(dbresult.message)
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }

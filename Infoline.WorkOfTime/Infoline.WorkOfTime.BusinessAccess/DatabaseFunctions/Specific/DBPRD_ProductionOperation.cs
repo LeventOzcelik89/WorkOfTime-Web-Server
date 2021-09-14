@@ -28,7 +28,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         BitenUrunBildirimi = 6,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "4E5EF1", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 100,
-        [Description("Fire Bildirimi Yapıldı"), Generic("icon", "fa fa-trash", "color", "21b9bb", "description", "Fire Bildirimi Yapıldı")]
+        [Description("Fire Bildirimi Yapıldı"), Generic("icon", "fa fa-trash", "color", "dc1212", "description", "Fire Bildirimi Yapıldı")]
         FireBildirimiYapildi = 101,
         [Description("Stoğa İade Edildi"), Generic("icon", "fa fa-reply", "color", "A77B13", "description", "Stoğa İade Edildi")]
         StogaIadeEdildi = 102,
