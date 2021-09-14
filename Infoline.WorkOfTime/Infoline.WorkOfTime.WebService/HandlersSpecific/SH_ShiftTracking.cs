@@ -18,6 +18,23 @@ namespace Infoline.WorkOfTime.WebService.Handler
 
         }
 
+        [HandleFunction("SH_ShiftTracking/GetAll")]
+        public void SH_ShiftTrackingGetAll(HttpContext context)
+        {
+            try
+            {
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                var db = new WorkOfTimeDatabase();
+                var data = db.GetSH_ShiftTracking(cond).OrderBy((a)=> a.created);
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
         [HandleFunction("SH_ShiftTracking/MBInsert")]
         public void SH_ShiftTrackingMBInsert(HttpContext context)
         {
