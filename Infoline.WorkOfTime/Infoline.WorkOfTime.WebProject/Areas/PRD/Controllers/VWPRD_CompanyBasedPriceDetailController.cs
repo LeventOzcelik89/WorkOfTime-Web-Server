@@ -115,13 +115,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.UpdateInline();
-            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+
+
+            var feedback = new FeedBack();
+            if (rs.result == true)
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+
         }
         [HttpPost]
         [AllowEveryone]
-        public ActionResult InsertInline(String id, [DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
-            item.companyBasedPriceId = new Guid(id);
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.InsertInline();
             var feedback = new FeedBack();

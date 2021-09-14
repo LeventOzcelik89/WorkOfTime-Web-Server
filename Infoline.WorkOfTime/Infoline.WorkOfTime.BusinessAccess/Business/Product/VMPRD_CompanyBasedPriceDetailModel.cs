@@ -13,10 +13,23 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private DbTransaction trans { get; set; }
         public bool isPrice { get; set; }
         public string _CompanyBasedPriceDetailModels { get; set; }
+      
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.companyBasedPriceId);
+            var getfirst = db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(data.id);
+            if (getfirst.Length>0)
+            {
+                if (getfirst[0].discount!=null)
+                {
+                    this.type = 1;
+                }
+                else
+                {
+                    this.type = 0;
+                }
+            }
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -104,7 +117,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Aynı tarhiler arasında kayıt vardır!"
+                    message = "Aynı tarihler arasında kayıt vardır!"
                 };
             }
             dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
@@ -146,7 +159,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                         {
                             foreach (var item in companyBaseList)
                             {
-                                if (this.CheckDates(item))
+                                if (CheckDates(item) && CheckDates(item,companyBaseList))
                                 {
                                     item.companyBasedPriceId = this.id;
                                     dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
@@ -156,7 +169,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                                     return new ResultStatus
                                     {
                                         result = false,
-                                        message = "Daha önceden aynı tarihler aralıkları çakışıyor \n Başlangıç Tarihi: " + item.startDate + "\n" + " Bitiş Tarihi: " + item.endDate
+                                        message = "Aynı tarih aralığında kayıt vardır. \n Başlangıç Tarihi: " + item.startDate + "\n" + " Bitiş Tarihi: " + item.endDate
                                     };
                                 }
                             }
@@ -185,10 +198,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 result = false,
                 message = "Daha önceden böyle bir kayıt girilmiştir"
             };
-        }
-        public ResultStatus Update(String id)
-        {
-            return null;
         }
         public ResultStatus Update()
         {
@@ -297,6 +306,39 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return true;
             }
         }
+
+        public bool CheckDates(VWPRD_CompanyBasedPriceDetailDto obje, List<VWPRD_CompanyBasedPriceDetailDto> list)
+        {
+            if (list.Count == 0)
+            {
+                return true;
+            }
+            else
+            {
+                //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
+                foreach (var record in list)
+                {
+                    if (obje.id!=record.id)
+                    {
+                        if (obje.endDate >= record.startDate && obje.startDate <= record.endDate)
+                        {
+                            return false;
+                        }
+                        if (obje.startDate <= record.endDate && obje.endDate >= record.startDate)
+                        {
+                            return false;
+                        }
+                        if (obje.startDate <= record.startDate && obje.endDate >= record.endDate)
+                        {
+                            return false;
+                        }
+                    }
+                    
+                }
+                return true;
+            }
+        }
+
         public bool CheckDates()
         {
             var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
@@ -310,15 +352,15 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
                 foreach (var record in sameRecordList)
                 {
-                    if (this.endDate >= record.startDate && this.startDate <= record.endDate)
+                    if (item.endDate >= record.startDate && item.startDate <= record.endDate)
                     {
                         return false;
                     }
-                    if (this.startDate <= record.endDate && this.endDate >= record.startDate)
+                    if (item.startDate <= record.endDate && item.endDate >= record.startDate)
                     {
                         return false;
                     }
-                    if (this.startDate <= record.startDate && this.endDate >= record.endDate)
+                    if (item.startDate <= record.startDate && item.endDate >= record.endDate)
                     {
                         return false;
                     }
