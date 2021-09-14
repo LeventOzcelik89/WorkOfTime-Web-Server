@@ -89,80 +89,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetail item)
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var userStatus = (PageSecurity)Session["userStatus"];
             return Json(model.Save(), JsonRequestBehavior.AllowGet);
-        }
-        [AllowEveryone]
-        public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
-        {
-            var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
-            return Json(VWCompanyBasedPriceDetailList);
-        }
-        [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
-        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.Delete();
-            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
-        }
-        [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
-        public ActionResult UpdateInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.UpdateInline();
-
-
-            var feedback = new FeedBack();
-            if (rs.result == true)
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-
-        }
-        [HttpPost]
-        [AllowEveryone]
-        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.InsertInline();
-            var feedback = new FeedBack();
-            if (rs.result == true)
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
         }
     }
 }

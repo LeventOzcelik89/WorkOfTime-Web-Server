@@ -11,25 +11,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public bool isPrice { get; set; }
-        public string _CompanyBasedPriceDetailModels { get; set; }
-      
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(this.companyBasedPriceId);
-            var getfirst = db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(data.id);
-            if (getfirst.Length>0)
-            {
-                if (getfirst[0].discount!=null)
-                {
-                    this.type = 1;
-                }
-                else
-                {
-                    this.type = 0;
-                }
-            }
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -49,6 +34,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             if (data == null)
             {
+                this.createdby = userId;
+                this.created = DateTime.Now;
                 res = Insert();
             }
             else
@@ -70,180 +57,68 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Validator()
         {
             db = db ?? new WorkOfTimeDatabase();
+
             var res = new ResultStatus { result = true };
+            if (isStartDateBiggerThanEndDate())
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Başlangıç tarihi, bitiş tarihinden büyük olamaz!"
+                };
+            }
+            if (!CheckDates())
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Aynı tarih aralığında kayıt vardır. \n Başlangıç Tarihi: " + this.startDate + "\n" + " Bitiş Tarihi: " + this.endDate
+                };
+
+            }
+
+
+
             return res;
         }
-
-        public ResultStatus InsertInline()
-        {
-            db = db ?? new WorkOfTimeDatabase();
-            trans = db.BeginTransaction();
-            if (CheckDates()!=true)
-            {
-                return new ResultStatus
-                {
-                    result = false,
-                    message = "Aynı tarhiler arasında kayıt vardır!"
-                };
-            }
-            var dbresult = new ResultStatus { result = true };
-            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this), this.trans);
-            if (dbresult.result==true)
-            {
-                trans.Commit();
-                return new ResultStatus
-                {
-                    result = true,
-                    message = "Kayıt Başarılı"
-                };
-            }
-            else
-            {
-                trans.Rollback();
-                return new ResultStatus
-                {
-                    result = false,
-                    message = "Kayıt Başarısız"
-                };
-            }
-        }
-        public ResultStatus UpdateInline()
-        {
-            db = db ?? new WorkOfTimeDatabase();
-           
-            var dbresult = new ResultStatus { result = true };
-            if (CheckDates() != true)
-            {
-                return new ResultStatus
-                {
-                    result = false,
-                    message = "Aynı tarihler arasında kayıt vardır!"
-                };
-            }
-            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
-
-            if (dbresult.result == true)
-            {
-              
-                return new ResultStatus
-                {
-                    result = true,
-                    message = "Kayıt Başarılı"
-                };
-            }
-            else
-            {
-                
-                return new ResultStatus
-                {
-                    result = true,
-                    message = "Kayıt Başarısız"
-                };
-            }
-        }
-
         public ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
-            var companyBasedPriceRecord = db.GetDBPRD_CompanyBasedPriceByAllAttributes(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this));
-            if (companyBasedPriceRecord == null)
+            if (!Validator().result)
             {
-                dbresult &= db.InsertPRD_CompanyBasedPrice(new PRD_CompanyBasedPrice().B_EntityDataCopyForMaterial(this), this.trans);
-                if (dbresult.result)
-                {
-                    if (_CompanyBasedPriceDetailModels != null)
-                    {
-                        var companyBaseList = Infoline.Helper.Json.Deserialize<List<VWPRD_CompanyBasedPriceDetailDto>>(this._CompanyBasedPriceDetailModels);
-                        if (companyBaseList.Count > 0)
-                        {
-                            foreach (var item in companyBaseList)
-                            {
-                                if (CheckDates(item) && CheckDates(item,companyBaseList))
-                                {
-                                    item.companyBasedPriceId = this.id;
-                                    dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
-                                }
-                                else
-                                {
-                                    return new ResultStatus
-                                    {
-                                        result = false,
-                                        message = "Aynı tarih aralığında kayıt vardır. \n Başlangıç Tarihi: " + item.startDate + "\n" + " Bitiş Tarihi: " + item.endDate
-                                    };
-                                }
-                            }
-                        }
-                    }
-                }
-                if (dbresult.result)
-                {
-                    return new ResultStatus
-                    {
-                        result = true,
-                        message = "Kayıt Başarılı"
-                    };
-                }
+                return Validator();
             }
-            else
-            {
-                return new ResultStatus
-                {
-                    result = false,
-                    message = "Seçmiş olduğunuz şirket - ürün - satış tipi ve koşul tipi aynı olan bir kayıt vardır. Eklemek istediğiniz yeni fiyat/iskonto bilgileri lütfen o kayıt altına giriniz."
-                };
-            }
-            return new ResultStatus
-            {
-                result = false,
-                message = "Daha önceden böyle bir kayıt girilmiştir"
-            };
+            dbresult &= db.InsertPRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
+            return dbresult;
         }
         public ResultStatus Update()
         {
+            db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
-            if (_CompanyBasedPriceDetailModels != null)
+            if (!Validator().result)
             {
-                var companyBaseList = Infoline.Helper.Json.Deserialize<List<VWPRD_CompanyBasedPriceDetailDto>>(this._CompanyBasedPriceDetailModels);
-                if (companyBaseList.Count > 0)
-                {
-                    foreach (var item in companyBaseList)
-                    {
-                        if (item.id.HasValue)
-                        {
-                            var getCompanyBasedPriceDetail = db.GetPRD_CompanyBasedPriceDetailById(item.id.Value);
-                            if (getCompanyBasedPriceDetail != null)
-                            {
-                                dbresult &= db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(item), this.trans);
-                            }
-                        }
-                    }
-                }
-                if (dbresult.result)
-                {
-                    dbresult &= Insert();
-                    if (dbresult.result)
-                    {
-                        return new ResultStatus
-                        {
-                            result = true,
-                            message = "Güncelleme  Başarılı"
-                        };
-                    }
-                }
-              
+                return Validator();
             }
-            return new ResultStatus
-            {
-                result = true,
-                message = "Güncelleme  Başarısız"
-            };
+            dbresult &= db.UpdatePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this));
+            return dbresult;
+
         }
         public ResultStatus Delete(DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-           var dbresult = db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail { id = this.id }, trans);
+            var dbresult = new ResultStatus { result = true };
+            var find = db.GetPRD_CompanyBasedPriceDetailById(this.id);
+            if (find != null)
+            {
+                dbresult &= db.DeletePRD_CompanyBasedPriceDetail(new PRD_CompanyBasedPriceDetail { id = this.id }, trans);
+            }
+            else
+            {
+                dbresult.result = false;
+                dbresult.message = "Böyle bir kayıt yoktur!";
+            }
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();
@@ -263,87 +138,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 };
             }
         }
-        public VWPRD_CompanyBasedPriceDetailDto[] GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id)
-        {
-            var db = new WorkOfTimeDatabase();
-            var values = db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(id);
-            List<VWPRD_CompanyBasedPriceDetailDto> list = new List<VWPRD_CompanyBasedPriceDetailDto>();
-            if (values != null)
-            {
-                foreach (var item in values)
-                {
-                    list.Add(new VWPRD_CompanyBasedPriceDetailDto().B_EntityDataCopyForMaterial(item));
-                }
-            }
-            return list.ToArray();
-        }
-        public bool CheckDates(VWPRD_CompanyBasedPriceDetailDto obje)
-        {
-            var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(obje);
-            var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
-            if (sameRecordList.Length==0)
-            {
-                return true;
-            }
-            else
-            {
-                //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
-                foreach (var record in sameRecordList)
-                {
-                    if (this.endDate >= record.startDate && this.startDate <= record.endDate)
-                    {
-                        return false;
-                    }
-                    if (this.startDate <= record.endDate && this.endDate >= record.startDate)
-                    {
-                        return false;
-                    }
-                    if (this.startDate <= record.startDate && this.endDate >= record.endDate)
-                    {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        }
-
-        public bool CheckDates(VWPRD_CompanyBasedPriceDetailDto obje, List<VWPRD_CompanyBasedPriceDetailDto> list)
-        {
-            if (list.Count == 0)
-            {
-                return true;
-            }
-            else
-            {
-                //aynı tarihlere denk gelmiyorsa izin ver (true döndür)
-                foreach (var record in list)
-                {
-                    if (obje.id!=record.id)
-                    {
-                        if (obje.endDate >= record.startDate && obje.startDate <= record.endDate)
-                        {
-                            return false;
-                        }
-                        if (obje.startDate <= record.endDate && obje.endDate >= record.startDate)
-                        {
-                            return false;
-                        }
-                        if (obje.startDate <= record.startDate && obje.endDate >= record.endDate)
-                        {
-                            return false;
-                        }
-                    }
-                    
-                }
-                return true;
-            }
-        }
-
-        public bool CheckDates()
+        private bool CheckDates()
         {
             var item = new PRD_CompanyBasedPriceDetail().B_EntityDataCopyForMaterial(this);
             var sameRecordList = db.GetPRD_CompanyBasedPriceDetailWithSameData(item);
-            if (sameRecordList.Length==0)
+            if (sameRecordList.Length == 0)
             {
                 return true;
             }
@@ -368,5 +167,17 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return true;
             }
         }
+        private bool isStartDateBiggerThanEndDate()
+        {
+            if (startDate != null && endDate != null)
+            {
+                if (this.startDate > this.endDate)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
     }
 }
