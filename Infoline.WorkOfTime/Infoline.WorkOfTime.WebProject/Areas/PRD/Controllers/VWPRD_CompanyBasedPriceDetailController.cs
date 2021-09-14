@@ -84,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceModel { id = id };
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = id };
             return View(data.Load());
         }
         [AcceptVerbs(HttpVerbs.Post)]

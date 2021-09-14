@@ -42,8 +42,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         public ActionResult Detail(Guid id)
         {
             var model = new VMPRD_CompanyBasedPriceModel { id = id };
-            //var data = model.Load();
-            return View(model);
+            var data = model.Load();
+            return View(data);
         }
         [AllowEveryone]
         public ActionResult Insert()

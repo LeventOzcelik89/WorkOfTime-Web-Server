@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceById(this.companyBasedPriceId);
+            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
             
             if (data != null)
             {
