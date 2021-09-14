@@ -179,6 +179,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             Enum_Modules.MODULE_ADVANCE,
             Enum_Modules.MODULE_INVOICE,
             Enum_Modules.MODULE_STOCK,
+            Enum_Modules.MODULE_HELPDESK
         };
         public List<string> Roles { get; set; } = new List<string>() {
             SHRoles.CRMYonetici,
