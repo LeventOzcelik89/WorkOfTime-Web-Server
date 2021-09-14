@@ -140,30 +140,33 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
+
             //İlişkili kayıtlar kontol edilerek silme işlemine müsade edilecek;
-            var result= db.GetVWPRD_CompanyBasedPriceDetailsByCompanyBasedId(BasePrice.id);
-            var dbresult = new ResultStatus();
+            var result= db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(this.id);
+            var dbresult = new ResultStatus { result = true };
             if (result!=null)
             { 
-               //dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result);
+               dbresult &= db.BulkDeletePRD_CompanyBasedPriceDetail(result,trans);
             }
-            dbresult&= db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
+
+            dbresult &= db.DeletePRD_CompanyBasedPrice(new PRD_CompanyBasedPrice { id = this.id }, trans);
+
             if (!dbresult.result)
             {
-                if (transaction == null) trans.Rollback();
+                trans.Rollback();
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Çalışan Durum Değişiklikleri silme işlemi başarısız oldu."
+                    message = "Kayıt Silme İşlemi Başarısız"
                 };
             }
             else
             {
-                if (transaction == null) trans.Commit();
+                trans.Commit();
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Çalışan Durum Değişiklikleri silme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Kayıtlar başarılı bir şekilde silinmiştir."
                 };
             }
         }

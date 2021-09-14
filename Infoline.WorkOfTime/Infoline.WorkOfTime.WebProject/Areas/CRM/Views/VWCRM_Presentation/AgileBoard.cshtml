@@ -10,37 +10,12 @@
 
 <link href="~/Content/AgileBoard/css/default.css" rel="stylesheet" />
 
-<script type="text/template" id="AgileColumnTemplate">
-
-    <li class="agileColumn" data-target="AgileColumn" data-id="{{id}}">
-
-        <div class="agileHeader">
-
-            <div class="row">
-                <div class="col-md-10">
-                    <h4>{{title}}</h4>
-                </div>
-                <div class="col-md-2">
-                    <div class="agileHeaderButtons text-right">
-                        <a class="btn btn-xs btn-default text-primary" data-modal="true" data-task="Insert" data-href="/CRM/VWCRM_Presentation/Insert?PresentationStageId={{id}}"><i class="icon-plus" data-toggle="tooltip" data-placement="bottom" title="Yeni Potansiyel"></i></a>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <div data-target="AgileGrid"></div>
-
-    </li>
-
-</script>
-
 <div class="row agileContainer">
 
     <div class="row kanbanHeader">
         <div class="col-md-8">
             <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "Kanban")</span>
-            <small data-target="kanban.description" class="text-muted">@(Model.AgileBoard != null ? Model.AgileBoard.description : "")</small>
+            <small data-target="kanban.description" class="text-muted">@(Model.AgileBoard != null && Model.AgileBoard.description != null ? Model.AgileBoard.description : "")</small>
         </div>
         <div class="col-md-4">
             <div class="text-right">
@@ -61,10 +36,6 @@
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="FilterList">
-                        @*<li data-filter="JustMyTasks">
-                                <i class="icon-user-1"></i>
-                                Benim Görevlerim
-                            </li>*@
                         <li data-filter="OpenedToday" data-event="Filter">
                             <i class="icon-stopwatch"></i>
                             Bu Gün Açılanlar
@@ -94,7 +65,7 @@
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="StageList"></ul>
                 </div>
 
-                <button class="btn btn-primary btn-xs" data-task="Insert" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert">
+                <button class="btn btn-primary btn-xs" data-task="Insert" style="display: none;" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert">
                     <i class="icon-floppy-1"></i> Kaydet
                 </button>
 
@@ -108,112 +79,96 @@
 
     <ul class="agileColumns" data-target="AgileColumnsContainer"></ul>
 
+    <div class="noitem" style="display: none;">
+        <h1 class="text-center">
+            Tanımlı hiç bir CRM Aşaması bulunamadı. <br><br>
+            <a target="_blank" href="/CRM/VWCRM_ManagerStage/Index">Buradan aşama tanımlayabilirsiniz.</a>
+        </h1>
+    </div>
+
 </div>
 
-<div class="modal inmodal fade" id="ModalAgileColumns" tabindex="-1" role="dialog" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Kapat</span></button>
-                <h4 class="modal-title">Görüntülenecek Aşamalar</h4>
-                <small class="font-bold">Görüntülenecek aşamaları belirtip, konumlarını (sürükle bırak) yöntemi ile tanımlayabilirsiniz.</small>
-            </div>
-            <div class="modal-body">
-
-                <div class="row miniStageContainer" data-target="StagesContainer">
-
+<script id="AgileColumnTemplate" type="text/template">
+    <li class="agileColumn" data-target="AgileColumn" data-id="{{id}}">
+        <div class="agileHeader">
+            <div class="row">
+                <div class="col-md-10">
+                    <h4>{{title}}</h4>
                 </div>
-
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-dismiss="modal">Kaydet</button>
+                <div class="col-md-2">
+                    <div class="agileHeaderButtons text-right">
+                        <a class="btn btn-xs btn-default text-primary" data-modal="true" data-task="Insert" data-href="/CRM/VWCRM_Presentation/Insert?PresentationStageId={{id}}"><i class="icon-plus" data-toggle="tooltip" data-placement="bottom" title="Yeni Potansiyel"></i></a>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
-</div>
+        <div data-target="AgileGrid"></div>
+    </li>
+</script>
 
-<script type="text/template" id="template">
+<script id="cardTemplate" type="text/template">
     <div class="agileItem" data-id="#:id#" data-presentationstageid=#:PresentationStageId#>
-        <div class="cont" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
-        <div class="cont">
+
+        <div class="stageColor" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
+        <div class="stageBody">
             <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
-            <span class="info">
 
-                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#:kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
+            <div class="bodyLeft">
 
+                #if(CustomerCompany_Title != null) { #
+                <div class="stageLine">
+                    <span class="badge badge-warning" data-toggle="tooltip" data-placement="bottom" title="Müşteri">#: CustomerCompany_Title #</span>
+                </div>
+                # } #
+
+                #if(VodafoneOffer != null || lastTenderTotalAmount != null) { #
+                <div class="stageLine">
+
+                    #if(VodafoneOffer != null) { #
+                    <span class="badge badge-success" data-toggle="tooltip" data-placement="bottom" title="Tahmini Beklenen Ciro">#: kendo.toString(VodafoneOffer, 'N0') # ₺</span>
+                    # } #
+
+                    #if(lastTenderTotalAmount != null) { #
+                    <span class="badge badge-primary" data-toggle="tooltip" data-placement="bottom" title="Son Teklif">#: kendo.toString(lastTenderTotalAmount, 'N0') # ₺</span>
+                    # } #
+
+                </div>
+                # } #
+
+                #if(Last_ContactDate != null || TotalContact != null) { #
+                <div class="stageLine">
+
+                    #if(Last_ContactDate != null) { #
+                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Son Toplantı Tarihi"><span class="icon-users-1"></span>#: kendo.toString(new Date(Last_ContactDate), 'dd.MM.yyyy HH:mm') #</span>
+                    # } #
+
+                    #if(TotalContact != null) { #
+                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Toplam Aktivite/Randevu">#: kendo.toString(TotalContact, 'N0') #</span>
+                    # } #
+
+                </div>
+                # } #
+
+                #if(DaysSinceVisit != null) { #
+                <div class="stageLine">
+                    <small>Son aktiviteden bugüne geçen <b>#: kendo.toString(DaysSinceVisit, 'N0') #</b> gün</small>
+                </div>
+                # } #
+
+            </div>
+            <div class="bodyRight">
+                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#: kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
                 <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
                     <span style="width: #:CompletionRate ?? 0#%" class="pb">
                         <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
                     </span>
                 </span>
-
                 <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
-
-                <img class="spimg" src="/Files/SH_User/442945d4-5a15-4a09-b5b5-2db628f09e6b/PR___2021_09_06_13_56_34.jpg" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" />
-
-            </span>
-
-            <div class="optsCont">
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-user-1"></i> Müşteri
-                    </span>
-                    <span class="val">
-                        #:CustomerCompany_Title == null ? '-' : CustomerCompany_Title#
-                    </span>
-                </div>
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-users-1"></i> Toplantı
-                    </span>
-                    <span class="val">
-                        #:TotalContact == null ? '-' : TotalContact#
-                    </span>
-                </div>
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-dollar-1"></i> Tahmini Ciro
-                    </span>
-                    <span class="val">
-                        #:VodafoneOffer == null ? '-' : kendo.toString(VodafoneOffer, 'N2')#
-                        #if(VodafoneOffer != null) { # <small>₺</small> #}#
-                    </span>
-                </div>
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-dollar-1"></i> Son Teklif
-                    </span>
-                    <span class="val">
-                        #:lastTenderTotalAmount == null ? '-' : kendo.toString(lastTenderTotalAmount, 'N2')#
-                        #if(lastTenderTotalAmount != null) { # <small>₺</small> #}#
-                    </span>
-                </div>
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-award-1"></i> Son Toplantı
-                    </span>
-                    <span class="val">
-                        #:LastStatus == null ? '-' : LastStatus#
-                    </span>
-                </div>
-
-                <div class="opt">
-                    <span class="key">
-                        <i class="icon-megaphone-2"></i> Geçen Gün
-                    </span>
-                    <span class="val">
-                        #:DaysSinceVisit == null ? '-' : DaysSinceVisit#
-                    </span>
-                </div>
-
+                <img class="spimg" src="#: salesPersonPhoto #" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
             </div>
 
         </div>
+
     </div>
 </script>
 
@@ -226,22 +181,18 @@
                 <small class="font-bold">Sütun içerisinde görünecek ögeler için buradan filtreleme yapabilirsiniz.</small>
             </div>
             <div class="modal-body">
-
                 <div class="form-horizontal">
-
                     <div class="form-group">
                         <div class="col-md-4">
                             <label class="control-label label-md" for="Filter_StartDate">Başlangıç Tarihi</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             @(
                                 Html.Akilli()
                                 .DateTimePicker("Filter_StartDate")
                                 .MaxDateElement("Filter_EndDate")
                                 .Interval(15)
                             )
-
                         </div>
                     </div>
 
@@ -250,23 +201,19 @@
                             <label class="control-label label-md" for="Filter_EndDate">Bitiş Tarihi</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             @(
 								Html.Akilli()
 								.DateTimePicker("Filter_EndDate")
 								.Interval(15)
                             )
-
                         </div>
                     </div>
-
 
                     <div class="form-group">
                         <div class="col-md-4">
                             <label class="control-label label-md" for="Filter_CustomerCompanyId">Müşteri</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="name"
@@ -278,7 +225,6 @@
                                     id="Filter_CustomerCompanyId"
                                     name="CustomerCompanyId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -287,7 +233,6 @@
                             <label class="control-label label-md" for="Filter_SalesPersonId">Satış Personeli</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="FullName"
@@ -300,7 +245,6 @@
                                     id="Filter_SalesPersonId"
                                     name="SalesPersonId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -309,7 +253,6 @@
                             <label class="control-label label-md " for="Filter_ChannelCompanyId">Kanal</label>
                         </div>
                         <div class="col-md-8" data-container>
-
                             <select class="form-control" style="width: 100%;"
                                     data-dataidfield="id"
                                     data-datatextfield="name"
@@ -321,7 +264,6 @@
                                     id="Filter_ChannelCompanyId"
                                     name="ChannelCompanyId"
                                     multiple="multiple"></select>
-
                         </div>
                     </div>
 
@@ -333,7 +275,6 @@
                             @(Html.Akilli().NumericTextBox("Filter_CompletionRate").Min(0).Max(100))
                         </div>
                     </div>
-
                 </div>
 
             </div>
@@ -345,7 +286,7 @@
     </div>
 </div>
 
-<script type="text/template" id="StageSelectorTemplate">
+<script id="StageSelectorTemplate" type="text/template">
     <li class="h24" data-id="{{id}}">
         <label>
             <span class="color" style="background-color:{{color}}"></span>
@@ -353,52 +294,6 @@
         </label>
     </li>
 </script>
-
-<script type="text/template" id="miniStageTemplate">
-    <div class="col-md-3 miniStage" data-id="{{id}}">
-        <div>
-
-            <div class="cbox">
-                <label class="control-label" for="ShowAgile_{{id}}">Gösterilsin</label>
-                <input type="checkbox" id="ShowAgile_{{id}}" />
-            </div>
-
-            <span class="color" style="background-color:{{color}}"></span>
-            <h4>{{Name}}</h4>
-            <small>{{Code}}</small>
-            <small class="text-success" style="display: {{IsSalesCompleted}}">Satış Gerçekleşti</small>
-
-        </div>
-    </div>
-</script>
-
-<div class="fixedStart hide">
-    <input type="checkbox" checked id="fixed">
-    <label title="" for="fixed" id="fixed"><i class="icon-cogs"></i></label>
-    <div class="fix-buttons">
-
-        <a data-event="UpdateStages" href="#"><i data-toggle="tooltip" title="Aşamaları Yapılandır" class="icon-tags"></i></a>
-        <a data-event="Filter" href="#"><i data-toggle="tooltip" title="Filtre Yapılandır" class="icon-filter-1"></i></a>
-
-        @*<a data-event="KanbanDelete" href="#"><i data-toggle="tooltip" title="Kanban Sil" class="icon-trash-1"></i></a>*@
-        <a href="#" data-task="Insert" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert"><i data-toggle="tooltip" title="Kanban Kaydet" class="icon-floppy-1"></i></a>
-
-        <div class="dropdown" data-target="Kanbans">
-
-            <a href="#" data-event="ChangeKanban" data-toggle="dropdown" class="dropdown-toggle"><i data-toggle="tooltip" title="Kanban Değiştir" class="icon-arrows-cw-3"></i></a>
-
-            <ul class="dropdown-menu">
-                <li>Action</li>
-                <li>Another action</li>
-                <li>Something else here</li>
-                <li>KANBAN 1</li>
-            </ul>
-
-        </div>
-
-    </div>
-
-</div>
 
 <script type="text/javascript">
 
@@ -423,10 +318,7 @@
 
             var savedObject = {
                 AgileStages: page.Agile.AgileStages.GetData(),
-                Filter: {
-                    type: page.filters.type,
-                    items: $.Enumerable.From(page.filters.getFilterItems()).Select(a => { return { element: a.element, value: a.value, type: a.type } }).ToArray()
-                },
+                Filter: page.filters.getFilter(),
             };
 
             $('#VWSH_AgileBoardsInsertForm #json').val(JSON.stringify(savedObject));
@@ -593,24 +485,8 @@
 
                         break;
 
-                    //case 'JustMyTasks':
-
-                    //    $('[data-target="filter.name"]').text('Bu Ay Açılanlar');
-
-                    //    $.each(page.filters.items, function (i, item) {
-                    //        item.value = null;
-                    //    });
-
-                    //    page.filters.setItemValue('#Filter_StartDate', new Date(kendo.toString(new Date(), 'yyyy-MM-01T00:00:00')));
-
-                    //    break;
-
                     default:
                 }
-
-                //  $.each(page.filters.items, function (i, item) {
-                //      page.filters.init(item.element, value);
-                //  });
 
                 page.Agile.AgileStages.UpdateFilter();
 
@@ -628,7 +504,12 @@
             ],
             getFilter: function () {
 
-
+                return {
+                    type: page.filters.type,
+                    items: $.Enumerable.From(page.filters.getFilterItems())
+                        .Select(a => { return { element: a.element, value: a.value, type: a.type } })
+                        .ToArray()
+                };
 
             },
             getFilterItems: function (element) {
@@ -750,13 +631,11 @@
 
                 page.Model.AgileBoard = $.Enumerable.From(page.Model.MyAgileBoards).Where(a => { return a.id == id }).FirstOrDefault();
 
-
                 $('.kanbanHeader [data-task="Insert"]').attr('data-id', page.Model.AgileBoard.id);
 
                 $('[data-target="kanban.name"]').text(page.Model.AgileBoard.name);
-                $('[data-target="kanban.description"]').text(page.Model.AgileBoard.description);
+                $('[data-target="kanban.description"]').text(page.Model.AgileBoard.description ?? '');
                 $('[data-target="KanbanList"]').parents('.btn-group').removeClass('open');
-
 
                 page.init();
 
@@ -788,6 +667,11 @@
 
         init: function () {
 
+            if (page.Model.Stages == undefined || page.Model.Stages.length == 0) {
+                $('.noitem').show();
+                return;
+            }
+
             if (page.Model.MyAgileBoards != undefined) {
 
                 $.each(page.Model.MyAgileBoards, function (i, item) {
@@ -801,6 +685,7 @@
             page.filters.modalStage = $('#ModalAgileColumns');
 
             if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
+
                 var saved = JSON.parse(page.Model.AgileBoard.json);
 
                 page.filters.type = saved.Filter.type;
@@ -818,7 +703,7 @@
                     page.filters.init(item.element);
                 });
             }
-            
+
             page.Agile.AgileStages.init();
 
             if (page.Model.AgileBoard == null) {
@@ -999,7 +884,7 @@
                                         "total": 0,
                                         filter: $this.getKendoFilter()
                                     }),
-                                    template: kendo.template($("#template").html())
+                                    template: kendo.template($("#cardTemplate").html())
                                 });
 
                             gridElem.sortable({
@@ -1070,6 +955,9 @@
                     };
 
                     this.list[_stage.id] = agileItem;
+                    if ($.Enumerable.From(page.Agile.AgileStages.list).Count() > 0) {
+                        $('.kanbanHeader [data-task="Insert"]').show();
+                    }
                     return agileItem;
 
                 },

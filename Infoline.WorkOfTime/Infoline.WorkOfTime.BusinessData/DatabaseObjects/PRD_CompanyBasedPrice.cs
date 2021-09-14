@@ -33,5 +33,9 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Tüm ürünlere, seçili kategoriye veya seçili ürüne ait olduğunu belirler
         /// </summary>
         public short? productType { get; set;}
+        /// <summary>
+        /// Fiyat tipi iskonto tipi
+        /// </summary>
+        public short? type { get; set;}
     }
 }

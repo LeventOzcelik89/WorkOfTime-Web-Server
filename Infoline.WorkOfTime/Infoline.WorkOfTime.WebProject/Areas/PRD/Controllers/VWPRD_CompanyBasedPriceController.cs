@@ -87,16 +87,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [HttpPost]
         [AllowEveryone]
-        public JsonResult Delete(string[] id)
+        public JsonResult Delete(string id)
         {
             var db = new WorkOfTimeDatabase();
             var feedback = new FeedBack();
-            var item = id.Select(a => new PRD_CompanyBasedPrice { id = new Guid(a) });
-            var dbresult = db.BulkDeletePRD_CompanyBasedPrice(item);
+            var dbresult = new VMPRD_CompanyBasedPriceModel { id = new Guid(id) }.Delete();
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message,"Silme işlemi başarılı")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }

@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? sellingType { get; set;}
         public short? companyType { get; set;}
         public short? productType { get; set;}
+        public short? type { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}

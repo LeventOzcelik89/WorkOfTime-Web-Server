@@ -93,7 +93,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
         [HttpPost]
-        [PageInfo("Üretim Aşaması Silme", SHRoles.StokYoneticisi)]
+        [PageInfo("Üretim Aşaması Silme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
         public JsonResult Delete(Guid id)
         {
             var db = new WorkOfTimeDatabase();

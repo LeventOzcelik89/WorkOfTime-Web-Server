@@ -74,7 +74,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Üretim Şeması Güncelleme", SHRoles.StokYoneticisi)]
+		[PageInfo("Üretim Şeması Güncelleme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -84,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[PageInfo("Üretim Şeması Güncelleme", SHRoles.StokYoneticisi)]
+		[PageInfo("Üretim Şeması Güncelleme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public JsonResult Update(VWPRD_ProductionSchemaModel item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -103,7 +103,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 		[HttpPost]
-		[PageInfo("Üretim Şeması Silme", SHRoles.StokYoneticisi)]
+		[PageInfo("Üretim Şeması Silme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public JsonResult Delete(Guid id)
 		{
 			var feedback = new FeedBack();

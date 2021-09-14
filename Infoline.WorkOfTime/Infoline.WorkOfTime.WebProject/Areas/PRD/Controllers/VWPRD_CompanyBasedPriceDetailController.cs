@@ -84,11 +84,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceModel { id = id };
-            var companyBasedModal = data.Load();
-            var returnData = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(companyBasedModal);
-            returnData.companyBasedPriceId = companyBasedModal.id;
-            return View(returnData);
+            var data = new VMPRD_CompanyBasedPriceDetailModel { companyBasedPriceId = id };
+            return View(data.Load());
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
@@ -118,11 +115,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.UpdateInline();
-            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
+
+
+            var feedback = new FeedBack();
+            if (rs.result == true)
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                var result = new ResultStatusUI
+                {
+                    Result = rs.result,
+                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                };
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+
         }
-        [AcceptVerbs(HttpVerbs.Post)]
+        [HttpPost]
         [AllowEveryone]
-        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item, Guid CompanyBasedPriceId)
+        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
         {
             var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var rs = model.InsertInline();
