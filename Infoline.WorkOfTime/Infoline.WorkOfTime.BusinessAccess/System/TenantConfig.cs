@@ -212,7 +212,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.DokumanYonetimRolu,
             SHRoles.YukleniciPersoneli,
             SHRoles.UretimYonetici,
-            SHRoles.UretimPersonel
+            SHRoles.UretimPersonel,
+            SHRoles.YardimMasaPersonel,
+            SHRoles.YardimMasaTalep,
+            SHRoles.YardimMasaYonetim
         };
         public IysInformation IysInformations { get; set; }
         public ICallCenterService CallCenterService { get; set; }
