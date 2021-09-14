@@ -1,5 +1,5 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.WorkOfTime.BusinessData;
+
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
