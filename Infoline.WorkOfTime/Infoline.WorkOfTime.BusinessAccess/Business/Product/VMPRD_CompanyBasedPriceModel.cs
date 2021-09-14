@@ -18,8 +18,20 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetPRD_CompanyBasedPriceById(id);
+           
+           
             if (data != null)
             {
+                var getSubData = db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(data.id);
+                if (getSubData != null)
+                {
+                    foreach (var item in getSubData)
+                    {
+                        BasePriceDetailItems = new List<VMPRD_CompanyBasedPriceDetailModel>();
+                        BasePriceDetailItems.Add(new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item));
+
+                    }
+                }
                 return this.B_EntityDataCopyForMaterial(data, true);
             }
             return this;
