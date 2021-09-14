@@ -33,7 +33,7 @@
                 $("#categoryDropDown").hide();
                 $("#priceorDiscountDiv").hide();
 
-                
+
             }
             else if (value == 1) { //Seçili Kategoriye
                 $("#productId").data("kendoDropDownList").value(-1);
@@ -80,9 +80,11 @@
             else {
                 if (value == 1) { //Minimum Satış Fiyatı
                     $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
+                    $("#minConditionCurrency").show();
                 }
                 if (value == 2) { // Minimum Adet
                     $($("[data-order=3]")[0]).text("Minimum Birim");
+                    $("#minConditionCurrency").hide();
                 }
                 $("[data-order=3]").show();
             }
@@ -97,6 +99,17 @@
                 $("[data-order=6]").hide();
                 $("[data-order=5]").show();
             }
+        })
+        .on("ready", function () {
+            page.functions.AddRow(true);
+        })
+        .on("before:submit", "#VWPRD_CompanyBasedPriceDetailForm", function () {
+            var inputs = $("td[data-order]");
+            for (var i = 0; i < inputs.length; i++) {
+                if ($(inputs[i]).attr("style") == "display:none") {
+                    $(inputs[i]).find("input").prop("disabled", true)
+                }
+            }
         });
 
 
@@ -109,7 +122,7 @@
             isThereRecord: 0
         },
         functions: {
-            AddRowForProduct: function (control) {
+            AddRow: function (control) {
                 //if (control == true) {
                 //    var row = $('[data-row]').first();
                 //    var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
@@ -144,7 +157,6 @@
                     _this.remove();
                 });
 
-                debugger
                 var dataItems = $(template).find('[data-item]');
 
                 $.each(dataItems, function (i, item) {
@@ -165,29 +177,37 @@
 
                 $.each($('[type="number"]'), function (i, item) {
                     var id = $(item).attr("id");
+                    if ($(item).attr("data-item") != "monthCount") {
+                        if ($(item).attr("name") != undefined && $(item).attr("name").indexOf("price") > -1) {
+                            $('#' + id).kendoNumericTextBox({
+                                format: "N2",
+                                min: 0,
+                                value: 0,
+                                step: 0.01,
+                                decimals: 2,
+                                spinners: false
+                            });
+                        } else {
+                            $('#' + id).kendoNumericTextBox({
+                                format: "N2",
+                                min: 0,
+                                value: 0,
+                                step: 0.01,
+                                spinners: false
+                            });
 
-                    if ($(item).attr("name") != undefined && $(item).attr("name").indexOf("price") > -1) {
-                        $('#' + id).kendoNumericTextBox({
-                            format: "N2",
-                            min: 0,
-                            value: 0,
-                            step: 0.01,
-                            decimals: 2,
-                            spinners: false
-                        });
+                        }
                     } else {
                         $('#' + id).kendoNumericTextBox({
-                            format: "N2",
+                            format: "N0",
                             min: 0,
                             value: 0,
-                            step: 0.01,
+                            step: 1,
                             spinners: false
                         });
-
                     }
-                })
 
-
+                });
             },
             GetRowTemplate: function () {
                 var templateRow = $('#rowTemplate');
@@ -228,7 +248,6 @@
                     })
                 })
 
-                _invoice.CalculateProduct(_this);
             },
             setCompanyDropDownTitle: function (e) {
                 $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
@@ -249,25 +268,25 @@
 </script>
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
-    { "id", "form" },
+    { "id", "VWPRD_CompanyBasedPriceDetailForm" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
     { "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-    @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.companyBasedPriceId)
-    <div id="options">
-        <div class="form-group" id="companyOptions">
-            <div class="col-md-5">
-                <div class="radio akilliRadioGrup clearfix">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
-                </div>
+@Html.AntiForgeryToken()
+@Html.ValidationSummary(true)
+@Html.HiddenFor(model => model.id)
+@Html.HiddenFor(model => model.companyBasedPriceId)
+<div id="options">
+    <div class="form-group" id="companyOptions">
+        <div class="col-md-5">
+            <div class="radio akilliRadioGrup clearfix">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
             </div>
-            <div class="col-md-7" id="companyDropDown">
-                @(Html.Akilli()
+        </div>
+        <div class="col-md-7" id="companyDropDown">
+            @(Html.Akilli()
                 .DropDownListFor(model => model.companyId)
                 .OptionLabel("Lütfen Şirket Seçiniz..")
                 .DataTextField("name")
@@ -278,14 +297,14 @@
                 .Readonly(true)
                 .Execute()
                 )
-            </div>
         </div>
-        <div class="form-group" id="productOptions">
-            <div class="col-md-5">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
-            </div>
-            <div class="col-md-7" id="productDropDown">
-                @(
+    </div>
+    <div class="form-group" id="productOptions">
+        <div class="col-md-5">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
+        </div>
+        <div class="col-md-7" id="productDropDown">
+            @(
             Html.Akilli()
             .DropDownListFor(model => model.productId)
             .OptionLabel("Lütfen Ürün seçiniz..")
@@ -298,9 +317,9 @@
             .Readonly(true)
             .Execute()
             )
-            </div>
-            <div class="col-md-7" id="categoryDropDown" style="display:none;">
-                @(
+        </div>
+        <div class="col-md-7" id="categoryDropDown" style="display:none;">
+            @(
             Html.Akilli()
             .DropDownListFor(model => model.categoryId)
             .OptionLabel("Lütfen Kategori seçiniz..")
@@ -310,68 +329,68 @@
             .Sort(x => x.Add("fullname").Ascending())
             .Execute("id")
         )
-            </div>
         </div>
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-                </div>
-            </div>
-        </div>
-        <div class="form-group" id="priceorDiscountDiv" style="display:none">
-            <div class="col-md-12">
-                <div class="radio akilliRadioGrup clearfix">
-                    <input type="radio" class="bg-focus" name="isPrice" checked id="priceDiscount0" value="0">
-                    <label tabindex="0" class="radio-label bg-focus" for="priceDiscount0">
-                        Fiyat
-                    </label>
-                    <input type="radio" name="isPrice" id="priceDiscount1" value="1">
-                    <label tabindex="0" class="radio-label" for="priceDiscount1">
-                        İskonto
-                    </label>
-                </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
             </div>
         </div>
     </div>
     <div class="form-group">
-        <div class="col-sm-12">
-
-            <table id="productsTable" class="table" style="background-color: #f8f8f8;">
-                <thead class="table-header" style="background-color: #c5c4c2;">
-                    <tr>
-                        <th width="20" data-order="0"></th>
-                        <th width="30%" data-order="1">Başlangıç Tarihi</th>
-                        <th width="30%" data-order="2">Bitiş Tarihi</th>
-                        <th width="13%" data-order="3" style="display: none;">Minimum Adet / Fiyat</th>
-                        <th width="15%"  data-order="4" style="display: none;">Takit / Vade Sayısı</th>
-                        <th width="20%" data-order="5" >İskonto Oranı</th>
-                        <th width="13%" data-order="6" style="display: none;">Fiyat</th>
-                        <th width="70" data-order="7"></th>
-                    </tr>
-                </thead>
-                <tbody class="table-body">
-                    <tr class="table-row table-row-2lines">
-                        <td colspan="11">
-                            <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="page.functions.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ KAYIT EKLE </button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+            </div>
         </div>
     </div>
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    <div class="form-group" id="priceorDiscountDiv" style="display:none;">
+        <div class="col-md-12">
+            <div class="radio akilliRadioGrup clearfix">
+                <input type="radio" class="bg-focus" name="isPrice" checked id="priceDiscount0" value="0">
+                <label tabindex="0" class="radio-label bg-focus" for="priceDiscount0">
+                    Fiyat
+                </label>
+                <input type="radio" name="isPrice" id="priceDiscount1" value="1">
+                <label tabindex="0" class="radio-label" for="priceDiscount1">
+                    İskonto
+                </label>
+            </div>
+        </div>
     </div>
+</div>
+<div class="form-group">
+    <div class="col-sm-12">
+
+        <table id="productsTable" class="table" style="background-color: #f8f8f8;">
+            <thead class="table-header" style="background-color: #c5c4c2;">
+                <tr>
+                    <th width="20" data-order="0"></th>
+                    <th width="30%" data-order="1">Başlangıç Tarihi</th>
+                    <th width="30%" data-order="2">Bitiş Tarihi</th>
+                    <th width="13%" data-order="3" style="display: none;">Minimum Adet / Fiyat</th>
+                    <th width="15%" data-order="4" style="display: none;">Takit / Vade Sayısı</th>
+                    <th width="20%" data-order="5">İskonto Oranı</th>
+                    <th width="13%" data-order="6" style="display: none;">Fiyat</th>
+                    <th width="70" data-order="7"></th>
+                </tr>
+            </thead>
+            <tbody class="table-body">
+                <tr class="table-row table-row-2lines">
+                    <td colspan="11">
+                        <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="page.functions.AddRow(true)"><i class="fa fa-plus"></i> YENİ KAYIT EKLE </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </div>
+</div>
+<div class="buttons">
+    <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+</div>
 }
 
 <template id="rowTemplate" data-selector="modalContainer">
@@ -404,14 +423,14 @@
             .Value(Model.endDate != null ? Model.endDate : DateTime.Now)
             )
             </td>
-            <td  data-order="3">
+            <td data-order="3" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="minCondition" data-calculate="keyup" />
-                    <span class="input-group-addon" data-cur="currency">₺</span>
+                    <span class="input-group-addon" data-cur="currency" id="minConditionCurrency">₺</span>
                 </div>
                 <input type="hidden" data-name="minCondition" value="0" />
             </td>
-            <td data-order="4">
+            <td data-order="4" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="monthCount" data-calculate="keyup" />
                 </div>
@@ -420,16 +439,18 @@
             <td data-order="5">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="discount" data-calculate="keyup" />
+                    <span class="input-group-addon" data-cur="currency">%</span>
+
                 </div>
                 <input type="hidden" data-name="discount" value="0" />
             </td>
-            <td data-order="6">
+            <td data-order="6" style="display:none;">
                 <div class="input-group m-b">
                     <input class="form-control" type="number" data-item="price" data-calculate="keyup" />
                     <span class="input-group-addon" data-cur="currency">₺</span>
                 </div>
                 <input type="hidden" data-name="price" value="0" />
-            </td>         
+            </td>
             <td data-order="7">
                 <button class="btn btn-md btn-danger" onclick="page.functions.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
             </td>
