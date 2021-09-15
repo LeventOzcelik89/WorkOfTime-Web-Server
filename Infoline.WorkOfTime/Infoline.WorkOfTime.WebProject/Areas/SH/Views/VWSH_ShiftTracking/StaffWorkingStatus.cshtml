@@ -1,0 +1,169 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
+
+@{
+    ViewBag.Title = "Personel Çalışma Durumu";
+
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="row clearfix">
+    <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+        <div class="ibox ">
+            <div class="ibox-content" style="border-bottom:1px #e7eaec solid;margin-bottom:50px;">
+                <div class="row">
+                    <div class="col-md-3">
+                        @(
+						 Html.Akilli()
+						 .DropDownListFor(a => a.id)
+						 .OptionLabel("Lütfen Personel Seçiniz")
+						 .DataValueField("id")
+                         .Name("userId")
+						 .DataTextField("FullName")
+						 .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+						 .Sort(x => x.Add("FullName").Ascending())
+						 .Execute()
+						)
+                    </div>
+
+                    <div class="col-md-4">
+                        @(
+                          Html.Akilli().
+                          DatePicker("shiftTrackingStartDate").
+                          Placeholder("Başlangıç Tarihi").
+                          Enable(true)
+                          .Value(DateTime.Now)
+                          //.Events(x => x.Change("onChangeStartDate"))
+                          .Format(Extensions.DateFormatShort())
+
+						 )
+                    </div>
+                    <div class="col-md-4">
+                        @(
+                           Html.Akilli().
+                           DatePicker("shiftTrackingEndDate").
+                           Placeholder("Bitiş Tarihi").
+                           Enable(true)
+                           //.Events(x=>x.Change("onChangeEndDate"))
+                           .MinDateElement("shiftTrackingStartDate")
+                           .Value(DateTime.Now)
+                           .Format(Extensions.DateFormatShort())
+						 )
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px;"><i class="fa fa-search"></i> Sorgula</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="shiftTrackingPersonalGrid">
+
+</div>
+
+
+
+
+<script type="text/javascript">
+    $(document)
+    $("#DashBoardFilter").click(function () {
+        var startDate = $("#shiftTrackingStartDate").val();
+        var endDate = $("#shiftTrackingEndDate").val();
+        var userId = $("#userId").val();
+
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResult', { startDate: startDate, endDate: endDate, userId: userId }, function (res) {
+            if (res.length == 0) {
+                return;
+            }
+
+            var grid = {
+                data: [],
+                init: function () {
+                    $("#shiftTrackingPersonalGrid").kendoGrid({
+
+                        excel: {
+                            fileName: "Günlük Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
+                            filterable: true,
+                            allPages: true,
+                        },
+                        dataSource: {
+                            data: $.Enumerable.From(res).ToArray(),
+                            pageSize: 50,
+                            sort: { field: "startDate", dir: "asc" }
+                        },
+                        columnMenu: true,
+                        selectable: true,
+                        reorderable: true,
+                        sortable: true,
+                        encoded: true,
+                        height: 600,
+                        scrollable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            pageSizes: ["all"],
+                            buttonCount: 5,
+                            messages: {
+                                itemsPerPage: "",
+                                display: "{0} - {1} aralığı gösteriliyor. Toplam {2:#,##} öğe var",
+                                empty: "",
+                                allPages: "Tümü"
+                            }
+                        },
+                        columns: [
+                            //{sortable: false, field:"startDate"},
+                            {
+                                field: "userId",
+                                hidden: true
+                            },
+                            {
+                                field: "id",
+                                hidden: true
+                            },
+                            {
+                                field: "UserId_Title",
+                                title: "Personel"
+
+                            },
+                            {
+                                field: "ShiftTrackingStatus_Title",
+                                title: "Durumu"
+
+                            },
+                            {
+                                field: "date",
+                                sortable: true,
+                                title: "Gün",
+                                type: "date",
+                                format: "{0:dd/MM/yyyy hh:mm}"
+                            },
+                            {
+                                field: "startDate",
+                                sortable: true,
+                                title: "Giriş Tarihi",
+                                type: "date",
+                                format: "{0:dd/MM/yyyy hh:mm}"
+                            },
+                            {
+                                field: "endDate",
+                                title: "Çıkış Tarihi",
+                                type: "date",
+                                format: "{0:dd/MM/yyyy hh:mm}"
+                            },
+                            {
+                                field: "totalWorking",
+                                title: "Toplam Çalışma Saati",
+                            }
+                        ]
+
+                    });
+                }
+            }
+
+            grid.init();
+        });
+    });
+
+</script>

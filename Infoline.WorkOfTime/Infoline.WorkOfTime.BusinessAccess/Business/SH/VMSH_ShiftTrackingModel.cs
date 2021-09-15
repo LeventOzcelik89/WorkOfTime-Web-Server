@@ -152,6 +152,221 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return totalMinutes;
             }
         }
+        public double GetCalculateDateDayShift(Guid userId, DateTime shiftstart, DateTime shiftend, VWSH_ShiftTracking[] shiftTrackingReport)
+        {
+            if (shiftTrackingReport == null || shiftTrackingReport.Count() < 1)
+            {
+
+
+                var db = new WorkOfTimeDatabase();
+                var lastAction = db.GetSH_ShiftTrackingFirstByUseridBeforeDate(userId, shiftstart);
+                if (lastAction != null)
+                {
+                    if (lastAction.shiftTrackingStatus != (int)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti && lastAction.shiftTrackingStatus != (int)EnumSH_ShiftTrackingShiftTrackingStatus.MolaBitti || lastAction.shiftTrackingStatus == (int)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi)
+                    {
+                        return 60 * 24;
+                    }
+                    else
+                    {
+                        return 0;
+                    }
+                }
+
+                return 0;
+            }
+            else
+            {
+                var shiftMinutesList = new List<double>();
+                var shiftTrackingReportList = shiftTrackingReport.OrderBy(a => a.timestamp).ToList();
+
+                while (shiftTrackingReportList.Count() > 0)
+                {
+                    DateTime firstStartDate;
+                    DateTime firstFinishDate;
+
+                    var firstValue = shiftTrackingReportList.FirstOrDefault().shiftTrackingStatus;
+                    if (firstValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi || firstValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MolaBitti)
+                    { 
+                        //İlk veri buraya gelecek
+                        //Hesaplama kalkacak buradan
+                        firstStartDate = shiftTrackingReportList.FirstOrDefault().timestamp.Value;
+                        shiftTrackingReportList.Remove(shiftTrackingReportList.FirstOrDefault());
+
+                        foreach (var item in shiftTrackingReportList.ToList())
+                        {
+                            if (item.shiftTrackingStatus == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi || item.shiftTrackingStatus == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MolaBitti)
+                                shiftTrackingReportList.Remove(item);
+                            else
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        firstStartDate = new DateTime(shiftstart.Year, shiftstart.Month, shiftstart.Day, 00, 00, 000);
+                    }
+
+
+                    if (shiftTrackingReportList.Count() > 0)
+                    {
+                        var firstFinishValue = shiftTrackingReportList.FirstOrDefault().shiftTrackingStatus;
+                        if (firstFinishValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti || firstFinishValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MolaVerildi)
+                        {
+                            firstFinishDate = shiftTrackingReportList.FirstOrDefault().timestamp.Value;
+                            shiftTrackingReportList.Remove(shiftTrackingReportList.FirstOrDefault());
+
+                            foreach (var item in shiftTrackingReportList.ToList())
+                            {
+                                if (item.shiftTrackingStatus == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti || item.shiftTrackingStatus == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MolaVerildi)
+                                    shiftTrackingReportList.Remove(item);
+                                else
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            if (shiftstart.Year == DateTime.Now.Year && shiftstart.Month == DateTime.Now.Month && shiftstart.Day == DateTime.Now.Day)
+                                firstFinishDate = DateTime.Now;
+                            else
+                                firstFinishDate = new DateTime(shiftstart.Year, shiftstart.Month, shiftstart.Day, 23, 59, 59);
+                        }
+                    }
+                    else
+                    {
+                        if (shiftstart.Year == DateTime.Now.Year && shiftstart.Month == DateTime.Now.Month && shiftstart.Day == DateTime.Now.Day)
+                            firstFinishDate = DateTime.Now;
+                        else
+                            firstFinishDate = new DateTime(shiftstart.Year, shiftstart.Month, shiftstart.Day, 23, 59, 59);
+                    }
+
+                    shiftMinutesList.Add((firstFinishDate - firstStartDate).TotalMinutes);
+                }
+                var totalMinutes = shiftMinutesList.Where(a => a > 0).Sum();
+                return totalMinutes;
+            }
+        }
+
+        public List<VMSH_ShiftTrackingReport> GetDateDataReportResult(DateTime startDate, DateTime endDate, Guid? userId)
+
+        {
+            var db = new WorkOfTimeDatabase();
+            var ourPersons = new List<VWSH_User>();
+            if (userId.HasValue)
+            {
+                ourPersons.Add(db.GetVWSH_UserById(userId.Value));
+            }
+            else
+            {
+                ourPersons = db.GetVWSH_UserMyPerson().ToList();
+            }
+
+            var shiftTrackings = db.VWGetSH_ShiftTrackingByStartAndEndDate(startDate, endDate);
+            var listModel = new List<VMSH_ShiftTrackingReport>();
+            var listData = new List<VMSH_ShiftTrackingReport>();
+
+            if (shiftTrackings.Count() > 0)
+            {
+
+                listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReport
+                {
+                    userId = ourPersons.FirstOrDefault()?.id,
+                    startDate = startDate,
+                    endDate = endDate,
+                    CompanyId_Title = x.Company_Title,
+                    UserId_Title = ourPersons.FirstOrDefault()?.FullName
+                }));
+
+                while (startDate <= endDate)
+                {
+                    foreach (var shiftTracking in listModel.ToList())
+                    {
+                        var workingMinutes = GetCalculateDateDayShift(shiftTracking.userId.Value, startDate, startDate.AddDays(1).AddMilliseconds(-1),
+                            shiftTrackings.Where(a => a.userId == shiftTracking.userId && a.timestamp >= startDate && a.timestamp < startDate.AddDays(1).AddMilliseconds(-1)).ToArray());
+
+                        TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
+                        var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                        listData.Add(new VMSH_ShiftTrackingReport
+                        {
+                            totalWorking = workingHoursStringValue.ToString(),
+                            CompanyId_Title = shiftTracking.CompanyId_Title,
+                            UserId_Title = shiftTracking.UserId_Title,
+                            startDate = startDate,
+                            endDate = endDate,
+                            date = startDate,
+                            userId = shiftTracking.userId
+                        });
+                    }
+                    startDate = startDate.AddDays(1);
+                }
+
+            }
+
+            return listData.OrderBy(a => a.date).ToList();
+        }
+
+        public List<VMSH_ShiftTrackingReport> GetGeneralDataReportResult(DateTime startDate, DateTime endDate, Guid? userId)
+        {
+            var db = new WorkOfTimeDatabase();
+            var ourPersons = new List<VWSH_User>();
+            if (userId.HasValue)
+            {
+                ourPersons.Add(db.GetVWSH_UserById(userId.Value));
+            }
+            else
+            {
+                ourPersons = db.GetVWSH_UserMyPerson().ToList();
+            }
+
+            var shiftTrackings = db.VWGetSH_ShiftTrackingByStartAndEndDate(startDate, endDate);
+            var listModel = new List<VMSH_ShiftTrackingReport>();
+            var listData = new List<VMSH_ShiftTrackingReport>();
+
+            if (shiftTrackings.Count() > 0)
+            {
+
+                listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReport
+                {
+                    userId = ourPersons.FirstOrDefault()?.id,
+                    startDate = startDate,
+                    endDate = endDate,
+                    //CompanyId_Title = x.Company_Title,
+                    UserId_Title = ourPersons.FirstOrDefault()?.FullName
+                }));
+
+                while (startDate <= endDate)
+                {
+                    foreach (var shiftTracking in listModel.ToList())
+                    {
+
+                        var workingMinutes = GetCalculateDateDayShift(shiftTracking.userId.Value, startDate, startDate.AddDays(1).AddMilliseconds(-1),
+                            shiftTrackings.Where(a => a.userId == shiftTracking.userId && a.timestamp >= startDate && a.timestamp < startDate.AddDays(1).AddMilliseconds(-1)).ToArray());
+                        var shiftStatus = db.GetVWSH_ShiftTracking().Where(x => x.userId == shiftTracking.userId && x.timestamp >= startDate && x.timestamp <= endDate).FirstOrDefault();
+
+
+                        TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
+                        var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                        listData.Add(new VMSH_ShiftTrackingReport
+                        {
+                            totalWorking = workingHoursStringValue.ToString(),
+                            CompanyId_Title = shiftTracking.CompanyId_Title,    
+                            UserId_Title = shiftTracking.UserId_Title,
+                            ShiftTrackingStatus_Title = shiftStatus?.ShiftTrackingStatus_Title,
+                            startDate = new DateTime(startDate.Year, startDate.Month, startDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
+                            endDate = new DateTime(endDate.Year, endDate.Month, endDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
+                            date = new DateTime(startDate.Year, startDate.Month, startDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
+                            userId = shiftTracking.userId
+                        });
+                    }
+                    startDate = startDate.AddDays(1);
+                }
+
+            }
+
+            return listData.OrderBy(a => a.date).ToList();
+        }
+
+      
     }
 
     public class VMSH_ShiftTrackingModel : VWSH_ShiftTracking
