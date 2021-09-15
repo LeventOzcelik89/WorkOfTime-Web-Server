@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public short companyType { get; set; }
-        public short productType { get; set; }
+        public short productType { get; set; } 
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();

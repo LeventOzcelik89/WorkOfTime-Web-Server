@@ -69,8 +69,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         public ActionResult Update(Guid id)
         {
             var model = new VMPRD_CompanyBasedPriceModel { id = id };
-            //var data = model.Load();
-            return View(model);
+            return View(model.Load());
         }
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
@@ -96,7 +95,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message,"Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message, "Silme işlemi başarılı")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
