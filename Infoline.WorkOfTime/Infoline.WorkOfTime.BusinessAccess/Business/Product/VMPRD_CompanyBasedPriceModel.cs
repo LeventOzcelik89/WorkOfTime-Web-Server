@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public List<VMPRD_CompanyBasedPriceDetailModel> BasePriceDetailItems { get; set; } = new List<VMPRD_CompanyBasedPriceDetailModel>();
+        public short discountType { get; set; }
         public VMPRD_CompanyBasedPriceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -113,6 +114,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                     if (conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Genel)
                     {
                         item.minCondition = null;
+                    }
+                    if (discountType==1)
+                    {
+                        item.discount = item.discount * -1;
                     }
                     item.companyBasedPriceId = id;
                     dbresult &= item.Insert(trans);
