@@ -29,6 +29,24 @@
             }
 
             $("#discountTypeDiv").find("input").prop("disabled", true);
+        })
+        .on("keyup", "[data-item=discount]", function () {
+            var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+            debugger;
+            if (currentPrice != undefined) {
+                var discount = $(this).val();
+                discount = parseFloat(discount);
+                var effectedPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discount) / 100)) : (currentPrice * ((100 + discount) / 100));
+                effectedPrice = kendo.toString(effectedPrice, "N2");
+                effectedPrice = effectedPrice.replace(".", "");
+                effectedPrice = effectedPrice.replace(",", ".");
+                effectedPrice = parseFloat(effectedPrice);
+                $(this).closest("tr").find("[data-effectedPrice=true]").val(effectedPrice);
+            }
+        })
+        .on("keyup", "[data-item=price]", function () {
+            var price = $(this).val();
+            $(this).closest("tr").find("[data-effectedPrice=true]").val(price);
         });
 
     page = {
@@ -102,7 +120,11 @@
                         });
                     }
                 });
-
+                if ($("[name='productType']:checked").val() == 2) {
+                    $("td[data-order=7]").find("input").val($("#productId").data("kendoDropDownList").dataItem().currentSellingPrice)
+                    $("[data-order=7]").show()
+                    $("[data-order=8]").show()
+                }
                 //gizli - açık columların ayarlanması
                 page.functions.ShowCols();
             },
@@ -199,7 +221,7 @@
                         for (var i = 0; i < length; i++) {
                             var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
                             var discountForRow = parseFloat(discountForRow);
-                            var effectedRowPrice = currentPrice * ((100 - discountForRow) / 100);
+                            var effectedRowPrice = _model.discountType == 0 ? (currentPrice * ((100 - discountForRow) / 100)) : (currentPrice * ((100 + discountForRow) / 100));
                             effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
                             effectedRowPrice = effectedRowPrice.replace(".", "");
                             effectedRowPrice = effectedRowPrice.replace(",", ".");
