@@ -24,8 +24,18 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 var getSubData = db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(data.id);
                 if (getSubData != null)
                 {
+                    
                     foreach (var item in getSubData.OrderByDescending(x=>x.startDate))
                     {
+                        if (item.discount<0)
+                        {
+                            item.discount = item.discount * -1;
+                            this.discountType = 1;
+                        }
+                        else
+                        {
+                            this.discountType = 0;
+                        }
                         
                         BasePriceDetailItems.Add(new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item));
                     }
