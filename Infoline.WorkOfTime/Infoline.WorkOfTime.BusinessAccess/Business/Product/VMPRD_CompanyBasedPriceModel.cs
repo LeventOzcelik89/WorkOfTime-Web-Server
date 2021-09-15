@@ -105,6 +105,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 foreach (var item in BasePriceDetailItems)
                 {
+                    if (item.discount>100)
+                    {
+                        dbresult.result = false;
+                        dbresult.message = "İskonto 100'den büyük olamaz";
+                    }
                     if (productType == (short)EnumPRD_CompanyBasedPriceProductType.AllProducts || productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedCategory)
                     {
                         item.price = null;
