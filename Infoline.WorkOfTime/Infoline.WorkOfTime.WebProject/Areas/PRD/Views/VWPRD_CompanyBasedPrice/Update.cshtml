@@ -203,6 +203,29 @@
                         } else { }
                         swal.close();
                     });
+                } else {
+                    var row = $(_this).parents(".table-row");
+                    var rowId = $(row).attr("data-row");
+                    $('[data-id="' + rowId + '"]').remove();
+                    $(row).remove();
+                    $.each($('[data-row]'), function (i, mainRow) {
+                        var subRow = $('[data-id="' + $(mainRow).attr("data-row") + '"]');
+                        var names = $(mainRow).find('[name]');
+                        var subRowNames = $(subRow).find('[name]');
+                        $.each($(names), function (j, elem) {
+                            var name = $(elem).attr("name");
+                            var field = name.split('.')[1];
+                            $(elem).attr("name", 'BasePriceDetailItems[' + i + '].' + field);
+                            if (field == "itemOrder") {
+                                $(elem).val(length - i);
+                            }
+                        });
+                        $.each($(subRowNames), function (j, elem) {
+                            var name = $(elem).attr("name");
+                            var field = name.split('.')[1];
+                            $(elem).attr("name", 'BasePriceDetailItems[' + i + '].' + field);
+                        })
+                    })
                 }
             },
             setCompanyDropDownTitle: function (e) {
