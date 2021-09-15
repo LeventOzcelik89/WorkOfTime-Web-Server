@@ -122,7 +122,7 @@
                         for (var i = 0; i < rowLength; i++) {
                             var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
                             var discountForRow = parseFloat(discountForRow);
-                            var effectedRowPrice = currentPrice * ((100 - discountForRow) / 100);
+                            var effectedRowPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discountForRow) / 100)) : (currentPrice * ((100 + discountForRow) / 100));
                             effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
                             effectedRowPrice = effectedRowPrice.replace(".", "");
                             effectedRowPrice = effectedRowPrice.replace(",", ".");
@@ -179,6 +179,7 @@
             var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
             if (currentPrice != undefined) {
                 var discount = $(this).val();
+                discount = parseFloat(discount);
                 var effectedPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discount) / 100)) : (currentPrice * ((100 + discount) / 100));
                 effectedPrice = kendo.toString(effectedPrice, "N2");
                 effectedPrice = effectedPrice.replace(".", "");
@@ -333,6 +334,12 @@
                     if ($("th[data-order=" + i + "]").attr("style") == undefined || $("th[data-order=" + i + "]").attr("style") == '') {
                         $("[data-order=" + i + "]").show();
                     }
+                }
+
+                if ($("[name='productType']:checked").val() == 2) {
+                    $("td[data-order=7]").find("input").val($("#productId").data("kendoDropDownList").dataItem().currentSellingPrice)
+                    $("[data-order=7]").show()
+                    $("[data-order=8]").show()
                 }
             },
             SetCurrrency: function () {
