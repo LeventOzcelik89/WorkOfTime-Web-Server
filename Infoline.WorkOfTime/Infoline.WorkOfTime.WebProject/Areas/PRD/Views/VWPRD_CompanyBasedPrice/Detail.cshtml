@@ -16,7 +16,9 @@
                 </div>
                 <img src="/Content/Custom/img/product.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
                 <div style="margin-top: 15px;">
-
+                   
+                        <a class="btn btn-xs btn-primary" href="/PRD/VWPRD_CompanyBasedPrice/Update?id=@Model.id"  target="_blank" > <i class="fa fa-edit"></i> Tümünü Düzenle </a>
+                    
                 </div>
             </div>
         </div>
@@ -89,12 +91,12 @@
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" })).Filter(a=>a.companyBasedPriceId==Model.id).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd/MM/yyyy}").Width(180);
-        x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}").Width(180);
+        x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd/MM/yyyy}");
+        x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
         x.Bound(y => y.price).Title("Fiyat").Hidden(singleItem.price==null||singleItem.price==0?true:false).ClientTemplate("#=kendo.toString(data.price,'N2') # ₺ ");
         x.Bound(y => y.discount).Title("İskonto Oranı").Hidden(singleItem.discount != null ? false : true).ClientTemplate("#=kendo.toString(data.discount,'N2') # % ");;
-        x.Bound(y => y.minCondition).Title("Minimum Fiyat Tutarı").Hidden(singleItem.minCondition != null &&Model.conditionType==(short)EnumPRD_CompanyBasedPriceConditionType.Adet ? true : false);
-        x.Bound(y => y.minCondition).Title("Minimum Satış Miktarı").Hidden(singleItem.minCondition != null && Model.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Fiyat? true : false);
+        x.Bound(y => y.minCondition).Title("Minimum Fiyat Miktarı").Hidden(singleItem.minCondition != null &&Model.conditionType==(short)EnumPRD_CompanyBasedPriceConditionType.Fiyat ? false : true);
+        x.Bound(y => y.minCondition).Title("Minimum Adet Tutarı").Hidden(singleItem.minCondition != null && Model.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Adet? false : true);
         x.Bound(y => y.monthCount).Title("Vade Sayısı").Hidden(singleItem.monthCount != null && Model.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Vadeli? false : true);
         x.Bound(y => y.monthCount).Title("Taksit Sayısı").Hidden(singleItem.monthCount != null && Model.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Taksitli? false : true);
     })

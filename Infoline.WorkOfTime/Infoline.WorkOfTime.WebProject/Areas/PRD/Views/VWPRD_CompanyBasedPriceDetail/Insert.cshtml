@@ -33,7 +33,7 @@
                 $("#categoryDropDown").hide();
                 $("#priceorDiscountDiv").hide();
                 $("[for=type_0]").trigger("click")
-
+                $("#discountTypeDiv").show();
                 $("[data-order=7]").hide();
                 $("[data-order=8]").hide();
             }
@@ -43,7 +43,7 @@
                 $("#productDropDown").hide();
                 $("#priceorDiscountDiv").hide();
                 $("[for=type_0]").trigger("click")
-
+                $("#discountTypeDiv").show();
                 $("[data-order=7]").hide();
                 $("[data-order=8]").hide();
             }
@@ -58,7 +58,7 @@
                 $("#priceorDiscountDiv").show();
                 $("#priceDiscount0").prop("checked", true);
                 $("#priceDiscount1").prop("checked", false);
-
+                $("#discountTypeDiv").show();
                 $("[data-order=7]").hide();
                 $("[data-order=8]").hide();
             }
@@ -103,6 +103,8 @@
             if (value == 1) { //Fiyat girelecek
                 $("[data-order=5]").hide();
                 $("[data-order=6]").show();
+                $("#discountTypeDiv").hide();
+                $("[name=discountType]").filter(':checked').val(0);
 
                 if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise               
                     for (var i = 0; i < rowLength; i++) {
@@ -114,7 +116,7 @@
             else { //Oran Girilecek
                 $("[data-order=6]").hide();
                 $("[data-order=5]").show();
-
+                $("#discountTypeDiv").show();
                 if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise
                     if ($("#productId").data("kendoDropDownList").dataItem().currentSellingPrice != undefined) {//ürün currentSellingPrice null değilse
                         var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
@@ -157,7 +159,7 @@
     function beforeFunc() {
         let productType = $("[name='productType']:checked").val();
         let companyType = $("[name='companyType']:checked").val();
-
+        
         if (productType == 2 && $("#productId").data("kendoDropDownList").dataItem().id == "") {
             MesajWarning("Lütfen Ürün Seçiniz", "Ürün Seçimi Yapmadınız");
             return false;
@@ -391,15 +393,15 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
-    <div id="options">
-        <div class="form-group" id="companyOptions">
-            <div class="col-md-5">
-                <div class="radio akilliRadioGrup clearfix">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
-                </div>
+<div id="options">
+    <div class="form-group" id="companyOptions">
+        <div class="col-md-5">
+            <div class="radio akilliRadioGrup clearfix">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
             </div>
-            <div class="col-md-7" id="companyDropDown">
-                @(Html.Akilli()
+        </div>
+        <div class="col-md-7" id="companyDropDown">
+            @(Html.Akilli()
                 .DropDownListFor(model => model.companyId)
                 .OptionLabel("Lütfen Şirket Seçiniz..")
                 .DataTextField("name")
@@ -410,14 +412,14 @@
                 .Readonly(true)
                 .Execute()
                 )
-            </div>
         </div>
-        <div class="form-group" id="productOptions">
-            <div class="col-md-5">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
-            </div>
-            <div class="col-md-7" id="productDropDown">
-                @(
+    </div>
+    <div class="form-group" id="productOptions">
+        <div class="col-md-5">
+            @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
+        </div>
+        <div class="col-md-7" id="productDropDown">
+            @(
             Html.Akilli()
             .DropDownListFor(model => model.productId)
             .OptionLabel("Lütfen Ürün seçiniz..")
@@ -430,9 +432,9 @@
             .Readonly(true)
             .Execute()
             )
-            </div>
-            <div class="col-md-7" id="categoryDropDown" style="display:none;">
-                @(
+        </div>
+        <div class="col-md-7" id="categoryDropDown" style="display:none;">
+            @(
             Html.Akilli()
             .DropDownListFor(model => model.categoryId)
             .OptionLabel("Lütfen Kategori seçiniz..")
@@ -442,30 +444,45 @@
             .Sort(x => x.Add("fullname").Ascending())
             .Execute("id")
         )
-            </div>
         </div>
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-                </div>
-            </div>
-        </div>
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-                </div>
-            </div>
-        </div>
-        <div class="form-group" id="priceorDiscountDiv" style="display:none;">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Oran))
-                </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
             </div>
         </div>
     </div>
+    <div class="form-group">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+            </div>
+        </div>
+    </div>
+    <div class="form-group" id="priceorDiscountDiv" style="display:none;">
+        <div class="col-md-12">
+            <div class="">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Oran))
+            </div>
+        </div>
+    </div>
+    <div class="form-group"  id="discountTypeDiv">
+        <div class="col-sm-12">
+            <div class="radio akilliRadioGrup clearfix"   >
+                <input type="radio" name="discountType" id="discountType_0" checked value="0">
+                <label tabindex="0" class="radio-label" for="discountType_0">
+                    Fiyat İndirimi
+                </label>
+                <input type="radio" name="discountType"  id="discountType_1" value="1">
+                <label tabindex="0" class="radio-label" for="discountType_1">
+                    Fiyat Artışı
+                </label>
+            </div>
+        </div>
+    </div>
+   
+</div>
     <div class="form-group">
         <div class="col-sm-12">
             <table id="productsTable" class="table" style="background-color: #f8f8f8;">
