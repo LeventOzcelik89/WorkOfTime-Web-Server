@@ -1,76 +1,11 @@
-﻿@model Infoline.WorkOfTime.BusinessAccess.Business.Product.VMPRD_CompanyBasedPriceDetailModel
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail
 @{
-    ViewBag.Title = "Özel Fiyat Belirleme";
+    ViewBag.Title = "Kayıt Güncelleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
-<style>
-</style>
-<script>
-    var page = {};
-    page = {
-        defines: {
-            isAllCompanies: 1,
-            productTarget: 2,
-            disabledInput: 0
-        },
-        functions: {
-
-        }
-    }
-
-    function setColumns() {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        $("#categoryDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-        if ('@Model.sellingType' == 2 || '@Model.sellingType' == 3) {
-            if ('@Model.sellingType' == 2) {
-                $("[data-field='monthCount']").find("a").last().text("Taksit Sayısı")
-            }
-            if ('@Model.sellingType' == 3) {
-                $("[data-field='monthCount']").find("a").last().text("Vade Sayısı")
-            }
-
-            grid.showColumn('monthCount');
-        }
-        if ('@Model.conditionType' == 2 | '@Model.conditionType'==1) {
-            grid.showColumn('minCondition');
-            if ('@Model.conditionType' == 1) {
-                $("[data-field='minCondition']").find("a").last().text("Minimum Satış Tutarı")
-            }
-            if ('@Model.conditionType' == 2) {
-                $("[data-field='minCondition']").find("a").last().text("Minimum Adet")
-            }
-        }
-        if ('@Model.productType'==1) {
-            $("#categoryDropDown").show();
-            $("#productDropDown").hide();
-            grid.hideColumn('price');
-            grid.showColumn('discount');
-        }
-
-        if ('@Model.type'==0) {
-            grid.showColumn('price');
-            grid.hideColumn('discount');
-        }
-        if ('@Model.type' == 1) {
-            grid.hideColumn('price');
-            grid.showColumn('discount');
-        }
-        if ('@Model.companyType'==0) {
-            $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-
-        }
-
-
-    }
-
-</script>
 
 @using (Html.BeginForm("Update", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
-    { "id", "form" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
     { "data-formType", "Ajax" }
@@ -80,230 +15,176 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
-<div id="options">
-        <div class="form-group">
-            <div class="col-md-5">
-                <div class="radio akilliRadioGrup clearfix">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Readonly(true).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
-                </div>
-            </div>
-            <div class="col-md-7" id="companyDropDown">
-                @(Html.Akilli()
-                .DropDownListFor(model => model.companyId)
-                .OptionLabel("Lütfen Şirket Seçiniz..")
-                .DataTextField("name")
-                .DataValueField("id")
-                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-                .Sort(x => x.Add("name").Ascending())
-                .Events(x => x.DataBound("page.functions.setCompanyDropDownTitle"))
-                .Execute()
-                .Readonly(true)
-                )
-            </div>
-        </div>
 
-        <div class="form-group">
-            <div class="col-md-5">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Readonly(true).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
-            </div>
 
-            <div class="col-md-7" id="productDropDown">
-                @(
-            Html.Akilli()
-            .DropDownListFor(model => model.productId)
-            .OptionLabel("Tüm Ürünlere Uygula...")
-            .DataTextField("fullName")
-            .DataValueField("id")
-            .Template("#=TemplateEngine('productTemplate',data)#")
-            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-            .Sort(x => x.Add("code").Ascending())
-            .Events(x => x.DataBound("page.functions.setProductDropDownTitle"))
-            .Readonly(true)
-            .Execute()
-            )
-            </div>
-
-            <div class="col-md-7" id="categoryDropDown" style="display:none;">
-                @(
-            Html.Akilli()
-            .DropDownListFor(model => model.categoryId)
-            .OptionLabel("Lütfen Kategori seçiniz..")
-            .DataTextField("fullname")
-            .DataValueField("id")
-            .Action(b => b.Action("DataSourceDropDown", "VWPRD_Category", new { area = "PRD" }))
-            .Sort(x => x.Add("fullname").Ascending())
-            .Execute("id")
-            .Readonly(true)
-        )
-            </div>
-
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Readonly(true).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
-
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <div class="col-md-12">
-                <div class="">
-                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Readonly(true).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
-                </div>
-            </div>
-        </div>
-        <div class="form-group" id="priceorDiscountDiv" style="display:none">
-            <div class="col-md-12">
-                <div class="radio akilliRadioGrup clearfix">
-                    <input type="radio" class="bg-focus" name="isPrice" checked id="priceDiscount0" value="0">
-                    <label tabindex="0" class="radio-label bg-focus" for="priceDiscount0">
-                        Fiyat
-                    </label>
-                    <input type="radio" name="isPrice" id="priceDiscount1" value="1">
-                    <label tabindex="0" class="radio-label" for="priceDiscount1">
-                        İskonto
-                    </label>
-                </div>
-            </div>
-        </div>
-
-    </div>
 
     <div class="form-group">
-        <div class="col-sm-12">
-            @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.Specific.VWPRD_CompanyBasedPriceDetailDto>()
-    .Name("VWPRD_CompanyBasedPriceDetail").Events(x=>x.DataBound("onDataGridBound"))
-    .Events(y=>y.DataBound("setColumns"))
-    .Columns(columns =>
-    {
-        columns.Bound(p => p.companyBasedPriceId).Hidden(true);
-        columns.Bound(p => p.id).Hidden(true);
-        columns.Bound(p => p.companyId).Hidden(true);
-        columns.Bound(p => p.categoryId).Hidden(true);
-        columns.Bound(p => p.sellingType).Hidden(true);
-        columns.Bound(p => p.conditionType).Hidden(true);
-        columns.Bound(p => p.productId).Hidden(true);
-        columns.Bound(p => p.startDate).Format(Extensions.DateFormatShort(true)).Title("Başlangıç Tarihi");
-        columns.Bound(p => p.endDate).Format(Extensions.DateFormatShort(true)).Title("Bitiş Tarihi");
-        columns.Bound(p => p.monthCount).Title("Taksit Sayısı").Hidden(true);
-        columns.Bound(p => p.minCondition).Title("Minimum Satış Adeti").Hidden(true);
-        columns.Bound(p => p.discount).Title("Iskonto Oranı");
-        columns.Bound(p => p.price).Title("Fiyat").Hidden(true).ClientTemplate("#=currencyFunction(data.price)#");
-        columns.Command(command => { command.Destroy().Text("Sil");command.Edit().Text("Düzenle"); }).Width(250);
-    })
-    .Events(e=>e.Edit("onEdit"))
-    .ToolBar(toolbar => toolbar.Create().Text("Yeni Ekle"))
-    .Editable(editable => editable.Mode(GridEditMode.InLine).ConfirmDelete("Continue to delete this record?").DisplayDeleteConfirmation("Continue to delete this record?"))
-    .Pageable()
-    .Sortable()
-    .Scrollable()
-    .HtmlAttributes(new { style = "height:550px;" })
-    .DataSource(dataSource => dataSource
-        .Ajax()
-        .Events(events=>events.RequestEnd("onPush"))
-        .PageSize(20)
-        .Model(model => model.Id(p => p.id))
-        .Create(update => update.Action("InsertInline", "VWPRD_CompanyBasedPriceDetail"))
-        .Read(read => read.Action("GetVWCompanyBasedPriceDetailByCompanyBasedPriceId", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
-        .Update(update => update.Action("UpdateInline", "VWPRD_CompanyBasedPriceDetail", new { id = Model.id }))
-        .Destroy(update => update.Action("DeleteInline", "VWPRD_CompanyBasedPriceDetail"))
-    )
-)
+        <div class="col-md-4">
+            <label class="control-label label-md" for="startDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.startDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen startDate Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            )
         </div>
     </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="endDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.endDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen endDate Girin.."},
+            })
+            .Format(Extensions.DateFormatShort())
+            .Validate(Validations.Required)
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="minCondition">minCondition</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.minCondition, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen minCondition Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+
+
+    @if()
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="discount">discount</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.discount, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen discount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="monthCount">monthCount</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.monthCount, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen monthCount Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen createdby_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen changedby_Title Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="productId">productId</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownListFor(model => model.productId).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen productId seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="categoryId">categoryId</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DropDownListFor(model => model.categoryId).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen categoryId seçin")
+            .Filter(FilterType.Contains)
+            .DataTextField("Name")
+            .DataValueField("Id")
+            .DataSource(s =>
+            {
+                 s.Read(r =>
+                 {
+                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
+                 });
+             })
+             .Validate(Validations.Required)
+             )
+        </div>
+    </div>
+
+
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
- 
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
 
 }
-
-<script type="text/javascript">
-    let model = [];
-
-    $('#form').submit(function (eventObj) {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var griddata = grid.dataSource.data();
-        for (var i = 0; i < griddata.length; i++) {
-            model.push(griddata[i])
-        }
-        $('<input />').attr('type', 'hidden')
-            .attr('name', "_CompanyBasedPriceDetailModels")
-            .attr('value', JSON.stringify(model))
-            .appendTo('#form');
-        return true;
-    });
-
-    function onDataGridBound(e) {
-        var grid = $("#VWPRD_CompanyBasedPriceDetail").data("kendoGrid");
-        var griddata = grid.dataSource.data();
-        if (griddata.length != 0) {
-            $("#options").attr("style", "pointer-events:none;")
-        } else {
-            $("#options").attr("style", "pointer-events:auto;")
-        }
-    }
-
-    function error_handler(e) {
-        if (e.errors) {
-            var message = "Errors:\n";
-            $.each(e.errors, function (key, value) {
-                if ('errors' in value) {
-                    $.each(value.errors, function () {
-                        message += this + "\n";
-                    });
-                }
-            });
-            alert(message);
-        }
-    }
-
-    function onPush(e) {
-        if (e.response.Result != null || e.response.Result != undefined) {
-            if (e.response?.Result == false) {
-                e.preventDefault();
-                MesajWarning(e.response.FeedBack.title, e.response.FeedBack.message);
-            }
-            else {
-                MesajSuccess("Özel Fiyat Belirleme Kayıt Başarılı", "Kayıt Ekleme Başarılı");
-            }
-        }
-       
-
-
-    }
-    function onEdit(e) {
-
-        if (e.model.isNew() && !e.model.dirty) {
-            e.container
-               .find("[name=companyBasedPriceId]")
-                .val('@Model.companyBasedPriceId')
-                .trigger("change");
-        }
-
-
-    }
-    function currencyFunction(data) {
-        var dropdownlist = $("#productId").data("kendoDropDownList");
-        var selectedIndex = dropdownlist.select();
-        if (!data) {
-            return "-";
-        }
-        var currency_Symbol = "₺"
-        if (selectedIndex > 0) {
-            var selectedValue = dropdownlist.dataSource.data()[selectedIndex];
-            if (selectedValue != null) {
-                if (selectedValue.currentSellingCurrencyId_Title != null) {
-                    currency_Symbol = selectedValue.currentSellingCurrencyId_Title;
-                }
-            }
-        }
-        return kendo.toString(data, "N2") + " " + currency_Symbol;
-    }
-</script>
-
-
-

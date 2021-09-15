@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [HttpPost, ValidateAntiForgeryToken]
         [AllowEveryone]
-        public JsonResult Insert(VMPRD_CompanyBasedPriceDetailModel item)
+        public JsonResult Insert(VMPRD_CompanyBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             item.createdby = userStatus.user.id;
@@ -67,7 +67,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI()
                 {
                     Result = dbresult.result,
-                    FeedBack = feedback.Success("Kaydetme  işlemi tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
+                    FeedBack = feedback.Success("Özel Fiyat Belirleme İşlemi Tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -76,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 var result = new ResultStatusUI
                 {
                     Result = dbresult.result,
-                    FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(dbresult.message)
+                    FeedBack = dbresult.result ? feedback.Success("Özel Fiyat Belirleme İşlemi Başarılı") : feedback.Warning(dbresult.message)
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -84,46 +84,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [AllowEveryone]
         public ActionResult Update(Guid id)
         {
-            var data = new VMPRD_CompanyBasedPriceDetailModel { companyBasedPriceId = id };
+            var data = new VMPRD_CompanyBasedPriceDetailModel { id = id };
             return View(data.Load());
         }
         [AcceptVerbs(HttpVerbs.Post)]
         [AllowEveryone]
-        public JsonResult Update([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
+        public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
         {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
             var userStatus = (PageSecurity)Session["userStatus"];
-            return Json(model.Save(), JsonRequestBehavior.AllowGet);
-        }
-        [AllowEveryone]
-        public ActionResult GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(Guid id, [DataSourceRequest] DataSourceRequest request)
-        {
-            var VWCompanyBasedPriceDetailList = new VMPRD_CompanyBasedPriceDetailModel().GetVWCompanyBasedPriceDetailByCompanyBasedPriceId(id).ToDataSourceResult(request);
-            return Json(VWCompanyBasedPriceDetailList);
-        }
-        [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
-        public ActionResult DeleteInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.Delete();
-            return Json(new[] { item }.ToDataSourceResult(request, ModelState));
-        }
-        [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
-        public ActionResult UpdateInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.UpdateInline();
-
-
+            item.createdby = userStatus.user.id;
+            item.created = DateTime.Now;
+            var dbresult = item.Save();
             var feedback = new FeedBack();
-            if (rs.result == true)
+            if (dbresult.result != false)
             {
-                var result = new ResultStatusUI
+                var result = new ResultStatusUI()
                 {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning(rs.message)
+                    Result = dbresult.result,
+                    FeedBack = feedback.Success("Özel Fiyat Belirleme Güncelleme  İşlemi Tamamlandı", false, Url.Action("Index", "VWPRD_CompanyBasedPrice", new { area = "PRD" }))
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
@@ -131,35 +109,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 var result = new ResultStatusUI
                 {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-
-        }
-        [HttpPost]
-        [AllowEveryone]
-        public ActionResult InsertInline([DataSourceRequest] DataSourceRequest request, VWPRD_CompanyBasedPriceDetailDto item)
-        {
-            var model = new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item);
-            var rs = model.InsertInline();
-            var feedback = new FeedBack();
-            if (rs.result == true)
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
-                };
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-            else
-            {
-                var result = new ResultStatusUI
-                {
-                    Result = rs.result,
-                    FeedBack = rs.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning(rs.message)
+                    Result = dbresult.result,
+                    FeedBack = dbresult.result ? feedback.Success("Özel Fiyat Belirleme Güncelleme İşlemi Başarılı") : feedback.Warning(dbresult.message)
                 };
                 return Json(result, JsonRequestBehavior.AllowGet);
             }

@@ -9,15 +9,16 @@
 }
 
 <link href="~/Content/AgileBoard/css/default.css" rel="stylesheet" />
+<link href="~/Content/AgileBoard/css/togglebuttons.css" rel="stylesheet" />
 
-<div class="row agileContainer">
+<div class="row kanbanContainer" data-target="kanban">
 
     <div class="row kanbanHeader">
-        <div class="col-md-8">
+        <div class="col-md-6">
             <span data-target="kanban.name">@(Model.AgileBoard != null ? Model.AgileBoard.name : "Kanban")</span>
             <small data-target="kanban.description" class="text-muted">@(Model.AgileBoard != null && Model.AgileBoard.description != null ? Model.AgileBoard.description : "")</small>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-6">
             <div class="text-right">
 
                 <div class="btn-group">
@@ -29,6 +30,76 @@
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="KanbanList"></ul>
                 </div>
 
+                <div class="btn-group">
+
+                    <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">
+                        <i class="icon-sort-alt-up"></i>
+                        <span data-target="sort.field">Sıralama</span>
+                        <span data-target="sort.dir.asc" style="display: none;">  <i class="icon-sort-name-up"></i> </span>
+                        <span data-target="sort.dir.desc" style="display: none;"> <i class="icon-sort-name-down"></i> </span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right cmenu">
+
+                        <li>
+                            <label class="form-check-label" for="sortField_LastActivityDate">Son İşlem Tarihi</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_LastActivityDate" value="LastActivityDate" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_CompletionRate">Tamamlanma Oranı</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_CompletionRate" value="CompletionRate" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_PriorityLevel">Önem Derecesi</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_PriorityLevel" value="PriorityLevel" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_SalesPerson_Title">Satış Personeli</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_SalesPerson_Title" value="SalesPerson_Title" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_CustomerCompany_Title">Müşteri</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_CustomerCompany_Title" value="CustomerCompany_Title" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_VodafoneOffer">Tahmini Beklenen Ciro</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_VodafoneOffer" value="VodafoneOffer" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_lastTenderTotalAmount">Son Teklif</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_lastTenderTotalAmount" value="lastTenderTotalAmount" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_Last_ContactDate">Son Toplantı Tarihi</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_Last_ContactDate" value="Last_ContactDate" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_TotalContact">Toplam Aktivite/Randevu</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_TotalContact" value="TotalContact" autocomplete="off">
+                        </li>
+                        <li>
+                            <label class="form-check-label" for="sortField_DaysSinceVisit">Son aktiviteden bugüne geçen</label>
+                            <input class="form-check-input" type="radio" name="sortField" id="sortField_DaysSinceVisit" value="DaysSinceVisit" autocomplete="off">
+                        </li>
+
+                        <li class="seperator"></li>
+
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Sıralama Yönü
+                                </div>
+                                <div class="tglButton">
+                                    <input class="tgl tgl-skewed" id="sortDir" type="checkbox" autocomplete="off">
+                                    <label class="sortToggle tgl-btn" for="sortDir"></label>
+                                </div>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </div>
+
                 <div class="btn-group" data-target="FilterFilter">
                     <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">
                         <i class="icon-filter-1"></i>
@@ -37,20 +108,20 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="FilterList">
                         <li data-filter="OpenedToday" data-event="Filter">
-                            <i class="icon-stopwatch"></i>
+                            <i class="icon-stopwatch minicon"></i>
                             Bu Gün Açılanlar
                         </li>
                         <li data-filter="OpenedThisWeek" data-event="Filter">
-                            <i class="icon-calendar-empty"></i>
+                            <i class="icon-calendar-empty minicon"><i>7</i></i>
                             Bu Hafta Açılanlar
                         </li>
                         <li data-filter="OpenedThisMonth" data-event="Filter">
-                            <i class="icon-calendar-empty"></i>
+                            <i class="icon-calendar-empty minicon"><i>31</i></i>
                             Bu Ay Açılanlar
                         </li>
-                        <li class="divider"></li>
+                        <li class="seperator"></li>
                         <li data-filter="custom" data-event="Filter">
-                            <i class="icon-search-4"></i>
+                            <i class="icon-search-4 minicon"></i>
                             Özel
                         </li>
                     </ul>
@@ -65,12 +136,142 @@
                     <ul class="dropdown-menu dropdown-menu-right cmenu" data-target="StageList"></ul>
                 </div>
 
+                <div class="btn-group">
+
+                    <button data-toggle="dropdown" class="btn btn-default btn-xs dropdown-toggle">
+                        <i class="icon-pin-1"></i>
+                        <span data-target="dropdownText">Kart İçeriği</span>
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right cmenu">
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Aşama Rengi
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="StageColor" class="tgl tgl-ios" id="agileItem_StageColor" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_StageColor"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Son İşlem Tarihi
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="LastActivityDate" class="tgl tgl-ios" id="agileItem_LastActivityDate" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_LastActivityDate"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Tamamlanma Oranı
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="CompletionRate" class="tgl tgl-ios" id="agileItem_CompletionRate" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_CompletionRate"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Önem Derecesi
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="PriorityLevel" class="tgl tgl-ios" id="agileItem_PriorityLevel" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_PriorityLevel"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Satış Personeli
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="SalesPerson_Title" class="tgl tgl-ios" id="agileItem_SalesPerson_Title" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_SalesPerson_Title"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Müşteri
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="CustomerCompany_Title" class="tgl tgl-ios" id="agileItem_CustomerCompany_Title" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_CustomerCompany_Title"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Tahmini Beklenen Ciro
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="VodafoneOffer" class="tgl tgl-ios" id="agileItem_VodafoneOffer" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_VodafoneOffer"></label>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Son Teklif
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="lastTenderTotalAmount" class="tgl tgl-ios" id="agileItem_lastTenderTotalAmount" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_lastTenderTotalAmount"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Son Toplantı Tarihi
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="Last_ContactDate" class="tgl tgl-ios" id="agileItem_Last_ContactDate" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_Last_ContactDate"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Toplam Aktivite/Randevu
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="TotalContact" class="tgl tgl-ios" id="agileItem_TotalContact" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_TotalContact"></label>
+                                </div>
+                            </div>
+                        </li>
+                        <li>
+                            <div class="tglCont">
+                                <div class="tglLabel">
+                                    Son aktiviteden bugüne geçen
+                                </div>
+                                <div class="tglButton">
+                                    <input data-carditem="DaysSinceVisit" class="tgl tgl-ios" id="agileItem_DaysSinceVisit" type="checkbox" autocomplete="off" checked>
+                                    <label class="tgl-btn" for="agileItem_DaysSinceVisit"></label>
+                                </div>
+                            </div>
+                        </li>
+                    </ul>
+
+                </div>
+
                 <button class="btn btn-primary btn-xs" data-task="Insert" style="display: none;" data-show="single" data-id="@(Model.AgileBoard != null ? Model.AgileBoard.id.ToString() : "")" data-method="GET" data-href="/SH/VWSH_AgileBoards/Insert">
                     <i class="icon-floppy-1"></i> Kaydet
-                </button>
-
-                <button class="btn btn-success btn-xs hide">
-                    <i class="icon-pencil-1"></i> Güncelle
                 </button>
 
             </div>
@@ -111,60 +312,67 @@
 
         <div class="stageColor" data-target="StageColor" style="background-color: #:Stage_Color#" data-toggle="tooltip" data-placement="right" title="#:Stage_Title#"></div>
         <div class="stageBody">
-            <h4><a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a></h4>
 
-            <div class="bodyLeft">
+            <h4>
+                <a href="/CRM/VWCRM_Presentation/Detail?id=#:id#" target="_blank">#:Name#</a>
+                <img data-target="SalesPerson_Title" class="spimg" src="#: salesPersonPhoto #" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+            </h4>
+
+            <div class="stageLine">
+                <span data-target="LastActivityDate" class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#: kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
+                <span data-target="PriorityLevel" class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
+            </div>
+
+            <div class="stageLine">
 
                 #if(CustomerCompany_Title != null) { #
-                <div class="stageLine">
-                    <span class="badge badge-warning" data-toggle="tooltip" data-placement="bottom" title="Müşteri">#: CustomerCompany_Title #</span>
-                </div>
+                @*<div class="stageLine">*@
+                <span data-target="CustomerCompany_Title" class="badge badge-warning" data-toggle="tooltip" data-placement="bottom" title="Müşteri">#: CustomerCompany_Title #</span>
+                @*</div>*@
                 # } #
 
                 #if(VodafoneOffer != null || lastTenderTotalAmount != null) { #
-                <div class="stageLine">
+                @*<div class="stageLine">*@
 
-                    #if(VodafoneOffer != null) { #
-                    <span class="badge badge-success" data-toggle="tooltip" data-placement="bottom" title="Tahmini Beklenen Ciro">#: kendo.toString(VodafoneOffer, 'N0') # ₺</span>
-                    # } #
+                #if(VodafoneOffer != null) { #
+                <span data-target="VodafoneOffer" class="badge badge-success" data-toggle="tooltip" data-placement="bottom" title="Tahmini Beklenen Ciro">#: kendo.toString(VodafoneOffer, 'N0') # ₺</span>
+                # } #
 
-                    #if(lastTenderTotalAmount != null) { #
-                    <span class="badge badge-primary" data-toggle="tooltip" data-placement="bottom" title="Son Teklif">#: kendo.toString(lastTenderTotalAmount, 'N0') # ₺</span>
-                    # } #
+                #if(lastTenderTotalAmount != null) { #
+                <span data-target="lastTenderTotalAmount" class="badge badge-primary" data-toggle="tooltip" data-placement="bottom" title="Son Teklif">#: kendo.toString(lastTenderTotalAmount, 'N0') # ₺</span>
+                # } #
 
-                </div>
+                @*</div>*@
                 # } #
 
                 #if(Last_ContactDate != null || TotalContact != null) { #
-                <div class="stageLine">
+                @*<div class="stageLine">*@
 
-                    #if(Last_ContactDate != null) { #
-                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Son Toplantı Tarihi"><span class="icon-users-1"></span>#: kendo.toString(new Date(Last_ContactDate), 'dd.MM.yyyy HH:mm') #</span>
-                    # } #
-
-                    #if(TotalContact != null) { #
-                    <span class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Toplam Aktivite/Randevu">#: kendo.toString(TotalContact, 'N0') #</span>
-                    # } #
-
-                </div>
+                #if(Last_ContactDate != null) { #
+                <span data-target="Last_ContactDate" class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Son Toplantı Tarihi"><span class="icon-users-1"></span>#: kendo.toString(new Date(Last_ContactDate), 'dd.MM.yyyy HH:mm') #</span>
                 # } #
 
-                #if(DaysSinceVisit != null) { #
-                <div class="stageLine">
-                    <small>Son aktiviteden bugüne geçen <b>#: kendo.toString(DaysSinceVisit, 'N0') #</b> gün</small>
-                </div>
+                #if(TotalContact != null) { #
+                <span data-target="TotalContact" class="badge badge-info" data-toggle="tooltip" data-placement="bottom" title="Toplam Aktivite/Randevu">#: kendo.toString(TotalContact, 'N0') #</span>
+                # } #
+
+                @*</div>*@
                 # } #
 
             </div>
-            <div class="bodyRight">
-                <span class="dt" data-toggle="tooltip" data-placement="bottom" title="Son İşlem Tarihi">#: kendo.toString(new Date(LastActivityDate), 'dd.MM.yyyy HH:mm')#</span>
-                <span class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
+
+            #if(DaysSinceVisit != null) { #
+            <div class="stageLine">
+                <small data-target="DaysSinceVisit">Son aktiviteden bugüne geçen <b>#: kendo.toString(DaysSinceVisit, 'N0') #</b> gün</small>
+            </div>
+            # } #
+
+            <div class="stageLine">
+                <span data-target="CompletionRate" class="prg" data-toggle="tooltip" data-placement="bottom" title="Tamamlanma Oranı: #:CompletionRate ?? 0# %">
                     <span style="width: #:CompletionRate ?? 0#%" class="pb">
                         <span class="sr-only">#:CompletionRate ?? 0# % Tamamlandı</span>
                     </span>
                 </span>
-                <span class="stars" data-toggle="tooltip" data-placement="bottom" title="Önem Derecesi"># for (var i = 1; i <= (PriorityLevel ?? 0); i++) { # <i class="fa fa-star"></i> # } #</span>
-                <img class="spimg" src="#: salesPersonPhoto #" data-toggle="tooltip" data-placement="bottom" title="#:SalesPerson_Title#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
             </div>
 
         </div>
@@ -276,11 +484,10 @@
                         </div>
                     </div>
                 </div>
-
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-white" data-event="CancelFilter" data-dismiss="modal">Kapat</button>
-                <button type="button" class="btn btn-primary" data-event="SaveFilter">Kaydet</button>
+                <button type="button" class="btn btn-white pull-left" data-event="CancelFilter" data-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-primary" data-event="SaveFilter">Uygula</button>
             </div>
         </div>
     </div>
@@ -299,6 +506,21 @@
 
     $(document)
 
+        .on('change', '[name="sortField"], #sortDir', function () {
+
+            page.Agile.AgileStages.UpdateFilter();
+
+        })
+
+        .on('change', '[data-carditem]', function () {
+
+            var cardItem = $(this).attr('data-carditem');
+            var visible = $(this).prop('checked');
+
+            page.AgileItem.DisplayItem(cardItem, visible);
+
+        })
+
         .on('click', '#VWSH_AgileBoardsInsertForm [data-event="Insert"]', function () {
 
             $('#VWSH_AgileBoardsInsertForm #id').val(null);
@@ -316,12 +538,7 @@
 
         .on('before:submit', '#VWSH_AgileBoardsInsertForm', function () {
 
-            var savedObject = {
-                AgileStages: page.Agile.AgileStages.GetData(),
-                Filter: page.filters.getFilter(),
-            };
-
-            $('#VWSH_AgileBoardsInsertForm #json').val(JSON.stringify(savedObject));
+            $('#VWSH_AgileBoardsInsertForm #json').val(JSON.stringify(page.GetData()));
 
         })
 
@@ -665,6 +882,17 @@
             }
         },
 
+        GetData: function () {
+
+            return {
+                AgileStages: page.Agile.AgileStages.GetData(),
+                Filter: page.filters.getFilter(),
+                CardItems: page.AgileItem.GetItems(),
+                Sort: page.Sort.GetData(),
+            };
+
+        },
+
         init: function () {
 
             if (page.Model.Stages == undefined || page.Model.Stages.length == 0) {
@@ -704,7 +932,10 @@
                 });
             }
 
+            page.Sort.init();
+            page.AgileItem.init();
             page.Agile.AgileStages.init();
+            
 
             if (page.Model.AgileBoard == null) {
 
@@ -882,7 +1113,8 @@
                                         "pageSize": 999,
                                         "page": 1,
                                         "total": 0,
-                                        filter: $this.getKendoFilter()
+                                        filter: $this.getKendoFilter(),
+                                        sort: [page.Sort.GetData()]
                                     }),
                                     template: kendo.template($("#cardTemplate").html())
                                 });
@@ -970,6 +1202,7 @@
                         }
 
                         item.ListView.data('handler').dataSource.filter(item.getKendoFilter());
+                        item.ListView.data('handler').dataSource.sort(page.Sort.GetData());
 
                     });
 
@@ -977,7 +1210,7 @@
                 GetData: function () {
 
                     return $.Enumerable.From(page.Agile.AgileStages.list)
-                        .Where(a => { return a.Value.index != null })
+                        .Where(a => { return a.Value.active == true })
                         .OrderBy(a => { return a.Value.index; })
                         .Select((a, i) => {
 
@@ -1000,6 +1233,94 @@
 
         },
 
+        AgileItem: {
+            DisplayItem: function (item, visible) {
+
+                if (visible) {
+                    $('[data-target="kanban"]').removeClass('hide_' + item);
+                } else {
+                    $('[data-target="kanban"]').addClass('hide_' + item);
+                }
+
+            },
+            GetItems: function () {
+
+                var res = [];
+
+                $.each($('[data-carditem]'), function (i, item) {
+                    res.push({ item: $(item).attr('data-carditem'), checked: $(item).prop('checked') });
+                });
+
+                return res;
+
+            },
+            init: function () {
+
+                if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
+
+                    var saved = JSON.parse(page.Model.AgileBoard.json);
+
+                    if (saved != null && saved.CardItems != null) {
+
+                        $.each(saved.CardItems, function (i, item) {
+
+                            $('[data-carditem="' + item.item + '"]').prop('checked', item.checked);
+                            $('[data-carditem="' + item.item + '"]').trigger('change');
+
+                        });
+
+                    }
+
+                }
+
+            }
+        },
+
+        Sort: {
+
+            defaultField: 'LastActivityDate',
+            GetData: function () {
+
+                var _field = $('[name="sortField"]:checked').val();
+                var _dir = $('#sortDir').prop('checked') ? 'asc' : 'desc';
+
+                if (_field == undefined) {
+                    $('[name="sortField"][value="' + page.Sort.defaultField + '"]').prop('checked', true);
+                    _field = page.Sort.defaultField;
+                }
+
+                $('[data-target="sort.field"]').text($('[for="sortField_' + _field + '"]').text());
+                $('[data-target="sort.field"]').parents('.btn-group').addClass('active');
+
+                if (_dir == 'desc') {
+                    $('[data-target="sort.dir.asc"]').hide();
+                    $('[data-target="sort.dir.desc"]').show();
+                } else {
+                    $('[data-target="sort.dir.asc"]').show();
+                    $('[data-target="sort.dir.desc"]').hide();
+                }
+
+                return { field: _field, dir: _dir };
+
+            },
+            init: function () {
+
+                if (page.Model.AgileBoard != null && page.Model.AgileBoard.json != null) {
+
+                    var saved = JSON.parse(page.Model.AgileBoard.json);
+
+                    if (saved != null && saved.Sort != null) {
+
+                        $('[name="sortField"][value="' + saved.Sort.field + '"]').prop('checked', true);
+                        $('#sortDir').prop('checked', saved.Sort.dir == 'asc');
+
+                    }
+
+                }
+
+            }
+
+        }
     };
 
 </script>

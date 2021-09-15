@@ -18,7 +18,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_CompanyBasedPrice>().Where(a => a.companyId == item.companyId && a.productId == item.productId && a.categoryId == item.categoryId && a.conditionType == item.conditionType && a.sellingType == item.sellingType).Execute().FirstOrDefault();
+                return db.Table<PRD_CompanyBasedPrice>().Where(a => a.companyId == item.companyId && a.productId == item.productId && a.categoryId == item.categoryId && a.conditionType == item.conditionType && a.sellingType == item.sellingType&&a.id!=item.id).Execute().FirstOrDefault();
+            }
+        }
+        public PRD_CompanyBasedPrice[] GetPRD_CompanyBasedPriceByCompanyId(Guid companyId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_CompanyBasedPrice>().Where(x=>x.companyId==companyId).Execute().ToArray();
+            }
+        }
+        public PRD_CompanyBasedPrice GetPRD_CompanyBasedPriceByProductId(Guid productId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_CompanyBasedPrice>().Where(x => x.productId == productId).Execute().LastOrDefault();
             }
         }
     }
