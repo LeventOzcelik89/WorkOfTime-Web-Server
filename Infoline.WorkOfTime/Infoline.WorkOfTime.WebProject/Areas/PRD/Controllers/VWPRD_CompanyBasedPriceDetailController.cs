@@ -1,25 +1,17 @@
-﻿using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
+﻿using Infoline.WorkOfTime.BusinessAccess;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web.Mvc;
 using Infoline.WorkOfTime.BusinessAccess.Business.Product;
-using Infoline.WorkOfTime.BusinessData.Specific;
+
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_CompanyBasedPriceDetailController : Controller
     {
-        [AllowEveryone]
-        public ActionResult Index()
-        {
-            return View();
-        }
-        [AllowEveryone]
+
+        [PageInfo("Verileri listeleyen metod",SHRoles.IKYonetici,SHRoles.OnMuhasebe)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -32,29 +24,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_CompanyBasedPriceDetailCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
-        public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
-        {
-            var condition = KendoToExpression.Convert(request);
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_CompanyBasedPriceDetail(condition);
-            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
-        }
-        [AllowEveryone]
-        public ActionResult Detail(Guid id)
-        {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_CompanyBasedPriceDetailById(id);
-            return View(data);
-        }
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat liste ekleme sayfası", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ActionResult Insert()
         {
             var data = new VMPRD_CompanyBasedPriceDetailModel { id = Guid.NewGuid(), companyBasedPriceId = Guid.NewGuid() };
             return View(data);
         }
         [HttpPost, ValidateAntiForgeryToken]
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat liste ekleme metodu", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public JsonResult Insert(VMPRD_CompanyBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -81,14 +58,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
         }
-        [AllowEveryone]
+      
+        [PageInfo("Ürün fiyat liste güncelleme sayfası", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ActionResult Update(Guid id)
         {
             var data = new VMPRD_CompanyBasedPriceDetailModel { id = id };
             return View(data.Load());
         }
         [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
+        
+        [PageInfo("Ürün fiyat liste güncelleme metodu", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -116,7 +95,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             }
         }
         [AcceptVerbs(HttpVerbs.Post)]
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat liste silme metodu", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public JsonResult Delete(VMPRD_CompanyBasedPriceDetailModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
