@@ -104,7 +104,6 @@
                 $("[data-order=5]").hide();
                 $("[data-order=6]").show();
                 $("#discountTypeDiv").hide();
-                $("[name=discountType]").filter(':checked').val(0);
 
                 if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise               
                     for (var i = 0; i < rowLength; i++) {
@@ -137,10 +136,14 @@
             }
         })
         .on("change", "[name='discountType']", function () {
+            debugger;
             let value = $("[name='discountType']:checked").val();
+
+            $("th[data-order=5]").text(value == 0 ? "İskonto Oranı" : "Fiyat Artış Oranı");
+
             let type = $("[name='type']:checked").val();
-            let currentPirce = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
-            if (currentPirce != undefined && type == 1) {
+            let currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+            if (currentPrice != undefined && type == 0) {
                 if (value == 0) { //indirim
                     var length = $('[data-row]').length;
                     for (var i = 0; i < length; i++) {
@@ -217,14 +220,6 @@
         },
         functions: {
             AddRow: function (control) {
-                //if (control == true) {
-                //    var row = $('[data-row]').first();
-                //    var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
-                //    if (product && (!product.value() || product.value() == "" || product.value() == null)) {
-                //        MesajWarning("Lütfen önce ürün seçiniz.");
-                //        return false;
-                //    }
-                //}
                 var template = page.functions.GetRowTemplate();
                 var length = $('#productsTable tbody tr:not(.table-row-2lines)').length;
                 var ids = [];
@@ -322,7 +317,7 @@
                             for (var i = 0; i < length; i++) {
                                 var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
                                 var discountForRow = parseFloat(discountForRow);
-                                var effectedRowPrice = currentPrice * ((100 - discountForRow) / 100);
+                                var effectedRowPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discountForRow) / 100)) : (currentPrice * ((100 + discountForRow) / 100));
                                 effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
                                 effectedRowPrice = effectedRowPrice.replace(".", "");
                                 effectedRowPrice = effectedRowPrice.replace(",", ".");
