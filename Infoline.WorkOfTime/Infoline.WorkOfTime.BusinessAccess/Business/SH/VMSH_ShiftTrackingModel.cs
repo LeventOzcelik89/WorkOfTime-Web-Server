@@ -187,8 +187,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var firstValue = shiftTrackingReportList.FirstOrDefault().shiftTrackingStatus;
                     if (firstValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi || firstValue == (short)EnumSH_ShiftTrackingShiftTrackingStatus.MolaBitti)
                     { 
-                        //İlk veri buraya gelecek
-                        //Hesaplama kalkacak buradan
                         firstStartDate = shiftTrackingReportList.FirstOrDefault().timestamp.Value;
                         shiftTrackingReportList.Remove(shiftTrackingReportList.FirstOrDefault());
 

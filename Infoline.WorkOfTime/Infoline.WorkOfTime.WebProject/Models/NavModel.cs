@@ -136,6 +136,7 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Personel Raporları", "/INV/INV_CompanyPerson/Dashboard"));
             personel.AddChild(new Menu("Sertifika/Dosya/Eğitim Raporları", "/SH/VWSH_User/CertificateReport"));
             personel.AddChild(new Menu("Personel Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
+            personel.AddChild(new Menu("Personel Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
