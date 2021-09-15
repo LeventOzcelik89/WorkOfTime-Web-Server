@@ -119,8 +119,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             else
             {
-                dbresult.result = false;
-                dbresult.message = "Böyle bir kayıt yoktur!";
+                return new ResultStatus
+                {
+                    message = "Böyle bir kayıt yoktur",
+                    result = true
+                };
             }
             if (!dbresult.result)
             {
