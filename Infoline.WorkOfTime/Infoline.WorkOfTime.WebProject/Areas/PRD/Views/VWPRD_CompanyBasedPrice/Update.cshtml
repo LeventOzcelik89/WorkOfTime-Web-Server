@@ -128,7 +128,7 @@
 
                         if (isConfirm) {
                             debugger;
-                            var id = $(_this).closest("tr").find("[data-order=8]").find("input").val();
+                            var id = $(_this).closest("tr").find("[data-order=10]").find("input").val();
                             var length = $('[data-row]').length;
                             if (length <= 1) {
                                 MesajWarning("Kayıt İşleminde en az bir kayıt olmalıdır.", "Silme İşlemi Başarısız");
@@ -181,9 +181,31 @@
                 }
             },
             setProductDropDownTitle: function (e) {
-                if ($("[name='productType']:checked").val() == 0) {
-                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
-                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                if ($("[name='productType']:checked").val() == 2) {
+                    var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+                    $("[data-currentPrice=true]").val(currentPrice);
+
+                    if (_model.type == 0) { //fiyat bazlı ise
+                        var length = $('[data-row]').length;
+                        for (var i = 0; i < length; i++) {
+                            var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
+                            var discountForRow = parseFloat(discountForRow);
+                            var effectedRowPrice = currentPrice * ((100 - discountForRow) / 100);
+                            effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
+                            effectedRowPrice = effectedRowPrice.replace(".", "");
+                            effectedRowPrice = effectedRowPrice.replace(",", ".");
+                            effectedRowPrice = parseFloat(effectedRowPrice);
+                            $($("td[data-order=8]")[i]).find("input").val(effectedRowPrice);
+                        }
+                    } else {
+                        var length = $('[data-row]').length;
+                        for (var i = 0; i < length; i++) {
+                            var price = $($("td[data-order=6]")[i]).find("input").val();
+                            $($("td[data-order=8]")[i]).find("input").val(price);
+                        }
+                    }
+                    $("[data-order=7]").show();
+                    $("[data-order=8]").show();
                 }
             },
             onChangeProduct(e) {
@@ -193,6 +215,11 @@
                 $("#basePrice").val(price);
             },
             LoadGrid: function () {
+                $(".akilliRadioGrup").find("label").css("cursor", "not-allowed");
+                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                $("#categoryDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+
                 if (_model.BasePriceDetailItems.length > 0) {
                     var data = _model;
                     if (data.type == 0) {
@@ -337,7 +364,9 @@
                         <th data-order="4">Taksit / Vade Sayısı</th>
                         <th data-order="5">İskonto Oranı</th>
                         <th data-order="6">Fiyat</th>
-                        <th data-order="7"></th>
+                        <th width="10%" data-order="7" style="display: none;">Liste Fiyat</th>
+                        <th width="15%" data-order="8" style="display: none;">İşlem Sonrası Satış Fiyatı</th>
+                        <th width="3%" data-order="9"></th>
                     </tr>
                 </thead>
                 <tbody class="table-body">
@@ -414,10 +443,24 @@
                 </div>
                 <input type="hidden" data-name="price" value="0" />
             </td>
-            <td data-order="7">
+            <td data-order="7" style="display:none;">
+                <div class="input-group m-b">
+                    <input class="form-control" type="text" name="currentprice" disabled data-currentPrice="true" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+
+            </td>
+            <td data-order="8" style="display:none;">
+                <div class="input-group m-b">
+                    <input class="form-control" type="text" name="effectedprice" disabled data-effectedPrice="true" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+
+            </td>
+            <td data-order="9">
                 <button class="btn btn-md btn-danger" onclick="page.functions.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
             </td>
-            <td data-order="8">
+            <td data-order="10">
                 <input type="hidden" data-item="id" value="">
             </td>
         </tr>
