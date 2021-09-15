@@ -120,10 +120,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         public JsonResult Delete(VMPRD_CompanyBasedPriceDetailModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-
             var dbresult = item.Delete();
             var feedback = new FeedBack();
-
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
