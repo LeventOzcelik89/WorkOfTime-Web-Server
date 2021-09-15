@@ -115,5 +115,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 return Json(result, JsonRequestBehavior.AllowGet);
             }
         }
+        [AcceptVerbs(HttpVerbs.Post)]
+        [AllowEveryone]
+        public JsonResult Delete(VMPRD_CompanyBasedPriceDetailModel item)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+
+            var dbresult = item.Delete();
+            var feedback = new FeedBack();
+
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Ürün Fiyatı Silme İşlemi Başarılı") : feedback.Warning(dbresult.message)
+            };
+            return Json(result, JsonRequestBehavior.AllowGet);
+
+        }
     }
 }

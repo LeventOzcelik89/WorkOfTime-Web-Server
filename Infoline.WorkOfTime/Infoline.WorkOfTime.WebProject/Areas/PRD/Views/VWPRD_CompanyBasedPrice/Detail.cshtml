@@ -10,13 +10,13 @@
             <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
                 <div class="m-b-md">
                     <h2 class="font-bold no-margins">
-                       Müşteri Bazlı Fiyat Detayı
+                        Müşteri Bazlı Fiyat Detayı
                     </h2>
-              
+
                 </div>
                 <img src="/Content/Custom/img/product.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
                 <div style="margin-top: 15px;">
-                   
+
                 </div>
             </div>
         </div>
@@ -65,7 +65,16 @@
                         Satış Tipi :
                     </li>
                     <li class="list-group-item">
-                        <span class="fitWrap badge badge-white">@Model.type</span>
+                        <span class="fitWrap badge badge-white">
+                            @if (Model.type == 0)
+                            {
+                                <b>Oran Bazlı</b>
+                            }
+                            @if (Model.type == 1)
+                            {
+                                <b>Fiyat Bazlı</b>
+                            }
+                        </span>
                         Tip :
                     </li>
                 </ul>
@@ -74,7 +83,7 @@
         </div>
     </div>
     <div class="col-sm-9">
-        @{var singleItem = Model.BasePriceDetailItems.FirstOrDefault();} 
+        @{var singleItem = Model.BasePriceDetailItems.FirstOrDefault();}
         @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail>("VWPRD_CompanyBasedPrice")
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" })).Filter(a=>a.companyBasedPriceId==Model.id).PageSize(25))
@@ -82,8 +91,8 @@
     {
         x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd/MM/yyyy}").Width(180);
         x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}").Width(180);
-        x.Bound(y => y.price).Title("Fiyat").Hidden(singleItem.price==null||singleItem.price==0?true:false);
-        x.Bound(y => y.discount).Title("İskonto Oranı").Hidden(singleItem.discount != null ? false : true);
+        x.Bound(y => y.price).Title("Fiyat").Hidden(singleItem.price==null||singleItem.price==0?true:false).ClientTemplate("#=kendo.toString(data.price,'N2') # ₺ ");
+        x.Bound(y => y.discount).Title("İskonto Oranı").Hidden(singleItem.discount != null ? false : true).ClientTemplate("#=kendo.toString(data.discount,'N2') # % ");;
         x.Bound(y => y.minCondition).Title("Minimum Fiyat Tutarı").Hidden(singleItem.minCondition != null &&Model.conditionType==(short)EnumPRD_CompanyBasedPriceConditionType.Adet ? true : false);
         x.Bound(y => y.minCondition).Title("Minimum Satış Miktarı").Hidden(singleItem.minCondition != null && Model.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Fiyat? true : false);
         x.Bound(y => y.monthCount).Title("Vade Sayısı").Hidden(singleItem.monthCount != null && Model.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Vadeli? false : true);
@@ -91,12 +100,12 @@
     })
     .Selectable(x => x.Mode(GridSelectionMode.Single))
       .Scrollable(x => x.Height(650))
-      
+
     .ToolBar(x =>
     {
-   
-        x.Custom().Text("<i  class='fa fa-edit' data-toggle='tooltip' title data-original-title='Düzenle'  data-placement='right' ></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
-        x.Custom().Text("<i class='fa fa-trash' data-original-title='Kaydı Sil'</i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Kayıdı Silmek İstediğinize Emin Misiniz? \n Bu kayıda bağlı tüm alt kayıtlar silinecektir." } }).Url(Url.Action("Delete", "VWPRD_CompanyBasedPrice", new { area = "PRD" }));
+
+
+        x.Custom().Text("<i class='fa fa-trash' data-original-title='Kaydı Sil'</i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Kayıdı Silmek İstediğinize Emin Misiniz? " } }).Url(Url.Action("Delete", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
     }))
 
 

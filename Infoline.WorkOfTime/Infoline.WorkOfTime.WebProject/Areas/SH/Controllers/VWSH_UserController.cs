@@ -893,7 +893,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			}
 		}
 
-		[PageInfo("Rehber	", SHRoles.CRMYonetici)]
+		[PageInfo("Rehber", SHRoles.CRMYonetici)]
 		public ActionResult ContactCustomerPersons()
 		{
 			var db = new WorkOfTimeDatabase();
