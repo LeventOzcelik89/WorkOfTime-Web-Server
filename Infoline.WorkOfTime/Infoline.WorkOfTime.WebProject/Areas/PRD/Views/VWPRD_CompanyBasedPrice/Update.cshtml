@@ -10,98 +10,6 @@
 
 <script>
     $(document)
-        .on("change", "[name='companyType']", function () {
-            let value = $("[name='companyType']:checked").val();
-            if (value == 0) { //Tüm Şirketlere
-                $("#companyId").data("kendoDropDownList").value(-1);
-                $("#companyId").data("kendoDropDownList").readonly()
-                $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-            }
-            else { //Seçili Şirkete
-                $("#companyId").data("kendoDropDownList").readonly(false);
-                $("#companyDropDown").find(".k-input").text("Lütfen Şirket Seçiniz");
-                $("#companyDropDown").find(".k-dropdown-wrap").removeAttr("style");
-            }
-        })
-        .on("change", "[name='productType']", function () {
-            let value = $("[name='productType']:checked").val();
-            if (value == 0) { //Tüm Ürünlere
-                $("#productId").data("kendoDropDownList").value(-1);
-                $("#categoryId").data("kendoDropDownList").value(-1);
-                $("#productId").data("kendoDropDownList").readonly()
-                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
-                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
-                $("#productDropDown").show();
-                $("#categoryDropDown").hide();
-                $("#priceorDiscountDiv").hide();
-                $("[for=type_0]").trigger("click")
-            }
-            else if (value == 1) { //Seçili Kategoriye
-                $("#productId").data("kendoDropDownList").value(-1);
-                $("#categoryDropDown").show();
-                $("#productDropDown").hide();
-                $("#priceorDiscountDiv").hide();
-                $("[for=type_0]").trigger("click")
-            }
-            else if (value == 2) { //Seçili Ürüne
-                $("#productId").data("kendoDropDownList").value(-1);
-                $("#categoryId").data("kendoDropDownList").value(-1);
-                $("#productDropDown").find(".k-input").text("Lütfen Ürün Seçiniz..");
-                $("#productDropDown").find(".k-dropdown-wrap").removeAttr("style");
-                $("#productDropDown").show();
-                $("#categoryDropDown").hide();
-                $("#productId").data("kendoDropDownList").readonly(false);
-                $("#priceorDiscountDiv").show();
-                $("#priceDiscount0").prop("checked", true);
-                $("#priceDiscount1").prop("checked", false);
-            }
-        })
-        .on("change", "[name='sellingType']", function () {
-            let value = $("[name='sellingType']:checked").val();
-            if (value == 0 || value == 1) { //Genel veya Peşin
-                $("[data-order=4]").hide();
-            }
-            else {
-                if (value == 2) { //Taksitli
-                    $($("[data-order=4]")[0]).text("Taksit Sayısı");
-                }
-                if (value == 3) { //Vadeli
-                    $($("[data-order=4]")[0]).text("Vade Sayısı");
-                }
-                $("[data-order=4]").show();
-            }
-        })
-        .on("change", "[name='conditionType']", function () {
-            let value = $("[name='conditionType']:checked").val();
-            if (value == 0) { //Genel
-                $("[data-order=3]").hide();
-            }
-            else {
-                if (value == 1) { //Minimum Satış Fiyatı
-                    $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
-                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
-                    $("[data-conditionCurr=minConditionCurrency]").hide();
-                }
-                if (value == 2) { // Minimum Adet
-                    $($("[data-order=3]")[0]).text("Minimum Birim");
-                    $("[data-conditionCurr=minConditionMoneyCurrency]").hide();
-                    $("[data-conditionCurr=minConditionCurrency]").show();
-                }
-                $("[data-order=3]").show();
-            }
-        })
-        .on("change", "[name='type']", function () {
-            let value = $("[name='type']:checked").val();
-            if (value == 1) { //Fiyat girelecek
-                $("[data-order=5]").hide();
-                $("[data-order=6]").show();
-            }
-            else { //Oran Girilecek
-                $("[data-order=6]").hide();
-                $("[data-order=5]").show();
-            }
-        })
         .on("ready", function () {
             if (_model.BasePriceDetailItems && _model.BasePriceDetailItems.length > 0) {
 
@@ -115,22 +23,11 @@
 
             }
 
-        })
-        .on("before:submit", "#VWPRD_CompanyBasedPriceDetailForm", function () {
-            var inputs = $("td[data-order]");
-            for (var i = 0; i < inputs.length; i++) {
-                if ($(inputs[i]).attr("style") == "display:none") {
-                    $(inputs[i]).find("input").prop("disabled", true)
-                }
-            }
         });
-    var page = {};
+
     page = {
         defines: {
-            isAllCompanies: 1,
-            productTarget: 2,
-            disabledInput: 0,
-            isThereRecord: 0
+
         },
         functions: {
             AddRow: function (control) {
@@ -281,12 +178,16 @@
                 }
             },
             setCompanyDropDownTitle: function (e) {
-                $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
-                $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                if ($("[name='companyType']:checked").val() == 0) {
+                    $("#companyDropDown").find(".k-input").text("Tüm Şirketlere Uygula");
+                    $("#companyDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                }
             },
             setProductDropDownTitle: function (e) {
-                $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
-                $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                if ($("[name='productType']:checked").val() == 0) {
+                    $("#productDropDown").find(".k-input").text("Tüm Ürünlere Uygula");
+                    $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
+                }
             },
             onChangeProduct(e) {
                 var value = this
@@ -321,9 +222,6 @@
                         }
                         $("[data-order=3]").show();
                     }
-
-
-
                 }
 
                 $.each(_model.BasePriceDetailItems, function (i, item) {
