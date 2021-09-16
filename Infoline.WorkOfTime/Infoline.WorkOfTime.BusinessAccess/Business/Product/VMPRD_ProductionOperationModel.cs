@@ -73,6 +73,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (this.Production == null) return new ResultStatus { result = false, message = "Üretim kaydı silinmiş." };
 			if (this.status == null) return new ResultStatus { result = false, message = "Operasyon durumu boş gönderilemez." };
+            
 
 			var productionOperation = db.GetPRD_ProductionOperationByProductionId(this.productionId.Value);
 			var productionUsers = db.GetPRD_ProductionUsersByProductionId(this.productionId.Value);
@@ -108,7 +109,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				case EnumPRD_ProductionOperationStatus.FormYuklendi:
 					break;
 				case EnumPRD_ProductionOperationStatus.AsamaBildirimi:
-					this.description = "_" + this.description;
+                    if (this.description!=null)
+                    {
+						this.description = "_" + this.description;
+
+					}
+					
 					this.dataTable = "PRD_ProductionStage";
 					break;
 				default:
