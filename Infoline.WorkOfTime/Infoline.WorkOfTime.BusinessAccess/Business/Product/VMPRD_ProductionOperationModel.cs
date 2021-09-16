@@ -108,6 +108,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				case EnumPRD_ProductionOperationStatus.FormYuklendi:
 					break;
 				case EnumPRD_ProductionOperationStatus.AsamaBildirimi:
+					this.description = "_" + this.description;
 					this.dataTable = "PRD_ProductionStage";
 					break;
 				default:
