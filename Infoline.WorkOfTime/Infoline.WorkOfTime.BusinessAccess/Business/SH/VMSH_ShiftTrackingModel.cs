@@ -352,6 +352,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         var shiftStartTime = startDate;
                         var shiftEndTime = startDate.AddDays(1).AddMinutes(-1);
 
+                        var lastStatus = shiftEnd == null ? "İşlem Yapılmadı" : shiftEnd.ShiftTrackingStatus_Title;
+
 
                         if (shiftStart != null)
                         {
@@ -389,9 +391,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         {
                             var dailyShiftMinutes = ((morningEndTime - morningStartTime) + (eveningEndTime - eveningStartTime)).TotalMinutes;
                             var extraShift = workingMinutes - dailyShiftMinutes;
-                            ts = TimeSpan.FromMinutes(extraShift >= 0 ? extraShift : (extraShift * -1));
-                            extraShiftString = ($"{(int)ts.TotalHours} saat : {ts.Minutes} dakika");
-                            extraShiftString = extraShift < 0 ? (extraShiftString + " Az Çalışıldı") : (extraShiftString) + " Fazla Çalışıldı";
+                            if(extraShift == 0)
+                            {
+                                extraShiftString = "Tam Mesai Saatlerince Çalışmıştır";
+                            }
+                            else
+                            {
+                                ts = TimeSpan.FromMinutes(extraShift >= 0 ? extraShift : (extraShift * -1));
+                                extraShiftString = ($"{(int)ts.TotalHours} saat : {ts.Minutes} dakika");
+                                extraShiftString = extraShift < 0 ? (extraShiftString + " Az Çalışıldı") : (extraShiftString) + " Fazla Çalışıldı";
+                            }
                         }
                         else
                         {
@@ -404,7 +413,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             totalWorking = workingHoursStringValue.ToString(),
                             CompanyId_Title = shiftTracking.CompanyId_Title,    
                             UserId_Title = shiftTracking.UserId_Title,
-                            ShiftTrackingStatus_Title = shiftStatus?.ShiftTrackingStatus_Title,
+                            ShiftTrackingStatus_Title = lastStatus,
                             startDate = new DateTime(shiftStartTime.Date.Year, shiftStartTime.Date.Month, shiftStartTime.Date.Day, shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second),
                             endDate = new DateTime(shiftEndTime.Date.Year, shiftEndTime.Date.Month, shiftEndTime.Date.Day, shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second),
                             date = new DateTime(startDate.Year, startDate.Month, startDate.Day, 0, 0, 0),
