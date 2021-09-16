@@ -15,7 +15,7 @@
     .Columns(x =>
     {
         x.Bound(y => y.companyId_Title).Title("Müşteri").ClientTemplate("#if(companyId == null){# Tüm Müşteriler #} else{# #=companyId_Title# #}#").Width(180);
-        x.Bound(y => y.categoryId_Title).Title("Kategori").ClientTemplate("#if(categoryId == null){# - #} else{# #=categoryId_Title# #}#").Width(180);
+        x.Bound(y => y.categoryId_Title).Title("Kategori").ClientTemplate("#if(categoryId == null && productId == null){# Tüm Kategoriler #} else if(productId != null){# - #} else{# #=categoryId_Title# #}#").Width(180);
         x.Bound(y => y.productId_Title).Title("Ürün").ClientTemplate("#if(productId == null && categoryId == null){# Tüm Ürünler #}else if(productId != null){# #=productId_Title# #} else{# - #}#").Width(180);
         x.Bound(y => y.conditionType_Title).Title("Koşul Türü").Width(180);
         x.Bound(y => y.sellingType_Title).Title("Satış Tipi").Width(180);
@@ -24,8 +24,11 @@
       .Scrollable(x => x.Height(650))
     .ToolBar(x =>
     {
-        x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Özel Fiyat Girişi Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" },{"data-blank","" },{"data-modal","false" } }).Url(Url.Action("Insert", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
-        x.Custom().Text("<i  class='fa fa-edit' data-toggle='tooltip' title data-original-title='Düzenle'  data-placement='right' ></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Update", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
+
+        x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Özel Fiyat Girişi Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
+        x.Custom().Text("<i class='fa fa-info-circle' data-toggle='tooltip' title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWPRD_CompanyBasedPrice", new { area = "PRD" }));
+        x.Custom().Text("<i  class='fa fa-edit' data-toggle='tooltip' title data-original-title='Düzenle'  data-placement='right' ></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Update", "VWPRD_CompanyBasedPrice", new { area = "PRD" }));
+
         x.Custom().Text("<i class='fa fa-trash' data-original-title='Kaydı Sil'</i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Kayıdı Silmek İstediğinize Emin Misiniz? \n Bu kayıda bağlı tüm alt kayıtlar silinecektir." } }).Url(Url.Action("Delete", "VWPRD_CompanyBasedPrice", new { area = "PRD" }));
     }))
 
