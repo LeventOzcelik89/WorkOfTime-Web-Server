@@ -312,16 +312,18 @@
                           
                                 @foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
                                 {
+                                  
                                     if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
                                     {
-                                        
+
                             <li>
+                               
                                 <span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
                                 <small class="label label-primary"> Bildirim Yapıldı</small>
-                                <small class="label label-primary" style="float:right"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0")</small>
-                                <small class="label label-info"  style="float:right" data-original-title="Oluşturulan ürün miktarı"> @stage.Count</small>
+                                <small class="label label-primary" style="float:right" data-original-title="Bu aşamaya toplam @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0") defa geçildi"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0")</small>
+                                <small class="label label-info" style="float:right" data-original-title="Oluşturulan ürün miktarı"> @stage.Count</small>
                             </li>
-                                    productionStageCount++;
+                                   
                                 }
                                 else
                                 {
@@ -329,16 +331,17 @@
                                         <span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
                                         <small class="label label-warning"> Bildirim Yapılmadı</small>
 
-                                        <small class="label label-warning" style="float:right"> </small>
+                                        <small class="label label-warning" data-original-title="Bu aşamaya daha geçilmedi" style="float:right">0</small>
                                     </li>
+                                    }
+                                    productionStageCount += Model.productionOperations.Where(x => x.dataId == stage.id).Count();
                                 }
-                            }
                             @if (productionStageCount > 0)
                             {
                         <li>
                             <span class="m-l-xs"><b>TOPLAM BİLDİRİM</b></span>
-                            <small class="label label-primary" style="float:right"> @productionStageCount.ToString("N0")</small>
-                            <small class="label label-info" id="dataTotal" data-original-title="Oluşturulan Toplam Ürün Miktarı" style="float:right">@Model.Total</small>
+                            <small class="label label-primary" style="float:right" data-original-title="Toplam Aşama Bildirimi"> @productionStageCount.ToString("N0")</small>
+                            <small class="label label-info" id="dataTotal" data-original-title="Oluşturulan Toplam Ürün Miktarı"  style="float:right">@Model.Total</small>
                         </li>
                             }
                         </ul>
