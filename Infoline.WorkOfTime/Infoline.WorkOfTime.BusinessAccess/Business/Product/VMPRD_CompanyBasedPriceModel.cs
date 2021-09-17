@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();
-            trans = transaction ?? db.BeginTransaction();
+            this.trans = transaction ?? db.BeginTransaction();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();

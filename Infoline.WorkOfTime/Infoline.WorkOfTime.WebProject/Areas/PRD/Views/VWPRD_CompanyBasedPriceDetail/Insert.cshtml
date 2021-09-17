@@ -6,6 +6,12 @@
 <style>
 </style>
 <script>
+
+    function blockClick() {
+
+    }
+
+
     $(document)
         .on("change", "[name='companyType']", function () {
             let value = $("[name='companyType']:checked").val();
@@ -105,7 +111,7 @@
                 $("[data-order=6]").show();
                 $("#discountTypeDiv").hide();
 
-                if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise               
+                if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise
                     for (var i = 0; i < rowLength; i++) {
                         var priceForRow = $($("td[data-order=6]")[i]).find("input").val();
                         $($("td[data-order=8]")[i]).find("input").val(priceForRow);
@@ -175,6 +181,10 @@
         .on("ready", function () {
             page.functions.AddRow(true);
         })
+        .on("submit", "#submitButtonId", function (e) {
+            $("#submitButtonId").attr("disabled", true)
+        })
+
         .on("keyup", "[data-item=discount]", function () {
             var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
             if (currentPrice != undefined) {
@@ -193,12 +203,13 @@
             $(this).closest("tr").find("[data-effectedPrice=true]").val(price);
         });
 
-    function beforeFunc() {
+    function beforeFunc(e) {
         let productType = $("[name='productType']:checked").val();
         let companyType = $("[name='companyType']:checked").val();
-        
+
         if (productType == 2 && $("#productId").data("kendoDropDownList").dataItem().id == "") {
             MesajWarning("Lütfen Ürün Seçiniz", "Ürün Seçimi Yapmadınız");
+
             return false;
         }
         if (productType == 1 && $("#categoryId").data("kendoDropDownList").dataItem().id == "") {
@@ -209,6 +220,14 @@
             MesajWarning("Lütfen Şirket Seçiniz", "Şirket Seçimi Yapmadınız");
             return false;
         }
+
+        $("#submitButtonId").attr("disabled", true)
+
+        setTimeout(function () {
+            $("#submitButtonId").removeAttr("disabled")
+        }, 2500);
+        
+
         return true;
     }
     var page = {};
@@ -428,15 +447,15 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.companyBasedPriceId)
-<div id="options">
-    <div class="form-group" id="companyOptions">
-        <div class="col-md-5">
-            <div class="radio akilliRadioGrup clearfix">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
+    <div id="options">
+        <div class="form-group" id="companyOptions">
+            <div class="col-md-5">
+                <div class="radio akilliRadioGrup clearfix">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.companyType).Value(EnumPRD_CompanyBasedPriceCompanyType.AllCompanies))
+                </div>
             </div>
-        </div>
-        <div class="col-md-7" id="companyDropDown">
-            @(Html.Akilli()
+            <div class="col-md-7" id="companyDropDown">
+                @(Html.Akilli()
                 .DropDownListFor(model => model.companyId)
                 .OptionLabel("Lütfen Şirket Seçiniz..")
                 .DataTextField("name")
@@ -447,14 +466,14 @@
                 .Readonly(true)
                 .Execute()
                 )
+            </div>
         </div>
-    </div>
-    <div class="form-group" id="productOptions">
-        <div class="col-md-5">
-            @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
-        </div>
-        <div class="col-md-7" id="productDropDown">
-            @(
+        <div class="form-group" id="productOptions">
+            <div class="col-md-5">
+                @(Html.Akilli().RadioButtonGroupFor(a => a.productType).Value(EnumPRD_CompanyBasedPriceProductType.AllProducts))
+            </div>
+            <div class="col-md-7" id="productDropDown">
+                @(
             Html.Akilli()
             .DropDownListFor(model => model.productId)
             .OptionLabel("Lütfen Ürün seçiniz..")
@@ -467,9 +486,9 @@
             .Readonly(true)
             .Execute()
             )
-        </div>
-        <div class="col-md-7" id="categoryDropDown" style="display:none;">
-            @(
+            </div>
+            <div class="col-md-7" id="categoryDropDown" style="display:none;">
+                @(
             Html.Akilli()
             .DropDownListFor(model => model.categoryId)
             .OptionLabel("Lütfen Kategori seçiniz..")
@@ -479,45 +498,45 @@
             .Sort(x => x.Add("fullname").Ascending())
             .Execute("id")
         )
-        </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-12">
-            <div class="">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
             </div>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-12">
-            <div class="">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+        <div class="form-group">
+            <div class="col-md-12">
+                <div class="">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.sellingType).Value(EnumPRD_CompanyBasedPriceSellingType.Genel))
+                </div>
             </div>
         </div>
-    </div>
-    <div class="form-group" id="priceorDiscountDiv" style="display:none;">
-        <div class="col-md-12">
-            <div class="">
-                @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Oran))
+        <div class="form-group">
+            <div class="col-md-12">
+                <div class="">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.conditionType).Value(EnumPRD_CompanyBasedPriceConditionType.Genel))
+                </div>
             </div>
         </div>
-    </div>
-    <div class="form-group"  id="discountTypeDiv">
-        <div class="col-sm-12">
-            <div class="radio akilliRadioGrup clearfix"   >
-                <input type="radio" name="discountType" id="discountType_0" checked value="0">
-                <label tabindex="0" class="radio-label" for="discountType_0">
-                    Fiyat İndirimi
-                </label>
-                <input type="radio" name="discountType"  id="discountType_1" value="1">
-                <label tabindex="0" class="radio-label" for="discountType_1">
-                    Fiyat Artışı
-                </label>
+        <div class="form-group" id="priceorDiscountDiv" style="display:none;">
+            <div class="col-md-12">
+                <div class="">
+                    @(Html.Akilli().RadioButtonGroupFor(a => a.type).Value(EnumPRD_CompanyBasedPriceType.Oran))
+                </div>
             </div>
         </div>
+        <div class="form-group" id="discountTypeDiv">
+            <div class="col-sm-12">
+                <div class="radio akilliRadioGrup clearfix">
+                    <input type="radio" name="discountType" id="discountType_0" checked value="0">
+                    <label tabindex="0" class="radio-label" for="discountType_0">
+                        Fiyat İndirimi
+                    </label>
+                    <input type="radio" name="discountType" id="discountType_1" value="1">
+                    <label tabindex="0" class="radio-label" for="discountType_1">
+                        Fiyat Artışı
+                    </label>
+                </div>
+            </div>
+        </div>
+
     </div>
-   
-</div>
     <div class="form-group">
         <div class="col-sm-12">
             <table id="productsTable" class="table" style="background-color: #f8f8f8;">
@@ -547,7 +566,7 @@
     </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        <button class="btn btn-md btn-success pull-right" onclick="blockClick()" id="submitButtonId" type="submit">Kaydet</button>
     </div>
 }
 <template id="rowTemplate" data-selector="modalContainer">
