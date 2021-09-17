@@ -94,17 +94,40 @@
                             pageSize: 50,
                             sort: { field: "startDate", dir: "asc" }
                         },
+                        dataBound: function (e) {
+                            $("#shiftTrackingPersonalGrid tbody tr:odd").css("background-color", "#f3f3f4");
+                            $("#shiftTrackingPersonalGrid tbody tr td:last-child").each(function (i, e) {
+                                if ($(e).text().includes("Fazla")) {
+                                    $(e).css("color", "orange");
+                                } else if ($(e).text().includes("Az")) {
+                                    $(e).css("color", "red");
+                                } else if ($(e).text().includes("Tam")) {
+                                    $(e).css("color", "green");
+                                }
+                            })
+                        },
                         columnMenu: true,
                         selectable: true,
                         reorderable: true,
                         sortable: true,
+                        toolbar: [{ name: 'excel', text: '' }],
+                        excelExport: function (e) {
+                            var sheet = e.workbook.sheets[0];
+
+                            for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+                                var row = sheet.rows[rowIndex];
+                                for (var cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                                    row.cells[cellIndex].format = "dd-MM-yy HH:mm"
+                                }
+                            }
+                        },
                         encoded: true,
                         height: 600,
                         scrollable: true,
                         resizable: true,
                         pageable: {
                             refresh: true,
-                            pageSizes: ["all"],
+                            pageSizes: [5, 15, 25, 50, "all"],
                             buttonCount: 5,
                             messages: {
                                 itemsPerPage: "",
@@ -117,20 +140,24 @@
                             //{sortable: false, field:"startDate"},
                             {
                                 field: "userId",
-                                hidden: true
+                                hidden: true,
+                                width: "180px"
                             },
                             {
                                 field: "id",
-                                hidden: true
+                                hidden: true,
+                                width: "180px"
                             },
                             {
                                 field: "UserId_Title",
-                                title: "Personel"
+                                title: "Personel",
+                                width: "160px"
 
                             },
                             {
                                 field: "ShiftTrackingStatus_Title",
-                                title: "Durumu"
+                                title: "Son Durum",
+                                width: "100px"
 
                             },
                             {
@@ -138,24 +165,48 @@
                                 sortable: true,
                                 title: "Gün",
                                 type: "date",
-                                format: "{0:dd/MM/yyyy}"
+                                format: "{0:dd/MM/yyyy}",
+                                width: "100px"
                             },
                             {
                                 field: "startDate",
                                 sortable: true,
                                 title: "Giriş Tarihi",
                                 type: "date",
-                                format: "{0:dd/MM/yyyy hh:mm}"
+                                format: "{0:dd/MM/yyyy HH:mm}",
+                                width: "130px"
                             },
                             {
                                 field: "endDate",
                                 title: "Çıkış Tarihi",
                                 type: "date",
-                                format: "{0:dd/MM/yyyy hh:mm}"
+                                format: "{0:dd/MM/yyyy HH:mm}",
+                                width: "130px"
                             },
                             {
                                 field: "totalWorking",
                                 title: "Toplam Çalışma Saati",
+                                width: "150px"
+                            },
+                            {
+                                field: "totalBreak",
+                                title: "Toplam Mola Süresi",
+                                width: "150px"
+                            },
+                            {
+                                field: "lateArrived",
+                                title: "Geç Kalma Durumu",
+                                width: "150px"
+                            },
+                            {
+                                field: "earlyLeave",
+                                title: "Erken Çıkış Durumu",
+                                width: "150px"
+                            },
+                            {
+                                field: "extraShift",
+                                title: "Mesai Saatine Uyum",
+                                width: "180px"
                             }
                         ]
 

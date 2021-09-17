@@ -331,6 +331,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     UserId_Title = ourPersons.FirstOrDefault()?.FullName
                 }));
 
+                var workingTimes = TenantConfig.Tenant.Config.WorkingTimes;
                 while (startDate <= endDate)
                 {
                     foreach (var shiftTracking in listModel.ToList())
@@ -344,16 +345,83 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
                         var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
 
+                        var dailyShift = db.VWGetSH_ShiftTrackingByDateAndUserId(startDate, shiftTracking.userId.Value).Reverse();
+
+                        var shiftStart = dailyShift.FirstOrDefault();
+                        var shiftEnd = dailyShift.LastOrDefault();
+                        var shiftStartTime = startDate;
+                        var shiftEndTime = startDate.AddDays(1).AddMinutes(-1);
+
+                        var lastStatus = shiftEnd == null ? "İşlem Yapılmadı" : shiftEnd.ShiftTrackingStatus_Title;
+
+
+                        if (shiftStart != null)
+                        {
+                            shiftStartTime = shiftStart.shiftTrackingStatus != (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi ? startDate : ((shiftStart != null) ? shiftStart.timestamp.Value : startDate);
+                        }
+
+
+                        if (shiftEnd != null)
+                        {
+                            shiftEndTime = shiftEnd.shiftTrackingStatus != (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti ? startDate.AddDays(1).AddMinutes(-1) : ((shiftEnd != null) ? shiftEnd.timestamp.Value : startDate.AddDays(1).AddMinutes(-1));
+                        }
+
+                        var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes;
+                        ts = TimeSpan.FromMinutes(breakMinutes);
+                        var breakHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                        var day = shiftStartTime.DayOfWeek;
+                        var dayWorkHour = workingTimes[day];
+
+                        var lateArrived = (dayWorkHour.allowTimes[0].Start - new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second)).TotalMinutes;
+                        ts = TimeSpan.FromMinutes(lateArrived);
+                        var lateArrivedString = lateArrived >= 0 ? "YOK" : $"{(int)ts.TotalHours*-1} saat : {ts.Minutes*-1} dakika";
+
+                        var earlyLeave = (dayWorkHour.allowTimes[1].End - new TimeSpan(shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second)).TotalMinutes;
+                        ts = TimeSpan.FromMinutes(earlyLeave);
+                        var earlyLeaveString = earlyLeave <= 0 ? "YOK" : $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                        var morningStartTime = dayWorkHour.allowTimes[0].Start;
+                        var morningEndTime = dayWorkHour.allowTimes[0].End;
+                        var eveningStartTime = dayWorkHour.allowTimes[1].Start;
+                        var eveningEndTime = dayWorkHour.allowTimes[1].End;
+
+                        var extraShiftString = "Tatil Günü";
+                        if (!(morningStartTime.TotalMinutes == 0 && morningEndTime.TotalMinutes == 0 && eveningStartTime.TotalMinutes == 0 && eveningEndTime.TotalMinutes == 0))
+                        {
+                            var dailyShiftMinutes = ((morningEndTime - morningStartTime) + (eveningEndTime - eveningStartTime)).TotalMinutes;
+                            var extraShift = workingMinutes - dailyShiftMinutes;
+                            if(extraShift == 0)
+                            {
+                                extraShiftString = "Tam Mesai Saatlerince Çalışmıştır";
+                            }
+                            else
+                            {
+                                ts = TimeSpan.FromMinutes(extraShift >= 0 ? extraShift : (extraShift * -1));
+                                extraShiftString = ($"{(int)ts.TotalHours} saat : {ts.Minutes} dakika");
+                                extraShiftString = extraShift < 0 ? (extraShiftString + " Az Çalışıldı") : (extraShiftString) + " Fazla Çalışıldı";
+                            }
+                        }
+                        else
+                        {
+                            lateArrivedString = "Tatil Günü";
+                            earlyLeaveString = "Tatil Günü";
+                        }
+
                         listData.Add(new VMSH_ShiftTrackingReport
                         {
                             totalWorking = workingHoursStringValue.ToString(),
                             CompanyId_Title = shiftTracking.CompanyId_Title,    
                             UserId_Title = shiftTracking.UserId_Title,
-                            ShiftTrackingStatus_Title = shiftStatus?.ShiftTrackingStatus_Title,
-                            startDate = new DateTime(startDate.Year, startDate.Month, startDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
-                            endDate = new DateTime(endDate.Year, endDate.Month, endDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
-                            date = new DateTime(startDate.Year, startDate.Month, startDate.Day, ts.Hours, ts.Minutes, ts.Seconds),
-                            userId = shiftTracking.userId
+                            ShiftTrackingStatus_Title = lastStatus,
+                            startDate = new DateTime(shiftStartTime.Date.Year, shiftStartTime.Date.Month, shiftStartTime.Date.Day, shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second),
+                            endDate = new DateTime(shiftEndTime.Date.Year, shiftEndTime.Date.Month, shiftEndTime.Date.Day, shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second),
+                            date = new DateTime(startDate.Year, startDate.Month, startDate.Day, 0, 0, 0),
+                            userId = shiftTracking.userId,
+                            totalBreak = breakHoursStringValue.ToString(),
+                            lateArrived = lateArrivedString.ToString(),
+                            earlyLeave = earlyLeaveString.ToString(),
+                            extraShift = extraShiftString.ToString()
                         });
                     }
                     startDate = startDate.AddDays(1);
@@ -381,6 +449,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWSH_ShiftTracking shiftTrackingStart { get; set; }
         public VWSH_ShiftTracking shiftTrackingEnd { get; set; }
         public string userPhoto { get; set; }
+        public string totalBreak { get; set; }
+        public string earlyLeave { get; set; }
+        public string lateArrived { get; set; }
+        public string extraShift { get; set; }
 
     }
 

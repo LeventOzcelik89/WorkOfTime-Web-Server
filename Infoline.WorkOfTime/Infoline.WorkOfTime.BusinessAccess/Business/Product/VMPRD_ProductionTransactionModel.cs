@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public double? quantity { get; set; }
 		public double? totalQuantity { get; set; }
 		public bool isExpense { get; set; }
+		public int amount { get; set; } = 1;
 
 		public VMPRD_ProductionTransactionModel Load()
 		{
@@ -126,7 +127,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.items.AddRange(productionProducts.Select(x => new VMPRD_TransactionItems
 					{
 						productId = x.materialId,
-						unitPrice = x.price
+						unitPrice = x.price,
+						quantity=x.quantity
 					}));
 				}
 				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
