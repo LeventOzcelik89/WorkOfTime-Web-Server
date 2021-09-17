@@ -1,33 +1,33 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductionTransactionModel
 @{
-	if (Model.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
-	{
-		ViewBag.Title = "Harcama Bildirimi";
-	}
-	else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi)
-	{
-		ViewBag.Title = "Biten Ürün Bildirimi";
-	}
-	else if (Model.type == (int)EnumPRD_TransactionType.FireFisi)
-	{
-		ViewBag.Title = "Fire Bildirimi";
-	}
+    if (Model.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+    {
+        ViewBag.Title = "Harcama Bildirimi";
+    }
+    else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+    {
+        ViewBag.Title = "Biten Ürün Bildirimi";
+    }
+    else if (Model.type == (int)EnumPRD_TransactionType.FireFisi)
+    {
+        ViewBag.Title = "Fire Bildirimi";
+    }
 
 
 
-	Layout = "~/Views/Shared/_Layout.cshtml";
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
 
-	if (ViewBag.Direction == -1)
-	{
-		types = types.Where(a => Convert.ToInt32(a.Key) >= 10 && Convert.ToInt32(a.Key) < 20);
-	}
-	else if (ViewBag.Direction == 1)
-	{
-		types = types.Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 10);
-	}
-	var count = types.Count();
+    if (ViewBag.Direction == -1)
+    {
+        types = types.Where(a => Convert.ToInt32(a.Key) >= 10 && Convert.ToInt32(a.Key) < 20);
+    }
+    else if (ViewBag.Direction == 1)
+    {
+        types = types.Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 10);
+    }
+    var count = types.Count();
 }
 
 
@@ -101,15 +101,15 @@
                 page.events.typeChange();
             },
             removeRow: function (item) {
-
+                $(item).parents('tr').remove();
+                page.events.ValidateRows();
+            },
+            removeAllRows: function () {
                 if (page.Counter == 1 || page.Counter == 0) {
                     return;
                 }
 
-                $(item).parents('tr').remove();
-
-                page.events.ValidateRows();
-
+                $("tbody tr").remove();
             },
             ValidateRows: function () {
 
@@ -168,7 +168,8 @@
                 return valid;
 
             },
-            addRow: function (data) {
+            addRow: function (data, amount) {
+
                 if (page.events.ValidateRows() == false) {
                     return false;
                 }
@@ -187,7 +188,8 @@
 
                 temp.find('[data-item="quantity"]')
                     .attr('name', 'items[' + page.Counter + '].quantity')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
+                    .attr("data-value", data.quantity)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity  : null) });
 
                 temp.find('[data-item="serialCodes"]')
                     .attr('name', 'items[' + page.Counter + '].serialCodes')
@@ -287,7 +289,7 @@
                         whitelist = whitelist.concat(valuesArr.map(a=>a.value));
                         serialCodes
                             .tagify({
-                                placeholder:"Seri Numarasını yazın ve Enter'a basınız.",
+                                placeholder: "Seri Numarasını yazın ve Enter'a basınız.",
                                 enforceWhitelist: allowCustomSerialCode.indexOf(page.type) == -1,
                                 whitelist: whitelist,
                                 //editTags: false,
@@ -305,7 +307,7 @@
                             })
                             .on("add removetag", function (e) {
                                 quantity.value(serialCodes.val().split("value").length - 1);
-                            })
+                            });
 
                     } else {
                         serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
@@ -350,8 +352,7 @@
         init: function () {
 
             $.each(page.Model.items, function (i, item) {
-                debugger;
-                page.events.addRow(item);
+                page.events.addRow(item,1);
             });
 
             if (page.Model.items.length == 0) {
@@ -388,25 +389,44 @@
                         // MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
                     });
             }
+        })
+        .on("keyup", "#amount", function () {
+            var getValue = parseInt($(this).val());
+            $.each($("#RowContainer tr"), function (i, item) {
+                let el = $(item).find('[data-item="quantity"]');
+                el.data('handler').value(getValue * parseInt(el.attr("data-value")));
+                let els = $(item).find('[data-item="serialCodes"]');
+                ti = $('[name="' + els[0].name+'"]');
+                    t = ti.data('tagify');
+                if (t != undefined) {
+                    t.removeAllTags();
+                        if (t.suggestedListItems != undefined) {
+                            debugger
+                            var tags = t.suggestedListItems.slice(0, getValue).join(',')
+                            t.addTags(tags)
+                        }
+                    }
+            });
+
         });
 </script>
 
 <script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
-	<div class="clearfix" style="padding: 8px 0;">
-		<img class="img-circle img-responsive pull-left" style="width: 40px;height: 40px;" src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
-		<div style=" width: calc(100% - 50px); height: 40px; float: right;">
-			<div class="template-item">
-				<strong>#:name#</strong>
-			</div>
-			<div class="template-item">
-				<small>
-					#:code !=null ? code+' | ' : ''#
-					#:barcode !=null ? barcode+' | ' : ''#
-					#:brandId_Title !=null ? brandId_Title+' | ' : ''#
-				</small>
-			</div>
-		</div>
-	</div>
+    <div class="clearfix" style="padding: 8px 0;">
+        <img class="img-circle img-responsive pull-left" style="width: 40px;height: 40px;" src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
+        <div style=" width: calc(100% - 50px); height: 40px; float: right;">
+            <div class="template-item">
+                <strong>#:name#</strong>
+            </div>
+            <div class="template-item">
+                <small>
+                    #:code !=null ? code+' | ' : ''#
+                    #:barcode !=null ? barcode+' | ' : ''#
+                    #:brandId_Title !=null ? brandId_Title+' | ' : ''#
+                </small>
+            </div>
+        </div>
+    </div>
 </script>
 
 <script type="text/x-kendo-template" id="typeTemplate" data-selector="modalContainer">
@@ -416,83 +436,83 @@
 
 <script type="text/template" data-selector="modalContainer" id="RowTemp">
 
-	<tr>
-		<td data-item="index">
-		</td>
-		<td data-target="">
-			<input type="hidden" data-item="id" />
-			<input data-item="productId" class="form-control"  data-refresh="" />
-		</td>
-		<td hidden>
-			<div class="input-group">
-				<input data-item="unitPrice" />
-				<span class="input-group-addon"> TL</span>
-			</div>
-		</td>
-		<td>
-			<div class="input-group">
-				<input data-item="quantity" />
-				<span class="input-group-addon"> Adet</span>
-			</div>
-		</td>
-		<td>
-			<input data-item="serialCodes" data-role="tagify" />
-		</td>
-		<td>
-			<button data-item="islendi" class="btn btn-md btn-danger" type="button" onclick="page.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
-		</td>
-	</tr>
+    <tr>
+        <td data-item="index">
+        </td>
+        <td data-target="">
+            <input type="hidden" data-item="id" />
+            <input data-item="productId" class="form-control" data-refresh="" />
+        </td>
+        <td hidden>
+            <div class="input-group">
+                <input data-item="unitPrice" />
+                <span class="input-group-addon"> TL</span>
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-item="quantity" />
+                <span class="input-group-addon"> Adet</span>
+            </div>
+        </td>
+        <td>
+            <input data-item="serialCodes" data-role="tagify" />
+        </td>
+        <td>
+            <button data-item="islendi" class="btn btn-md btn-danger" type="button" onclick="page.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
+        </td>
+    </tr>
 
 </script>
 
 
 @using (Html.BeginForm("Upsert", "VWPRD_Transaction", FormMethod.Post, new Dictionary<string, object>() {
-	{ "class", "form-horizontal" },
-	{ "role", "form" },
-	{ "data-selector", "modalContainer" },
-	{ "id","VWPRD_ProductionUpsertOperationForm"},
-	{ "data-formType", "Ajax" }
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id","VWPRD_ProductionUpsertOperationForm"},
+    { "data-formType", "Ajax" }
 }))
 {
-	@Html.AntiForgeryToken()
-	@Html.HiddenFor(model => model.id, new { @Value = Model.id })
-	@Html.HiddenFor(model => model.invoiceId)
-	@Html.HiddenFor(model => model.orderId)
-	@Html.HiddenFor(model => model.tenderIds)
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+    @Html.HiddenFor(model => model.invoiceId)
+    @Html.HiddenFor(model => model.orderId)
+    @Html.HiddenFor(model => model.tenderIds)
 
 
-	@Html.HiddenFor(m => m.outputId);
-	@Html.HiddenFor(m => m.outputCompanyId);
-	@Html.HiddenFor(m => m.outputTable);
+    @Html.HiddenFor(m => m.outputId);
+    @Html.HiddenFor(m => m.outputCompanyId);
+    @Html.HiddenFor(m => m.outputTable);
 
-	@Html.HiddenFor(m => m.inputId);
-	@Html.HiddenFor(m => m.inputCompanyId);
-	@Html.HiddenFor(m => m.inputTable);
+    @Html.HiddenFor(m => m.inputId);
+    @Html.HiddenFor(m => m.inputCompanyId);
+    @Html.HiddenFor(m => m.inputTable);
 
-	@Html.HiddenFor(m => m.code);
-	@Html.HiddenFor(m => m.date);
-	@Html.HiddenFor(m => m.description);
-	@Html.HiddenFor(m => m.productionId);
-
-
+    @Html.HiddenFor(m => m.code);
+    @Html.HiddenFor(m => m.date);
+    @Html.HiddenFor(m => m.description);
+    @Html.HiddenFor(m => m.productionId);
 
 
-	<div class="row @(Model.type.HasValue ? "hide" : "")">
-		<div class="col-md-12">
-			<div class="visible-md visible-lg" style="width:100%">
-				@foreach (var type in types)
-				{
-					<button class="btn btn-primary btn-outline" type="button" data-button="type" onclick="page.events.typeButton(this)" value="@type.Key" style="width:calc((100% - @(count*4)px) / @count);">
-						<i class="@type.Generic["icon"] fa-2x" aria-hidden="true"></i><br /><span style="font-size: 11px;font-weight: bold;" class="radio-tile-label">@Html.Raw(type.Value)</span>
-					</button>
-				}
-			</div>
-			<div class="form-group visible-sm visible-xs">
-				<div class="col-md-4">
-					<label class="control-label label-md req" for="type">İşlem Tipi</label>
-				</div>
-				<div class="col-md-8">
-					@(
+
+
+    <div class="row @(Model.type.HasValue ? "hide" : "")">
+        <div class="col-md-12">
+            <div class="visible-md visible-lg" style="width:100%">
+                @foreach (var type in types)
+                {
+                    <button class="btn btn-primary btn-outline" type="button" data-button="type" onclick="page.events.typeButton(this)" value="@type.Key" style="width:calc((100% - @(count*4)px) / @count);">
+                        <i class="@type.Generic["icon"] fa-2x" aria-hidden="true"></i><br /><span style="font-size: 11px;font-weight: bold;" class="radio-tile-label">@Html.Raw(type.Value)</span>
+                    </button>
+                }
+            </div>
+            <div class="form-group visible-sm visible-xs">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="type">İşlem Tipi</label>
+                </div>
+                <div class="col-md-8">
+                    @(
                         Html.Akilli().
                         DropDownListFor(model => model.type).
                         OptionLabel("Lütfen Yapacağınız İşlemi Seçiniz..").
@@ -508,51 +528,67 @@
                         Events(a => a.Change("page.events.typeChange").DataBound("page.events.typeLoad")).
                         Execute("enumKey")
                     )
-				</div>
-			</div>
-		</div>
+                </div>
+            </div>
+        </div>
 
-		<div class="col-md-12">
-			<div class="hr-line-dashed"></div>
-		</div>
-	</div>
+        <div class="col-md-12">
+            <div class="hr-line-dashed"></div>
+        </div>
+    </div>
 
-	<div class="row">
-		<div class="col-md-12">
-			<div class="alert alert-warning text-center">
-				<b>@Model.outputId_Title</b>
-				<br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için @Model.type_Title yapamazsınız.
-			</div>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning text-center">
+                <b>@Model.outputId_Title</b>
+                <br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için @Model.type_Title yapamazsınız.
+            </div>
 
-		</div>
-	</div>
-
-	<div class="clearfix" id="productTable">
-		<table class="table table-custom" cellpadding="1" cellspacing="0">
-			<thead>
-				<tr>
-					<th style="width: 2%">#</th>
-					<th style="width:50%">ÜRÜN</th>
-					<th style="width:10%">HARCANAN MİKTAR<br /> </th>
-					<th style="width:46%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-					<th style="width:3%"></th>
-				</tr>
-			</thead>
-			<tbody id="RowContainer">
-			</tbody>
-			<tfoot>
-				<tr>
-					<td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
-				</tr>
-			</tfoot>
-		</table>
-	</div>
+        </div>
+    </div>
+    if (Model.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+    {
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info text-center">
 
 
-	<div class="buttons">
-		<div class="hr-line-dashed"></div>
-		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-		<button data-type="0,1,2,3,4,5,6,10,11,12,13,14,15,16,99,100" class="btn btn-md btn-primary pull-right hide" formaction="@Url.Action("Upsert","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
-	</div>
-}
+
+                    <b>Üretilen Ürün Adedini giriniz</b>
+                    @Html.Akilli().NumericTextBox("amount").Format("N0")
+                  
+
+                </div>
+
+            </div>
+        </div> 
+        }
+        <div class="clearfix" id="productTable">
+            <table class="table table-custom" cellpadding="1" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 2%">#</th>
+                        <th style="width:50%">ÜRÜN</th>
+                        <th style="width:10%">HARCANAN MİKTAR<br /> </th>
+                        <th style="width:46%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
+                        <th style="width:3%"></th>
+                    </tr>
+                </thead>
+                <tbody id="RowContainer">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+
+        <div class="buttons">
+            <div class="hr-line-dashed"></div>
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button data-type="0,1,2,3,4,5,6,10,11,12,13,14,15,16,99,100" class="btn btn-md btn-primary pull-right hide" formaction="@Url.Action("Upsert","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
+        </div>
+    }
 
