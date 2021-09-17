@@ -21,11 +21,11 @@
             <div class="text-right">
 
                 <div class="btn-group" data-render="KanbanRender"></div>
-                
+
                 <div class="btn-group" data-render="StageRender"></div>
 
                 <div class="btn-group" data-render="CartItemFilter"></div>
-                
+
                 <div class="btn-group" data-render="FilterRender"></div>
 
                 <div class="btn-group" data-render="SortRender"></div>
@@ -88,6 +88,9 @@
                     </div>
                 </div>
             </div>
+
+            <div>Toplam: <span class="pull-right" data-target="Count"></span></div>
+
         </div>
         <div data-target="AgileGrid"></div>
     </li>
@@ -179,7 +182,6 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-white pull-left" data-event="CancelFilter" data-dismiss="modal">Kapat</button>
-                <button type="button" class="btn btn-warning" data-event="ResetFilter" data-dismiss="modal">Filtre Temizle</button>
                 <button type="button" class="btn btn-primary" data-event="SaveFilter">Uygula</button>
             </div>
         </div>
@@ -191,7 +193,7 @@
     <div class="form-horizontal">
         <div class="form-group">
             <div class="col-md-4">
-                <label class="control-label label-md" for="created_Min">Başlangıç Tarihi</label>
+                <label class="control-label label-md">Başlangıç Tarihi</label>
             </div>
             <div class="col-md-8">
 
@@ -212,7 +214,7 @@
 
         <div class="form-group">
             <div class="col-md-4">
-                <label class="control-label label-md" for="created_Max">Bitiş Tarihi</label>
+                <label class="control-label label-md">Bitiş Tarihi</label>
             </div>
             <div class="col-md-8">
 
@@ -233,7 +235,7 @@
 
         <div class="form-group">
             <div class="col-md-4">
-                <label class="control-label label-md" for="CustomerCompanyId">Müşteri</label>
+                <label class="control-label label-md">Müşteri</label>
             </div>
             <div class="col-md-8" data-container>
 
@@ -252,7 +254,7 @@
 
         <div class="form-group">
             <div class="col-md-4">
-                <label class="control-label label-md" for="SalesPersonId">Satış Personeli</label>
+                <label class="control-label label-md">Satış Personeli</label>
             </div>
             <div class="col-md-8" data-container>
                 <select data-filterelement="SalesPersonId"
@@ -261,7 +263,7 @@
                         data-datatextfield="FullName"
                         data-href="/SH/VWSH_User/DataSourceDropDown"
                         data-placeholder="Lütfen Satış Personeli seçiniz..."
-                        data-tagtemplate="#= TagTemplate(data, 'fullName') #"
+                        data-tagtemplate="#= TagTemplate(data, 'FullName') #"
                         data-itemtemplate="#= TemplateEngine('userTemplate', data) #"
                         data-filter="@Html.Raw(String.Join("~or~", Model.SalesPersons.Select(a => "id~eq~'" + a + "'")))"
                         multiple="multiple"></select>
@@ -287,12 +289,26 @@
 
         <div class="form-group">
             <div class="col-md-4">
-                <label class="control-label label-md " for="CompletionRate">Min. Tamamlanma Oranı</label>
+                <label class="control-label label-md">Tamamlanma Oranı</label>
             </div>
-            <div class="col-md-8">
+            <div class="col-md-4">
 
-                <input data-filterelement="CompletionRate"
+                <input data-filterelement="CompletionRate_Min"
                        style="width: 100%;"
+                       data-placeholder="Min. Tamamlanma Oranı"
+                       max="100"
+                       min="0"
+                       step="1"
+                       data-cascadefrom="CompletionRate_Max"
+                       data-cascadetype="max"
+                       type="text">
+
+            </div>
+            <div class="col-md-4">
+
+                <input data-filterelement="CompletionRate_Max"
+                       style="width: 100%;"
+                       data-placeholder="Max. Tamamlanma Oranı"
                        max="100"
                        min="0"
                        step="1"
@@ -300,6 +316,59 @@
 
             </div>
         </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md">Tahmini Beklenen Ciro</label>
+            </div>
+            <div class="col-md-4">
+
+                <input data-filterelement="VodafoneOffer_Min"
+                       data-placeholder="Min. Tahmini Ciro"
+                       style="width: 100%;"
+                       step="1"
+                       data-cascadefrom="VodafoneOffer_Max"
+                       data-cascadetype="max"
+                       type="text">
+
+            </div>
+            <div class="col-md-4">
+
+                <input data-filterelement="VodafoneOffer_Max"
+                       data-placeholder="Max. Tahmini Ciro"
+                       style="width: 100%;"
+                       step="1"
+                       type="text">
+
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md ">Son Teklif</label>
+            </div>
+            <div class="col-md-4">
+
+                <input data-filterelement="lastTenderTotalAmount_Min"
+                       data-placeholder="Min. Son Teklif"
+                       style="width: 100%;"
+                       step="1"
+                       data-cascadefrom="lastTenderTotalAmount_Max"
+                       data-cascadetype="max"
+                       type="text">
+
+            </div>
+            <div class="col-md-4">
+
+                <input data-filterelement="lastTenderTotalAmount_Max"
+                       data-placeholder="Max. Son Teklif"
+                       style="width: 100%;"
+                       step="1"
+                       type="text">
+
+            </div>
+        </div>
+
     </div>
 
 </script>
@@ -688,7 +757,7 @@
             FilterElements: {
                 created_Min: {
                     id: 'created_Min',
-                    type: 'minDT',
+                    type: '~gte~datetime',
                     field: 'created',
 
                     render: function (target, _value) {
@@ -716,7 +785,7 @@
                 },
                 created_Max: {
                     id: 'created_Max',
-                    type: 'maxDT',
+                    type: '~lte~datetime',
                     field: 'created',
 
                     render: function (target, _value) {
@@ -742,37 +811,9 @@
 
                     }
                 },
-                CompletionRate: {
-                    id: 'CompletionRate',
-                    type: 'number',
-                    field: 'CompletionRate',
-                    value: null,
-
-                    render: function (target, _value) {
-
-                        var $this = this;
-                        $this.value = _value;
-
-                        target.kendoNumericTextBox({
-                            //format: 'n3',
-                            //culture: 'tr-TR',
-
-                            spinners: false,
-                            value: $this.value,
-
-                            change: function (evnt) {
-
-                                var val = evnt.sender.value();
-                                agile.Filter.UpdateCustomFilterElement($this.id, val);
-
-                            }
-                        });
-
-                    }
-                },
                 ChannelCompanyId: {
                     id: 'ChannelCompanyId',
-                    type: 'multiple',
+                    type: '~eq~',
                     field: 'ChannelCompanyId',
                     value: null,
 
@@ -831,7 +872,7 @@
                 },
                 SalesPersonId: {
                     id: 'SalesPersonId',
-                    type: 'multiple',
+                    type: '~eq~',
                     field: 'SalesPersonId',
                     value: null,
 
@@ -890,7 +931,7 @@
                 },
                 CustomerCompanyId: {
                     id: 'CustomerCompanyId',
-                    type: 'multiple',
+                    type: '~eq~',
                     field: 'CustomerCompanyId',
                     value: null,
 
@@ -946,7 +987,168 @@
                             });
 
                     }
-                }
+                },
+
+                CompletionRate_Min: {
+                    id: 'CompletionRate_Min',
+                    type: '~gte~',
+                    field: 'CompletionRate',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+                            //format: 'n3',
+                            //culture: 'tr-TR',
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
+                CompletionRate_Max: {
+                    id: 'CompletionRate_Max',
+                    type: '~lte~',
+                    field: 'CompletionRate',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+                            //format: 'n3',
+                            //culture: 'tr-TR',
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
+                VodafoneOffer_Min: {
+                    id: 'VodafoneOffer_Min',
+                    type: '~gte~',
+                    field: 'VodafoneOffer',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
+                VodafoneOffer_Max: {
+                    id: 'VodafoneOffer_Max',
+                    type: '~lte~',
+                    field: 'VodafoneOffer',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
+                lastTenderTotalAmount_Min: {
+                    id: 'lastTenderTotalAmount_Min',
+                    type: '~gte~',
+                    field: 'lastTenderTotalAmount',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
+                lastTenderTotalAmount_Max: {
+                    id: 'lastTenderTotalAmount_Max',
+                    type: '~lte~',
+                    field: 'lastTenderTotalAmount',
+                    value: null,
+
+                    render: function (target, _value) {
+
+                        var $this = this;
+                        $this.value = _value;
+
+                        target.kendoNumericTextBox({
+
+                            spinners: false,
+                            value: $this.value,
+
+                            change: function (evnt) {
+
+                                var val = evnt.sender.value();
+                                agile.Filter.UpdateCustomFilterElement($this.id, val);
+
+                            }
+                        });
+
+                    }
+                },
             },
 
             Filters: {
@@ -1033,6 +1235,7 @@
                         $this.BtnRenderTarget.removeClass('active');
 
                         $this.Data = null;
+                        $this.Filters.Custom.items = [];
 
                         agile.Agile.UpdateFilters();
 
@@ -1102,7 +1305,8 @@
 
                 $.each($this.FilterElements, function (i, item) {
 
-                    var element = temp.find('[data-filterelement="' + i + '"]');
+                    var element = temp.find('[data-filterelement="' + i + '"]')
+                        .attr('id', item.id);
 
                     if ($this.Data != null && $this.Data.items != null) {
 
@@ -1471,7 +1675,13 @@
                                     filter: $this.getKendoFilter(),
                                     sort: [agile.Sort.Data]
                                 }),
-                                template: kendo.template(agile.Agile.stageItemTemplate.html())
+                                template: kendo.template(agile.Agile.stageItemTemplate.html()),
+                                dataBound: function () {
+
+                                    var target = this.element.parents('.agileColumn').find('.agileHeader');
+                                    target.find('[data-target="Count"]').html(this.dataSource.data().length);
+
+                                }
                             });
 
                         gridElem.sortable({
@@ -1493,6 +1703,9 @@
                                     var agileElement = $('.agileItem[data-id="' + _id + '"]');
                                     agileElement.find('[data-field="StageColor"]').attr('style', 'background-color: ' + stageColor);
                                     agileElement.attr('data-presentationstageid', res.PresentationStageId);
+
+                                    agile.Agile.UpdateFilters(preId);
+                                    agile.Agile.UpdateFilters(_PresentationStageId);
 
                                 });
 
@@ -1524,19 +1737,21 @@
 
                             var element = agile.Filter.FilterElements[c.id];
 
-                            if (element.type == 'single') {
-                                return "(" + c.field + "~eq~'" + c.value + "')";
-                            } else if (element.type == 'multiple') {
-                                return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
-                            } else if (element.type == 'number') {
-                                return "(" + c.field + "~gte~'" + c.value + ")";
-                            } else if (element.type == 'minDT') {
-                                return '(' + c.field + "~gte~datetime'" + kendo.toString(c.value, 'yyyy-MM-ddTHH-mm-ss') + "')";
-                            } else if (element.type == 'maxDT') {
-                                return '(' + c.field + "~lte~datetime'" + kendo.toString(c.value, 'yyyy-MM-ddTHH-mm-ss') + "')";
+                            if (TypeOf(element.value) == 'array') {
+
+                                return '(' + element.value.map(function (e) { return element.field + element.type + "'" + e + "'"; }).join("~or~") + ")";
+
+                            } else if (TypeOf(element.value) == 'date') {
+
+                                return '(' + element.field + element.type + "'" + kendo.toString(element.value, 'yyyy-MM-ddTHH-mm-ss') + "'" + ')';
+
                             }
 
+                            return '(' + element.field + element.type + "'" + element.value + "'" + ')';
+
                         }).join("~and~") + ")";
+
+                        console.log(Filter);
 
                         return kendo.filterParser(Filter);
 
@@ -1609,7 +1824,7 @@
             if (res.Result == true) {
 
                 agile.Agile.UpdateFilters(res.Object.PresentationStageId);
-                
+
             }
 
         })
