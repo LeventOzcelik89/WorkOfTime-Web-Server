@@ -631,7 +631,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return query;
         }
 
-        [AllowEveryone]
+        [PageInfo("Satış Duvarı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.SatisOnaylayici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult AgileBoard(VWAgileBoardDashboardModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
