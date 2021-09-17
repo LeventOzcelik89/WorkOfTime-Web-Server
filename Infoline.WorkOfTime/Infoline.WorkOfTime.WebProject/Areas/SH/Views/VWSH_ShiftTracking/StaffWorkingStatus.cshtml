@@ -14,8 +14,8 @@
                     <div class="col-md-3">
                         @(
                          Html.Akilli()
-                         .DropDownListFor(a => a.id)
-                         .OptionLabel("Lütfen Personel Seçiniz")
+                         .MultiSelectFor(a => a.id)
+                         .Placeholder("Lütfen Personel Seçiniz")
                          .DataValueField("id")
                          .Name("userId")
                          .DataTextField("FullName")
@@ -72,9 +72,9 @@
     $("#DashBoardFilter").click(function () {
         var startDate = $("#shiftTrackingStartDate").val();
         var endDate = $("#shiftTrackingEndDate").val();
-        var userId = $("#userId").val();
+        var userIds = $("#userId").val();
 
-        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResult', { startDate: startDate, endDate: endDate, userId: userId }, function (res) {
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResult', { startDate: startDate, endDate: endDate, userIds: userIds }, function (res) {
             if (res.length == 0) {
                 return;
             }
@@ -92,7 +92,7 @@
                         dataSource: {
                             data: $.Enumerable.From(res).ToArray(),
                             pageSize: 50,
-                            sort: { field: "startDate", dir: "asc" }
+                            sort: [{ field: "UserId_Title", dir: "asc" }, { field: "date", dir: "asc" }]
                         },
                         dataBound: function (e) {
                             $("#shiftTrackingPersonalGrid tbody tr:odd").css("background-color", "#f3f3f4");
@@ -157,7 +157,7 @@
                             {
                                 field: "ShiftTrackingStatus_Title",
                                 title: "Son Durum",
-                                width: "100px"
+                                width: "110px"
 
                             },
                             {
