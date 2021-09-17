@@ -185,9 +185,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
         [PageInfo("Personellerin Tüm Giriş Çıkış Verilerinin Dönüldüğü Methoddur.", SHRoles.IdariPersonelYonetici, SHRoles.IKYonetici)]
-        public ContentResult GetGeneralDataReportResult(DateTime startDate, DateTime endDate, Guid? userId)
+        public ContentResult GetGeneralDataReportResult(DateTime startDate, DateTime endDate, List<Guid> userIds)
         {
-            var res = new VMShiftTrackingModel().GetGeneralDataReportResult(startDate, endDate, userId);
+            var res = new VMShiftTrackingModel().GetGeneralDataReportResult(startDate, endDate, userIds);
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 

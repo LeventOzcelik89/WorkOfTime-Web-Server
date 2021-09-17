@@ -34,6 +34,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_TransactionItem> transactionItems { get; set; } = new List<VWPRD_TransactionItem>();
         public List<VWPRD_ProductionProduct> productionProductList { get; set; } = new List<VWPRD_ProductionProduct>();
         public int Total { get; set; } = 0;
+        public int Amount { get; set; } = 1;
 
         public Guid? productionSchemaId { get; set; }
         public string materialString { get; set; }

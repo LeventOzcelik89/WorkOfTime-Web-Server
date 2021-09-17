@@ -19,6 +19,7 @@
     var step4 = Model.productionOperations.Where(a => a.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti || a.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).OrderByDescending(a => a.created).Select(a => string.Format("İŞLEM YAPAN : {0}   <br/>  İŞLEM TARİHİ : {1:dd.MM.yyyy HH:mm}", a.createdby_Title, a.created)).FirstOrDefault();
 }
 
+
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
 <link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
 <script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
@@ -31,24 +32,51 @@
 
 <script type="text/javascript">
 
-	function producedProductChange(e) {
-		var data = e.sender.dataItem(e.sender.select())
-		var detail = $("#producedProductsDelete");
-		$(detail).removeClass("hidden")
-		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
-	}
+    function producedProductChange(e) {
+        var data = e.sender.dataItem(e.sender.select())
+        var detail = $("#producedProductsDelete");
+        $(detail).removeClass("hidden")
+        $(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+    }
 
-	function wastageProductsChange(e) {
+    function wastageProductsChange(e) {
 
-		var data = e.sender.dataItem(e.sender.select())
-		var detail = $("#wastageProductsDelete");
-		$(detail).removeClass("hidden")
-		$(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
-	}
+        var data = e.sender.dataItem(e.sender.select())
+        var detail = $("#wastageProductsDelete");
+        $(detail).removeClass("hidden")
+        $(detail).attr("data-href", "/PRD/VWPRD_ProductionOperation/Delete?transactionId=" + data.transactionId);
+    }
 
-	$(document)
+    $(document)
+        .on('shown:modal', function () {
+            console.log("@Html.Raw(@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   outputId = Model.centerStorageId,
+																									   outputTable= "CMP_Storage",
+																									   outputCompanyId = Model.centerCompanyId,
+																									   inputId= Model.productionStorageId,
+																									   inputTable = "CMP_Storage",
+																									   inputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
+																									   companyId = Model.centerCompanyId
+																								   }))");
+            $('[data-target="expenseInsertButton"]').attr("data-href", "@Html.Raw(@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																									   productionId = Model.id,
+																									   outputId = Model.centerStorageId,
+																									   outputTable= "CMP_Storage",
+																									   outputCompanyId = Model.centerCompanyId,
+																									   inputId= Model.productionStorageId,
+																									   inputTable = "CMP_Storage",
+																									   inputCompanyId = Model.productionCompanyId,
+																									   type = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+																									   status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
+																									   companyId = Model.centerCompanyId
+																								   }))");
+
+        })
 		.on("ready", function () {
-		GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
+		    GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
 				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
 				{ field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#:kendo.toString(quantity ?? 0,'N0')# " },
@@ -309,21 +337,21 @@
                     </div>
                     <div class="ibox-content">
                         <ul class="todo-list small-list">
-                          
-                                @foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
-                                {
-                                  
-                                    if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
-                                    {
 
-                            <li>
-                               
-                                <span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
-                                <small class="label label-primary"> Bildirim Yapıldı</small>
-                                <small class="label label-primary" style="float:right" data-original-title="Bu aşamaya toplam @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0") defa geçildi"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0")</small>
-                                <small class="label label-info" style="float:right" data-original-title="Oluşturulan ürün miktarı"> @stage.Count</small>
-                            </li>
-                                   
+                            @foreach (var stage in Model.productionStages.OrderBy(x => x.stageNumber))
+                            {
+
+                                if (Model.productionOperations.Where(x => x.dataId == stage.id).Count() > 0)
+                                {
+
+                                    <li>
+
+                                        <span class="m-l-xs"><i>@stage.stageNumber</i>) @stage.name</span>
+                                        <small class="label label-primary"> Bildirim Yapıldı</small>
+                                        <small class="label label-primary" style="float:right" data-original-title="Bu aşamaya toplam @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0") defa geçildi"> @Model.productionOperations.Where(x => x.dataId == stage.id).Count().ToString("N0")</small>
+                                        <small class="label label-info" style="float:right" data-original-title="Oluşturulan ürün miktarı"> @stage.Count</small>
+                                    </li>
+
                                 }
                                 else
                                 {
@@ -333,16 +361,16 @@
 
                                         <small class="label label-warning" data-original-title="Bu aşamaya daha geçilmedi" style="float:right">0</small>
                                     </li>
-                                    }
-                                    productionStageCount += Model.productionOperations.Where(x => x.dataId == stage.id).Count();
                                 }
+                                productionStageCount += Model.productionOperations.Where(x => x.dataId == stage.id).Count();
+                            }
                             @if (productionStageCount > 0)
                             {
-                        <li>
-                            <span class="m-l-xs"><b>TOPLAM BİLDİRİM</b></span>
-                            <small class="label label-primary" style="float:right" data-original-title="Toplam Aşama Bildirimi"> @productionStageCount.ToString("N0")</small>
-                            <small class="label label-info" id="dataTotal" data-original-title="Oluşturulan Toplam Ürün Miktarı"  style="float:right">@Model.Total</small>
-                        </li>
+                                <li>
+                                    <span class="m-l-xs"><b>TOPLAM BİLDİRİM</b></span>
+                                    <small class="label label-primary" style="float:right" data-original-title="Toplam Aşama Bildirimi"> @productionStageCount.ToString("N0")</small>
+                                    <small class="label label-info" id="dataTotal" data-original-title="Oluşturulan Toplam Ürün Miktarı" style="float:right">@Model.Total</small>
+                                </li>
                             }
                         </ul>
                     </div>
@@ -371,8 +399,8 @@
                                                 <p class="clearfix ">
                                                     @if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
                                                     {
-                                                    <strong class="pull-left"> @item.status_Title (@item.dataId_Title.Split('_')[0])</strong>
-                                                     
+                                                        <strong class="pull-left"> @item.status_Title (@item.dataId_Title.Split('_')[0])</strong>
+
                                                     }
                                                     else
                                                     {
@@ -388,14 +416,14 @@
                                                 @if (item.description != null)
                                                 {
                                                     var splitTo = item.description.Split('_');
-                                                    if (splitTo.Length>=2)
+                                                    if (splitTo.Length >= 2)
                                                     {
                                                         <div class="row">
                                                             <div class="col-sm-12">
                                                                 <div class="  text-warning" style="float:right;" data-step="@item.dataId"> Üretim Adedi :<b>@splitTo[1]</b></div>
                                                             </div>
                                                         </div>
-                                                       
+
                                                     }
                                                     else
                                                     {

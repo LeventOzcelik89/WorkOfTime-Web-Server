@@ -29,8 +29,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public double? quantity { get; set; }
 		public double? totalQuantity { get; set; }
 		public bool isExpense { get; set; }
-		public int amount { get; set; } = 1;
-
+		public int amount { get; set; }
+		public bool DropFromStock { get; set; }
 		public VMPRD_ProductionTransactionModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
@@ -246,7 +246,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
 			this.products = db.GetVWPRD_ProductByIds(productids).ToList();
 			this.inventories = db.GetVWPRD_InventoryBySerialCodesAndIds(productids, serials).ToList();
-
+           
 			var control = this.items.Where(a => a.serialCodes != null).GroupBy(a => a.productId).Select(a => new { productId = a.Key, serialCodes = a.SelectMany(c => c.serialCodes.Split(',')).GroupBy(g => g.ToLower()).ToArray() }).ToArray();
 			var controlText = control.Where(a => a.serialCodes.Count(c => c.Count() > 1) > 0).Select(a => string.Format("{0} ürünü için {1} serinumaraları", this.products.Where(c => c.id == a.productId).Select(c => c.code + " | " + c.name).FirstOrDefault(), string.Join(",", a.serialCodes.Where(c => c.Count() > 1).Select(g => g.Key)))).ToArray();
 
@@ -256,7 +256,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Giriş deposu seçilmedi." };
 			if (((this.type >= 10 && this.type < 20) || (this.type == 1)) && this.status == (int)EnumPRD_TransactionStatus.islendi && this.outputId == null)
 				return new ResultStatus { result = false, message = "Çıkış deposu seçilmedi." };
-
+			if (this.DropFromStock)
+			{
+				
+			}
 			var rs = new ResultStatus { result = true };
 			if (transaction == null)
 			{
