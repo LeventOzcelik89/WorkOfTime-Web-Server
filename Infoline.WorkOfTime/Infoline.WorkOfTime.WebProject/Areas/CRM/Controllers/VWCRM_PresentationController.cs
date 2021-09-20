@@ -105,7 +105,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         [PageInfo("Potansiyel/Fırsat Ekleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Insert(VMCRM_PresentationModel item, DateTime? AppointmentDate, string AbsoluteUri, bool? isPost)
+        public ContentResult Insert(VMCRM_PresentationModel item, DateTime? AppointmentDate, string AbsoluteUri, bool? isPost)
         {
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -135,6 +135,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
             if (res.result)
             {
+                res.objects = db.GetVWCRM_PresentationById(item.id);
                 trans.Commit();
             }
             else
@@ -147,13 +148,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
                 new FileUploadSave(Request, item.LastContact.id).SaveAs();
             }
 
-
-            return Json(new ResultStatusUI
+            return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI
             {
                 Result = res.result,
-                FeedBack = res.result ? feedback.Success(res.message, false, (AbsoluteUri.EndsWith("AgileBoard") ? "" : AbsoluteUri)) : feedback.Warning(res.message)
+                FeedBack = res.result ? feedback.Success(res.message, false, (AbsoluteUri.EndsWith("AgileBoard") ? "" : AbsoluteUri)) : feedback.Warning(res.message),
+                Object = res.objects
+            }), "application/json");
 
-            }, JsonRequestBehavior.AllowGet);
         }
 
         [PageInfo("Potansiyel/Fırsat Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
@@ -630,7 +631,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return query;
         }
 
-        [AllowEveryone]
+        [PageInfo("Satış Duvarı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.SatisOnaylayici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult AgileBoard(VWAgileBoardDashboardModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

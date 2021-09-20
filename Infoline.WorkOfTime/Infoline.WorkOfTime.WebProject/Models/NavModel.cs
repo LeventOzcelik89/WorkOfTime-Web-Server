@@ -135,7 +135,8 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Personel Listesi", "/SH/VWSH_User/Index"));
             personel.AddChild(new Menu("Personel Raporları", "/INV/INV_CompanyPerson/Dashboard"));
             personel.AddChild(new Menu("Sertifika/Dosya/Eğitim Raporları", "/SH/VWSH_User/CertificateReport"));
-            personel.AddChild(new Menu("Personel Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
+            personel.AddChild(new Menu("Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
+            personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
@@ -301,6 +302,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
+            menu.AddChild(new Menu("Ürün Fiyat Listeleri", "/PRD/VWPRD_CompanyBasedPrice/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
             menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
             menu.AddChild(new Menu("Cari Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/Index"));

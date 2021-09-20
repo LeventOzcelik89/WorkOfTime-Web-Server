@@ -1,90 +1,108 @@
 ﻿@model VMPRD_ProductionOperationModel
 @{
 
-	ViewBag.Title = "Üretim Emri Operasyon Detayı";
-	Layout = "~/Views/Shared/_Layout.cshtml";
-	var status = (EnumPRD_ProductionOperationStatus)Model.status;
+    ViewBag.Title = "Üretim Emri Operasyon Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var status = (EnumPRD_ProductionOperationStatus)Model.status;
 }
 
 <style type="text/css">
-	.k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
-		display: none;
-	}
+    .k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+        display: none;
+    }
 </style>
 
 @using (Html.BeginForm("Update", "VWPRD_ProductionOperation", FormMethod.Post, new Dictionary<string, object>() {
-	{ "class", "form-horizontal" },
-	{ "role", "form" },
-	{ "data-selector", "modalContainer" },
-	{ "data-formType", "Ajax" }
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
 }))
 {
 
 
-	<div class="form-group">
-		<div class="col-md-3">
-			<label class="control-label label-md" for="description">Tarih/Oluşturan : </label>
-		</div>
-		<div class="col-md-9">
-			<div class="row">
-				<div class="col-md-6">
-					@Html.TextBoxFor(model => model.created, new Dictionary<string, object>()
-					{
-						{"class", "form-control"},
-						{"disabled", "disabled"}
-					})
-				</div>
-				<div class="col-md-6">
-					@Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
-					{
-						{"class", "form-control"},
-						{"disabled", "disabled"}
-					})
-				</div>
-			</div>
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-3">
+            <label class="control-label label-md" for="description">Tarih/Oluşturan : </label>
+        </div>
+        <div class="col-md-9">
+            <div class="row">
+                <div class="col-md-6">
+                    @Html.TextBoxFor(model => model.created, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"}
+                    })
+                </div>
+                <div class="col-md-6">
+                    @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"}
+                    })
+                </div>
+            </div>
+        </div>
+    </div>
 
-	if (status == EnumPRD_ProductionOperationStatus.AsamaBildirimi)
-	{
-		<div class="form-group">
-			<div class="col-md-3">
-				<label class="control-label label-md" for="description">Aşama : </label>
-			</div>
-			<div class="col-md-9">
-				@Html.TextBoxFor(model => model.dataId_Title, new Dictionary<string, object>()
-					{
-						{"class", "form-control"},
-						{"disabled", "disabled"}
-					})
-			</div>
-		</div>
-	}
-	else
-	{
-		<div class="form-group">
-			<div class="col-md-3">
-				<label class="control-label label-md" for="description">Açıklama : </label>
-			</div>
-			<div class="col-md-9">
-				@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
-				{
-					{"class", "form-control"},
-					{"readonly","readonly" }
-				}).Validate(Validations.Required)
-			</div>
-		</div>
-	}
+    if (status == EnumPRD_ProductionOperationStatus.AsamaBildirimi)
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md" for="description">Aşama : </label>
+            </div>
+            <div class="col-md-9">
+                @Html.TextBoxFor(model => model.dataId_Title, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"}
+                    })
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md" for="description">Üretilen Ürün Miktarı </label>
+            </div>
+            <div class="col-md-9">
+                @{var splitTo = Model.description.Split('_');
+                    double value = 0;
+                    if (splitTo.Length >= 2)
+                    {
+                        value = Convert.ToDouble(splitTo[1]);
+                    }
+
+                }
+
+                @Html.Akilli().NumericTextBox("description").Format("N0").Step(1).Min(0).Value(value).Enable(false).HtmlAttributes(new { style = "background-color:#eee !important;width:100%;cursor:not-allowed" })
+
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md" for="description">Açıklama : </label>
+            </div>
+            <div class="col-md-9">
+                @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"readonly","readonly" }
+                }).Validate(Validations.Required)
+            </div>
+        </div>
+    }
 
 
-	if (status == EnumPRD_ProductionOperationStatus.FormYuklendi)
-	{
-		<div class="form-group">
-			<div class="col-md-3">
-				<label class="control-label label-md" for="Dosya">Dosya : </label>
-			</div>
-			<div class="col-md-9">
-				@(
+    if (status == EnumPRD_ProductionOperationStatus.FormYuklendi)
+    {
+        <div class="form-group">
+            <div class="col-md-3">
+                <label class="control-label label-md" for="Dosya">Dosya : </label>
+            </div>
+            <div class="col-md-9">
+                @(
                 Html.Akilli().FileUpload()
                 .DataTable("PRD_ProductionOperation")
                 .DataId(Model.id)
@@ -92,12 +110,12 @@
                 .Validate(true)
                 .PreviewMode(true)
             )
-			</div>
-		</div>
-	}
+            </div>
+        </div>
+    }
 
-	<div class="buttons">
-		<button class="btn btn-md btn-danger pull-right" data-task="modalClose">Kapat</button>
-	</div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-right" data-task="modalClose">Kapat</button>
+    </div>
 
 }
