@@ -123,6 +123,7 @@
         events: {
             deleteAllRow() {
                 $('#RowContainer_Stages tr').remove();
+                page.Counter = 0;
             },
             addRow: function (data) {
                 var stages = $($('#RowTempForStages').html());
@@ -130,19 +131,24 @@
                 stages.find('[data-stages="metarialId"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId')
                     .attr('value', data.materialId)
+
                 stages.find('[data-stages="metarialIdTitle"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId_Title')
                     .attr('value', data.materialId_Title)
                     .attr('readonly', '');
+
                 stages.find('[data-stages="quantity"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].quantity')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity) });
+
                 stages.find('[data-stages="price"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].price')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data.price) });
+
                 stages.find('[data-stages="totalQuantity"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].totalQuantity')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity) });
+
                 stages.find('[data-stages="stockTotal"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].stockTotal')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.stockTotal) });
@@ -162,11 +168,28 @@
                 }
             },
             onChangeProduct: function (e) {
+               
                 var product = e.sender.dataItem();
+                var companyDropDown = $("#centerCompanyId").data("kendoDropDownList");
+                var centercompanyDropDown = $("#centerStorageId").data("kendoDropDownList");
+                if (e.sender.value()!="") {
+               
+                    companyDropDown.enable(true);
+                    centercompanyDropDown.enable(true);
+                }
+
+                else {
+                    companyDropDown.enable(false);
+                    centercompanyDropDown.enable(false);
+                }
+
+
+
                 if (product == null || product.id == null || product.id == "") {
                     return;
                 }
                 if (product != null && product.id != null && product.id != "") {
+                    
                     $("#quantity").data("handler").enable(true);
                     var detail = $("#productDetailButton");
                     $(detail).attr("href", "/PRD/VWPRD_Product/Detail?id=" + product.id);
@@ -185,6 +208,11 @@
                         else {
                             $("#productionInsertButton").removeClass("hide")
                         }
+                        debugger
+                        page.events.changeAmountText(product);
+                        page.events.changeAmountPriceText(product);
+
+
                     })
                 }
                 else {
@@ -225,12 +253,20 @@
                     });
                 }
             },
-            disableOnProductNotSelected: function () {
-                $(document).on("change", "#productId", function () {
-                    console.log("");
-
-                })
+            changeAmountText: function (e) {
+                var amount = $('[data-stages="amount"]');
+                    $(amount).text(e.unitId_Title)
+            },
+            changeAmountPriceText: function (e) {
+                var amountPrice = $('[data-stages="amountPrice"]');
+                    if (e.currentBuyingCurrencyId_Title == null) {
+                        $(amountPrice).text("₺")
+                    }
+                    else {
+                        $(amountPrice).text(e.currentBuyingCurrencyId_Title)
+                    }
             }
+           
         }
     };
 </script>
@@ -249,25 +285,25 @@
         <td>
             <div class="input-group">
                 <input data-stages="quantity" />
-                <span class="input-group-addon"> Adet</span>
+                <span data-stages="amount" class="input-group-addon"> Adet</span>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="price" />
-                <span class="input-group-addon"> ₺</span>
+                <span data-stages="amountPrice" class="input-group-addon"> ₺</span>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="totalQuantity" />
-                <span class="input-group-addon">Adet</span>
+                <span data-stages="amount"  class="input-group-addon">Adet</span>
             </div>
         </td>
         <td>
             <div class="input-group">
-                <input data-stages="stockTotal" />
-                <span class="input-group-addon">Adet</span>
+                <input data-stages="stockTotal" readonly />
+                <span data-stages="amount" class="input-group-addon">Adet</span>
             </div>
         </td>
     </tr>
@@ -328,17 +364,19 @@
                 </div>
                 <div class="col-md-7">
                     @(
-        Html.Akilli()
-        .DropDownListFor(model => model.centerCompanyId)
-        .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
-        .DataValueField("id")
-        .DataTextField("fullName")
-        .Template("#=TemplateEngine('companyTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-        .Sort(x => x.Add("fullName").Ascending())
-        .Validate(Validations.Required)
-        .Execute()
-         .Enable(false)
+            Html.Akilli()
+                .DropDownListFor(model => model.centerCompanyId)
+                .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                .Enable(false)
+              
+
             )
                 </div>
             </div>
@@ -364,6 +402,7 @@
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="centerStorageId">Merkez Depo</label>
+                    <i data-toggle="tooltip" data-placement="top" title="Üretilen ürünlerin çıkışının yapılcağı depodur." class="fa fa-info-circle"></i>
                 </div>
                 <div class="col-md-7">
                     @(
@@ -381,7 +420,6 @@
             .Validate(Validations.Required)
             .Events(a => { a.Change("page.events.onChangeStorage"); a.DataBound("page.events.onChangeStorage"); })
             .Execute()
-            .Enable(false)
                 )
                 </div>
             </div>
@@ -421,7 +459,6 @@
 		.Sort(x => x.Add("fullName").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
-       .Enable(false)
             )
                 </div>
             </div>
@@ -448,6 +485,7 @@
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="productionStorageId">Üretilecek Depo</label>
+                    <i data-toggle="tooltip" data-placement="top" title="Üretilen ürünlerin girişinin yapılcağı depodur." class="fa fa-info-circle"></i>
                 </div>
                 <div class="col-md-7">
                     @(
@@ -464,7 +502,6 @@
 			.Sort(x => x.Add("fullName").Ascending())
 			.Validate(Validations.Required)
 			.Execute()
-            .Enable(false)
                 )
                 </div>
             </div>
@@ -476,8 +513,10 @@
                 <div class="col-md-5">
                     <label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
                 </div>
-                <div class="col-md-5">
-                    @(Html.Akilli()
+                <div class="col-md-7">
+                    <div class="input-group">
+
+                        @(Html.Akilli()
 		.DropDownListFor(model=>model.productId)
 		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
 		.DataTextField("fullName")
@@ -490,9 +529,9 @@
 		.Execute()
 
             )
-                </div>
-                <div class="col-sm-2">
-                    <a class="btn pull-right m-r-sm btn btn-primary hide" style="margin-top: 3px;" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i> Detay </a>
+                       <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Detayı" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i></a>
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -514,7 +553,7 @@
 		.Sort(x => x.Add("name").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
-        .Enable(false)
+        
             )
                 </div>
             </div>
@@ -524,7 +563,7 @@
         <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
-                    <label class="control-label label-md req" for="quantity">Üretilecek Adet</label>
+                    <label class="control-label label-md req" for="quantity">Üretilecek Birim</label>
                 </div>
                 <div class="col-md-7">
                     @(
@@ -585,10 +624,10 @@
                         <tr>
                             <th hidden> Id</th>
                             <th>Ürün Adı</th>
-                            <th>Birim Miktar (Adet) </th>
+                            <th>Birim Miktar  </th>
                             <th> Birim Fiyat</th>
-                            <th>Toplam Miktar (Adet)</th>
-                            <th>Toplam Stok Durumu (Adet)</th>
+                            <th>Toplam Miktar </th>
+                            <th>Toplam Stok Durumu </th>
                         </tr>
                     </thead>
                     <tbody id="RowContainer_Stages">
