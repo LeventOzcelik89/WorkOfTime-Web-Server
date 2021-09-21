@@ -1,5 +1,4 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.Helper;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -36,6 +35,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     public class VMPRD_ProductionModel : VWPRD_Production
     {
+
+
+        public VWPRD_Transaction Transaction { get; set; } = new VWPRD_Transaction {id=Guid.NewGuid() };
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public VWCMP_Company productionCompany { get; set; }
@@ -58,7 +60,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         //  OPERASYONA MIKTAR ALAN EKLENİYOR.
         public int Total { get; set; } = 0;
         public Guid? productionSchemaId { get; set; }
+        public Guid? productionId { get; set; }
 
+        public string inputId_Adress { get; set; }
+        public string outputId_Adress { get; set; }
+        public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
+        public bool hasUpdate { get; set; }
+        public string tenderIds { get; set; }
+        public Guid? companyId { get; set; }
         public VMPRD_ProductionModel Load()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -525,6 +534,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 result = true,
                 objects = data
             };
+        }
+
+        public ResultStatus LoadForExpens()
+        {
+
+
+
+
+
+
+
+            return new ResultStatus();
+
+
+
+
         }
 
 
