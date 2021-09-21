@@ -12,8 +12,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
     public class VMPRD_ProductionStage : VWPRD_ProductionStage
     {
         public int Count { get; set; }
-        
     }
+    //  HARCAMA BİLDİR
+    //  PRD_ProductionProduct
+    //      TRANSACTİON MODEL İŞLETİYORSUN.
+
+
+    //  ÜRETİM BİLDİRDİ.
+    //  MİKTAR
+    //  SERİ NUMARALAR ( VARSA )
+    //      50 ÜRETTİM. 
+    //      TRANSCATİON MODEL İŞLETİYORSUN. 50 ÜRETİLDİ.
+
+
+
+
+    //  SAVE
+    //  PRD_ProductionProduct VAR MI ?
+    //      VAR = TRASN. HARCAMA.
+
+    //  ÜRETİM MİKTARI, SERİ NO GELDİYSE
+    //      EVET = ÜRETİM BİLDİR. TRANS. MODEL
 
     public class VMPRD_ProductionModel : VWPRD_Production
     {
@@ -27,17 +46,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductionUser> productionUsers { get; set; } = new List<VWPRD_ProductionUser>();
         public List<VWPRD_ProductionOperation> productionOperations { get; set; } = new List<VWPRD_ProductionOperation>();
         public List<VMPRD_ProductionStage> productionStages { get; set; } = new List<VMPRD_ProductionStage>();
-        public List<VWPRD_ProductMateriel> productMaterials { get; set; } = new List<VWPRD_ProductMateriel>();
+        public List<VWPRD_ProductMateriel> productMaterials { get; set; } = new List<VWPRD_ProductMateriel>();       
+        //  HARCAMA         TRANS.MODEL
         public List<VWPRD_ProductionProduct> productionProducts { get; set; } = new List<VWPRD_ProductionProduct>();
+        //  TRANS.MODEL     TİP = FİRE.
         public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        // 
         public List<VWPRD_TransactionItem> producedProducts { get; set; } = new List<VWPRD_TransactionItem>();
-        public List<VWPRD_TransactionItem> transactionItems { get; set; } = new List<VWPRD_TransactionItem>();
+        //  ÖĞREN NEDİR BU.
         public List<VWPRD_ProductionProduct> productionProductList { get; set; } = new List<VWPRD_ProductionProduct>();
+        //  OPERASYONA MIKTAR ALAN EKLENİYOR.
         public int Total { get; set; } = 0;
-        public int Amount { get; set; } = 1;
-
         public Guid? productionSchemaId { get; set; }
-        public string materialString { get; set; }
 
         public VMPRD_ProductionModel Load()
         {
@@ -55,7 +75,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 productionSchemaId = productionStages.Count() > 0 ? productionStages.Where(a => a.productionSchemaId.HasValue).Select(x => x.productionSchemaId.Value).FirstOrDefault() : Guid.NewGuid();
                 foreach (var stages in productionStages.Where(x => x != null))
                 {
-                    stages.Count = productionOperations.Where(a => a.dataId == stages.id && a.description != null).Sum(p => {
+                    stages.Count = productionOperations.Where(a => a.dataId == stages.id && a.description != null).Sum(p =>
+                    {
                         var count = 0;
                         int.TryParse(p.description.Split('_')[1], out count);
 
@@ -94,10 +115,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     new FileUploadSave(request, this.id).SaveAs();
                 }
             }
-
             return rs;
         }
-
         private ResultStatus Insert(Guid? userId, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -161,14 +180,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 productionSchemaId = this.productionSchemaId
             }).B_ConvertType<VMPRD_ProductionStage>());
 
-            if (!string.IsNullOrEmpty(this.materialString))
+            if (productMaterials.Count>0)
             {
-                var materials = Infoline.Helper.Json.Deserialize<List<VWPRD_ProductMateriel>>(this.materialString);
-                if (materials.Count() > 0)
-                {
+                
                     var productionProducts = new List<PRD_ProductionProduct>();
-
-                    productionProducts.AddRange(materials.Select(x => new PRD_ProductionProduct
+                    productionProducts.AddRange(productMaterials.Select(x => new PRD_ProductionProduct
                     {
                         id = Guid.NewGuid(),
                         createdby = userId,
@@ -180,10 +196,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         totalQuantity = x.totalQuantity,
                         type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
                         transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
-                    }));
+                    }));;
+                   
 
                     rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
-                }
+                
             }
 
             rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
@@ -251,28 +268,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
 
-            if (!string.IsNullOrEmpty(this.materialString))
+            if (productMaterials.Count > 0)
             {
-                var materials = Infoline.Helper.Json.Deserialize<List<VWPRD_ProductMateriel>>(this.materialString);
-                if (materials.Count() > 0)
+                productionProducts.ToList().AddRange(productMaterials.Select(x => new PRD_ProductionProduct
                 {
-                    var productionProductDatas = new List<PRD_ProductionProduct>();
+                    id = Guid.NewGuid(),
+                    createdby = userId,
+                    productId = x.productId,
+                    price = x.price,
+                    materialId = x.materialId,
+                    quantity = x.quantity,
+                    productionId = this.id,
+                    totalQuantity = x.totalQuantity,
+                    type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
+                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
+                })); ;
 
-                    productionProductDatas.AddRange(materials.Select(x => new PRD_ProductionProduct
-                    {
-                        id = Guid.NewGuid(),
-                        createdby = userId,
-                        productId = x.productId,
-                        price = x.price,
-                        materialId = x.materialId,
-                        quantity = x.quantity,
-                        productionId = this.id,
-                        totalQuantity = x.totalQuantity,
-                        type = (int)EnumPRD_ProductionProductsType.RecetedenGelen
-                    }));
 
-                    rs &= db.BulkInsertPRD_ProductionProduct(productionProductDatas);
-                }
+                rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
+
             }
 
 

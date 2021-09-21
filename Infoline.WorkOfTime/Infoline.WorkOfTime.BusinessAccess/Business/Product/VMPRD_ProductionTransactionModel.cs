@@ -14,10 +14,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VMPRD_TransactionItems> items { get; set; } = new List<VMPRD_TransactionItems>() { };
 		private WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
-		private List<VWPRD_Product> products { get; set; }
-		private List<VWPRD_Inventory> inventories { get; set; }
+		private List<VWPRD_Product> products { get; set; }	//	tek gelecek.
+		private List<VWPRD_Inventory> inventories { get; set; }	//	ÜRÜNÜN ÜRETİLMESİ İÇİN GEREKLİ MATERYALLERİ.
 		public Guid? productionId { get; set; }
-
+	
 		public string inputId_Adress { get; set; }
 		public string outputId_Adress { get; set; }
 		public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
@@ -30,8 +30,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public double? totalQuantity { get; set; }
 		public bool isExpense { get; set; }
 		public int amount { get; set; }
-		public bool DropFromStock { get; set; }
-		public VMPRD_ProductionTransactionModel Load()
+        public double OutOfStock { get; set; }
+
+        public VMPRD_ProductionTransactionModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetVWPRD_TransactionById(this.id);
@@ -47,6 +48,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			else
 			{
+
 				this.hasUpdate = false;
 				this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 				this.date = this.date ?? DateTime.Now;
@@ -133,12 +135,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}
 				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
+					var getVWPRD_Production = db.GetVWPRD_ProductionById(this.productionId.Value);
+                    if (getVWPRD_Production!=null)
+                    {
+						this.OutOfStock = getVWPRD_Production.producedQuantity.HasValue?getVWPRD_Production.producedQuantity.Value:0;
+
+					}
 					var productionProduct = db.GetVWPRD_ProductionById(this.productionId.Value);
 					if (productionProduct != null)
 					{
 						this.productId = productionProduct.productId.Value;
 						this.productId_Title = productionProduct.productId_Title;
 						this.totalQuantity = productionProduct.quantity;
+						
+						
 						//this.items.Add(new VMPRD_TransactionItems
 						//{
 						//	productId = productionProduct.productId,
@@ -256,10 +266,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Giriş deposu seçilmedi." };
 			if (((this.type >= 10 && this.type < 20) || (this.type == 1)) && this.status == (int)EnumPRD_TransactionStatus.islendi && this.outputId == null)
 				return new ResultStatus { result = false, message = "Çıkış deposu seçilmedi." };
-			if (this.DropFromStock)
-			{
-				
-			}
+			
 			var rs = new ResultStatus { result = true };
 			if (transaction == null)
 			{
