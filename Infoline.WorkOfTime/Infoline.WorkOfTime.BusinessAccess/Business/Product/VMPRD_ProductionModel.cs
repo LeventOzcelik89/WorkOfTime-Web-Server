@@ -33,11 +33,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
     //  ÜRETİM MİKTARI, SERİ NO GELDİYSE
     //      EVET = ÜRETİM BİLDİR. TRANS. MODEL
 
-    public class VMPRD_ProductionModel : VWPRD_Production
+    public class VMPRD_ProductionModel :VWPRD_Production
     {
 
 
-        public VWPRD_Transaction Transaction { get; set; } = new VWPRD_Transaction {id=Guid.NewGuid() };
+        public VWPRD_Transaction Transaction { get; set; }
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public VWCMP_Company productionCompany { get; set; }
@@ -51,6 +51,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductMateriel> productMaterials { get; set; } = new List<VWPRD_ProductMateriel>();       
         //  HARCAMA         TRANS.MODEL
         public List<VWPRD_ProductionProduct> productionProducts { get; set; } = new List<VWPRD_ProductionProduct>();
+     
         //  TRANS.MODEL     TİP = FİRE.
         public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
         // 
@@ -60,14 +61,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         //  OPERASYONA MIKTAR ALAN EKLENİYOR.
         public int Total { get; set; } = 0;
         public Guid? productionSchemaId { get; set; }
-        public Guid? productionId { get; set; }
-
         public string inputId_Adress { get; set; }
         public string outputId_Adress { get; set; }
-        public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
+        
         public bool hasUpdate { get; set; }
         public string tenderIds { get; set; }
-        public Guid? companyId { get; set; }
+       
+      
+        public int amount { get; set; }
+        public double OutOfStock { get; set; }
         public VMPRD_ProductionModel Load()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -94,6 +96,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Total += stages.Count;
                 }
             }
+            if (Transaction!=null)
+            {
+                var outputInfo = this.GetInfo(this.Transaction.outputId, this.Transaction.outputTable, this.Transaction.outputCompanyId);
+                var inputInfo = this.GetInfo(this.Transaction.inputId, this.Transaction.inputTable, this.Transaction.inputCompanyId);
+                this.inputId_Adress = inputInfo.Adress;
+                this.Transaction.inputId_Title = inputInfo.Text;
+                this.Transaction.inputCompanyId = inputInfo.CompanyId;
+                this.Transaction.inputCompanyId_Title = inputInfo.CompanyIdTitle;
+                this.Transaction.inputId_Title = inputInfo.Text;
+                this.outputId_Adress = outputInfo.Adress;
+                this.Transaction.outputId_Title = outputInfo.Text;
+                this.Transaction.outputCompanyId = outputInfo.CompanyId;
+                this.Transaction.outputCompanyId_Title = outputInfo.CompanyIdTitle;
+                this.Transaction.outputId_Title = outputInfo.Text;
+            }
+            
             this.code = !String.IsNullOrEmpty(this.code) ? this.code : BusinessExtensions.B_GetIdCode();
             return this;
         }
@@ -103,7 +121,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var production = db.GetVWPRD_ProductionById(this.id);
             var rs = new ResultStatus { result = true };
-
             if (production == null)
             {
                 this.createdby = userId;
@@ -229,6 +246,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Üretim emri oluşturma işlemi başarısız." };
             }
         }
+
+        private ResultStatus InsertForSpendProducts()
+        {
+            var errorList = new List<string>();
+            var inputInfo = GetInfo(this.Transaction.inputId, this.Transaction.inputTable, this.Transaction.inputCompanyId);
+            var outputInfo = GetInfo(this.Transaction.outputId, this.Transaction.outputTable, this.Transaction.outputCompanyId);
+            this.Transaction.inputId_Title = inputInfo.Text;
+            this.Transaction.inputCompanyId = inputInfo.CompanyId;
+            this.Transaction.inputCompanyId_Title = inputInfo.CompanyIdTitle;
+            this.Transaction.inputId = inputInfo.DataId;
+            this.Transaction.inputTable = inputInfo.DataTable;
+            this.Transaction.outputId_Title = outputInfo.Text;
+            this.Transaction.outputCompanyId = outputInfo.CompanyId;
+            this.Transaction.outputCompanyId_Title = outputInfo.CompanyIdTitle;
+            this.Transaction.outputId = outputInfo.DataId;
+            this.Transaction.outputTable = outputInfo.DataTable;
+            var DBResult = new ResultStatus { result = true };
+            var PRDTransaction = new PRD_Transaction().B_EntityDataCopyForMaterial(this.Transaction);
+            var PRDTransactionItems = new List<PRD_TransactionItem>();
+            var PRDInventories = new List<PRD_Inventory>();
+            var PRDInventoryActions = new List<PRD_InventoryAction>();
+            return new ResultStatus { result = true };
+        }
+
 
         private ResultStatus Update(Guid? userId, DbTransaction trans = null)
         {
@@ -536,22 +577,67 @@ namespace Infoline.WorkOfTime.BusinessAccess
             };
         }
 
-        public ResultStatus LoadForExpens()
+               private OwnerInfo GetInfo(Guid? dataId, string dataTable, Guid? dataCompanyId)
         {
-
-
-
-
-
-
-
-            return new ResultStatus();
-
-
-
-
+            OwnerInfo result = new OwnerInfo();
+            if (dataId != null && dataTable != null)
+            {
+                switch (dataTable)
+                {
+                    case "CMP_Storage":
+                        var storage = db.GetVWCMP_StorageById(dataId.Value);
+                        result = new OwnerInfo
+                        {
+                            CompanyId = storage?.companyId,
+                            CompanyIdTitle = storage?.companyId_Title,
+                            Location = storage?.location,
+                            Text = storage?.companyId_Title + " | " + storage?.name,
+                            Adress = storage?.address,
+                            DataId = dataId,
+                            DataTable = dataTable,
+                        };
+                        break;
+                    case "SH_User":
+                        var user = db.GetVWSH_UserById(dataId.Value);
+                        var company = db.GetVWCMP_CompanyById(user.CompanyId ?? Guid.NewGuid());
+                        result = new OwnerInfo
+                        {
+                            CompanyId = company?.id,
+                            CompanyIdTitle = company?.fullName,
+                            Location = company?.location,
+                            Text = company?.fullName + " | " + user?.FullName,
+                            Adress = user?.address,
+                            DataId = dataId,
+                            DataTable = dataTable,
+                        };
+                        break;
+                    case "CMP_Company":
+                        var cmp = db.GetVWCMP_CompanyById(dataId.Value);
+                        result = new OwnerInfo
+                        {
+                            CompanyId = cmp?.id,
+                            CompanyIdTitle = cmp?.fullName,
+                            Location = cmp.location,
+                            Text = cmp?.fullName,
+                            Adress = ""
+                        };
+                        break;
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                var company = db.GetVWCMP_CompanyById(dataCompanyId ?? Guid.NewGuid());
+                result.CompanyId = dataCompanyId;
+                result.CompanyIdTitle = company?.fullName;
+                result.Text = company?.fullName;
+                result.Adress = company?.openAddress;
+                result.Location = company?.location;
+                result.DataId = null;
+                result.DataTable = null;
+            }
+            return result;
         }
-
-
     }
 }

@@ -96,53 +96,30 @@
                 }
                 $("tbody tr").remove();
             },
-            ValidateRows: function () {
-                var valid = true;
-                page.Counter = 0;
-                $.each($('#RowContainer_Upsert tr'), function (i, item) {
-                    $(item).find('[data-item="index"]')
-                        .html(page.Counter);
-                    $(item).find('[data-item="id"]')
-                        .attr('name', 'items[' + page.Counter + '].id');
-                    $(item)
-                        .find('[data-item="unitPrice"]')
-                        .attr('name', 'items[' + page.Counter + '].unitPrice');
-                    $(item).find('[data-item="quantity"]')
-                        .attr('name', 'items[' + page.Counter + '].quantity');
-                    $(item).find('[data-item="serialCodes"]')
-                        .attr('name', 'items[' + page.Counter + '].serialCodes');
-                    $(item).find('[data-item="productId"]')
-                        .attr('name', 'items[' + page.Counter + '].productId');
-                    page.Counter++;
-                });
-                return valid;
-            },
-            addRow: function (data, amount) {
-                if (page.events.ValidateRows() == false) {
-                    return false;
-                }
+            addRow: function (data) {
+                debugger
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="index"]').append(page.Counter);
                 temp.find('[data-item="id"]')
-                    .attr('name', 'items[' + page.Counter + '].id')
+                    .attr('name', 'expenedProducts[' + page.Counter + '].id')
                     .attr('id', (data != undefined ? data.id : kendo.guid()));
                 temp.find('[data-item="unitPrice"]')
-                    .attr('name', 'items[' + page.Counter + '].unitPrice')
+                    .attr('name', 'expenedProducts[' + page.Counter + '].unitPrice')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
                 temp.find('[data-item="quantity"]')
-                    .attr('name', 'items[' + page.Counter + '].quantity')
+                    .attr('name', 'expenedProducts[' + page.Counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity:0)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity  : null) });
                 temp.find('[data-item="serialCodes"]')
-                    .attr('name', 'items[' + page.Counter + '].serialCodes')
+                    .attr('name', 'expenedProducts[' + page.Counter + '].serialCodes')
                     .attr('value', data != undefined ? data.serialCodes : '')
                     .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
                 temp.find('[data-item="productId"]')
-                    .attr('name', 'items[' + page.Counter + '].productId')
+                    .attr('name', 'expenedProducts[' + page.Counter + '].productId')
                     .kendoDropDownList(
                         {
-                            "value": (data != undefined ? data.productId : null),
+                            "value": (data != undefined ? data.materialId : null),
                             "change": page.events.productChange,
 							"dataBound": page.events.productChange,
                             "dataSource": {
@@ -154,11 +131,7 @@
                                 "serverPaging": true,
                                 "serverSorting": true,
                                 "serverFiltering": true,
-                                "sort": [
-                                    { "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
-                                    { "field": "productId_Title", "dir": "asc" },
-                                ],
-								"filter": [{ "field": "stockId", "operator": "eq", "value": '@Model.Transaction.outputId' }]
+                                "filter": [{ "field": "stockId", "operator": "eq", "value": '@Model.Transaction.outputId' }]
                             },
                             "dataTextField": "fullName",
                             "delay": 1000,
@@ -193,6 +166,7 @@
                     serialCodes.prop("readonly", true);
                     serialCodes.tagify({ placeholder:"Henüz ürün seçimi yapılmadı." });
                 } else {
+                    debugger
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
                     quantity.enable(true);
@@ -215,7 +189,7 @@
                         }
                         var whitelist = $.ajax({
                             url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-							data: { productId: data.id, lastActionDataId: page.Model.outputId, lastActionDataCompanyId: page.Model.outputCompanyId },
+                            data: { productId: data.id, lastActionDataId: page.Model.Transaction.outputId, lastActionDataCompanyId: page.Model.Transaction.outputCompanyId },
                             async: false,
                         }).responseJSON || [];
 
@@ -286,10 +260,11 @@
             }
         },
         init: function () {
-            $.each(page.Model.items, function (i, item) {
+           
+            $.each(page.Model.productionProducts, function (i, item) {
                 page.events.addRow(item,1);
             });
-            if (page.Model.items.length == 0) {
+            if (page.Model.productionProducts.length == 0) {
                 page.events.addRow();
             }
         }
@@ -368,7 +343,7 @@
         </td>
         <td data-target="">
             <input type="hidden" data-item="id" />
-            <input data-item="productId" readonly class="form-control" data-refresh="" />
+            <input data-item="productId"  class="form-control" data-refresh="" />
         </td>
         <td hidden>
             <div class="input-group">
@@ -400,19 +375,6 @@
 {
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id, new { @Value = Model.id })
-    @Html.HiddenFor(model => model.Transaction.invoiceId)
-    @Html.HiddenFor(model => model.Transaction.orderId)
-    @Html.HiddenFor(model => model.tenderIds)
-    @Html.HiddenFor(m => m.Transaction.outputId);
-    @Html.HiddenFor(m => m.Transaction.outputCompanyId);
-    @Html.HiddenFor(m => m.Transaction.outputTable);
-    @Html.HiddenFor(m => m.Transaction.inputId);
-    @Html.HiddenFor(m => m.Transaction.inputCompanyId);
-    @Html.HiddenFor(m => m.Transaction.inputTable);
-    @Html.HiddenFor(m => m.Transaction.code);
-    @Html.HiddenFor(m => m.Transaction.date);
-    @Html.HiddenFor(m => m.description);
-    @Html.HiddenFor(m => m.productionId);
     <div class="row @(Model.Transaction.type.HasValue ? "hide" : "")">
         <div class="col-md-12">
             <div class="visible-md visible-lg" style="width:100%">
@@ -483,6 +445,11 @@
             </thead>
             <tbody id="RowContainer_Upsert">
             </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                </tr>
+            </tfoot>
         </table>
     </div>
     <div class="buttons">

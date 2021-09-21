@@ -107,22 +107,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[PageInfo("Stok&Envanter İşlem Girişi", SHRoles.Personel, SHRoles.UretimYonetici)]
-		public ActionResult Upsert(VMPRD_ProductionTransactionModel model, int? direction)
+		public ActionResult Upsert(VMPRD_ProductionModel model, VWPRD_Transaction trans, int? direction)
 		{
-			model.status = (int)EnumPRD_TransactionStatus.beklemede;
+			model.Transaction = trans;
+			model.Transaction.status = (int)EnumPRD_TransactionStatus.beklemede;
 			var data = model.Load();
-
-			if (data.items.Count() == 1 && !data.items.Select(x => x.productId.HasValue).FirstOrDefault())
-			{
-				data.items = new List<VMPRD_TransactionItems>();
-			}
 			ViewBag.Direction = direction;
 			return View(data);
 		}
 
 		[PageInfo("Stok&Envanter İşlemi Ekleme ve Güncelleme", SHRoles.UretimYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Upsert(VMPRD_ProductionTransactionModel item, bool? isPost)
+		public JsonResult Upsert(VMPRD_ProductionModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
