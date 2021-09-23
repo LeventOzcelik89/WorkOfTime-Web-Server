@@ -20,5 +20,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string materialId_Title { get; set;}
         public string type_Title { get; set;}
         public string transactionType_Title { get; set;}
+        public string unitId_Title { get; set;}
     }
 }

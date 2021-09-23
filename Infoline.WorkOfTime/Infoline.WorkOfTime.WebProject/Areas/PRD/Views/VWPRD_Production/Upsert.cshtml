@@ -37,6 +37,7 @@
         inputCompanyId: null,
         type: null,
         Counter: 0,
+        isNew:false,
         events: {
             typeChange: function (e) {
                 page.type = $("#type").data("kendoDropDownList").value();
@@ -88,7 +89,6 @@
             },
             removeRow: function (item) {
                 $(item).parents('tr').remove();
-                page.events.ValidateRows();
             },
             removeAllRows: function () {
                 if (page.Counter == 1 || page.Counter == 0) {
@@ -96,27 +96,33 @@
                 }
                 $("tbody tr").remove();
             },
-            addRow: function (data) {
-                debugger
+            addRow: function (data,isNew ) {
+                page.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
+                debugger
                 $('#RowContainer_Upsert').append(temp);
-                temp.find('[data-item="index"]').append(page.Counter);
+            
+
                 temp.find('[data-item="id"]')
-                    .attr('name', 'expenedProducts[' + page.Counter + '].id')
+                    .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != undefined ? data.id : kendo.guid()));
+
                 temp.find('[data-item="unitPrice"]')
-                    .attr('name', 'expenedProducts[' + page.Counter + '].unitPrice')
+                    .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
+
                 temp.find('[data-item="quantity"]')
-                    .attr('name', 'expenedProducts[' + page.Counter + '].quantity')
+                    .attr('name', 'productionProducts[' + page.Counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity:0)
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity  : null) });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
+
                 temp.find('[data-item="serialCodes"]')
-                    .attr('name', 'expenedProducts[' + page.Counter + '].serialCodes')
+                    .attr('name', 'productionProducts[' + page.Counter + '].serialCodes')
                     .attr('value', data != undefined ? data.serialCodes : '')
                     .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
+
                 temp.find('[data-item="productId"]')
-                    .attr('name', 'expenedProducts[' + page.Counter + '].productId')
+                    .attr('name', 'productionProducts[' + page.Counter + '].productId')
                     .kendoDropDownList(
                         {
                             "value": (data != undefined ? data.materialId : null),
@@ -138,16 +144,20 @@
                             "filter": "contains",
                             "template": '#=TemplateEngine("productCustomTemplate",data)#',
                             "dataValueField": "id",
-                            "optionLabel": "Lütfen Ürün Seçiniz.."
+                            "optionLabel": "Lütfen Ürün Seçiniz..",
                         });
+
                 if (page.status == '1') {
                     temp.find('[data-item="islendi"]').attr('disabled', 'disabled');
                 }
+
                 page.Counter++;
+
             },
             productChange: function (e) {
-                debugger
+
                 var data = e.sender.dataItem(e.sender.selectedIndex);
+                debugger;
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
@@ -158,24 +168,31 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-                    unitPrice.value(0);
-                    unitPrice.enable(false);
-                    quantity.value(0);
-                    quantity.enable(false);
-                    serialCodes.val("");
-                    serialCodes.prop("readonly", true);
-                    serialCodes.tagify({ placeholder:"Henüz ürün seçimi yapılmadı." });
+                   
+                    if (!page.isNew) {
+
+                        tr.hide();
+                    }
+                    
+                    page.isNew = false;
+                    serialCodes.prop("required", false);
+                   
                 } else {
-                    debugger
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
+                    debugger
+                    serialCodes.prop("required", true);
+                    if (page.Model.Transaction.type==100) {
+                        serialCodes.prop("required", false);
+                   }
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.enable(true);
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
                     serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
                     if (data.stockType == 2) {
+                      
+                        quantity.readonly(true);
                         var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
                         var valuesArr = [];
                         try {
@@ -192,7 +209,6 @@
                             data: { productId: data.id, lastActionDataId: page.Model.Transaction.outputId, lastActionDataCompanyId: page.Model.Transaction.outputCompanyId },
                             async: false,
                         }).responseJSON || [];
-
                         whitelist = whitelist.concat(valuesArr.map(a => a.value));
                         serialCodes
                             .tagify({
@@ -216,13 +232,12 @@
                                 quantity.value(serialCodes.val().split("value").length - 1);
                             })
                             .on("dropdown:show", function (e) {
-
-
-
                             });
                     } else {
-                        serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
+                        serialCodes.prop("required", false);
+                        serialCodes.tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor."});
                     }
+                  
                     //e.sender._initial = null;
                     pushData();
                 }
@@ -260,9 +275,9 @@
             }
         },
         init: function () {
-           
             $.each(page.Model.productionProducts, function (i, item) {
-                page.events.addRow(item,1);
+
+                page.events.addRow(item, false);
             });
             if (page.Model.productionProducts.length == 0) {
                 page.events.addRow();
@@ -298,6 +313,8 @@
         .on("keyup", "#amount", function () {
             pushData();
         })
+
+
     function pushData() {
         var getValue = parseInt($("#amount").val());
         $.each($("#RowContainer_Upsert tr"), function (i, item) {
@@ -339,11 +356,10 @@
 </script>
 <script type="text/template" data-selector="modalContainer" id="RowTemplate_Upsert">
     <tr>
-        <td data-item="index">
-        </td>
+        
         <td data-target="">
             <input type="hidden" data-item="id" />
-            <input data-item="productId"  class="form-control" data-refresh="" />
+            <input data-item="productId" class="form-control" data-refresh="" />
         </td>
         <td hidden>
             <div class="input-group">
@@ -358,7 +374,7 @@
             </div>
         </td>
         <td>
-            <input data-item="serialCodes" data-role="tagify" />
+            <input data-item="serialCodes"    data-role="tagify" />
         </td>
         <td>
             <button data-item="islendi" class="btn btn-md btn-danger" type="button" onclick="page.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
@@ -375,6 +391,19 @@
 {
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id, new { @Value = Model.id })
+    @Html.HiddenFor(model => model.Transaction.invoiceId)
+    @Html.HiddenFor(model => model.Transaction.orderId)
+    @Html.HiddenFor(m => m.Transaction.outputId);
+    @Html.HiddenFor(m => m.Transaction.outputCompanyId);
+    @Html.HiddenFor(m => m.Transaction.outputTable);
+    @Html.HiddenFor(m => m.Transaction.inputId);
+    @Html.HiddenFor(m => m.Transaction.inputCompanyId);
+    @Html.HiddenFor(m => m.Transaction.inputTable);
+    @Html.HiddenFor(m => m.Transaction.code);
+    @Html.HiddenFor(m => m.Transaction.date);
+    @Html.HiddenFor(m => m.Transaction.description);
+    @Html.HiddenFor(m => m.Transaction.type);
+    @Html.HiddenFor(m => m.Transaction.status);
     <div class="row @(Model.Transaction.type.HasValue ? "hide" : "")">
         <div class="col-md-12">
             <div class="visible-md visible-lg" style="width:100%">
@@ -427,7 +456,7 @@
             <div class="col-md-4 pull-right">
                 <div class="alert alert-info text-center">
                     <b>Kaç Set İçin Harcama Bildirimi Yapmak İstiyorsunuz ?</b>
-                    @Html.Akilli().NumericTextBox("amount").Format("N0")
+                    @Html.Akilli().NumericTextBox("amount").Format("N0").Min(0).Max(999)
                 </div>
             </div>
         </div>
@@ -436,7 +465,7 @@
         <table class="table table-custom" cellpadding="1" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="width: 2%">#</th>
+                   
                     <th style="width:50%">ÜRÜN</th>
                     <th style="width:10%">HARCANAN MİKTAR<br /> </th>
                     <th style="width:46%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
@@ -447,7 +476,7 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow(null,true)"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
                 </tr>
             </tfoot>
         </table>
