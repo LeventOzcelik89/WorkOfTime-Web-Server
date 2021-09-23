@@ -51,14 +51,22 @@
 		.on("ready", function () {
 		    GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
 			var cols = [
-				{ field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
-                { field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', width: 200, template:"#:kendo.toString(quantity ?? 0,'N0')# #:kendo.toString(unitId_Title)# " },
-                { field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', width: 200, template: "#:kendo.toString(totalQuantity ?? 0,'N0')  # #:kendo.toString(unitId_Title)# " },
-                { field: 'prices', title: 'Fiyat', format: '{0:N0}', width: 200, template: "#:kendo.toString(price ?? 0,'N2')# " },                {
-					field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}', width: 200,
+				{ field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
+                { field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}',  template:"#:kendo.toString(quantity ?? 0,'N0')#  " },
+                { field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}',  template: "#:kendo.toString(totalQuantity ?? 0,'N0')  # " },
+                { field: 'prices', title: 'Fiyat', format: '{0:N0}', template: "#:kendo.toString(price ?? 0,'N2')# " },
+                { field: 'unit', title: 'Birim', format: '{0:N0}', template: "#:kendo.toString(unitId_Title)#" },
+                {
+                    field: 'unit', title: 'Fiyat Birimi', format: '{0:N0}', template: function (dataItem) {
+                        if (dataItem.currencyId_Title != null) {
+                            return dataItem.currencyId_Title;
+                        }
+                        return '-';
+                    }},
+                {
+					field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}',
                     template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 </small>#}#"
 				},
-
 			];
 
 			$("#productProductsGrid").kendoGrid({
@@ -167,7 +175,7 @@
 
 		})
 		})
-		
+
 
 
 
@@ -473,7 +481,7 @@
             {
 
                 <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
-																									 
+
 																									   outputId = Model.centerStorageId,
 																									   outputTable= "CMP_Storage",
 																									   outputCompanyId = Model.centerCompanyId,

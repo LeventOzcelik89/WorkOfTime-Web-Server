@@ -903,6 +903,7 @@ namespace Infoline.WorkOfTime.Controllers
 
         public JsonResult GetProductMaterials(Guid productId)
         {
+            
             var db = new WorkOfTimeDatabase();
             var materials = db.GetVWPRD_ProductMaterialByProductId(productId);
             return Json(materials, JsonRequestBehavior.AllowGet);

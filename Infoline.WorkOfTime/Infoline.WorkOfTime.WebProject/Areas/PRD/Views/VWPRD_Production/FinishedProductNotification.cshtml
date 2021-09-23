@@ -175,7 +175,7 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-                    quantity.enable(false);
+                    
                     unitPrice.enable(false);
                     tr.hide();
                     serialCodes.prop("required", false);
@@ -183,7 +183,7 @@
 
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.enable(true);
+                    
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
@@ -273,11 +273,13 @@
         var getValue = $('[name="expensReport"]:checked').val();
 
         if (getValue == 1) {
+            $("#infoBox").show();
             $("#tableHide").show()
             page.init();
         }
         else {
             $("#tableHide").hide();
+            $("#infoBox").hide();
             page.events.removeAllRows();
         }
     }).on("keyup change", '#amount', function () {
@@ -297,6 +299,11 @@
           }
     })  ;
 </script>
+<style>
+    .widget{
+        min-height:0px!important;
+    }
+</style>
 @using (Html.BeginForm("Upsert", "VWPRD_Production", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
@@ -323,149 +330,156 @@
     @Html.HiddenFor(m => m.code);
     @Html.HiddenFor(m => m.description);
     @Html.HiddenFor(m => m.ProductDetail.id)
-<div class="row">
-    <div class="col-md-12">
-        <div class="alert alert-warning text-center">
-            Materyal harcamaları otomatik işletildiğinde, stoktan düşecektir.
-        </div>
-    </div>
-</div>
-<div class="row">
-    <div class="col-sm-12">
-        <div class="widget blue-bg p-lg text-center">
-            <div class="m-b-md">
-                <i class="fa fa-inbox fa-4x"></i>
-                <h1 class="m-xs"> @Model.productId_Title</h1>
-                <h3 class="font-bold no-margins">
-                    Ürün Adı
-                </h3>
-
+           var left = "0";
+            if (Model.producedQuantity.HasValue)
+            {
+                left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
+            }
+            var produced = "0";
+            if (Model.producedQuantity.HasValue)
+            {
+                produced = Model.producedQuantity.Value.ToString("N2");
+            }
+<fieldset style="display:none" id="infoBox">
+    <legend>Bilgilendirme</legend>
+    <div class="row">
+        <div class="col-md-12">
+            <div class="alert alert-warning text-center">
+                Materyal harcamaları otomatik işletildiğinde, stoktan düşecektir.
             </div>
         </div>
     </div>
-</div>
-<div class="row">    
-    <div class="col-sm-4">
-        <div class="widget lazur-bg p-lg text-center">
-            <div class="m-b-md">
-            
-                <h1 class="m-xs"> @Model.quantity.Value.ToString("N2")</h1>
-                <h3 class="font-bold no-mquantityargins">
-                    Üretilmesi Gereken Ürün Adedi
-                </h3>
+</fieldset>
+   
 
-            </div>
-        </div>
-    </div>
-    @{
-        var left ="0";
-        if (Model.producedQuantity.HasValue)
-        {
-            left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
-        }
-        var produced = "0";
-        if (Model.producedQuantity.HasValue)
-        {
-            produced= Model.producedQuantity.Value.ToString("N2");
-        }
+    <fieldset>
+        <legend>Üretim Bilgileri</legend>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="widget blue-bg p-lg text-center" style="min-height:unset!important">
+                    <div class="m-b-md">
+                        <i class="fa fa-inbox fa-2x"></i>
+                        <h3 class="m-xs"> @Model.productId_Title</h3>
+                        <h5 class="font-bold no-margins" style="margin-top:5px">
+                           
+                        </h5>
 
-
-
-
-
-    }
-    <div class="col-sm-4">
-        <div class="widget yellow-bg  p-lg text-center">
-            <div class="m-b-md">
-              
-                <h1 class="m-xs">@produced</h1>
-                <h3 class="font-bold no-margins">
-                    Üretilen Ürün Adedi
-                </h3>
-
-            </div>
-        </div>
-    </div>
-
-    <div class="col-sm-4">
-        <div class="widget red-bg p-lg text-center">
-            <div class="m-b-md">
-           
-                <h1 class="m-xs">@left </h1>
-                <h3 class="font-bold no-margins">
-                    Geriye Kalan Ürün Adedi
-                </h3>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <fieldset >
-        @if (Model.ProductDetail.stockType != (short)EnumPRD_ProductStockType.SeriNoluTakip)
-        {
-        <div class="row " style="margin-top:15px">
-            <div class="col-md-12"  >
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <label class="control-label label-md req " for="type">Üretilen Adet</label>
-                        </div>
-                        <div class="col-md-8">
-                            @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
-                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <div class="row">
+            <div class="col-sm-4 ">
+                <div class="widget lazur-bg p-lg text-center"  style="min-height:70px!important">
+                   
+                        <h3 class="m-xs"> @Model.quantity.Value.ToString("N2")</h3>
+                        <h5 class="font-bold no-mquantityargins">
+                            Üretilmesi Gereken Ürün Adedi
+                        </h5>
+
+                   
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="widget yellow-bg  p-lg text-center" style="min-height:70px!important"> 
+                   
+
+                        <h3 class="m-xs">@produced</h3>
+                        <h5 class="font-bold no-margins">
+                            Üretilen Ürün Adedi
+                        </h5>
+
+                    
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="widget red-bg p-lg text-center" style="min-height:70px!important">
+                    
+                        <h3 class="m-xs">@left </h3>
+                        <h5 class="font-bold no-margins">
+                            Geriye Kalan Ürün Adedi
+                        </h5>
+
+                    </div>
+               
+            </div>
+
+        </div>
+
+    </fieldset>
+
+  
+
+    <fieldset>
+        <legend>Harcamalar</legend>
+        @if (Model.ProductDetail.stockType != (short)EnumPRD_ProductStockType.SeriNoluTakip)
+        {
+            <div class="row " style="margin-top:15px">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req " for="type">Üretilen Adet</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
         @if (Model.ProductDetail.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
         {
-        <div class="row hidden">
-            <div class="col-md-12" style="margin-top:15px">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <label class="control-label label-md req " for="type">Üretilen Adet</label>
-                        </div>
-                        <div class="col-md-8">
-                            @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="row"  style="margin-top:15px">
-            <div class="col-md-12">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <div class="col-md-4">
-                            <label class="control-label label-md " for="type">Seri Numaraları</label>
-                            <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i>
-                        </div>
-                        <div class="col-md-8">
-                            <input name="ProductSerialCodes" id="ProductSerialCodes" type="text" />
+            <div class="row hidden">
+                <div class="col-md-12" style="margin-top:15px">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req " for="type">Üretilen Adet</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-        <script data-selector="modalContainer">
-            $('#ProductSerialCodes').tagify({
-                placeholder: "Seri Numarasını yazın ve Enter'a basınız"
-            }).on("add removetag", function (e) {
 
-                let amount = $("#ProductSerialCodes").data("tagify").value;
+            <div class="row" style="margin-top:15px">
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md " for="type">Seri Numaraları</label>
+                                <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <input name="ProductSerialCodes" id="ProductSerialCodes" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                       
+                    
+                </div>
+            </div>
+            <script data-selector="modalContainer">
+                $('#ProductSerialCodes').tagify({
+                    placeholder: "Seri Numarasını yazın ve Enter'a basınız"
+                }).on("add removetag", function (e) {
 
-                $("#amount").data("kendoNumericTextBox").value(amount.length)
-                $("#amount").trigger("keyup");
-            });
-        </script>
+                    let amount = $("#ProductSerialCodes").data("tagify").value;
+
+                    $("#amount").data("kendoNumericTextBox").value(amount.length)
+                    $("#amount").trigger("keyup");
+                });
+            </script>
         }
         <div class="row">
-            <div class="col-sm-12 "  style="margin-top:15px">
+            <div class="col-sm-12 " style="margin-top:15px">
                 <div class="col-md-6">
                     <div class="form-group">
                         <div class="col-md-4">
@@ -488,10 +502,10 @@
             </div>
         </div>
     </fieldset>
-   
-  
+
+
     <div class="clearfix " id="productTableForParts ">
-        
+
         <table class="table table-custom" id="tableHide" style="display:none;" cellpadding="1" cellspacing="0">
             <thead>
                 <tr>
@@ -512,8 +526,8 @@
         </table>
 
     </div>
-   
-  
+
+
     <div class="buttons">
         <div class="hr-line-dashed"></div>
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>

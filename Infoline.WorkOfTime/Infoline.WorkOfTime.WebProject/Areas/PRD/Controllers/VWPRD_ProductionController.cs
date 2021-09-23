@@ -135,7 +135,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message,false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
 
@@ -163,7 +163,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message,false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
 

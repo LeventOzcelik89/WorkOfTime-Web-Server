@@ -213,7 +213,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     productionId = this.id,
                     totalQuantity = x.totalQuantity,
                     type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
-                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
+                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+                    currencyId=x.currencyId,
+                    unitId=x.unitId
                 }));
 
 
