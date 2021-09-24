@@ -157,7 +157,8 @@
             productChange: function (e) {
 
                 var data = e.sender.dataItem(e.sender.selectedIndex);
-                debugger;
+
+
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
@@ -179,7 +180,7 @@
 
                 } else {
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
-                    debugger
+
                     serialCodes.prop("required", true);
                     if (page.Model.Transaction.type==100) {
                         serialCodes.prop("required", false);
@@ -329,12 +330,21 @@
             t = ti.data('tagify');
             if (t != undefined) {
                  var pastList = $(item).find('[data-item=serialCodes]').data("selectedItems");
-                    t.removeAllTags();
+                t.removeAllTags();
+                
                 if (t.suggestedListItems != undefined) {
-                    if (pastList != undefined || pastList.length > 0) {
-                        var list = $(item).find('[data-item=serialCodes]').data("selectedItems");
-                         t.addTags($.Enumerable.From(list).Select(a => a.value).ToArray().join(","))
-                         t.addTags(t.suggestedListItems.slice(0, getValue).join(','),true,true)
+                    if (pastList != undefined) {
+                        if (pastList.length > 0) {
+                            debugger
+                            var list = $(item).find('[data-item=serialCodes]').data("selectedItems");
+                            t.addTags($.Enumerable.From(list).Select(a => a.value).ToArray().join(","))
+                            t.addTags(t.suggestedListItems.slice(0, getValue).join(','), true, true)
+                        }
+                        else {
+                            $(item).find('[data-item=serialCodes]').data("selectedItems", t.value);
+                            var tags = t.suggestedListItems.slice(0, getValue).join(',')
+                            t.addTags(tags)
+                        }
                     }
                     else {
                         $(item).find('[data-item=serialCodes]').data("selectedItems", t.value);
@@ -403,37 +413,37 @@
     { "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
-    @Html.HiddenFor(model => model.Transaction.invoiceId)
-    @Html.HiddenFor(model => model.Transaction.orderId)
-    @Html.HiddenFor(m => m.Transaction.outputId);
-    @Html.HiddenFor(m => m.Transaction.outputCompanyId);
-    @Html.HiddenFor(m => m.Transaction.outputTable);
-    @Html.HiddenFor(m => m.Transaction.inputId);
-    @Html.HiddenFor(m => m.Transaction.inputCompanyId);
-    @Html.HiddenFor(m => m.Transaction.inputTable);
-    @Html.HiddenFor(m => m.Transaction.code);
-    @Html.HiddenFor(m => m.Transaction.date);
-    @Html.HiddenFor(m => m.Transaction.description);
-    @Html.HiddenFor(m => m.Transaction.type);
-    @Html.HiddenFor(m => m.Transaction.status);
-    <div class="row @(Model.Transaction.type.HasValue ? "hide" : "")">
-        <div class="col-md-12">
-            <div class="visible-md visible-lg" style="width:100%">
-                @foreach (var type in types)
+@Html.AntiForgeryToken()
+@Html.HiddenFor(model => model.id, new { @Value = Model.id })
+@Html.HiddenFor(model => model.Transaction.invoiceId)
+@Html.HiddenFor(model => model.Transaction.orderId)
+@Html.HiddenFor(m => m.Transaction.outputId);
+@Html.HiddenFor(m => m.Transaction.outputCompanyId);
+@Html.HiddenFor(m => m.Transaction.outputTable);
+@Html.HiddenFor(m => m.Transaction.inputId);
+@Html.HiddenFor(m => m.Transaction.inputCompanyId);
+@Html.HiddenFor(m => m.Transaction.inputTable);
+@Html.HiddenFor(m => m.Transaction.code);
+@Html.HiddenFor(m => m.Transaction.date);
+@Html.HiddenFor(m => m.Transaction.description);
+@Html.HiddenFor(m => m.Transaction.type);
+@Html.HiddenFor(m => m.Transaction.status);
+<div class="row @(Model.Transaction.type.HasValue ? "hide" : "")">
+    <div class="col-md-12">
+        <div class="visible-md visible-lg" style="width:100%">
+            @foreach (var type in types)
                 {
-                    <button class="btn btn-primary btn-outline" type="button" data-button="type" onclick="page.events.typeButton(this)" value="@type.Key" style="width:calc((100% - @(count*4)px) / @count);">
-                        <i class="@type.Generic["icon"] fa-2x" aria-hidden="true"></i><br /><span style="font-size: 11px;font-weight: bold;" class="radio-tile-label">@Html.Raw(type.Value)</span>
-                    </button>
+            <button class="btn btn-primary btn-outline" type="button" data-button="type" onclick="page.events.typeButton(this)" value="@type.Key" style="width:calc((100% - @(count*4)px) / @count);">
+                <i class="@type.Generic["icon"] fa-2x" aria-hidden="true"></i><br /><span style="font-size: 11px;font-weight: bold;" class="radio-tile-label">@Html.Raw(type.Value)</span>
+            </button>
                 }
+        </div>
+        <div class="form-group visible-sm visible-xs">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="type">İşlem Tipi</label>
             </div>
-            <div class="form-group visible-sm visible-xs">
-                <div class="col-md-4">
-                    <label class="control-label label-md req" for="type">İşlem Tipi</label>
-                </div>
-                <div class="col-md-8">
-                    @(
+            <div class="col-md-8">
+                @(
                         Html.Akilli().
                         DropDownListFor(model => model.Transaction.type).
                         OptionLabel("Lütfen Yapacağınız İşlemi Seçiniz..").
@@ -449,55 +459,55 @@
                         Events(a => a.Change("page.events.typeChange").DataBound("page.events.typeLoad")).
                         Execute("enumKey")
                     )
-                </div>
-            </div>
-        </div>
-        <div class="col-md-12">
-            <div class="hr-line-dashed"></div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="alert alert-warning text-center">
-                <b>@Model.Transaction.outputId_Title</b>
-                <br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için @Model.Transaction.type_Title yapamazsınız.
             </div>
         </div>
     </div>
+    <div class="col-md-12">
+        <div class="hr-line-dashed"></div>
+    </div>
+</div>
+<div class="row">
+    <div class="col-md-12">
+        <div class="alert alert-warning text-center">
+            <b>@Model.Transaction.outputId_Title</b>
+            <br>Ürünler belirtilen depodan temin edilecektir. Depo içerisinde olmayan ürünler için @Model.Transaction.type_Title yapamazsınız.
+        </div>
+    </div>
+</div>
     if (Model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
     {
-        <div class="row">
-            <div class="col-md-4 pull-right">
-                <div class="alert alert-info text-center">
-                    <b>Kaç Set İçin Harcama Bildirimi Yapmak İstiyorsunuz ?</b>
-                    @Html.Akilli().NumericTextBox("amount").Format("N0").Min(0).Max(999)
-                </div>
-            </div>
+<div class="row">
+    <div class="col-md-4 pull-right">
+        <div class="alert alert-info text-center">
+            <b>Kaç Set İçin Harcama Bildirimi Yapmak İstiyorsunuz ?</b>
+            @Html.Akilli().NumericTextBox("amount").Format("N0").Min(0).Max(999)
         </div>
+    </div>
+</div>
     }
-    <div class="clearfix" id="productTable">
-        <table class="table table-custom" cellpadding="1" cellspacing="0">
-            <thead>
-                <tr>
+<div class="clearfix" id="productTable">
+    <table class="table table-custom" cellpadding="1" cellspacing="0">
+        <thead>
+            <tr>
 
-                    <th style="width:50%">ÜRÜN</th>
-                    <th style="width:10%">HARCANAN MİKTAR<br /> </th>
-                    <th style="width:46%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-                    <th style="width:3%"></th>
-                </tr>
-            </thead>
-            <tbody id="RowContainer_Upsert">
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow(null,true)"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
-                </tr>
-            </tfoot>
-        </table>
-    </div>
-    <div class="buttons">
-        <div class="hr-line-dashed"></div>
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-primary pull-right " formaction="@Url.Action("Upsert","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
-    </div>
+                <th style="width:50%">ÜRÜN</th>
+                <th style="width:10%">HARCANAN MİKTAR<br /> </th>
+                <th style="width:46%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
+                <th style="width:3%"></th>
+            </tr>
+        </thead>
+        <tbody id="RowContainer_Upsert">
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow(null,true)"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+<div class="buttons">
+    <div class="hr-line-dashed"></div>
+    <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    <button class="btn btn-md btn-primary pull-right " formaction="@Url.Action("Upsert","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
+</div>
 }
