@@ -116,7 +116,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+				FeedBack = dbresult.result ? feedback.Success(dbresult.message, false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
 			};
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}

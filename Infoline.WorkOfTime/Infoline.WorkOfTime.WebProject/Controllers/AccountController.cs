@@ -527,6 +527,30 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 
         }
 
+        [AllowEveryone]
+        public ActionResult Fab()
+        {
+            return View();
+        }
+
+        [AllowEveryone]
+        public ActionResult Fabric()
+        {
+            return View();
+        }
+
+        [AllowEveryone]
+        public ActionResult Fabric2()
+        {
+            return View();
+        }
+
+        [AllowEveryone]
+        public ContentResult GetOperators()
+        {
+            return Content(Helper.Json.Serialize(new object { }), "application/json");
+        }
+
     }
 
     public class SignQrCore

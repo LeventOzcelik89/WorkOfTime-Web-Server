@@ -140,6 +140,7 @@ namespace System
         [PropInfo("Doküman Yönetim Rolü", "Doküman sayfaları ile ilgili işlemleri yapar.")]
         public const string DokumanYonetimRolu = "00000000-0000-0000-0006-000000000000";
         //Doküman Yönetimi
+
     }
 
     public class PageInfo : Attribute

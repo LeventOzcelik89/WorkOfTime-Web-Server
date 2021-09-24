@@ -60,6 +60,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Inventory>().Where(x => x.productId.In(productids) && x.serialcode.In(serialCodes)).Execute().ToArray();
             }
         }
+        public VWPRD_Inventory[] GetVWPRD_InventoryBySerialCodesAndId(Guid productid, string[] serialCodes, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_Inventory>().Where(x => x.productId==productid && x.serialcode.In(serialCodes)).Execute().ToArray();
+            }
+        }
 
         public VWPRD_Inventory GetVWPRD_InventoryBySerialCode(string serialCode, DbTransaction tran = null)
         {

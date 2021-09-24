@@ -4,142 +4,59 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
-<link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 <style>
-    .form-group {
-        margin-bottom: 10px;
-    }
+    .makeDanger{
+        background-color:orangered;
+        color:white;
 
-    .modal-lg {
-        width: 95%;
-    }
-
-    table.table-custom {
-        table-layout: fixed;
-    }
-
-        table.table-custom thead {
-            background-color: #d6d5d4;
-            font-size: 11px;
-        }
-
-        table.table-custom tr {
-            border-bottom: 1px #d6d5d4 solid;
-        }
-
-        table.table-custom tbody tr:last-child {
-            border-bottom: none;
-        }
-        /*table.table.table-custom tbody td .k-dropdown-wrap.k-state-default, table.table.table-custom tbody td .k-dropdown-wrap.k-state-disabled {
-        padding: 0px !important;
-    }*/
-        table.table-custom tbody td {
-            padding: 6px !important;
-        }
-
-            table.table-custom tbody td > input {
-                width: 100%;
-                height: 100%;
-                padding: 10px 5px !important;
-            }
-
-        table.table-custom .k-widget.k-numerictextbox {
-            width: 100% !important;
-        }
-
-            table.table-custom .k-widget.k-numerictextbox.k-input {
-                padding: 0px !important;
-            }
-
-        table.table-custom .k-numeric-wrap {
-            border: 0px !important;
-        }
-
-            table.table-custom .k-numeric-wrap.k-state-focused, table.table-custom .k-numeric-wrap.k-state-hover {
-                box-shadow: none !important;
-            }
-
-                table.table-custom .k-numeric-wrap.k-state-focused > input, table.table-custom .k-numeric-wrap.k-state-hover > input {
-                    border-color: #1ab394 !important;
-                }
-
-        table.table-custom .k-item {
-            font-weight: 400 !important;
-        }
-
-        table.table-custom input:read-only {
-            background: #f3f1f0 !important;
-        }
-
-        table.table-custom .input-group-addon {
-            padding: 0 5px !important;
-            font-size: 11px;
-        }
-
-        table.table-custom .k-input {
-            height: 30px !important;
-        }
-
-        table.table-custom .form-control .k-dropdown-wrap, table.table-custom .form-control .k-picker-wrap, table.table-custom .form-control .k-multiselect-wrap {
-            padding: 0px 0px 0px 0px !important
-        }
-
-        table.table-custom .form-control.k-widget {
-            padding: 0px !important;
-        }
-
-        table.table-custom .k-multiselect.k-state-disabled .k-multiselect-wrap {
-            background: #fcfcfc !important;
-        }
-
-        table.table-custom tbody tr td {
-            vertical-align: middle !important;
-        }
-
-    .input-group .k-widget {
-        margin-top: 1px !important;
-    }
-
-    .tagify {
-        max-height: 131px;
-        overflow: auto;
-    }
-
-        .tagify[aria-readonly="true"] {
-            background: #f3f3f3;
-        }
-
-    .k-autocomplete.k-state-disabled, .k-picker-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled .k-input, .k-numeric-wrap.k-state-disabled .k-select, .k-dropdown-wrap.k-state-disabled, .k-multiselect.k-header.k-state-disabled {
-        background-color: #f3f3f3;
-    }
-
-    .input-group {
-        width: 100%;
     }
 </style>
+
+
+<link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 <script data-selector="modalContainer">
     var page = {
         Counter: 0,
         events: {
             deleteAllRow() {
                 $('#RowContainer_Stages tr').remove();
+                page.Counter = 0;
             },
-            addRow: function (data) {
+            addRow: function (data,isNew) {
+                debugger
+                
                 var stages = $($('#RowTempForStages').html());
                 $('#RowContainer_Stages').append(stages);
-
                 stages.find('[data-stages="metarialId"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId')
-                    .attr('value', data.materialId);
+                    .attr('value', data.materialId)
+                
+                stages.find('[data-stages="metarialDetailText"]')
+                    .attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.materialId)
+
+                stages.find('[data-stages="amount"]')
+                    .text(data.unitId_Title)
+                stages.find('[data-stages="amountPrice"]')
+                    .text(data.currencySymbol == null ? "-" : data.currencySymbol)
 
                 stages.find('[data-stages="metarialIdTitle"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId_Title')
                     .attr('value', data.materialId_Title)
                     .attr('readonly', '');
 
+                stages.find('[data-stages="currencyId"]')
+                    .attr('name', 'productMaterials[' + page.Counter + '].currencyId')
+                    .attr('value', data.currencyId)
+                    .attr('readonly', '');
+
+                stages.find('[data-stages="unitId"]')
+                    .attr('name', 'productMaterials[' + page.Counter + '].unitId')
+                    .attr('value', data.unitId)
+                    .attr('readonly', '');
+
                 stages.find('[data-stages="quantity"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].quantity')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity) });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity), placeholder:"Bu Ürüne, bu depoda stok kaydı yoktur" });
 
                 stages.find('[data-stages="price"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].price')
@@ -154,7 +71,6 @@
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.stockTotal) });
 
                 page.Counter++;
-
             },
             updateRows: function (count) {
                 $.each($('#RowContainer_Stages tr'), function (i, item) {
@@ -164,25 +80,55 @@
                 });
             },
             onChangeProductionSchema: function (e) {
+                var item = e.sender.dataItem();
+                if (item.id != "") {
+                    $("#productionSchemaIdButton").attr("href", "/PRD/VWPRD_ProductionSchema/Detail?id=" + item.id)
+                    $("#productionSchemaIdButton").removeClass("hide");
+                }
+                else {
+                    $("#productionSchemaIdButton").addClass("hide");
+                }
+
                 var productionSchema = e.sender.dataItem();
                 if ((productionSchema != null || productionSchema != undefined) && productionSchema.name != null) {
                     $("#schemaTitle").val(productionSchema.name);
                 }
             },
             onChangeProduct: function (e) {
+              
                 var product = e.sender.dataItem();
+                var companyDropDown = $("#centerCompanyId").data("kendoDropDownList");
+                var centercompanyDropDown = $("#centerStorageId").data("kendoDropDownList");
+                if (e.sender.value() != "") {
+
+                    companyDropDown.enable(true);
+                    centercompanyDropDown.enable(true);
+                }
+
+                else {
+                    companyDropDown.enable(false);
+                    centercompanyDropDown.enable(false);
+                }
+
+
+
                 if (product == null || product.id == null || product.id == "") {
+                    $("#productDetailButton").addClass("hide")
+                    $("#stagesId").hide();
                     return;
                 }
                 if (product != null && product.id != null && product.id != "") {
+
                     $("#quantity").data("handler").enable(true);
                     var detail = $("#productDetailButton");
                     $(detail).attr("href", "/PRD/VWPRD_Product/Detail?id=" + product.id);
                     detail.removeClass("hide");
                     GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
+                        
                         $("#stagesId").show();
                         page.events.deleteAllRow();
                         $.each(res, function (i, item) {
+                            
                             page.events.addRow(item, 1);
                         });
                         if (res.length <= 0) {
@@ -193,6 +139,13 @@
                         else {
                             $("#productionInsertButton").removeClass("hide")
                         }
+                       
+                        var input = $("#quantity").val();
+                        if (input != "") {
+                            let val = parseInt(input);
+                            page.events.updateRows(val);
+                        }
+
                     })
                 }
                 else {
@@ -211,12 +164,18 @@
                             $.each(stockSummaries, function (index, value) {
                                 var stages = $("#RowContainer_Stages tr")
                                 $.each(stages, function (i, item) {
-                                    debugger;
+
                                     var findMetarialId = $(item).find('[data-stages="metarialId"]');
                                     var findMetarialIdVal = $(findMetarialId).val();
                                     if (findMetarialIdVal != "" && findMetarialIdVal == value.productId) {
-                                        $($(item).find('[data-stages="stockTotal"]')).data('handler').value(value.quantity)
+                                       
+                                        if (value.quantity!= "") {
+                                            $($(item).find('[data-stages="stockTotal"]')).data('handler').value(value.quantity)
+                                        }
+                                   
+
                                     }
+                                    
                                 });
 
                             });
@@ -233,12 +192,11 @@
                     });
                 }
             },
-            disableOnProductNotSelected: function () {
-                $(document).on("change", "#productId", function () {
-                    console.log("");
-
-                })
+          
+            onChangeEndDate: function (e) {
+                
             }
+
         }
     };
 </script>
@@ -247,35 +205,49 @@
         <td hidden>
             <div class="input-group">
                 <input data-stages="metarialId" class="k-input form-control" />
+
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="metarialIdTitle" class="k-input form-control" />
+                <a data-stages="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i></a>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="quantity" />
-                <span class="input-group-addon"> Adet</span>
+                <span data-stages="amount" class="input-group-addon"> Adet</span>
             </div>
         </td>
         <td>
             <div class="input-group">
-                <input data-stages="price" />
-                <span class="input-group-addon"> ₺</span>
+                <input data-stages="price" readonly />
+                <span data-stages="amountPrice" class="input-group-addon"> ₺</span>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="totalQuantity" />
-                <span class="input-group-addon">Adet</span>
+                <span data-stages="amount" class="input-group-addon">Adet</span>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-stages="stockTotal" readonly />
-                <span class="input-group-addon">Adet</span>
+                <span data-stages="amount" class="input-group-addon">Adet</span>
+            </div>
+        </td>
+        <td hidden>
+            <div class="input-group">
+                <input data-stages="currencyId" readonly />
+              
+            </div>
+        </td>
+        <td hidden>
+            <div class="input-group">
+                <input data-stages="unitId" readonly />
+               
             </div>
         </td>
     </tr>
@@ -336,17 +308,19 @@
                 </div>
                 <div class="col-md-7">
                     @(
-        Html.Akilli()
-        .DropDownListFor(model => model.centerCompanyId)
-        .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
-        .DataValueField("id")
-        .DataTextField("fullName")
-        .Template("#=TemplateEngine('companyTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-        .Sort(x => x.Add("fullName").Ascending())
-        .Validate(Validations.Required)
-        .Execute()
-         .Enable(false)
+            Html.Akilli()
+                .DropDownListFor(model => model.centerCompanyId)
+                .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                .Enable(false)
+
+
             )
                 </div>
             </div>
@@ -364,6 +338,7 @@
         DateTimePickerFor(model => model.productionOrderDate).
         Format(Extensions.DateFormatFull()).
         Value(DateTime.Now)
+        
             )
                 </div>
             </div>
@@ -372,6 +347,7 @@
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="centerStorageId">Merkez Depo</label>
+                    <i data-toggle="tooltip" data-placement="top" title="Üretim için gerekli malzemelerin alınacağı depodur" class="fa fa-info-circle"></i>
                 </div>
                 <div class="col-md-7">
                     @(
@@ -389,7 +365,6 @@
             .Validate(Validations.Required)
             .Events(a => { a.Change("page.events.onChangeStorage"); a.DataBound("page.events.onChangeStorage"); })
             .Execute()
-            .Enable(false)
                 )
                 </div>
             </div>
@@ -429,7 +404,6 @@
 		.Sort(x => x.Add("fullName").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
-       .Enable(false)
             )
                 </div>
             </div>
@@ -448,6 +422,7 @@
 			Placeholder("Hedef Bitiş Tarihi").
 			Format(Extensions.DateFormatFull()).
 			Value(DateTime.Now)
+            .MinDateElement("scheduledProductionDate")
 				)
                 </div>
             </div>
@@ -456,6 +431,7 @@
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="productionStorageId">Üretilecek Depo</label>
+                    <i data-toggle="tooltip" data-placement="top" title="Üretilen ürünlerin girişinin yapılcağı depodur." class="fa fa-info-circle"></i>
                 </div>
                 <div class="col-md-7">
                     @(
@@ -472,7 +448,6 @@
 			.Sort(x => x.Add("fullName").Ascending())
 			.Validate(Validations.Required)
 			.Execute()
-            .Enable(false)
                 )
                 </div>
             </div>
@@ -484,8 +459,10 @@
                 <div class="col-md-5">
                     <label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
                 </div>
-                <div class="col-md-5">
-                    @(Html.Akilli()
+                <div class="col-md-7">
+                    <div class="input-group">
+
+                        @(Html.Akilli()
 		.DropDownListFor(model=>model.productId)
 		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
 		.DataTextField("fullName")
@@ -498,9 +475,9 @@
 		.Execute()
 
             )
-                </div>
-                <div class="col-sm-2">
-                    <a class="btn pull-right m-r-sm btn btn-primary hide" style="margin-top: 3px;" id="productDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i> Detay </a>
+                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Detayı" id="productDetailButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-info-circle"></i></a>
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -510,7 +487,8 @@
                     <label class="control-label label-md req" for="productionSchemaId">Üretim Şeması</label>
                 </div>
                 <div class="col-md-7">
-                    @(
+                    <div class="input-group">
+                        @(
 		Html.Akilli()
 		.DropDownListFor(model => model.productionSchemaId)
 		.OptionLabel("Lütfen Üretim Şeması Seçiniz..")
@@ -522,8 +500,10 @@
 		.Sort(x => x.Add("name").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
-        .Enable(false)
             )
+                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Şeması Detayı" id="productionSchemaIdButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-info-circle"></i></a>
+                    </div>
+
                 </div>
             </div>
         </div>
@@ -593,10 +573,12 @@
                         <tr>
                             <th hidden> Id</th>
                             <th>Ürün Adı</th>
-                            <th>Birim Miktar (Adet) </th>
+                            <th>Birim Miktar  </th>
                             <th> Birim Fiyat</th>
-                            <th>Toplam Miktar (Adet)</th>
-                            <th>Toplam Stok Durumu (Adet)</th>
+                            <th>Toplam Miktar </th>
+                            <th>Toplam Stok Durumu </th>
+                            <th hidden></th>
+                            <th hidden></th>
                         </tr>
                     </thead>
                     <tbody id="RowContainer_Stages">

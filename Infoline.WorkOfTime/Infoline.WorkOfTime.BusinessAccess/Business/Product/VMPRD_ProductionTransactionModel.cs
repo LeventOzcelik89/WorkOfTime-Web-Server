@@ -478,18 +478,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var outputInfo = GetInfo(this.outputId, this.outputTable, this.outputCompanyId);
 
 
-			this.inputId_Title = inputInfo.Text;
-			this.inputCompanyId = inputInfo.CompanyId;
-			this.inputCompanyId_Title = inputInfo.CompanyIdTitle;
-			this.inputId = inputInfo.DataId;
-			this.inputTable = inputInfo.DataTable;
+				this.inputId_Title = inputInfo.Text;
+				this.inputCompanyId = inputInfo.CompanyId;
+				this.inputCompanyId_Title = inputInfo.CompanyIdTitle;
+				this.inputId = inputInfo.DataId;
+				this.inputTable = inputInfo.DataTable;
 
 
-			this.outputId_Title = outputInfo.Text;
-			this.outputCompanyId = outputInfo.CompanyId;
-			this.outputCompanyId_Title = outputInfo.CompanyIdTitle;
-			this.outputId = outputInfo.DataId;
-			this.outputTable = outputInfo.DataTable;
+				this.outputId_Title = outputInfo.Text;
+				this.outputCompanyId = outputInfo.CompanyId;
+				this.outputCompanyId_Title = outputInfo.CompanyIdTitle;
+				this.outputId = outputInfo.DataId;
+				this.outputTable = outputInfo.DataTable;
 
 
 			var DBResult = new ResultStatus { result = true };
@@ -1257,5 +1257,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			return result;
 		}
+		
 	}
 }

@@ -1,34 +1,28 @@
-﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductionTransactionModel
-
+﻿@model VMPRD_ProductionModel
 @{
-
-    if (Model.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+    if (Model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
     {
         ViewBag.Title = "Harcama Bildirimi";
     }
-    else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi)
     {
         ViewBag.Title = "Biten Ürün Bildirimi";
     }
-    else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi || Model.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
+    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi || Model.Transaction.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
     {
         ViewBag.Title = "Biten Ürün Bildirimi";
     }
-    else if (Model.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi)
     {
         ViewBag.Title = "Biten Ürün Bildirimi";
     }
-    else if (Model.type == (int)EnumPRD_TransactionType.FireFisi)
+    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.FireFisi)
     {
         ViewBag.Title = "Fire Bildirimi";
     }
-
-
-
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
     var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
-
     if (ViewBag.Direction == -1)
     {
         types = types.Where(a => Convert.ToInt32(a.Key) >= 10 && Convert.ToInt32(a.Key) < 20);
@@ -38,706 +32,8 @@
         types = types.Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 10);
     }
     var count = types.Count();
-
 }
-
 <link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
-
-<script type="text/javascript" data-selector="modalContainer">
-
-
-    var page = {
-        Model: @Html.Raw( Json.Encode(Model) ),
-        status:'@Model.status',
-        stock: [],
-        outputId: null,
-        outputCompanyId: null,
-        inputId: null,
-        inputCompanyId: null,
-        type: null,
-        Counter: 0,
-        events: {
-            typeChange: function (e) {
-                page.type = $("#type").data("kendoDropDownList").value();
-                page.inputId = null;
-                page.inputCompanyId = null;
-                page.outputId = null;
-                page.outputCompanyId = null;
-                $('[data-type]').each(function (c) {
-                    var attrtype = $(this).attr("data-type");
-                    var control = attrtype.split(",").indexOf(page.type) > -1;
-                    $(this).find(".has-error").removeClass("has-error");
-                    $(this).find(".help-block.with-errors").remove();
-                    $(this).find('.has-danger').removeClass("has-danger")
-                    $(this)[control ? "removeClass" : "addClass"]("hide");
-
-                    $(this).find('[data-role="dropdownlist"],[data-role="datepicker"]').each(function (elem) {
-                        var elem = $(this).data("kendoDropDownList") || $(this).data("kendoDatePicker");
-                        if (elem) {
-
-                            var cascade = elem.options.cascadeFrom;
-                            if (elem.element.parents(".form-group").find(".req").length > 0) {
-                                elem.element.prop("required", control);
-                            }
-                            elem.enable(control);
-                            if ($(this).attr("data-role") == "dropdownlist" && control && !cascade) {
-                                if (elem._initial != elem.value()) {
-                                    elem.value("");
-                                }
-                                elem.dataSource.read();
-                                elem.dataSource.one("requestEnd", function (args) {
-                                    elem.trigger("change");
-                                });
-                            }
-                        }
-                    });
-
-                    $(this).find('[type="hidden"]').each(function (elem) {
-                        $(this).prop("disabled",!control);
-                    });
-                });
-
-                $('#description').trigger("blur");
-                $('[data-button="type"]').removeClass("active");
-                $('[data-button="type"][value="' + page.type + '"]').addClass("active");
-            },
-            typeLoad: function () {
-                page.events.typeChange();
-            },
-            typeButton: function (e) {
-                var value = $(e).attr("value");
-                $("#type").data("kendoDropDownList").value(value);
-                page.events.typeChange();
-            },
-            removeRow: function (item) {
-
-                if (page.Counter == 1 || page.Counter == 0) {
-                    return;
-                }
-
-                $(item).parents('tr').remove();
-
-                page.events.ValidateRows();
-
-            },
-            ValidateRows: function () {
-
-                var valid = true;
-                page.Counter = 0;
-
-                $.each($('#RowContainerForProduct tr'), function (i, item) {
-
-                    $(item).find('[data-notify="index"]')
-                        .html(page.Counter);
-
-                    $(item).find('[data-notify="id"]')
-                        .attr('name', 'items[' + page.Counter + '].id');
-
-                    $(item)
-                        .find('[data-notify="unitPrice"]')
-                        .attr('name', 'items[' + page.Counter + '].unitPrice');
-
-                    $(item).find('[data-notify="quantity"]')
-                        .attr('name', 'items[' + page.Counter + '].quantity');
-
-                    $(item).find('[data-notify="serialCodes"]')
-                        .attr('name', 'items[' + page.Counter + '].serialCodes');
-
-                    $(item).find('[data-notify="productId"]')
-                        .attr('name', 'items[' + page.Counter + '].productId')
-
-
-                    var quant = $(item).find('[data-notify="quantity"]').data('kendoNumericTextBox');
-                    var prod = $(item).find('[data-notify="productId"]').data('kendoDropDownList');
-                    var serials = $(item).find('[data-notify="serialCodes"]').data("tagify");
-
-                    if (prod.value() == null) {
-                        MesajWarning("Ürün seçimi yapmadan yeni satır ekleyemessiniz..", "Bilgilendirme");
-                        valid = false;
-                        return false;
-                    }
-
-                    //debugger;
-                    //if (quant.value() == 0) {
-                    //    MesajWarning("Miktar girmeden yeni satır ekleyemezsiniz.", "Bilgilendirme");
-                    //    valid = false;
-                    //    return false;
-                    //}
-
-                    if (prod.dataItem().stockType == 2 && quant.value() != serials.value.length) {
-                        MesajWarning("Girilen miktar ile serinumarası miktarı uyuşmuyor.", "Bilgilendirme");
-                        valid = false;
-                        return false;
-                    }
-
-                    page.Counter++;
-
-                });
-
-                return valid;
-
-            },
-            addRow: function (data) {
-                if (page.events.ValidateRows() == false) {
-                    return false;
-                }
-
-                var temp = $($('#RowTempForProduct').html());
-                $('#RowContainerForProduct').append(temp);
-
-                temp.find('[data-notify="index"]').append(page.Counter);
-                temp.find('[data-notify="id"]')
-                    .attr('name', 'items[' + page.Counter + '].id')
-                    .attr('id', (data != undefined ? data.id : kendo.guid()));
-
-                temp.find('[data-notify="unitPrice"]')
-                    .attr('name', 'items[' + page.Counter + '].unitPrice')
-                    .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
-
-                temp.find('[data-notify="quantity"]')
-                    .attr('name', 'items[' + page.Counter + '].quantity')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
-
-                temp.find('[data-notify="serialCodes"]')
-                    .attr('name', 'items[' + page.Counter + '].serialCodes')
-                    .attr('value', data != undefined ? data.serialCodes : '')
-                    .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
-
-                temp.find('[data-notify="productId"]')
-                    .attr('name', 'items[' + page.Counter + '].productId')
-                    .kendoDropDownList(
-                        {
-                            "value": '@Model.productId',
-                            "change": page.events.productChange,
-							"dataBound": page.events.productChange,
-                            "dataSource": {
-                                "type": "aspnetmvc-ajax",
-								"transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
-                                "pageSize": 100,
-                                "page": 1,
-                                "total": 0,
-                                "serverPaging": true,
-                                "serverSorting": true,
-                                "serverFiltering": true,
-                                "sort": [
-                                    { "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
-                                    { "field": "fullName", "dir": "asc" },
-                                ],
-								"filter": [{ "field": "id", "operator": "eq", "value": '@Model.productId' }]
-
-                            },
-                            "dataTextField": "fullName",
-                            "delay": 1000,
-                            "filter": "contains",
-                            "template": '#=TemplateEngine("productCustomTemplate",data)#',
-                            "dataValueField": "id",
-                            "optionLabel": "Lütfen Ürün Seçiniz..",
-
-
-                        });
-
-                if (page.status == '1') {
-                    temp.find('[data-notify="islendi"]').attr('disabled', 'disabled');
-                }
-
-                page.Counter++;
-
-            },
-            productChange: function (e) {
-
-                var data = e.sender.dataItem(e.sender.selectedIndex);
-                var tr = this.element.parents('tr');
-                var serialCodes = tr.find('[data-notify="serialCodes"]');
-                var unitPrice = tr.find('[data-notify="unitPrice"]').data("kendoNumericTextBox");
-                var quantity = tr.find('[data-notify="quantity"]').data("kendoNumericTextBox");
-                var priceProp =  "currentBuyingPrice";
-
-                if (serialCodes.data('tagify')) {
-                    serialCodes.data('tagify').destroy();
-                    serialCodes.removeData("tagify");
-                }
-
-                if (data.id == "") {
-                    unitPrice.value(0);
-                    unitPrice.enable(false);
-                    quantity.value(0);
-                    quantity.enable(false);
-                    serialCodes.val("");
-                    serialCodes.prop("readonly", true);
-                    serialCodes.tagify({ placeholder:"Henüz ürün seçimi yapılmadı." });
-                } else {
-                    var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
-                    tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.enable(true);
-                    quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
-                    unitPrice.enable(true);
-                    unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
-                    serialCodes.prop("readonly", data.stockType == 2 ? false : true);
-                    serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
-
-                    if (data.stockType == 2) {
-
-                        var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
-                        var valuesArr = [];
-                        //try {
-                        //    valuesArr = JSON.parse(values).map(function (a) { return { value: a.value, readonly: page.status == 1 } });
-                        //} catch (e) {
-                        //    valuesArr = (values).split(",").map(function (a) { return { value: a, readonly: page.status == 1 } });
-                        //}
-                        //try {
-                        //    serialCodes.val(JSON.stringify(valuesArr));
-                        //} catch (e) {
-
-                        //}
-
-                        var whitelist = $.ajax({
-                            url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-							data: { productId: data.id, lastActionDataId: page.Model.outputId, lastActionDataCompanyId: page.Model.outputCompanyId },
-                            async: false,
-                        }).responseJSON || [];
-
-                        whitelist = whitelist.concat(valuesArr.map(a=>a.value));
-                        serialCodes
-                            .tagify({
-                                placeholder:"Seri Numarasını yazın ve Enter'a basınız.",
-                                //editTags: false,
-                                maxTags: 999,
-                                dropdown: {
-                                    maxItems: 999,           // <- mixumum allowed rendered suggestions
-                                    //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
-                                    enabled: 0,             // <- show suggestions on focus
-                                    closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
-                                }
-                            })
-                            .off("add removetag invalid")
-                            .on("invalid", function () {
-                                MesajWarning("Geçersiz serinumarası girişi yaptınız..", "Bilgilendirme");
-                            })
-                            .on("add removetag", function (e) {
-                                quantity.value(serialCodes.val().split("value").length - 1);
-                            })
-
-                    } else {
-                        serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
-                    }
-
-                    //e.sender._initial = null;
-                }
-            },
-            outputCompanyChange: function (e) {
-                page.outputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputCompanyId) };
-            },
-            outputChange: function (e) {
-                page.outputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputId) };
-            },
-            inputCompanyChange: function (e) {
-                page.inputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputCompanyId) };
-            },
-            inputChange: function (e) {
-                page.inputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputId) };
-            },
-            openedProduct: function (value) {
-                $("#productTable")[value ? "slideDown" : "slideUp"]();
-                //return;
-                $("#productTable").find('[data-notify="productId"]').each(function (c) {
-                    var product = $(this).data("kendoDropDownList");
-                    product.enable(true);
-                    product.one("dataBound", function (e) {
-                        product.trigger("change");
-                        if (page.status == 1) {
-                            product.readonly(true);
-                        }
-                    });
-                    product.dataSource.read();
-                });
-
-            }
-        },
-        init: function () {
-
-            $.each(page.Model.items, function (i, item) {
-                page.events.addRow(item);
-            });
-
-            if (page.Model.items.length == 0) {
-                page.events.addRow();
-            }
-
-        }
-    };
-
-    page.init();
-    if (page.Model.tenderIds != null)
-    {
-        $('[data-notify="islendi"]').addClass('hide');
-    }
-
-    $(document)
-        .on('before:submit', 'form', function (e) {
-
-            $('[data-notify="serialCodes"]').each(function (c) {
-                var data = $(this).data("tagify");
-                if (data && data.value) {
-                    $(this).val(data.value.map(a => a.value).join(","));
-                }
-            });
-        })
-        .on('keydown', function (c) {
-            if (c.ctrlKey == true) {
-                navigator.clipboard.readText()
-                    .then(text => {
-                        var textArea = $('<textarea/>').val(text);
-                        navigator.clipboard.writeText(textArea.val());
-                    })
-                    .catch(err => {
-                        // MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
-                    });
-            }
-        });
-
-
-
-
-
-</script>
-<script type="text/javascript" data-selector="modalContainer">
-    var pagePart = {
-        Model: page.Model,
-        status: page.status,
-        stock: [],
-        outputId: null,
-        outputCompanyId: null,
-        inputId: null,
-        inputCompanyId: null,
-        type: null,
-        Counter: 1,
-        events: {
-            typeChange: function (e) {
-                pagePart.type = $("#type").data("kendoDropDownList").value();
-                pagePart.inputId = null;
-                pagePart.inputCompanyId = null;
-                pagePart.outputId = null;
-                pagePart.outputCompanyId = null;
-                $('[data-type]').each(function (c) {
-                    var attrtype = $(this).attr("data-type");
-                    var control = attrtype.split(",").indexOf(pagePart.type) > -1;
-                    $(this).find(".has-error").removeClass("has-error");
-                    $(this).find(".help-block.with-errors").remove();
-                    $(this).find('.has-danger').removeClass("has-danger")
-                    $(this)[control ? "removeClass" : "addClass"]("hide");
-                    $(this).find('[data-role="dropdownlist"],[data-role="datepicker"]').each(function (elem) {
-                        var elem = $(this).data("kendoDropDownList") || $(this).data("kendoDatePicker");
-                        if (elem) {
-                            var cascade = elem.options.cascadeFrom;
-                            if (elem.element.parents(".form-group").find(".req").length > 0) {
-                                elem.element.prop("required", control);
-                            }
-                            elem.enable(control);
-                            if ($(this).attr("data-role") == "dropdownlist" && control && !cascade) {
-                                if (elem._initial != elem.value()) {
-                                    elem.value("");
-                                }
-                                elem.dataSource.read();
-                                elem.dataSource.one("requestEnd", function (args) {
-                                    elem.trigger("change");
-                                });
-                            }
-                        }
-                    });
-                    $(this).find('[type="hidden"]').each(function (elem) {
-                        $(this).prop("disabled",!control);
-                    });
-                });
-                $('#description').trigger("blur");
-                $('[data-button="type"]').removeClass("active");
-                $('[data-button="type"][value="' + pagePart.type + '"]').addClass("active");
-            },
-            typeLoad: function () {
-                pagePart.events.typeChange();
-            },
-            typeButton: function (e) {
-                var value = $(e).attr("value");
-                $("#type").data("kendoDropDownList").value(value);
-                pagePart.events.typeChange();
-            },
-            removeRow: function (item) {
-                $(item).parents('tr').remove();
-                pagePart.events.ValidateRows();
-            },
-            removeAllRows: function () {
-                if (pagePart.Counter == 1 || pagePart.Counter == 0) {
-                    return;
-                }
-                $("tbody tr").remove();
-            },
-            ValidateRows: function () {
-                var valid = true;
-                pagePart.Counter = 0;
-                $.each($('#RowContainer_Upsert tr'), function (i, item) {
-                    $(item).find('[data-item="index"]')
-                        .html(pagePart.Counter);
-                    $(item).find('[data-item="id"]')
-                        .attr('name', 'items[' + pagePart.Counter + '].id');
-                    $(item)
-                        .find('[data-item="unitPrice"]')
-                        .attr('name', 'items[' + pagePart.Counter + '].unitPrice');
-                    $(item).find('[data-item="quantity"]')
-                        .attr('name', 'items[' + pagePart.Counter + '].quantity');
-                    $(item).find('[data-item="serialCodes"]')
-                        .attr('name', 'items[' + pagePart.Counter + '].serialCodes');
-                    $(item).find('[data-item="productId"]')
-                        .attr('name', 'items[' + pagePart.Counter + '].productId')
-                    var quant = $(item).find('[data-item="quantity"]').data('kendoNumericTextBox');
-                    //var prod = $(item).find('[data-item="productId"]').data('kendoDropDownList');
-                    var serials = $(item).find('[data-item="serialCodes"]').data("tagify");
-                    //if (prod.value() == null) {
-                    //    MesajWarning("Ürün seçimi yapmadan yeni satır ekleyemessiniz..", "Bilgilendirme");
-                    //    valid = false;
-                    //    return false;
-                    //}
-                    //debugger;
-                    //if (quant.value() == 0) {
-                    //    MesajWarning("Miktar girmeden yeni satır ekleyemezsiniz.", "Bilgilendirme");
-                    //    valid = false;
-                    //    return false;
-                    //}
-                    //if (prod.dataItem().stockType == 2 && quant.value() != serials.value.length) {
-                    //    MesajWarning("Girilen miktar ile serinumarası miktarı uyuşmuyor.", "Bilgilendirme");
-                    //    valid = false;
-                    //    return false;
-                    //}
-                    pagePart.Counter++;
-                });
-                return valid;
-            },
-            addRow: function (data, amount) {
-                if (pagePart.events.ValidateRows() == false) {
-                    return false;
-                }
-                var temp = $($('#RowTemplate_Upsert').html());
-                $('#RowContainer_Upsert').append(temp);
-                temp.find('[data-item="index"]').append(pagePart.Counter);
-                temp.find('[data-item="id"]')
-                    .attr('name', 'items[' + pagePart.Counter + '].id')
-                    .attr('id', (data != undefined ? data.id : kendo.guid()));
-                temp.find('[data-item="unitPrice"]')
-                    .attr('name', 'items[' + pagePart.Counter + '].unitPrice')
-                    .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
-                temp.find('[data-item="quantity"]')
-                    .attr('name', 'items[' + pagePart.Counter + '].quantity')
-                    .attr("data-value", data != undefined ? data.quantity:0)
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity  : null) });
-                temp.find('[data-item="serialCodes"]')
-                    .attr('name', 'items[' + pagePart.Counter + '].serialCodes')
-                    .attr('value', data != undefined ? data.serialCodes : '')
-                    .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
-                temp.find('[data-item="productId"]')
-                    .attr('name', 'items[' + pagePart.Counter + '].productId')
-                    .kendoDropDownList(
-                        {
-                            "value": (data != undefined ? data.productId : null),
-                            "change": pagePart.events.productChange,
-                            "dataBound": pagePart.events.productChange,
-                            "dataSource": {
-                                "type": "aspnetmvc-ajax",
-								"transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDownForInventory" } },
-                                "pageSize": 100,
-                                "page": 1,
-                                "total": 0,
-                                "serverPaging": true,
-                                "serverSorting": true,
-                                "serverFiltering": true,
-                                "sort": [
-                                    { "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
-                                    { "field": "productId_Title", "dir": "asc" },
-                                ],
-								"filter": [{ "field": "stockId", "operator": "eq", "value": '@Model.outputId' }]
-                            },
-                            "dataTextField": "fullName",
-                            "delay": 1000,
-                            "filter": "contains",
-                            "template": '#=TemplateEngine("productCustomTemplate",data)#',
-                            "dataValueField": "id",
-                            "optionLabel": "Lütfen Ürün Seçiniz.."
-                        });
-                if (pagePart.status == '1') {
-                    temp.find('[data-item="islendi"]').attr('disabled', 'disabled');
-                }
-                pagePart.Counter++;
-            },
-            productChange: function (e) {
-                var data = e.sender.dataItem(e.sender.selectedIndex);
-                var tr = this.element.parents('tr');
-                var serialCodes = tr.find('[data-item="serialCodes"]');
-                var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
-                var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
-                var priceProp = pagePart.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
-                if (serialCodes.data('tagify')) {
-                    serialCodes.data('tagify').destroy();
-                    serialCodes.removeData("tagify");
-                }
-                if (data.id == "") {
-                    unitPrice.value(0);
-                    unitPrice.enable(false);
-                    quantity.value(0);
-                    quantity.enable(false);
-                    serialCodes.val("");
-                    serialCodes.prop("readonly", true);
-                    serialCodes.tagify({ placeholder:"Henüz ürün seçimi yapılmadı." });
-                } else {
-                    var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
-                    tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.enable(true);
-                    quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
-                    unitPrice.enable(true);
-                    unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
-                    serialCodes.prop("readonly", data.stockType == 2 ? false : true);
-                    serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
-                    if (data.stockType == 2) {
-                        var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
-                        var valuesArr = [];
-                        try {
-                            valuesArr = JSON.parse(values).map(function (a) { return { value: a.value, readonly: pagePart.status == 1 } });
-                        } catch (e) {
-                            valuesArr = (values).split(",").map(function (a) { return { value: a, readonly: pagePart.status == 1 } });
-                        }
-                        try {
-                            serialCodes.val(JSON.stringify(valuesArr));
-                        } catch (e) {
-                        }
-                        var whitelist = $.ajax({
-                            url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-                            data: { productId: data.id, lastActionDataId: pagePart.Model.outputId, lastActionDataCompanyId: pagePart.Model.outputCompanyId },
-                            async: false,
-                        }).responseJSON || [];
-
-                        whitelist = whitelist.concat(valuesArr.map(a => a.value));
-                        serialCodes
-                            .tagify({
-                                placeholder: "Seri Numarasını yazın ve Enter'a basınız.",
-                                enforceWhitelist: allowCustomSerialCode.indexOf(pagePart.type) == -1,
-                                whitelist: whitelist,
-                                //editTags: false,
-                                maxTags: 999,
-                                dropdown: {
-                                    maxItems: 999,           // <- mixumum allowed rendered suggestions
-                                    //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
-                                    enabled: 0,             // <- show suggestions on focus
-                                    closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
-                                }
-                            })
-                            .off("add removetag invalid")
-                            .on("invalid", function () {
-                                MesajWarning("Geçersiz serinumarası girişi yaptınız..", "Bilgilendirme");
-                            })
-                            .on("add removetag", function (e) {
-                                quantity.value(serialCodes.val().split("value").length - 1);
-                            })
-                            .on("dropdown:show", function (e) {
-
-
-
-                            });
-                    } else {
-                        serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
-                    }
-                    //e.sender._initial = null;
-                    pushData();
-                }
-            },
-            outputCompanyChange: function (e) {
-                pagePart.outputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { pagePart.events.openedProduct(pagePart.outputCompanyId) };
-            },
-            outputChange: function (e) {
-                pagePart.outputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { pagePart.events.openedProduct(pagePart.outputId) };
-            },
-            inputCompanyChange: function (e) {
-                pagePart.inputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { pagePart.events.openedProduct(pagePart.inputCompanyId) };
-            },
-            inputChange: function (e) {
-                pagePart.inputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { pagePart.events.openedProduct(pagePart.inputId) };
-            },
-            openedProduct: function (value) {
-                $("#productTable")[value ? "slideDown" : "slideUp"]();
-                //return;
-                $("#productTable").find('[data-item="productId"]').each(function (c) {
-                    var product = $(this).data("kendoDropDownList");
-                    product.enable(true);
-                    product.one("dataBound", function (e) {
-                        product.trigger("change");
-                        if (pagePart.status == 1) {
-                            product.readonly(true);
-                        }
-                    });
-                    product.dataSource.read();
-                });
-            }
-        },
-        init: function () {
-            $.each(pagePart.Model.items, function (i, item) {
-                pagePart.events.addRow(item,1);
-            });
-            if (pagePart.Model.items.length == 0) {
-                pagePart.events.addRow();
-            }
-        }
-    };
-    pagePart.init();
-    if (pagePart.Model.tenderIds != null)
-    {
-        $('[data-item="islendi"]').addClass('hide');
-    }
-    $(document)
-        .on('before:submit', 'form', function (e) {
-            $('[data-item="serialCodes"]').each(function (c) {
-                var data = $(this).data("tagify");
-                if (data && data.value) {
-                    $(this).val(data.value.map(a => a.value).join(","));
-                }
-            });
-        })
-        .on('keydown', function (c) {
-            if (c.ctrlKey == true) {
-                navigator.clipboard.readText()
-                    .then(text => {
-                        var textArea = $('<textarea/>').val(text);
-                        navigator.clipboard.writeText(textArea.val());
-                    })
-                    .catch(err => {
-                        // MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
-                    });
-            }
-        })
-        .on("keyup", "#amount", function () {
-            pushData();
-        })
-    function pushData() {
-        var getValue = parseInt($("#amount").val());
-        $.each($("#RowContainer_Upsert tr"), function (i, item) {
-            let el = $(item).find('[data-item="quantity"]');
-            el.data('handler').value(getValue * parseInt(el.attr("data-value")));
-            let els = $(item).find('[data-item="serialCodes"]');
-            ti = $('[name="' + els[0].name + '"]');
-            t = ti.data('tagify');
-                if (t != undefined) {
-                    t.removeAllTags();
-                    if (t.suggestedListItems != undefined) {
-                        var tags = t.suggestedListItems.slice(0, getValue).join(',')
-                        t.addTags(tags)
-                    }
-                }
-        });
-    }
-</script>
-
 <script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
     <div class="clearfix" style="padding: 8px 0;">
         <img class="img-circle img-responsive pull-left" style="width: 40px;height: 40px;" src="#:(logo ? logo : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )" />
@@ -755,38 +51,8 @@
         </div>
     </div>
 </script>
-
-
-<script type="text/template" data-selector="modalContainer" id="RowTempForProduct">
-
-    <tr>
-
-        <td data-target="">
-            <input type="hidden" data-notify="id" />
-            <input data-notify="productId" class="form-control" data-refresh="" />
-        </td>
-        <td hidden>
-            <div class="input-group">
-                <input data-notify="unitPrice" />
-                <span class="input-group-addon"> TL</span>
-            </div>
-        </td>
-        <td>
-            <div class="input-group">
-                <input data-notify="quantity" />
-                <span class="input-group-addon"> Adet</span>
-            </div>
-        </td>
-        <td>
-            <input data-notify="serialCodes" data-role="tagify" />
-        </td>
-    </tr>
-
-</script>
 <script type="text/template" data-selector="modalContainer" id="RowTemplate_Upsert">
     <tr>
-        <td data-item="index">
-        </td>
         <td data-target="">
             <input type="hidden" data-item="id" />
             <input data-item="productId" class="form-control" data-refresh="" />
@@ -795,6 +61,12 @@
             <div class="input-group">
                 <input data-item="unitPrice" />
                 <span class="input-group-addon"> TL</span>
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-item="value" disabled />
+                <span class="input-group-addon"> Adet</span>
             </div>
         </td>
         <td>
@@ -815,16 +87,223 @@
 	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(types))#
 	<div class="clearfix"><i style="margin-right:15px;" class="#:types.filter(function(a){return a.Key == Id}).map(a=>a.Generic['icon'])#"></i><strong>#=enumDescription#</strong></div>
 </script>
+<script data-selector="modalContainer">
+     var page = {
+        Model: @Html.Raw( Json.Encode(Model) ),
+        status:'@Model.Transaction.status',
+        stock: [],
+        outputId: null,
+        outputCompanyId: null,
+        inputId: null,
+        inputCompanyId: null,
+        type: null,
+        Counter: 0,
+        events: {
+            removeRow: function (item) {
+                $(item).parents('tr').remove();
+                page.events.ValidateRows();
+            },
+            removeAllRows: function () {
+                if (page.Counter == 1 || page.Counter == 0) {
+                    return;
+                }
+                $("tbody tr").remove();
+                page.Counter = 0;
+            },
+            addRow: function (data) {
 
+                var temp = $($('#RowTemplate_Upsert').html());
+                $('#RowContainer_Upsert').append(temp);
+                temp.find('[data-item="index"]').append(page.Counter);
+                temp.find('[data-item="id"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].id')
+                    .attr('id', (data != undefined ? data.id : kendo.guid()));
+                temp.find('[data-item="unitPrice"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
+                    .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
+                temp.find('[data-item="quantity"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].quantity')
+                    .attr("data-value", data != undefined ? data.quantity : 0)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
+                temp.find('[data-item="value"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].value')
+                    .attr("value", data != undefined ? data.quantity : 0)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.quantity : null) });
+                temp.find('[data-item="serialCodes"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].serialCodes')
+                    .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
+                temp.find('[data-item="productId"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].productId')
+                    .kendoDropDownList(
+                        {
+                            "value": (data != undefined ? data.materialId : null),
+                            "change": page.events.productChange,
+							"dataBound": page.events.productChange,
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+								"transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDownForInventory" } },
+                                "pageSize": 100,
+                                "page": 1,
+                                "total": 0,
+                                "serverPaging": true,
+                                "serverSorting": true,
+                                "serverFiltering": true,
+                                "filter": [{ "field": "stockId", "operator": "eq", "value": '@Model.Transaction.inputId' }]
+                            },
+                            "dataTextField": "fullName",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "template": '#=TemplateEngine("productCustomTemplate",data)#',
+                            "dataValueField": "id",
+                            "optionLabel": "Lütfen Ürün Seçiniz.."
+                        });
+                if (page.status == '1') {
+                    temp.find('[data-item="islendi"]').attr('disabled', 'disabled');
+                }
+                page.Counter++;
+            },
+            productChange: function (e) {
 
+                var data = e.sender.dataItem(e.sender.selectedIndex);
+                var tr = this.element.parents('tr');
+                var serialCodes = tr.find('[data-item="serialCodes"]');
+                var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
+                var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
+                var priceProp = page.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
+                if (serialCodes.data('tagify')) {
+                    serialCodes.data('tagify').destroy();
+                    serialCodes.removeData("tagify");
+                }
+                if (data.id == "") {
+                    
+                    unitPrice.enable(false);
+                    tr.hide();
+                    serialCodes.prop("required", false);
+                } else {
 
+                    var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
+                    tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
+                    
+                    quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
+                    unitPrice.enable(true);
+                    unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
+                    serialCodes.prop("readonly", data.stockType == 2 ? false : true);
+                    serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
+                    if (data.stockType == 2) {
+                        var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
+                        var valuesArr = [];
+                        try {
+                            valuesArr = JSON.parse(values).map(function (a) { return { value: a.value, readonly: page.status == 1 } });
+                        } catch (e) {
+                            valuesArr = (values).split(",").map(function (a) { return { value: a, readonly: page.status == 1 } });
+                        }
+                        try {
+                           serialCodes.val(JSON.stringify(valuesArr));
+                        } catch (e) {
+                        }
+                        var whitelist = $.ajax({
+                            url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
+                            data: { productId: data.id, lastActionDataId: page.Model.Transaction.inputId, lastActionDataCompanyId: page.Model.Transaction.inputCompanyId },
+                            async: false,
+                        }).responseJSON || [];
+                        whitelist = whitelist.concat(valuesArr.map(a => a.value));
+                        serialCodes
+                            .tagify({
+                                placeholder: "Seri Numarasını yazın ve Enter'a basınız.",
+                                enforceWhitelist: allowCustomSerialCode.indexOf(page.type) == -1,
+                                whitelist: whitelist,
+                                //editTags: false,
+                                maxTags: 999,
+                                dropdown: {
+                                    maxItems: 999,           // <- mixumum allowed rendered suggestions
+                                    //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
+                                    enabled: 0,             // <- show suggestions on focus
+                                    closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
+                                }
+                            })
+                            .off("add removetag invalid")
+                            .on("invalid", function () {
+                                MesajWarning("Geçersiz serinumarası girişi yaptınız..", "Bilgilendirme");
+                            })
+                            .on("add removetag", function (e) {
+                                quantity.value(serialCodes.val().split("value").length - 1);
+                            })
+                            .on("dropdown:show", function (e) {
+                            });
+                    } else {
+                        serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
+                    }
+                    //e.sender._initial = null;
+                    pushData();
+                }
+            },
+                  },
+         init: function () {
+             page.events.removeAllRows();
+                $.each(page.Model.productionProducts, function (i, item) {
+                page.events.addRow(item, 1);
+            });
+            if (page.Model.productionProducts.length == 0) {
+                page.events.addRow();
+            }
+        }
+    };
+    function pushData() {
+        var getValue = parseInt($("#amount").val());
+        $.each($("#RowContainer_Upsert tr"), function (i, item) {
+            let el = $(item).find('[data-item="quantity"]');
+            if (parseInt(el.attr("data-value"))!=0) {
+                el.data('handler').value(getValue * parseInt(el.attr("data-value")));
+                let els = $(item).find('[data-item="serialCodes"]');
+                ti = $('[name="' + els[0].name + '"]');
+                t = ti.data('tagify');
+                if (t != undefined) {
+                    t.removeAllTags();
+                    if (t.suggestedListItems != undefined) {
+                        var tags = t.suggestedListItems.slice(0, getValue).join(',')
+                        t.addTags(tags)
+                    }
+                }
+            }
+        });
+    }
+    $(document).off("change", '[name="expensReport"]', function () { });
 
+    $(document).on("change", '[name="expensReport"]', function () {
+        var getValue = $('[name="expensReport"]:checked').val();
 
+        if (getValue == 1) {
+            $("#infoBox").show();
+            $("#tableHide").show()
+            page.init();
+        }
+        else {
+            $("#tableHide").hide();
+            $("#infoBox").hide();
+            page.events.removeAllRows();
+        }
+    }).on("keyup change", '#amount', function () {
+        page.init();
+    })
+      .on('before:submit', 'form', function (e) {
+        $('[data-item="serialCodes"]').each(function (c) {
+            var data = $(this).data("tagify");
+            if (data && data.value) {
+                $(this).val(data.value.map(a => a.value).join(","));
+            }
+        });
+          var tag = $("#ProductSerialCodes").data("tagify");
+          if (tag && tag.value) {
+              $("#ProductSerialCodes").val(tag.value.map(a => a.value).join(","))
 
-
-
-
-
+          }
+    })  ;
+</script>
+<style>
+    .widget{
+        min-height:0px!important;
+    }
+</style>
 @using (Html.BeginForm("Upsert", "VWPRD_Production", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
@@ -835,124 +314,203 @@
 {
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id, new { @Value = Model.id })
-    @Html.HiddenFor(model => model.invoiceId)
-    @Html.HiddenFor(model => model.orderId)
     @Html.HiddenFor(model => model.tenderIds)
-
-    @Html.HiddenFor(m => m.outputId);
-    @Html.HiddenFor(m => m.outputCompanyId);
-    @Html.HiddenFor(m => m.outputTable);
-    @Html.HiddenFor(m => m.totalQuantity);
-    @Html.HiddenFor(m => m.inputId);
-    @Html.HiddenFor(m => m.inputCompanyId);
-    @Html.HiddenFor(m => m.inputTable);
-
+    @Html.HiddenFor(model => model.Transaction.invoiceId)
+    @Html.HiddenFor(model => model.Transaction.orderId)
+    @Html.HiddenFor(m => m.Transaction.outputId);
+    @Html.HiddenFor(m => m.Transaction.outputCompanyId);
+    @Html.HiddenFor(m => m.Transaction.outputTable);
+    @Html.HiddenFor(m => m.Transaction.inputId);
+    @Html.HiddenFor(m => m.Transaction.inputCompanyId);
+    @Html.HiddenFor(m => m.Transaction.inputTable);
+    @Html.HiddenFor(m => m.Transaction.code);
+    @Html.HiddenFor(m => m.Transaction.date);
+    @Html.HiddenFor(m => m.Transaction.description);
+    @Html.HiddenFor(m => m.Transaction.type)
     @Html.HiddenFor(m => m.code);
-    @Html.HiddenFor(m => m.date);
     @Html.HiddenFor(m => m.description);
-    @Html.HiddenFor(m => m.productionId);
-    @Html.HiddenFor(m => m.type);
-    if (!Model.isExpense)
-    {
-        <div class="row">
-            <div class="col-md-12">
-                <div class="alert alert-warning text-center">
-                    <i class="fa fa-info-circle"></i><b> BİLGİLENDİRME</b>
-                    <br>Bu üretim ile ilgili <b>Harcama Bildirimi</b> yapılmamıştır.
-                </div>
-
-            </div>
-        </div>
-    }
-
+    @Html.HiddenFor(m => m.ProductDetail.id)
+           var left = "0";
+            if (Model.producedQuantity.HasValue)
+            {
+                left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
+            }
+            var produced = "0";
+            if (Model.producedQuantity.HasValue)
+            {
+                produced = Model.producedQuantity.Value.ToString("N2");
+            }
+<fieldset style="display:none" id="infoBox">
+    <legend>Bilgilendirme</legend>
     <div class="row">
         <div class="col-md-12">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md " for="type">Üretilecek Adet</label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextBoxFor(model => model.totalQuantity, new Dictionary<string, object>()
-                            {
-                                {"class", "form-control"},
-                                {"disabled",true }
-
-                            }).Validate(Validations.Number(true))
-                    </div>
-                </div>
+            <div class="alert alert-warning text-center">
+                Materyal harcamaları otomatik işletildiğinde, stoktan düşecektir.
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md " for="type">Üretilen Ürün</label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextBoxFor(model => model.OutOfStock, new Dictionary<string, object>()
-                            {
-                                {"class", "form-control"},
-                                {"disabled",true }
-
-                            }).Validate(Validations.Number(true))
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+</fieldset>
    
-    <div class="row">
-        <div class="col-sm-12 ">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md " for="type">Harcamalar Otomatik İşletilsin mi ? </label>
+
+    <fieldset>
+        <legend>Üretim Bilgileri</legend>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="widget blue-bg p-lg text-center" style="min-height:unset!important">
+                    <div class="m-b-md">
+                        <i class="fa fa-inbox fa-2x"></i>
+                        <h3 class="m-xs"> @Model.productId_Title</h3>
+                        <h5 class="font-bold no-margins" style="margin-top:5px">
+                           
+                        </h5>
+
                     </div>
-                    <div class="col-md-8">
-                        <div class="radio akilliRadioGrup clearfix">
-                            <input type="radio" name="expensReport"  value="1">
-                            <label tabindex="0" class="radio-label" for="discountType_0">
-                                Evet
-                            </label>
-                            <input type="radio" name="expensReport" checked  value="0">
-                            <label tabindex="0" class="radio-label" for="discountType_1">
-                                Hayır
-                            </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-sm-4 ">
+                <div class="widget lazur-bg p-lg text-center"  style="min-height:70px!important">
+                   
+                        <h3 class="m-xs"> @Model.quantity.Value.ToString("N2")</h3>
+                        <h5 class="font-bold no-mquantityargins">
+                            Üretilmesi Gereken Ürün Adedi
+                        </h5>
+
+                   
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="widget yellow-bg  p-lg text-center" style="min-height:70px!important"> 
+                   
+
+                        <h3 class="m-xs">@produced</h3>
+                        <h5 class="font-bold no-margins">
+                            Üretilen Ürün Adedi
+                        </h5>
+
+                    
+                </div>
+            </div>
+
+            <div class="col-sm-4">
+                <div class="widget red-bg p-lg text-center" style="min-height:70px!important">
+                    
+                        <h3 class="m-xs">@left </h3>
+                        <h5 class="font-bold no-margins">
+                            Geriye Kalan Ürün Adedi
+                        </h5>
+
+                    </div>
+               
+            </div>
+
+        </div>
+
+    </fieldset>
+
+  
+
+    <fieldset>
+        <legend>Harcamalar</legend>
+        @if (Model.ProductDetail.stockType != (short)EnumPRD_ProductStockType.SeriNoluTakip)
+        {
+            <div class="row " style="margin-top:15px">
+                <div class="col-md-12">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req " for="type">Üretilen Adet</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (Model.ProductDetail.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
+        {
+            <div class="row hidden">
+                <div class="col-md-12" style="margin-top:15px">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md req " for="type">Üretilen Adet</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
+            <div class="row" style="margin-top:15px">
+                <div class="col-md-12">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <div class="col-md-2">
+                                <label class="control-label label-md " for="type">Seri Numaraları</label>
+                                <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i>
+                            </div>
+                            <div class="col-md-10">
+                                <input name="ProductSerialCodes" id="ProductSerialCodes" type="text" />
+                            </div>
+                        </div>
+                    </div>
+                       
+                    
+                </div>
+            </div>
+            <script data-selector="modalContainer">
+                $('#ProductSerialCodes').tagify({
+                    placeholder: "Seri Numarasını yazın ve Enter'a basınız"
+                }).on("add removetag", function (e) {
 
+                    let amount = $("#ProductSerialCodes").data("tagify").value;
+
+                    $("#amount").data("kendoNumericTextBox").value(amount.length)
+                    $("#amount").trigger("keyup");
+                });
+            </script>
+        }
+        <div class="row">
+            <div class="col-sm-12 " style="margin-top:15px">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md " for="type">Harcamalar Otomatik İşletilsin mi ? </label>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="radio akilliRadioGrup clearfix">
+                                <input type="radio" name="expensReport" id="expensReport_0" value="1">
+                                <label tabindex="0" class="radio-label" for="expensReport_0">
+                                    Evet
+                                </label>
+                                <input type="radio" name="expensReport" id="expensReport_1" checked value="0">
+                                <label tabindex="0" class="radio-label" for="expensReport_1">
+                                    Hayır
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
-    <div class="clearfix" id="productTable">
-        <table class="table table-custom" cellpadding="1" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="width:100%">ÜRÜN</th>
-                    <th style="width:30%">ÜRETİLEN MİKTAR </th>
-                    <th style="width:100%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-                </tr>
-            </thead>
-            <tbody id="RowContainerForProduct">
-            </tbody>
-        </table>
-    </div>
+    </fieldset>
 
 
-    <hr />
-    <h4>Otomatik Harcamadan Düşürülen Ürünler</h4>
-   
-    <div class="clearfix" id="productTableForParts">
-        <table class="table table-custom" cellpadding="1" cellspacing="0">
+    <div class="clearfix " id="productTableForParts ">
+
+        <table class="table table-custom" id="tableHide" style="display:none;" cellpadding="1" cellspacing="0">
             <thead>
                 <tr>
-                    <th style="width: 2%">#</th>
                     <th style="width:50%">ÜRÜN</th>
+                    <th style="width:15%">ÜRETİLMESİ İÇİN GEREKEN MİKTAR</th>
                     <th style="width:10%">HARCANAN MİKTAR </th>
                     <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
                     <th style="width:3%"></th>
@@ -962,18 +520,17 @@
             </tbody>
             <tfoot>
                 <tr>
-                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="pagePart.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="pagePart.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
                 </tr>
             </tfoot>
         </table>
+
     </div>
 
- 
 
     <div class="buttons">
         <div class="hr-line-dashed"></div>
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" formaction="@Url.Action("FinishedProductNotification","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit">Bildir</button>
+        <button class="btn btn-md btn-success pull-right" id="formButton" formaction="@Url.Action("FinishedProductNotification","VWPRD_Production",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit">Bildir</button>
     </div>
 }
-
