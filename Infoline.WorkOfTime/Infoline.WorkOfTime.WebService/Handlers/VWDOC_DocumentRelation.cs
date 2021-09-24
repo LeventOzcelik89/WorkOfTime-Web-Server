@@ -7,16 +7,16 @@ using System.Web;
 namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
-    public partial class VWHDM_TicketRequesterHandler : BaseSmartHandler
+    public partial class VWDOC_DocumentRelationHandler : BaseSmartHandler
     {
-        public VWHDM_TicketRequesterHandler()
-            : base("VWHDM_TicketRequester")
+        public VWDOC_DocumentRelationHandler()
+            : base("VWDOC_DocumentRelation")
         {
 
         }
 
         /// <summary>
-        /// VWHDM_TicketRequester tablosundaki kayıtları listelemek için kullanılan Web Servisdir..
+        /// VWDOC_DocumentRelation tablosundaki kayıtları listelemek için kullanılan Web Servisdir..
         /// </summary>
         /// <param name="context">Opsiyonel olarak [Condition] nesnesi alır. Parametreleri ise;
         /// Filter = [ Field, Operator, Value ] dizi şeklinde alır.
@@ -36,15 +36,15 @@ namespace Infoline.WorkOfTime.WebService
         ///     StartIndex =    Kayıtların alınmaya başlanacağı sırayı belirtir. Örn 100 değeri girilir ise ilk 100 kayıt alınmaz. Kayıtlar 101. kayıttan itibaren gelmeye başlar.
         ///     Count =         Kayıtların toplamda en fazla kaç tane geleceğinin belirtildiği propertydir. Örn : 200 Denir ise en fazla 200 satır kayıt gelir.
         /// </param>
-        [HandleFunction("VWHDM_TicketRequester/GetAll")]
-        public void VWHDM_TicketRequesterGetAll(HttpContext context)
+        [HandleFunction("VWDOC_DocumentRelation/GetAll")]
+        public void VWDOC_DocumentRelationGetAll(HttpContext context)
         {
             try
             {
                 var c = ParseRequest<Condition>(context);
                 var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 var db = new WorkOfTimeDatabase();
-                var data = db.GetVWHDM_TicketRequester(cond);
+                var data = db.GetVWDOC_DocumentRelation(cond);
                 RenderResponse(context, data);
             }
             catch (Exception ex)

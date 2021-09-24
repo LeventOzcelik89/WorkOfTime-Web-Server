@@ -7,16 +7,16 @@ using System.Web;
 namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
-    public partial class VWHDM_TicketRequesterHandler : BaseSmartHandler
+    public partial class VWPRD_ProductionProductHandler : BaseSmartHandler
     {
-        public VWHDM_TicketRequesterHandler()
-            : base("VWHDM_TicketRequester")
+        public VWPRD_ProductionProductHandler()
+            : base("VWPRD_ProductionProduct")
         {
 
         }
 
         /// <summary>
-        /// VWHDM_TicketRequester tablosundaki kayıtları listelemek için kullanılan Web Servisdir..
+        /// VWPRD_ProductionProduct tablosundaki kayıtları listelemek için kullanılan Web Servisdir..
         /// </summary>
         /// <param name="context">Opsiyonel olarak [Condition] nesnesi alır. Parametreleri ise;
         /// Filter = [ Field, Operator, Value ] dizi şeklinde alır.
@@ -36,15 +36,15 @@ namespace Infoline.WorkOfTime.WebService
         ///     StartIndex =    Kayıtların alınmaya başlanacağı sırayı belirtir. Örn 100 değeri girilir ise ilk 100 kayıt alınmaz. Kayıtlar 101. kayıttan itibaren gelmeye başlar.
         ///     Count =         Kayıtların toplamda en fazla kaç tane geleceğinin belirtildiği propertydir. Örn : 200 Denir ise en fazla 200 satır kayıt gelir.
         /// </param>
-        [HandleFunction("VWHDM_TicketRequester/GetAll")]
-        public void VWHDM_TicketRequesterGetAll(HttpContext context)
+        [HandleFunction("VWPRD_ProductionProduct/GetAll")]
+        public void VWPRD_ProductionProductGetAll(HttpContext context)
         {
             try
             {
                 var c = ParseRequest<Condition>(context);
                 var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 var db = new WorkOfTimeDatabase();
-                var data = db.GetVWHDM_TicketRequester(cond);
+                var data = db.GetVWPRD_ProductionProduct(cond);
                 RenderResponse(context, data);
             }
             catch (Exception ex)
