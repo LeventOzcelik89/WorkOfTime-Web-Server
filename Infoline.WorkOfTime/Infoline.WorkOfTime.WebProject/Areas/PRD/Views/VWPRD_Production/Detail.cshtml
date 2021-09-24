@@ -49,20 +49,32 @@
 
     $(document)
 		.on("ready", function () {
-		    GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
+            GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
+               
 			var cols = [
-				{ field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title##} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}#" },
-                { field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}',  template:"#:kendo.toString(quantity ?? 0,'N0')#  " },
-                { field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}',  template: "#:kendo.toString(totalQuantity ?? 0,'N0')  # " },
-                { field: 'prices', title: 'Fiyat', format: '{0:N0}', template: "#:kendo.toString(price ?? 0,'N2')# " },
-                { field: 'unit', title: 'Birim', format: '{0:N0}', template: "#:kendo.toString(unitId_Title)#" },
+                { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    #" },
+                { field: 'prices', title: 'Fiyat', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(price ?? 0,'N2')#</span> " },
                 {
-                    field: 'unit', title: 'Fiyat Birimi', format: '{0:N0}', template: function (dataItem) {
+                    field: 'price', title: 'Fiyat Birimi', format: '{0:N0}', template: function (dataItem) {
                         if (dataItem.currencyId_Title != null) {
                             return dataItem.currencyId_Title;
                         }
                         return '-';
-                    }},
+                    }
+                },
+                { field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
+                { field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
+                {
+                    field: 'unit', title: 'Birim', format: '{0:N0}', template: function (dataItem) {
+                        if (dataItem.unitId_Title != null) {
+                            return dataItem.unitId_Title;
+                        }
+                        return "-";
+                    }
+                },
+                
+               
+               
                 {
 					field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}',
                     template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 </small>#}#"

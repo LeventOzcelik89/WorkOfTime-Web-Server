@@ -54,8 +54,11 @@
 <script type="text/template" data-selector="modalContainer" id="RowTemplate_Upsert">
     <tr>
         <td data-target="">
-            <input type="hidden" data-item="id" />
-            <input data-item="productId" class="form-control" data-refresh="" />
+            <div class="input-group">
+                <input type="hidden" data-item="id" />
+                <input data-item="productId" class="form-control" data-refresh="" />
+                <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-info-circle"></i></a>
+            </div>
         </td>
         <td hidden>
             <div class="input-group">
@@ -66,13 +69,13 @@
         <td>
             <div class="input-group">
                 <input data-item="value" disabled />
-                <span class="input-group-addon"> Adet</span>
+                <span data-item="amount" class="input-group-addon"> </span>
             </div>
         </td>
         <td>
             <div class="input-group">
                 <input data-item="quantity" />
-                <span class="input-group-addon"> Adet</span>
+                <span data-item="amount" class="input-group-addon"> </span>
             </div>
         </td>
         <td>
@@ -107,7 +110,7 @@
                 if (page.Counter == 1 || page.Counter == 0) {
                     return;
                 }
-                $("tbody tr").remove();
+                $("# productMetarial tbody tr").remove();
                 page.Counter = 0;
             },
             addRow: function (data) {
@@ -118,6 +121,9 @@
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != undefined ? data.id : kendo.guid()));
+
+                temp.find('[data-item="amount"]').text(data.unitId_Title)
+                temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.materialId)
                 temp.find('[data-item="unitPrice"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
@@ -175,7 +181,7 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-                    
+
                     unitPrice.enable(false);
                     tr.hide();
                     serialCodes.prop("required", false);
@@ -183,7 +189,7 @@
 
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    
+
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
@@ -258,8 +264,8 @@
                 ti = $('[name="' + els[0].name + '"]');
                 t = ti.data('tagify');
                 if (t != undefined) {
-                    t.removeAllTags();
                     if (t.suggestedListItems != undefined) {
+                        t.removeAllTags();
                         var tags = t.suggestedListItems.slice(0, getValue).join(',')
                         t.addTags(tags)
                     }
@@ -282,8 +288,8 @@
             $("#infoBox").hide();
             page.events.removeAllRows();
         }
-    }).on("keyup change", '#amount', function () {
-        page.init();
+    }).on("change", '#amount', function () {
+        pushData();
     })
       .on('before:submit', 'form', function (e) {
         $('[data-item="serialCodes"]').each(function (c) {
@@ -300,8 +306,8 @@
     })  ;
 </script>
 <style>
-    .widget{
-        min-height:0px!important;
+    .widget {
+        min-height: 0px !important;
     }
 </style>
 @using (Html.BeginForm("Upsert", "VWPRD_Production", FormMethod.Post, new Dictionary<string, object>() {
@@ -330,39 +336,27 @@
     @Html.HiddenFor(m => m.code);
     @Html.HiddenFor(m => m.description);
     @Html.HiddenFor(m => m.ProductDetail.id)
-           var left = "0";
-            if (Model.producedQuantity.HasValue)
-            {
-                left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
-            }
-            var produced = "0";
-            if (Model.producedQuantity.HasValue)
-            {
-                produced = Model.producedQuantity.Value.ToString("N2");
-            }
-<fieldset style="display:none" id="infoBox">
-    <legend>Bilgilendirme</legend>
-    <div class="row">
-        <div class="col-md-12">
-            <div class="alert alert-warning text-center">
-                Materyal harcamaları otomatik işletildiğinde, stoktan düşecektir.
-            </div>
-        </div>
-    </div>
-</fieldset>
-   
+    var left = "0";
+    if (Model.producedQuantity.HasValue)
+    {
+        left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
+    }
+    var produced = "0";
+    if (Model.producedQuantity.HasValue)
+    {
+        produced = Model.producedQuantity.Value.ToString("N2");
+    }
+
 
     <fieldset>
         <legend>Üretim Bilgileri</legend>
         <div class="row">
             <div class="col-sm-12">
                 <div class="widget blue-bg p-lg text-center" style="min-height:unset!important">
-                    <div class="m-b-md">
+                    <div class="">
                         <i class="fa fa-inbox fa-2x"></i>
                         <h3 class="m-xs"> @Model.productId_Title</h3>
-                        <h5 class="font-bold no-margins" style="margin-top:5px">
-                           
-                        </h5>
+
 
                     </div>
                 </div>
@@ -371,50 +365,50 @@
 
         <div class="row">
             <div class="col-sm-4 ">
-                <div class="widget lazur-bg p-lg text-center"  style="min-height:70px!important">
-                   
-                        <h3 class="m-xs"> @Model.quantity.Value.ToString("N2")</h3>
-                        <h5 class="font-bold no-mquantityargins">
-                            Üretilmesi Gereken Ürün Adedi
-                        </h5>
+                <div class="widget lazur-bg p-lg text-center" style="min-height:70px!important">
 
-                   
+                    <h3 class="m-xs"> @Model.quantity.Value.ToString("N2")  @Model.ProductDetail.unitId_Title</h3>
+                    <h5 class="font-bold ">
+                        Üretilmesi Gereken Ürün Adedi
+                    </h5>
+
+
                 </div>
             </div>
 
             <div class="col-sm-4">
-                <div class="widget yellow-bg  p-lg text-center" style="min-height:70px!important"> 
-                   
+                <div class="widget yellow-bg  p-lg text-center" style="min-height:70px!important">
 
-                        <h3 class="m-xs">@produced</h3>
-                        <h5 class="font-bold no-margins">
-                            Üretilen Ürün Adedi
-                        </h5>
 
-                    
+                    <h3 class="m-xs">@produced  @Model.ProductDetail.unitId_Title</h3>
+                    <h5 class="font-bold ">
+                        Üretilen Ürün Adedi
+                    </h5>
+
+
                 </div>
             </div>
 
             <div class="col-sm-4">
                 <div class="widget red-bg p-lg text-center" style="min-height:70px!important">
-                    
-                        <h3 class="m-xs">@left </h3>
-                        <h5 class="font-bold no-margins">
-                            Geriye Kalan Ürün Adedi
-                        </h5>
 
-                    </div>
-               
+                    <h3 class="m-xs">@left  @Model.ProductDetail.unitId_Title </h3>
+                    <h5 class="font-bold ">
+                        Geriye Kalan Ürün Adedi
+                    </h5>
+
+                </div>
+
             </div>
 
         </div>
 
     </fieldset>
 
-  
+
 
     <fieldset>
-        <legend>Harcamalar</legend>
+        <legend>Biten Ürün Bilgileri</legend>
         @if (Model.ProductDetail.stockType != (short)EnumPRD_ProductStockType.SeriNoluTakip)
         {
             <div class="row " style="margin-top:15px">
@@ -459,22 +453,27 @@
                             </div>
                             <div class="col-md-10">
                                 <input name="ProductSerialCodes" id="ProductSerialCodes" type="text" />
+
+
                             </div>
                         </div>
                     </div>
-                       
-                    
+
+
                 </div>
             </div>
             <script data-selector="modalContainer">
                 $('#ProductSerialCodes').tagify({
                     placeholder: "Seri Numarasını yazın ve Enter'a basınız"
                 }).on("add removetag", function (e) {
-
                     let amount = $("#ProductSerialCodes").data("tagify").value;
-
-                    $("#amount").data("kendoNumericTextBox").value(amount.length)
-                    $("#amount").trigger("keyup");
+                    if (amount.length == 0) {
+                        $("#amount").data("kendoNumericTextBox").value(1)
+                    }
+                    else {
+                        $("#amount").data("kendoNumericTextBox").value(amount.length)
+                    }
+                    pushData();
                 });
             </script>
         }
@@ -484,6 +483,7 @@
                     <div class="form-group">
                         <div class="col-md-4">
                             <label class="control-label label-md " for="type">Harcamalar Otomatik İşletilsin mi ? </label>
+                            <i data-original-title="Materyal harcamaları otomatik işletildiğinde, stoktan düşecektir." class="fa fa-info-circle"></i>
                         </div>
                         <div class="col-md-8">
                             <div class="radio akilliRadioGrup clearfix">
@@ -502,30 +502,33 @@
             </div>
         </div>
     </fieldset>
+    <fieldset id="tableHide" style="display:none;">
+        <legend>Materyal Harcamalar</legend>
+        <div class="clearfix " id="productTableForParts ">
+
+            <table class="table table-custom" id="productMetarial" cellpadding="1" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width:50%">ÜRÜN</th>
+                        <th style="width:15%">ÜRETİLMESİ İÇİN GEREKEN MİKTAR</th>
+                        <th style="width:10%">HARCANAN MİKTAR </th>
+                        <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
+                        <th style="width:3%"></th>
+                    </tr>
+                </thead>
+                <tbody id="RowContainer_Upsert">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="pagePart.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                    </tr>
+                </tfoot>
+            </table>
+
+        </div>
+    </fieldset>
 
 
-    <div class="clearfix " id="productTableForParts ">
-
-        <table class="table table-custom" id="tableHide" style="display:none;" cellpadding="1" cellspacing="0">
-            <thead>
-                <tr>
-                    <th style="width:50%">ÜRÜN</th>
-                    <th style="width:15%">ÜRETİLMESİ İÇİN GEREKEN MİKTAR</th>
-                    <th style="width:10%">HARCANAN MİKTAR </th>
-                    <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-                    <th style="width:3%"></th>
-                </tr>
-            </thead>
-            <tbody id="RowContainer_Upsert">
-            </tbody>
-            <tfoot>
-                <tr>
-                    <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="pagePart.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
-                </tr>
-            </tfoot>
-        </table>
-
-    </div>
 
 
     <div class="buttons">
