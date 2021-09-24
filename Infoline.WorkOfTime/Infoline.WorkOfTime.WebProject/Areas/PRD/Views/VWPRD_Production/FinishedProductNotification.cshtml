@@ -110,7 +110,7 @@
                 if (page.Counter == 1 || page.Counter == 0) {
                     return;
                 }
-                $("# productMetarial tbody tr").remove();
+                $("#productMetarial tbody tr").remove();
                 page.Counter = 0;
             },
             addRow: function (data) {
@@ -184,12 +184,9 @@
 
                     unitPrice.enable(false);
                     tr.hide();
-                    serialCodes.prop("required", false);
+             
                 } else {
-
-                    var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
@@ -216,7 +213,7 @@
                         serialCodes
                             .tagify({
                                 placeholder: "Seri Numarasını yazın ve Enter'a basınız.",
-                                enforceWhitelist: allowCustomSerialCode.indexOf(page.type) == -1,
+                                enforceWhitelist: true,
                                 whitelist: whitelist,
                                 //editTags: false,
                                 maxTags: 999,
@@ -228,9 +225,6 @@
                                 }
                             })
                             .off("add removetag invalid")
-                            .on("invalid", function () {
-                                MesajWarning("Geçersiz serinumarası girişi yaptınız..", "Bilgilendirme");
-                            })
                             .on("add removetag", function (e) {
                                 quantity.value(serialCodes.val().split("value").length - 1);
                             })
