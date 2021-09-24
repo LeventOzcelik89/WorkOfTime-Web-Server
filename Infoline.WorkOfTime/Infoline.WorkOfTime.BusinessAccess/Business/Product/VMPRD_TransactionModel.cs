@@ -519,7 +519,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     DBResult &= new VMCMP_TenderModels { id = tender }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifIrsaliye, this.createdby.Value, this.trans);
                 }
-                
+
             }
 
             if (DBResult.result == true)
@@ -877,6 +877,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Kayboldu;
                 case EnumPRD_TransactionType.Transfer:
                     return EnumPRD_InventoryActionType.Depoda;
+                case EnumPRD_TransactionType.HarcamaBildirimi:
+                    return EnumPRD_InventoryActionType.Harcandi;
+                case EnumPRD_TransactionType.UretimBildirimi:
+                    return EnumPRD_InventoryActionType.Uretildi;
                 default:
                     return null;
             }
@@ -914,6 +918,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.SayimEksigi;
                 case EnumPRD_TransactionType.Transfer:
                     return EnumPRD_InventoryActionType.Transfer;
+                case EnumPRD_TransactionType.HarcamaBildirimi:
+                    return EnumPRD_InventoryActionType.Harcandi;
+                case EnumPRD_TransactionType.UretimBildirimi:
+                    return EnumPRD_InventoryActionType.Uretildi;  
                 default:
                     return null;
             }

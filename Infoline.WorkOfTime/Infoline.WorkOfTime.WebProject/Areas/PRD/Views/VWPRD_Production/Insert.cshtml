@@ -4,6 +4,15 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
+<style>
+    .makeDanger{
+        background-color:orangered;
+        color:white;
+
+    }
+</style>
+
+
 <link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 <script data-selector="modalContainer">
     var page = {
@@ -13,30 +22,41 @@
                 $('#RowContainer_Stages tr').remove();
                 page.Counter = 0;
             },
-            addRow: function (data) {
+            addRow: function (data,isNew) {
+                debugger
+                
                 var stages = $($('#RowTempForStages').html());
                 $('#RowContainer_Stages').append(stages);
                 stages.find('[data-stages="metarialId"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId')
                     .attr('value', data.materialId)
-                debugger
+                
                 stages.find('[data-stages="metarialDetailText"]')
                     .attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.materialId)
 
-
-
                 stages.find('[data-stages="amount"]')
                     .text(data.unitId_Title)
-
+                stages.find('[data-stages="amountPrice"]')
+                    .text(data.currencySymbol == null ? "-" : data.currencySymbol)
 
                 stages.find('[data-stages="metarialIdTitle"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].materialId_Title')
                     .attr('value', data.materialId_Title)
                     .attr('readonly', '');
 
+                stages.find('[data-stages="currencyId"]')
+                    .attr('name', 'productMaterials[' + page.Counter + '].currencyId')
+                    .attr('value', data.currencyId)
+                    .attr('readonly', '');
+
+                stages.find('[data-stages="unitId"]')
+                    .attr('name', 'productMaterials[' + page.Counter + '].unitId')
+                    .attr('value', data.unitId)
+                    .attr('readonly', '');
+
                 stages.find('[data-stages="quantity"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].quantity')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity) });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.quantity), placeholder:"Bu Ürüne, bu depoda stok kaydı yoktur" });
 
                 stages.find('[data-stages="price"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].price')
@@ -104,10 +124,11 @@
                     $(detail).attr("href", "/PRD/VWPRD_Product/Detail?id=" + product.id);
                     detail.removeClass("hide");
                     GetJsonDataFromUrl('/General/GetProductMaterials', { productId: product.id }, function (res) {
-                        debugger
+                        
                         $("#stagesId").show();
                         page.events.deleteAllRow();
                         $.each(res, function (i, item) {
+                            
                             page.events.addRow(item, 1);
                         });
                         if (res.length <= 0) {
@@ -118,8 +139,7 @@
                         else {
                             $("#productionInsertButton").removeClass("hide")
                         }
-                        page.events.changeAmountText(product);
-                        page.events.changeAmountPriceText(product);
+                       
                         var input = $("#quantity").val();
                         if (input != "") {
                             let val = parseInt(input);
@@ -148,8 +168,14 @@
                                     var findMetarialId = $(item).find('[data-stages="metarialId"]');
                                     var findMetarialIdVal = $(findMetarialId).val();
                                     if (findMetarialIdVal != "" && findMetarialIdVal == value.productId) {
-                                        $($(item).find('[data-stages="stockTotal"]')).data('handler').value(value.quantity)
+                                       
+                                        if (value.quantity!= "") {
+                                            $($(item).find('[data-stages="stockTotal"]')).data('handler').value(value.quantity)
+                                        }
+                                   
+
                                     }
+                                    
                                 });
 
                             });
@@ -166,21 +192,9 @@
                     });
                 }
             },
-            changeAmountText: function (e) {
-                var amount = $('[data-stages="amount"]');
-                $(amount).text(e.unitId_Title)
-            },
-            changeAmountPriceText: function (e) {
-                var amountPrice = $('[data-stages="amountPrice"]');
-                if (e.currentBuyingCurrencyId_Title == null) {
-                    $(amountPrice).text("₺")
-                }
-                else {
-                    $(amountPrice).text(e.currentBuyingCurrencyId_Title)
-                }
-            },
+          
             onChangeEndDate: function (e) {
-                debugger;
+                
             }
 
         }
@@ -208,7 +222,7 @@
         </td>
         <td>
             <div class="input-group">
-                <input data-stages="price" />
+                <input data-stages="price" readonly />
                 <span data-stages="amountPrice" class="input-group-addon"> ₺</span>
             </div>
         </td>
@@ -222,6 +236,18 @@
             <div class="input-group">
                 <input data-stages="stockTotal" readonly />
                 <span data-stages="amount" class="input-group-addon">Adet</span>
+            </div>
+        </td>
+        <td hidden>
+            <div class="input-group">
+                <input data-stages="currencyId" readonly />
+              
+            </div>
+        </td>
+        <td hidden>
+            <div class="input-group">
+                <input data-stages="unitId" readonly />
+               
             </div>
         </td>
     </tr>
@@ -356,7 +382,6 @@
         DateTimePickerFor(model => model.scheduledProductionDate).
         Format(Extensions.DateFormatFull()).
         Value(DateTime.Now)
-        .MaxDateElement("lastProductionDate")
             )
                 </div>
             </div>
@@ -552,6 +577,8 @@
                             <th> Birim Fiyat</th>
                             <th>Toplam Miktar </th>
                             <th>Toplam Stok Durumu </th>
+                            <th hidden></th>
+                            <th hidden></th>
                         </tr>
                     </thead>
                     <tbody id="RowContainer_Stages">
