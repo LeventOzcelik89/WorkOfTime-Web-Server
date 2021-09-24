@@ -52,7 +52,17 @@
             GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
                
 			var cols = [
-                { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    #" },
+                { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
+                { field: 'quantity', title: 'Birim Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
+               
+                {
+                    field: 'unit', title: 'Birim', format: '{0:N0}', template: function (dataItem) {
+                        if (dataItem.unitId_Title != null) {
+                            return dataItem.unitId_Title;
+                        }
+                        return "-";
+                    }
+                },
                 { field: 'prices', title: 'Fiyat', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(price ?? 0,'N2')#</span> " },
                 {
                     field: 'price', title: 'Fiyat Birimi', format: '{0:N0}', template: function (dataItem) {
@@ -62,16 +72,9 @@
                         return '-';
                     }
                 },
-                { field: 'quantity', title: 'Üretim İçin Birim Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
-                { field: 'totalQuantity', title: 'Üretim İçin Gerekli Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
-                {
-                    field: 'unit', title: 'Birim', format: '{0:N0}', template: function (dataItem) {
-                        if (dataItem.unitId_Title != null) {
-                            return dataItem.unitId_Title;
-                        }
-                        return "-";
-                    }
-                },
+           
+                { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
+                
                 
                
                
@@ -149,11 +152,15 @@
 			});
 
 			var cols = [
-				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
-				{ field: 'quantity', title: 'Ürün Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                { field: 'created', title: "Bildirildiği Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
+                { field: 'quantity', title: 'Ürün Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                { field: 'unitId_Title', title: 'Birim', width: 200 },
+                { field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# " },
+            
 				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+              
 			];
-
+        
 			$("#producedProducts").kendoGrid({
 				toolbar: [
 					{ name: "excel", text: "" },

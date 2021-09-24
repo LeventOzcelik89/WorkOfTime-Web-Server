@@ -314,7 +314,7 @@ namespace System.Web.Mvc
         private Menu GetProduction()
         {
             var menu = new Menu("Üretim Yönetimi", "#", "fa fa-qrcode");
-            menu.AddChild(new Menu("Üretimler", "/PRD/VWPRD_Production/Index"));
+            menu.AddChild(new Menu("Üretim Emirleri", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
         }
