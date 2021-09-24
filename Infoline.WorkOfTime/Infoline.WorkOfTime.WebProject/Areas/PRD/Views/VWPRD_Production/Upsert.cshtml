@@ -314,7 +314,9 @@
             pushData();
         })
         .off("keyup", "#amount", function () {
-    }
+
+        });
+
 
 
     function pushData() {
@@ -325,11 +327,21 @@
             let els = $(item).find('[data-item="serialCodes"]');
             ti = $('[name="' + els[0].name + '"]');
             t = ti.data('tagify');
-                if (t != undefined) {
+            if (t != undefined) {
+                 var pastList = $(item).find('[data-item=serialCodes]').data("selectedItems");
                     t.removeAllTags();
-                    if (t.suggestedListItems != undefined) {
+                if (t.suggestedListItems != undefined) {
+                    if (pastList != undefined || pastList.length > 0) {
+                        var list = $(item).find('[data-item=serialCodes]').data("selectedItems");
+                         t.addTags($.Enumerable.From(list).Select(a => a.value).ToArray().join(","))
+                         t.addTags(t.suggestedListItems.slice(0, getValue).join(','),true,true)
+                    }
+                    else {
+                        $(item).find('[data-item=serialCodes]').data("selectedItems", t.value);
                         var tags = t.suggestedListItems.slice(0, getValue).join(',')
                         t.addTags(tags)
+                    }
+
                     }
                 }
         });
