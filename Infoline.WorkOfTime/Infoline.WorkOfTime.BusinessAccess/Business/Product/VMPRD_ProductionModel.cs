@@ -12,27 +12,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         public int Count { get; set; }
     }
-    //  HARCAMA BİLDİR
-    //  PRD_ProductionProduct
-    //      TRANSACTİON MODEL İŞLETİYORSUN.
-
-
-    //  ÜRETİM BİLDİRDİ.
-    //  MİKTAR
-    //  SERİ NUMARALAR ( VARSA )
-    //      50 ÜRETTİM. 
-    //      TRANSCATİON MODEL İŞLETİYORSUN. 50 ÜRETİLDİ.
-
-
-
-
-    //  SAVE
-    //  PRD_ProductionProduct VAR MI ?
-    //      VAR = TRASN. HARCAMA.
-
-    //  ÜRETİM MİKTARI, SERİ NO GELDİYSE
-    //      EVET = ÜRETİM BİLDİR. TRANS. MODEL
-
+   
     public class VMPRD_ProductionModel : VWPRD_Production
     {
         public VWPRD_Transaction Transaction { get; set; }

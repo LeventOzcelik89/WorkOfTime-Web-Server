@@ -101,7 +101,40 @@
         inputCompanyId: null,
         type: null,
         Counter: 0,
-        events: {
+         events: {
+             pushData: function () {
+                 var amonth = parseInt($("#amount").val());
+                 $.each($("#RowContainer_Upsert tr"), function (i, item) {
+                     var inp_quantity = $(item).find('[data-item="quantity"]');
+                     inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
+                     var int_serialCodes = $(item).find('[data-item="serialCodes"]');
+                     var int_tagify = int_serialCodes.data('tagify');
+                     if (int_tagify == undefined) {
+                         return;
+                     }
+                     var selecteds = int_tagify.value;
+                     int_tagify.removeAllTags();
+                     //  whitelist
+                     if (int_tagify.suggestedListItems == undefined) {
+                         return;
+                     }
+                     if (int_tagify.suggestedListItems.length < amonth) {
+                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
+                         var realAmount = int_tagify.suggestedListItems.length - 1;
+                         MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
+                     }
+                     var newValues = [];
+                     for (var i = 0; i < amonth; i++) {
+                         var _selecteds = selecteds != undefined
+                             ? selecteds.map(function (item, i) { return item.value })
+                             : [];
+                         newValues[i] = selecteds != undefined && selecteds[i] != undefined
+                             ? selecteds[i].value
+                             : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                     }
+                     int_tagify.addTags(newValues, false, true);
+                 });
+             },
             removeRow: function (item) {
                 $(item).parents('tr').remove();
                 page.events.ValidateRows();
@@ -179,7 +212,7 @@
                 }
                 if (data.id == "") {
                     unitPrice.enable(false);
-                    tr.hide();
+                    tr.remove();
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
@@ -233,39 +266,7 @@
                 }
             },
          },
-         pushData: function () {
-             var amonth = parseInt($("#amount").val());
-             $.each($("#RowContainer_Upsert tr"), function (i, item) {
-                 var inp_quantity = $(item).find('[data-item="quantity"]');
-                 inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
-                 var int_serialCodes = $(item).find('[data-item="serialCodes"]');
-                 var int_tagify = int_serialCodes.data('tagify');
-                 if (int_tagify == undefined) {
-                     return;
-                 }
-                 var selecteds = int_tagify.value;
-                 int_tagify.removeAllTags();
-                 //  whitelist
-                 if (int_tagify.suggestedListItems == undefined) {
-                     return;
-                 }
-                 if (int_tagify.suggestedListItems.length < amonth) {
-                     var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
-                     var realAmount = int_tagify.suggestedListItems.length - 1;
-                     MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
-                 }
-                 var newValues = [];
-                 for (var i = 0; i < amonth; i++) {
-                     var _selecteds = selecteds != undefined
-                         ? selecteds.map(function (item, i) { return item.value })
-                         : [];
-                     newValues[i] = selecteds != undefined && selecteds[i] != undefined
-                         ? selecteds[i].value
-                         : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
-                 }
-                 int_tagify.addTags(newValues, false, true);
-             });
-         },
+
          init: function () {
              page.events.removeAllRows();
                 $.each(page.Model.productionProducts, function (i, item) {
@@ -415,15 +416,15 @@
         }
         @if (Model.ProductDetail.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
         {
-            <div class="row hidden">
+            <div class="row  hidden">
                 <div class="col-md-12" style="margin-top:15px">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <div class="form-group">
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <label class="control-label label-md req " for="type">Üretilen Adet</label>
                             </div>
                             <div class="col-md-8">
-                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0").Enable(false)
                             </div>
                         </div>
                     </div>
@@ -455,7 +456,7 @@
                     else {
                         $("#amount").data("kendoNumericTextBox").value(amount.length)
                     }
-                    pushData();
+                    page.events.pushData();
                 });
             </script>
         }
