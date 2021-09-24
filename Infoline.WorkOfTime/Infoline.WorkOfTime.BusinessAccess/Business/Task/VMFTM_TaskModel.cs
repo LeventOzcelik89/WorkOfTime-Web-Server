@@ -1154,6 +1154,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var notification = new Notification();
 				var text = "Sayın ";
 				var mail = this.customerStorage.email;
+				var createdbyEmail = db.GetVWSH_UserById(this.createdby.Value);
+				var bccMail = new List<string>();
+				if (createdbyEmail != null)
+				{
+					bccMail.Add(createdbyEmail.email);
+				}
+
 				var fullName = "";
 				var customerId = new Guid();
 
@@ -1213,7 +1220,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				text += "<br>";
 				text += "<div>Bilgilerinize.</div>";
 				var notify = string.Format("Sayın " + fullName + ", tarafınıza " + this.code + " kodlu görev oluşturulumuştur.");
-				new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Bildirimi", text).Send((Int16)EmailSendTypes.Operasyon, mail, "İş Planı Hakkında ", true, null, null, documentList.ToArray(), true);
+				new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Bildirimi", text).Send((Int16)EmailSendTypes.Operasyon, mail, "İş Planı Hakkında ", true, null, bccMail.ToArray(), documentList.ToArray(), true);
 				notification.NotificationSend(customerId, "Görev Bildirimi", notify);
 
 
