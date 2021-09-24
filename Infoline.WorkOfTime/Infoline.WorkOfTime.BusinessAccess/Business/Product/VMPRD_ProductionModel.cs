@@ -52,7 +52,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_TransactionItem> producedProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public List<VWPRD_ProductionProduct> productionProductList { get; set; } = new List<VWPRD_ProductionProduct>();
         public VWPRD_Product ProductDetail { get; set; }
-        private List<VWPRD_Inventory> inventories;
         public int Total { get; set; } = 0;
         public Guid? productionSchemaId { get; set; }
         public string inputId_Adress { get; set; }

@@ -114,14 +114,12 @@
                 page.Counter = 0;
             },
             addRow: function (data) {
-
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="index"]').append(page.Counter);
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != undefined ? data.id : kendo.guid()));
-
                 temp.find('[data-item="amount"]').text(data.unitId_Title)
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.materialId)
                 temp.find('[data-item="unitPrice"]')
@@ -161,7 +159,7 @@
                             "filter": "contains",
                             "template": '#=TemplateEngine("productCustomTemplate",data)#',
                             "dataValueField": "id",
-                            "optionLabel": "Lütfen Ürün Seçiniz.."
+                            "optionLabel": "Lütfen Ürün Seçiniz..",
                         });
                 if (page.status == '1') {
                     temp.find('[data-item="islendi"]').attr('disabled', 'disabled');
@@ -169,7 +167,6 @@
                 page.Counter++;
             },
             productChange: function (e) {
-
                 var data = e.sender.dataItem(e.sender.selectedIndex);
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
@@ -181,10 +178,8 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-
                     unitPrice.enable(false);
                     tr.hide();
-             
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
@@ -234,10 +229,43 @@
                         serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
                     }
                     //e.sender._initial = null;
-                    pushData();
+                    page.events.pushData();
                 }
             },
-                  },
+         },
+         pushData: function () {
+             var amonth = parseInt($("#amount").val());
+             $.each($("#RowContainer_Upsert tr"), function (i, item) {
+                 var inp_quantity = $(item).find('[data-item="quantity"]');
+                 inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
+                 var int_serialCodes = $(item).find('[data-item="serialCodes"]');
+                 var int_tagify = int_serialCodes.data('tagify');
+                 if (int_tagify == undefined) {
+                     return;
+                 }
+                 var selecteds = int_tagify.value;
+                 int_tagify.removeAllTags();
+                 //  whitelist
+                 if (int_tagify.suggestedListItems == undefined) {
+                     return;
+                 }
+                 if (int_tagify.suggestedListItems.length < amonth) {
+                     var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
+                     var realAmount = int_tagify.suggestedListItems.length - 1;
+                     MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
+                 }
+                 var newValues = [];
+                 for (var i = 0; i < amonth; i++) {
+                     var _selecteds = selecteds != undefined
+                         ? selecteds.map(function (item, i) { return item.value })
+                         : [];
+                     newValues[i] = selecteds != undefined && selecteds[i] != undefined
+                         ? selecteds[i].value
+                         : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                 }
+                 int_tagify.addTags(newValues, false, true);
+             });
+         },
          init: function () {
              page.events.removeAllRows();
                 $.each(page.Model.productionProducts, function (i, item) {
@@ -248,30 +276,9 @@
             }
         }
     };
-    function pushData() {
-        var getValue = parseInt($("#amount").val());
-        $.each($("#RowContainer_Upsert tr"), function (i, item) {
-            let el = $(item).find('[data-item="quantity"]');
-            if (parseInt(el.attr("data-value"))!=0) {
-                el.data('handler').value(getValue * parseInt(el.attr("data-value")));
-                let els = $(item).find('[data-item="serialCodes"]');
-                ti = $('[name="' + els[0].name + '"]');
-                t = ti.data('tagify');
-                if (t != undefined) {
-                    if (t.suggestedListItems != undefined) {
-                        t.removeAllTags();
-                        var tags = t.suggestedListItems.slice(0, getValue).join(',')
-                        t.addTags(tags)
-                    }
-                }
-            }
-        });
-    }
     $(document).off("change", '[name="expensReport"]', function () { });
-
     $(document).on("change", '[name="expensReport"]', function () {
         var getValue = $('[name="expensReport"]:checked').val();
-
         if (getValue == 1) {
             $("#infoBox").show();
             $("#tableHide").show()
@@ -283,7 +290,7 @@
             page.events.removeAllRows();
         }
     }).on("change", '#amount', function () {
-        pushData();
+        page.events.pushData();
     })
       .on('before:submit', 'form', function (e) {
         $('[data-item="serialCodes"]').each(function (c) {
@@ -291,11 +298,19 @@
             if (data && data.value) {
                 $(this).val(data.value.map(a => a.value).join(","));
             }
+            var counter = 0;
+            $.each($("#RowContainer_Upsert tr"), function (i, item) {
+                $(item).find('[data-item="id"]').attr('name', 'productionProducts[' + counter + '].id');
+                $(item).find('[data-item="unitPrice"]').attr('name', 'productionProducts[' + counter + '].unitPrice');
+                $(item).find('[data-item="quantity"]').attr('name', 'productionProducts[' + counter + '].quantity');
+                $(item).find('[data-item="serialCodes"]').attr('name', 'productionProducts[' + counter + '].serialCodes');
+                $(item).find('[data-item="productId"]').attr('name', 'productionProducts[' + counter + '].productId');
+                counter++;
+            });
         });
           var tag = $("#ProductSerialCodes").data("tagify");
           if (tag && tag.value) {
               $("#ProductSerialCodes").val(tag.value.map(a => a.value).join(","))
-
           }
     })  ;
 </script>
@@ -340,8 +355,6 @@
     {
         produced = Model.producedQuantity.Value.ToString("N2");
     }
-
-
     <fieldset>
         <legend>Üretim Bilgileri</legend>
         <div class="row">
@@ -350,57 +363,37 @@
                     <div class="">
                         <i class="fa fa-inbox fa-2x"></i>
                         <h3 class="m-xs"> @Model.productId_Title</h3>
-
-
                     </div>
                 </div>
             </div>
         </div>
-
         <div class="row">
             <div class="col-sm-4 ">
                 <div class="widget lazur-bg p-lg text-center" style="min-height:70px!important">
-
                     <h3 class="m-xs"> @Model.quantity.Value.ToString("N2")  @Model.ProductDetail.unitId_Title</h3>
                     <h5 class="font-bold ">
                         Üretilmesi Gereken Ürün Adedi
                     </h5>
-
-
                 </div>
             </div>
-
             <div class="col-sm-4">
                 <div class="widget yellow-bg  p-lg text-center" style="min-height:70px!important">
-
-
                     <h3 class="m-xs">@produced  @Model.ProductDetail.unitId_Title</h3>
                     <h5 class="font-bold ">
                         Üretilen Ürün Adedi
                     </h5>
-
-
                 </div>
             </div>
-
             <div class="col-sm-4">
                 <div class="widget red-bg p-lg text-center" style="min-height:70px!important">
-
                     <h3 class="m-xs">@left  @Model.ProductDetail.unitId_Title </h3>
                     <h5 class="font-bold ">
                         Geriye Kalan Ürün Adedi
                     </h5>
-
                 </div>
-
             </div>
-
         </div>
-
     </fieldset>
-
-
-
     <fieldset>
         <legend>Biten Ürün Bilgileri</legend>
         @if (Model.ProductDetail.stockType != (short)EnumPRD_ProductStockType.SeriNoluTakip)
@@ -436,7 +429,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="row" style="margin-top:15px">
                 <div class="col-md-12">
                     <div class="col-md-12">
@@ -447,13 +439,9 @@
                             </div>
                             <div class="col-md-10">
                                 <input name="ProductSerialCodes" id="ProductSerialCodes" type="text" />
-
-
                             </div>
                         </div>
                     </div>
-
-
                 </div>
             </div>
             <script data-selector="modalContainer">
@@ -499,7 +487,6 @@
     <fieldset id="tableHide" style="display:none;">
         <legend>Materyal Harcamalar</legend>
         <div class="clearfix " id="productTableForParts ">
-
             <table class="table table-custom" id="productMetarial" cellpadding="1" cellspacing="0">
                 <thead>
                     <tr>
@@ -518,13 +505,8 @@
                     </tr>
                 </tfoot>
             </table>
-
         </div>
     </fieldset>
-
-
-
-
     <div class="buttons">
         <div class="hr-line-dashed"></div>
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
