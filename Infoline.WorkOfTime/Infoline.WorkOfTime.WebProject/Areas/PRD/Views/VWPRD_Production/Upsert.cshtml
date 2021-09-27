@@ -104,9 +104,16 @@
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
+
+
+
                 temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-")
                 var metarialId = data != null ? data.materialId : "-";
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
+
+
+
+
                 temp.find('[data-item="unitPrice"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.unitPrice : null) });
@@ -114,6 +121,9 @@
                     .attr('name', 'productionProducts[' + page.Counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity:0)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.quantity : null) });
+                temp.find('[data-item="stockLeft"]')
+                    .attr("data-value", data != undefined ? data.stockLeft : 0)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.stockLeft : 0), "readonly": true});
                 temp.find('[data-item="serialCodes"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].serialCodes')
                     .attr('value', data != null ? data.serialCodes : '')
@@ -260,6 +270,7 @@
                 $.each($("#RowContainer_Upsert tr"), function (i, item) {
                     var inp_quantity = $(item).find('[data-item="quantity"]');
                     inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
+
                     var int_serialCodes = $(item).find('[data-item="serialCodes"]');
                     var int_tagify = int_serialCodes.data('tagify');
                     if (int_tagify == undefined) {
@@ -267,24 +278,24 @@
                     }
                     var selecteds = int_tagify.value;
                     int_tagify.removeAllTags();
-                    //  whitelist
+
                     if (int_tagify.suggestedListItems == undefined) {
                         return;
                     }
                     if (int_tagify.suggestedListItems.length < amonth) {
-                        var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text()
+                        var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
                         var realAmount = int_tagify.suggestedListItems.length - 1;
                         MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
                     }
                     var newValues = [];
-                    for (var i = 0; i < amonth; i++) {
-                        var _selecteds = selecteds != undefined
-                            ? selecteds.map(function (item, i) { return item.value })
-                            : [];
-                        newValues[i] = selecteds != undefined && selecteds[i] != undefined
-                            ? selecteds[i].value
-                            : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                    if (selecteds != undefined || selecteds[i] != undefined) {
+                        newValues = $.Enumerable.From(int_tagify.suggestedListItems).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
                     }
+                    else {
+                        newValues = $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
+                    }
+
+
                     int_tagify.addTags(newValues, false, true);
                 });
             }
@@ -381,6 +392,13 @@
                 <span data-item="amount" class="input-group-addon"> </span>
             </div>
         </td>
+
+        <td>
+            <div class="input-group">
+                <input data-item="stockLeft" readonly />
+                <span data-item="amount" class="input-group-addon"> </span>
+            </div>
+        </td>
         <td>
             <input data-item="serialCodes" data-role="tagify" />
         </td>
@@ -464,7 +482,7 @@
             <div class="col-md-4 pull-right">
                 <div class="alert alert-info text-center">
                     <b>Kaç Set İçin Harcama Bildirimi Yapmak İstiyorsunuz ?</b>
-                    @Html.Akilli().NumericTextBox("amount").Format("N0").Min(0).Max(999).Value(1)
+                    @Html.Akilli().NumericTextBox("amount").Format("N0").Min(0).Max(999).Value(0)
                 </div>
             </div>
         </div>
@@ -474,7 +492,8 @@
             <thead>
                 <tr>
                     <th style="width:50%">ÜRÜN</th>
-                    <th style="width:10%">HARCANAN MİKTAR<br /> </th>
+                    <th style="width:10%">HARCANAN MİKTAR</th>
+                    <th style="width:10%">STOK MİKTARI </th>
                     <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
                     <th style="width:3%"></th>
                 </tr>

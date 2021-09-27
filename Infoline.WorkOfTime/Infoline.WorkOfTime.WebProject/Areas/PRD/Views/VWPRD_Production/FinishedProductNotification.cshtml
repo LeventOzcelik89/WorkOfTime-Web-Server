@@ -79,6 +79,12 @@
             </div>
         </td>
         <td>
+            <div class="input-group">
+                <input data-item="stockLeft" readonly />
+                <span data-item="amount" class="input-group-addon"> </span>
+            </div>
+        </td>
+        <td>
             <input data-item="serialCodes" data-role="tagify" />
         </td>
         <td>
@@ -100,6 +106,7 @@
         inputId: null,
         inputCompanyId: null,
         type: null,
+        isNew: false,
         Counter: 0,
          events: {
              pushData: function () {
@@ -107,6 +114,7 @@
                  $.each($("#RowContainer_Upsert tr"), function (i, item) {
                      var inp_quantity = $(item).find('[data-item="quantity"]');
                      inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
+
                      var int_serialCodes = $(item).find('[data-item="serialCodes"]');
                      var int_tagify = int_serialCodes.data('tagify');
                      if (int_tagify == undefined) {
@@ -114,7 +122,7 @@
                      }
                      var selecteds = int_tagify.value;
                      int_tagify.removeAllTags();
-                     //  whitelist
+
                      if (int_tagify.suggestedListItems == undefined) {
                          return;
                      }
@@ -124,20 +132,19 @@
                          MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
                      }
                      var newValues = [];
-                     for (var i = 0; i < amonth; i++) {
-                         var _selecteds = selecteds != undefined
-                             ? selecteds.map(function (item, i) { return item.value })
-                             : [];
-                         newValues[i] = selecteds != undefined && selecteds[i] != undefined
-                             ? selecteds[i].value
-                             : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                     if (selecteds != undefined || selecteds[i] != undefined) {
+                         newValues = $.Enumerable.From(int_tagify.suggestedListItems).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
                      }
+                     else {
+                         newValues = $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
+                     }
+
+
                      int_tagify.addTags(newValues, false, true);
                  });
              },
             removeRow: function (item) {
-                $(item).parents('tr').remove();
-                page.events.ValidateRows();
+                $(item).parents('tr').remove();      
             },
             removeAllRows: function () {
                 if (page.Counter == 1 || page.Counter == 0) {
@@ -146,15 +153,23 @@
                 $("#productMetarial tbody tr").remove();
                 page.Counter = 0;
             },
-            addRow: function (data) {
+             addRow: function (data, isNew) {
+                 
+                 page.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="index"]').append(page.Counter);
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
-                    .attr('id', (data != undefined ? data.id : kendo.guid()));
-                temp.find('[data-item="amount"]').text(data.unitId_Title)
-                temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.materialId)
+                     .attr('id', (data != undefined ? data.id : kendo.guid()));
+
+
+                 temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-")
+                 var metarialId = data != null ? data.materialId : "-";
+                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
+                 temp.find('[data-item="stockLeft"]')
+                     .attr("data-value", data != undefined ? data.stockLeft : 0)
+                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.stockLeft : 0), "readonly": true });
                 temp.find('[data-item="unitPrice"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
                     .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != undefined ? data.unitPrice : null) });
@@ -211,8 +226,10 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-                    unitPrice.enable(false);
-                    tr.remove();
+                    if (!page.isNew) {
+                        tr.remove();
+                    }
+                    page.isNew = false;
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
@@ -270,7 +287,7 @@
          init: function () {
              page.events.removeAllRows();
                 $.each(page.Model.productionProducts, function (i, item) {
-                page.events.addRow(item, 1);
+                page.events.addRow(item, false);
             });
             if (page.Model.productionProducts.length == 0) {
                 page.events.addRow();
@@ -416,15 +433,20 @@
         }
         @if (Model.ProductDetail.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
         {
-            <div class="row  hidden">
+            <div class="row">
                 <div class="col-md-12" style="margin-top:15px">
                     <div class="col-md-6">
                         <div class="form-group">
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <label class="control-label label-md req " for="type">Üretilen Adet</label>
                             </div>
-                            <div class="col-md-8">
-                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0").Enable(false)
+                            <div class="col-md-4">
+                                @Html.Akilli().NumericTextBoxFor(model => model.amount).Min(0).Format("N0")
+                                <script type="text/javascript">
+                                    var numerictextbox = $("#amount").data("kendoNumericTextBox");
+                                    numerictextbox.readonly();
+
+                                </script>
                             </div>
                         </div>
                     </div>
@@ -486,7 +508,7 @@
         </div>
     </fieldset>
     <fieldset id="tableHide" style="display:none;">
-        <legend>Materyal Harcamalar</legend>
+        <legend>Materyal Harcamaları</legend>
         <div class="clearfix " id="productTableForParts ">
             <table class="table table-custom" id="productMetarial" cellpadding="1" cellspacing="0">
                 <thead>
@@ -494,6 +516,7 @@
                         <th style="width:50%">ÜRÜN</th>
                         <th style="width:15%">ÜRETİLMESİ İÇİN GEREKEN MİKTAR</th>
                         <th style="width:10%">HARCANAN MİKTAR </th>
+                        <th style="width:10%">STOK MİKTARI </th>
                         <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
                         <th style="width:3%"></th>
                     </tr>
@@ -502,7 +525,7 @@
                 </tbody>
                 <tfoot>
                     <tr>
-                        <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="pagePart.events.addRow()"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
+                        <td colspan="8"><button class="btn btn-info pull-right @(!string.IsNullOrEmpty(Model.tenderIds) ? "hide" : "")" type="button" @(Model.Transaction.status == (int)EnumPRD_TransactionStatus.islendi ? "disabled" : "") onclick="page.events.addRow(undefined,true)"><i class="fa fa-plus-circle"></i> Yeni Satır Ekle</button></td>
                     </tr>
                 </tfoot>
             </table>

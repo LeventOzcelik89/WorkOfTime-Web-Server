@@ -68,7 +68,7 @@
 
                 stages.find('[data-stages="stockTotal"]')
                     .attr('name', 'productMaterials[' + page.Counter + '].stockTotal')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data.stockTotal) });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0),enabled:false });
 
                 page.Counter++;
             },
@@ -95,10 +95,14 @@
                 }
             },
             onChangeProduct: function (e) {
-              
+                debugger
                 var product = e.sender.dataItem();
                 var companyDropDown = $("#centerCompanyId").data("kendoDropDownList");
                 var centercompanyDropDown = $("#centerStorageId").data("kendoDropDownList");
+                if (companyDropDown.value() != "" && centercompanyDropDown.value() != "") {
+                    page.events.onChangeStorage(e);
+                }
+  
                 if (e.sender.value() != "") {
 
                     companyDropDown.enable(true);
@@ -192,11 +196,6 @@
                     });
                 }
             },
-          
-            onChangeEndDate: function (e) {
-                
-            }
-
         }
     };
 </script>
@@ -234,7 +233,7 @@
         </td>
         <td>
             <div class="input-group">
-                <input data-stages="stockTotal" readonly />
+                <input data-stages="stockTotal" disabled />
                 <span data-stages="amount" class="input-group-addon">Adet</span>
             </div>
         </td>
