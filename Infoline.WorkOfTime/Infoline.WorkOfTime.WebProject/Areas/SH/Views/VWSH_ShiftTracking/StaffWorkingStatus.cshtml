@@ -16,7 +16,7 @@
         <div class="ibox ">
             <div class="ibox-content" style="border-bottom:1px #e7eaec solid;margin-bottom:50px;">
                 <div class="row">
-                    <div class="col-md-3">
+                    <div class="col-md-4">
                         @(
                          Html.Akilli()
                          .MultiSelectFor(a => a.id)
@@ -31,7 +31,7 @@
 						)
                     </div>
 
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         @(
                           Html.Akilli().
                           DatePicker("shiftTrackingStartDate").
@@ -43,7 +43,7 @@
 
 						 )
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-3">
                         @(
                            Html.Akilli().
                            DatePicker("shiftTrackingEndDate").
@@ -56,7 +56,10 @@
 						 )
                     </div>
                     <div class="col-md-1">
-                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px;"><i class="fa fa-search"></i> Sorgula</button>
+                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px; font-size:inherit !important;"><i class="fa fa-search"></i> Liste Rapor</button>
+                    </div>
+                    <div class="col-md-1">
+                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardTotalFilter" style="height: 42px; font-size: inherit !important;"><i class="fa fa-search"></i> Toplam Rapor &nbsp;</button>
                     </div>
                 </div>
 
@@ -218,6 +221,152 @@
                             {
                                 field: "extraShift",
                                 title: "Mesai Saatine Uyum",
+                                width: "200px"
+                            }
+                        ]
+
+                    });
+                }
+            }
+
+            grid.init();
+        });
+    });
+
+    $("#DashBoardTotalFilter").click(function () {
+        debugger;
+        var startDate = $("#shiftTrackingStartDate").val();
+        var endDate = $("#shiftTrackingEndDate").val();
+        var userIds = $("#userId").val();
+
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultTotal', { startDate: startDate, endDate: endDate, userIds: userIds }, function (res) {
+            if (res.length == 0) {
+                return;
+            }
+            var oldGrid = $("#shiftTrackingPersonalGrid").data("kendoGrid");
+            if (oldGrid != undefined) { //eski gridi temizlemessek excel çıktısı eski gritteki kayıtları da alıyor
+                var container = $("#shiftTrackingPersonalGrid").parent();
+                $("#shiftTrackingPersonalGrid").remove();
+                container.append('<div id="shiftTrackingPersonalGrid"></div >');
+            }
+            var grid = {
+                data: [],
+                init: function () {
+                    $("#shiftTrackingPersonalGrid").kendoGrid({
+
+                        excel: {
+                            fileName: "Günlük Toplam Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
+                            filterable: true,
+                            allPages: true,
+                        },
+                        dataSource: {
+                            data: $.Enumerable.From(res).ToArray(),
+                            pageSize: 50
+                        },
+                        dataBound: function (e) {
+                            //$("#shiftTrackingPersonalGrid tbody tr:odd").css("background-color", "#f3f3f4");
+                            //$("#shiftTrackingPersonalGrid tbody tr td:last-child").each(function (i, e) {
+                            //    if ($(e).text().includes("Fazla")) {
+                            //        $(e).css("color", "green");
+                            //    } else if ($(e).text().includes("Az")) {
+                            //        $(e).css("color", "red");
+                            //    } else if ($(e).text().includes("Tam")) {
+                            //        $(e).css("color", "orange");
+                            //    }
+                            //})
+                        },
+                        columnMenu: true,
+                        filterable: true,
+                        selectable: true,
+                        reorderable: true,
+                        sortable: true,
+                        toolbar: [{ name: 'excel', text: '' }],
+                        excelExport: function (e) {
+                            //var sheet = e.workbook.sheets[0];
+
+                            //for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+                            //    var row = sheet.rows[rowIndex];
+                            //    row.cells[2].format = "dd-MM-yy";
+                            //    row.cells[3].format = "dd-MM-yy HH:mm";
+                            //    row.cells[4].format = "dd-MM-yy HH:mm";
+                            //}
+                        },
+                        encoded: true,
+                        height: 600,
+                        scrollable: true,
+                        resizable: true,
+                        pageable: {
+                            refresh: true,
+                            pageSizes: [5, 15, 25, 50, "all"],
+                            buttonCount: 5,
+                            messages: {
+                                itemsPerPage: "",
+                                display: "{0} - {1} aralığı gösteriliyor. Toplam {2:#,##} öğe var",
+                                empty: "",
+                                allPages: "Tümü"
+                            }
+                        },
+                        columns: [
+                            //{sortable: false, field:"startDate"},
+                            {
+                                field: "userId",
+                                hidden: true,
+                                width: "150px"
+                            },
+                            {
+                                field: "id",
+                                hidden: true,
+                                width: "180px"
+                            },
+                            {
+                                field: "UserId_Title",
+                                title: "Personel",
+                                width: "140px"
+
+                            },
+                            {
+                                field: "startDate",
+                                sortable: true,
+                                title: "Başlangıç Tarihi",
+                                type: "date",
+                                format: "{0:dd/MM/yyyy}",
+                                width: "130px"
+                            },
+                            {
+                                field: "endDate",
+                                title: "Bitiş Tarihi",
+                                type: "date",
+                                format: "{0:dd/MM/yyyy}",
+                                width: "115px"
+                            },
+                            {
+                                field: "totalWorking",
+                                title: "Toplam Çalışma Saati",
+                                width: "150px"
+                            },
+                            {
+                                field: "totalBreak",
+                                title: "Toplam Mola Süresi",
+                                width: "150px"
+                            },
+                            {
+                                field: "lateArrived",
+                                title: "Geç Kalma Süresi",
+                                width: "200px"
+                            },
+                            {
+                                field: "earlyLeave",
+                                title: "Erken Çıkış Süresi",
+                                width: "200px"
+                            },
+                            {
+                                field: "extraShift",
+                                title: "Mesai Saatine Uyum",
+                                width: "200px"
+                            },
+                            {
+                                field: "permitTime",
+                                title: "Kullanılan İzin Süresi",
                                 width: "200px"
                             }
                         ]

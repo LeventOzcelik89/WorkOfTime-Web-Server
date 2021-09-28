@@ -547,6 +547,217 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return listData.OrderBy(a => a.date).ToList();
         }
 
+        public List<VMSH_ShiftTrackingReport> GetGeneralDataReportResultTotal(DateTime startDate, DateTime endDate, List<Guid> userIds)
+        {
+            var db = new WorkOfTimeDatabase();
+            var ourPersons = new List<VWSH_User>();
+            if (userIds.Count() > 0)
+            {
+                ourPersons = db.GetVWSH_UserByIds(userIds.ToArray()).ToList();
+            }
+            else
+            {
+                ourPersons = db.GetVWSH_UserMyPerson().ToList();
+            }
+
+            var shiftTrackings = db.VWGetSH_ShiftTrackingByStartAndEndDate(startDate, endDate);
+            var listModel = new List<VMSH_ShiftTrackingReport>();
+            var listData = new List<VMSH_ShiftTrackingReport>();
+
+            if (shiftTrackings.Count() > 0)
+            {
+                //while(ourPersons.Count > 0)
+                //{
+                listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReport
+                {
+                    userId = x.id,
+                    startDate = startDate,
+                    endDate = endDate,
+                    //CompanyId_Title = x.Company_Title,
+                    UserId_Title = x.FullName
+                }));
+
+                //ourPersons.RemoveAt(0);
+                //}
+
+
+                var workingTimes = TenantConfig.Tenant.Config.WorkingTimes;
+                foreach (var shiftTracking in listModel.ToList())
+                {
+                    var totalWorkingMinutes = 0.0;
+                    var totalBreakMinutes = 0.0;
+                    var totalEarlyLeaveMinutes = 0.0;
+                    var totalLateArrivedMinutes = 0.0;
+                    var totalExtraShiftMinutes = 0.0;
+                    var totalPermitMinutes = 0.0;
+
+
+                    var userPermits = db.GetVWINV_PermitByIdUser(shiftTracking.userId.Value);
+                    var officalPermits = db.GetVWINV_PermitOfficialByCalendar(startDate, endDate.AddMinutes(1));
+
+                    var newPersonStartDate = startDate;
+                    while (newPersonStartDate <= endDate)
+                    {
+                        var shiftStartTime = newPersonStartDate;
+                        var shiftEndTime = newPersonStartDate.AddDays(1).AddMinutes(-1);
+                        var day = shiftStartTime.DayOfWeek;
+                        var dayWorkHour = workingTimes[day];
+                        var morningStartTime = dayWorkHour.allowTimes[0].Start;
+                        var morningEndTime = dayWorkHour.allowTimes[0].End;
+                        var eveningStartTime = dayWorkHour.allowTimes[1].Start;
+                        var eveningEndTime = dayWorkHour.allowTimes[1].End;
+
+                        var todayPermitMinutes = 0.0;
+
+                        var workingMinutes = GetCalculateDateDayShift(shiftTracking.userId.Value, newPersonStartDate, newPersonStartDate.AddDays(1).AddMilliseconds(-1),
+                            shiftTrackings.Where(a => a.userId == shiftTracking.userId && a.timestamp >= newPersonStartDate && a.timestamp < newPersonStartDate.AddDays(1).AddMilliseconds(-1)).ToArray());
+
+                        var shiftStatus = db.GetVWSH_ShiftTracking().Where(x => x.userId == shiftTracking.userId && x.timestamp >= newPersonStartDate && x.timestamp <= endDate).FirstOrDefault();
+
+
+                        var dailyShift = db.VWGetSH_ShiftTrackingByDateAndUserId(newPersonStartDate, shiftTracking.userId.Value).Reverse();
+
+                        var shiftStart = dailyShift.FirstOrDefault();
+                        var shiftEnd = dailyShift.LastOrDefault();
+
+                        var lastStatus = shiftEnd == null ? "İşlem Yapılmadı" : shiftEnd.ShiftTrackingStatus_Title;
+
+
+                        if (shiftStart != null)
+                        {
+                            shiftStartTime = shiftStart.shiftTrackingStatus != (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi ? newPersonStartDate : ((shiftStart != null) ? shiftStart.timestamp.Value : newPersonStartDate);
+                        }
+
+
+                        if (shiftEnd != null)
+                        {
+                            shiftEndTime = shiftEnd.shiftTrackingStatus != (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti ? newPersonStartDate.AddDays(1).AddMinutes(-1) : ((shiftEnd != null) ? shiftEnd.timestamp.Value : newPersonStartDate.AddDays(1).AddMinutes(-1));
+                        }
+
+                        var todayShiftStartDate = newPersonStartDate.AddHours(morningStartTime.Hours).AddMinutes(morningStartTime.Minutes);
+                        var todayShiftEndDate = newPersonStartDate.AddHours(eveningEndTime.Hours).AddMinutes(eveningEndTime.Minutes);
+
+                        //control permit 
+                        var allDayPermit = false;
+                        if (userPermits.Count() > 0)
+                        {
+                            var permits = userPermits.Where(x => /*x.ApproveStatus == (int)EnumINV_CompanyPersonAssessmentApproveStatus.SurecTamamlandi &&*/ x.StartDate.Value <= newPersonStartDate.AddDays(1).AddMilliseconds(-1) && x.EndDate.Value >= newPersonStartDate).ToArray();
+                            var oPermits = officalPermits.Where(x => x.StartDate.Value <= newPersonStartDate.AddDays(1).AddMilliseconds(-1) && x.EndDate.Value >= newPersonStartDate).ToArray();
+                            if (oPermits.Count() == 0)
+                            {
+                                foreach (var permit in permits)
+                                {
+
+                                    // tüm gün izinli
+                                    if (permit.StartDate.Value <= todayShiftStartDate && permit.EndDate.Value >= todayShiftEndDate)
+                                    {
+                                        todayPermitMinutes += (todayShiftEndDate - todayShiftStartDate).TotalMinutes;
+                                        allDayPermit = true;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        if (permit.StartDate.Value >= todayShiftStartDate && permit.StartDate.Value < todayShiftEndDate) //izinli geç gelinen süre
+                                        {
+                                            if (permit.EndDate.Value.Date == todayShiftStartDate.Date)
+                                            {
+                                                todayPermitMinutes = (permit.EndDate.Value - permit.StartDate.Value).TotalMinutes;
+                                            }
+                                            else
+                                            {
+                                                todayPermitMinutes = (shiftStartTime - permit.StartDate.Value).TotalMinutes;
+                                            }
+
+                                        }
+                                        else if (permit.EndDate.Value > todayShiftStartDate && permit.EndDate.Value < todayShiftEndDate)
+                                        {
+                                            todayPermitMinutes = (permit.EndDate.Value - todayShiftStartDate).TotalMinutes;
+                                        }
+                                    }
+
+                                }
+                            }
+                            else
+                            {
+                                todayPermitMinutes += (todayShiftEndDate - todayShiftStartDate).TotalMinutes;
+                                allDayPermit = true;
+                            }
+
+
+                            if (allDayPermit)
+                            {
+                                newPersonStartDate = newPersonStartDate.AddDays(1);
+                                totalPermitMinutes += totalPermitMinutes;
+                                continue;
+                            }
+
+                        }
+
+                        workingMinutes -= todayPermitMinutes;
+                        var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
+
+                        var lateArrived = (new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second) - dayWorkHour.allowTimes[0].Start).TotalMinutes;
+                        lateArrived = lateArrived > 0 ? lateArrived : 0.0;
+
+                        var earlyLeave = (dayWorkHour.allowTimes[1].End - new TimeSpan(shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second)).TotalMinutes;
+                        earlyLeave = earlyLeave > 0 ? earlyLeave : 0.0;
+
+                        var extraShift = 0.0;
+
+                        if (!(morningStartTime.TotalMinutes == 0 && morningEndTime.TotalMinutes == 0 && eveningStartTime.TotalMinutes == 0 && eveningEndTime.TotalMinutes == 0))
+                        {
+                            var dailyShiftMinutes = ((morningEndTime - morningStartTime) + (eveningEndTime - eveningStartTime)).TotalMinutes;
+                            extraShift = workingMinutes - dailyShiftMinutes + todayPermitMinutes;
+                        }
+
+                        totalWorkingMinutes += workingMinutes;
+                        totalBreakMinutes += breakMinutes;
+                        totalPermitMinutes += totalPermitMinutes;
+                        totalEarlyLeaveMinutes += earlyLeave;
+                        totalExtraShiftMinutes += extraShift;
+                        totalLateArrivedMinutes += lateArrived;
+
+                        newPersonStartDate = newPersonStartDate.AddDays(1);
+                    }
+
+                    TimeSpan ts = TimeSpan.FromMinutes(totalWorkingMinutes);
+                    var totalWorkingMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                    ts = TimeSpan.FromMinutes(totalBreakMinutes);
+                    var totalBreakMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                    ts = TimeSpan.FromMinutes(totalPermitMinutes);
+                    var totalPermitMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                    ts = TimeSpan.FromMinutes(totalEarlyLeaveMinutes);
+                    var totalEarlyLeaveMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika erken çıkmıştır.";
+
+                    ts = TimeSpan.FromMinutes(totalExtraShiftMinutes);
+                    var totalExtraShiftMinutesStringValue = ts.TotalSeconds > 0 ? ($"{(int)ts.TotalHours} saat : {ts.Minutes} dakika fazla çalışmıştır.") : ($"{(int)ts.TotalHours * -1} saat : {ts.Minutes * -1} dakika az çalışmıştır.");
+
+                    ts = TimeSpan.FromMinutes(totalLateArrivedMinutes);
+                    var totalLateArrivedMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika geç gelmiştir.";
+
+                    listData.Add(new VMSH_ShiftTrackingReport
+                    {
+                        CompanyId_Title = shiftTracking.CompanyId_Title,
+                        UserId_Title = shiftTracking.UserId_Title,
+                        startDate = startDate,
+                        endDate = endDate,
+                        userId = shiftTracking.userId,
+                        totalWorking = totalWorkingMinutesStringValue.ToString(),
+                        totalBreak = totalBreakMinutesStringValue.ToString(),
+                        lateArrived = totalLateArrivedMinutesStringValue.ToString(),
+                        earlyLeave = totalEarlyLeaveMinutesStringValue.ToString(),
+                        extraShift = totalExtraShiftMinutesStringValue.ToString(),
+                        permitTime = totalPermitMinutesStringValue.ToString()
+                    });
+                }
+
+            }
+
+            return listData.OrderBy(a => a.UserId_Title).ToList();
+        }
 
     }
 
@@ -568,6 +779,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string earlyLeave { get; set; }
         public string lateArrived { get; set; }
         public string extraShift { get; set; }
+        public string permitTime { get; set; }
 
     }
 

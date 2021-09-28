@@ -191,5 +191,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
+        [AllowEveryone]
+        [PageInfo("Personellerin Tüm Giriş Çıkış Verilerinin Toplamının Dönüldüğü Methoddur.")]
+        public ContentResult GetGeneralDataReportResultTotal(DateTime startDate, DateTime endDate, List<Guid> userIds)
+        {
+            var res = new VMShiftTrackingModel().GetGeneralDataReportResultTotal(startDate, endDate, userIds);
+            return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
+        }
+
     }
 }
