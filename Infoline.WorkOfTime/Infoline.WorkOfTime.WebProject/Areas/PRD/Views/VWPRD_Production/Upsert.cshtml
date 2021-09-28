@@ -97,30 +97,32 @@
                 }
                 $("tbody tr").remove();
             },
-            addRow: function (data,isNew ) {
+            addRow: function (data, isNew) {
+
                 page.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
+                temp.find('[data-item="type"]')
+                    .attr('data-value', (data != null ? data.type : 0));
 
+                temp.find('[data-item="id"]')
+                    .attr('name', 'productionProducts[' + page.Counter + '].id')
+                    .attr('id', (data != null ? data.id : kendo.guid()));
 
+                temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-");
 
-                temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-")
                 var metarialId = data != null ? data.materialId : "-";
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
-
-
-
-
                 temp.find('[data-item="unitPrice"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].unitPrice')
-                    .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.unitPrice : null) });
+                    .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (0) });
                 temp.find('[data-item="quantity"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity:0)
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.quantity : null) });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0) });
                 temp.find('[data-item="stockLeft"]')
                     .attr("data-value", data != undefined ? data.stockLeft : 0)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.stockLeft : 0), "readonly": true});
@@ -268,9 +270,14 @@
             pushData: function () {
                 var amonth = parseInt($("#amount").val());
                 $.each($("#RowContainer_Upsert tr"), function (i, item) {
+
+                    //  reçete ürünü ise devam et. Hesaplamalara dahil etme.
+                    if ($(item).find('[data-item="type"]').attr("data-value") != 0) {
+                        return;
+                    }
+
                     var inp_quantity = $(item).find('[data-item="quantity"]');
                     inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
-
                     var int_serialCodes = $(item).find('[data-item="serialCodes"]');
                     var int_tagify = int_serialCodes.data('tagify');
                     if (int_tagify == undefined) {
@@ -278,26 +285,32 @@
                     }
                     var selecteds = int_tagify.value;
                     int_tagify.removeAllTags();
-
+                    //  whitelist
                     if (int_tagify.suggestedListItems == undefined) {
                         return;
                     }
                     if (int_tagify.suggestedListItems.length < amonth) {
-                        var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
+                        var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text()
                         var realAmount = int_tagify.suggestedListItems.length - 1;
                         MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
                     }
-                    var newValues = [];
-                    if (selecteds != undefined || selecteds[i] != undefined) {
-                        newValues = $.Enumerable.From(int_tagify.suggestedListItems).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
-                    }
-                    else {
-                        newValues = $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray();
-                    }
 
+                    var newValues = [];
+                    for (var i = 0; i < amonth * parseInt(inp_quantity.attr("data-value")); i++) {
+
+                        var _selecteds = selecteds != undefined
+                            ? selecteds.map(function (item, i) { return item.value })
+                            : [];
+
+                        newValues[i] = selecteds != undefined && selecteds[i] != undefined
+                            ? selecteds[i].value
+                            : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                    }
 
                     int_tagify.addTags(newValues, false, true);
+
                 });
+
             }
 
         },
@@ -347,7 +360,7 @@
         .on("change", "#amount", function () {
             page.events.pushData();
         })
-        ;
+
     page.init();
 </script>
 <script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
@@ -376,8 +389,9 @@
         <td data-target="">
             <div class="input-group">
                 <input type="hidden" data-item="id" />
+                <input type="hidden" data-item="type" />
                 <input data-item="productId" class="form-control" data-refresh="" />
-                <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-info-circle"></i></a>
+                <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
             </div>
         </td>
         <td hidden>

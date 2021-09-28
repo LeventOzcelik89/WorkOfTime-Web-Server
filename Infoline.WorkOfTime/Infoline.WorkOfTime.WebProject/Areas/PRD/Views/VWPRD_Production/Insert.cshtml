@@ -95,8 +95,9 @@
                 }
             },
             onChangeProduct: function (e) {
-                debugger
+               
                 var product = e.sender.dataItem();
+                $("#productionSchemaId").attr("data-inserturl", "/PRD/VWPRD_ProductionSchema/Insert?productId="+product.id)
                 var companyDropDown = $("#centerCompanyId").data("kendoDropDownList");
                 var centercompanyDropDown = $("#centerStorageId").data("kendoDropDownList");
                 if (companyDropDown.value() != "" && centercompanyDropDown.value() != "") {
@@ -210,7 +211,7 @@
         <td>
             <div class="input-group">
                 <input data-stages="metarialIdTitle" class="k-input form-control" />
-                <a data-stages="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-info-circle"></i></a>
+                <a data-stages="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href="/PRD/VWPRD_Product/Detail"> <i class="fa fa-link"></i></a>
             </div>
         </td>
         <td>
@@ -270,6 +271,15 @@
                 $("#fixtureIds").data("handler").value([]);
             }
 
+        }).on("keyup", '[data-stages="quantity"]', function () {
+            
+            var quantityValue = parseFloat($("#quantity").val());
+            var thisQuantityValue = parseFloat($(this).val())
+            var findParent = $(this).parents("tr").find('[data-stages="totalQuantity"]').data("kendoNumericTextBox");
+            findParent.value(quantityValue * thisQuantityValue);
+
+
+
         });
 </script>
 @using (Html.BeginForm("Insert", "VWPRD_Production", FormMethod.Post, new Dictionary<string, object>() {
@@ -286,8 +296,9 @@
     @Html.HiddenFor(model => model.schemaTitle)
     @Html.Hidden("materialString")
 <fieldset>
-    <legend>Üretim Detayları</legend>  <div class="row">
-        <div class="col-md-6">
+    <legend>ÜRETİM DETAYLARI</legend>
+    <div class="row">
+        <div class="col-sm-6">
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md" for="code">Üretim Emir Kodu</label>
@@ -296,38 +307,11 @@
                     @Html.TextBoxFor(a => a.code, new Dictionary<string, object>()
                                     {
                                         {"class", "form-control"},
-                                        {"placeholder", "Lütfen Üretim Emri Kodu Giriniz." }
+                                        {"placeholder", "Lütfen Üretim Emri Kodu Giriniz." },
+                                        {"tabindex","0" }
                                     }).Validate(Validations.TextTurkceSpace09(false, 0, 140))
                 </div>
             </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-5">
-                    <label class="control-label label-md req" for="centerCompanyId">Merkez Şirket</label>
-                </div>
-                <div class="col-md-7">
-                    @(
-            Html.Akilli()
-                .DropDownListFor(model => model.centerCompanyId)
-                .OptionLabel("Lütfen Malzemelerin Alınacağı Şirketi Seçiniz..")
-                .DataValueField("id")
-                .DataTextField("fullName")
-                .Template("#=TemplateEngine('companyTemplate',data)#")
-                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-                .Sort(x => x.Add("fullName").Ascending())
-                .Validate(Validations.Required)
-                .Execute()
-                .Enable(false)
-
-
-            )
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md" for="productionOrderDate">Üretim Emir Tarihi</label>
@@ -342,8 +326,110 @@
             )
                 </div>
             </div>
+            <div class="form-group">
+                <div class="col-md-5">
+                    <label class="control-label label-md" for="scheduledProductionDate">Üretim Başlama Tarihi</label>
+                </div>
+                <div class="col-md-7">
+                    @(
+        Html.Akilli().
+        DateTimePickerFor(model => model.scheduledProductionDate).
+        Format(Extensions.DateFormatFull()).
+        Value(DateTime.Now)
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-5">
+                    <label class="control-label label-md" for="lastProductionDate">Hedef Bitiş Tarihi</label>
+                </div>
+                <div class="col-md-7">
+                    @(
+			Html.Akilli().
+			DateTimePickerFor(model => model.lastProductionDate).
+			Placeholder("Hedef Bitiş Tarihi").
+			Format(Extensions.DateFormatFull()).
+			Value(DateTime.Now)
+            .MinDateElement("scheduledProductionDate")
+				)
+                </div>
+            </div>
+            <div class="form-group noselector">
+                <div class="col-md-5">
+                    <label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
+                </div>
+                <div class="col-md-7">
+                    <div class="input-group">
+
+                        @(Html.Akilli()
+        .DropDownListFor(model=>model.productId)
+        .OptionLabel("Lütfen Nihai Ürün Seçiniz..")
+        .DataTextField("fullName")
+        .DataValueField("id")
+        .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .Events(a => { a.Change("page.events.onChangeProduct"); a.DataBound("page.events.onChangeProduct"); })
+        //.Template("#=TemplateEngine('inventoryTemplate',data)#")
+        .Validate(Validations.Required)
+        .Execute()
+            )
+                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Detayı" id="productDetailButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-link"></i></a>
+
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-5">
+                    <label class="control-label label-md req" for="quantity">Üretilecek Adet</label>
+                </div>
+                <div class="col-md-7">
+                    @(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.quantity)
+                    .Min(0)
+                    .Max(int.MaxValue)
+					.Step(1)
+					.Enable(false)
+                    .Format("N0").Validate(Validations.Required)
+                )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-5">
+                    <label class="control-label label-md" for="description">Üretim Açıklaması</label>
+                </div>
+                <div class="col-md-7">
+                    @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Açıklama Giriniz." }
+                    }).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+                </div>
+            </div>
         </div>
-        <div class="col-md-6">
+        <div class="col-sm-6">
+            <div class="form-group">
+                <div class="col-md-5">
+                    <label class="control-label label-md req" for="centerCompanyId">Merkez İşletme</label>
+                </div>
+                <div class="col-md-7">
+                    @(
+            Html.Akilli()
+                .DropDownListFor(model => model.centerCompanyId)
+                .OptionLabel("Lütfen Malzemelerin Alınacağı İşletmeyi Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Sort(x => x.Add("fullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+                .Enable(false)
+
+
+            )
+                </div>
+            </div>
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="centerStorageId">Merkez Depo</label>
@@ -368,34 +454,15 @@
                 )
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
-                    <label class="control-label label-md" for="scheduledProductionDate">Üretim Başlama Tarihi</label>
-                </div>
-                <div class="col-md-7">
-                    @(
-        Html.Akilli().
-        DateTimePickerFor(model => model.scheduledProductionDate).
-        Format(Extensions.DateFormatFull()).
-        Value(DateTime.Now)
-            )
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-5">
-                    <label class="control-label label-md req" for="productionSchemaId">Üretilecek Şirket</label>
+                    <label class="control-label label-md req" for="productionSchemaId">Üretilecek İşletme</label>
                 </div>
                 <div class="col-md-7">
                     @(
 		Html.Akilli()
 		.DropDownListFor(model => model.productionCompanyId)
-		.OptionLabel("Lütfen Üretim Şirketi Seçiniz..")
+		.OptionLabel("Lütfen Üretim İşletmesini Seçiniz..")
 		.DataValueField("id")
 		.DataTextField("fullName")
 		.Template("#=TemplateEngine('companyTemplate',data)#")
@@ -407,27 +474,6 @@
             )
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-5">
-                    <label class="control-label label-md" for="lastProductionDate">Hedef Bitiş Tarihi</label>
-                </div>
-                <div class="col-md-7">
-                    @(
-			Html.Akilli().
-			DateTimePickerFor(model => model.lastProductionDate).
-			Placeholder("Hedef Bitiş Tarihi").
-			Format(Extensions.DateFormatFull()).
-			Value(DateTime.Now)
-            .MinDateElement("scheduledProductionDate")
-				)
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="productionStorageId">Üretilecek Depo</label>
@@ -451,37 +497,6 @@
                 )
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group noselector">
-                <div class="col-md-5">
-                    <label class="control-label label-md req" id="productIds">Üretilecek Ürün</label>
-                </div>
-                <div class="col-md-7">
-                    <div class="input-group">
-
-                        @(Html.Akilli()
-		.DropDownListFor(model=>model.productId)
-		.OptionLabel("Lütfen Nihai Ürün Seçiniz..")
-		.DataTextField("fullName")
-		.DataValueField("id")
-		.Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Events(a => { a.Change("page.events.onChangeProduct"); a.DataBound("page.events.onChangeProduct"); })
-		//.Template("#=TemplateEngine('inventoryTemplate',data)#")
-		.Validate(Validations.Required)
-		.Execute()
-
-            )
-                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Detayı" id="productDetailButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-info-circle"></i></a>
-
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md req" for="productionSchemaId">Üretim Şeması</label>
@@ -489,44 +504,26 @@
                 <div class="col-md-7">
                     <div class="input-group">
                         @(
-		Html.Akilli()
-		.DropDownListFor(model => model.productionSchemaId)
-		.OptionLabel("Lütfen Üretim Şeması Seçiniz..")
-		.DataValueField("id")
-		.DataTextField("name")
-		//.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWPRD_ProductionSchema", new { area = "PRD" }))
-		.Events(a => { a.Change("page.events.onChangeProductionSchema"); a.DataBound("page.events.onChangeProductionSchema"); })
-		.Sort(x => x.Add("name").Ascending())
-		.Validate(Validations.Required)
-		.Execute()
+        Html.Akilli()
+        .DropDownListFor(model => model.productionSchemaId)
+        .OptionLabel("Lütfen Üretim Şeması Seçiniz..")
+        .DataValueField("id")
+        .DataTextField("name")
+        //.Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWPRD_ProductionSchema", new { area = "PRD" }))
+        .Events(a => { a.Change("page.events.onChangeProductionSchema"); a.DataBound("page.events.onChangeProductionSchema"); })
+        .Sort(x => x.Add("name").Ascending())
+        .Validate(Validations.Required)
+        .CascadeFrom("productId")
+        .CascadeFromField("productId")
+        .BasicInsert(Url.Action("Insert", "VWPRD_ProductionSchema", new { area = "PRD" }), "name",true)
+        .Execute()
             )
-                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Şeması Detayı" id="productionSchemaIdButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-info-circle"></i></a>
+                        <a class="btn m-r-sm btn btn-primary input-group-addon hide" data-original-title="Ürün Şeması Detayı" id="productionSchemaIdButton" target="_blank" href="/PRD/VWPRD_ProductionSchema/Detail"> <i class="fa fa-link"></i></a>
                     </div>
 
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-5">
-                    <label class="control-label label-md req" for="quantity">Üretilecek Adet</label>
-                </div>
-                <div class="col-md-7">
-                    @(
-                    Html.Akilli()
-                    .NumericTextBoxFor(a => a.quantity)
-                    .Min(0)
-					.Step(1)
-					.Enable(false)
-                    .Format("N0").Validate(Validations.Required)
-                )
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-5">
                     <label class="control-label label-md" for="assignableUsers">Üretimde Görevli Personeller</label>
@@ -549,25 +546,11 @@
             </div>
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-5">
-                    <label class="control-label label-md" for="description">Üretim Açıklaması</label>
-                </div>
-                <div class="col-md-7">
-                    @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Açıklama Giriniz." }
-                    }).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
-                </div>
-            </div>
-        </div>
-    </div>
+    
+
 </fieldset>
 <fieldset style="display:none" id="stagesId">
-    <legend>Reçete</legend>
+    <legend>REÇETE</legend>
     <div class="row">
         <div class="col-sm-12">
             <div class="clearfix" id="productTableForStages">

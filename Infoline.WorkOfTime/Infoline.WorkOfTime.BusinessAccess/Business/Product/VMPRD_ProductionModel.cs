@@ -177,6 +177,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 productionSchemaId = this.productionSchemaId
             }).B_ConvertType<VMPRD_ProductionStage>());
 
+            
+            rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
+            rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(a => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
+            rs &= db.BulkInsertPRD_ProductionUser(productionUsers.Select(a => new PRD_ProductionUser().B_EntityDataCopyForMaterial(a, true)), this.trans);
+            rs &= db.BulkInsertPRD_ProductionStage(productionStages.Select(a => new PRD_ProductionStage().B_EntityDataCopyForMaterial(a, true)), this.trans);
             if (productMaterials.Count > 0)
             {
 
@@ -193,23 +198,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     totalQuantity = x.totalQuantity,
                     type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
                     transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
-                    currencyId=x.currencyId,
-                    unitId=x.unitId
+                    currencyId = x.currencyId,
+                    unitId = x.unitId,
                 }));
-
-
-
-
-
                 rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
-
             }
-
-            rs = db.InsertPRD_Production(new PRD_Production().B_EntityDataCopyForMaterial(this), this.trans);
-            rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(a => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
-            rs &= db.BulkInsertPRD_ProductionUser(productionUsers.Select(a => new PRD_ProductionUser().B_EntityDataCopyForMaterial(a, true)), this.trans);
-            rs &= db.BulkInsertPRD_ProductionStage(productionStages.Select(a => new PRD_ProductionStage().B_EntityDataCopyForMaterial(a, true)), this.trans);
-
 
             if (rs.result == true)
             {
@@ -271,13 +264,63 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 created = DateTime.Now,
                 productionId = this.id,
                 dataId = transModel.id,
-                dataTable = "PRD_Production",
+                dataTable = "PRD_Transaction",
                 status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
                
                 userId= userId,
 
             },trans);
+            var sendedList = new List<PRD_ProductionProduct>();
+            foreach (var product in productionProducts)
+            {
+                if (product.id != null)
+                {
+                    var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value,this.id);
+                    if (getProduct==null)
+                    {
+                        var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
+                        if (findProduct!=null)
+                        {
+                            var newProduct = new PRD_ProductionProduct
+                            {
+                                id = Guid.NewGuid(),
+                                createdby = userId,
+                                productId = findProduct.id,
+                                price = product.price,
+                                materialId = findProduct.id,
+                                quantity = product.quantity,
+                                productionId = this.id,
+                                totalQuantity = product.totalQuantity,
+                                type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+                                transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+                                currencyId = findProduct.currentSellingCurrencyId,
+                                unitId = findProduct.unitId,
+                                amountSpent = product.quantity
 
+                            };
+                           
+                            DBResult &= db.InsertPRD_ProductionProduct(newProduct);
+                        }
+                    }
+                    else
+                    {
+                        if (product.quantity != null)
+                        {
+                            if (getProduct.amountSpent != null)
+                            {
+                                getProduct.amountSpent += product.quantity;
+                            }
+                            else
+                            {
+                                getProduct.amountSpent = product.quantity;
+                            }
+                            sendedList.Add(getProduct);
+                        }
+                    }
+                   
+                }
+            }
+            DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
             if (DBResult.result)
             {
                 trans.Commit();
@@ -336,7 +379,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 } },
                 date = DateTime.Now,
                 code = BusinessExtensions.B_GetIdCode(),
-                type = (short)EnumPRD_TransactionType.AcilisFisi,
+                type = (short)EnumPRD_TransactionType.UretimBildirimi,
                 id = Guid.NewGuid()
             };
             DBResult &= transModel.Save(userId, trans);
@@ -349,7 +392,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 created = DateTime.Now,
                 productionId = this.id,
                 dataId = transModel.id,
-                dataTable = "PRD_Production",
+                dataTable = "PRD_Transaction",
                 status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
                 userId = userId,
 
@@ -380,6 +423,58 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     type = (short)EnumPRD_TransactionType.HarcamaBildirimi,
                     id = Guid.NewGuid()
                 };
+                var sendedList = new List<PRD_ProductionProduct>();
+                foreach (var product in productionProducts)
+                {
+                    if (product.id != null)
+                    {
+                        var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value,id);
+                        if (getProduct == null)
+                        {
+                            var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
+                            if (findProduct != null)
+                            {
+                                var newProduct = new PRD_ProductionProduct
+                                {
+                                    id = Guid.NewGuid(),
+                                    createdby = userId,
+                                    productId = findProduct.id,
+                                    price = product.price,
+                                    materialId = findProduct.id,
+                                    quantity = product.quantity,
+                                    productionId = this.id,
+                                    totalQuantity = product.totalQuantity,
+                                    type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+                                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+                                    currencyId = findProduct.currentSellingCurrencyId,
+                                    unitId = findProduct.unitId,
+                                    amountSpent = product.quantity
+
+                                };
+
+                                DBResult &= db.InsertPRD_ProductionProduct(newProduct);
+                            }
+                        }
+                        else
+                        {
+                            if (product.quantity != null)
+                            {
+                                if (getProduct.amountSpent != null)
+                                {
+                                    getProduct.amountSpent += product.quantity;
+                                }
+                                else
+                                {
+                                    getProduct.amountSpent = product.quantity;
+                                }
+                                sendedList.Add(getProduct);
+                            }
+                        }
+
+                    }
+                }
+                DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
+
                 DBResult &= transModelForExpens.Save(userId, trans);
                 DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
                 {
@@ -387,7 +482,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = DateTime.Now,
                     productionId = this.id,
                     dataId = transModelForExpens.id,
-                    dataTable = "PRD_Production",
+                    dataTable = "PRD_Transaction",
                     status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
                     userId = userId,
 
@@ -450,16 +545,64 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 id = Guid.NewGuid()
             };
             DBResult &= transModel.Save(userId,trans);
+            var sendedList = new List<PRD_ProductionProduct>();
+            foreach (var product in productionProducts)
+            {
+                if (product.id != null)
+                {
+                    var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value,id);
+                    if (getProduct == null)
+                    {
+                        var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
+                        if (findProduct != null)
+                        {
+                            var newProduct = new PRD_ProductionProduct
+                            {
+                                id = Guid.NewGuid(),
+                                createdby = userId,
+                                productId = findProduct.id,
+                                price = product.price,
+                                materialId = findProduct.id,
+                                quantity = product.quantity,
+                                productionId = this.id,
+                                totalQuantity = product.totalQuantity,
+                                type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+                                transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+                                currencyId = findProduct.currentSellingCurrencyId,
+                                unitId = findProduct.unitId,
+                                amountSpent = product.quantity
 
+                            };
 
+                            DBResult &= db.InsertPRD_ProductionProduct(newProduct);
+                        }
+                    }
+                    else
+                    {
+                        if (product.quantity != null)
+                        {
+                            if (getProduct.amountSpent != null)
+                            {
+                                getProduct.amountSpent += product.quantity;
+                            }
+                            else
+                            {
+                                getProduct.amountSpent = product.quantity;
+                            }
+                            sendedList.Add(getProduct);
+                        }
+                    }
 
+                }
+            }
+            DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
             DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
             {
                 createdby = userId,
                 created = DateTime.Now,
                 productionId = this.id,
                 dataId = transModel.id,
-                dataTable = "PRD_Production",
+                dataTable = "PRD_Transaction",
                 status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
                 description = this.description,
                 userId = userId,

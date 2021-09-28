@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? transactionType { get; set;}
         public Guid? currencyId { get; set;}
         public Guid? unitId { get; set;}
+        public double? amountFire { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string materialId_Title { get; set;}

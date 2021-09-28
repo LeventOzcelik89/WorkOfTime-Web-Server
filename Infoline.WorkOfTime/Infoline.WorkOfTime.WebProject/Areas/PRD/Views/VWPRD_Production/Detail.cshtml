@@ -50,14 +50,12 @@
     $(document)
 		.on("ready", function () {
             GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
-               
+                console.log(res);
 			var cols = [
                 { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
-                { field: 'quantity', title: 'Birim Miktar', width:150, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
-                { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
-                { field: 'stockLeft', title: 'Kalan Stok', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(stockLeft ?? 0,'N2')#</span> " },
+                { field: 'quantity', title: 'Birim Miktar', width: 150, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
                 {
-                    field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
+                    field: 'unit', width: 70, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
                         if (dataItem.unitId_Title != null) {
                             return dataItem.unitId_Title;
                         }
@@ -73,13 +71,30 @@
                         return '-';
                     }
                 },
-
+                { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
+              
+                {
+                    field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
+                        if (dataItem.unitId_Title != null) {
+                            return dataItem.unitId_Title;
+                        }
+                        return "-";
+                    }
+                },
                 {
                     field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}',
                     template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 </small>#}#"
                 },
+                { field: 'stockLeft', title: 'Kalan Stok', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(stockLeft ?? 0,'N2')#</span> " },
+                {
+                    field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
+                        if (dataItem.unitId_Title != null) {
+                            return dataItem.unitId_Title;
+                        }
+                        return "-";
+                    }
+                },
 			];
-
 			$("#productProductsGrid").kendoGrid({
 				toolbar: [{ name: "excel", text: "" }],
 				excel: {
@@ -88,7 +103,8 @@
 				dataSource: res.objects.productionProducts,
 				pageSize: 100,
 				height: 540,
-				sortable: true,
+                sortable: true,
+                resizable: true,
 				filterable: {
 					operators: {
 						string: {
@@ -109,10 +125,13 @@
 			var grid = $("#productProductsGrid").data("kendoGrid");
 			grid.dataSource.page(1);
 
-			var cols = [
-				{ field: 'productId_Title', title: 'Ürün Adı', width: 200 },
-				{ field: 'quantity', title: 'Fire Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
-				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+                var cols = [
+                    { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#:kendo.toString(productId_Title)#" },
+                { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+                { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
+                { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                { field: 'unitId_Title', title: 'Birim', width: 70 },
+                { field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# " },
 
 
 			];
@@ -127,7 +146,8 @@
 				dataSource: res.objects.wastageProducts,
 				pageSize: 100,
 				height: 540,
-				sortable: true,
+                sortable: true,
+                resizable: true,
 				selectable: 'Single, Row',
 				change: function (e) { wastageProductsChange(e) },
 				filterable: {
@@ -145,15 +165,20 @@
 					buttonCount: 5
 				},
 				columns: cols
-			});
+            });
+               
+                var cols = [
+                   
+                 { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+                { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
+                { field: 'quantity', title: 'Ürün Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                { field: 'unitId_Title', title: 'Birim', width: 70},
+                    {
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# ", 
 
-			var cols = [
-                { field: 'created', title: "Bildirildiği Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
-                { field: 'quantity', title: 'Ürün Adedi', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
-                { field: 'unitId_Title', title: 'Birim', width: 200 },
-                { field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# " },
+                    'hidden': res.objects.ProductDetail.stockType == 2 ? false : true
+                    },
             
-				{ field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
               
 			];
         
@@ -168,7 +193,8 @@
 				dataSource: res.objects.producedProducts,
 				pageSize: 100,
 				height: 540,
-				sortable: true,
+                sortable: true,
+                resizable: true,
 				selectable: 'Single, Row',
 				change: function (e) { producedProductChange(e) },
 				filterable: {
@@ -411,7 +437,7 @@
                                                     {
                                                         <div class="row">
                                                             <div class="col-sm-12">
-                                                                <div class="  text-warning" style="float:right;" data-step="@item.dataId"> Üretim Adedi :<b>@splitTo[1]</b></div>
+                                                                <div class="  text-warning" style="float:right;" data-step="@item.dataId"> Üretim Miktarı : <b>@splitTo[1]</b> @Model.ProductDetail.unitId_Title</div>
                                                             </div>
                                                         </div>
 
