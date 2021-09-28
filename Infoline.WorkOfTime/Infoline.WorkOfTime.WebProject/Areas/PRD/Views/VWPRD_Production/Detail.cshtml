@@ -72,7 +72,7 @@
                     }
                 },
                 { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
-              
+
                 {
                     field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
                         if (dataItem.unitId_Title != null) {
@@ -166,22 +166,22 @@
 				},
 				columns: cols
             });
-               
+
                 var cols = [
-                   
+
                  { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
                 { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
                 { field: 'quantity', title: 'Ürün Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
                 { field: 'unitId_Title', title: 'Birim', width: 70},
                     {
-                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# ", 
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# ",
 
                     'hidden': res.objects.ProductDetail.stockType == 2 ? false : true
                     },
-            
-              
+
+
 			];
-        
+
 			$("#producedProducts").kendoGrid({
 				toolbar: [
 					{ name: "excel", text: "" },
@@ -474,11 +474,11 @@
 
                                                     @if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
                                                     {
-                                                        <a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-original-title="Yazdır"
+                                                        <a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-original-title="Yazdır"
                                                            data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
                                                             <i class="fa fa-print"></i>
                                                         </a>
-                                                        <a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
+                                                        <a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
                                                            data-formMessage="Görev Operasyon Formu Ektedir." data-formEmail="" data-formSubject="Görev Operasyon Formu"
                                                            data-original-title="Paylaş">
                                                             <i class="fa fa-send"></i>
@@ -512,16 +512,28 @@
     <div class="fix-buttons">
         @if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi)
         {
-
-            if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0 || Model.lastOperationStatus == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
+            if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0)
             {
-                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="fa fa-play"></i> </a>
+                var uretimBasladi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimBasladi);
+                <a data-task="Insert" data-method="GET" style="background:#@uretimBasladi["color"]" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Başla" class="@uretimBasladi["icon"]"></i> </a>
             }
+            else if (Model.lastOperationStatus == (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
+            {
+                var uretimBasladi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimDurduruldu);
+                <a data-task="Insert" data-method="GET" style="background:#@uretimBasladi["color"]" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Devam Et" class="@uretimBasladi["icon"]"></i> </a>
+            }
+
+
 
             if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
             {
-
-                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+                var harcamaBildirimi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.HarcamaBildirildi);
+                var bitenUrunBildirildi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.BitenUrunBildirimi);
+                var asamaBildirildi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.AsamaBildirimi);
+                var formYuklendi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.FormYuklendi);
+                var fireBildirimi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.FireBildirimiYapildi);
+                var uretimDurduruldu = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimDurduruldu);
+                <a data-task="Insert" data-method="GET" data-modal="true" style="background:#@harcamaBildirimi["color"]" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
 
 																									   outputId = Model.centerStorageId,
 																									   outputTable= "CMP_Storage",
@@ -533,10 +545,16 @@
 																									   status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
 																									   companyId = Model.centerCompanyId,
                                                                                                        id=Model.id
-																								   })"><i data-toggle="tooltip" title="Harcama Bildir" class="fa fa-cubes"></i></a>
-                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })"><i data-toggle="tooltip" title="Aşama Geçişi Yap" class="fa fa-retweet"></i></a>
-                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })"><i data-toggle="tooltip" title="Form veya Dosya Yükle" class="fa fa-upload"></i></a>
-                <a data-task="Insert" style="background:#25c32d" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("FinishedProductNotification", "VWPRD_Production", new { area = "PRD",
+																								   })">
+                    <i data-toggle="tooltip" title="Harcama Bildir" class="@harcamaBildirimi["icon"]"></i>
+                </a>
+                <a data-task="Insert" data-method="GET" data-modal="true" style="background:#@asamaBildirildi["icon"]" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.AsamaBildirimi })">
+                    <i data-toggle="tooltip" title="Aşama Geçişi Yap" class="@asamaBildirildi["icon"]"></i>
+                </a>
+                <a data-task="Insert" data-method="GET" data-modal="true" style="background: #@formYuklendi["color"]" data-show="single" data-href="@Url.Action("Insert", "VWPRD_ProductionOperation", new { area = "PRD", productionId = Model.id, status = (int)EnumPRD_ProductionOperationStatus.FormYuklendi })">
+                    <i data-toggle="tooltip" title="Form veya Dosya Yükle" class="@formYuklendi["icon"]"></i>
+                </a>
+                <a data-task="Insert" style="background: #@bitenUrunBildirildi["color"]" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("FinishedProductNotification", "VWPRD_Production", new { area = "PRD",
 																									   id = Model.id,
 																									   inputId = Model.centerStorageId,
 																									   inputTable= "CMP_Storage",
@@ -547,8 +565,10 @@
 																									   type = (int)EnumPRD_TransactionType.UretimBildirimi,
 																									   status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
 																									   companyId = Model.centerCompanyId
-																								   })"><i data-toggle="tooltip" title="Biten Ürün Bildir" class="fa fa-dropbox"></i></a>
-                <a data-task="Insert" style="background:#dc1212" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
+																								   })">
+                    <i data-toggle="tooltip" title="Biten Ürün Bildir" class="@bitenUrunBildirildi["icon"]"></i>
+                </a>
+                <a data-task="Insert" style="background: #@fireBildirimi["color"]" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Upsert", "VWPRD_Production", new { area = "PRD",
 																									   id = Model.id,
 																									   outputId = Model.centerStorageId,
 																									   outputTable= "CMP_Storage",
@@ -559,16 +579,27 @@
 																									   type = (int)EnumPRD_TransactionType.FireFisi,
 																									   status = (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi,
 																									   companyId = Model.centerCompanyId
-																								   })"><i data-toggle="tooltip" title="Fire Bildirimi Yap" class="fa fa-trash"></i></a>
+																								   })">
+                    <i data-toggle="tooltip" title="Fire Bildirimi Yap" class="@fireBildirimi["icon"]"></i>
+                </a>
 
-                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimDurduruldu })"><i data-toggle="tooltip" title="Üretimi Durdur" class="fa fa-pause"></i> </a>
+                <a data-task="Insert" data-method="GET" data-modal="true" style="background: #@uretimDurduruldu["color"]" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimDurduruldu })">
+                    <i data-toggle="tooltip" title="Üretimi Durdur" class="@uretimDurduruldu["icon"]"></i>
+                </a>
             }
 
             if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))))
             {
-                <a data-task="Insert" data-method="GET" style="background:#89b743" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="fa fa-check"></i> </a>
-                @*<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi })"><i data-toggle="tooltip" title="Üretimi İptal Et" class="fa fa-times"></i> </a>*@
+                var uretimiBitir = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimBitti);
+                var uretimIptal = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimIptalEdildi);
+
+                if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) >= 1 && Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBitti) == 0 && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu)
+                {
+                    <a data-task="Insert" data-method="GET" style="background:#@uretimiBitir["color"]" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBitti })"><i data-toggle="tooltip" title="Üretimi Bitir" class="@uretimiBitir["icon"]"></i> </a>
+                }
+                <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" style="background:@uretimIptal["color"]" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi })"><i data-toggle="tooltip" title="Üretimi İptal Et" class="@uretimIptal["icon"]"></i> </a>
             }
+
         }
 
     </div>

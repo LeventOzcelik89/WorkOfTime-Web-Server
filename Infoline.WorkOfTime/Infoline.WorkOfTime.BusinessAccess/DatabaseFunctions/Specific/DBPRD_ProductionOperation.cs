@@ -14,13 +14,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Üretim Emri Verildi"), Generic("icon", "fa fa-bookmark", "color", "0E5B66", "description", "Üretim Emri Verildi")]
         UretimEmriVerildi = 0,
-        [Description("Üretime Başlandı"), Generic("icon", "fa fa-play", "color", "0E5B66", "description", "Üretim Başlanması Bekleniyor")]
+        [Description("Üretime Başlandı"), Generic("icon", "fa fa-play", "color", "FF4400", "description", "Üretim Başlanması Bekleniyor")]
         UretimBasladi = 1,
         [Description("Üretim Durduruldu"), Generic("icon", "fa fa-pause", "color", "1d6a75", "description", "Üretim Durduruldu")]
         UretimDurduruldu = 2,
-        [Description("Üretim Bitti"), Generic("icon", "fa fa-check-circle", "color", "89b744", "description", "Üretim Bitti")]
+        [Description("Üretim Bitti"), Generic("icon", "fa fa-check-circle", "color", "2AF913", "description", "Üretim Bitti")]
         UretimBitti = 3,
-        [Description("Üretim İptal Edildi"), Generic("icon", "fa fa-times", "color", "AD1000", "description", "Üretim İptal Edildi")]
+        [Description("Üretim İptal Edildi"), Generic("icon", "fa fa-times", "color", "ED3535", "description", "Üretim İptal Edildi")]
         UretimIptalEdildi = 4,
         [Description("Aşama Geçişi Yapıldı"), Generic("icon", "fa fa-retweet", "color", "ffa500", "description", "Aşama Bildirimi Yapıldı")]
         AsamaBildirimi = 5,
@@ -32,11 +32,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         FireBildirimiYapildi = 101,
         [Description("Stoğa İade Edildi"), Generic("icon", "fa fa-reply", "color", "A77B13", "description", "Stoğa İade Edildi")]
         StogaIadeEdildi = 102,
-        [Description("Personel Ataması Yapıldı"), Generic("icon", "fa fa-users", "color", "173270", "description", "Personel Ataması Yapıldı")]
+        [Description("Personel Ataması Yapıldı"), Generic("icon", "fa fa-users", "color", "1900FF", "description", "Personel Ataması Yapıldı")]
         PersonelAtamasiYapildi = 200,
         [Description("Personel Üretimden Alındı"), Generic("icon", "fa fa-qrcode", "color", "000000", "description", "Personel Uretimden Alındı")]
         PersonelUretimdenAlindi = 201,
-        [Description("Form Yüklendi"), Generic("icon", "fa fa-upload", "color", "00ad06", "description", "Form Yüklendi")]
+        [Description("Form Yüklendi"), Generic("icon", "fa fa-upload", "color", "E56464", "description", "Form Yüklendi")]
         FormYuklendi = 202
     }
     

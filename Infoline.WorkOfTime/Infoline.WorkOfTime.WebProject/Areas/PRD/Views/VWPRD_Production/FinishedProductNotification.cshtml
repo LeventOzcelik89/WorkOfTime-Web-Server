@@ -118,7 +118,8 @@
                      if ($(item).find('[data-item="type"]').attr("data-value") != 0) {
                          return;
                      }
-
+                     debugger
+                    
                      var inp_quantity = $(item).find('[data-item="quantity"]');
                      inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
                      var int_serialCodes = $(item).find('[data-item="serialCodes"]');
@@ -136,6 +137,11 @@
                          var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text()
                          var realAmount = int_tagify.suggestedListItems.length - 1;
                          MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
+                     }
+                     var inp_stockLeftVal = $(item).find('[data-item="stockLeft"]').val();
+                     if (inp_stockLeftVal < amonth) {
+                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
+                         MesajWarning(itemName + " adlı üründen yeterli miktarda stok yoktur.","Yetersiz Stok")
                      }
 
                      var newValues = [];
@@ -155,7 +161,7 @@
                  });
              },
             removeRow: function (item) {
-                $(item).parents('tr').remove();      
+                $(item).parents('tr').remove();
             },
             removeAllRows: function () {
                 if (page.Counter == 1 || page.Counter == 0) {
@@ -165,7 +171,7 @@
                 page.Counter = 0;
             },
              addRow: function (data, isNew) {
-                 
+
                  page.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
@@ -375,9 +381,21 @@
     @Html.HiddenFor(m => m.description);
     @Html.HiddenFor(m => m.ProductDetail.id)
     var left = "0";
+    var hideSmall = false;
     if (Model.producedQuantity.HasValue)
     {
-        left = (Model.quantity - Model.producedQuantity).Value.ToString("N2");
+
+        var number = (Model.quantity - Model.producedQuantity).Value;
+        if (number <= 0)
+        {
+            left = "Üretim Tamamlandı";
+            hideSmall = true;
+        }
+        else
+        {
+            left = number.ToString("N2");
+        }
+
     }
     var produced = "0";
     if (Model.producedQuantity.HasValue)
@@ -415,9 +433,13 @@
             </div>
             <div class="col-sm-4">
                 <div class="widget red-bg p-lg text-center" style="min-height:70px!important">
-                    <h3 class="m-xs">@left <small class="text-white"> @Model.ProductDetail.unitId_Title </small></h3>
+                    <h3 class="m-xs">@left @if (hideSmall == false)
+                    {<small class="text-white"> @Model.ProductDetail.unitId_Title </small>}</h3>
                     <h5 class="font-bold ">
-                        Geriye Kalan Ürün Adedi
+                        @if (hideSmall == false)
+                        {
+                        <span>Geriye Kalan Ürün Adedi</span> 
+                                        }
                     </h5>
                 </div>
             </div>
@@ -490,7 +512,7 @@
                         $("#amount").data("kendoNumericTextBox").value(amount.length)
                         $("#amount").trigger("change");
                     }
-                  
+
                 });
             </script>
         }
