@@ -483,7 +483,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                         }
 
-                        workingMinutes -= todayPermitMinutes;
+                        //workingMinutes -= todayPermitMinutes;
 
 
                         var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
@@ -693,7 +693,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                         }
 
-                        workingMinutes -= todayPermitMinutes;
+                        //workingMinutes -= todayPermitMinutes;
                         var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
 
                         var lateArrived = (new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second) - dayWorkHour.allowTimes[0].Start).TotalMinutes;
