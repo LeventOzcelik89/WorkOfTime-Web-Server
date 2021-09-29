@@ -1,19 +1,21 @@
 ﻿@model VMPRD_ProductionModel
 @{
-	Layout = null;
-	var userStatus = (PageSecurity)Session["userStatus"];
-	//var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
+    Layout = null;
+    var userStatus = (PageSecurity)Session["userStatus"];
+    //var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
 
-
-	decimal result = 0;
-	if (Model.producedQuantity.HasValue)
-	{
-		result = ((decimal)Model.producedQuantity / (decimal)Model.quantity) * 100;
-	}
-	else
-	{
-		Model.producedQuantity = 0;
-	}
+    var fire = Model.productionProducts.Sum(x => x.amountFire);
+    var harcama = Model.productionProducts.Sum(x => x.amountSpent);
+    var total = fire + harcama;
+    decimal result = 0;
+    if (Model.producedQuantity.HasValue)
+    {
+        result = ((decimal)Model.producedQuantity / (decimal)Model.quantity) * 100;
+    }
+    else
+    {
+        Model.producedQuantity = 0;
+    }
 
 }
 
@@ -53,55 +55,62 @@
 			</div>
 		</div>
 		<div class="col-lg-8">
-			<dl class="dl-horizontal">
-				<dt>Üretilecek Ürün:</dt>
-				<dd>@Model.productId_Title</dd>
-			</dl>
-			@if (Model.lastProductionStage_Title != null)
-			{
-				<dl class="dl-horizontal">
-					<dt>Aktif Aşama:</dt>
-					<dd>@Model.lastProductionStage_Title</dd>
-				</dl>
-			}
+            <div class="row">
+                <div class="col-sm-8">
+                    <dl class="dl-horizontal">
+                        <dt>Üretilecek Ürün:</dt>
+                        <dd>@Model.productId_Title</dd>
+                    </dl>
+                    @if (Model.lastProductionStage_Title != null)
+                    {
+                        <dl class="dl-horizontal">
+                            <dt>Aktif Aşama:</dt>
+                            <dd>@Model.lastProductionStage_Title</dd>
+                        </dl>
+                    }
 
-			<dl class="dl-horizontal">
-				<dt>Üretim Emir Tarihi: </dt>
-				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.productionOrderDate) </dd>
-			</dl>
+                    <dl class="dl-horizontal">
+                        <dt>Üretim Emir Tarihi: </dt>
+                        <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.productionOrderDate) </dd>
+                    </dl>
 
-			<dl class="dl-horizontal">
-				<dt>Üretim Başlama Tarihi: </dt>
-				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.scheduledProductionDate) </dd>
-			</dl>
+                    <dl class="dl-horizontal">
+                        <dt>Üretim Başlama Tarihi: </dt>
+                        <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.scheduledProductionDate) </dd>
+                    </dl>
 
-			<dl class="dl-horizontal">
-				<dt>Hedef Bitiş Tarihi: </dt>
-				<dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastProductionDate) </dd>
-			</dl>
+                    <dl class="dl-horizontal">
+                        <dt>Hedef Bitiş Tarihi: </dt>
+                        <dd> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastProductionDate) </dd>
+                    </dl>
 
-			<dl class="dl-horizontal">
-				<dt>Son Aksiyon Tarihi:</dt>
-				<dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate)</dd>
-			</dl>
+                    <dl class="dl-horizontal">
+                        <dt>Son Aksiyon Tarihi:</dt>
+                        <dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate)</dd>
+                    </dl>
+                </div>
+               
+                <div class="col-sm-4">
+                    <div style="width:10%;vertical-align: inherit;">
+                        <span data-toggle="tooltip" data-placement="left" data-original-title="Üretilecek Ürün Adedi" style="margin-top: 8px;min-width:100px" class="btn btn-primary m-r-sm"><b>@(Model.quantity.HasValue ? Model.quantity.Value.ToString("N0") : "0") </b>@Model.ProductDetail.unitId_Title</span>
+                        <span data-placement="left" data-original-title="Üretilen Ürün Adedi" style="margin-top: 8px;min-width:100px" class="btn btn-@(Model.quantity > Model.producedQuantity ? "warning" : Model.quantity == Model.producedQuantity ? "primary" : Model.quantity < Model.producedQuantity ? "danger" : "warning") m-r-sm"><b>@(Model.producedQuantity.HasValue ? @Model.producedQuantity.Value.ToString("N0") : "0") </b> @Model.ProductDetail.unitId_Title</span>
+                        <span data-placement="left" data-original-title="Harcanan Toplam Materyal Miktarı" style="margin-top: 8px;min-width:100px" class="btn btn-info"><b>@total</b> Birim</span>
+                    </div>
+                </div>
+                <div class="col-sm-12">
+                    <dl class="dl-horizontal">
+                        <dt>Üretim Durumu : %@(Convert.ToInt32(result))</dt>
+                        <dd>
+                            <div class="progress progress-striped active m-b-sm">
+                                <div style="width:@(Convert.ToInt32(result))%;" class="progress-bar"></div>
+                            </div>
 
-			<dl class="dl-horizontal">
-				<dt></dt>
-				<dd>
-					<small class="label label-info" data-toggle="alert" data-original-title="Üretilecek ürün adedi"><i class="fa fa-info-circle"></i> @(Model.quantity.HasValue ? Model.quantity.Value.ToString("N0") : "0")</small>
-					<small class="label label-@(Model.quantity > Model.producedQuantity ? "warning" : Model.quantity == Model.producedQuantity ? "primary" : Model.quantity < Model.producedQuantity ? "danger" : "warning")" data-toggle="alert" data-original-title="Üretilen ürün adedi"><i class="fa fa-info-circle"></i> @(Model.producedQuantity.HasValue ? @Model.producedQuantity.Value.ToString("N0") : "0")</small>
-				</dd>
-			</dl>
-
-			<dl class="dl-horizontal">
-				<dt>Üretim Durumu : %@(Convert.ToInt32(result))</dt>
-				<dd>
-					<div class="progress progress-striped active m-b-sm">
-						<div style="width:@(Convert.ToInt32(result))%;" class="progress-bar"></div>
-					</div>
-
-				</dd>
-			</dl>
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+		
+			
 		</div>
 	</div>
 </div>
@@ -109,6 +118,7 @@
 <div class="ibox">
 	<div class="ibox-title">
 		<h5>
+			@{var i = Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).Count(); }
 			<i class="fa text-success fa fa-list-alt"></i> Üretim Detayları
 			@if (Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBasladi).Count() <= 0)
 			{

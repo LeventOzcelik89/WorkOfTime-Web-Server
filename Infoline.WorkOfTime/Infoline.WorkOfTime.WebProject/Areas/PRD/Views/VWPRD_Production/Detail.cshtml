@@ -28,9 +28,15 @@
     li {
         list-style: none;
     }
+    .table-text {
+        width: 100px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 
 <script type="text/javascript">
+    
 
     function producedProductChange(e) {
         var data = e.sender.dataItem(e.sender.select())
@@ -50,41 +56,43 @@
     $(document)
 		.on("ready", function () {
             GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
-                console.log(res);
+               
 			var cols = [
-                { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
-                { field: 'quantity', title: 'Birim Miktar', width: 150, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
+                { field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
+                { field: 'quantity', title: 'Birim Miktar', width: 90, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
                 {
-                    field: 'unit', width: 70, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
+                    field: 'unit', width:65, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
                         if (dataItem.unitId_Title != null) {
                             return dataItem.unitId_Title;
                         }
-                        return "-";
+                        return "";
                     }
                 },
-                { field: 'prices', title: 'Birim Fiyat', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(price ?? 0,'N2')#</span> " },
+               
                 {
-                    field: 'price', title: '&nbsp;', width: 40, format: '{0:N0}', template: function (dataItem) {
-                        if (dataItem.currencyId_Title != null) {
-                            return dataItem.currencyId_Title;
-                        }
-                        return '-';
+                    field: 'price', title: 'Birim Fiyat', format: '{0:N0}', template: function (dataItem) {
+                        var price = dataItem.price == null ? "" : dataItem.price;
+                        var currency = dataItem.cure == null ? "" : dataItem.currencyId_Title;
+                        return "<div style='float:right'>" + price + " " + currency + "</div>"
+                          
+                     
                     }
                 },
                 { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
 
                 {
-                    field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
+                    field: 'unit', width: 65, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
                         if (dataItem.unitId_Title != null) {
                             return dataItem.unitId_Title;
                         }
-                        return "-";
+                        return "";
                     }
                 },
                 {
                     field: 'amountSpent', title: 'Harcanan Miktar', format: '{0:N0}',
                     template: "#if (amountSpent == 0) {#<small class='label label-warning'>0 #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent != null && amountSpent < totalQuantity) {#<small class='label label-warning'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#} else if(amountSpent == totalQuantity) {#<small class='label label-info'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent > totalQuantity) {#<small class='label label-danger'>#:kendo.toString(amountSpent ?? 0,'N0')# #:kendo.toString(unitId_Title)#  </small>#}else if(amountSpent == 0 || amountSpent == null) {#<small class='label label-warning'>0 </small>#}#"
                 },
+                { field: 'amountSpentPrice', title: 'Harcanan Toplam Fiyat', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(amountSpent*price,'N0')  # #:currencyId_Title!=null?currencyId_Title:' '#</span> " },
                 { field: 'stockLeft', title: 'Kalan Stok', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(stockLeft ?? 0,'N2')#</span> " },
                 {
                     field: 'unit', width: 80, title: '&nbsp;', format: '{0:N0}', template: function (dataItem) {
@@ -103,17 +111,8 @@
 				dataSource: res.objects.productionProducts,
 				pageSize: 100,
 				height: 540,
-                sortable: true,
+                sortable: false,
                 resizable: true,
-				filterable: {
-					operators: {
-						string: {
-							contains: "İçeriyor",
-							eq: "Eşittir",
-							neq: "Eşit Değil",
-						}
-					}
-				},
 				pageable: {
 					refresh: true,
 					pageSizes: true,
@@ -131,9 +130,10 @@
                 { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
                 { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
                 { field: 'unitId_Title', title: 'Birim', width: 70 },
-                { field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# " },
-
-
+                {
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
+                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
+                },
 			];
 
 			$("#wastageProductsGrid").kendoGrid({
@@ -150,15 +150,6 @@
                 resizable: true,
 				selectable: 'Single, Row',
 				change: function (e) { wastageProductsChange(e) },
-				filterable: {
-					operators: {
-						string: {
-							contains: "İçeriyor",
-							eq: "Eşittir",
-							neq: "Eşit Değil",
-						}
-					}
-				},
 				pageable: {
 					refresh: true,
 					pageSizes: true,
@@ -169,14 +160,13 @@
 
                 var cols = [
 
-                 { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
-                { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
-                { field: 'quantity', title: 'Ürün Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                 { field: 'createdby_Title', title: 'İşlem Yapan Personel' },
+                { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', type: "date" },
+                { field: 'quantity', title: 'Ürün Miktarı', format: '{0:N0}', template: "#:kendo.toString(quantity ?? 0,'N0')# " },
                 { field: 'unitId_Title', title: 'Birim', width: 70},
                     {
-                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}', width: 200, template: "#:kendo.toString(serialCodes ?? 0,'N0')# ",
-
-                    'hidden': res.objects.ProductDetail.stockType == 2 ? false : true
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
+                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
                     },
 
 
@@ -197,15 +187,7 @@
                 resizable: true,
 				selectable: 'Single, Row',
 				change: function (e) { producedProductChange(e) },
-				filterable: {
-					operators: {
-						string: {
-							contains: "İçeriyor",
-							eq: "Eşittir",
-							neq: "Eşit Değil",
-						}
-					}
-				},
+			
 				pageable: {
 					refresh: true,
 					pageSizes: true,
@@ -226,11 +208,29 @@
 
 	$(document).on('shown.bs.tab', 'a[href="#uretimBildirimleri"]', function (e) {
 		$("#producedProducts").data("kendoGrid").dataSource.page(1);
-	});
+    }).on("click",'#serialCodesModalButton', function () {
+       
+        var findSerialCodes = $(this).attr("data-serialcodes").split(",");
+        BootstrapDialog.show({
+            size: 'size-wide',
+            type: 'type-info',
+            title:  "Seri Numaraları" ,
+            message: function (dialog) {
+                
+                var text = "";
 
+                $.each(findSerialCodes, function (i, item) {
+                    text += "<div class='btn btn-secondary'  style='border-radius:25px;margin:5px;font-size:15px;background-color:gray;color:white'>"+item+"</div>"
+                })
+                return text;
+            },
+            closable: true,
+            closeByBackdrop: true,
+            closeByKeyboard: true,
+            
+        });
 
-
-
+    });
 	function ImageErrorData(element, image, id) {
 		element.onerror = '';
 		element.src = image;
@@ -311,7 +311,7 @@
                         <div class="tab-pane active" id="kullanilanUrunler">
                             <div class="ibox">
                                 <div class="ibox-title">
-                                    <h5>@Model.productId_Title Reçetesi</h5>
+                                    <h5>Üretim Harcamaları </h5>
                                 </div>
                                 <div class="ibox-content clearfix">
                                     <div id="productProductsGrid"></div>
