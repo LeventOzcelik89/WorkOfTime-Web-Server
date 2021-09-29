@@ -4,7 +4,9 @@
     var userStatus = (PageSecurity)Session["userStatus"];
     //var type = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>().Where(a => Convert.ToInt32(a.Key) == Model.type).FirstOrDefault();
 
-
+    var fire = Model.productionProducts.Sum(x => x.amountFire);
+    var harcama = Model.productionProducts.Sum(x => x.amountSpent);
+    var total = fire + harcama;
     decimal result = 0;
     if (Model.producedQuantity.HasValue)
     {
@@ -86,15 +88,8 @@
                         <dt>Son Aksiyon Tarihi:</dt>
                         <dd>@String.Format("{0:dd.MM.yyyy HH:mm}", Model.lastOperationDate)</dd>
                     </dl>
-
-
-
                 </div>
-                @{
-                    var fire = Model.productionProducts.Sum(x => x.amountFire);
-                    var harcama = Model.productionProducts.Sum(x => x.amountSpent);
-                    var total = fire + harcama;
-                }
+               
                 <div class="col-sm-4">
                     <div style="width:10%;vertical-align: inherit;">
                         <span data-toggle="tooltip" data-placement="left" data-original-title="Üretilecek Ürün Adedi" style="margin-top: 8px;min-width:100px" class="btn btn-primary m-r-sm"><b>@(Model.quantity.HasValue ? Model.quantity.Value.ToString("N0") : "0") </b>@Model.ProductDetail.unitId_Title</span>
