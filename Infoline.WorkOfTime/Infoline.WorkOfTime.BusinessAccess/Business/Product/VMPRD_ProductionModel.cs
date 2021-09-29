@@ -643,25 +643,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var transaction = trans ?? db.BeginTransaction();
             this.assignableUsers = this.assignableUsers ?? new List<Guid>();
             var rs = new ResultStatus { result = true };
-
             var insertUsers = new List<PRD_ProductionUser>();
             var users = new List<VWSH_User>();
             var currentUserDatas = db.GetPRD_ProductionUsersByProductionId(this.id);
             var deletedUsers = currentUserDatas.Where(a => !this.assignableUsers.Contains(a.userId.Value));
             var newInsertUsers = this.assignableUsers.Where(a => !currentUserDatas.Select(c => c.userId).Contains(a)).ToArray();
             var productionProducts = db.GetPRD_ProductionProductByProductionId(this.id);
-            if (productionProducts.Count() > 0)
-            {
-                rs &= db.BulkDeletePRD_ProductionProduct(productionProducts);
-            }
-
             if (newInsertUsers.Count() > 0)
             {
                 users = db.GetVWSH_UserByIds(newInsertUsers).ToList();
                 var currentUsers = db.GetPRD_ProductionUsersByProductionId(this.id);
                 rs &= db.BulkDeletePRD_ProductionUser(currentUsers, trans);
             }
-
             if (users.Count() > 0)
             {
                 var now = DateTime.Now;
@@ -682,30 +675,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     productionId = this.id,
                 }).ToList();
             }
-
-
-            if (productMaterials.Count > 0)
-            {
-                productionProducts.ToList().AddRange(productMaterials.Select(x => new PRD_ProductionProduct
-                {
-                    id = Guid.NewGuid(),
-                    createdby = userId,
-                    productId = x.productId,
-                    price = x.price,
-                    materialId = x.materialId,
-                    quantity = x.quantity,
-                    productionId = this.id,
-                    totalQuantity = x.totalQuantity,
-                    type = (int)EnumPRD_ProductionProductsType.RecetedenGelen,
-                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi
-                })); ;
-
-
-                rs &= db.BulkInsertPRD_ProductionProduct(productionProducts);
-
-            }
-
-
             rs &= db.BulkInsertPRD_ProductionOperation(productionOperations.Select(x => new PRD_ProductionOperation().B_EntityDataCopyForMaterial(x, true)), trans);
             rs &= db.BulkDeletePRD_ProductionUser(deletedUsers, trans);
             rs &= db.BulkInsertPRD_ProductionUser(insertUsers, trans);
