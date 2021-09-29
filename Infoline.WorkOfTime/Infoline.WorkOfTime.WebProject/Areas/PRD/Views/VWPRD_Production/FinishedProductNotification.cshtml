@@ -112,16 +112,21 @@
          events: {
              pushData: function () {
                  var amonth = parseInt($("#amount").val());
+                
                  $.each($("#RowContainer_Upsert tr"), function (i, item) {
-                     debugger
-                     //  reçete ürünü ise devam et. Hesaplamalara dahil etme.  
                      var inp_quantity = $(item).find('[data-item="quantity"]');
                      if ($(item).find('[data-item="type"]').attr("data-value") != 0) {
                          inp_quantity.data('handler').value(0);
                          return;
                      }
-                     
+                     var inp_stockLeftVal = $(item).find('[data-item="stockLeft"]').val();
+                     if (inp_stockLeftVal < amonth) {
+                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
+                         MesajWarning(itemName + " adlı üründen yeterli miktarda stok yoktur.", "Yetersiz Stok")
+                     }
+                     //  reçete ürünü ise devam et. Hesaplamalara dahil etme.
                    
+                     
                      inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
                      var int_serialCodes = $(item).find('[data-item="serialCodes"]');
                      var int_tagify = int_serialCodes.data('tagify');
@@ -134,16 +139,6 @@
                      if (int_tagify.suggestedListItems == undefined) {
                          return;
                      }
-                     if (int_tagify.suggestedListItems.length < amonth) {
-                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text()
-                         var realAmount = int_tagify.suggestedListItems.length - 1;
-                         MesajWarning("Bu üründen yeterli miktarda seri kodu yoktur!  " + amonth + " adet seçtinizi fakat " + itemName + " için " + realAmount + " adet seri kodu vardır", "Yetersiz seri kodu");
-                     }
-                     var inp_stockLeftVal = $(item).find('[data-item="stockLeft"]').val();
-                     if (inp_stockLeftVal < amonth) {
-                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
-                         MesajWarning(itemName + " adlı üründen yeterli miktarda stok yoktur.","Yetersiz Stok")
-                     }
 
                      var newValues = [];
                      for (var i = 0; i < amonth * parseInt(inp_quantity.attr("data-value")); i++) {
@@ -151,12 +146,11 @@
                          var _selecteds = selecteds != undefined
                              ? selecteds.map(function (item, i) { return item.value })
                              : [];
-
+                         var merged = $.merge(_selecteds, newValues);
                          newValues[i] = selecteds != undefined && selecteds[i] != undefined
                              ? selecteds[i].value
-                             : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return $.merge(_selecteds, newValues).indexOf(a) == -1 }).FirstOrDefault();
+                             : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return merged.indexOf(a) == -1 }).FirstOrDefault();
                      }
-
                      int_tagify.addTags(newValues, false, true);
 
                  });
