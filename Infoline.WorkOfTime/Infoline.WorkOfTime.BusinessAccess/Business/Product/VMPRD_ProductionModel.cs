@@ -408,100 +408,102 @@ namespace Infoline.WorkOfTime.BusinessAccess
             #region harcama bildirimi
             if (expensReport)
             {
-                var listOfTransItems = new List<VMPRD_TransactionItems>();
-                foreach (var item in productionProducts)
+                if (productionProducts.Count>0)
                 {
-                     var findProduct = db.GetVWPRD_ProductionProductByMetarialIdAndProductionId(item.productId.Value, id);
-                    if (findProduct != null)
+                    var listOfTransItems = new List<VMPRD_TransactionItems>();
+                    foreach (var item in productionProducts)
                     {
-                        listOfTransItems.Add(new VMPRD_TransactionItems
+                        var findProduct = db.GetVWPRD_ProductionProductByMetarialIdAndProductionId(item.productId.Value, id);
+                        if (findProduct != null)
                         {
-                            productId = item.productId,
-                            quantity = item.quantity,
-                            serialCodes = item.serialCodes != null ? item.serialCodes : "",
-                            unitPrice = findProduct.price,
-                        });
+                            listOfTransItems.Add(new VMPRD_TransactionItems
+                            {
+                                productId = item.productId,
+                                quantity = item.quantity,
+                                serialCodes = item.serialCodes != null ? item.serialCodes : "",
+                                unitPrice = findProduct.price,
+                            });
+                        }
                     }
-                }
-                var transModelForExpens = new VMPRD_TransactionModel
-                {
-                    inputId = null,
-                    inputTable =null,
-                    outputId = this.Transaction.inputId,
-                    outputTable = this.Transaction.inputTable,
-                    created = this.created,
-                    createdby = this.createdby,
-                    status = (int)EnumPRD_TransactionStatus.islendi,
-                    items = listOfTransItems,
-                    date = DateTime.Now,
-                    code = BusinessExtensions.B_GetIdCode(),
-                    type = (short)EnumPRD_TransactionType.HarcamaBildirimi,
-                    id = Guid.NewGuid()
-                };
-                var sendedList = new List<PRD_ProductionProduct>();
-                foreach (var product in productionProducts)
-                {
-                    if (product.id != null)
+                    var transModelForExpens = new VMPRD_TransactionModel
                     {
-                        var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value,id);
-                        if (getProduct == null)
+                        inputId = null,
+                        inputTable = null,
+                        outputId = this.Transaction.inputId,
+                        outputTable = this.Transaction.inputTable,
+                        created = this.created,
+                        createdby = this.createdby,
+                        status = (int)EnumPRD_TransactionStatus.islendi,
+                        items = listOfTransItems,
+                        date = DateTime.Now,
+                        code = BusinessExtensions.B_GetIdCode(),
+                        type = (short)EnumPRD_TransactionType.HarcamaBildirimi,
+                        id = Guid.NewGuid()
+                    };
+                    var sendedList = new List<PRD_ProductionProduct>();
+                    foreach (var product in productionProducts)
+                    {
+                        if (product.id != null)
                         {
-                            var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
-                            if (findProduct != null)
+                            var getProduct = db.GetPRD_ProductionProductByMetarialIdAndProductionId(product.productId.Value, id);
+                            if (getProduct == null)
                             {
-                                var newProduct = new PRD_ProductionProduct
+                                var findProduct = db.GetVWPRD_ProductById(product.productId.Value);
+                                if (findProduct != null)
                                 {
-                                    id = Guid.NewGuid(),
-                                    createdby = userId,
-                                    productId = findProduct.id,
-                                    price = product.price,
-                                    materialId = findProduct.id,
-                                    quantity = product.quantity,
-                                    productionId = this.id,
-                                    totalQuantity = product.totalQuantity,
-                                    type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
-                                    transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
-                                    currencyId = findProduct.currentSellingCurrencyId,
-                                    unitId = findProduct.unitId,
-                                    amountSpent = product.quantity
+                                    var newProduct = new PRD_ProductionProduct
+                                    {
+                                        id = Guid.NewGuid(),
+                                        createdby = userId,
+                                        productId = findProduct.id,
+                                        price = product.price,
+                                        materialId = findProduct.id,
+                                        quantity = product.quantity,
+                                        productionId = this.id,
+                                        totalQuantity = product.totalQuantity,
+                                        type = (int)EnumPRD_ProductionProductsType.SonradanEklenen,
+                                        transactionType = (int)EnumPRD_TransactionType.HarcamaBildirimi,
+                                        currencyId = findProduct.currentSellingCurrencyId,
+                                        unitId = findProduct.unitId,
+                                        amountSpent = product.quantity
 
-                                };
+                                    };
 
-                                DBResult &= db.InsertPRD_ProductionProduct(newProduct);
+                                    DBResult &= db.InsertPRD_ProductionProduct(newProduct);
+                                }
                             }
-                        }
-                        else
-                        {
-                            if (product.quantity != null)
+                            else
                             {
-                                if (getProduct.amountSpent != null)
+                                if (product.quantity != null)
                                 {
-                                    getProduct.amountSpent += product.quantity;
+                                    if (getProduct.amountSpent != null)
+                                    {
+                                        getProduct.amountSpent += product.quantity;
+                                    }
+                                    else
+                                    {
+                                        getProduct.amountSpent = product.quantity;
+                                    }
+                                    sendedList.Add(getProduct);
                                 }
-                                else
-                                {
-                                    getProduct.amountSpent = product.quantity;
-                                }
-                                sendedList.Add(getProduct);
                             }
-                        }
 
+                        }
                     }
-                }
-                DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
-                     
-                DBResult &= transModelForExpens.Save(userId, trans);
-                DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
-                {
-                    createdby = userId,
-                    created = DateTime.Now,
-                    productionId = this.id,
-                    dataId = transModelForExpens.id,
-                    dataTable = "PRD_Transaction",
-                    status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
-                    userId = userId,
+                    DBResult &= db.BulkUpdatePRD_ProductionProduct(sendedList);
+                    DBResult &= transModelForExpens.Save(userId, trans);
+                    DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
+                    {
+                        createdby = userId,
+                        created = DateTime.Now,
+                        productionId = this.id,
+                        dataId = transModelForExpens.id,
+                        dataTable = "PRD_Transaction",
+                        status = (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi,
+                        userId = userId,
 
-                }, trans);
+                    }, trans);
+                }
             }
             #endregion
             if (DBResult.result)

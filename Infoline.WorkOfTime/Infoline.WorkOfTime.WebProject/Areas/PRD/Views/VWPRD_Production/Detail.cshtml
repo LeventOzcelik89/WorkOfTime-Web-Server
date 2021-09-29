@@ -56,7 +56,7 @@
     $(document)
 		.on("ready", function () {
             GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
-                console.log(res);
+               
 			var cols = [
                 { field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
                 { field: 'quantity', title: 'Birim Miktar', width: 90, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
@@ -65,14 +65,15 @@
                         if (dataItem.unitId_Title != null) {
                             return dataItem.unitId_Title;
                         }
-                        return "-";
+                        return "";
                     }
                 },
                
                 {
                     field: 'price', title: 'Birim Fiyat', format: '{0:N0}', template: function (dataItem) {
-                        debugger
-                        return "<div style='float:right'>" + dataItem.price == null ? " " : dataItem.price + "< >" + dataItem.currencyId_Title == null ? " " : dataItem.currencyId_Title + "</div>"
+                        var price = dataItem.price == null ? "" : dataItem.price;
+                        var currency = dataItem.cure == null ? "" : dataItem.currencyId_Title;
+                        return "<div style='float:right'>" + price + " " + currency + "</div>"
                           
                      
                     }
@@ -84,7 +85,7 @@
                         if (dataItem.unitId_Title != null) {
                             return dataItem.unitId_Title;
                         }
-                        return "-";
+                        return "";
                     }
                 },
                 {

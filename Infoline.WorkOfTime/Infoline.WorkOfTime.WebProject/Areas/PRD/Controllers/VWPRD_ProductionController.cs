@@ -62,7 +62,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.") :
+                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.",false, Request.UrlReferrer.AbsoluteUri) :
                                              feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
