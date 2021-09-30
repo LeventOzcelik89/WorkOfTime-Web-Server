@@ -53,21 +53,5 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
-        [HandleFunction("VWHDM_TicketRequester/GetById")]
-        public void VWHDM_TicketRequesterGetById(HttpContext context)
-        {
-            try
-            {
-                var db = new WorkOfTimeDatabase();
-                var id = context.Request["id"];
-                var data = db.GetHDM_TicketRequesterById(new Guid((string)id));
-                RenderResponse(context, data);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
-
     }
 }

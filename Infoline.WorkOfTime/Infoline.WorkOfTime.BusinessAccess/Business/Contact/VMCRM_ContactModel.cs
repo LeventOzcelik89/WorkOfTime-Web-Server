@@ -35,7 +35,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Users[] Users { get; set; }
         public bool mailForParticipants { get; set; }
         public List<Participants> Participants { get; set; }
-        public Guid RelationId { get; set; }
+        public Guid? RelationId { get; set; }
+
 
         public VMCRM_ContactModel Load()
         {

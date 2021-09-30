@@ -62,7 +62,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.") :
+                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri başarıyla oluşturuldu.",false, Request.UrlReferrer.AbsoluteUri) :
                                              feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Üretim emri oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
@@ -170,8 +170,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [PageInfo("Ürünlere ait depolarda ki stok miktarlarıni dönen method", SHRoles.Personel)]
         public JsonResult GetProductStocksByProductIdsAndStorageId(Guid[] productIds, Guid storageId)
         {
-            var model = new VMPRD_ProductionModel().ProductStocksByProductIdsAndStorageId(productIds, storageId);
-            return Json(model, JsonRequestBehavior.AllowGet);
+            if (productIds!=null)
+            {
+                var model = new VMPRD_ProductionModel().ProductStocksByProductIdsAndStorageId(productIds, storageId);
+                return Json(model, JsonRequestBehavior.AllowGet);
+            }
+            return Json(new List<VWPRD_StockSummary>(), JsonRequestBehavior.AllowGet);
+
         }
 
 
@@ -180,6 +185,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
             return Json(productionProducts, JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Üretime Kullanıcı Düzenleme ve ekleme işlemi", SHRoles.UretimYonetici)]
+        public ActionResult AddUser(VMPRD_ProductionModel model)
+        {
+            return View(model.Load());
+        }
+        [HttpPost]
+        [PageInfo("Üretime Kullanıcı Düzenleme ve ekleme işlemi", SHRoles.UretimYonetici)]
+        public JsonResult AddUser(VMPRD_ProductionModel model,bool isPost=true)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var result = model.AddUser(userStatus.user.id);
+            var feedback = new FeedBack();
+            return Json(new ResultStatusUI
+            {
+                Result = result.result,
+                FeedBack = result.result ? feedback.Success("Kullanıcılar Başarıyla Düzenlendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(result.message)
+            }, JsonRequestBehavior.AllowGet);
         }
     }
 }
