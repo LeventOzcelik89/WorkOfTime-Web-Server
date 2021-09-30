@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
 {
 	public class VWHDM_TicketMessageController : Controller
     {
-        [PageInfo("Yardım Talebi Mesajları Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Mesajları Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -23,21 +23,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Yardım Talebi Mesaj Detayı", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Mesaj Detayı", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         public ActionResult Detail(Guid id)
         {
             var data = new VMHDM_TicketMessageModel { id = id }.Load();
             return View(data);
         }
 
-        [PageInfo("Yardım Talebi Mesaj Ekleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Mesaj Ekleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         public ActionResult Insert(VMHDM_TicketMessageModel item)
         {
             item.Load();
             return View(item);
         }
 
-        [PageInfo("Yardım Talebi Mesaj Ekleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Mesaj Ekleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         [HttpPost, ValidateInput(false)]
         public JsonResult Insert(VMHDM_TicketMessageModel item, bool? isPost)
         {
@@ -52,14 +52,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Yardım Talebi Düzenleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Düzenleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         public ActionResult Update(Guid id)
         {
             var data = new VMHDM_TicketMessageModel { id = id }.Load();
             return View(data);
         }
 
-        [PageInfo("Yardım Talebi Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         [HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
         public JsonResult Update(VMHDM_TicketMessageModel item)
         {
@@ -74,7 +74,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Mesaj Dosyası Ekleme", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Mesaj Dosyası Ekleme", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         public JsonResult EditorUploadFile(HttpPostedFileBase upload, string id)
         {
             if (upload != null)
@@ -92,7 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return Json(new { uploaded = 0, error = new { message = "İşlem Sırasında Hata Meydana Geldi" } }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Yardım Talebi Mesajı Sil", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
+        [PageInfo("Yardım Talebi Mesajı Sil", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep)]
         [HttpPost]
         public JsonResult Delete(string[] id)
         {

@@ -115,6 +115,8 @@ namespace System
         public const string YardimMasaPersonel = "00000000-0000-0000-0002-100000000000";
         [PropInfo("Yardım Masası Talep Personel Rolü", "Yardım Masası (HelpDesk/Ticket) Sisteminde ticket oluşturabilecek kişilere verilecek roldür.")]
         public const string YardimMasaTalep = "00000000-0000-0000-0002-200000000000";
+        [PropInfo("Yardım Masası Müşteri Rolü", "Başkası ve kendi adına ticket oluşturabilir. Kendi adına açılmış ticketları görüntüleyebilir ve çözümleyebilir. Ticket detayından mesaj yazabilir.")]
+        public const string YardimMasaMusteri = "00000000-0000-0000-0002-300000000000";
         //Ticket / HelpDesk Yönetimi
 
         //Akademik Personel
