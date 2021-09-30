@@ -110,8 +110,8 @@
 				},
 				dataSource: res.objects.productionProducts,
 				pageSize: 100,
-				height: 540,
-                sortable: false,
+                height: 540,
+                sortable: true,
                 resizable: true,
 				pageable: {
 					refresh: true,
@@ -217,10 +217,11 @@
             title:  "Seri Numaraları" ,
             message: function (dialog) {
                 
-                var text = "";
+                var text = "<style></style>";
 
                 $.each(findSerialCodes, function (i, item) {
-                    text += "<div class='btn btn-secondary'  style='border-radius:25px;margin:5px;font-size:15px;background-color:gray;color:white'>"+item+"</div>"
+
+                    text += "<div class='badge' >"+item+"</div>"
                 })
                 return text;
             },
@@ -512,6 +513,10 @@
     <div class="fix-buttons">
         @if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi)
         {
+
+
+
+
             if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0)
             {
                 var uretimBasladi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimBasladi);
@@ -521,6 +526,11 @@
             {
                 var uretimBasladi = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.UretimDurduruldu);
                 <a data-task="Insert" data-method="GET" style="background:#@uretimBasladi["color"]" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWPRD_ProductionOperation",new {area="PRD",productionId=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Üretime Devam Et" class="@uretimBasladi["icon"]"></i> </a>
+            }
+            if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.UretimYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))))
+            {
+                var personel = Infoline.Helper.EnumsProperties.GetGenericFromEnumValue(EnumPRD_ProductionOperationStatus.PersonelAtamasiYapildi);
+                <a data-task="Insert" data-method="GET" style="background:#@personel["color"]" data-modal="true" data-show="single" data-href="@Url.Action("AddUser","VWPRD_Production",new {area="PRD",id=Model.id,status=(int)EnumPRD_ProductionOperationStatus.UretimBasladi })"><i data-toggle="tooltip" title="Personel Ekle/Düzenle" class="@personel["icon"]"></i> </a>
             }
 
 

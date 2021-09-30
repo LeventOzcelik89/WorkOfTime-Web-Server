@@ -186,5 +186,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);
             return Json(productionProducts, JsonRequestBehavior.AllowGet);
         }
+        [PageInfo("Üretime Kullanıcı Düzenleme ve ekleme işlemi", SHRoles.UretimYonetici)]
+        public ActionResult AddUser(VMPRD_ProductionModel model)
+        {
+            return View(model.Load());
+        }
+        [HttpPost]
+        [PageInfo("Üretime Kullanıcı Düzenleme ve ekleme işlemi", SHRoles.UretimYonetici)]
+        public JsonResult AddUser(VMPRD_ProductionModel model,bool isPost=true)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var result = model.AddUser(userStatus.user.id);
+            var feedback = new FeedBack();
+            return Json(new ResultStatusUI
+            {
+                Result = result.result,
+                FeedBack = result.result ? feedback.Success("Kullanıcılar Başarıyla Düzenlendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(result.message)
+            }, JsonRequestBehavior.AllowGet);
+        }
     }
 }
