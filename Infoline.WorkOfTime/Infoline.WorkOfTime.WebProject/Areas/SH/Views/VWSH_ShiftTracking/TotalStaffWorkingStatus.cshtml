@@ -1,7 +1,7 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_UserModel
 
 @{
-    ViewBag.Title = "Personel Mesai Takip Raporu";
+    ViewBag.Title = "Personel Çalışma Durumu Raporu";
 
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -56,8 +56,8 @@
 						 )
                     </div>
                     <div class="col-md-1">
-                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardFilter" style="height:42px; font-size:inherit !important;"><i class="fa fa-search"></i> Raporla</button>
-                    </div>                   
+                        <button class="btn btn-md btn-block btn-primary" type="submit" id="DashBoardTotalFilter" style="height: 42px; font-size: inherit !important;"><i class="fa fa-search"></i> Raporla</button>
+                    </div>
                 </div>
 
             </div>
@@ -74,12 +74,13 @@
 
 <script type="text/javascript">
     $(document)
-    $("#DashBoardFilter").click(function () {
+    $("#DashBoardTotalFilter").click(function () {
+       
         var startDate = $("#shiftTrackingStartDate").val();
         var endDate = $("#shiftTrackingEndDate").val();
         var userIds = $("#userId").val();
 
-        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResult', { startDate: startDate, endDate: endDate, userIds: userIds }, function (res) {
+        GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/GetGeneralDataReportResultTotal', { startDate: startDate, endDate: endDate, userIds: userIds }, function (res) {
             if (res.length == 0) {
                 return;
             }
@@ -95,26 +96,26 @@
                     $("#shiftTrackingPersonalGrid").kendoGrid({
 
                         excel: {
-                            fileName: "Günlük Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
+                            fileName: "Günlük Toplam Personel Giriş Çıkış Raporu " + new Date().toLocaleString() + ".xlsx",
                             filterable: true,
                             allPages: true,
                         },
                         dataSource: {
                             data: $.Enumerable.From(res).ToArray(),
                             pageSize: 50,
-                            sort: [{ field: "UserId_Title", dir: "asc" }, { field: "date", dir: "asc" }]
+                            sort: [{ field: "UserId_Title", dir: "asc" }]
                         },
                         dataBound: function (e) {
                             $("#shiftTrackingPersonalGrid tbody tr:odd").css("background-color", "#f3f3f4");
-                            $("#shiftTrackingPersonalGrid tbody tr td:last-child").each(function (i, e) {
-                                if ($(e).text().includes("Fazla")) {
-                                    $(e).css("color", "green");
-                                } else if ($(e).text().includes("Az")) {
-                                    $(e).css("color", "red");
-                                } else if ($(e).text().includes("Tam")) {
-                                    $(e).css("color", "orange");
-                                }
-                            })
+                            //$("#shiftTrackingPersonalGrid tbody tr td:last-child").each(function (i, e) {
+                            //    if ($(e).text().includes("Fazla")) {
+                            //        $(e).css("color", "green");
+                            //    } else if ($(e).text().includes("Az")) {
+                            //        $(e).css("color", "red");
+                            //    } else if ($(e).text().includes("Tam")) {
+                            //        $(e).css("color", "orange");
+                            //    }
+                            //})
                         },
                         columnMenu: true,
                         filterable: true,
@@ -123,14 +124,14 @@
                         sortable: true,
                         toolbar: [{ name: 'excel', text: '' }],
                         excelExport: function (e) {
-                            var sheet = e.workbook.sheets[0];
+                            //var sheet = e.workbook.sheets[0];
 
-                            for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
-                                var row = sheet.rows[rowIndex];
-                                row.cells[2].format = "dd-MM-yy";
-                                row.cells[3].format = "dd-MM-yy HH:mm";
-                                row.cells[4].format = "dd-MM-yy HH:mm";
-                            }
+                            //for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+                            //    var row = sheet.rows[rowIndex];
+                            //    row.cells[2].format = "dd-MM-yy";
+                            //    row.cells[3].format = "dd-MM-yy HH:mm";
+                            //    row.cells[4].format = "dd-MM-yy HH:mm";
+                            //}
                         },
                         encoded: true,
                         height: 600,
@@ -152,7 +153,7 @@
                             {
                                 field: "userId",
                                 hidden: true,
-                                width: "180px"
+                                width: "150px"
                             },
                             {
                                 field: "id",
@@ -162,38 +163,23 @@
                             {
                                 field: "UserId_Title",
                                 title: "Personel",
-                                width: "160px"
+                                width: "140px"
 
-                            },
-                            {
-                                field: "ShiftTrackingStatus_Title",
-                                template: "#: ShiftTrackingStatus_Title.split('<br>')[0] # <br /> <span style='color:orange'>#: ShiftTrackingStatus_Title.split('<br>')[1]# </span> ",
-                                title: "Son Durum",
-                                width: "125px"
-
-                            },
-                            {
-                                field: "date",
-                                sortable: true,
-                                title: "Gün",
-                                type: "date",
-                                format: "{0:dd/MM/yyyy}",
-                                width: "115px"
                             },
                             {
                                 field: "startDate",
                                 sortable: true,
-                                title: "Giriş Tarihi",
+                                title: "Başlangıç Tarihi",
                                 type: "date",
-                                format: "{0:dd/MM/yyyy HH:mm}",
+                                format: "{0:dd/MM/yyyy}",
                                 width: "130px"
                             },
                             {
                                 field: "endDate",
-                                title: "Çıkış Tarihi",
+                                title: "Bitiş Tarihi",
                                 type: "date",
-                                format: "{0:dd/MM/yyyy HH:mm}",
-                                width: "130px"
+                                format: "{0:dd/MM/yyyy}",
+                                width: "115px"
                             },
                             {
                                 field: "totalWorking",
@@ -207,17 +193,22 @@
                             },
                             {
                                 field: "lateArrived",
-                                title: "Geç Kalma Durumu",
-                                width: "150px"
+                                title: "Geç Kalma Süresi",
+                                width: "200px"
                             },
                             {
                                 field: "earlyLeave",
-                                title: "Erken Çıkış Durumu",
-                                width: "150px"
+                                title: "Erken Çıkış Süresi",
+                                width: "200px"
                             },
                             {
                                 field: "extraShift",
                                 title: "Mesai Saatine Uyum",
+                                width: "200px"
+                            },
+                            {
+                                field: "permitTime",
+                                title: "Kullanılan İzin Süresi",
                                 width: "200px"
                             }
                         ]
@@ -230,5 +221,4 @@
         });
     });
 
-  
 </script>

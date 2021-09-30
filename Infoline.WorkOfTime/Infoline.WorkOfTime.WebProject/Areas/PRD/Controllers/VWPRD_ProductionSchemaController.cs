@@ -51,10 +51,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[PageInfo("Üretim Şeması Ekleme", SHRoles.Personel)]
-		public ActionResult Insert()
+		public ActionResult Insert(Guid? productId, VWPRD_ProductionSchemaModel model)
 		{
-			var data = new VWPRD_ProductionSchemaModel { id = Guid.NewGuid() };
-			return View(data.Load());
+			model.id = Guid.NewGuid();
+			model.productId = productId;
+			return View(model.Load());
 		}
 
 		[HttpPost, ValidateAntiForgeryToken]

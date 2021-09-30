@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string categoryId_Title { get; set; }
         public string description { get; set; }
         public short? stockType { get; set; }
+        public string currencyTitle { get; set; }
     }
 
     public class VMPRD_TransactionModel : VWPRD_Transaction
@@ -144,6 +145,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
                     item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
                     item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
+                    item.currencyTitle = products.Where(x => x.id == item.productId).Select(x => x.currentSellingCurrencyId_Title).FirstOrDefault();
                 }
             }
 

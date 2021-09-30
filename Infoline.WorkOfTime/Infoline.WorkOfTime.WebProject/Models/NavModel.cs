@@ -136,7 +136,8 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Personel Raporları", "/INV/INV_CompanyPerson/Dashboard"));
             personel.AddChild(new Menu("Sertifika/Dosya/Eğitim Raporları", "/SH/VWSH_User/CertificateReport"));
             personel.AddChild(new Menu("Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
-            personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
+            personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/TotalStaffWorkingStatus"));
+            personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
@@ -314,7 +315,7 @@ namespace System.Web.Mvc
         private Menu GetProduction()
         {
             var menu = new Menu("Üretim Yönetimi", "#", "fa fa-qrcode");
-            menu.AddChild(new Menu("Üretimler", "/PRD/VWPRD_Production/Index"));
+            menu.AddChild(new Menu("Üretim Emirleri", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
         }

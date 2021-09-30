@@ -905,7 +905,7 @@ namespace Infoline.WorkOfTime.Controllers
         {
             
             var db = new WorkOfTimeDatabase();
-            var materials = db.GetVWPRD_ProductMaterialByProductId(productId);
+            var materials = db.GetVWPRD_ProductMaterialByProductId(productId).ToList().OrderBy(x=>x.materialId_Title);
             return Json(materials, JsonRequestBehavior.AllowGet);
         }
 
