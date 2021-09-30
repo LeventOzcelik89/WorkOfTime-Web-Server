@@ -100,7 +100,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
             {
                 var db = new WorkOfTimeDatabase();
                 var datas = db.GetVWCRM_Contact();
-                var listData = new List<MyCalendar>();
+                var listData = new List<VWCRM_Contact>();
                 foreach (var data in datas)
                 {
                     var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
@@ -130,36 +130,18 @@ namespace Infoline.WorkOfTime.WebService.Handler
                             {
                                 first = true;
                             }
-                            listData.Add(new MyCalendar
-                            {
-                                createdby = data.createdby.HasValue ? data.createdby.Value : Guid.Empty,
-                                description = data.Description,
-                                id = data.id,
-                                katilimcilar = string.Join(", ", contactUsers.Where(x => x.UserId.HasValue).Select(x => x.User_Title).ToArray()),
-                                title = data.ContactType_Title,
-                                start = new DateTime(timeCounter.Year, timeCounter.Month, timeCounter.Day, (first == true ? data.ContactStartDate.Value.Hour : 0), (first == true ? data.ContactStartDate.Value.Minute : 0), (first == true ? data.ContactStartDate.Value.Second : 0)),
-                                end = (timeCounter == new DateTime(data.ContactEndDate.Value.Year, data.ContactEndDate.Value.Month, data.ContactEndDate.Value.Day) ? data.ContactEndDate : null)
-                            });
+                            listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
                             timeCounter = timeCounter.AddDays(1);
                         }
                     }
                     else
                     {
-                        listData.Add(new MyCalendar
-                        {
-                            createdby = data.createdby.HasValue ? data.createdby.Value : Guid.Empty,
-                            description = data.Description,
-                            end = data.ContactEndDate,
-                            id = data.id,
-                            katilimcilar = string.Join(", ", contactUsers.Where(x => x.UserId.HasValue).Select(x => x.User_Title).ToArray()),
-                            start = data.ContactStartDate,
-                            title = data.ContactType_Title
-                        });
+                        listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
                     }
 
                 }
-                var res = listData.GroupBy(x => x.start.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
-                   b.Where(x => x.start.Value.ToShortDateString() == b.Select(f => f.start.Value.ToShortDateString()).FirstOrDefault()).ToArray()
+                var res = listData.GroupBy(x => x.ContactStartDate.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
+                   b.Where(x => x.ContactStartDate.Value.ToShortDateString() == b.Select(f => f.ContactStartDate.Value.ToShortDateString()).FirstOrDefault()).ToArray()
                 );
 
 
