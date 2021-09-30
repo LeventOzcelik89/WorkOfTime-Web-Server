@@ -252,8 +252,8 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 {
                     new Email().Send((Int16)EmailSendTypes.Toplanti, "sahin.elik@infoline-tr.com", "Toplantı Hata", ex.Message);
                 }
-                var rs = model.Save(userId);
-                RenderResponse(context, rs);
+                //var rs = model.Save(userId);
+                RenderResponse(context, new ResultStatus { result = dbresult.result, message = dbresult.result ? "Toplantı kaydetme işlemi başarılı" : "Toplantı kaydetme işlemi başarısız oldu." });
             }
             catch (Exception ex)
             {
