@@ -91,5 +91,70 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
             }
         }
+
+
+        [HandleFunction("Calendar/GetCalendarContact")]
+        public void CalendarGetCalendarContact(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var datas = db.GetVWCRM_Contact();
+                var listData = new List<MyCalendar>();
+                foreach (var data in datas)
+                {
+                    var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
+                    var fark = (data.ContactEndDate.Value - data.ContactStartDate.Value).TotalDays;
+                    if (fark > 1)
+                    {
+
+                        var timeCounter = new DateTime(data.ContactStartDate.Value.Year, data.ContactStartDate.Value.Month, data.ContactStartDate.Value.Day);
+                        while (timeCounter <= new DateTime(data.ContactEndDate.Value.Year, data.ContactEndDate.Value.Month, data.ContactEndDate.Value.Day))
+                        {
+                            var first = false;
+                            if (data.ContactStartDate.Value.Year == timeCounter.Year && data.ContactStartDate.Value.Month == timeCounter.Month && data.ContactStartDate.Value.Day == timeCounter.Day)
+                            {
+                                first = true;
+                            }
+                            listData.Add(new MyCalendar
+                            {
+                                createdby = data.createdby.Value,
+                                description = data.Description,
+                                id = data.id,
+                                katilimcilar = string.Join(", ", contactUsers.Where(x => x.UserId.HasValue).Select(x => x.User_Title).ToArray()),
+                                title = data.ContactType_Title,
+                                start = new DateTime(timeCounter.Year, timeCounter.Month, timeCounter.Day, (first == true ? data.ContactStartDate.Value.Hour : 0), (first == true ? data.ContactStartDate.Value.Minute : 0), (first == true ? data.ContactStartDate.Value.Second : 0)),
+                                end = (timeCounter == new DateTime(data.ContactEndDate.Value.Year, data.ContactEndDate.Value.Month, data.ContactEndDate.Value.Day) ? data.ContactEndDate : null)
+                            });
+                            timeCounter = timeCounter.AddDays(1);
+                        }
+                    }
+                    else
+                    {
+                        listData.Add(new MyCalendar
+                        {
+                            createdby = data.createdby.Value,
+                            description = data.Description,
+                            end = data.ContactEndDate,
+                            id = data.id,
+                            katilimcilar = string.Join(", ", contactUsers.Where(x => x.UserId.HasValue).Select(x => x.User_Title).ToArray()),
+                            start = data.ContactStartDate,
+                            title = data.ContactType_Title
+                        });
+                    }
+
+                }
+                var res = listData.GroupBy(x => x.start.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
+                   b.Where(x => x.start.Value.ToShortDateString() == b.Select(f => f.start.Value.ToShortDateString()).FirstOrDefault()).ToArray()
+                );
+
+
+                RenderResponse(context, res);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
+            }
+        }
     }
 }
