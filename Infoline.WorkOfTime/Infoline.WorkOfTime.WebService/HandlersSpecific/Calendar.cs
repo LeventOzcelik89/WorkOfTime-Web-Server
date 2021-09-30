@@ -104,6 +104,20 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 foreach (var data in datas)
                 {
                     var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
+                    if (!data.ContactEndDate.HasValue)
+                    {
+                        continue;
+                    }
+                    if (!data.ContactStartDate.HasValue)
+                    {
+                        continue;
+                    }
+
+                    if (data.createdby.HasValue)
+                    {
+                        continue;
+                    }
+
                     var fark = (data.ContactEndDate.Value - data.ContactStartDate.Value).TotalDays;
                     if (fark > 1)
                     {
@@ -118,7 +132,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                             }
                             listData.Add(new MyCalendar
                             {
-                                createdby = data.createdby.Value,
+                                createdby = data.createdby.HasValue ? data.createdby.Value : Guid.Empty,
                                 description = data.Description,
                                 id = data.id,
                                 katilimcilar = string.Join(", ", contactUsers.Where(x => x.UserId.HasValue).Select(x => x.User_Title).ToArray()),
@@ -133,7 +147,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                     {
                         listData.Add(new MyCalendar
                         {
-                            createdby = data.createdby.Value,
+                            createdby = data.createdby.HasValue ? data.createdby.Value : Guid.Empty,
                             description = data.Description,
                             end = data.ContactEndDate,
                             id = data.id,
