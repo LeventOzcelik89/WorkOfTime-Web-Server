@@ -113,7 +113,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                         continue;
                     }
 
-                    if (data.createdby.HasValue)
+                    if (!data.createdby.HasValue)
                     {
                         continue;
                     }
