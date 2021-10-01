@@ -3,7 +3,7 @@
     ViewBag.Title = Model.code + " Kodlu Üretim Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
-
+    var stockLeftHide = Html.Raw(Model.productionProducts.Where(x => x.stockLeft <= 0 || x.stockLeft == null).Count() >= 0 ? "" : "hidden");
     var productionStageCount = 0;
     var stagesNames = new List<string>();
     var enumProperties = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductionOperationStatus>().ToArray();
@@ -36,7 +36,7 @@
 </style>
 
 <script type="text/javascript">
-    
+
 
     function producedProductChange(e) {
         var data = e.sender.dataItem(e.sender.select())
@@ -54,9 +54,9 @@
     }
 
     $(document)
-		.on("ready", function () {
+        .on("ready", function () {
             GetJsonDataFromUrl('/PRD/VWPRD_Production/ProductionProductAndTransactionDataSource', { productionId: '@Model.id' }, function (res) {
-               
+
 			var cols = [
                 { field: 'materialId_Title', title: 'Ürün Adı', width: 250, template: "#if(type == 0) {# <small class='label label-primary'> #=type_Title#</small> #=materialId_Title      # <a href='/PRD/VWPRD_Product/Detail?id=#=data.materialId#' target='_blank' class='text-navy'><i class='fa fa-link'></i></a> #} else {#<small class='label label-warning'> #=type_Title#</small> #=materialId_Title##}    # " },
                 { field: 'quantity', title: 'Birim Miktar', width: 90, format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(quantity ?? 0,'N0')#</span>  " },
@@ -68,14 +68,14 @@
                         return "";
                     }
                 },
-               
+
                 {
                     field: 'price', title: 'Birim Fiyat', format: '{0:N0}', template: function (dataItem) {
                         var price = dataItem.price == null ? "" : dataItem.price;
                         var currency = dataItem.cure == null ? "" : dataItem.currencyId_Title;
                         return "<div style='float:right'>" + price + " " + currency + "</div>"
-                          
-                     
+
+
                     }
                 },
                 { field: 'totalQuantity', title: 'Toplam Miktar', format: '{0:N0}', template: "<span style='float:right;'>#:kendo.toString(totalQuantity ?? 0,'N0')  #</span> " },
@@ -187,7 +187,7 @@
                 resizable: true,
 				selectable: 'Single, Row',
 				change: function (e) { producedProductChange(e) },
-			
+
 				pageable: {
 					refresh: true,
 					pageSizes: true,
@@ -209,26 +209,26 @@
 	$(document).on('shown.bs.tab', 'a[href="#uretimBildirimleri"]', function (e) {
 		$("#producedProducts").data("kendoGrid").dataSource.page(1);
     }).on("click",'#serialCodesModalButton', function () {
-       
+
         var findSerialCodes = $(this).attr("data-serialcodes").split(",");
         BootstrapDialog.show({
             size: 'size-wide',
             type: 'type-info',
             title:  "Seri Numaraları" ,
             message: function (dialog) {
-                
-                var text = "<style></style>";
+
+                var text = "<style>.margin-right{margin:10px;font-size:15px;padding: 10px 12px;} </style>";
 
                 $.each(findSerialCodes, function (i, item) {
 
-                    text += "<div class='badge' >"+item+"</div>"
+                    text += "<div class='badge margin-right' >"+item+"</div>"
                 })
                 return text;
             },
             closable: true,
             closeByBackdrop: true,
             closeByKeyboard: true,
-            
+
         });
 
     });
@@ -241,7 +241,9 @@
 
 	}
 </script>
-
+<script>
+  
+</script>
 <div id="detailProduction">
     <div class="clearfix animated slideInRight" style="padding: 25px 30px 5px 30px;border: 1px solid rgba(202, 201, 201, 0.4);background: #fff;margin-bottom: 10px;">
         <div class="main-timeline2">
@@ -320,7 +322,7 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane" id="uretimBildirimleri">
+                        <div class="tab-pane " >
                             <div class="ibox">
                                 <div class="ibox-title">
                                     <h5>Üretim Bildirimleri</h5>
@@ -348,9 +350,17 @@
 
             </div>
             <div class="col-lg-4">
+                @if (Model.productionProducts.Where(x => x.stockLeft <= 0 || x.stockLeft == null).Count() > 0)
+                {
+                <div class="alert alert-warning " role="alert">
+                    <h3 class="text-center animated infinite text-danger flash"><i class="fa fa-exclamation-triangle fa-3x "></i></h3>
+                    <p class="text-center">@String.Join(",", Model.productionProducts.Where(x => x.stockLeft <= 0 || x.stockLeft == null).Select(x => x.materialId_Title)) <b> stokda kalmamıştır</b></p>
+                </div>
+                }
 
                 <div class="ibox">
                     <div class="ibox-title">
+                   
                         <h5><i class="fa text-success fa fa-list-alt"></i> Üretim Aşamaları @(!string.IsNullOrEmpty(Model.lastProductionStage_Title) ? "(" + Model.lastProductionStage_Title + ")" : "")</h5>
                     </div>
                     <div class="ibox-content">
@@ -448,12 +458,6 @@
                                                         <div class="small text-muted"> Açıklama : @item.description  </div>
                                                     }
                                                 }
-
-
-
-
-
-
                                                 <div class="btnns m-t-xs">
 
                                                     @if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi)
@@ -513,9 +517,6 @@
     <div class="fix-buttons">
         @if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimBitti && Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi)
         {
-
-
-
 
             if (Model.productionOperations.Count(x => x.status == (Int32)EnumPRD_ProductionOperationStatus.UretimBasladi) == 0)
             {

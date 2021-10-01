@@ -204,5 +204,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 FeedBack = result.result ? feedback.Success("Kullanıcılar Başarıyla Düzenlendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(result.message)
             }, JsonRequestBehavior.AllowGet);
         }
+      
+
+       
     }
 }
