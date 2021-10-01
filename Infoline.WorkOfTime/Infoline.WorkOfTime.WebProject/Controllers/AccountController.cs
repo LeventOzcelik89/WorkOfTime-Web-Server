@@ -13,7 +13,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 {
     public class AccountController : Controller
     {
-        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
+        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
