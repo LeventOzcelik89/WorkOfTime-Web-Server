@@ -348,6 +348,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var users = db.GetVWSH_UserByIds(userIds);
                     var confirming = db.GetVWSH_UserById(this.changedby.Value);
+                    var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                     foreach (var user in users)
                     {
                         var text = "<h3>Sayın " + user.FullName + ",</h3>";
@@ -359,7 +360,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<p>Ödemeniz beklenmektedir.</p>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                        notify.NotificationSend(user.id, " kişisi masraf talebinde bulunmuştur ", "");
+                        notify.NotificationSend(user.id, createdUser.FullName+" kişisi masraf talebinde bulunmuştur", "");
                     }
                 }
             }
