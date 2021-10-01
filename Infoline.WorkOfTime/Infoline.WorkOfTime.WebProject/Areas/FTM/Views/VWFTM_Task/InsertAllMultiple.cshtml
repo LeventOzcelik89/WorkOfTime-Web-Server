@@ -6,25 +6,25 @@
 }
 
 <script type="text/x-kendo-template" id="taskUserTemplate" data-selector="modalContainer">
-	<div style='position:relative'>
-		<div class="clearfix" style="padding:8px 0;">
-			<img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
-			<div style="width:calc(100% - 70px);height:60px;float:right;">
-				<div class="template-item">#:FullName#</div>
-				<div class="template-item"><small>#:(Company_Title ? Company_Title : '-')#</small></div>
-				<a style='float: right;top: 15px;position: absolute;right: 15px;' class= 'btn btn-success xs' target="blank" href='/FTM/VWFTM_Task/PersonTasks?personId=#=id#'>Görevleri</a>
-				<div class="template-item">
-					<small>#:(title ? title : '')#</small>
-					#if(IsWorking == false){#
-					<div class="pull-right"><span class="badge badge-danger" style="" data-original-title="#:JobLeavingDescription#"> İşten ayrıldı. </span></div>
-					#}#
+    <div style='position:relative'>
+        <div class="clearfix" style="padding:8px 0;">
+            <img class="img-circle img-responsive pull-left" style="width:60px;height:60px;" src="#:(ProfilePhoto ? ProfilePhoto : '/Content/Custom/img/na.png')#" onerror="ImageError(this, '/Content/Custom/img/na.png')" />
+            <div style="width:calc(100% - 70px);height:60px;float:right;">
+                <div class="template-item">#:FullName#</div>
+                <div class="template-item"><small>#:(Company_Title ? Company_Title : '-')#</small></div>
+                <a style='float: right;top: 15px;position: absolute;right: 15px;' class='btn btn-success xs' target="blank" href='/FTM/VWFTM_Task/PersonTasks?personId=#=id#'>Görevleri</a>
+                <div class="template-item">
+                    <small>#:(title ? title : '')#</small>
+                    #if(IsWorking == false){#
+                    <div class="pull-right"><span class="badge badge-danger" style="" data-original-title="#:JobLeavingDescription#"> İşten ayrıldı. </span></div>
+                    #}#
 
-				</div>
+                </div>
 
-			</div>
+            </div>
 
-		</div>
-	</div>
+        </div>
+    </div>
 </script>
 
 
@@ -337,19 +337,20 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="CMP_Types">Görev Konuları</label>
+            <label class="control-label label-md req" for="CMP_Types">Görev Konuları</label>
         </div>
         <div class="col-md-8">
             @(Html.Akilli()
-                                         .MultiSelect("FTM_TaskSubjectTypeIds")
-                                         .Placeholder("Lütfen Görev Alt Tipi Seçiniz..")
-                                         .DataTextField("name")
-                                         .DataValueField("id")
-                                         .Action(b => b.Action("DataSourceDropDown", "FTM_TaskSubject", new { area = "FTM" }))
-                                         .Sort(x => x.Add("name").Ascending())
-                                         .BasicInsert(Url.Action("Insert", "FTM_TaskSubject", new { area = "FTM" }), "name")
-                                         .Execute("id")
-                                    )
+     .MultiSelect("FTM_TaskSubjectTypeIds")
+     .Placeholder("Lütfen Görev Alt Tipi Seçiniz..")
+     .DataTextField("name")
+     .DataValueField("id")
+     .Action(b => b.Action("DataSourceDropDown", "FTM_TaskSubject", new { area = "FTM" }))
+     .Sort(x => x.Add("name").Ascending())
+     //.BasicInsert(Url.Action("Insert", "FTM_TaskSubject", new { area = "FTM" }), "name")
+	 .Validate(Validations.Required)
+     .Execute("id")
+            )
         </div>
     </div>
 
