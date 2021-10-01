@@ -651,12 +651,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     password = db.GetMd5Hash(db.GetMd5Hash("123456")),
                     status = false
                 };
-
+                var customerCompanyId = "";
+                if (presentation == null)
+                {
+                    customerCompanyId = this.PresentationId.Value.ToString();
+                }  else
+                {
+                    customerCompanyId = presentation.CustomerCompanyId.ToString();
+                }
                 var compPerson = new INV_CompanyPerson
                 {
                     createdby = this.createdby,
                     IdUser = user.id,
-                    CompanyId = presentation.CustomerCompanyId,
+                    CompanyId = new Guid(customerCompanyId),
                     JobStartDate = DateTime.Now,
                     Title = "CRM",
                     Level = 1
