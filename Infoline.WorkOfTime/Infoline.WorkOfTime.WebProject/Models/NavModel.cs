@@ -27,6 +27,14 @@ namespace System.Web.Mvc
                 {
                     _root.Add(GetGorevYonetimi());
                 }
+                else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaMusteri)))
+                {
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
+                    {
+                        _root.Add(GetCustomerPage());
+                    }
+                    _root.Add(GetYardimDestekYonetimi());
+                }
                 else
                 {
                     _root.Add(GetHomePage());
@@ -87,6 +95,12 @@ namespace System.Web.Mvc
         private Menu GetHomePage()
         {
             var mypage = new Menu("Ana Sayfa", "/Account/Index", "fa fa-home");
+            return mypage;
+        }
+
+        private Menu GetCustomerPage()
+        {
+            var mypage = new Menu("Görev Raporu", "/Customer/Index", "fa fa-wrench");
             return mypage;
         }
 

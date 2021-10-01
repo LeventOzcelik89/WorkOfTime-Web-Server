@@ -29,6 +29,11 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                 return RedirectToAction("Index", "VWFTM_Task", new { area = "FTM" });
             }
 
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaMusteri)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)
+            {
+                return RedirectToAction("Help", "VWHDM_Issue", new { area = "HDM" });
+            }
+
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)
             {
                 return RedirectToAction("Index", "Customer", new { area = "" });
