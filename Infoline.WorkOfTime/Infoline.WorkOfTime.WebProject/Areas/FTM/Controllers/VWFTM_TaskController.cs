@@ -783,7 +783,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
+            var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
+            condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 1);
             var count = db.GetVWFTM_TaskCount(condition.Filter);
             return count;
         }
