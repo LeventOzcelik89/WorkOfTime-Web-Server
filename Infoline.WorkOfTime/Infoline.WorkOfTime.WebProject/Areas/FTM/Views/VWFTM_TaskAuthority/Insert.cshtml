@@ -15,28 +15,18 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label"> Proje </label>
-        </div>
-        <div class="col-sm-8">
-            @(Html.Akilli()
-                     .DropDownListFor(model => model.projectId)
-                     .OptionLabel("Lütfen Proje Seçiniz..")
-                     .DataTextField("ProjectName")
-                     .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
-                     .Sort(x => x.Add("ProjectName").Ascending())
-                     .Execute()
-            )
-        </div>
-    </div>
+    if (Model.projectId.HasValue)
+    {
+        @Html.HiddenFor(model => model.projectId)
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label req"> Müşteri </label>
-        </div>
-        <div class="col-sm-8">
-            @(Html.Akilli()
+        //Proje cascade olacak mı ?
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label req"> Müşteri </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
                   .DropDownListFor(model => model.customerId)
                   .OptionLabel("Lütfen Müşteri Seçiniz..")
                   .DataTextField("name")
@@ -49,8 +39,50 @@
                   .ValueTemplate("<span>#=name#</span>")
                   .Validate(Validations.Required)
             )
+            </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label"> Proje </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
+                     .DropDownListFor(model => model.projectId)
+                     .OptionLabel("Lütfen Proje Seçiniz..")
+                     .DataTextField("ProjectName")
+                     .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                     .Sort(x => x.Add("ProjectName").Ascending())
+                     .Execute()
+            )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label req"> Müşteri </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.customerId)
+                  .OptionLabel("Lütfen Müşteri Seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                  .Sort(x => x.Add("name").Ascending())
+                  .Execute("id")
+                  .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                  .Template("#=TemplateEngine('companyTemplate',data)#")
+                  .ValueTemplate("<span>#=name#</span>")
+                  .Validate(Validations.Required)
+            )
+            </div>
+        </div>
+    }
+
+
 
     <div class="form-group">
         <div class="col-md-4">

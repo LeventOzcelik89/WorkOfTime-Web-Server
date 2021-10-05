@@ -21,8 +21,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
+            var userStatus = (PageSecurity)Session["userStatus"];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
+            condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 4);
             var data = db.GetVWFTM_TaskForm(condition).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWFTM_TaskFormCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");

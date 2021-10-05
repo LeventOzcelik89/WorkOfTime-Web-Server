@@ -773,6 +773,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			{
 				condition = UpdateQuery(condition, userStatus);
 			}
+			condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus,1);
 			var data = db.GetVWFTM_Task(condition).ToDataSourceResult(request);
 			data.Total = db.GetVWFTM_TaskCount(condition.Filter);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");

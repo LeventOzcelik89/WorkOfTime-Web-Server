@@ -51,10 +51,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Görev Yetki Tanımlama Ekleme Sayfası", SHRoles.ProjeYonetici)]
-		public ActionResult Insert()
+		public ActionResult Insert(VWFTM_TaskAuthority item)
 		{
-		    var data = new VWFTM_TaskAuthority { id = Guid.NewGuid() };
-		    return View(data);
+			item.id = Guid.NewGuid();
+		    return View(item);
 		}
 
 		[PageInfo("Görev Yetki Tanımlama Ekleme Methodu", SHRoles.ProjeYonetici)]
@@ -77,10 +77,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Görev Yetki Tanımlama Düzenleme Sayfası", SHRoles.ProjeYonetici)]
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VWFTM_TaskAuthority item)
 		{
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWFTM_TaskAuthorityById(id);
+		    var data = db.GetVWFTM_TaskAuthorityById(item.id);
 		    return View(data);
 		}
 
