@@ -641,13 +641,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Ürün emri güncelleme işlemi başarısız." };
             }
         }
-        public ResultStatus Delete(Guid? userId, DbTransaction _trans = null)
+        public ResultStatus Delete(Guid? userId)
         {
             db = db ?? new WorkOfTimeDatabase();
-            this.trans = _trans ?? this.db.BeginTransaction();
+            trans = db.BeginTransaction();
             var production = db.GetPRD_ProductionById(this.id);
             if (production == null)
             {
+                trans.Rollback();
                 return new ResultStatus { result = false, message = "Üretim emri silinmiş." };
             }
             var _productionOperations = db.GetPRD_ProductionOperationByProductionId(production.id);
@@ -660,6 +661,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var transactionItems = db.GetVWPRD_TransactionItemByTransactionIds(dataIds);
                 if (transactionItems.Count() > 0)
                 {
+                    trans.Rollback();
                     return new ResultStatus
                     {
                         result = false,
@@ -674,7 +676,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             rs &= db.DeletePRD_Production(production, trans);
             if (rs.result == true)
             {
-                if (trans == null) trans.Commit();
+                trans.Commit();
                 return new ResultStatus
                 {
                     result = true,
@@ -683,7 +685,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                if (trans == null) trans.Rollback();
+                trans.Rollback();
                 return new ResultStatus
                 {
                     result = false,
@@ -902,7 +904,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var deleted = prodUsers.Where(a => !this.assignableUsers.Contains(a.userId.Value)).ToList();
             var added = this.assignableUsers.Where(a => !prodUsers.Select(b => b.userId).Contains(a)).ToArray();
             var addedUsers = db.GetSH_UserByIds(added);
-            if (deleted.Count>0)
+            if (deleted.Count > 0)
             {
                 ops.Add(new PRD_ProductionOperation
                 {
@@ -913,7 +915,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     description = String.Join(", ", deleted.Select(a => a.userId_Title)) + " kullanıcıları üretimden alındı."
                 });
             }
-            if (added.Length>0)
+            if (added.Length > 0)
             {
                 ops.Add(new PRD_ProductionOperation
                 {

@@ -22,12 +22,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
-
+            var userStatus = (PageSecurity)Session["userStatus"];
             var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
+            condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 1);
             var data = db.GetVWFTM_TaskTemplate(condition).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWFTM_TaskTemplateCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
