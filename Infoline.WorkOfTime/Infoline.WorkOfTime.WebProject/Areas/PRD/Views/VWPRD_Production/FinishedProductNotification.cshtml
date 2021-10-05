@@ -1,25 +1,6 @@
 ﻿@model VMPRD_ProductionModel
 @{
-    if (Model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
-    {
-        ViewBag.Title = "Harcama Bildirimi";
-    }
-    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi)
-    {
         ViewBag.Title = "Biten Ürün Bildirimi";
-    }
-    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi || Model.Transaction.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
-    {
-        ViewBag.Title = "Biten Ürün Bildirimi";
-    }
-    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.UretimBildirimi)
-    {
-        ViewBag.Title = "Biten Ürün Bildirimi";
-    }
-    else if (Model.Transaction.type == (int)EnumPRD_TransactionType.FireFisi)
-    {
-        ViewBag.Title = "Fire Bildirimi";
-    }
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
     var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
@@ -58,6 +39,7 @@
                 <input type="hidden" data-item="id" />
                 <input type="hidden" data-item="type" />
                 <input data-item="productId" class="form-control" data-refresh="" />
+                <input type="hidden" data-item="materialName" />
                 <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
             </div>
         </td>
@@ -128,6 +110,8 @@
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                      .attr('id', (data != undefined ? data.id : kendo.guid()));
+                 temp.find('[data-item="materialName"]')
+                     .attr('data-value', data.materialId_Title);
                  temp.find('[data-item="type"]')
                      .attr('data-value', (data != null ? data.type : 0));
                  temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-")
@@ -185,6 +169,7 @@
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
+                var findProductName = tr.find('[data-item="materialName"]').attr("data-value");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
                 var priceProp = page.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
                 if (serialCodes.data('tagify')) {
@@ -193,7 +178,7 @@
                 }
                 if (data.id == "") {
                     if (!page.isNew) {
-                        MesajWarning("Ürün Depoda Yok!", "Ürün Depoda Yok!");
+                        swal("Stoklarda Yok!", findProductName + " stoklarda mevcut değildir.", "warning");
                         tr.remove();
                     }
                     page.isNew = false;
@@ -457,7 +442,6 @@
                     }
                     else {
                         $("#amount").data("kendoNumericTextBox").value(amount.length)
-                        $("#amount").trigger("change");
                     }
                 });
             </script>

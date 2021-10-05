@@ -98,22 +98,21 @@
                 $("tbody tr").remove();
             },
             addRow: function (data, isNew) {
-                debugger
+             
                 page.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
+                temp.find('[data-item="materialName"]')
+                    .attr('data-value',data.materialId_Title);
                 temp.find('[data-item="type"]')
                     .attr('data-value', (data != null ? data.type : 0));
-
                 temp.find('[data-item="id"]')
                     .attr('name', 'productionProducts[' + page.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
-
                 temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-");
-
                 var metarialId = data != null ? data.materialId : "-";
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
                 temp.find('[data-item="unitPrice"]')
@@ -162,6 +161,7 @@
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
+                var findProductName = tr.find('[data-item="materialName"]').attr("data-value");   
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
                 serialCodes.prop("required", false);
@@ -173,6 +173,8 @@
                 if (data.id == "") {
                     if (!page.isNew) {
                         tr.remove();
+                        swal("Stoklarda Yok!", findProductName + " stoklarda mevcut değildir.", "warning");
+
                     }
                     page.isNew = false;
                 } else {
@@ -280,7 +282,7 @@
                     if (inp_stockLeftVal < amonth) {
                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
                         swal("Yeterli Stok Yoktur!", itemName + " adlı üründen yeterli miktarda stok yoktur", "warning");
-                       
+
                     }
                     inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
                     var int_serialCodes = $(item).find('[data-item="serialCodes"]');
@@ -293,7 +295,7 @@
                         return;
                     }
                     int_tagify.addTags($.Enumerable.From(int_tagify.suggestedListItems).Take(amonth * parseInt(inp_quantity.attr("data-value"))).ToArray(), false, true);
-                    
+
                 });
 
             }
@@ -375,6 +377,7 @@
             <div class="input-group">
                 <input type="hidden" data-item="id" />
                 <input type="hidden" data-item="type" />
+                <input type="hidden" data-item="materialName" />
                 <input data-item="productId" class="form-control" data-refresh="" />
                 <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
             </div>
