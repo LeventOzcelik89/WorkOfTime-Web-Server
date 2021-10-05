@@ -59,7 +59,8 @@ namespace Infoline.WorkOfTime.Controllers
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-                task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+                if (authoritys.Count() > 0)
+                    task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
             }
 
             var rs = task.GroupBy(a => a.customer_Title).Select(c => new
