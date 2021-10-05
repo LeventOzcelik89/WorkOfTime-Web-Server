@@ -110,45 +110,6 @@
         isNew: false,
         Counter: 0,
          events: {
-             pushData: function () {
-                 var amonth = parseInt($("#amount").val());
-                 $.each($("#RowContainer_Upsert tr"), function (i, item) {
-                     var inp_quantity = $(item).find('[data-item="quantity"]');
-                     if ($(item).find('[data-item="type"]').attr("data-value") != 0) {
-                         inp_quantity.data('handler').value(0);
-                         return;
-                     }
-                     var inp_stockLeftVal = $(item).find('[data-item="stockLeft"]').val();
-                     if (inp_stockLeftVal < amonth) {
-                         var itemName = $(item).find('[data-item="productId"]').data("kendoDropDownList").text();
-                         MesajWarning(itemName + " adlı üründen yeterli miktarda stok yoktur.", "Yetersiz Stok")
-                     }
-                     //  reçete ürünü ise devam et. Hesaplamalara dahil etme.
-                     inp_quantity.data('handler').value(amonth * parseInt(inp_quantity.attr("data-value")));
-                     var int_serialCodes = $(item).find('[data-item="serialCodes"]');
-                     var int_tagify = int_serialCodes.data('tagify');
-                     if (int_tagify == undefined) {
-                         return;
-                     }
-                     var selecteds = int_tagify.value;
-                     int_tagify.removeAllTags();
-                     //  whitelist
-                     if (int_tagify.suggestedListItems == undefined) {
-                         return;
-                     }
-                     var newValues = [];
-                     for (var i = 0; i < amonth * parseInt(inp_quantity.attr("data-value")); i++) {
-                         var _selecteds = selecteds != undefined
-                             ? selecteds.map(function (item, i) { return item.value })
-                             : [];
-                         var merged = $.merge(_selecteds, newValues);
-                         newValues[i] = selecteds != undefined && selecteds[i] != undefined
-                             ? selecteds[i].value
-                             : $.Enumerable.From(int_tagify.suggestedListItems).Where(a => { return merged.indexOf(a) == -1 }).FirstOrDefault();
-                     }
-                     int_tagify.addTags(newValues, false, true);
-                 });
-             },
             removeRow: function (item) {
                 $(item).parents('tr').remove();
             },
@@ -284,8 +245,7 @@
                     } else {
                         serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
                     }
-                    //e.sender._initial = null;
-                    page.events.pushData();
+                   
                 }
             },
          },
@@ -313,7 +273,7 @@
             page.events.removeAllRows();
         }
     }).on("change", '#amount', function () {
-        page.events.pushData();
+        
     })
       .on('before:submit', 'form', function (e) {
         $('[data-item="serialCodes"]').each(function (c) {
