@@ -23,6 +23,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string statusDescription { get; set; }
 		public bool hasTask { get; set; }
 		public bool? isService { get; set; }
+		public bool? isCorrection { get; set; }
 		public class VWPA_TransactionHistory
 		{
 			public string description { get; set; }
@@ -290,9 +291,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						}
 						else if (this.direction == 3)
 						{
-							this.direction = 3;
-							confirm.status = (Int16)EnumPA_TransactionConfirmationStatus.YenidenTalep;
-							confirm.description = this.statusDescription;
+							if (this.isCorrection.HasValue && this.isCorrection.Value)
+							{
+								this.direction = 0;
+								confirm.status = null;
+							}
+							else
+							{
+								this.direction = 3;
+								confirm.status = (Int16)EnumPA_TransactionConfirmationStatus.YenidenTalep;
+								confirm.description = this.statusDescription;
+							}
 						}
 						else
 						{
