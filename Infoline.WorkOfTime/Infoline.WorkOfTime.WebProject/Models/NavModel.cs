@@ -371,6 +371,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(new Menu("Lokasyonlar (Ülke/İl/İlçe)", "/UT/VWUT_Location/Index"));
             sistemYonetim.AddChild(new Menu("Firma&Cari Tip Tanımları", "/CMP/CMP_Types/Index"));
             sistemYonetim.AddChild(new Menu("Görev Konusu Tanımları", "/FTM/FTM_TaskSubject/Index"));
+            sistemYonetim.AddChild(new Menu("Görev Yetki Tanımları", "/FTM/VWFTM_TaskAuthority/Index"));
             sistemYonetim.AddChild(new Menu("Sektör Tanımları", "/UT/VWUT_Sector/Index"));
             sistemYonetim.AddChild(new Menu("Banka Tanımları", "/UT/VWUT_Bank/Index"));
             sistemYonetim.AddChild(new Menu("Satış Teklifi Şablonları", "/CMP/CMP_InvoiceDocumentTemplate/Index"));

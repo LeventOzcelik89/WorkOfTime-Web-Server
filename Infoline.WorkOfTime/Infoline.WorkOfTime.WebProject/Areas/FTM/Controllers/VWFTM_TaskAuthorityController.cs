@@ -11,11 +11,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 {
     public class VWFTM_TaskAuthorityController : Controller
 	{
+		[PageInfo("Görev Yetki Tanımlama Sayfası",SHRoles.ProjeYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
+		[PageInfo("Görev Yetki Tanımlama Veri Methodu", SHRoles.Personel)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -48,14 +50,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		    return View(data);
 		}
 
-
+		[PageInfo("Görev Yetki Tanımlama Ekleme Sayfası", SHRoles.ProjeYonetici)]
 		public ActionResult Insert()
 		{
 		    var data = new VWFTM_TaskAuthority { id = Guid.NewGuid() };
 		    return View(data);
 		}
 
-
+		[PageInfo("Görev Yetki Tanımlama Ekleme Methodu", SHRoles.ProjeYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(FTM_TaskAuthority item)
 		{
@@ -74,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-
+		[PageInfo("Görev Yetki Tanımlama Düzenleme Sayfası", SHRoles.ProjeYonetici)]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -82,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		    return View(data);
 		}
 
-
+		[PageInfo("Görev Yetki Tanımlama Düzenleme Methodu", SHRoles.ProjeYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(FTM_TaskAuthority item)
 		{

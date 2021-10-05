@@ -1240,6 +1240,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			return db.GetVWFTM_TaskByUserIdCounts(userId);
 		}
+
+
 		public static SimpleQuery ActivityTrackingUpdateQuery(SimpleQuery query)
 		{
 			BEXP filter = null;

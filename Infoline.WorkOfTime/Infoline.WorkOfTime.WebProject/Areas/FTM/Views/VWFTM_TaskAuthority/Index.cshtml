@@ -1,23 +1,7 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Görev Yetki Tanımları";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
-<div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
-    </div>
-</div>
 
 
 @(Html.Akilli()
@@ -25,18 +9,14 @@
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskAuthority", new { area = "FTM" })).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.userId_Title).Title("userId_Title").Width(180);
-        x.Bound(y => y.projectId_Title).Title("projectId_Title").Width(180);
-        x.Bound(y => y.customerId_Title).Title("customerId_Title").Width(180);
+        x.Bound(y => y.userId_Title).Title("Personel").Width(180);
+        x.Bound(y => y.customerId_Title).Title("Müşteri").Width(180);
+        x.Bound(y => y.projectId_Title).Title("Proje").Width(180);
     })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple)).Scrollable(c => c.Height(650))
     .ToolBar(x =>
     {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_TaskAuthority", new { area = "FTM" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWFTM_TaskAuthority", new { area = "FTM" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWFTM_TaskAuthority", new { area = "FTM" }));
+        x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Görev Yetkisi Tanımla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_TaskAuthority", new { area = "FTM" }));
+        x.Custom().Text("<i class='fa fa-edit' data-original-title='Görev Yetkisi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWFTM_TaskAuthority", new { area = "FTM" }));
         x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_TaskAuthority", new { area = "FTM" }));
     }))
