@@ -70,9 +70,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             var model = new TaskSchedulerModel();
             var res = model.GetTaskTemplatePlanList();
-
             return View(res);
-
         }
 
         [PageInfo("Planlanmış Görev ve Şablon Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
@@ -93,7 +91,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             var res = new List<object>();
             var db = new WorkOfTimeDatabase();
-            var data = new TaskSchedulerModel().TaskPlan.CalendarDataSource();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var data = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userStatus);
             var years = data.GroupBy(a => a.end.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
 
             foreach (var year in years)
@@ -119,8 +118,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             var res = new List<object>();
             var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
             var plan = db.GetVWFTM_TaskPlanById(id);
-            var data = new TaskSchedulerModel().TaskPlan.TaskCalendarDataSource(plan);
+            var data = new TaskSchedulerModel().TaskPlan.TaskCalendarDataSource(plan, userStatus);
             var years = data.GroupBy(a => a.end.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
 
             foreach (var year in years)
@@ -311,8 +311,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         [PageInfo("Planlanmış Görevler Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         public ContentResult CalendarDataSource()
         {
-
-            var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userStatus);
 
             return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
 

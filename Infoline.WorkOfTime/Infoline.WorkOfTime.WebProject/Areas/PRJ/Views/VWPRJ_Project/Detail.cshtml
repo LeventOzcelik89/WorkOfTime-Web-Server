@@ -793,6 +793,12 @@
                         </li>
                     }
 
+                    <li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_TaskAuthority", new {area="FTM" })" data-placement="top" title="Görev Yetki Tanımları">
+                        <a data-toggle="tab" href="#AuthorityFTM_Task" aria-expanded="true">
+                            <i class="icon-lock text-success fa-2x"></i>
+                        </a>
+                    </li>
+
                     <li data-href="@Url.Action("DataSource","VWCMP_ServiceLevel", new { area = "CMP" })" class="pull-right" data-toggle="tooltip" data-placement="top" title="Sözleşme Hizmet Seviye Tanımları">
                         <a data-toggle="tab" href="#VWCMP_ContractServiceLevelTab" aria-expanded="true"><i class="icon-signal-1 text-success fa-2x"></i></a>
                     </li>
@@ -956,6 +962,27 @@
 								x.Custom().Text("<i data-original-title='Masraf Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
 							})
                         )
+                    </div>
+
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_TaskAuthority", new {area="FTM" })" id="AuthorityFTM_Task">
+                        <h4><i class="icon-lock text-success"></i>  GÖREV YETKİ TANIMLARI </h4>
+                        @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskAuthority>("VWFTM_TaskAuthority")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskAuthority", new { area = "FTM" })).PageSize(25).Filter(f => f.projectId == Model.id))
+    .Columns(x =>
+    {
+        x.Bound(y => y.userId_Title).Title("Personel").Width(180);
+        x.Bound(y => y.customerId_Title).Title("Müşteri").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple)).Scrollable(c => c.Height(650))
+    .ToolBar(x =>
+    {
+        //x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Görev Yetkisi Tanımla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_TaskAuthority", new { area = "FTM" , projectId = Model.id}));
+        //x.Custom().Text("<i class='fa fa-edit' data-original-title='Görev Yetkisi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWFTM_TaskAuthority", new { area = "FTM", projectId = Model.id }));
+        //x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_TaskAuthority", new { area = "FTM" }));
+    }))
+
+
                     </div>
 
                     <div class="tab-pane" id="ProjectFile">
