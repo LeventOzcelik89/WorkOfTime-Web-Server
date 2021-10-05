@@ -11,6 +11,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? userId { get; set;}
         public string title { get; set;}
         public Guid? roleId { get; set;}
+        public double? limit { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string rulesId_Title { get; set;}
