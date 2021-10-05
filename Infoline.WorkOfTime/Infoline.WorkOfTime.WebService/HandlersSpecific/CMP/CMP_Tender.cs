@@ -52,5 +52,22 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
+        [HandleFunction("VWCMP_Tender/Insert")]
+        public void CMP_TenderInsert(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var model = ParseRequest<VMCMP_TenderModels>(context);
+                var userId = CallContext.Current.UserId;
+                var rs = model.Save(userId);
+                RenderResponse(context, new ResultStatus() { result = true, message = "Teklif başarılı bir şekilde oluşturuldu.", objects = null });
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
     }
 }
