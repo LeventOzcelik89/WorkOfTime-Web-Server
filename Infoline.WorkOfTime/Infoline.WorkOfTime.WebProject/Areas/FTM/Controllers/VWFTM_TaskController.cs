@@ -138,7 +138,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
                     taskMonthReportData = taskMonthReportData.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId)).ToList();
-                
+
             }
 
             var personels = taskMonthReportData.GroupBy(a => a.personnelName).Select(a => a.Key).ToArray();
@@ -1043,7 +1043,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         public ContentResult DataSourceForStaffReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
         {
             var db = new WorkOfTimeDatabase();
-
+            var userStatus = (PageSecurity)Session["userStatus"];
             var ftmTask = new VWFTM_Task[0];
 
             if (assignableUsers == null)
@@ -1073,6 +1073,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     ftmTask = ftmTask.Where(x => x.customerStorageId == customerStorage).ToArray();
                 }
             }
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                if (authoritys.Count() > 0)
+                    ftmTask = ftmTask.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+            }
+
 
             var taskChart = taskChartMethod(ftmTask).ToList();
 
