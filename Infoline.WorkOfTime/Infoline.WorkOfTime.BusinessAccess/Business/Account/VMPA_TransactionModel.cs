@@ -295,6 +295,68 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							{
 								this.direction = 0;
 								confirm.status = null;
+
+								var transactionConfirmation = db.GetPA_TransactionConfirmationByTransactionId(this.id);
+								db.BulkDeletePA_TransactionConfirmation(transactionConfirmation);
+
+								var transactionCofirmations = new List<PA_TransactionConfirmation>();
+
+								var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(this.createdby.Value, (Int16)EnumUT_RulesType.Transaction);
+								var shuser = db.GetVWSH_UserById(this.createdby.Value);
+								if (rulesUser != null)
+								{
+									var rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
+
+									if (rulesUserStages.Count() > 0)
+									{
+										var tabAmount = rulesUserStages.Where(a => this.amount == a.limit || this.amount <= a.limit).FirstOrDefault();
+										if (tabAmount == null)
+										{
+											transactionCofirmations.AddRange(rulesUserStages.Select(a => new PA_TransactionConfirmation
+											{
+												created = this.created,
+												createdby = this.createdby,
+												transactionId = this.id,
+												ruleType = a.type,
+												ruleOrder = a.order,
+												ruleUserId = a.userId,
+												ruleRoleId = a.roleId,
+												ruleTitle = a.title,
+												userId = (a.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+												a.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+												a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+												a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+												a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+												a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
+											}));
+										}
+										else
+										{
+											foreach (var rulesUserStage in rulesUserStages.Where(a => a.order <= tabAmount.order).ToList())
+											{
+												confirm = new VWPA_TransactionConfirmation
+												{
+													created = this.created,
+													createdby = this.createdby,
+													transactionId = this.id,
+													ruleType = rulesUserStage.type,
+													ruleOrder = rulesUserStage.order,
+													ruleUserId = rulesUserStage.userId,
+													ruleRoleId = rulesUserStage.roleId,
+													ruleTitle = rulesUserStage.title,
+													userId = (rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
+												};
+											}
+										}
+									}
+								}
+
+								dbresult &= db.BulkInsertPA_TransactionConfirmation(transactionCofirmations, transaction);
 							}
 							else
 							{
