@@ -1247,6 +1247,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             //comingType 2 ise company
             //comintType 3 ise bakım envanteri için
             //comingType 4 ise form relation için texte bakılacak
+            //comingType 5 ise companyId
             BEXP filter = null;
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {

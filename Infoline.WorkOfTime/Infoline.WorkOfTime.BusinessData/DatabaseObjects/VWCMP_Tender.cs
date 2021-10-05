@@ -5,6 +5,8 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWCMP_Tender : InfolineTable
     {
+        public string searchField { get; set;}
+        public double? totalAmountAsTL { get; set;}
         public short? direction { get; set;}
         public short? type { get; set;}
         public string description { get; set;}
