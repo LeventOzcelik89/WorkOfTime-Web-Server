@@ -41,20 +41,26 @@ namespace Infoline.WorkOfTime.Controllers
 
             return Json(users.Select(a => new { Id = a.id, Name = a.FullName }).OrderBy(a => a.Name), JsonRequestBehavior.AllowGet);
         }
-        
+
         public JsonResult GetVWSH_User_WithRoles()
         {
             var db = new WorkOfTimeDatabase();
-            var roleUser = db.GetSH_UserRoleByRoleIds(new string[] { SHRoles.SatisPersoneli,SHRoles.SatisOnaylayici,SHRoles.SistemYonetici });
+            var roleUser = db.GetSH_UserRoleByRoleIds(new string[] { SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.SistemYonetici });
             var userIds = roleUser.Where(x => x.userid.HasValue).Select(x => x.userid.Value).ToArray();
             var userList = db.GetSH_UserByIds(userIds.Count() > 0 ? userIds : new Guid[] { Guid.Empty });
-            return Json(userList.Select(a => new { Id = a.id, Name = a.firstname+" "+a.lastname }).OrderBy(a => a.Name), JsonRequestBehavior.AllowGet);
+            return Json(userList.Select(a => new { Id = a.id, Name = a.firstname + " " + a.lastname }).OrderBy(a => a.Name), JsonRequestBehavior.AllowGet);
         }
 
         public JsonResult GetVWFTM_TaskCustomers()
         {
             var db = new WorkOfTimeDatabase();
             var task = db.GetVWFTM_TaskJustCustomerQuery();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+            }
 
             var rs = task.GroupBy(a => a.customer_Title).Select(c => new
             {
@@ -374,14 +380,14 @@ namespace Infoline.WorkOfTime.Controllers
             var res = new WorkOfTimeDatabase().GetCRM_ManagerStage().OrderBy(a => a.Code).Select(a => new { Id = a.id, Name = a.Code + " - " + a.Name, color = a.color }).OrderBy(a => a.Name).ToArray();
             return Content(Infoline.Helper.Json.Serialize(res), "application/json");
         }
-    
+
         public JsonResult GetCRM_ManagerStageName()
         {
             var db = new WorkOfTimeDatabase();
             var res = db.GetCRM_ManagerStage();
             return Json(res.Select(c => new { Id = c.id, Name = c.Name }).OrderBy(c => c.Name).ToArray(), JsonRequestBehavior.AllowGet);
         }
-     
+
         public ContentResult GetPresentationViewById(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -877,7 +883,7 @@ namespace Infoline.WorkOfTime.Controllers
         }
         public string RemoteConnectionValue(string catalog, string host, string user, string pass)
         {
-            var remoteValue = "Data Source=" + host + ";Initial Catalog="+ catalog +";User ID=" + user + ";Password=" + pass + "";
+            var remoteValue = "Data Source=" + host + ";Initial Catalog=" + catalog + ";User ID=" + user + ";Password=" + pass + "";
             var cryp = new CryptographyHelper().Encrypt(remoteValue);
             return cryp;
         }
@@ -903,9 +909,9 @@ namespace Infoline.WorkOfTime.Controllers
 
         public JsonResult GetProductMaterials(Guid productId)
         {
-            
+
             var db = new WorkOfTimeDatabase();
-            var materials = db.GetVWPRD_ProductMaterialByProductId(productId).ToList().OrderBy(x=>x.materialId_Title);
+            var materials = db.GetVWPRD_ProductMaterialByProductId(productId).ToList().OrderBy(x => x.materialId_Title);
             return Json(materials, JsonRequestBehavior.AllowGet);
         }
 
@@ -929,7 +935,7 @@ namespace Infoline.WorkOfTime.Controllers
         }
 
         public ContentResult GetMonths()
-		{
+        {
             var months = new List<object>();
             months.Add(new { id = 1, title = "Ocak" });
             months.Add(new { id = 2, title = "Şubat" });
@@ -945,6 +951,6 @@ namespace Infoline.WorkOfTime.Controllers
             months.Add(new { id = 12, title = "Aralık" });
 
             return Content(Infoline.Helper.Json.Serialize(months), "application/json");
-		}
+        }
     }
 }

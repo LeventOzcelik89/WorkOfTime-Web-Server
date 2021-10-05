@@ -1262,14 +1262,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else if (comingType == 3)
                 {
                     operandColumn = "firstActionDataCompanyId";
-                }else if(comingType == 4)
+                }
+                else if (comingType == 4)
                 {
                     operandColumn = "companyId_Title";
+                }
+                else if (comingType == 5)
+                {
+                    operandColumn = "companyId";
                 }
                 this.db = this.db ?? new WorkOfTimeDatabase();
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
 
-                if(comingType == 4)
+                if (comingType == 4)
                 {
                     foreach (var authority in authoritys)
                     {

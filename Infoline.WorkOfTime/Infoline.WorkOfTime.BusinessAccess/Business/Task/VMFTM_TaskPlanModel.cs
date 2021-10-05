@@ -280,7 +280,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         }
 
-        public VMFTM_TaskPlanCalendarModel[] CalendarDataSource()
+        public VMFTM_TaskPlanCalendarModel[] CalendarDataSource(PageSecurity userStatus)
         {
 
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -291,6 +291,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             //  hali hazırda açılmış görevler
             var dbtasks = db.GetVWFTM_Task().Where(a => a.taskTemplateId == null && a.taskPlanId == null).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+
+                plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+            }
 
             var newTasks = new int[] {
                     (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
@@ -309,7 +317,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var tasks = new List<VMFTM_TaskPlanCalendarModel>();
             foreach (var plan in plans)
             {
-                tasks.AddRange(TaskCalendarDataSource(plan));
+                tasks.AddRange(TaskCalendarDataSource(plan,userStatus));
             }
 
             tasks.AddRange(dbtasks);
@@ -318,7 +326,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         }
 
-        public VMFTM_TaskPlanCalendarModel[] TaskCalendarDataSource(VWFTM_TaskPlan plan)
+        public VMFTM_TaskPlanCalendarModel[] TaskCalendarDataSource(VWFTM_TaskPlan plan,PageSecurity userStatus)
         {
 
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -327,6 +335,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             //  hali hazırda açılmış görevler
             var dbtasks = db.GetVWFTM_TaskByTaskPlanId(plan.id).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+            }
 
             var newTasks = new int[] {
                     (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
