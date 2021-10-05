@@ -133,6 +133,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToList();
             }
 
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                if (authoritys.Count() > 0)
+                    taskMonthReportData = taskMonthReportData.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId)).ToList();
+                
+            }
+
             var personels = taskMonthReportData.GroupBy(a => a.personnelName).Select(a => a.Key).ToArray();
             var monthms = taskMonthReportData.GroupBy(a => a.month).Select(a => a.Key).ToArray();
             var resultData = new List<MonthlyPersonData>();
@@ -252,6 +260,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             if (customerStorage.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToList();
+            }
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                if (authoritys.Count() > 0)
+                    taskMonthReportData = taskMonthReportData.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId)).ToList();
             }
 
             var taskType_Title = taskMonthReportData.GroupBy(a => a.taskType_Title).Select(a => a.Key).ToArray();
@@ -1215,7 +1230,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-                task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
+                if (authoritys.Count() > 0)
+                    task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
             }
 
             var dailyReport = new List<DailyPersonalReportPersonalData>();
