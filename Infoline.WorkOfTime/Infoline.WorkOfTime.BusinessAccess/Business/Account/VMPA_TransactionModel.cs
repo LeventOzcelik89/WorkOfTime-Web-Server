@@ -355,6 +355,58 @@ namespace Infoline.WorkOfTime.BusinessAccess
 										}
 									}
 								}
+								else
+								{
+									var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Transaction);
+									if (defaultRule == null)
+									{
+										return new ResultStatus
+										{
+											result = false,
+											message = "Hiç bir masraf kuralı bulunamadı."
+										};
+									}
+									else
+									{
+										var rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
+
+										if (rulesUserStages.Count() > 0)
+										{
+											var tabAmount = rulesUserStages.Where(a => this.amount == a.limit || this.amount <= a.limit).FirstOrDefault();
+											if (tabAmount == null)
+											{
+												transactionCofirmations.AddRange(rulesUserStages.Select(a => new PA_TransactionConfirmation
+												{
+													created = this.created,
+													createdby = this.createdby,
+													transactionId = this.id,
+													ruleType = a.type,
+													ruleOrder = a.order,
+													ruleUserId = a.userId,
+													ruleRoleId = a.roleId,
+													ruleTitle = a.title
+												}));
+											}
+											else
+											{
+												foreach (var rulesUserStage in rulesUserStages.Where(a => a.order <= tabAmount.order).ToList())
+												{
+													transactionCofirmations.Add(new PA_TransactionConfirmation
+													{
+														created = this.created,
+														createdby = this.createdby,
+														transactionId = this.id,
+														ruleType = rulesUserStage.type,
+														ruleOrder = rulesUserStage.order,
+														ruleUserId = rulesUserStage.userId,
+														ruleRoleId = rulesUserStage.roleId,
+														ruleTitle = rulesUserStage.title
+													});
+												}
+											}
+										}
+									}
+								}
 
 								dbresult &= db.BulkInsertPA_TransactionConfirmation(transactionCofirmations, transaction);
 							}
