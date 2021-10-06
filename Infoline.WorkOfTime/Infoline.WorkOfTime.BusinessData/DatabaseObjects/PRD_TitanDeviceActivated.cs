@@ -33,7 +33,5 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Envanter 
         /// </summary>
         public Guid? InventoryId { get; set;}
-
-       
     }
 }
