@@ -56,7 +56,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                return GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                return GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
             }
             catch
             {
