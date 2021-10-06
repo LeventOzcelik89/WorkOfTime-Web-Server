@@ -37,6 +37,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string Model { get; set; }
         public string Product { get; set; }
         public string Serial { get; set; }
+        public string IMEI1 { get; set; }
+        public string IMEI2 { get; set; }
         public DeviceOperatingSystem OperatingSystem { get; set; }
         public object HardwareDetail { get; set; }
         public List<object> GsmCarriers { get; set; }

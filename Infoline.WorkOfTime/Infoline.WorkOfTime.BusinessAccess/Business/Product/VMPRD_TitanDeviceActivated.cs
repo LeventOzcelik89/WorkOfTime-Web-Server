@@ -10,11 +10,9 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
-
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-    
-    public class VMPRD_TitanDeviceActivated:PRD_TitanDeviceActivated
+    public class VMPRD_TitanDeviceActivated : PRD_TitanDeviceActivated
     {
         private TitanServices TitanServices = new TitanServices();
         private WorkOfTimeDatabase db { get; set; }
@@ -23,11 +21,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public VMPRD_TitanDeviceActivated Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            if (this.SerialNumber!=null)
+            if (this.SerialNumber != null)
             {
-                return new VMPRD_TitanDeviceActivated().B_EntityDataCopyForMaterial(db.GetPRD_TitanDeviceActivatedBySerialCode(this.SerialNumber)??this);
+                return new VMPRD_TitanDeviceActivated().B_EntityDataCopyForMaterial(db.GetPRD_TitanDeviceActivatedBySerialCode(this.SerialNumber) ?? this);
             }
-            else if (this.InventoryId!=null)
+            else if (this.InventoryId != null)
             {
                 return new VMPRD_TitanDeviceActivated().B_EntityDataCopyForMaterial(db.GetPRD_TitanDeviceActivatedByInventoryId(this.InventoryId.Value) ?? this);
             }
@@ -70,6 +68,34 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             return res;
         }
+        public ResultStatus SaveAll(Guid userId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            var getallFromApi = (DeviceResultList)GetAllDevices().objects;
+            var rs = db.BulkDeletePRD_TitanDeviceActivated(db.GetPRD_TitanDeviceActivated(), trans);
+            var item = getallFromApi.Data.Select(x => new PRD_TitanDeviceActivated
+            {
+                createdby = userId,
+                CreatedOfTitan = x.Created,
+                DeviceId = new Guid(x.DeviceId),
+                IMEI1 = x.IMEI1,
+                IMEI2 = x.IMEI2,
+                InventoryId = db.GetPRD_InventoryBySerialCode(x.Serial)?.id,
+                ProductId = db.GetPRD_InventoryBySerialCode(x.Serial)?.productId,
+                SerialNumber = x.Serial
+            }).ToList();
+            rs &= db.BulkInsertPRD_TitanDeviceActivated(item, trans);
+            if (rs.result)
+            {
+                trans.Commit();
+            }
+            else
+            {
+                trans.Rollback();
+            }
+            return rs;
+        }
         private ResultStatus Validator()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -79,7 +105,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private ResultStatus Insert()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var getall=(DeviceResultList)GetAllDevices().objects;
+            var getall = (DeviceResultList)GetAllDevices().objects;
             var dbresult = db.InsertPRD_TitanDeviceActivated(this, this.trans);
             if (!dbresult.result)
             {
@@ -125,7 +151,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-          
             var dbresult = db.DeletePRD_TitanDeviceActivated(this.id, trans);
             if (!dbresult.result)
             {
