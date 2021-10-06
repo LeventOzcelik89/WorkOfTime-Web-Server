@@ -35,5 +35,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? totalTax { get; set;}
         public double? kdvAmount { get; set;}
         public double? totalAmount { get; set;}
+        public string createdBy_Photo { get; set;}
     }
 }
