@@ -99,7 +99,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
+        public FTM_Task[] GetFTM_TaskByCustomerIds(Guid[] customerIds, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<FTM_Task>().Where(a => a.customerId.In(customerIds)).Execute().ToArray();
+            }
+        }
 
 
     }

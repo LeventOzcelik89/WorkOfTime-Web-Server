@@ -70,6 +70,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
             var model = new TaskSchedulerModel();
             var res = model.GetTaskTemplatePlanList();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var db = new WorkOfTimeDatabase();
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                if (authoritys.Count() > 0)
+                {
+                    var tasks = db.GetFTM_TaskByCustomerIds(authoritys.Where(x => x.customerId.HasValue).Select(x => x.customerId.Value).ToArray()).Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray();
+                    res.TaskPlan = res.TaskPlan.Where(x => tasks.Contains(x.templateId.Value)).ToArray();
+                }
+            }
+
             return View(res);
         }
 
@@ -85,7 +98,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         }
 
 
-        [PageInfo("Tüm Planlanmış Görevlerin Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici,SHRoles.SahaGorevMusteri)]
+        [PageInfo("Tüm Planlanmış Görevlerin Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevMusteri)]
         public ContentResult AllTaskCalendarDataSource()
         {
 

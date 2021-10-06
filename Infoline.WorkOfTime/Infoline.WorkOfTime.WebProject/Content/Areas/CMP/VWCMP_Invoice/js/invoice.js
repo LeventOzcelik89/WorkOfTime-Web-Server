@@ -884,7 +884,6 @@
         }
     },
     LoadProducts: function () {
-        debugger;
         _invoice.LoadControl.loaded = true;
         var percent = _invoice.EnumDiscountType.find(a => a.EnumKey == "Yuzde");
         $.each(_model.InvoiceItems, function (i, item) {
