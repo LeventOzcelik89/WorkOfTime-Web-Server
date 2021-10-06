@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 DataTable dt = new DataTable();
                 dt.Columns.Add("Name", typeof(string));
@@ -108,7 +108,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                return GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                return GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
             }
             catch
             {
@@ -124,7 +124,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 DataTable dt = new DataTable();
                 dt.Columns.Add("Name", typeof(string));
@@ -165,7 +165,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                return GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                return GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
             }
             catch
             {
@@ -181,7 +181,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 DataTable dt = new DataTable();
                 dt.Columns.Add("Name", typeof(string));
@@ -218,7 +218,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 if (CurrencyRates.Keys.Contains(Currency))
                 {
@@ -244,7 +244,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (CurrencyRates.Keys.Contains(Currency.ToString()))
                 {
@@ -269,7 +269,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (CurrencyRates.Keys.Contains(Currency.ToString()))
                 {
@@ -290,7 +290,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -326,7 +326,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -358,7 +358,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -408,7 +408,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -440,7 +440,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -480,7 +480,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -508,7 +508,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -536,7 +536,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             try
             {
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/today.xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/today.xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -580,7 +580,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -612,7 +612,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", date.Month);
                 string SDay = String.Format("{0:00}", date.Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -656,7 +656,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
@@ -688,7 +688,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 string SMonth = String.Format("{0:00}", Month);
                 string SDay = String.Format("{0:00}", Day);
 
-                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("http://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
+                Dictionary<string, Currency> CurrencyRates = GetCurrencyRates("https://www.tcmb.gov.tr/kurlar/" + SYear + SMonth + "/" + SDay + SMonth + SYear + ".xml");
 
                 if (!CurrencyRates.Keys.Contains(FromCurrencyCode))
                 {
