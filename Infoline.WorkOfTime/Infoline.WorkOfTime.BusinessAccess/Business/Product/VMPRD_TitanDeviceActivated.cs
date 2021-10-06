@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess.Models;
 using Infoline.WorkOfTime.BusinessData;
 using System;
@@ -18,6 +19,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private TitanServices TitanServices = new TitanServices();
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        public IGeometry Location { get; set; }
         public VMPRD_TitanDeviceActivated Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();

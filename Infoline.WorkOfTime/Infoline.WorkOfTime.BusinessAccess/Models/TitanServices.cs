@@ -1,52 +1,18 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
+using System.Reflection;
+using System.Text;
 namespace Infoline.WorkOfTime.BusinessAccess.Models
 {
-    public class DeviceOperatingSystem
-    {
-        public string OperatingSystemId { get; set; }
-        public string Version { get; set; }
-        public string BuildNumber { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-
-    public class DeviceLastUsageHistory
-    {
-        public string UsageHistoryId { get; set; }
-        public double Battery { get; set; }
-        public double Storage { get; set; }
-        public double CPU { get; set; }
-        public double RAM { get; set; }
-        public bool Broken { get; set; }
-        public bool ForcedBreak { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-
-    public class DeviceLastLocation
-    {
-        public object Country { get; set; }
-        public object Region { get; set; }
-        public object County { get; set; }
-        public string LocationId { get; set; }
-        public double Longitude { get; set; }
-        public double Latitude { get; set; }
-        public double Altitude { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-
     public class DeviceApplication
     {
         public string ApplicationId { get; set; }
@@ -61,7 +27,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public object Modified { get; set; }
         public string DeviceId { get; set; }
     }
-
     public class DeviceData
     {
         public string Board { get; set; }
@@ -76,7 +41,46 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public object HardwareDetail { get; set; }
         public List<object> GsmCarriers { get; set; }
         public DeviceLastUsageHistory LastUsageHistory { get; set; }
+        public DeviceLastLocation LastLocation { get; set; }
         public List<DeviceApplication> Applications { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceLastLocation
+    {
+        public object Country { get; set; }
+        public object Region { get; set; }
+        public object County { get; set; }
+        public string LocationId { get; set; }
+        public string Longitude { get; set; }
+        public string Latitude { get; set; }
+        public double Altitude { get; set; }
+        public DateTime Date { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+        public IGeometry Location { get; set; }
+    }
+    public class DeviceLastUsageHistory
+    {
+        public string UsageHistoryId { get; set; }
+        public double Battery { get; set; }
+        public double Storage { get; set; }
+        public double CPU { get; set; }
+        public double RAM { get; set; }
+        public bool Broken { get; set; }
+        public bool ForcedBreak { get; set; }
+        public DateTime Date { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceOperatingSystem
+    {
+        public string OperatingSystemId { get; set; }
+        public string Version { get; set; }
+        public string BuildNumber { get; set; }
         public DateTime Created { get; set; }
         public object Modified { get; set; }
         public string DeviceId { get; set; }
@@ -96,32 +100,30 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
     public class TitanServices
     {
         private string Host { get { return "https://titantest.infoline-tr.com/api/v2"; } }
-        private ResultStatus SendRequest<T>(string uri, string query="")
+        private ResultStatus SendRequest<T>(string uri, string query = null)
         {
-            using (WebClient client = new WebClient())
+            ServicePointManager.Expect100Continue = true;
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+            var request = WebRequest.Create(Host + uri);
+            request.ContentType = "application/json";
+            request.Method = "GET";
+            var type = request.GetType();
+            var currentMethod = type.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
+            var methodType = currentMethod.GetType();
+            methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
+            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-
-                if (query=="")
+                streamWriter.Write(query);
+            }
+            var response = (HttpWebResponse)request.GetResponse();
+            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
+            {
+                return new ResultStatus
                 {
-                    var res = client.DownloadString(Host + uri);
-                    return new ResultStatus
-                    {
-                        result = true,
-                        message = "istek başarılı",
-                        objects = JsonConvert.DeserializeObject<T>(res)
-                    };
-                }
-                else
-                {
-                    return new ResultStatus
-                    {
-                        result = true,
-                        message = "istek başarılı",
-                        objects = JsonConvert.DeserializeObject<T>(client.UploadString(Host + uri, "GET", query))
-                    };
-                }
+                    result = true,
+                    message = "istek başarılı",
+                    objects = JsonConvert.DeserializeObject<T>(reader.ReadToEnd())
+                };
             }
         }
         public ResultStatus GetAllDevices()
@@ -140,9 +142,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         {
             var query = Helper.Json.Serialize(new
             {
-                DataType=0,
-                Start=DateTime.Now.AddYears(-20),
-                End=DateTime.Now
+                DataType = 0,
+                Start = DateTime.Now.AddYears(-20),
+                End = DateTime.Now
             });
             return SendRequest<DeviceResultList>("/Devices/GetDeviceActivationInformation", query);
         }
