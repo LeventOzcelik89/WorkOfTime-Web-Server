@@ -56,6 +56,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? totalTaxAsTL { get; set;}
         public double? totalSubAmountAsTL { get; set;}
         public string created_Image { get; set;}
-        public double? totalAmountAsTL { get; set;}
     }
 }
