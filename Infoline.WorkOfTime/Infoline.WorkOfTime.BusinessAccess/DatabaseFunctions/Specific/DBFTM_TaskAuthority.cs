@@ -23,5 +23,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerId(Guid userId,Guid customerId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<FTM_TaskAuthority>().Where(a => a.userId == userId && a.customerId == customerId).Execute().FirstOrDefault();
+            }
+        }
+
+        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerIdAndNotId(Guid userId, Guid customerId,Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<FTM_TaskAuthority>().Where(a => a.userId == userId && a.customerId == customerId && a.id != id).Execute().FirstOrDefault();
+            }
+        }
+
     }
 }
