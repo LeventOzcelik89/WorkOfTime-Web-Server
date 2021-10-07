@@ -26,8 +26,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            var data = db.GetPRD_TitanDeviceActivated(condition).RemoveGeographies().ToDataSourceResult(request);
-            data.Total = db.GetPRD_TitanDeviceActivatedCount(condition.Filter);
+            var dataValues = db.GetVWPRD_TitanDeviceActivated(condition);
+            dataValues.Each(x => x.id = (Guid)(x.InventoryId.HasValue==true?x.InventoryId:new Guid()));
+            var data = dataValues.RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWPRD_TitanDeviceActivatedCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         public JsonResult Insert()

@@ -72,7 +72,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = trans ?? db.BeginTransaction();
-            var getallFromApi = (DeviceResultList)GetAllDevices().objects;
+            var getallFromApi = (DeviceResultList)GetDeviceActivationInformation().objects;
             var rs = db.BulkDeletePRD_TitanDeviceActivated(db.GetPRD_TitanDeviceActivated(), trans);
             var item = getallFromApi.Data.Select(x => new PRD_TitanDeviceActivated
             {
