@@ -1,0 +1,76 @@
+﻿using Infoline.OmixEntegrationApp.LogoEntegration;
+using Infoline.OmixEntegrationApp.TitanEntegration;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.ServiceProcess;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Infoline.OmixEntegrationApp
+{
+    public class AgentStart : ServiceBase
+    {
+        List<Task> Tasks = new List<Task>();
+
+        public AgentStart()
+        {
+
+        }
+
+        public void Run()
+        {
+
+            var taskProcessLogoEntegration = new Task(() =>
+            {
+                new ProcessLogoEntegration().Run();
+            });
+            Tasks.Add(taskProcessLogoEntegration);
+
+            var taskProcessTitanEntegration = new Task(() =>
+            {
+                new ProcessTitanEntegration().Run();
+            });
+            Tasks.Add(taskProcessTitanEntegration);
+
+
+            taskProcessLogoEntegration.Start();
+
+            taskProcessTitanEntegration.Start();
+
+        }
+
+        protected override void OnStart(string[] args)
+        {
+            Run();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            Log.Success("Görevler dispose ediliyor");
+
+            if (Tasks != null && Tasks.Count > 0)
+            {
+                foreach (var task in Tasks)
+                {
+                    task.Dispose();
+                }
+                Tasks = new List<Task>();
+            }
+            base.Dispose(disposing);
+        }
+
+        protected override void OnStop()
+        {
+            Log.Success("Tasklar durduruldu.");
+            if (Tasks != null && Tasks.Count > 0)
+            {
+                foreach (var task in Tasks)
+                {
+                    task.Dispose();
+                }
+                Tasks = new List<Task>();
+            }
+        }
+    }
+}
