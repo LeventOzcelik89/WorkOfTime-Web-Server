@@ -12,6 +12,7 @@
 
     var isManager = userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim));
     var isPersonel = userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaPersonel));
+    var isCustomer = userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaMusteri));
     var isRequester = userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaTalep));
 
     var isSystemManager = userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici));
@@ -624,7 +625,7 @@
                         </li>
                     }
 
-                    @if ((isPersonel || isManager || isSystemManager) && Model.AssignUser != null)
+                    @if ((isPersonel || isManager || isSystemManager || isCustomer) && Model.AssignUser != null)
                     {
                         <li data-href="@Url.Action("DataSource", "VWHDM_TicketMessage", new { area = "HDM" })" data-toggle="tooltip" data-placement="top" title="Mail ile Başkasına İlet">
                             <a data-toggle="tab" href="#VWHDM_TicketMessage2" aria-expanded="true"><i class="icon-forward-3 text-success fa-2x"></i></a>
@@ -635,7 +636,7 @@
                         <a data-toggle="tab" href="#VWHDM_TicketMessage3" aria-expanded="true"><i class="icon-chat-5 text-success fa-2x"></i></a>
                     </li>
 
-                    @if (isPersonel || isManager || isSystemManager)
+                    @if (isPersonel || isManager || isSystemManager || isCustomer)
                     {
                         <li data-href="@Url.Action("DataSource", "VWHDM_TicketAction", new { area = "HDM" })" data-toggle="tooltip" data-placement="top" title="Talep Geçmişi">
                             <a data-toggle="tab" href="#VWHDM_TicketActions" aria-expanded="false"><i class="icon-history text-success fa-2x" aria-hidden="true"></i></a>
@@ -676,7 +677,7 @@
                                                 </p>
                                             }
 
-                                            @if (!String.IsNullOrEmpty(item.cc) && (isPersonel || isManager || isSystemManager))
+                                            @if (!String.IsNullOrEmpty(item.cc) && (isPersonel || isManager || isSystemManager || isCustomer))
                                             {
                                                 <p>
                                                     <strong>CC : </strong>
@@ -687,7 +688,7 @@
                                                 </p>
                                             }
 
-                                            @if (!String.IsNullOrEmpty(item.bcc) && (isPersonel || isManager || isSystemManager))
+                                            @if (!String.IsNullOrEmpty(item.bcc) && (isPersonel || isManager || isSystemManager || isCustomer))
                                             {
                                                 <p>
                                                     <strong>BCC : </strong>
@@ -960,28 +961,28 @@
             <div class="ibox" id="actionButtons">
                 <div class="ibox-title" style="text-align:center;">
 
-                    @if ((isManager || isPersonel || isSystemManager) && Model.status == (int)EnumHDM_TicketStatus.Pending)
+                    @if ((isManager || isPersonel || isSystemManager || isCustomer) && Model.status == (int)EnumHDM_TicketStatus.Pending)
                     {
                         <button class="btn btn-md btn-warning m-xs" onclick="ticketDetail.events.newAction(this, @((int)EnumHDM_TicketActionType.IsBaslangic))">
                             <i class="icon-play-circled2-1"></i> İşe Devam Et
                         </button>
                     }
 
-                    @if ((isManager || isPersonel || isSystemManager) && Model.status == (int)EnumHDM_TicketStatus.Open && userStatus.user.id == Model.assignUserId)
+                    @if ((isManager || isPersonel || isSystemManager || isCustomer) && Model.status == (int)EnumHDM_TicketStatus.Open && userStatus.user.id == Model.assignUserId)
                     {
                         <button class="btn btn-md btn-warning m-xs" onclick="ticketDetail.events.newAction(this, @((int)EnumHDM_TicketActionType.IsBaslangic))">
                             <i class="icon-play-circled2-1"></i> İşe Başlandı
                         </button>
                     }
 
-                    @if ((isManager || isPersonel || isSystemManager) && (Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Closed && Model.status != (int)EnumHDM_TicketStatus.Done))
+                    @if ((isManager || isPersonel || isSystemManager || isCustomer) && (Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Closed && Model.status != (int)EnumHDM_TicketStatus.Done))
                     {
                         <button class="btn btn-md btn-success m-xs" onclick="ticketDetail.events.newAction(this, @((int)EnumHDM_TicketActionType.CozumSaglandi))">
                             <i class="@(ticketStatusEnums.Where(a=>a.Key == ((int)EnumHDM_TicketStatus.Done).ToString()).Select(a=>a.Generic["icon"]).FirstOrDefault())"></i> Çözüm Sağlandı
                         </button>
                     }
 
-                    @if ((isManager || isPersonel || isSystemManager) && Model.status != (int)EnumHDM_TicketStatus.Closed && Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Pending)
+                    @if ((isManager || isPersonel || isSystemManager || isCustomer) && Model.status != (int)EnumHDM_TicketStatus.Closed && Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Pending)
                     {
                         <button class="btn btn-md btn-warning m-xs" onclick="ticketDetail.events.newAction(this, @((int)EnumHDM_TicketActionType.Beklemede))">
                             <i class="@(ticketStatusEnums.Where(a=>a.Key == ((int)EnumHDM_TicketStatus.Pending).ToString()).Select(a=>a.Generic["icon"]).FirstOrDefault())"></i> Beklemeye Al
@@ -1119,7 +1120,7 @@
             <div class="ibox-title">
                 <h5> <i class="fa fa-users"></i> Personeller </h5>
 
-                @if ((isManager || isPersonel || isSystemManager) && Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Closed)
+                @if ((isManager || isPersonel || isSystemManager || isCustomer) && Model.status != (int)EnumHDM_TicketStatus.Cancelled && Model.status != (int)EnumHDM_TicketStatus.Closed)
                 {
                     <div class="ibox-tools">
                         @if (Model.assignUserId.HasValue)

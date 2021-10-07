@@ -35,7 +35,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Users[] Users { get; set; }
         public bool mailForParticipants { get; set; }
         public List<Participants> Participants { get; set; }
-        public Guid RelationId { get; set; }
+        public Guid? RelationId { get; set; }
+
 
         public VMCRM_ContactModel Load()
         {
@@ -552,6 +553,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var db = new WorkOfTimeDatabase();
             var companies = db.GetVWCMP_CompanyMyCompanies();
+            var customerCompanies = db.GetVWCMP_CompanyOtherCompanies();
             var companyIds = companies.Select(a => a.id).ToArray();
             var _presentation = db.GetCRM_PresentationById(id);
 
@@ -564,6 +566,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Type = (int)EnumCRM_ContactUserUserType.OwnerUser
                 }));
             }
+            if(customerCompanies.Count() > 0)
+            {
+                result.AddRange(db.GetVWSH_UserByCompanyIds(customerCompanies.Select(x => x.id).ToArray()).Select(a => new Participants
+                {
+                    UserId = a.id,
+                    UserName = a.FullName,
+                    Type = (int)EnumCRM_ContactUserUserType.CustomerUser
+                }));
+            }
+
             if (_presentation != null)
             {
                 if (_presentation.CustomerCompanyId.HasValue)
@@ -639,12 +651,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     password = db.GetMd5Hash(db.GetMd5Hash("123456")),
                     status = false
                 };
-
+                var customerCompanyId = "";
+                if (presentation == null)
+                {
+                    customerCompanyId = this.PresentationId.Value.ToString();
+                }  else
+                {
+                    customerCompanyId = presentation.CustomerCompanyId.ToString();
+                }
                 var compPerson = new INV_CompanyPerson
                 {
                     createdby = this.createdby,
                     IdUser = user.id,
-                    CompanyId = presentation.CustomerCompanyId,
+                    CompanyId = new Guid(customerCompanyId),
                     JobStartDate = DateTime.Now,
                     Title = "CRM",
                     Level = 1

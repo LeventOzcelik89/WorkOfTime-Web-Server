@@ -56,6 +56,90 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
+
+		// TO DO : ÜNDEMİR - DÜZELTİLECEK.
+		[PageInfo("Ödeme Planı Methodu", SHRoles.Personel)]
+		public ContentResult DataSourceSpesific([DataSourceRequest] DataSourceRequest request, Guid? dataId, Guid? corporationId)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var db = new WorkOfTimeDatabase();
+
+			if (dataId.HasValue && corporationId.HasValue)
+			{
+				var tasks = db.GetFTM_TaskByCustomerId(corporationId.Value);
+
+				BEXP filter = null;
+
+				if (tasks.Count() > 0)
+				{
+					var taskIds = tasks.Select(x => (Guid?)x.id).ToList();
+					filter &= new BEXP
+					{
+						Operand1 = new BEXP
+						{
+							Operand1 = new BEXP
+							{
+								Operand1 = (COL)"type",
+								Operator = BinaryOperator.Equal,
+								Operand2 = (VAL)(int)EnumPA_TransactionType.Masraf
+							},
+							Operand2 = new BEXP
+							{
+								Operand1 = (COL)"type",
+								Operator = BinaryOperator.Equal,
+								Operand2 = (VAL)(int)EnumPA_TransactionType.Masraf
+							},
+							Operator = BinaryOperator.And
+						},
+						Operand2 = new BEXP
+						{
+							Operand1 = new BEXP
+							{
+								Operand1 = (COL)"dataId",
+								Operator = BinaryOperator.Equal,
+								Operand2 = (VAL)dataId.Value
+							},
+							Operand2 = new BEXP
+							{
+								Operand1 = (COL)"dataId",
+								Operator = BinaryOperator.In,
+								Operand2 = new ARR { Values = taskIds.Select(a => (VAL)a).ToArray() }
+							},
+							Operator = BinaryOperator.Or
+						},
+						Operator = BinaryOperator.And
+					};
+				}
+				else
+				{
+					filter &= new BEXP
+					{
+						Operand1 = (COL)"type",
+						Operator = BinaryOperator.Equal,
+						Operand2 = (VAL)(int)EnumPA_TransactionType.Masraf
+					};
+					filter &= new BEXP
+					{
+						Operand1 = (COL)"dataId",
+						Operator = BinaryOperator.Equal,
+						Operand2 = (VAL)dataId.Value
+					};
+				}
+
+				condition.Filter &= filter;
+			}
+
+			var page = request.Page;
+			request.Filters = new FilterDescriptor[0];
+			request.Sorts = new SortDescriptor[0];
+			request.Page = 1;
+			var data = db.GetVWPA_Transaction(condition).RemoveGeographies().ToDataSourceResult(request);
+			data.Total = db.GetVWPA_TransactionCount(condition.Filter);
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		}
+
+
+
 		[PageInfo("Şirket Kasa ve Banka Hesap Tanımları Methodu", SHRoles.Personel)]
 		public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
 		{

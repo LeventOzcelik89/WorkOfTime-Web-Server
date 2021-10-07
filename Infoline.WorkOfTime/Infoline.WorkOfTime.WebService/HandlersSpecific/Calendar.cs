@@ -91,5 +91,66 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
             }
         }
+
+
+        [HandleFunction("Calendar/GetCalendarContact")]
+        public void CalendarGetCalendarContact(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var datas = db.GetVWCRM_Contact();
+                var listData = new List<VWCRM_Contact>();
+                foreach (var data in datas)
+                {
+                    var contactUsers = db.GetVWCRM_ContactUserByContactId(data.id);
+                    if (!data.ContactEndDate.HasValue)
+                    {
+                        continue;
+                    }
+                    if (!data.ContactStartDate.HasValue)
+                    {
+                        continue;
+                    }
+
+                    if (!data.createdby.HasValue)
+                    {
+                        continue;
+                    }
+
+                    var fark = (data.ContactEndDate.Value - data.ContactStartDate.Value).TotalDays;
+                    if (fark > 1)
+                    {
+
+                        var timeCounter = new DateTime(data.ContactStartDate.Value.Year, data.ContactStartDate.Value.Month, data.ContactStartDate.Value.Day);
+                        while (timeCounter <= new DateTime(data.ContactEndDate.Value.Year, data.ContactEndDate.Value.Month, data.ContactEndDate.Value.Day))
+                        {
+                            var first = false;
+                            if (data.ContactStartDate.Value.Year == timeCounter.Year && data.ContactStartDate.Value.Month == timeCounter.Month && data.ContactStartDate.Value.Day == timeCounter.Day)
+                            {
+                                first = true;
+                            }
+                            listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+                            timeCounter = timeCounter.AddDays(1);
+                        }
+                    }
+                    else
+                    {
+                        listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+                    }
+
+                }
+                var res = listData.GroupBy(x => x.ContactStartDate.Value.ToString("yyyy-MM-dd")).ToDictionary(a => a.Key, b =>
+                   b.Where(x => x.ContactStartDate.Value.ToShortDateString() == b.Select(f => f.ContactStartDate.Value.ToShortDateString()).FirstOrDefault()).ToArray()
+                );
+
+
+                RenderResponse(context, res);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
+            }
+        }
     }
 }

@@ -216,7 +216,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.UretimPersonel,
             SHRoles.YardimMasaPersonel,
             SHRoles.YardimMasaTalep,
-            SHRoles.YardimMasaYonetim
+            SHRoles.YardimMasaYonetim,
+            SHRoles.YardimMasaMusteri
         };
         public IysInformation IysInformations { get; set; }
         public ICallCenterService CallCenterService { get; set; }

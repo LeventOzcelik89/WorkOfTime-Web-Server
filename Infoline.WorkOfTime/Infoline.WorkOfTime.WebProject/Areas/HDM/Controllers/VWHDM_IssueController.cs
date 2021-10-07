@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View();
         }
 
-        [PageInfo("Sıkça Sorulan Sorular", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel)]
+        [PageInfo("Sıkça Sorulan Sorular", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri)]
         public ActionResult Help()
         {
             var db = new WorkOfTimeDatabase();
@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(model);
         }
 
-        [PageInfo("Konu ve Sorular Metodu", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel)]
+        [PageInfo("Konu ve Sorular Metodu", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

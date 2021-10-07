@@ -27,6 +27,14 @@ namespace System.Web.Mvc
                 {
                     _root.Add(GetGorevYonetimi());
                 }
+                else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaMusteri)))
+                {
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
+                    {
+                        _root.Add(GetCustomerPage());
+                    }
+                    _root.Add(GetYardimDestekYonetimi());
+                }
                 else
                 {
                     _root.Add(GetHomePage());
@@ -87,6 +95,12 @@ namespace System.Web.Mvc
         private Menu GetHomePage()
         {
             var mypage = new Menu("Ana Sayfa", "/Account/Index", "fa fa-home");
+            return mypage;
+        }
+
+        private Menu GetCustomerPage()
+        {
+            var mypage = new Menu("Görev Raporu", "/Customer/Index", "fa fa-wrench");
             return mypage;
         }
 
@@ -357,6 +371,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(new Menu("Lokasyonlar (Ülke/İl/İlçe)", "/UT/VWUT_Location/Index"));
             sistemYonetim.AddChild(new Menu("Firma&Cari Tip Tanımları", "/CMP/CMP_Types/Index"));
             sistemYonetim.AddChild(new Menu("Görev Konusu Tanımları", "/FTM/FTM_TaskSubject/Index"));
+            sistemYonetim.AddChild(new Menu("Görev Yetki Tanımları", "/FTM/VWFTM_TaskAuthority/Index"));
             sistemYonetim.AddChild(new Menu("Sektör Tanımları", "/UT/VWUT_Sector/Index"));
             sistemYonetim.AddChild(new Menu("Banka Tanımları", "/UT/VWUT_Bank/Index"));
             sistemYonetim.AddChild(new Menu("Satış Teklifi Şablonları", "/CMP/CMP_InvoiceDocumentTemplate/Index"));

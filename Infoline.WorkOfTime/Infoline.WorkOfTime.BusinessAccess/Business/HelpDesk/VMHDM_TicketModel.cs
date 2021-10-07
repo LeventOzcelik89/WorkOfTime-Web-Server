@@ -198,6 +198,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (user != null)
                 {
                     var userRoleControl = this.db.GetSH_UserRoleByUserIdRoleId(user.id, new Guid(SHRoles.YardimMasaPersonel));
+
                     if (userRoleControl.Count() == 0)
                     {
                         var newUserRole = new SH_UserRole
@@ -312,6 +313,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var ticket = this.db.GetVWHDM_TicketById(this.id);
             var managerRol = new Guid(SHRoles.YardimMasaYonetim);
             var personelRol = new Guid(SHRoles.YardimMasaPersonel);
+            var customerRol = new Guid(SHRoles.YardimMasaMusteri);
             var talepRol = new Guid(SHRoles.YardimMasaTalep);
 
             switch (type)
@@ -337,7 +339,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
-                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && a.roleid == personelRol).FirstOrDefault();
+                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
 
                         if (isPersonelRole != null)
                         {
@@ -359,7 +361,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
-                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && a.roleid == personelRol).FirstOrDefault();
+                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
 
                         if (isPersonelRole != null)
                         {
@@ -420,7 +422,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
-                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && a.roleid == personelRol).FirstOrDefault();
+                        var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
 
                         if (isPersonelRole != null)
                         {

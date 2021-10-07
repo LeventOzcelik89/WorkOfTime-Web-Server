@@ -596,6 +596,13 @@
                     <li data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Eski Görev Dosyaları">
                         <a data-toggle="tab" href="#oldFiles" aria-expanded="false"><i class="fa fa-file-text text-success fa-2x" aria-hidden="true"></i></a>
                     </li>
+                    @if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
+                    {
+                <li data-href="@Url.Action("Detail","PRD_TitanDeviceActivated", new { area = "FTM"})" data-toggle="tooltip" data-placement="top" title="Cihaz Bilgileri">
+                    <a data-toggle="tab" href="#devices" aria-expanded="false"><i class="fa fa fa-mobile-phone text-success fa-2x" aria-hidden="true"></i></a>
+                </li>
+                    }
+                    
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active" id="Location">
@@ -693,15 +700,20 @@
                          x.Custom().Text("<i data-original-title='Form Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
                  }))
                     </div>
-                    <div class="tab-pane" id="oldFiles" >
+                    <div class="tab-pane" id="oldFiles">
                         <h4><i class="fa fa-file text-success"></i> Eski Görev Dosyaları </h4>
-                                @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "PRD_Product", FileGroup = "Eski Görev Dosyaları"})
-                        
-                       
-                        
-
+                        @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "PRD_Product", FileGroup = "Eski Görev Dosyaları" })
 
                     </div>
+                    @if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
+                    {
+
+                        <div class="tab-pane" id="devices">
+                            <h4><i class="fa fa-mobile-phone text-success"></i> Ürün Detayı </h4>
+                            @Html.Action("_Detail", "PRD_TitanDeviceActivated", new { area = "PRD", InventoryId = Model.id ,Id=""})
+
+                        </div>
+                    }
                 </div>
             </div>
         </section>
@@ -824,6 +836,7 @@
 
     var points = [];
     Actions.Data.forEach(function (item, i) {
+       
         var icon = (item.location == '@Model.location' ? "Marker_SonKonum" : "Guncel_Konum");
         //Harita.style.add(i + "d", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);
         //Harita.style.add(i + "c", "#000", "#000", 1, "/Content/Custom/img/" + icon + ".png", "/Content/Custom/img/" + icon + ".png", 1, 1);

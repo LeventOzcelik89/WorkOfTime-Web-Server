@@ -50,6 +50,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_Inventory>().Where(x => x.productId == productId).Execute().ToArray();
             }
         }
+        public PRD_Inventory GetPRD_InventoryBySerialCode(string serialCode, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_Inventory>().Where(x => x.serialcode == serialCode).Execute().FirstOrDefault();
+            }
+        }
 
         public bool GetPRD_InventoryExistBySerialCode(Guid productId, Guid inventoryId, string serialCode, DbTransaction tran = null)
         {

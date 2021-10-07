@@ -29,5 +29,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public string title { get; set;}
         public Guid? roleId { get; set;}
+        public double? limit { get; set;}
     }
 }

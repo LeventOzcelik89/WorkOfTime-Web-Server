@@ -11,7 +11,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
 {
     public class VWHDM_TicketController : Controller
     {
-        [PageInfo("Yardım Talepleri", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talepleri", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View();
         }
 
-        [PageInfo("Yardım Talepleri Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talepleri Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -76,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return count;
         }
 
-        [PageInfo("Yardım Talebi Detayı", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim, SHRoles.SahaGorevMusteri)]
+        [PageInfo("Yardım Talebi Detayı", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim, SHRoles.SahaGorevMusteri)]
         public ActionResult Detail(Guid id)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -115,7 +115,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(item);
         }
 
-        [PageInfo("Yardım Talebi Oluşturma Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Oluşturma Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
         public ActionResult Insert(VMHDM_TicketModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -135,7 +135,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(item);
         }
 
-        [PageInfo("Yardım Talebi Ekleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Ekleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
         [HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
         public JsonResult Insert(VMHDM_TicketModel item, bool? isPost)
         {
@@ -153,14 +153,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Yardım Talebi Düzenleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Düzenleme Sayfası", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim)]
         public ActionResult Update(Guid id)
         {
             var data = new VMHDM_TicketModel { id = id }.Load();
             return View(data);
         }
 
-        [PageInfo("Yardım Talebi Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim)]
         [HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
         public JsonResult Update(VMHDM_TicketModel item)
         {
@@ -175,7 +175,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Yardım Talebi Değerlendirme Sayfası", SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Değerlendirme Sayfası", SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim)]
         [AllowEveryone]
         public ActionResult Evaluate(Guid id)
         {
@@ -184,7 +184,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
         }
 
         [AllowEveryone]
-        [PageInfo("Yardım Talebi Özel Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Özel Düzenleme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
         [HttpPost, ValidateInput(false)]
         public JsonResult UpdateCustom(VMHDM_TicketModel item, int actionType)
         {
@@ -199,7 +199,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Yardım Talebi Silme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talebi Silme Metodu", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
         [HttpPost]
         public JsonResult Delete(Guid id)
         {

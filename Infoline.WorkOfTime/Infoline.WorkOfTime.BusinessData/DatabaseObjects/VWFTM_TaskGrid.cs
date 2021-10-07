@@ -16,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string description { get; set;}
         public string lastOperationStatus_Title { get; set;}
         public int? lastOperationStatus { get; set;}
+        public int? MemnuniyetAnketiDoldurulmaSayisi { get; set;}
         public string openAddressLocationId_Title { get; set;}
         public Guid? assignUserId { get; set;}
         public DateTime? lastOperationDate { get; set;}

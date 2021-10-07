@@ -17,7 +17,8 @@
             $('[data-id="approve"]').removeClass("hide");
 
             if (res.direction == '@((int)EnumPA_TransactionDirection.Cikis)' || res.direction == '2' || res.direction == '3') {
-                $('[data-id="approve"]').addClass("hide");
+				$('[data-id="approve"]').addClass("hide");
+				$('[data-id="approveDataId"]').addClass("hide");
             }
 
             var grid = $('#VWPA_Transaction').data("kendoGrid");
@@ -82,33 +83,33 @@
             <div class="ibox-content no-padding">
             
                 @(Html.Akilli()
-                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
-                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
-                        .Filter(a => a.type == (int)EnumPA_TransactionType.Masraf &&
-                        a.confirmationUserIds.Contains(userStatus.user.id.ToString()) && a.rejectedUserIds == System.UIHelper.String.Null && a.hasReject != 1 &&
-                        (a.confirmationStatus == (Int16)EnumPA_TransactionConfirmationStatus.Onay || a.confirmationStatus == System.UIHelper.Int32.Null)
-                        )
-                        .PageSize(25))
-                        .Columns(x =>
-                        {
-                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionExpense',data)#").Width(600);
-                            x.Bound(y => y.createdby_Title).Title("Talep Eden").Width(150).Hidden(false);
-                            x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130);
-                            x.Bound(y => y.amount).Title("Miktar").Width(130);
-                            x.Bound(y => y.currencyId_Title).Title("Para Birimi").Width(130);
-                            x.Bound(y => y.created).Title("Talep Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
-                            x.Bound(y => y.progressDate).Title("Masraf Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
-                            x.Bound(y => y.description).Title("Açıklama").Width(130);
-                        })
-                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                        .Scrollable(s => s.Height(650))
-                        .ToolBar(x =>
-                        {
-                            x.Custom().Text("<i data-original-title='Masraf Onayla-Reddet' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-id", "approve" }, { "data-default", "" }, { "data-method", "GET" } }).Url(Url.Action("UpdateExpense", "VWPA_Transaction", new { area = "PA" }));
-                            x.Custom().Text("<i data-original-title='Masraf Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
+						.Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
+						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
+						.Filter(a => a.type == (int)EnumPA_TransactionType.Masraf &&
+						a.confirmationUserIds.Contains(userStatus.user.id.ToString()) && a.rejectedUserIds == System.UIHelper.String.Null && a.hasReject != 1 &&
+						(a.confirmationStatus == (Int16)EnumPA_TransactionConfirmationStatus.Onay || a.confirmationStatus == System.UIHelper.Int32.Null)
+						)
+						.PageSize(25))
+						.Columns(x =>
+						{
+							x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWPA_TransactionExpense',data)#").Width(600);
+							x.Bound(y => y.createdby_Title).Title("Talep Eden").Width(150).Hidden(false);
+							x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130);
+							x.Bound(y => y.amount).Title("Miktar").Width(130);
+							x.Bound(y => y.currencyId_Title).Title("Para Birimi").Width(130);
+							x.Bound(y => y.created).Title("Talep Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+							x.Bound(y => y.progressDate).Title("Masraf Tarihi").Width(130).Format(Extensions.DateFormatShort(true));
+							x.Bound(y => y.description).Title("Açıklama").Width(130);
+						})
+						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.Scrollable(s => s.Height(650))
+						.ToolBar(x =>
+						{
+							x.Custom().Text("<i data-original-title='Masraf Onayla-Reddet' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-id", "approve" }, { "data-default", "" }, { "data-method", "GET" } }).Url(Url.Action("UpdateExpense", "VWPA_Transaction", new { area = "PA" }));
+							x.Custom().Text("<i data-original-title='Masraf Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
 
-                            x.Custom().Text("<i data-original-title='Tümünü Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { {"data-show","always" }, { "data-selector", "approveData" }, { "data-ask", "Masrafları onaylamak istiyor musunuz?" } }).Url(Url.Action("AllApprovalTrans", "VWPA_Transaction", new { area = "PA" }));
-                        }))
+							x.Custom().Text("<i data-original-title='Tümünü Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { {"data-show","single" }, { "data-selector", "approveData" }, {"data-id","approveDataId" }, { "data-ask", "Masrafları onaylamak istiyor musunuz?" } }).Url(Url.Action("AllApprovalTrans", "VWPA_Transaction", new { area = "PA" }));
+						}))
             </div>
 		</div>
 	</div>

@@ -67,6 +67,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			{
 				condition = UpdateQuery(condition, userStatus);
 			}
+			condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus,2);
 			var data = db.GetVWCMP_Company(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
