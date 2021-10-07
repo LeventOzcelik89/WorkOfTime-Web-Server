@@ -104,27 +104,38 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         private string Host { get { return "https://titantest.infoline-tr.com/api/v2"; } }
         private ResultStatus SendRequest<T>(string uri, string query = null)
         {
-            ServicePointManager.Expect100Continue = true;
-            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-            var request = WebRequest.Create(Host + uri);
-            request.ContentType = "application/json";
-            request.Method = "GET";
-            var type = request.GetType();
-            var currentMethod = type.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
-            var methodType = currentMethod.GetType();
-            methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
-            using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+            try
             {
-                streamWriter.Write(query);
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                var request = WebRequest.Create(Host + uri);
+                request.ContentType = "application/json";
+                request.Method = "GET";
+                var type = request.GetType();
+                var currentMethod = type.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
+                var methodType = currentMethod.GetType();
+                methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
+                using (var streamWriter = new StreamWriter(request.GetRequestStream()))
+                {
+                    streamWriter.Write(query);
+                }
+                var response = (HttpWebResponse)request.GetResponse();
+                using (var reader = new System.IO.StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
+                {
+                    return new ResultStatus
+                    {
+                        result = true,
+                        message = "istek başarılı",
+                        objects = JsonConvert.DeserializeObject<T>(reader.ReadToEnd())
+                    };
+                }
             }
-            var response = (HttpWebResponse)request.GetResponse();
-            using (var reader = new System.IO.StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
+            catch (Exception ex)
             {
                 return new ResultStatus
                 {
-                    result = true,
-                    message = "istek başarılı",
-                    objects = JsonConvert.DeserializeObject<T>(reader.ReadToEnd())
+                    result = false,
+                    message = ex.Message
                 };
             }
         }
