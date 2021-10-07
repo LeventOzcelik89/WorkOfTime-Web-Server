@@ -1,7 +1,9 @@
 ﻿@{
     ViewBag.Title = "Titan Cihaz Listesi";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var data = (Infoline.WorkOfTime.BusinessAccess.Business.Product.IndexData)ViewBag.data;
 }
+
 <script>
     function refresh() {
         GetDataFromUrl("/PRD/PRD_TitanDeviceActivated/Insert", {}, function (data) {
@@ -27,6 +29,44 @@
         onGridChange();
     });
 </script>
+<div class="row">
+    <div class="col-sm-3">
+        <div class="widget yellow-bg p-lg text-center">
+            <i class="fa fa-mobile-phone fa-3x"></i>
+            <h1 class="m-xs">@data.All</h1>
+            <h3 class="font-bold no-margins">
+                Toplam Cihaz Sayısı
+            </h3>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget blue-bg p-lg text-center">
+            <i class="fa fa-calendar fa-3x"></i>
+            <h1 class="m-xs">@data.Today</h1>
+            <h3 class="font-bold no-margins">
+                Bugün Aktif Olan Cihaz Sayısı
+            </h3>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget lazur-bg p-lg text-center">
+            <i class="fa fa-level-up fa-3x"></i>
+            <h1 class="m-xs">@data.Seven</h1>
+            <h3 class="font-bold no-margins">
+                Son  7 Günde Aktif Olan Cihaz Sayısı
+            </h3>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget navy-bg p-lg text-center">
+            <i class="fa fa-arrow-up fa-3x"></i>
+            <h1 class="m-xs">@data.Month</h1>
+            <h3 class="font-bold no-margins">
+                Son  30 Günde Aktif Olan Cihaz Sayısı
+            </h3>
+        </div>
+    </div>
+</div>
 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TitanDeviceActivated>("PRD_TitanDeviceActivated")
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "PRD_TitanDeviceActivated", new { area = "PRD" })).PageSize(25))

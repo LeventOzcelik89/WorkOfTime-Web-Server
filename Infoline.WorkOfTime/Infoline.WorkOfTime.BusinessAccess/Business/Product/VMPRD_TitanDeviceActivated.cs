@@ -12,6 +12,13 @@ using System.Threading.Tasks;
 using System.Web;
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
+    public class IndexData
+    {
+        public int All { get; set; }
+        public int Today { get; set; }
+        public int Seven { get; set; }
+        public int Month { get; set; }
+    }
     public class VMPRD_TitanDeviceActivated : PRD_TitanDeviceActivated
     {
         private TitanServices TitanServices = new TitanServices();
@@ -34,6 +41,23 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 return new VMPRD_TitanDeviceActivated().B_EntityDataCopyForMaterial(db.GetPRD_TitanDeviceActivatedById(this.id) ?? this);
             }
             return this;
+        }
+        public IndexData GetIndexData()
+        {
+            this.db = this.db ?? new WorkOfTimeDatabase();
+            var getAllCount = db.GetPRD_TitanDeviceActivatedCount();
+            var getTodayCount = db.GetPRD_TitanDeviceActivatedTodayCount();
+            var getSevenDayCount = db.GetPRD_TitanDeviceActivatedSevenDaysCount();
+            var getMonthCount = db.GetPRD_TitanDeviceActivatedThirtyDaysCount();
+            return
+                new IndexData
+                {
+                    All = getAllCount,
+                    Today = getTodayCount,
+                    Seven = getSevenDayCount,
+                    Month = getMonthCount
+                };
+            
         }
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
