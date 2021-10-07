@@ -184,7 +184,7 @@
                     page.isNew = false;
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
+                   
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
@@ -224,6 +224,16 @@
                             .off("add removetag invalid")
                             .on("add removetag", function (e) {
                                 quantity.value(serialCodes.val().split("value").length - 1);
+                                $('[data-item="serialCodes"]').each(function (i, item) {
+                                    var it = $(item).data("tagify");
+                                    var values = it.value
+                                    if (values.length > 0) {
+                                        var productSerialCode = $("#ProductSerialCodes").data("tagify");
+                                        productSerialCode.addTags(values, true, true)
+                                    }
+
+
+                                });
                             })
                             .on("dropdown:show", function (e) {
                             });
@@ -257,8 +267,6 @@
             $("#infoBox").hide();
             page.events.removeAllRows();
         }
-    }).on("change", '#amount', function () {
-        
     })
       .on('before:submit', 'form', function (e) {
         $('[data-item="serialCodes"]').each(function (c) {
