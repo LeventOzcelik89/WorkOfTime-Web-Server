@@ -39,12 +39,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string Serial { get; set; }
         public string IMEI1 { get; set; }
         public string IMEI2 { get; set; }
-        public DeviceOperatingSystem OperatingSystem { get; set; }
+        public DeviceOperatingSystem OperatingSystem { get; set; } = new DeviceOperatingSystem();
         public object HardwareDetail { get; set; }
         public List<object> GsmCarriers { get; set; }
-        public DeviceLastUsageHistory LastUsageHistory { get; set; }
-        public DeviceLastLocation LastLocation { get; set; }
-        public List<DeviceApplication> Applications { get; set; }
+        public DeviceLastUsageHistory LastUsageHistory { get; set; }=new DeviceLastUsageHistory();
+        public DeviceLastLocation LastLocation { get; set; } = new DeviceLastLocation();
+        public List<DeviceApplication> Applications { get; set; } = new List<DeviceApplication>();
         public DateTime Created { get; set; }
         public object Modified { get; set; }
         public string DeviceId { get; set; }
@@ -55,8 +55,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public object Region { get; set; }
         public object County { get; set; }
         public string LocationId { get; set; }
-        public string Longitude { get; set; }
-        public string Latitude { get; set; }
+        public string Longitude { get; set; } = "0";
+        public string Latitude { get; set; } = "0";
         public double Altitude { get; set; }
         public DateTime Date { get; set; }
         public DateTime Created { get; set; }
@@ -71,7 +71,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public double Storage { get; set; }
         public double CPU { get; set; }
         public double RAM { get; set; }
-        public bool Broken { get; set; }
+        public bool Broken { get; set; } = false;
         public bool ForcedBreak { get; set; }
         public DateTime Date { get; set; }
         public DateTime Created { get; set; }
