@@ -15,7 +15,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         ResultStatus CompanySave(AdClientFind[] param);
         ResultStatus CompanyInsert(AdClientFind param);
         ResultStatus CompanyUpdate(AdClientFind param);
-        ResultStatus ProductValidator(AdShipFindList param, PRD_Product product);
+        ResultStatus ProductValidator(AdItemsFindList param, PRD_Product product);
         ResultStatus ProductSave(AdItemsFindList[] param);
         ResultStatus ProductInsert(AdItemsFindList param);
         ResultStatus ProductUpdate(AdItemsFindList param);

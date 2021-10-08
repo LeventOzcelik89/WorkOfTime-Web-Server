@@ -57,6 +57,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var insertCompany = new CMP_Company
             {
                 id = Guid.NewGuid(),
+                createdby = Guid.Empty,
                 created = DateTime.Now,
                 openAddress = param.Adres,
                 code = param.CariKodu,
@@ -86,6 +87,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 checkCode.taxNumber = param.VergiNo;
                 checkCode.commercialTitle = param.CariUnvan;
                 checkCode.changed = DateTime.Now;
+                checkCode.changedby = Guid.Empty;
                 result &= db.UpdateCMP_Company(checkCode);
             }
             return result;
@@ -129,11 +131,96 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         }
         public ResultStatus ProductInsert(AdItemsFindList param)
         {
-            throw new NotImplementedException();
+            var db = new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+
+            var insertUnit = new UT_Unit
+            {
+                id = Guid.NewGuid(),
+                createdby = Guid.Empty,
+                created = DateTime.Now,
+                name = param.Birim,
+            };
+            var insertCategory = new PRD_Category
+            {
+                id = Guid.NewGuid(),
+                createdby = Guid.Empty,
+                created = DateTime.Now,
+                name = param.Kategori,
+            };
+            var insertBrand = new PRD_Brand
+            {
+                id = Guid.NewGuid(),
+                createdby = Guid.Empty,
+                created = DateTime.Now,
+                name = param.MarkaAciklamasi,
+            };
+            var insertProduct = new PRD_Product
+            {
+                id = Guid.NewGuid(),
+                name = param.UrunAciklamasi1,
+                description = param.UrunAciklamasi2,
+                code = param.UrunKodu,
+                categoryId = insertCategory != null ? insertCategory.id : (Guid?)null,
+                brandId = insertBrand != null ? insertBrand.id : (Guid?)null,
+                unitId = insertUnit != null ? insertUnit.id : (Guid?)null,
+                created = DateTime.Now,
+                createdby = Guid.Empty,
+            };
+            var insertProductPrice = new PRD_ProductPrice
+            {
+                created = DateTime.Now,
+                createdby = Guid.Empty,
+                id = Guid.NewGuid(),
+                price = param.BirimMaliyet,
+                productId = insertProduct != null ? insertProduct.id : (Guid?)null,
+            };
+            result &= db.InsertUT_Unit(insertUnit);
+            result &= db.InsertPRD_Brand(insertBrand);
+            result &= db.InsertPRD_Category(insertCategory);
+            result &= db.InsertPRD_Product(insertProduct);
+            result &= db.InsertPRD_ProductPrice(insertProductPrice);
+            return result;
         }
         public ResultStatus ProductUpdate(AdItemsFindList param)
         {
-            throw new NotImplementedException();
+            var db = new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var checkCode = db.GetPRD_ProductByCode(param.UrunKodu);
+            var validator = ProductValidator(param, checkCode);
+            if (validator.result)
+            {
+                var updateUnit = new UT_Unit
+                {
+                    id = Guid.NewGuid(),
+                    changedby = Guid.Empty,
+                    changed = DateTime.Now,
+                    name = param.Birim,
+                };
+                var updateCategory = new PRD_Category
+                {
+                    id = Guid.NewGuid(),
+                    changedby = Guid.Empty,
+                    changed = DateTime.Now,
+                    name = param.Kategori,
+                };
+                var updateBrand = new PRD_Brand
+                {
+                    id = Guid.NewGuid(),
+                    changedby = Guid.Empty,
+                    changed = DateTime.Now,
+                    name = param.MarkaAciklamasi,
+                };
+                checkCode.brandId = updateBrand != null ? updateBrand.id : (Guid?)null;
+                checkCode.categoryId = updateCategory != null ? updateCategory.id : (Guid?)null;
+                checkCode.unitId = updateUnit != null ? updateUnit.id : (Guid?)null;
+                checkCode.name = param.UrunAciklamasi1;
+                checkCode.description = param.UrunAciklamasi2;
+                checkCode.code = param.UrunKodu;
+                checkCode.changed = DateTime.Now;
+                checkCode.changedby = Guid.Empty;
+            }
+            return result;
         }
         public ResultStatus StorageSave(AdShipFindList[] param)
         {
@@ -181,6 +268,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var insertStorage = new CMP_Storage
             {
                 id = Guid.NewGuid(),
+                createdby = Guid.Empty,
                 created = DateTime.Now,
                 address = param.SevkAdresi,
                 code = param.CariKodu,
@@ -202,6 +290,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             if (validator.result)
             {
                 checkCode.changed = DateTime.Now;
+                checkCode.changedby = Guid.Empty;
                 checkCode.name = param.CariUnvan;
                 checkCode.address = param.SevkAdresi;
                 checkCode.code = param.CariKodu;
@@ -227,27 +316,27 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         public ResultStatus StorageValidator(AdShipFindList param, CMP_Storage storage)
         {
             var result = new ResultStatus { result = true };
-            //if (company.email == param.SevkEposta && company.address == param.SevkAdresi && company.name == param.CariUnvan && company.phone == param.SevkTelefon)
-            //{
-            //    return new ResultStatus
-            //    {
-            //        result = false,
-            //        message = "Sistem Güncel",
-            //    };
-            //}
+            if (storage.email == param.SevkEposta && storage.address == param.SevkAdresi && storage.name == param.CariUnvan && storage.phone == param.SevkTelefon)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Sistem Güncel",
+                };
+            }
             return result;
         }
-        public ResultStatus ProductValidator(AdShipFindList param, PRD_Product product)
+        public ResultStatus ProductValidator(AdItemsFindList param, PRD_Product product)
         {
             var result = new ResultStatus { result = true };
-            //if (company.email == param.SevkEposta && company.address == param.SevkAdresi && company.name == param.CariUnvan && company.phone == param.SevkTelefon)
-            //{
-            //    return new ResultStatus
-            //    {
-            //        result = false,
-            //        message = "Sistem Güncel",
-            //    };
-            //}
+            if (product.name == param.UrunAciklamasi1 && product.description == param.UrunAciklamasi2)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Sistem Güncel",
+                };
+            }
             return result;
         }
 
