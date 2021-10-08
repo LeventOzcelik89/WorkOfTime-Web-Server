@@ -23,13 +23,13 @@ namespace Infoline.OmixEntegrationApp
 
             var taskProcessLogoEntegration = new Task(() =>
             {
-                new ProcessLogoEntegration().Run();
+               new ProcessLogoEntegration().Run();
             });
             Tasks.Add(taskProcessLogoEntegration);
 
             var taskProcessTitanEntegration = new Task(() =>
             {
-                new ProcessTitanEntegration().RunAsync();
+                _ = new ProcessTitanEntegration().RunAsync();
             });
             Tasks.Add(taskProcessTitanEntegration);
 

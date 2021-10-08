@@ -4,6 +4,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Configuration;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,11 +14,9 @@ using System.Reflection;
 using System.Text;
 namespace Infoline.WorkOfTime.BusinessAccess.Models
 {
-    
     public class TitanServices
     {
-        private string Host { get { return "https://titantest.infoline-tr.com/api/v2"; } }
-
+        public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
         private ResultStatus SendRequest<T>(string uri, string query = null)
         {
             try
@@ -36,7 +35,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                     streamWriter.Write(query);
                 }
                 var response = (HttpWebResponse)request.GetResponse();
-                using (var reader = new System.IO.StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
+                using (var reader = new StreamReader(response.GetResponseStream(), Encoding.ASCII))
                 {
                     return new ResultStatus
                     {
@@ -57,15 +56,15 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         }
         public ResultStatus GetAllDevices()
         {
-            return SendRequest<DeviceResultList>("/Devices/getlist");
+            return SendRequest<DeviceResultList>(ConfigurationManager.AppSettings["Getlist"].ToString());
         }
         public ResultStatus GetDeviceById(Guid id)
         {
-            return SendRequest<DeviceResult>("/Devices/getbyid?id=" + id);
+            return SendRequest<DeviceResult>(ConfigurationManager.AppSettings["Getbyid"].ToString() + id);
         }
         public ResultStatus GetDeviceInformation(Guid id)
         {
-            return SendRequest<DeviceResult>("/Devices/getdeviceinformation?id=" + id);
+            return SendRequest<DeviceResult>(ConfigurationManager.AppSettings["Getdeviceinformation"].ToString() + id);
         }
         public ResultStatus GetDeviceActivationInformations()
         {
@@ -75,21 +74,21 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                 Start = DateTime.Now.AddYears(-20),
                 End = DateTime.Now
             });
-            return SendRequest<DeviceResultList>("/Devices/GetDeviceActivationInformation", query);
+            return SendRequest<DeviceResultList>(ConfigurationManager.AppSettings["GetDeviceActivationInformation"].ToString(), query);
         }
     }
     public class DeviceApplication
     {
         public string ApplicationId { get; set; }
-        public object UrlScheme { get; set; }
+        public string UrlScheme { get; set; }
         public string Name { get; set; }
         public string PackageName { get; set; }
-        public object UniqueName { get; set; }
+        public string UniqueName { get; set; }
         public string Version { get; set; }
         public string ActivityName { get; set; }
         public bool IsSystemApp { get; set; }
         public DateTime Created { get; set; }
-        public object Modified { get; set; }
+        public DateTime Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceData
@@ -105,13 +104,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string IMEI1 { get; set; }
         public string IMEI2 { get; set; }
         public DeviceOperatingSystem OperatingSystem { get; set; } = new DeviceOperatingSystem();
-        public object HardwareDetail { get; set; }
+        public string HardwareDetail { get; set; }
         public List<object> GsmCarriers { get; set; }
         public DeviceLastUsageHistory LastUsageHistory { get; set; } = new DeviceLastUsageHistory();
         public DeviceLastLocation LastLocation { get; set; } = new DeviceLastLocation();
         public List<DeviceApplication> Applications { get; set; } = new List<DeviceApplication>();
         public DateTime Created { get; set; }
-        public object Modified { get; set; }
+        public DateTime Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceLastLocation
@@ -140,7 +139,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public bool ForcedBreak { get; set; }
         public DateTime Date { get; set; }
         public DateTime Created { get; set; }
-        public object Modified { get; set; }
+        public DateTime Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceOperatingSystem
@@ -149,7 +148,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string Version { get; set; }
         public string BuildNumber { get; set; }
         public DateTime Created { get; set; }
-        public object Modified { get; set; }
+        public DateTime Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceResult
