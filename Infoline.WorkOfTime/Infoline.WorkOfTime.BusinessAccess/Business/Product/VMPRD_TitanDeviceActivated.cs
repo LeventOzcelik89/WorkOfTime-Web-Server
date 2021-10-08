@@ -105,8 +105,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 DeviceId = new Guid(x.DeviceId),
                 IMEI1 = x.IMEI1,
                 IMEI2 = x.IMEI2,
-                InventoryId = db.GetPRD_InventoryBySerialCode(x.Serial)?.id,
-                ProductId = db.GetPRD_InventoryBySerialCode(x.Serial)?.productId,
+                InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial,x.IMEI1,x.IMEI2)?.id,
+                ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial,x.IMEI1,x.IMEI2)?.productId,
                 SerialNumber = x.Serial
             }).ToList();
             rs &= db.BulkInsertPRD_TitanDeviceActivated(item, trans);
