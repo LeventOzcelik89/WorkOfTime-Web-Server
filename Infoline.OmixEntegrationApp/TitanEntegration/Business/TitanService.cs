@@ -19,7 +19,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
     {
         public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
         public WorkOfTimeDatabase Db { get; set; }
-        public DbTransaction Trans { get; set; }
+       
 
         public  ResultStatus Sender<T>(string uri, string query = null)
         {
@@ -61,13 +61,15 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
         }
         public void SaveAll()
         {
-            Db = Db??new WorkOfTimeDatabase();
-            Trans= Trans?? Db.BeginTransaction();
+
+            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            Db = tenant.GetDatabase();
             var getAllDevices =  GetAll();
             var getlAllDevicesList = (DeviceResultList)getAllDevices.objects;
             var databaseDevices= Db.GetPRD_TitanDeviceActivated().ToList();
             var savingList=getlAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1)|| !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2)|| !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
-            Db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x=>new PRD_TitanDeviceActivated {
+            var resut=Db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x=>new PRD_TitanDeviceActivated {
                 CreatedOfTitan = x.Created,
                 DeviceId = new Guid(x.DeviceId),
                 IMEI1 = x.IMEI1,

@@ -29,7 +29,7 @@ namespace Infoline.OmixEntegrationApp
 
             var taskProcessTitanEntegration = new Task(() =>
             {
-                new ProcessTitanEntegration().Run();
+                new ProcessTitanEntegration().RunAsync();
             });
             Tasks.Add(taskProcessTitanEntegration);
 
