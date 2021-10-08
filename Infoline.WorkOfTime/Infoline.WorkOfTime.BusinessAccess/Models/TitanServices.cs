@@ -13,95 +13,11 @@ using System.Reflection;
 using System.Text;
 namespace Infoline.WorkOfTime.BusinessAccess.Models
 {
-    public class DeviceApplication
-    {
-        public string ApplicationId { get; set; }
-        public object UrlScheme { get; set; }
-        public string Name { get; set; }
-        public string PackageName { get; set; }
-        public object UniqueName { get; set; }
-        public string Version { get; set; }
-        public string ActivityName { get; set; }
-        public bool IsSystemApp { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-    public class DeviceData
-    {
-        public string Board { get; set; }
-        public string Brand { get; set; }
-        public string DeviceName { get; set; }
-        public string Hardware { get; set; }
-        public string Manufacturer { get; set; }
-        public string Model { get; set; }
-        public string Product { get; set; }
-        public string Serial { get; set; }
-        public string IMEI1 { get; set; }
-        public string IMEI2 { get; set; }
-        public DeviceOperatingSystem OperatingSystem { get; set; } = new DeviceOperatingSystem();
-        public object HardwareDetail { get; set; }
-        public List<object> GsmCarriers { get; set; }
-        public DeviceLastUsageHistory LastUsageHistory { get; set; }=new DeviceLastUsageHistory();
-        public DeviceLastLocation LastLocation { get; set; } = new DeviceLastLocation();
-        public List<DeviceApplication> Applications { get; set; } = new List<DeviceApplication>();
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-    public class DeviceLastLocation
-    {
-        public object Country { get; set; }
-        public object Region { get; set; }
-        public object County { get; set; }
-        public string LocationId { get; set; }
-        public string Longitude { get; set; } = "0";
-        public string Latitude { get; set; } = "0";
-        public double Altitude { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-        public IGeometry Location { get; set; }
-    }
-    public class DeviceLastUsageHistory
-    {
-        public string UsageHistoryId { get; set; }
-        public double Battery { get; set; }
-        public double Storage { get; set; }
-        public double CPU { get; set; }
-        public double RAM { get; set; }
-        public bool Broken { get; set; } = false;
-        public bool ForcedBreak { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-    public class DeviceOperatingSystem
-    {
-        public string OperatingSystemId { get; set; }
-        public string Version { get; set; }
-        public string BuildNumber { get; set; }
-        public DateTime Created { get; set; }
-        public object Modified { get; set; }
-        public string DeviceId { get; set; }
-    }
-    public class DeviceResult
-    {
-        public DeviceData Data { get; set; }
-        public bool Success { get; set; }
-        public List<string> Messages { get; set; }
-    }
-    public class DeviceResultList
-    {
-        public List<DeviceData> Data { get; set; }
-        public bool Success { get; set; }
-        public List<string> Messages { get; set; }
-    }
+    
     public class TitanServices
     {
         private string Host { get { return "https://titantest.infoline-tr.com/api/v2"; } }
+
         private ResultStatus SendRequest<T>(string uri, string query = null)
         {
             try
@@ -161,5 +77,91 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
             });
             return SendRequest<DeviceResultList>("/Devices/GetDeviceActivationInformation", query);
         }
+    }
+    public class DeviceApplication
+    {
+        public string ApplicationId { get; set; }
+        public object UrlScheme { get; set; }
+        public string Name { get; set; }
+        public string PackageName { get; set; }
+        public object UniqueName { get; set; }
+        public string Version { get; set; }
+        public string ActivityName { get; set; }
+        public bool IsSystemApp { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceData
+    {
+        public string Board { get; set; }
+        public string Brand { get; set; }
+        public string DeviceName { get; set; }
+        public string Hardware { get; set; }
+        public string Manufacturer { get; set; }
+        public string Model { get; set; }
+        public string Product { get; set; }
+        public string Serial { get; set; }
+        public string IMEI1 { get; set; }
+        public string IMEI2 { get; set; }
+        public DeviceOperatingSystem OperatingSystem { get; set; } = new DeviceOperatingSystem();
+        public object HardwareDetail { get; set; }
+        public List<object> GsmCarriers { get; set; }
+        public DeviceLastUsageHistory LastUsageHistory { get; set; } = new DeviceLastUsageHistory();
+        public DeviceLastLocation LastLocation { get; set; } = new DeviceLastLocation();
+        public List<DeviceApplication> Applications { get; set; } = new List<DeviceApplication>();
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceLastLocation
+    {
+        public object Country { get; set; }
+        public object Region { get; set; }
+        public object County { get; set; }
+        public string LocationId { get; set; }
+        public string Longitude { get; set; } = "0";
+        public string Latitude { get; set; } = "0";
+        public double Altitude { get; set; }
+        public DateTime Date { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+        public IGeometry Location { get; set; }
+    }
+    public class DeviceLastUsageHistory
+    {
+        public string UsageHistoryId { get; set; }
+        public double Battery { get; set; }
+        public double Storage { get; set; }
+        public double CPU { get; set; }
+        public double RAM { get; set; }
+        public bool Broken { get; set; } = false;
+        public bool ForcedBreak { get; set; }
+        public DateTime Date { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceOperatingSystem
+    {
+        public string OperatingSystemId { get; set; }
+        public string Version { get; set; }
+        public string BuildNumber { get; set; }
+        public DateTime Created { get; set; }
+        public object Modified { get; set; }
+        public string DeviceId { get; set; }
+    }
+    public class DeviceResult
+    {
+        public DeviceData Data { get; set; }
+        public bool Success { get; set; }
+        public List<string> Messages { get; set; }
+    }
+    public class DeviceResultList
+    {
+        public List<DeviceData> Data { get; set; }
+        public bool Success { get; set; }
+        public List<string> Messages { get; set; }
     }
 }

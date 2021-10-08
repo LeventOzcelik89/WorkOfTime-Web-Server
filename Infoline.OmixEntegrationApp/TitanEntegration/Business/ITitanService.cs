@@ -10,8 +10,6 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
     public interface ITitanService
     {
-        WorkOfTimeDatabase Db { get; set; }
-       
         string Host { get; }
         void SaveAll();
         ResultStatus GetAll();

@@ -22,9 +22,6 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration
                 TitanService.SaveAll();
                 await Task.Delay(new TimeSpan(1,0,0));
             }
-          
-            
-
         }
 
         public void Dispose()
