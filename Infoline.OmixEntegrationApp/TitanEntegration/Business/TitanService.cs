@@ -11,12 +11,13 @@ using System.Threading.Tasks;
 using System.Linq;
 using Infoline.WorkOfTime.BusinessData;
 using System.Data.Common;
+using System.Configuration;
 
 namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
     public class TitanService : ITitanService
     {
-        public string Host { get => "https://titantest.infoline-tr.com/api/v2"; }
+        public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
         public WorkOfTimeDatabase Db { get; set; }
         public DbTransaction Trans { get; set; }
 
