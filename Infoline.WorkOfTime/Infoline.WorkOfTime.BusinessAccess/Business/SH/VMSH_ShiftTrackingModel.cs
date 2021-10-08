@@ -546,6 +546,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                         else
                         {
+                            breakHoursStringValue = "-";
                             lateArrivedString = "Tatil Günü";
                             earlyLeaveString = "Tatil Günü";
                         }
@@ -743,8 +744,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             continue;
                         }
 
-                        //workingMinutes -= todayPermitMinutes;
-                        var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
+                        var breakMinutes = 0.0;
+                        //tatil günü değilse mola ekle
+                        if (!(morningStartTime.TotalMinutes == 0 && morningEndTime.TotalMinutes == 0 && eveningStartTime.TotalMinutes == 0 && eveningEndTime.TotalMinutes == 0))
+                        {
+                            breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
+                        }
+
 
                         var lateArrived = (new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second) - dayWorkHour.allowTimes[0].Start).TotalMinutes;
                         lateArrived = lateArrived > 0 ? lateArrived : 0.0;
@@ -787,6 +793,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                     ts = TimeSpan.FromMinutes(totalLateArrivedMinutes);
                     var totalLateArrivedMinutesStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika geç gelmiştir.";
+
 
                     listData.Add(new VMSH_ShiftTrackingReport
                     {

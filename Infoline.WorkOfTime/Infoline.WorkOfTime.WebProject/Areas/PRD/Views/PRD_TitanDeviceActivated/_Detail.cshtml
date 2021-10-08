@@ -1,7 +1,17 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.Business.Product.VMPRD_TitanDeviceActivated
 @using Infoline.WorkOfTime.BusinessAccess.Models
 @{
-    var DeviceDetail = (DeviceResult)Model.GetDeviceInformation(new Guid("481e124f-1898-4862-88bc-40e4226c47c2")).objects;
+    var DeviceDetail = new DeviceResult();
+    if (Model.DeviceId.HasValue == true)
+    {
+        DeviceDetail = (DeviceResult)Model.GetDeviceInformation(Model.DeviceId.Value).objects;
+        DeviceDetail = (DeviceResult)Model.GetDeviceInformation(Model.DeviceId.Value).objects;
+    }
+    else
+    {
+        DeviceDetail = null;
+    }
+
     ViewBag.Title = "Ürün Detayı";
     Layout = null;
 }
@@ -23,6 +33,21 @@
         position: sticky;
         top: 0;
     }
+
+    .responsive {
+        width: 100%;
+        height: auto;
+    }
+
+    .dl-horizontal dt {
+        width: 130px !important;
+    }
+
+    @@media (min-width: 768px) {
+        .dl-horizontal dd {
+            margin-left: 150px!important;
+        }
+    }
 </style>
 <script>
     $(document).on("keyup", "#applicationInput", function () {
@@ -42,117 +67,188 @@
     });
 </script>
 <div class="row">
-    <div class="col-sm-4">
-        <fieldset>
-            <legend>Temel Cihaz Bilgileri</legend>
-            <dl class="dl-horizontal">
-                <dt>Cihaz Adı</dt>
-                <dd> @DeviceDetail.Data.DeviceName </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Üretici</dt>
-                <dd> @DeviceDetail.Data.Manufacturer </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Marka</dt>
-                <dd> @DeviceDetail.Data.Brand </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Seri Numarası</dt>
-                <dd> @DeviceDetail.Data.Serial </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Donanım</dt>
-                <dd>@DeviceDetail.Data.Hardware</dd>
-            </dl>
-        </fieldset>
-    </div>
-    <div class="col-sm-4">
-        <fieldset>
-            <legend>İşletim Sistemi Bilgileri</legend>
-            <dl class="dl-horizontal">
-                <dt>İşletim Sistemi Kimliği</dt>
-                <dd> @DeviceDetail.Data.OperatingSystem.OperatingSystemId </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Versiyon</dt>
-                <dd> @DeviceDetail.Data.OperatingSystem.Version </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Üretim Numarası</dt>
-                <dd class=""> @DeviceDetail.Data.OperatingSystem.BuildNumber </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Açılma Tarihi</dt>
-                <dd> @DeviceDetail.Data.OperatingSystem.Created</dd>
-            </dl>
-        </fieldset>
-    </div>
-    <div class="col-sm-4">
-        <fieldset>
-            <legend>Son Kullanım Bilgileri</legend>
-            <dl class="dl-horizontal">
-                <dt>Batarya</dt>
-                <dd> @DeviceDetail.Data.LastUsageHistory.Battery %</dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Depolama</dt>
-                <dd> @DeviceDetail.Data.LastUsageHistory.Storage % </dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>CPU Kullanımı</dt>
-                <dd class=""> @DeviceDetail.Data.LastUsageHistory.CPU %</dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Ram Kullanımı</dt>
-                <dd class=""> @DeviceDetail.Data.LastUsageHistory.RAM %</dd>
-            </dl>
-            <dl class="dl-horizontal">
-                <dt>Kırılma Durumu</dt>
-                <dd class=""> @(DeviceDetail.Data.LastUsageHistory.Broken==true?"Evet":"Hayır")</dd>
-            </dl>
-        </fieldset>
-    </div>
-    <div class="col-sm-12">
-        <fieldset>
-            <legend>Cihazın Son Konumu</legend>
-            @{
-                var point = "POINT(" + DeviceDetail.Data.LastLocation.Longitude + " " + DeviceDetail.Data.LastLocation.Latitude + ")";
-                Model.Location = new NetTopologySuite.IO.WKTReader().Read(point);
-            }
-            @Html.Akilli().MapInputFor(x => x.Location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker.png").ZoomLevel(16).Navigation(false).Height(300)
-        </fieldset>
-        </>
-    </div>
-    <div class="col-sm-12">
-        <fieldset>
-            <legend>Uygulamalar</legend>
-            <div class="pull-right col-sm-4"><input type="text" id="applicationInput" class="form-control inputSticky" placeholder="Uygulama içinde ara" /></div>
+    @{
+        if (DeviceDetail == null)
+        {
+
             <div class="col-sm-12">
-                <div class="row" style=" max-height: 600px; overflow-y: scroll; height: 600px;">
-                    @foreach (var item in DeviceDetail.Data.Applications)
-                    {
-                        <div class="col-sm-4" data-value="@item.Name">
-                            <div class="ibox">
-                                <div class="ibox-title">
-                                    <div class="text-center">
-                                        <img src="~/Content/Custom/img/android-green.png" class="center" height="50" width="50" />
-                                        <b style="margin-top:5px;">@item.Name</b>
-                                    </div>
-                                </div>
-                                <div class="ibox-content">
-                                    <dl class="dl-horizontal">
-                                        <dt>Sistem Uygulaması</dt>
-                                        <dd class=""> @Html.Raw((item.IsSystemApp==false? "<span class='text-danger'>Hayır</span>" : "<span class='text-info'>Evet</span>"))</dd>
-                                        <dt>Versiyon</dt>
-                                        <dd class="">@item.Version</dd>
-                                    </dl>
-                                </div>
+                <h1 class="text-center" style="padding:120px 30px 30px 30px;height:300px">Bu Cihaza Ait Veri Yoktur</h1>
+            </div>
+
+        }
+        else
+        {
+            
+            <div class="col-sm-6" >
+                <fieldset style="min-height:330px">
+                    <legend>Temel Cihaz Bilgileri</legend>
+                    <div class="row">
+                        <div class="col-sm-6 pull-left">
+
+                            <dl class="dl-horizontal">
+                                <dt>Cihaz Adı</dt>
+                                <dd> @DeviceDetail.Data.DeviceName </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Üretici</dt>
+                                <dd> @DeviceDetail.Data.Manufacturer </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Marka</dt>
+                                <dd> @DeviceDetail.Data.Brand </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Seri Numarası</dt>
+                                <dd> @DeviceDetail.Data.Serial </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>IMEI1</dt>
+                                <dd> @Model.IMEI1 </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>IMEI2</dt>
+                                <dd> @Model.IMEI2 </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Donanım</dt>
+                                <dd>@DeviceDetail.Data.Hardware</dd>
+                            </dl>
+                        </div>
+                        <div class="col-sm-6">
+                            <img src="\Content\Custom\img\phonehand-multiple.png" class="responsive" />
+                        </div>
+                    </div>
+                </fieldset>
+
+
+            </div>
+
+            if (DeviceDetail.Data.LastUsageHistory != null)
+            {
+                <div class="col-sm-6" >
+                    <fieldset style="min-height:330px">
+                        <legend>Son Kullanım Bilgileri</legend>
+                        <div class="row">
+                            <div class="col-sm-6 pull-left">
+                                <dl class="dl-horizontal">
+                                    <dt>Batarya</dt>
+                                    <dd> @DeviceDetail.Data.LastUsageHistory.Battery %</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Depolama</dt>
+                                    <dd> @DeviceDetail.Data.LastUsageHistory.Storage % </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>CPU Kullanımı</dt>
+                                    <dd class=""> @DeviceDetail.Data.LastUsageHistory.CPU %</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Ram Kullanımı</dt>
+                                    <dd class=""> @DeviceDetail.Data.LastUsageHistory.RAM %</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Kırılma Durumu</dt>
+                                    <dd class=""> @(DeviceDetail.Data.LastUsageHistory.Broken==true?"Evet":"Hayır")</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Zorla Kırılma Durumu</dt>
+                                    <dd class=""> @(DeviceDetail.Data.LastUsageHistory.ForcedBreak==true?"Evet":"Hayır")</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Cihaza Açılma Tarihi</dt>
+                                    <dd class=""> @DeviceDetail.Data.LastUsageHistory.Created.ToLongTimeString()</dd>
+                                </dl>
+                            </div>
+                            <div class="col-sm-6">
+                                <img src="\Content\Custom\img\ram.png" class="responsive" height="50" width="75" />
                             </div>
                         </div>
-                    }
+                    </fieldset>
+
+
                 </div>
+
+            }
+
+            if (DeviceDetail.Data.LastLocation != null)
+            {
+                <div class="col-sm-6">
+                    <fieldset>
+                        <legend>Cihazın Son Konumu</legend>
+                        @{
+                            var point = "POINT(" + DeviceDetail.Data.LastLocation.Longitude + " " + DeviceDetail.Data.LastLocation.Latitude + ")";
+                            Model.Location = new NetTopologySuite.IO.WKTReader().Read(point);
+                        }
+                        @Html.Akilli().MapInputFor(x => x.Location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker.png").ZoomLevel(16).Navigation(false).Height(189)
+                    </fieldset>
+
+                </div>
+            }
+            if (DeviceDetail.Data.OperatingSystem != null)
+            {
+                <div class="col-sm-6">
+                    <fieldset>
+                        <legend>İşletim Sistemi Bilgileri</legend>
+                        <div class="row">
+                            <div class="col-sm-8 pull-left">
+                                <dl class="dl-horizontal">
+                                    <dt>İşletim Sistemi Kimliği</dt>
+                                    <dd> @DeviceDetail.Data.OperatingSystem.OperatingSystemId </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Versiyon</dt>
+                                    <dd> @DeviceDetail.Data.OperatingSystem.Version </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Üretim Numarası</dt>
+                                    <dd class=""> @DeviceDetail.Data.OperatingSystem.BuildNumber </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Aktive Edilme Tarihi</dt>
+                                    <dd> @DeviceDetail.Data.OperatingSystem.Created</dd>
+                                </dl>
+                            </div>
+                            <div class="col-sm-4">
+                                <img src="\Content\Custom\img\android11.svg" class="responsive" />
+                            </div>
+                        </div>
+
+                    </fieldset>
+                </div>
+            }
+
+            <div class="col-sm-12">
+                <fieldset>
+                    <legend>Uygulamalar</legend>
+                    <div class="pull-right col-sm-4"><input type="text" id="applicationInput" class="form-control inputSticky" placeholder="Uygulama içinde ara" /></div>
+                    <div class="col-sm-12">
+                        <div class="row" style=" max-height: 600px; overflow-y: scroll; height: 600px;">
+                            @foreach (var item in DeviceDetail.Data.Applications)
+                            {
+                                <div class="col-sm-4" data-value="@item.Name">
+                                    <div class="ibox">
+                                        <div class="ibox-title">
+                                            <div class="text-center">
+                                                <img src="~/Content/Custom/img/android-green.png" class="center" height="50" width="50" />
+                                                <b style="margin-top:5px;">@item.Name</b>
+                                            </div>
+                                        </div>
+                                        <div class="ibox-content">
+                                            <dl class="dl-horizontal">
+                                                <dt>Sistem Uygulaması</dt>
+                                                <dd class=""> @Html.Raw((item.IsSystemApp == false ? "<span class='text-danger'>Hayır</span>" : "<span class='text-info'>Evet</span>"))</dd>
+                                                <dt>Versiyon</dt>
+                                                <dd class="">@item.Version</dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </fieldset>
             </div>
-        </fieldset>
-    </div>
+        }
+    }
+
 </div>
