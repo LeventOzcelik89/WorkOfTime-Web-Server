@@ -32,13 +32,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_TitanDeviceActivatedCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Titan Cihaz Ekleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
-        public JsonResult Insert()
-        {
-            var userStatus = (PageSecurity)Session["userStatus"];
-            var data = new VMPRD_TitanDeviceActivated().SaveAll(userStatus.user.id);
-            return Json(data,JsonRequestBehavior.AllowGet);
-        }
         [PageInfo("Titan Tüm Cihazları Alma Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public JsonResult GetAllDevices()
         {
