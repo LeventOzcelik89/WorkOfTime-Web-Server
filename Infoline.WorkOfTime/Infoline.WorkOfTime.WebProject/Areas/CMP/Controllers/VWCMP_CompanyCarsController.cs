@@ -11,7 +11,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_CompanyCarsController : Controller
 	{
-		[PageInfo("Araç Listesi", SHRoles.Personel)]
+		[PageInfo("Araç Listesi", SHRoles.SistemYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
