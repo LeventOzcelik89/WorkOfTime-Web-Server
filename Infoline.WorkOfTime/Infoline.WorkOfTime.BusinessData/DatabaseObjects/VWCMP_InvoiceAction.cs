@@ -12,5 +12,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string type_Title { get; set;}
+        public string createdBy_Photo { get; set;}
     }
 }

@@ -1,6 +1,6 @@
 ﻿@model VMPRD_ProductionModel
 @{
-        ViewBag.Title = "Biten Ürün Bildirimi";
+    ViewBag.Title = "Biten Ürün Bildirimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
     var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
@@ -73,6 +73,9 @@
         <td>
             <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="page.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
         </td>
+        <td>
+            <button data-item="copy" class="btn btn-md btn-primary" data-original-title="Seri numaralarını, biten ürüne kopyala" type="button" onclick="page.events.copySerialCodes(this)" style="height: 40px;"><i class="fa fa-copy"></i></button>
+        </td>
     </tr>
 </script>
 <script type="text/x-kendo-template" id="typeTemplate" data-selector="modalContainer">
@@ -94,7 +97,18 @@
          events: {
             removeRow: function (item) {
                 $(item).parents('tr').remove();
-            },
+             },
+             copySerialCodes: function (item) {
+                 debugger
+                 var parents = $(item).parents("tr");
+                 var findSerialCodeInput = $(parents).find('[data-item="serialCodes"]');
+                 var it = $(findSerialCodeInput).data("tagify");
+                 var values = it.value
+                 if (values.length > 0) {
+                     var productSerialCode = $("#ProductSerialCodes").data("tagify");
+                         productSerialCode.addTags(values, true, true)
+                 }
+             },
             removeAllRows: function () {
                 if (page.Counter == 1 || page.Counter == 0) {
                     return;
@@ -171,10 +185,12 @@
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
                 var findProductName = tr.find('[data-item="materialName"]').attr("data-value");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
+                var copyButton = tr.find('[data-item="copy"]');
                 var priceProp = page.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
                 if (serialCodes.data('tagify')) {
                     serialCodes.data('tagify').destroy();
                     serialCodes.removeData("tagify");
+                    $(copyButton).hide();
                 }
                 if (data.id == "") {
                     if (!page.isNew) {
@@ -183,13 +199,14 @@
                     }
                     page.isNew = false;
                 } else {
+
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
-                    unitPrice.enable(true);
+                    //unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
                     serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
                     if (data.stockType == 2) {
+                        $(copyButton).show();
                         var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
                         var valuesArr = [];
                         try {
@@ -213,9 +230,9 @@
                                 enforceWhitelist: true,
                                 whitelist: whitelist,
                                 //editTags: false,
-                                maxTags: 999,
+                                maxTags: 999999999,
                                 dropdown: {
-                                    maxItems: 999,           // <- mixumum allowed rendered suggestions
+                                    maxItems: 99999999999,           // <- mixumum allowed rendered suggestions
                                     //classname: "tags-look", // <- custom classname for this dropdown, so it could be targeted
                                     enabled: 0,             // <- show suggestions on focus
                                     closeOnSelect: false    // <- do not hide the suggestions dropdown once an item has been selected
@@ -228,9 +245,10 @@
                             .on("dropdown:show", function (e) {
                             });
                     } else {
-                        serialCodes.tagify({ placeholder:"Seri Numaralı bir takip yapılmıyor." });
+                        serialCodes.tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
+
                     }
-                   
+
                 }
             },
          },
@@ -257,8 +275,6 @@
             $("#infoBox").hide();
             page.events.removeAllRows();
         }
-    }).on("change", '#amount', function () {
-        
     })
       .on('before:submit', 'form', function (e) {
         $('[data-item="serialCodes"]').each(function (c) {
@@ -483,7 +499,8 @@
                         <th style="width:10%">HARCANAN MİKTAR </th>
                         <th style="width:10%">STOK MİKTARI </th>
                         <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-                        <th style="width:3%"></th>
+                        <th style="width:5%"></th>
+                        <th style="width:5%"></th>
                     </tr>
                 </thead>
                 <tbody id="RowContainer_Upsert">

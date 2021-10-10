@@ -1,0 +1,100 @@
+﻿@{
+    ViewBag.Title = "Titan Cihaz Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var data = (Infoline.WorkOfTime.BusinessAccess.Business.Product.IndexData)ViewBag.data;
+}
+
+<script>
+
+    $(document)
+
+        .on("selected:grid", '#PRD_TitanDeviceActivated', function (e, obj) {
+            if (obj.id =="00000000-0000-0000-0000-000000000000") {
+                $('#PRD_TitanDeviceActivated #detailButton').attr('disabled', 'disabled');
+                $('#PRD_TitanDeviceActivated #detailButton').hide();
+            }
+            else {
+                $('#PRD_TitanDeviceActivated #detailButton').removeAttr('disabled');
+                $('#PRD_TitanDeviceActivated #detailButton').show();
+            }
+
+        })
+
+        ;
+
+</script>
+<div class="row">
+    <div class="col-sm-3">
+        <div class="widget style1 yellow-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Toplam Cihaz Sayısı </span>
+                    <h2 class="font-bold">@data.All</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-sm-3">
+
+        <div class="widget style1 navy-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-calendar fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>Bugün Aktif Olan Cihaz Sayısı</span>
+                    <h2 class="font-bold">@data.Today</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 lazur-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-level-up fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>Son 7 Günde Aktif Olan Cihaz Sayısı</span>
+                    <h2 class="font-bold">@data.Seven</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 blue-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-arrow-up fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Son  30 Günde Aktif Olan Cihaz Sayısı</span>
+                    <h2 class="font-bold">@data.Month</h2>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TitanDeviceActivated>("PRD_TitanDeviceActivated")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_TitanDeviceActivated", new { area = "PRD" })).PageSize(25).Sortwwwwwwwwwwww(y=>y.Add("CreatedOfTitan")))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).Hidden(true);
+        x.Bound(y => y.productId_Title).Title("Cihaz Adı").Width(180);
+        x.Bound(y => y.CreatedOfTitan).Title("Cihazın Açılma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.InvetoryId_Code).Title("Envanter Kodu").Width(180);
+        x.Bound(y => y.SerialNumber).Title("Seri Numarası").Width(180);
+        x.Bound("id").Title("").Width(80).ClientTemplate("#if(InvetoryId_Code != null){# <span class='text-primary' data-original-title='Bu cihazın envanterde karşılığı vardır' data-placement='right'  ><i class='fa fa-exchange fa-2x'></i></span> #}else{#<span class='text-danger' data-original-title='Bu cihazın envanterde karşılığı yoktur!' data-placement='right' ><i class='fa fa-exchange fa-2x'></i></span>#}#");
+    })
+    .Filterable()
+    .Selectable(x => x.Mode(GridSelectionMode.Single)).ToolBar(x => {
+        x.Custom().Text("<i  data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "" }, { "data-default", "" } ,{"id", "detailButton" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD"}));
+    }
+    ))

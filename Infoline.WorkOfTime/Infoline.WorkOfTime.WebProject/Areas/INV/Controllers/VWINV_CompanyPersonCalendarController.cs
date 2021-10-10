@@ -9,10 +9,10 @@ using System.Linq;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 {
-	public class VWINV_CompanyPersonCalendarController : Controller
+    public class VWINV_CompanyPersonCalendarController : Controller
     {
         [PageInfo("Gündem Sayfası Methodu", SHRoles.Personel)]
-        public JsonResult DataSource([DataSourceRequest]DataSourceRequest request, bool? filtre)
+        public JsonResult DataSource([DataSourceRequest] DataSourceRequest request, bool? filtre)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -276,10 +276,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            var start = new DateTime(DateTime.Now.Year - 2, 12, 31);
-            var end = new DateTime(DateTime.Now.Year + 2, 12, 31);
+            var date = DateTime.Now;
+            var start = DateTime.Now;
+            var end = DateTime.Now;
+            if (TenantConfig.Tenant.TenantCode == 1169)
+            {
+                 start = date.AddDays(-1);
+                 end = date.AddDays(3);
+            }
+            else
+            {
+                 start = date.AddDays(30);
+                 end = date.AddDays(30);
+            }
 
-            var data = new CalendarModel().Load(userStatus.user.id, start, end,null);
+            var data = new CalendarModel().Load(userStatus.user.id, start, end, null);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
 
@@ -307,7 +318,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 start = new DateTime(2019, 01, 01, 00, 00, 00);
             }
 
-            var data = new CalendarModel().Load(userStatus.user.id, start, end,type,email);
+            var data = new CalendarModel().Load(userStatus.user.id, start, end, type, email);
 
             return Json(data, JsonRequestBehavior.AllowGet);
         }
