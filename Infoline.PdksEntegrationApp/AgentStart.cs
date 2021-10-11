@@ -1,5 +1,4 @@
-﻿using Infoline.OmixEntegrationApp.LogoEntegration;
-using Infoline.OmixEntegrationApp.TitanEntegration;
+﻿using Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,7 +6,7 @@ using System.ServiceProcess;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infoline.OmixEntegrationApp
+namespace Infoline.PdksEntegrationApp
 {
     public class AgentStart : ServiceBase
     {
@@ -21,23 +20,13 @@ namespace Infoline.OmixEntegrationApp
         public void Run()
         {
 
-            var taskProcessLogoEntegration = new Task(() =>
+            var taskProcessZKTEcoSF300Entegration = new Task(() =>
             {
-               new ProcessLogoEntegration().Run();
+                new ProcessZKTEcoSF300Entegration().Run();
             });
-            Tasks.Add(taskProcessLogoEntegration);
+            Tasks.Add(taskProcessZKTEcoSF300Entegration);
 
-            var taskProcessTitanEntegration = new Task(() =>
-            {
-                _ = new ProcessTitanEntegration().RunAsync();
-            });
-            Tasks.Add(taskProcessTitanEntegration);
-
-
-            taskProcessLogoEntegration.Start();
-
-            //taskProcessTitanEntegration.Start();
-
+            taskProcessZKTEcoSF300Entegration.Start();
         }
 
         protected override void OnStart(string[] args)

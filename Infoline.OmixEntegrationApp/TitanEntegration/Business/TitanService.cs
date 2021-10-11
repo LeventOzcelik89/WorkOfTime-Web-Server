@@ -7,20 +7,22 @@ using System.IO;
 using System.Net;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using System.Linq;
 using Infoline.WorkOfTime.BusinessData;
-using System.Data.Common;
 using System.Configuration;
 
 namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
-    public class TitanService : ITitanService
+    public class TitanService 
     {
+        private WorkOfTimeDatabase db = new WorkOfTimeDatabase();
         public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
-        public WorkOfTimeDatabase Db { get; set; }
-       
-
+        public TitanService()
+        {
+            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            db = tenant.GetDatabase();
+        }
         public  ResultStatus Sender<T>(string uri, string query = null)
         {
             try
@@ -61,33 +63,36 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
         }
         public void SaveAll()
         {
-
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            Db = tenant.GetDatabase();
+         
             var getAllDevices =  GetAll();
-            var getlAllDevicesList = (DeviceResultList)getAllDevices.objects;
-            var databaseDevices= Db.GetPRD_TitanDeviceActivated().ToList();
-            var savingList=getlAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1)|| !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2)|| !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
-            var resut=Db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x=>new PRD_TitanDeviceActivated {
-                CreatedOfTitan = x.Created,
-                DeviceId = new Guid(x.DeviceId),
-                IMEI1 = x.IMEI1,
-                IMEI2 = x.IMEI2,
-                InventoryId = Db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
-                ProductId = Db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
-                SerialNumber = x.Serial
-            }));
+            if (getAllDevices.objects!=null)
+            {
+                var getAllDevicesList = (DeviceResultList)getAllDevices.objects;
+                var databaseDevices = db.GetPRD_TitanDeviceActivated().ToList();
+                var savingList = getAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1) || !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2) || !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
+                var resut = db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x => new PRD_TitanDeviceActivated
+                {
+                    CreatedOfTitan = x.Created,
+                    DeviceId = new Guid(x.DeviceId),
+                    IMEI1 = x.IMEI1,
+                    IMEI2 = x.IMEI2,
+                    InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
+                    ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
+                    SerialNumber = x.Serial
+                }));
+            }
+          
         }
-        public  ResultStatus GetAll()
+        private ResultStatus GetAll()
         {
+            var lastDataTime = db.GetPRD_TitanDeviceActivatedGetAllLastDate();
             var query = Helper.Json.Serialize(new
             {
                 DataType = 0,
-                Start = DateTime.Now.AddYears(-20),
+                Start = lastDataTime,
                 End = DateTime.Now
             });
-            return Sender<DeviceResultList>("/Devices/GetDeviceActivationInformation", query);
+            return Sender<DeviceResultList>(ConfigurationManager.AppSettings["GetDeviceActivationInformation"].ToString(), query);
         }
     }
 }
