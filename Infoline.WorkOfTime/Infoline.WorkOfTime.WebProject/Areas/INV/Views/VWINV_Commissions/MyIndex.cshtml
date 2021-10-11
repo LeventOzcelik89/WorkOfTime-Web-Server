@@ -32,7 +32,14 @@
 
         .on("selected:grid", "#VWINV_CommissionsPersons", function (e, data) {
             var grid = $('#VWINV_CommissionsPersons').data("kendoGrid");
-			$('[data-id="carIdCompany"]').attr("data-href", '/CMP/VWCMP_CompanyCarKilometer/Insert?companyCarId=' + data.IdCompanyCar);
+            $('[data-id="carIdCompany"]').attr("data-href", '/CMP/VWCMP_CompanyCarKilometer/CommissionsInsert?companyCarId=' + data.IdCompanyCar);
+            if (data.IdCompanyCar == null) {
+
+                $('[data-button="companyCar"]').hide();
+
+            } else {
+                $('[data-button="companyCar"]').show();
+            }
         })
 
     function statusTemplate(data) {
@@ -52,10 +59,9 @@
                 $('[data-visible="true"]').hide();
             } else {
                 $('[data-visible="true"]').show();
-                $('[data-visible="true"]').attr('data-href', '/CMP/VWCMP_CompanyCarKilometer/Insert?id=' + item.carId);
+                $('[data-visible="true"]').attr('data-href', '/CMP/VWCMP_CompanyCarKilometer/CommissionsInsert?id=' + item.carId);
             }
 
-            //$('[data-subs="true"]').attr('data-href', '/CMP/VWCMP_Storage/Detail?id=' + item.storageId);
 
             var grid = $('#VWINV_Commissions').data("kendoGrid");
             var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
@@ -183,7 +189,7 @@
                     x.Custom().Text("<i class='fa fa-upload' data-original-title='Islak imzalı dosya yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_Commissions", new { area = "INV" }));
                     x.Custom().Text("<i class='fa fa-print' data-original-title='Formu Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("CommissionsForm", "VWINV_Commissions", new { area = "INV" }));
                     x.Custom().Text("<i class='icon-money' data-original-title='Masraf Talebi Yap'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "expense" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" ,hasTask = true}));
-                    x.Custom().Text("<i class='fa fa-plus' data-original-title='Kilometre Bildirimi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", ""}, { "data-method", "GET" }, {"data-id","carIdCompany" } }).Url(Url.Action("Insert", "VWCMP_CompanyCarKilometer", new { area = "CMP" }));
+                    x.Custom().Text("<i class='fa fa-road' data-original-title='Kilometre Bildirimi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", ""}, { "data-method", "GET" }, {"data-id","carIdCompany" },{ "data-button", "companyCar" } }).Url(Url.Action("Insert", "VWCMP_CompanyCarKilometer", new { area = "CMP" }));
                     x.Custom().Text("<i class='fa fa-trash' data-original-title='Görvenlendirme Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Delete", "VWINV_Commissions", new { area = "INV" }));
 
                 }))

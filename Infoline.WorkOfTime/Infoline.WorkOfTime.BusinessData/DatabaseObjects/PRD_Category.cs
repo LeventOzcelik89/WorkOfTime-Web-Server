@@ -13,5 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public string name { get; set;}
         public Guid? pid { get; set;}
+        public string code { get; set;}
     }
 }

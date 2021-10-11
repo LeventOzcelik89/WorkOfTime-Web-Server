@@ -64,6 +64,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-30)).Execute().Count();
             }
         }
-
+        public DateTime? GetPRD_TitanDeviceActivatedGetAllLastDate(DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_TitanDeviceActivated>().OrderByDesc(x => x.CreatedOfTitan).Execute().Select(x => x.CreatedOfTitan).FirstOrDefault();
+            }
+        }
     }
 }
