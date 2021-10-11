@@ -24,6 +24,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? RequestForAccommodation { get; set;}
         public Guid? IdCompanyCar { get; set;}
         public string VehiclePlate { get; set;}
+        public double? VehicleKilometer { get; set;}
         public string Information_Title { get; set;}
         public string TravelInformation_Title { get; set;}
         public Guid? IdCommissions { get; set;}

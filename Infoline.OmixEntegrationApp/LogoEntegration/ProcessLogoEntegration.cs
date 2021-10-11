@@ -1,6 +1,7 @@
 ﻿using Infoline.OmixEntegrationApp.LogoService;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -10,6 +11,8 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
 {
     public class ProcessLogoEntegration : IDisposable
     {
+        public string FirmaNo { get => ConfigurationManager.AppSettings["FirmaHost"].ToString(); }
+
         public ProcessLogoEntegration()
         {
             Log.Info("ProcessLogoEntegration is Start");
@@ -21,14 +24,21 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             {
                 DataMapper _dataMapper = new DataMapper();
                 var sc = new Service1SoapClient();
-                var getCariList = sc.GetCariList(new ClientFindParam { FirmaNo = "043" });
-                _dataMapper.CompanySave(getCariList);
-
-                var getMalzemeList = sc.GetMalzemeList(new AdItemsFindParam { FirmaNo = "043" });
-                _dataMapper.ProductSave(getMalzemeList);
-
-                var getSevkAdresList = sc.GetSevkAdresList(new AdShipFindParam { FirmaNo = "043" });
-                _dataMapper.StorageSave(getSevkAdresList);
+                foreach (var firmaNo in FirmaNo.Split(','))
+                {
+                    var getCariList = sc.GetCariList(new ClientFindParam { FirmaNo = firmaNo });
+                    var getProductList = sc.GetMalzemeList(new AdItemsFindParam { FirmaNo = firmaNo });
+                    _dataMapper.CompanySave(getCariList, firmaNo);
+                    _dataMapper.ProductSave(getProductList);
+                    if (getCariList.Count() > 0)
+                    {
+                        foreach (var cariKodu in getCariList)
+                        {
+                            var getStorageList = sc.GetSevkAdresList(new AdShipFindParam { FirmaNo = firmaNo, CariKodu = cariKodu.CariKodu });
+                            _dataMapper.StorageSave(getStorageList);
+                        }
+                    }
+                }
 
                 Log.Info("işlem tamamlandı");
                 Thread.Sleep(new TimeSpan(2, 0, 0));

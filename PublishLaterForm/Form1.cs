@@ -86,7 +86,7 @@ namespace PublishLaterForm
                 {
                     using (var _db = new InfolineDatabase(this.connection.Replace("IntranetManagement", execute.DBCatalog), DatabaseType.Mssql))
                     {
-                        refreshView = refreshView.Replace("\n", " ").Replace("\t\t\t", " ").Replace("GO", "");
+                        refreshView = refreshView.Replace("GO", "");
                         var res = _db.ExecuteNonQuery(refreshView);
                         textBox1.AppendText("\r\n" + (res.result ? execute.DBCatalog + " Sorgu Başarılı" : execute.DBCatalog + " Sorgu Başarısız"));
                     }

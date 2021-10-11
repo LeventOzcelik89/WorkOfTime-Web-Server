@@ -12,9 +12,9 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
     public interface IDataMapper
     {
         ResultStatus CompanyValidator(AdClientFind param, CMP_Company company);
-        ResultStatus CompanySave(AdClientFind[] param);
-        ResultStatus CompanyInsert(AdClientFind param);
-        ResultStatus CompanyUpdate(AdClientFind param);
+        ResultStatus CompanySave(AdClientFind[] param, string firmaNo);
+        ResultStatus CompanyInsert(AdClientFind param, string firmaNo);
+        ResultStatus CompanyUpdate(AdClientFind param, string firmaNo);
         ResultStatus ProductValidator(AdItemsFindList param, PRD_Product product);
         ResultStatus ProductSave(AdItemsFindList[] param);
         ResultStatus ProductInsert(AdItemsFindList param);
