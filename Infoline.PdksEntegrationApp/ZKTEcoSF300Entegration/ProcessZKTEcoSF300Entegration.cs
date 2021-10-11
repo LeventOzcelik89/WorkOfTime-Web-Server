@@ -4,47 +4,49 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 {
     class ProcessZKTEcoSF300Entegration : IDisposable
     {
-        ZKTecoSF300 device { get; set; }
-        private WorkOfTimeDatabase db = new WorkOfTimeDatabase();
+        public List<ZKTecoSF300> devices = new List<ZKTecoSF300>();
+        List<Task> Tasks = new List<Task>();
+
 
         public ProcessZKTEcoSF300Entegration()
         {
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            db = tenant.GetDatabase();
+            var db = new WorkOfTimeDatabase();
 
-            //ip port makine numarası bilgileri dbden gelicek
-            device = new ZKTecoSF300("192.168.1.205",1,4370);
+            var PdksDevices = db.GetSH_ShiftTrackingDeviceByBrandAndModel("ZKTEco", "SF300");
+
+            foreach (var device in PdksDevices)
+            {
+                this.devices.Add(new ZKTecoSF300().B_EntityDataCopyForMaterial(device));
+            }
+
+            Log.Info(devices.Count() + " Cihaz Bulundu");
             Log.Info("ProcessTitanEntegration is Start");
         }
 
-        public  Task Run()
+        public void Run()
         {
-            while (true)
+
+            foreach (var device in devices)
             {
-
-                if (insertLogsToDB())
+                var deviceThread = new Task(() =>
                 {
-                    device.ClearAllLog();
-                }
-                Task.Delay(new TimeSpan(0, 10, 0));
+                    device.Run();
+                });
+                Tasks.Add(deviceThread);
+                deviceThread.Start();
+
             }
+
         }
 
-        private bool insertLogsToDB()
-        {
-            var logs = device.GetLogData();
-
-
-            return true;
-        }
-
+     
         public void Dispose()
         {
             throw new NotImplementedException();

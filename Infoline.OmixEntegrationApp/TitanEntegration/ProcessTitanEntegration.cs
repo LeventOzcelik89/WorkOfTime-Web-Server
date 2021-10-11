@@ -15,12 +15,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration
             Log.Info("ProcessTitanEntegration is Start");
         }
 
-        public async Task RunAsync()
+        public Task Run()
         {
             while (true)
             {
                 TitanService.SaveAll();
-                await Task.Delay(new TimeSpan(1,0,0));
+                Task.Delay(new TimeSpan(1, 0, 0)).Wait();
             }
         }
 

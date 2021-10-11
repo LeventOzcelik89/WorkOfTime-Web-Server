@@ -20,7 +20,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public ActionResult DetailForInventory(VMPRD_TitanDeviceActivated model)
         {
-            var data = model.Load();
+            var data= model.Load();
+
             return View(data);
         }
 
