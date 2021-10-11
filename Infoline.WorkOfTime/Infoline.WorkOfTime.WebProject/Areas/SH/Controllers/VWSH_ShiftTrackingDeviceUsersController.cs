@@ -13,12 +13,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_ShiftTrackingDeviceUsersController : Controller
 	{
+		[AllowEveryone]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
+		[AllowEveryone]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +47,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +56,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Insert()
 		{
 		    var data = new VWSH_ShiftTrackingDeviceUsers { id = Guid.NewGuid() };
@@ -60,6 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
 		public JsonResult Insert(SH_ShiftTrackingDeviceUsers item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -78,6 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -87,6 +94,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
 		public JsonResult Update(SH_ShiftTrackingDeviceUsers item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -108,6 +116,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
+		[AllowEveryone]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();
