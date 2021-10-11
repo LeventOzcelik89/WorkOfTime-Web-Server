@@ -94,7 +94,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(data);
         }
 
-        [PageInfo("Talep Oluştur", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Talep Oluştur", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaMusteri)]
         public ActionResult InsertBasic(VMHDM_TicketModel item)
         {
             item.Load();
