@@ -21,6 +21,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_Category>().Where(a => a.pid == pid).Execute().ToArray();
             }
         }
+        public PRD_Category GetPRD_CategoryByName(string name, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_Category>().Where(a => a.name == name).Execute().FirstOrDefault();
+            }
+        }
     }
 }
 
