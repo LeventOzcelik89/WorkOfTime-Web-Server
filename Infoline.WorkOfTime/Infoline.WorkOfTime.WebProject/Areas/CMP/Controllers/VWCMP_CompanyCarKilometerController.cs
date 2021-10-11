@@ -164,28 +164,28 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             //    var totalKm = EndKm - StartKm;
             //    item.kilometer = dbKM.kilometer + totalKm;
             //}
-            var commissions = db.GetINV_CommissionsById(item.companyCarId.Value);
+            //var commissions = db.GetINV_CommissionsById(item.companyCarId.Value);
         
-            var Start = new CMP_CompanyCarKilometer
-            {
-                created = DateTime.Now,
-                kilometer = StartKm,
-                companyCarId = item.companyCarId,
-                entryDate = Date.t
-            };
+            //var Start = new CMP_CompanyCarKilometer
+            //{
+            //    created = DateTime.Now,
+            //    kilometer = StartKm,
+            //    companyCarId = item.companyCarId,
+            //    entryDate = Date.t
+            //};
 
-            var End = new CMP_CompanyCarKilometer
-            {
-                created = DateTime.Now,
-                kilometer = EndKm,
-                companyCarId = item.companyCarId,
-                //entryDate =
-            };
+            //var End = new CMP_CompanyCarKilometer
+            //{
+            //    created = DateTime.Now,
+            //    kilometer = EndKm,
+            //    companyCarId = item.companyCarId,
+            //    //entryDate =
+            //};
 
             //var startkm görevlendirme oluşma tarihi
             //var endDate
-            var dbresult = db.InsertCMP_CompanyCarKilometer(Start);
-            dbresult &= db.InsertCMP_CompanyCarKilometer(End);
+            var dbresult = db.InsertCMP_CompanyCarKilometer(item);
+            //dbresult &= db.InsertCMP_CompanyCarKilometer(End);
 
             var result = new ResultStatusUI
             {
