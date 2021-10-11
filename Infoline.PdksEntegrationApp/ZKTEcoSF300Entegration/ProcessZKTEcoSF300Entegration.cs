@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
@@ -24,16 +25,32 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             Log.Info("ProcessTitanEntegration is Start");
         }
 
-        public  Task Run()
+        public Task Run()
         {
+            device.Connect();
             while (true)
             {
-
-                if (insertLogsToDB())
+                if (device.isConnected())
                 {
-                    device.ClearAllLog();
+                    Log.Success("Cihaz ile bağlantı başarılı bir şekilde kuruldu.");
+                    if (insertLogsToDB())
+                    {
+                        //device.ClearAllLog();
+                    }
+                    Thread.Sleep(600000); //10 dk uyu
                 }
-                Task.Delay(new TimeSpan(0, 10, 0));
+                else
+                {
+                    device.Connect();
+                    device.unlockDevice();
+                    device.RestartDevice();
+                    if (!device.isConnected())
+                    {
+                        Log.Error("Cihaz ile bağlantı kurulamıyor.. Lütfen cihazın açık olduğundan emin olun ve bağlantılarını kontrol edin");
+                        Thread.Sleep(60000); // 1dk uyu
+                    }
+
+                }
             }
         }
 
