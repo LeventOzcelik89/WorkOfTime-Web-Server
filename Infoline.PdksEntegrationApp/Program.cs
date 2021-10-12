@@ -45,6 +45,8 @@ namespace Infoline.PdksEntegrationApp
                     Console.WriteLine("Agent is Start...");
                     var agentStart = new AgentStart();
                     agentStart.Run();
+
+
                     while (true)
                     {
                         System.Threading.Thread.Sleep(1000);

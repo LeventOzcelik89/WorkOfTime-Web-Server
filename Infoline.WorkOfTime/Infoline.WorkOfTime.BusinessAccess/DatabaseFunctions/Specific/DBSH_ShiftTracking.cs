@@ -20,6 +20,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
         MolaBitti = 3,
     }
 
+    [EnumInfo(typeof(SH_ShiftTracking), "passType")]
+    public enum EnumSH_ShiftTrackingPassType
+    {
+        [Description("Mobil Cihaz")]
+        MobilCihaz = 0,
+        [Description("Pdks Parmak İzi")]
+        PdksParmakİzi = 1,
+        [Description("Pdks Şifre")]
+        PdksSifre = 2,
+        [Description("Pdks Kart")]
+        PdksKart = 3,
+    }
+
 
     public partial class WorkOfTimeDatabase
     {
@@ -45,6 +58,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 return db.Table<SH_ShiftTracking>().Where(a => a.userId == userid && a.timestamp < beforeDate).OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
+            }
+        }
+
+        public SH_ShiftTracking GetSH_ShiftTrackingLastRecordByUserId(Guid userId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_ShiftTracking>().Where(a => a.userId == userId).OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
+            }
+        }
+
+        public SH_ShiftTracking GetSH_ShiftTrackingLastRecordByDeviceIdAndUserDeviceId(Guid deviceId, string UserDeviceId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_ShiftTracking>().Where(a =>a.shiftTrackingDeviceId == deviceId  && a.deviceUserId == UserDeviceId).OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
             }
         }
     }

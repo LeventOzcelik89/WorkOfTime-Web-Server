@@ -7,29 +7,232 @@ using zkemkeeper;
 using System.Configuration;
 using Infoline.PdksEntegrationApp.Utils;
 using Infoline.PdksEntegrationApp.Models;
+using Infoline.WorkOfTime.BusinessData;
+using Infoline.WorkOfTime.BusinessAccess;
+using System.Threading;
+using System.IO;
+using Infoline.Framework.Database;
 
 namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 {
-    public class ZKTecoSF300 : IDeviceManipulator
+    public class ZKTecoSF300 : SH_ShiftTrackingDevice, IDeviceManipulator, IDisposable
     {
+        private static WorkOfTimeDatabase db = new WorkOfTimeDatabase();
         public CZKEM device = new CZKEM();
-        int machineNumber { get; set; }
-        string IPAdd { get; set; }
-        int port { get; set; }
-        bool isConn { get; set; }
+        private bool isConn { get; set; }
 
-        public ZKTecoSF300(string ip, int machineNumber, int port = 4370)
+        public void Run()
         {
-            this.machineNumber = machineNumber;
-            this.IPAdd = ip;
-            this.port = port;
+            if (this.Connect())
+            {
+                Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu");
+            }
+            while (true)
+            {
+                if (this.isConnected())
+                {
+                    insertLogsToDB();
+                    saveUsers();
+                    Thread.Sleep(int.Parse(ConfigurationManager.AppSettings["gettingLogsTimeMiliseconds"]));
+                }
+                else
+                {
+                    this.Connect();
+                    this.unlockDevice();
+                    this.RestartDevice();
+                    if (!this.isConnected())
+                    {
+                        Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihaz ile bağlantı kurulamıyor.. Lütfen cihazın açık olduğundan emin olun ve bağlantılarını kontrol edin");
+                        Thread.Sleep(int.Parse(ConfigurationManager.AppSettings["tryConnectTimeMiliseconds"]));
+                    }
+
+                }
+            }
+        }
+
+        private void saveUsers()
+        {
+            var deviceUsers = this.GetUsers();
+        }
+
+        private bool insertLogsToDB()
+        {
+            var rs = new ResultStatus { result = true };
+            var trans = db.BeginTransaction();
+
+            var firstLogTime = getLastInsertTimeFromFile();
+            var lastLogTime = DateTime.Now;
+
+            var logs = this.GetLogDataBetweenDates(firstLogTime, lastLogTime);
+            foreach (var log in logs)
+            {
+                var ShiftTrackingDeviceUser = ZKTecoSF300.db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id, log.UserDeviceId.ToString());
+                if (ShiftTrackingDeviceUser != null && ShiftTrackingDeviceUser.userId.HasValue)
+                {
+                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByUserId(ShiftTrackingDeviceUser.userId.Value);
+                    short shiftStatus = 0;
+                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
+                    switch (lastStatus)
+                    {
+                        case 0:
+                            shiftStatus = 1;
+                            break;
+                        case 1:
+                            shiftStatus = 0;
+                            break;
+                        case 2:
+                            shiftStatus = 3;
+                            break;
+                        case 3:
+                            shiftStatus = 2;
+                            break;
+                        default:
+                            shiftStatus = 0;
+                            break;
+                    }
+
+                    rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    {
+                        id = Guid.NewGuid(),
+                        userId = ShiftTrackingDeviceUser.userId.Value,
+                        shiftTrackingDeviceId = this.id,
+                        passType = log.logType == "Parmak İzi" ? 1 : 2,
+                        deviceUserId = log.UserDeviceId.ToString(),
+                        timestamp = log.DateTimeRecord,
+                        shiftTrackingStatus = shiftStatus
+                    }, trans);
+                }
+                else
+                {
+                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByDeviceIdAndUserDeviceId(this.id, log.UserDeviceId.ToString());
+                    short shiftStatus = 0;
+                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
+                    switch (lastStatus)
+                    {
+                        case 0:
+                            shiftStatus = 1;
+                            break;
+                        case 1:
+                            shiftStatus = 0;
+                            break;
+                        case 2:
+                            shiftStatus = 3;
+                            break;
+                        case 3:
+                            shiftStatus = 2;
+                            break;
+                        default:
+                            shiftStatus = 0;
+                            break;
+                    }
+
+                    rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    {
+                        id = Guid.NewGuid(),
+                        shiftTrackingDeviceId = this.id,
+                        passType = log.logType == "Parmak İzi" ? 1 : 2,
+                        deviceUserId = log.UserDeviceId.ToString(),
+                        timestamp = log.DateTimeRecord,
+                        shiftTrackingStatus = shiftStatus
+                    }, trans);
+                }
+
+            }
+            
+            if (rs.result)
+            {
+                trans.Commit();
+                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilmiştir..");
+                setLastInsertTimeFromFile(lastLogTime);
+            }
+            else
+            {
+                trans.Rollback();
+                Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilememiştir..");
+            }
+
+            return true;
+
+
+        }
+
+        private ResultStatus setLastInsertTimeFromFile(DateTime dateTime)
+        {
+            var rs = new ResultStatus { result = false, objects = null };
+            String line;
+            List<String> lines = new List<String>();
+            try
+            {
+                bool tmp = false;
+                StreamReader sr = new StreamReader("notes.txt");
+                line = sr.ReadLine();
+                while (line != null)
+                {
+                    if (line.StartsWith(this.id.ToString()))
+                    {
+                        if (line.Split('|')[1] == "lastInsertTime")
+                        {
+                            line = this.id + "|" + "lastInsertTime" + dateTime.ToString();
+                            tmp = true;
+                        }
+                    }
+                    lines.Add(line);
+                    line = sr.ReadLine();
+                }
+                if (!tmp)
+                {
+                    lines.Add(this.id + " | " + "lastInsertTime" + dateTime.ToString());
+                }
+
+                File.WriteAllLines("notes.txt", lines);
+                sr.Close();
+            }
+            catch (Exception e)
+            {
+                rs.message = "Dosyaya son database'e kayıt zamanı yazma başarırız... Exception: " + e.Message;
+                Log.Error(rs.message);
+                return rs;
+            }
+
+            rs.result = true;
+            return rs;
+        }
+
+        private DateTime getLastInsertTimeFromFile()
+        {
+            String line;
+            var lastInsertDateTime = new DateTime(1990, 1, 1);
+            try
+            {
+                StreamReader sr = new StreamReader("notes.txt");
+                line = sr.ReadLine();
+                while (line != null)
+                {
+                    if (line.StartsWith(this.id.ToString()))
+                    {
+                        if (line.Split('|')[1] == "lastInsertTime")
+                        {
+                            lastInsertDateTime = DateTime.Parse(line.Split('|')[2]);
+                            break;
+                        }
+                    }
+                    line = sr.ReadLine();
+                }
+                sr.Close();
+            }
+            catch (Exception e)
+            {
+
+            }
+
+            return lastInsertDateTime;
         }
 
         public bool AddUserToDevice(string userName, int password, int id, int privelage = 0)
         {
             if (checkUniqueId(id))
             {
-                return device.SSR_SetUserInfo(machineNumber, id.ToString(), userName, password.ToString(), privelage, true);
+                return device.SSR_SetUserInfo(this.MachineNumber.Value, id.ToString(), userName, password.ToString(), privelage, true);
             }
             return false; //aynı idli kayıt var
 
@@ -43,10 +246,10 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             bool bEnabled = false;
 
 
-            device.ReadAllUserID(machineNumber);
-            device.ReadAllTemplate(machineNumber);
+            device.ReadAllUserID(this.MachineNumber.Value);
+            device.ReadAllTemplate(this.MachineNumber.Value);
 
-            while (device.SSR_GetAllUserInfo(machineNumber, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
+            while (device.SSR_GetAllUserInfo(this.MachineNumber.Value, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
             {
                 if (checkId == UserId) return false;
             }
@@ -61,15 +264,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public bool ClearAllLog()
         {
-            return device.ClearGLog(machineNumber);
+            return device.ClearGLog(this.MachineNumber.Value);
         }
 
         public bool ClearAttendanceRecord()
         {
             int iDataFlag = 1;
 
-            if (device.ClearData(machineNumber, iDataFlag))
-                return device.RefreshData(machineNumber);
+            if (device.ClearData(this.MachineNumber.Value, iDataFlag))
+                return device.RefreshData(this.MachineNumber.Value);
             else
             {
                 return false;
@@ -80,8 +283,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
         {
             int iDataFlag = 2;
 
-            if (device.ClearData(machineNumber, iDataFlag))
-                return device.RefreshData(machineNumber);
+            if (device.ClearData(this.MachineNumber.Value, iDataFlag))
+                return device.RefreshData(this.MachineNumber.Value);
             else
             {
                 return false;
@@ -92,8 +295,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
         {
             int iDataFlag = 5;
 
-            if (device.ClearData(machineNumber, iDataFlag))
-                return device.RefreshData(machineNumber);
+            if (device.ClearData(this.MachineNumber.Value, iDataFlag))
+                return device.RefreshData(this.MachineNumber.Value);
             else
             {
                 return false;
@@ -102,12 +305,12 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public bool Connect()
         {
-            if (!UniversalStatic.ValidateIP(IPAdd))
+            if (!UniversalStatic.ValidateIP(this.IPAddress))
             {
                 return false;
             }
 
-            if (device.Connect_Net(IPAdd, port))
+            if (device.Connect_Net(this.IPAddress, this.Port.Value))
             {
 
                 //65535, 32767
@@ -123,8 +326,10 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
                 setDate(DateTime.Now);
                 isConn = true;
+                return true;
             }
-            return isConn;
+            isConn = false;
+            return false;
         }
 
         private void OnEnrollFinger_Event(int userId, int FingerIndex, int ActionResult, int TemplateLength)
@@ -164,7 +369,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             string returnValue = string.Empty;
 
 
-            device.GetFirmwareVersion(machineNumber, ref returnValue);
+            device.GetFirmwareVersion(this.MachineNumber.Value, ref returnValue);
             if (returnValue.Trim() != string.Empty)
             {
                 sb.Append("Firmware V: ");
@@ -183,7 +388,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
 
             string sWiegandFmt = string.Empty;
-            device.GetWiegandFmt(machineNumber, ref sWiegandFmt);
+            device.GetWiegandFmt(this.MachineNumber.Value, ref sWiegandFmt);
 
             returnValue = string.Empty;
             device.GetSDKVersion(ref returnValue);
@@ -195,7 +400,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
 
             returnValue = string.Empty;
-            device.GetSerialNumber(machineNumber, out returnValue);
+            device.GetSerialNumber(this.MachineNumber.Value, out returnValue);
             if (returnValue.Trim() != string.Empty)
             {
                 sb.Append("\nSerial No: ");
@@ -204,7 +409,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
 
             returnValue = string.Empty;
-            device.GetDeviceMAC(machineNumber, ref returnValue);
+            device.GetDeviceMAC(this.MachineNumber.Value, ref returnValue);
             if (returnValue.Trim() != string.Empty)
             {
                 sb.Append("\nDevice MAC: ");
@@ -229,13 +434,13 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<LogInfo> lstEnrollData = new List<LogInfo>();
 
-            device.ReadAllGLogData(machineNumber);
+            device.ReadAllGLogData(this.MachineNumber.Value);
 
-            while (device.SSR_GetGeneralLogData(machineNumber, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
+            while (device.SSR_GetGeneralLogData(this.MachineNumber.Value, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
             {
 
                 LogInfo objInfo = new LogInfo();
-                objInfo.MachineNumber = machineNumber;
+                objInfo.MachineNumber = this.MachineNumber.Value;
                 objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                 objInfo.UserDeviceId = int.Parse(dwUserId);
                 objInfo.DateTimeRecord = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
@@ -261,15 +466,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<LogInfo> lstEnrollData = new List<LogInfo>();
 
-            device.ReadAllGLogData(machineNumber);
+            device.ReadAllGLogData(this.MachineNumber.Value);
 
-            while (device.SSR_GetGeneralLogData(machineNumber, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
+            while (device.SSR_GetGeneralLogData(this.MachineNumber.Value, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
             {
                 var date = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
                 if (date >= firstDate && date <= endDate)
                 {
                     LogInfo objInfo = new LogInfo();
-                    objInfo.MachineNumber = machineNumber;
+                    objInfo.MachineNumber = this.MachineNumber.Value;
                     objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
@@ -297,15 +502,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<LogInfo> lstEnrollData = new List<LogInfo>();
 
-            device.ReadAllGLogData(machineNumber);
+            device.ReadAllGLogData(this.MachineNumber.Value);
 
-            while (device.SSR_GetGeneralLogData(machineNumber, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
+            while (device.SSR_GetGeneralLogData(this.MachineNumber.Value, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
             {
                 var date = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
                 if (userId == int.Parse(dwUserId) && date >= firstDate && date <= endDate)
                 {
                     LogInfo objInfo = new LogInfo();
-                    objInfo.MachineNumber = machineNumber;
+                    objInfo.MachineNumber = this.MachineNumber.Value;
                     objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
@@ -333,15 +538,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<LogInfo> lstEnrollData = new List<LogInfo>();
 
-            device.ReadAllGLogData(machineNumber);
+            device.ReadAllGLogData(this.MachineNumber.Value);
 
-            while (device.SSR_GetGeneralLogData(machineNumber, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
+            while (device.SSR_GetGeneralLogData(this.MachineNumber.Value, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
             {
                 var date = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
                 if (userId == int.Parse(dwUserId))
                 {
                     LogInfo objInfo = new LogInfo();
-                    objInfo.MachineNumber = machineNumber;
+                    objInfo.MachineNumber = this.MachineNumber.Value;
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
 
@@ -360,15 +565,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             bool bEnabled = false;
 
 
-            device.ReadAllUserID(machineNumber);
-            device.ReadAllTemplate(machineNumber);
+            device.ReadAllUserID(this.MachineNumber.Value);
+            device.ReadAllTemplate(this.MachineNumber.Value);
 
-            while (device.SSR_GetAllUserInfo(machineNumber, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
+            while (device.SSR_GetAllUserInfo(this.MachineNumber.Value, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
             {
                 if (userId == int.Parse(UserId))
                 {
                     UserInfo fpInfo = new UserInfo();
-                    fpInfo.MachineNumber = machineNumber;
+                    fpInfo.MachineNumber = this.MachineNumber.Value;
                     fpInfo.UserDeviceId = UserId;
                     fpInfo.Name = sName;
                     fpInfo.TmpData = sTmpData;
@@ -390,8 +595,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             bool bEnabled = false;
 
 
-            device.ReadAllUserID(machineNumber);
-            while (device.SSR_GetAllUserInfo(machineNumber, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
+            device.ReadAllUserID(this.MachineNumber.Value);
+            while (device.SSR_GetAllUserInfo(this.MachineNumber.Value, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
             {
                 userIds.Add(int.Parse(UserId));
             }
@@ -401,7 +606,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public bool DeleteFingerRecordsById(int userId)
         {
-            return device.DeleteEnrollData(machineNumber, userId, machineNumber, 11);
+            return device.DeleteEnrollData(this.MachineNumber.Value, userId, this.MachineNumber.Value, 11);
         }
         public int getUserFingerTemplateRecordsCount(int userId)
         {
@@ -413,14 +618,14 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<UserInfo> lstFPTemplates = new List<UserInfo>();
 
-            device.ReadAllUserID(machineNumber);
-            device.ReadAllTemplate(machineNumber);
+            device.ReadAllUserID(this.MachineNumber.Value);
+            device.ReadAllTemplate(this.MachineNumber.Value);
 
-            while (device.SSR_GetAllUserInfo(machineNumber, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
+            while (device.SSR_GetAllUserInfo(this.MachineNumber.Value, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
             {
                 for (idwFingerIndex = 0; idwFingerIndex < 10; idwFingerIndex++)
                 {
-                    if (device.GetUserTmpExStr(machineNumber, UserId, idwFingerIndex, out iFlag, out sTmpData, out iTmpLength) && UserId == userId.ToString())
+                    if (device.GetUserTmpExStr(this.MachineNumber.Value, UserId, idwFingerIndex, out iFlag, out sTmpData, out iTmpLength) && UserId == userId.ToString())
                     {
                         count++;
                     }
@@ -437,12 +642,12 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<UserInfo> lstFPTemplates = new List<UserInfo>();
 
-            device.ReadAllUserID(machineNumber);
+            device.ReadAllUserID(this.MachineNumber.Value);
 
-            while (device.SSR_GetAllUserInfo(machineNumber, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
+            while (device.SSR_GetAllUserInfo(this.MachineNumber.Value, out UserId, out sName, out sPassword, out iPrivilege, out bEnabled))
             {
                 UserInfo fpInfo = new UserInfo();
-                fpInfo.MachineNumber = machineNumber;
+                fpInfo.MachineNumber = this.MachineNumber.Value;
                 fpInfo.UserDeviceId = UserId;
                 fpInfo.Name = sName;
                 fpInfo.FingerIndex = 0;
@@ -459,29 +664,29 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public bool isConnected()
         {
-            return isConn;
+            return Connect();
         }
 
         public bool RestartDevice()
         {
-            return device.RestartDevice(machineNumber);
+            return device.RestartDevice(this.MachineNumber.Value);
         }
 
         public bool pingDevice()
         {
-            return UniversalStatic.PingTheDevice(IPAdd);
+            return UniversalStatic.PingTheDevice(this.IPAddress);
         }
 
         public DateTime GetDate()
         {
             int dwYear = 0, dwMonth = 0, dwDay = 0, dwHour = 0, dwMinute = 0, dwSecond = 0;
-            device.GetDeviceTime(machineNumber, ref dwYear, ref dwMonth, ref dwDay, ref dwHour, ref dwMinute, ref dwSecond);
+            device.GetDeviceTime(this.MachineNumber.Value, ref dwYear, ref dwMonth, ref dwDay, ref dwHour, ref dwMinute, ref dwSecond);
             return new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
         }
 
         public bool setDate(DateTime date)
         {
-            return device.SetDeviceTime2(machineNumber, date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second);
+            return device.SetDeviceTime2(this.MachineNumber.Value, date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second);
         }
 
         public string GetLastError()
@@ -492,12 +697,12 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             {
                 case 1: return "BAŞARILI";
                 case 4: return "GEÇERSİZ PARAMETRE";
-                case 0: return "VERİ BULUNAMADI";
+                case 0: return "ERROR";
                 case -1: return "ERROR_IO ";
                 case -2: return "ERROR_SIZE";
-                case -3: return "VERİ BULUNAMADI";
+                case -3: return "ERROR";
                 case -4: return "YETERSİZ HAFIZA";
-                case -100: return "VERİ BULUNAMADI";
+                case -100: return "ERROR";
                 default: return "HATA";
 
             }
@@ -510,42 +715,29 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public bool lockDevice()
         {
-            return device.EnableDevice(machineNumber, false);
+            return device.EnableDevice(this.MachineNumber.Value, false);
         }
 
         public bool unlockDevice()
         {
-            return device.EnableDevice(machineNumber, true);
-        }
-
-
-        public string getIpAddress()
-        {
-            string ip = "";
-            device.GetDeviceIP(machineNumber, ref ip);
-            return ip;
-        }
-
-        public bool setIpAddress(string IpAdd)
-        {
-            return device.SetDeviceIP(machineNumber, IpAdd);
+            return device.EnableDevice(this.MachineNumber.Value, true);
         }
 
         public int getMachineNumber()
         {
-            return this.machineNumber;
+            return this.MachineNumber.Value;
         }
 
-        public void setMachineNumber(int machineNumber)
+        public void setMachineNumber(int MachineNumber)
         {
-            this.machineNumber = machineNumber;
+            this.MachineNumber = MachineNumber;
         }
 
         public bool setUserPassword(int userId, int password)
         {
             var user = GetUserById(userId);
             if (user == null) return false;
-            return device.SSR_SetUserInfo(machineNumber, userId.ToString(), user.Name, password.ToString(), user.Privelage, user.Enabled);
+            return device.SSR_SetUserInfo(this.MachineNumber.Value, userId.ToString(), user.Name, password.ToString(), user.Privelage, user.Enabled);
         }
 
         public bool setUserName(int userId, string username)
@@ -553,17 +745,34 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             var user = GetUserById(userId);
             if (user == null) return false;
 
-            return device.SSR_SetUserInfo(machineNumber, userId.ToString(), username, user.Password, user.Privelage, user.Enabled);
+            return device.SSR_SetUserInfo(this.MachineNumber.Value, userId.ToString(), username, user.Password, user.Privelage, user.Enabled);
         }
 
         public int getPort()
         {
-            return this.port;
+            return this.Port.Value;
         }
 
         public void setPort(int Port)
         {
-            this.port = Port;
+            this.Port = Port;
+        }
+
+        public string getIpAddress()
+        {
+            string ip = "";
+            device.GetDeviceIP(this.MachineNumber.Value, ref ip);
+            return ip;
+        }
+
+        public bool setIpAddress(string IPAdd)
+        {
+            return device.SetDeviceIP(this.MachineNumber.Value, IPAddress);
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
 {
     class DataMapper : IDataMapper
     {
-        public ResultStatus CompanySave(AdClientFind[] param)
+        public ResultStatus CompanySave(AdClientFind[] param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -23,14 +23,16 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 {
                     if (item.CariKodu != null)
                     {
-
                         if (findCompany != null && findCompany.Where(a => a.code == item.CariKodu).Count() > 0)
                         {
-                            result = CompanyUpdate(item);
+                            if (findCompany.Where(a => a.name == item.CariUnvan).Count() == 0)
+                            {
+                                result = CompanyUpdate(item, firmaNo);
+                            }
                         }
                         else
                         {
-                            result = CompanyInsert(item);
+                            result = CompanyInsert(item, firmaNo);
                         }
                     }
                     else
@@ -49,27 +51,30 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             }
             return result;
         }
-        public ResultStatus CompanyInsert(AdClientFind param)
+        public ResultStatus CompanyInsert(AdClientFind param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var insertCompany = new CMP_Company
+            if (param.CariUnvan != "")
             {
-                id = Guid.NewGuid(),
-                createdby = Guid.Empty,
-                created = DateTime.Now,
-                openAddress = param.Adres,
-                code = param.CariKodu,
-                name = param.CariUnvan,
-                email = param.Eposta1,
-                taxOffice = param.VergiDairesi,
-                taxNumber = param.VergiNo,
-                commercialTitle = param.CariUnvan,
-            };
-            result &= db.InsertCMP_Company(insertCompany);
+                var insertCompany = new CMP_Company
+                {
+                    id = Guid.NewGuid(),
+                    createdby = Guid.Empty,
+                    created = DateTime.Now,
+                    openAddress = param.Adres,
+                    code = firmaNo + "-" + param.CariKodu,
+                    name = param.CariUnvan,
+                    email = param.Eposta1,
+                    taxOffice = param.VergiDairesi,
+                    taxNumber = param.VergiNo,
+                    commercialTitle = param.CariUnvan,
+                };
+                result &= db.InsertCMP_Company(insertCompany);
+            }
             return result;
         }
-        public ResultStatus CompanyUpdate(AdClientFind param)
+        public ResultStatus CompanyUpdate(AdClientFind param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -79,7 +84,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             {
                 checkCode.name = param.CariUnvan;
                 checkCode.openAddress = param.Adres;
-                checkCode.code = param.CariKodu;
+                checkCode.code = firmaNo + "-" + param.CariKodu;
                 checkCode.email = param.Eposta1;
                 checkCode.taxOffice = param.VergiDairesi;
                 checkCode.taxNumber = param.VergiNo;
@@ -145,15 +150,15 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 stockType = (int)EnumPRD_ProductStockType.NormalTakip;
             }
 
-            if (param.MalzemeTuruAciklamasi== "Hammadde")
+            if (param.MalzemeTuruAciklamasi == "Hammadde")
             {
                 type = (int)EnumPRD_ProductType.Hammadde;
             }
-            else if(param.MalzemeTuruAciklamasi== "Sabit Kıymet")
+            else if (param.MalzemeTuruAciklamasi == "Sabit Kıymet")
             {
                 type = (int)EnumPRD_ProductType.TicariMal;
             }
-            else if(param.MalzemeTuruAciklamasi == "Yarı Mamul")
+            else if (param.MalzemeTuruAciklamasi == "Yarı Mamul")
             {
                 type = (int)EnumPRD_ProductType.YariMamul;
             }
@@ -204,7 +209,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 created = DateTime.Now,
                 createdby = Guid.Empty,
                 stockType = stockType,
-                type= type,
+                type = type,
             };
             var insertProductPrice = new PRD_ProductPrice
             {
@@ -314,18 +319,20 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi).FirstOrDefault();
+            var findCari = db.GetVWCMP_CompanyByCode(param.CariKodu);
             var insertStorage = new CMP_Storage
             {
                 id = Guid.NewGuid(),
                 createdby = Guid.Empty,
                 created = DateTime.Now,
                 address = param.SevkAdresi,
-                code = param.CariKodu,
-                name = param.CariUnvan,
+                code = param.SevkKodu,
+                name = param.CariUnvan + "Deposu",
                 email = param.SevkEposta,
                 supervisorId = findSH_User != null ? findSH_User.id : (Guid?)null,
                 phone = param.SevkTelefon,
                 postCode = param.SevkPostaKodu,
+                companyId = findCari != null ? findCari.id : (Guid?)null,
             };
             result &= db.InsertCMP_Storage(insertStorage);
             return result;
@@ -335,17 +342,19 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             var checkCode = db.GetCMP_StorageByCode(param.CariKodu);
+            var findCari = db.GetVWCMP_CompanyByCode(param.CariKodu);
             var validator = StorageValidator(param, checkCode);
             if (validator.result)
             {
                 checkCode.changed = DateTime.Now;
                 checkCode.changedby = Guid.Empty;
-                checkCode.name = param.CariUnvan;
+                checkCode.name = param.CariUnvan + "Deposu";
                 checkCode.address = param.SevkAdresi;
-                checkCode.code = param.CariKodu;
+                checkCode.code = param.SevkKodu;
                 checkCode.email = param.SevkEposta;
                 checkCode.phone = param.SevkTelefon;
                 checkCode.postCode = param.SevkPostaKodu;
+                checkCode.companyId = findCari != null ? findCari.id : (Guid?)null;
                 result &= db.UpdateCMP_Storage(checkCode);
             }
             return result;

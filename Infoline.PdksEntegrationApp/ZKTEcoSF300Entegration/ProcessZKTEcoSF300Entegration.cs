@@ -11,57 +11,42 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 {
     class ProcessZKTEcoSF300Entegration : IDisposable
     {
-        ZKTecoSF300 device { get; set; }
-        private WorkOfTimeDatabase db = new WorkOfTimeDatabase();
+        public List<ZKTecoSF300> devices = new List<ZKTecoSF300>();
+        List<Task> Tasks = new List<Task>();
+
 
         public ProcessZKTEcoSF300Entegration()
         {
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            db = tenant.GetDatabase();
+            var db = new WorkOfTimeDatabase();
 
-            //ip port makine numarası bilgileri dbden gelicek
-            device = new ZKTecoSF300("192.168.1.205",1,4370);
+            var PdksDevices = db.GetSH_ShiftTrackingDeviceByBrandAndModel("ZKTEco", "SF300");
+
+            foreach (var device in PdksDevices)
+            {
+                this.devices.Add(new ZKTecoSF300().B_EntityDataCopyForMaterial(device));
+            }
+
+            Log.Info(devices.Count() + " Cihaz Bulundu");
             Log.Info("ProcessTitanEntegration is Start");
         }
 
-        public Task Run()
+        public void Run()
         {
-            device.Connect();
-            while (true)
+
+            foreach (var device in devices)
             {
-                if (device.isConnected())
+                var deviceThread = new Task(() =>
                 {
-                    Log.Success("Cihaz ile bağlantı başarılı bir şekilde kuruldu.");
-                    if (insertLogsToDB())
-                    {
-                        //device.ClearAllLog();
-                    }
-                    Thread.Sleep(600000); //10 dk uyu
-                }
-                else
-                {
-                    device.Connect();
-                    device.unlockDevice();
-                    device.RestartDevice();
-                    if (!device.isConnected())
-                    {
-                        Log.Error("Cihaz ile bağlantı kurulamıyor.. Lütfen cihazın açık olduğundan emin olun ve bağlantılarını kontrol edin");
-                        Thread.Sleep(60000); // 1dk uyu
-                    }
+                    device.Run();
+                });
+                Tasks.Add(deviceThread);
+                deviceThread.Start();
 
-                }
             }
+
         }
 
-        private bool insertLogsToDB()
-        {
-            var logs = device.GetLogData();
-
-
-            return true;
-        }
-
+     
         public void Dispose()
         {
             throw new NotImplementedException();
