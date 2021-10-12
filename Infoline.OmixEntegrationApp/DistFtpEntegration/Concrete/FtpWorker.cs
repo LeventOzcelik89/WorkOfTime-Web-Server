@@ -16,7 +16,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             {
                 try
                 {
-
                     FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url.Url);
                     request.Method = WebRequestMethods.Ftp.ListDirectory;
                     request.Credentials = new NetworkCredential(url.UserName, url.Password);
@@ -103,9 +102,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     }
                     res.Add(item);
                 }
-                
-
-
             }
             return res;
         }
