@@ -23,7 +23,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             db = tenant.GetDatabase();
         }
-        public  ResultStatus Sender<T>(string uri, string query = null)
+        private  ResultStatus Sender<T>(string uri, string query = null)
         {
             try
             {
