@@ -21,7 +21,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
         {
             while (true)
             {
-                if (DateTime.Now.Hour==22)
+                if (DateTime.Now.Hour==22&& DateTime.Now.Minute==5)
                 {
                     FtpWorker.GetToDayFile();
                 }
