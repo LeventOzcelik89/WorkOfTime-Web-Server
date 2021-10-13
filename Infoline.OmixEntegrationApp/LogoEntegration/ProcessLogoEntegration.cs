@@ -35,7 +35,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                         foreach (var cariKodu in getCariList)
                         {
                             var getStorageList = sc.GetSevkAdresList(new AdShipFindParam { FirmaNo = firmaNo, CariKodu = cariKodu.CariKodu });
-                            _dataMapper.StorageSave(getStorageList);
+                            _dataMapper.StorageSave(getStorageList, firmaNo);
                         }
                     }
                 }

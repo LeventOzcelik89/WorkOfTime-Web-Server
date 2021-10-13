@@ -23,7 +23,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 {
                     if (item.CariKodu != null)
                     {
-                        if (findCompany != null && findCompany.Where(a => a.code == item.CariKodu).Count() > 0)
+                        if (findCompany != null && findCompany.Where(a => a.code == firmaNo + "-" + item.CariKodu).Count() > 0)
                         {
                             if (findCompany.Where(a => a.name == item.CariUnvan).Count() == 0)
                             {
@@ -78,7 +78,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var checkCode = db.GetCMP_CompanyByCode(param.CariKodu);
+            var checkCode = db.GetCMP_CompanyByCode(firmaNo + "-" + param.CariKodu);
             var validator = CompanyValidator(param, checkCode);
             if (validator.result)
             {
@@ -277,7 +277,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         //    }
         //    return result;
         //}
-        public ResultStatus StorageSave(AdShipFindList[] param)
+        public ResultStatus StorageSave(AdShipFindList[] param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -286,22 +286,22 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 var findStorage = db.GetCMP_Storage();
                 foreach (var item in param)
                 {
-                    if (item.CariKodu != null)
+                    if (item.SevkKodu != null)
                     {
 
-                        if (findStorage != null && findStorage.Where(a => a.code == item.CariKodu).Count() > 0)
+                        if (findStorage != null && findStorage.Where(a => a.code == firmaNo + "-" + item.CariKodu + item.SevkKodu).Count() > 0)
                         {
-                            result = StorageUpdate(item);
+                            result = StorageUpdate(item, firmaNo);
                         }
                         else
                         {
-                            result = StorageInsert(item);
+                            result = StorageInsert(item, firmaNo);
                         }
                     }
                     else
                     {
                         result.result = false;
-                        result.message = "CariKodu Alanı Zorunludur.";
+                        result.message = "Depo Kodu Alanı Zorunludur.";
                         return result;
                     }
                 }
@@ -314,47 +314,49 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             }
             return result;
         }
-        public ResultStatus StorageInsert(AdShipFindList param)
+        public ResultStatus StorageInsert(AdShipFindList param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi).FirstOrDefault();
-            var findCari = db.GetVWCMP_CompanyByCode(param.CariKodu);
+            var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi.ToUpper()).FirstOrDefault();
+            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu);
             var insertStorage = new CMP_Storage
             {
                 id = Guid.NewGuid(),
                 createdby = Guid.Empty,
                 created = DateTime.Now,
                 address = param.SevkAdresi,
-                code = param.SevkKodu,
-                name = param.CariUnvan + "Deposu",
+                code = firmaNo + "-" + param.CariKodu + param.SevkKodu,
+                name = param.SevkAciklamasi,
                 email = param.SevkEposta,
-                supervisorId = findSH_User != null ? findSH_User.id : (Guid?)null,
+                supervisorId = findSH_User?.id,
                 phone = param.SevkTelefon,
                 postCode = param.SevkPostaKodu,
-                companyId = findCari != null ? findCari.id : (Guid?)null,
+                companyId = findCari?.id,
             };
             result &= db.InsertCMP_Storage(insertStorage);
             return result;
         }
-        public ResultStatus StorageUpdate(AdShipFindList param)
+        public ResultStatus StorageUpdate(AdShipFindList param, string firmaNo)
         {
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var checkCode = db.GetCMP_StorageByCode(param.CariKodu);
-            var findCari = db.GetVWCMP_CompanyByCode(param.CariKodu);
+            var checkCode = db.GetCMP_StorageByCode(firmaNo + "-" + param.CariKodu + param.SevkKodu);
+            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu);
+            var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi.ToUpper()).FirstOrDefault();
             var validator = StorageValidator(param, checkCode);
             if (validator.result)
             {
                 checkCode.changed = DateTime.Now;
                 checkCode.changedby = Guid.Empty;
-                checkCode.name = param.CariUnvan + "Deposu";
+                checkCode.name = param.SevkAciklamasi;
                 checkCode.address = param.SevkAdresi;
-                checkCode.code = param.SevkKodu;
+                checkCode.code = firmaNo + "-" + param.CariKodu + param.SevkKodu;
                 checkCode.email = param.SevkEposta;
                 checkCode.phone = param.SevkTelefon;
                 checkCode.postCode = param.SevkPostaKodu;
-                checkCode.companyId = findCari != null ? findCari.id : (Guid?)null;
+                checkCode.supervisorId = findSH_User?.id;
+                checkCode.companyId = findCari?.id;
                 result &= db.UpdateCMP_Storage(checkCode);
             }
             return result;

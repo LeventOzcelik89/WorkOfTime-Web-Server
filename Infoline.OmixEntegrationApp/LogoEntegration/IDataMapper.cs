@@ -20,8 +20,8 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
         ResultStatus ProductInsert(AdItemsFindList param);
         //ResultStatus ProductUpdate(AdItemsFindList param);
         ResultStatus StorageValidator(AdShipFindList param, CMP_Storage storage);
-        ResultStatus StorageSave(AdShipFindList[] param);
-        ResultStatus StorageInsert(AdShipFindList param);
-        ResultStatus StorageUpdate(AdShipFindList param);
+        ResultStatus StorageSave(AdShipFindList[] param, string firmaNo);
+        ResultStatus StorageInsert(AdShipFindList param, string firmaNo);
+        ResultStatus StorageUpdate(AdShipFindList param, string firmaNo);
     }
 }
