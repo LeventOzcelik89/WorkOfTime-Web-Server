@@ -17,6 +17,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 {
     public class ZKTecoSF300 : SH_ShiftTrackingDevice, IDeviceManipulator, IDisposable
     {
+        private static WorkOfTimeDatabase db = new WorkOfTimeDatabase();
         public CZKEM device = new CZKEM();
         private bool isConn { get; set; }
 
@@ -30,11 +31,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             {
                 if (this.isConnected())
                 {
-                    if (insertLogsToDB())
-                    {
-                        //device.ClearAllLog();
-                    }
-
+                    insertLogsToDB();
+                    saveUsers();
                     Thread.Sleep(int.Parse(ConfigurationManager.AppSettings["gettingLogsTimeMiliseconds"]));
                 }
                 else
@@ -52,36 +50,156 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
         }
 
+        private void saveUsers()
+        {
+            var deviceUsers = this.GetUsers();
+        }
+
         private bool insertLogsToDB()
         {
-            if (getLastInsertTimeFromFile().result)
+            var rs = new ResultStatus { result = true };
+            var trans = db.BeginTransaction();
+
+            var firstLogTime = getLastInsertTimeFromFile();
+            var lastLogTime = DateTime.Now;
+
+            var logs = this.GetLogDataBetweenDates(firstLogTime, lastLogTime);
+            foreach (var log in logs)
             {
-                var firstLogTime = DateTime.Parse(getLastInsertTimeFromFile().objects.ToString());
-                var lastLogTime = DateTime.Now;
-
-                var logs = this.GetLogDataBetweenDates(firstLogTime, lastLogTime);
-
-
-
-                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedimiştir: ");
-
-
-                foreach (var log in logs)
+                var ShiftTrackingDeviceUser = ZKTecoSF300.db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id, log.UserDeviceId.ToString());
+                if (ShiftTrackingDeviceUser != null && ShiftTrackingDeviceUser.userId.HasValue)
                 {
-                    Console.WriteLine(log.UserDeviceId + " - " + log.DateTimeRecord);
+                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByUserId(ShiftTrackingDeviceUser.userId.Value);
+                    short shiftStatus = 0;
+                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
+                    switch (lastStatus)
+                    {
+                        case 0:
+                            shiftStatus = 1;
+                            break;
+                        case 1:
+                            shiftStatus = 0;
+                            break;
+                        case 2:
+                            shiftStatus = 3;
+                            break;
+                        case 3:
+                            shiftStatus = 2;
+                            break;
+                        default:
+                            shiftStatus = 0;
+                            break;
+                    }
+
+                    rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    {
+                        id = Guid.NewGuid(),
+                        userId = ShiftTrackingDeviceUser.userId.Value,
+                        shiftTrackingDeviceId = this.id,
+                        passType = log.logType == "Parmak İzi" ? 1 : 2,
+                        deviceUserId = log.UserDeviceId.ToString(),
+                        timestamp = log.DateTimeRecord,
+                        shiftTrackingStatus = shiftStatus
+                    }, trans);
                 }
-                return true;
+                else
+                {
+                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByDeviceIdAndUserDeviceId(this.id, log.UserDeviceId.ToString());
+                    short shiftStatus = 0;
+                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
+                    switch (lastStatus)
+                    {
+                        case 0:
+                            shiftStatus = 1;
+                            break;
+                        case 1:
+                            shiftStatus = 0;
+                            break;
+                        case 2:
+                            shiftStatus = 3;
+                            break;
+                        case 3:
+                            shiftStatus = 2;
+                            break;
+                        default:
+                            shiftStatus = 0;
+                            break;
+                    }
+
+                    rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
+                    {
+                        id = Guid.NewGuid(),
+                        shiftTrackingDeviceId = this.id,
+                        passType = log.logType == "Parmak İzi" ? 1 : 2,
+                        deviceUserId = log.UserDeviceId.ToString(),
+                        timestamp = log.DateTimeRecord,
+                        shiftTrackingStatus = shiftStatus
+                    }, trans);
+                }
+
+            }
+            
+            if (rs.result)
+            {
+                trans.Commit();
+                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilmiştir..");
+                setLastInsertTimeFromFile(lastLogTime);
             }
             else
             {
-                return false;
+                trans.Rollback();
+                Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilememiştir..");
             }
+
+            return true;
+
 
         }
 
-        private ResultStatus getLastInsertTimeFromFile()
+        private ResultStatus setLastInsertTimeFromFile(DateTime dateTime)
         {
             var rs = new ResultStatus { result = false, objects = null };
+            String line;
+            List<String> lines = new List<String>();
+            try
+            {
+                bool tmp = false;
+                StreamReader sr = new StreamReader("notes.txt");
+                line = sr.ReadLine();
+                while (line != null)
+                {
+                    if (line.StartsWith(this.id.ToString()))
+                    {
+                        if (line.Split('|')[1] == "lastInsertTime")
+                        {
+                            line = this.id + "|" + "lastInsertTime" + dateTime.ToString();
+                            tmp = true;
+                        }
+                    }
+                    lines.Add(line);
+                    line = sr.ReadLine();
+                }
+                if (!tmp)
+                {
+                    lines.Add(this.id + " | " + "lastInsertTime" + dateTime.ToString());
+                }
+
+                File.WriteAllLines("notes.txt", lines);
+                sr.Close();
+            }
+            catch (Exception e)
+            {
+                rs.message = "Dosyaya son database'e kayıt zamanı yazma başarırız... Exception: " + e.Message;
+                Log.Error(rs.message);
+                return rs;
+            }
+
+            rs.result = true;
+            return rs;
+        }
+
+        private DateTime getLastInsertTimeFromFile()
+        {
             String line;
             var lastInsertDateTime = new DateTime(1990, 1, 1);
             try
@@ -104,14 +222,10 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
             catch (Exception e)
             {
-                rs.message = "Dosyadan son database'e kayıt zamanı okuma başarırız... Exception: " + e.Message;
-                Log.Error(rs.message);
-                return rs;
+
             }
 
-            rs.objects = lastInsertDateTime.ToString();
-            rs.result = true;
-            return rs;
+            return lastInsertDateTime;
         }
 
         public bool AddUserToDevice(string userName, int password, int id, int privelage = 0)

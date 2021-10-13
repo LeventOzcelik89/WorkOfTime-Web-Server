@@ -50,5 +50,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_CompanyCars>().Where(a => a.id != id && a.plate == plate).Execute().FirstOrDefault();
             }
         }
+        public CMP_CompanyCars GetCMP_CompanyCarsByUserId(Guid? UserId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<CMP_CompanyCars>().Where(a => a.responsiblePersonId == UserId).Execute().FirstOrDefault();
+            }
+        }
     }
 }

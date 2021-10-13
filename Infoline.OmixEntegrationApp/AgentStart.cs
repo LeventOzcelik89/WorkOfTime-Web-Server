@@ -1,4 +1,5 @@
-﻿using Infoline.OmixEntegrationApp.LogoEntegration;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegration;
+using Infoline.OmixEntegrationApp.LogoEntegration;
 using Infoline.OmixEntegrationApp.TitanEntegration;
 using System;
 using System.Collections.Generic;
@@ -33,10 +34,15 @@ namespace Infoline.OmixEntegrationApp
             });
             Tasks.Add(taskProcessTitanEntegration);
 
+            var taskProcessFtpDistEntegration = new Task(() =>
+            {
+               new ProcessDistFtpEntegration().Run();
+            });
+            Tasks.Add(taskProcessFtpDistEntegration);
 
-            taskProcessLogoEntegration.Start();
-
-            //taskProcessTitanEntegration.Start();
+            //taskProcessLogoEntegration.Start();
+            taskProcessFtpDistEntegration.Start();
+            taskProcessTitanEntegration.Start();
 
         }
 
