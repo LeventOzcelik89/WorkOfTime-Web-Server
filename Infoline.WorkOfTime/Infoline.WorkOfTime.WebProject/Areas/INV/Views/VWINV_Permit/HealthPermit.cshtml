@@ -252,110 +252,109 @@
                 .DropDownListFor(model => model.IdUser)
                 .OptionLabel("Lütfen Personel Seçiniz..")
                 .Readonly(Model.IdUser.HasValue)
-                //.Enable(!Model.IdUser.HasValue)
                 .DataTextField("FullName")
                 .DataValueField("id")
-                   .Template("#=TemplateEngine('userTemplate',data)#")
-                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-                   .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a=>a.type == (int)(EnumSH_UserType.MyPerson))
                 .Events(a => a.Change("permitPage.functions.SetPersonYearlyPermit").DataBound("permitPage.functions.SetPersonYearlyPermit"))
                 .Sort(x => x.Add("FullName").Ascending())
                 .Execute("id")
                 .Validate(Validations.Required)
-            )
-        </div>
-    </div>
+                )
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="StartDate">İzin Başlangıç Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
-                Html.Akilli()
-                .DateTimePickerFor(model => model.StartDate)
-                .MaxDateElement("EndDate")
-                .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
-                .Interval(15)
-                .Validate(Validations.Required)
-            )
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="StartDate">İzin Başlangıç Tarihi</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                        Html.Akilli()
+                        .DateTimePickerFor(model => model.StartDate)
+                        .MaxDateElement("EndDate")
+                        .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+                        .Interval(15)
+                        .Validate(Validations.Required)
+                    )
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="EndDate">İzin Bitiş Tarihi</label>
-        </div>
-        <div class="col-md-8">
-            @(
-                Html.Akilli()
-                .DateTimePickerFor(model => model.EndDate)
-                .MinDateElement("StartDate")
-                .Interval(15)
-                .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="EndDate">İzin Bitiş Tarihi</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                        Html.Akilli()
+                        .DateTimePickerFor(model => model.EndDate)
+                        .MinDateElement("StartDate")
+                        .Interval(15)
+                        .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
 
-            )
-        </div>
-    </div>
+                    )
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="isbasi">İşbaşı Tarihi ve Saat'i / İzin Süresi</label>
-        </div>
-        <div class="col-md-4">
-            @Html.TextBox("CommencementDate", "", new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"disabled", "disabled"},
-                { "placeholder","İşbaşı Tarihi ve Saat'i"}
-            })
-        </div>
-        <div class="col-md-4">
-            @Html.TextBox("CalculateDay", "", new Dictionary<string, object>()
-            {
-                {"class", "form-control"},
-                {"disabled", "disabled"},
-                { "placeholder","İzin Süresi(Gün/Saat)"}
-            })
-        </div>
-        <div class="col-md-8 col-md-offset-4">
-            <div class="alert alert-warning text-center m-t-sm" style="padding:10px;display:none;" id="personPermitCount"></div>
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="isbasi">İşbaşı Tarihi ve Saat'i / İzin Süresi</label>
+                </div>
+                <div class="col-md-4">
+                    @Html.TextBox("CommencementDate", "", new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"},
+                        { "placeholder","İşbaşı Tarihi ve Saat'i"}
+                    })
+                </div>
+                <div class="col-md-4">
+                    @Html.TextBox("CalculateDay", "", new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"disabled", "disabled"},
+                        { "placeholder","İzin Süresi(Gün/Saat)"}
+                    })
+                </div>
+                <div class="col-md-8 col-md-offset-4">
+                    <div class="alert alert-warning text-center m-t-sm" style="padding:10px;display:none;" id="personPermitCount"></div>
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="Dosya">İzin Talep Dosyaları</label>
-        </div>
-        <div class="col-md-8">
-            @(
-                Html.Akilli().FileUpload()
-                .DataTable("INV_Permit")
-                .DataId(Model.id)
-                .DataKey(x => x.fileGroup == "İzin Talep Dosyası")
-            )
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">İzin Talep Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                        Html.Akilli().FileUpload()
+                        .DataTable("INV_Permit")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "İzin Talep Dosyası")
+                    )
+                </div>
+            </div>
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md " for="Dosya">Sağlık Raporu Dosyası</label>
-        </div>
-        <div class="col-md-8">
-            @(
-                Html.Akilli().FileUpload()
-                .DataTable("INV_Permit")
-                .DataId(Model.id)
-                .DataKey(x => x.fileGroup == "Sağlık Raporu Dosyası")
-            )
-        </div>
-    </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md " for="Dosya">Sağlık Raporu Dosyası</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                        Html.Akilli().FileUpload()
+                        .DataTable("INV_Permit")
+                        .DataId(Model.id)
+                        .DataKey(x => x.fileGroup == "Sağlık Raporu Dosyası")
+                    )
+                </div>
+            </div>
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
-}
+            <div class="buttons">
+                <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+                <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+            </div>
+        }
 
 
 
