@@ -9,8 +9,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Abstract
 {
     public interface IFtpWorker
     {
-        IEnumerable<FileNameWithUrl> GetFileNames(IEnumerable<FtpUrl> ftpUrls);
-        IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl);
+
         IEnumerable<SellIn> GetToDayFile();
     }
 }

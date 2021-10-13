@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration
@@ -21,10 +22,11 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
         {
             while (true)
             {
-                if (DateTime.Now.Hour==22&& DateTime.Now.Minute==5)
-                {
+                //if (DateTime.Now.Hour == 22 && DateTime.Now.Minute == 5)
+                //{
                     FtpWorker.GetToDayFile();
-                }
+                //}
+                Thread.Sleep(new TimeSpan(0, 1, 0));
             }
         }
 

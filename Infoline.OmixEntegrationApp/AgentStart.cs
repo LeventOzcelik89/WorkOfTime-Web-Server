@@ -42,7 +42,7 @@ namespace Infoline.OmixEntegrationApp
 
             //taskProcessLogoEntegration.Start();
             taskProcessFtpDistEntegration.Start();
-            taskProcessTitanEntegration.Start();
+            //taskProcessTitanEntegration.Start();
 
         }
 
