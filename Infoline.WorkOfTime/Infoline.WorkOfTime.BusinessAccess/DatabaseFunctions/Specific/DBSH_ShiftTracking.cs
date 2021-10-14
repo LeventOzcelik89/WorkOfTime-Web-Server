@@ -53,6 +53,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public SH_ShiftTracking[] GetSH_ShiftTrackingByDeviceIdAndUserDeviceId(Guid deviceId, string userDeviceId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_ShiftTracking>().Where(a => a.shiftTrackingDeviceId == deviceId && a.deviceUserId == userDeviceId).Execute().OrderByDescending(x => x.timestamp).ToArray();
+            }
+        }
+
         public SH_ShiftTracking GetSH_ShiftTrackingFirstByUseridBeforeDate(Guid userid, DateTime beforeDate)
         {
             using (var db = GetDB())

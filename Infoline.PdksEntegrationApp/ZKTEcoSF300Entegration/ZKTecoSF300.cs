@@ -34,6 +34,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             var lastSaveLogTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
             var lastUserSync = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
 
+
             while (true)
             {
                 var isConn = true;
@@ -79,7 +80,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
         private void saveUsers()
         {
             int count = 0;
-            var deviceUsers = this.GetUsers();
+            var deviceUsers = this.GetUsers().OrderBy((a => a.UserDeviceId));
             foreach (var user in deviceUsers)
             {
                 var tmp = ZKTecoSF300.db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id,user.UserDeviceId);
