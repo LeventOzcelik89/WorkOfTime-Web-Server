@@ -17,42 +17,94 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 {
     public class ZKTecoSF300 : SH_ShiftTrackingDevice, IDeviceManipulator, IDisposable
     {
-        private static WorkOfTimeDatabase db = new WorkOfTimeDatabase();
+        private static WorkOfTimeDatabase db { get; set; }
         public CZKEM device = new CZKEM();
-        private bool isConn { get; set; }
+
+        public ZKTecoSF300()
+        {
+            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            db = tenant.GetDatabase();
+        }
 
         public void Run()
         {
-            if (this.Connect())
-            {
-                Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu");
-            }
+            var saveLogTimeInterval = int.Parse(ConfigurationManager.AppSettings["insertLogsTimeMiliseconds"]);
+            var syncUsersTimeInterval = int.Parse(ConfigurationManager.AppSettings["syncUsersMiliseconds"]);
+            var lastSaveLogTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
+            var lastUserSync = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
+
             while (true)
             {
-                if (this.isConnected())
+                var isConn = true;
+                if (this.Connect())
                 {
-                    insertLogsToDB();
-                    saveUsers();
-                    Thread.Sleep(int.Parse(ConfigurationManager.AppSettings["gettingLogsTimeMiliseconds"]));
+                    Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu");
+                    isConn = true;
                 }
                 else
                 {
-                    this.Connect();
-                    this.unlockDevice();
-                    this.RestartDevice();
-                    if (!this.isConnected())
-                    {
-                        Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihaz ile bağlantı kurulamıyor.. Lütfen cihazın açık olduğundan emin olun ve bağlantılarını kontrol edin");
-                        Thread.Sleep(int.Parse(ConfigurationManager.AppSettings["tryConnectTimeMiliseconds"]));
-                    }
-
+                    Log.Error(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kurulamıyor");
+                    isConn = false;
                 }
+                try
+                {
+                    while (isConn)
+                    {                      
+                        var _lastExecute = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
+                        if(lastSaveLogTime.AddMilliseconds(saveLogTimeInterval) <= _lastExecute)
+                        {
+                            insertLogsToDB();
+                            lastSaveLogTime = _lastExecute;
+                        }
+                        if (lastUserSync.AddMilliseconds(syncUsersTimeInterval) <= _lastExecute)
+                        {
+                            saveUsers();
+                            lastUserSync = _lastExecute;
+                        }
+                        isConn = isConnected();
+                        Thread.Sleep(new TimeSpan(0, 1, 0));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log.Info(this.DeviceSerialNo + " Nolu cihazdaki ile ilgili sorunlar oluştu. Mesaj : " + ex.Message);
+                }
+
+                Thread.Sleep(new TimeSpan(0, 0, 10));
             }
         }
 
+       
         private void saveUsers()
         {
+            int count = 0;
             var deviceUsers = this.GetUsers();
+            foreach (var user in deviceUsers)
+            {
+                var tmp = ZKTecoSF300.db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id,user.UserDeviceId);
+                if (tmp == null)
+                {
+                    var rs = ZKTecoSF300.db.InsertSH_ShiftTrackingDeviceUsers(new SH_ShiftTrackingDeviceUsers { 
+                        id = Guid.NewGuid(),
+                        deviceId = this.id,
+                        deviceUserId = user.UserDeviceId
+                    });
+
+                    if (rs.result)
+                    {
+                        count++;
+                    }
+                    else
+                    {
+                        Log.Error(this.id + "Id'li cihaz için " + user.UserDeviceId + "cihaz Id'li kullanıcı sisteme eklenemedi");
+                    }
+                }
+            }
+            if (count > 0)
+            {
+                Log.Success(count + " kullanıcı sisteme kaydedildi");
+            }
         }
 
         private bool insertLogsToDB()
@@ -66,31 +118,10 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             var logs = this.GetLogDataBetweenDates(firstLogTime, lastLogTime);
             foreach (var log in logs)
             {
+                short shiftStatus = specifyStatus(log.DateTimeRecord);
                 var ShiftTrackingDeviceUser = ZKTecoSF300.db.GetSH_ShiftTrackingDeviceUsersByDeviceIdAndDeviceUserId(this.id, log.UserDeviceId.ToString());
                 if (ShiftTrackingDeviceUser != null && ShiftTrackingDeviceUser.userId.HasValue)
                 {
-                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByUserId(ShiftTrackingDeviceUser.userId.Value);
-                    short shiftStatus = 0;
-                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
-                    switch (lastStatus)
-                    {
-                        case 0:
-                            shiftStatus = 1;
-                            break;
-                        case 1:
-                            shiftStatus = 0;
-                            break;
-                        case 2:
-                            shiftStatus = 3;
-                            break;
-                        case 3:
-                            shiftStatus = 2;
-                            break;
-                        default:
-                            shiftStatus = 0;
-                            break;
-                    }
-
                     rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
@@ -104,28 +135,6 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
                 else
                 {
-                    var record = ZKTecoSF300.db.GetSH_ShiftTrackingLastRecordByDeviceIdAndUserDeviceId(this.id, log.UserDeviceId.ToString());
-                    short shiftStatus = 0;
-                    int lastStatus = record == null ? 0 : record.shiftTrackingStatus.Value;
-                    switch (lastStatus)
-                    {
-                        case 0:
-                            shiftStatus = 1;
-                            break;
-                        case 1:
-                            shiftStatus = 0;
-                            break;
-                        case 2:
-                            shiftStatus = 3;
-                            break;
-                        case 3:
-                            shiftStatus = 2;
-                            break;
-                        default:
-                            shiftStatus = 0;
-                            break;
-                    }
-
                     rs &= ZKTecoSF300.db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
@@ -138,25 +147,29 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
 
             }
-            
+
             if (rs.result)
             {
                 trans.Commit();
-                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilmiştir..");
-                setLastInsertTimeFromFile(lastLogTime);
+                Log.Success(this.DeviceSerialNo + " Seri Numaralı Cihazın " + firstLogTime + " - " + lastLogTime + " Tarihi Arası Kayıtları (" + logs.Count() + " adet)  Kaydedilmiştir..");
+                setLastInsertTimeToFile(lastLogTime);
             }
             else
             {
                 trans.Rollback();
-                Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihazın" + firstLogTime + "-" + lastLogTime + " Tarihi Arası Logları Database Kaydedilememiştir..");
+                Log.Error(this.DeviceSerialNo + " Seri Numaralı Cihazın " + firstLogTime + " - " + lastLogTime + " Tarihi Arası Kayıtları (" + logs.Count() + " adet) Kaydedilememiştir..");
             }
 
-            return true;
-
+            return rs.result;
 
         }
 
-        private ResultStatus setLastInsertTimeFromFile(DateTime dateTime)
+        private short specifyStatus(DateTime dateTimeRecord)
+        {
+            return (dateTimeRecord.Hour >= 4 && dateTimeRecord.Hour <= 12) == true ? (short)0 : (short)1;
+        }
+
+        private ResultStatus setLastInsertTimeToFile(DateTime dateTime)
         {
             var rs = new ResultStatus { result = false, objects = null };
             String line;
@@ -164,7 +177,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             try
             {
                 bool tmp = false;
-                StreamReader sr = new StreamReader("notes.txt");
+                StreamReader sr = new StreamReader("../../notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -172,7 +185,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                     {
                         if (line.Split('|')[1] == "lastInsertTime")
                         {
-                            line = this.id + "|" + "lastInsertTime" + dateTime.ToString();
+                            line = this.id + "|" + "lastInsertTime|" + dateTime.ToString();
                             tmp = true;
                         }
                     }
@@ -181,11 +194,12 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
                 if (!tmp)
                 {
-                    lines.Add(this.id + " | " + "lastInsertTime" + dateTime.ToString());
+                    lines.Add(this.id + "|" + "lastInsertTime|" + dateTime.ToString());
                 }
 
-                File.WriteAllLines("notes.txt", lines);
                 sr.Close();
+                File.WriteAllLines("../../notes.txt", lines);
+                
             }
             catch (Exception e)
             {
@@ -204,7 +218,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             var lastInsertDateTime = new DateTime(1990, 1, 1);
             try
             {
-                StreamReader sr = new StreamReader("notes.txt");
+                StreamReader sr = new StreamReader("../../notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -325,10 +339,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                     device.OnAttTransactionEx += new _IZKEMEvents_OnAttTransactionExEventHandler(OnAttTransactionEx_Event);
                 }
                 setDate(DateTime.Now);
-                isConn = true;
                 return true;
             }
-            isConn = false;
             return false;
         }
 
@@ -359,7 +371,6 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             device.OnFinger -= OnFinger_Event;
             device.OnAttTransactionEx -= new _IZKEMEvents_OnAttTransactionExEventHandler(OnAttTransactionEx_Event);
             device.Disconnect();
-            isConn = false;
         }
 
         public string GetDeviceInfo()
@@ -466,7 +477,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             ICollection<LogInfo> lstEnrollData = new List<LogInfo>();
 
-            device.ReadAllGLogData(this.MachineNumber.Value);
+            device.EnableDevice(this.MachineNumber.Value, false);
+            var b = device.ReadAllGLogData(this.MachineNumber.Value);
 
             while (device.SSR_GetGeneralLogData(this.MachineNumber.Value, out dwUserId, out dwVerifyMode, out dwInOutMode, out dwYear, out dwMonth, out dwDay, out dwHour, out dwMinute, out dwSecond, ref dwWorkCode))
             {
@@ -483,6 +495,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
 
             }
+            device.EnableDevice(this.MachineNumber.Value, true);
+
 
             return lstEnrollData;
         }
