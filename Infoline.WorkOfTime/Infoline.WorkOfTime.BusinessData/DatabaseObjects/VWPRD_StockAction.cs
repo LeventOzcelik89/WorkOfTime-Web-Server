@@ -28,6 +28,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string dataId_Title { get; set;}
         public string dataCompanyId_Title { get; set;}
         public string productId_Title { get; set;}
+        public string productName { get; set;}
+        public string productCode { get; set;}
         public string status_Title { get; set;}
         public string type_Title { get; set;}
         public string unitId_Title { get; set;}

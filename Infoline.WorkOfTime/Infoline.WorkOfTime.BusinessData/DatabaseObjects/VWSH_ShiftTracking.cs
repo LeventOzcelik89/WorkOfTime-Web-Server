@@ -23,5 +23,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string CompanyId_Title { get; set;}
         public string table_Title { get; set;}
         public string ShiftTrackingStatus_Title { get; set;}
+        public string passType_Title { get; set;}
     }
 }
