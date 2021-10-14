@@ -10,6 +10,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? userId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public string userId_Title { get; set;}
         public string DeviceName { get; set;}
         public string DeviceSerialNo { get; set;}
     }
