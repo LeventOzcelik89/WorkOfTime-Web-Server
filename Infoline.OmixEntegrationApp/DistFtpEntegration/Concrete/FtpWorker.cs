@@ -9,37 +9,52 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
     public class FtpWorker : IFtpWorker
     {
-        public IEnumerable<FileNameWithUrl> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
+        public List<FileNameWithUrl> FptUrl=new List<FileNameWithUrl>();
+        private IEnumerable<DirectoryItem> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
         {
-            var fileNames = new List<FileNameWithUrl>();
+            List<DirectoryItem> returnValue = new List<DirectoryItem>();
             foreach (var url in ftpUrls)
             {
                 try
                 {
-                    FtpWebRequest request = (FtpWebRequest)WebRequest.Create(url.Url);
-                    request.Method = WebRequestMethods.Ftp.ListDirectory;
+                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(url.Url);
+                    request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                     request.Credentials = new NetworkCredential(url.UserName, url.Password);
-                    FtpWebResponse response = (FtpWebResponse)request.GetResponse();
-                    Log.Info(url.Url + " bağlanıldı");
-                    Stream responseStream = response.GetResponseStream();
-                    StreamReader reader = new StreamReader(responseStream);
-                    string filenames = reader.ReadToEnd();
-                    reader.Close();
-                    response.Close();
-                    var file = filenames.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                    var dateTime = DateTime.Now;
-                    var convertedDate = dateTime.Year + "" + dateTime.Month + "" + dateTime.Day;
-                    fileNames.AddRange(file.Where(x => (x.Contains("SELLIN") || x.Contains("SELLTHR")) && x.Contains(convertedDate)).Select(x => new FileNameWithUrl { FileName = x, Url = url.Url, Password = url.Password, UserName = url.UserName }));
+                    string[] list = null;
+                    using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
+                    using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                    {
+                        list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    }
+                    foreach (string line in list)
+                    {
+                        DirectoryItem item = new DirectoryItem();
+                        string data = line;
+                        data = data.Remove(0, 24);
+                        string dir = data.Substring(0, 5);
+                        bool isDirectory = dir.Equals("<dir>", StringComparison.InvariantCultureIgnoreCase);
+                        data = data.Remove(0, 5);
+                        data = data.Remove(0, 10);
+                        string name = data;
+                        item.BaseUri = new Uri(url.Url);
+                        item.IsDirectory = isDirectory;
+                        item.Name = name;
+                        item.Items = item.IsDirectory ? GetFileNames(new List<FtpUrl>() { new FtpUrl { Url = item.AbsolutePath, UserName = url.UserName, Password = url.Password } }).ToList() : null;
+                        returnValue.Add(item);
+                        if (!isDirectory)
+                        {
+                            FptUrl.Add(new FileNameWithUrl { Password = url.Password, UserName = url.UserName, FileName = name, Url = item.BaseUri.ToString() });
+                        }
+                    }
                 }
                 catch (Exception e)
                 {
                     Log.Error(url.Url + " bağlanılamadı! : " + e.Message);
-                    continue;
                 }
             }
-            return fileNames;
+            return returnValue;
         }
-        public IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
+        private IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
         {
             var liststringArray = new List<string[]>();
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fileNameWithUrl.Url + "/" + fileNameWithUrl.FileName);
@@ -67,8 +82,13 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         public IEnumerable<SellIn> GetToDayFile()
         {
-            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://10.100.0.104/", UserName = "ftpuser", Password = "aA123456" }, new FtpUrl { Url = "ftp://10.100.0.156/", UserName = "seyit", Password = "aA123456" } };
-            var fileNames = GetFileNames(listOfUrls);
+            //List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
+            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpUser", Password = "aA123456" } };
+            GetFileNames(listOfUrls);
+            var datetimeNow = DateTime.Now;
+            var genpaDate = datetimeNow.Day + "" + datetimeNow.Month + "" + datetimeNow.Year;
+            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
+            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x => x.FileName.Contains(genpaDate) || x.FileName.Contains(kvkDate)).ToList();
             var res = new List<SellIn>();
             foreach (var fileName in fileNames)
             {
@@ -103,6 +123,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     res.Add(item);
                 }
             }
+            FptUrl = new List<FileNameWithUrl>();
             return res;
         }
     }
