@@ -37,7 +37,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             bool isFirstRun = true;
             while (true)
             {
-                var isConn = true;
+                var isConn = false;
                 if (this.Connect())
                 {
                     Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu");
