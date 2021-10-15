@@ -366,6 +366,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(rules);
             sistemYonetim.AddChild(new Menu("Dil Tanımlamaları", "/SYS/Language/Index"));
             sistemYonetim.AddChild(new Menu("Ürün Kategorileri", "/PRD/VWPRD_Category"));
+            sistemYonetim.AddChild(new Menu("Pdks Cihaz Tanımlamaları", "/SH/VWSH_ShiftTrackingDevice"));
             sistemYonetim.AddChild(new Menu("Birim Tanımları", "/UT/UT_Unit/Index"));
             sistemYonetim.AddChild(new Menu("Para Birimleri", "/UT/UT_Currency/Index"));
             sistemYonetim.AddChild(new Menu("Lokasyonlar (Ülke/İl/İlçe)", "/UT/VWUT_Location/Index"));

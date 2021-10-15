@@ -29,19 +29,30 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
         public void Run()
         {
-            var saveLogTimeInterval = int.Parse(ConfigurationManager.AppSettings["insertLogsTimeMiliseconds"]);
-            var syncUsersTimeInterval = int.Parse(ConfigurationManager.AppSettings["syncUsersMiliseconds"]);
+            var saveLogTimeInterval = int.Parse(ConfigurationManager.AppSettings["insertLogsTimeMinute"]);
+            var syncUsersTimeInterval = int.Parse(ConfigurationManager.AppSettings["syncUsersMinute"]);
             var lastSaveLogTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
             var lastUserSync = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
 
-
+            bool isFirstRun = true;
             while (true)
             {
-                var isConn = true;
+                var isConn = false;
                 if (this.Connect())
                 {
                     Log.Success(this.DeviceSerialNo + " seri numaralı cihaz ile bağlantı kuruldu");
                     isConn = true;
+
+                    if (isFirstRun)
+                    {
+                        saveUsers();
+                        lastUserSync = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
+
+                        insertLogsToDB();
+                        lastSaveLogTime = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
+
+                        isFirstRun = false;
+                    }
                 }
                 else
                 {
@@ -53,12 +64,12 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                     while (isConn)
                     {                      
                         var _lastExecute = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, DateTime.Now.Hour, DateTime.Now.Minute, 0);
-                        if(lastSaveLogTime.AddMilliseconds(saveLogTimeInterval) <= _lastExecute)
+                        if(lastSaveLogTime.AddMinutes(saveLogTimeInterval) <= _lastExecute)
                         {
                             insertLogsToDB();
                             lastSaveLogTime = _lastExecute;
                         }
-                        if (lastUserSync.AddMilliseconds(syncUsersTimeInterval) <= _lastExecute)
+                        if (lastUserSync.AddMinutes(syncUsersTimeInterval) <= _lastExecute)
                         {
                             saveUsers();
                             lastUserSync = _lastExecute;
@@ -102,10 +113,9 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                     }
                 }
             }
-            if (count > 0)
-            {
-                Log.Success(count + " kullanıcı sisteme kaydedildi");
-            }
+
+            Log.Info(count + " kullanıcı sisteme kaydedildi");
+
         }
 
         private bool insertLogsToDB()
