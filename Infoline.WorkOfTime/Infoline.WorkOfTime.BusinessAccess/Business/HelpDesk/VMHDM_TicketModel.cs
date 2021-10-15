@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Web;
-
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMHDM_TicketIndexModel
@@ -18,7 +17,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         public SYS_Files[] files { get; set; }
     }
-
     public class VMHDM_TicketModel : VWHDM_Ticket
     {
         private WorkOfTimeDatabase db { get; set; }
@@ -31,12 +29,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWSH_User[] IssueManagers { get; set; }
         public VWSH_User AssignUser { get; set; }
         public VWHDM_TicketMessageFiles[] Messages { get; set; }
-
         public VMHDM_TicketModel Load(short? status = null)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var ticket = this.db.GetVWHDM_TicketById(this.id);
-
             if (ticket != null)
             {
                 this.B_EntityDataCopyForMaterial(ticket, true);
@@ -59,7 +55,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     this.Requester = this.db.GetVWHDM_TicketRequesterById(this.requesterId.Value);
                 }
-
                 if (this.assignUserId.HasValue)
                 {
                     this.AssignUser = this.db.GetVWSH_UserById(this.assignUserId.Value);
@@ -71,20 +66,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var suggestion = this.db.GetHDM_SuggestionById(this.suggestionId.Value);
                     this.title = suggestion.title;
-
                     if (suggestion.assignUserId.HasValue)
                     {
                         this.assignUserId = suggestion.assignUserId.Value;
                     }
                 }
             }
-
             if (this.suggestionId.HasValue && !this.issueId.HasValue)
             {
                 var suggestion = this.db.GetHDM_SuggestionById(this.suggestionId.Value);
                 this.issueId = suggestion.issueId;
             }
-
             if (this.issueId.HasValue)
             {
                 this.Issue = this.db.GetVWHDM_IssueById(this.issueId.Value);
@@ -93,25 +85,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (issueManagerIds.Count() > 0)
                     this.IssueManagers = this.db.GetVWSH_UserByIds(issueManagerIds);
             }
-
             this.priority = this.priority ?? (int)EnumHDM_TicketPriority.Orta;
             this.status = this.status ?? (int)EnumHDM_TicketStatus.Open;
             this.code = this.code ?? BusinessExtensions.B_GetIdCode();
             return this;
         }
-
         public ResultStatus Save(Guid userid, int? actionType, HttpRequestBase request = null, DbTransaction trans = null)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             this.trans = trans ?? this.db.BeginTransaction();
             var ticket = this.db.GetVWHDM_TicketById(this.id);
+            if (AssignUser==null||this.assignUserId!=null)
+            {
+                AssignUser = db.GetVWSH_UserById(this.assignUserId.Value);
+            }
             var rs = IsExistTicketProperty();
-
             if (rs.result == false)
             {
                 return rs;
             }
-
             if (ticket == null)
             {
                 this.createdby = userid;
@@ -126,17 +118,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 //    rs.result = false;
                 //    rs.message = "Süreç durumu aynı durumu güncellenemez.";
                 //}
-
                 this.changedby = userid;
                 this.changed = DateTime.Now;
                 rs = Update(actionType);
             }
-
             if (request != null && rs.result)
             {
                 new FileUploadSave(request, this.id).SaveAs();
             }
-
             if (trans == null)
             {
                 if (rs.result)
@@ -144,51 +133,40 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                     this.trans.Rollback();
             }
-
             return rs;
         }
-
         private ResultStatus IsExistTicketProperty()
         {
             db = db ?? new WorkOfTimeDatabase();
             var rs = new ResultStatus { result = true };
             return rs;
         }
-
         private ResultStatus Insert(int? actionType)
         {
             var rs = InsertRequester();
             rs &= InsertAssignUserRole();
-
             rs &= this.db.InsertHDM_Ticket(new HDM_Ticket().B_EntityDataCopyForMaterial(this, true), this.trans);
-
             if (actionType.HasValue)
             {
                 rs &= InsertAction(this.createdby.Value, actionType.Value);
             }
-
             if (this.assignUserId.HasValue)
             {
                 rs &= InsertAction(this.createdby.Value, (int)EnumHDM_TicketActionType.PersonelAtama);
             }
-
             return rs;
         }
-
         private ResultStatus Update(int? actionType)
         {
             var rs = new ResultStatus { result = true };
-
             if (actionType.HasValue)
             {
                 rs &= InsertAction(this.changedby.Value, actionType.Value);
             }
-
             rs &= this.db.UpdateHDM_Ticket(new HDM_Ticket().B_EntityDataCopyForMaterial(this, true), false, this.trans);
             rs &= InsertAssignUserRole();
             return rs;
         }
-
         private ResultStatus InsertAssignUserRole()
         {
             var rs = new ResultStatus { result = true };
@@ -198,7 +176,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (user != null)
                 {
                     var userRoleControl = this.db.GetSH_UserRoleByUserIdRoleId(user.id, new Guid(SHRoles.YardimMasaPersonel));
-
                     if (userRoleControl.Count() == 0)
                     {
                         var newUserRole = new SH_UserRole
@@ -209,19 +186,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             roleid = new Guid(SHRoles.YardimMasaPersonel),
                             userid = user.id
                         };
-
                         rs &= this.db.InsertSH_UserRole(newUserRole, this.trans);
                     }
                 }
             }
-
             return rs;
         }
-
         public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
         {
             BEXP filter = null;
-
             var data = query.Filter.ToString();
             if (!data.Contains("assignUserId"))
             {
@@ -232,17 +205,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Operand2 = (VAL)string.Format("{0}", userStatus.user.id.ToString())
                 };
             }
-
             query.Filter &= filter;
-
             return query;
-
         }
-
         public static SimpleQuery UpdateQueryPersonal(SimpleQuery query, PageSecurity userStatus)
         {
             BEXP filter = null;
-
             var data = query.Filter.ToString();
             if (!data.Contains("requesterId"))
             {
@@ -253,18 +221,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Operand2 = (VAL)string.Format("{0}", userStatus.user.id.ToString())
                 };
             }
-
             query.Filter &= filter;
-
             return query;
-
         }
-
         private ResultStatus InsertRequester()
         {
             var rs = new ResultStatus { result = true };
             var ticketRequester = new HDM_TicketRequester().B_EntityDataCopyForMaterial(this.Requester);
-
             if (this.requesterId.HasValue)
             {
                 var dbrequesterControl = this.db.GetHDM_TicketRequesterById(this.requesterId.Value, this.trans);
@@ -273,7 +236,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     ticketRequester.created = DateTime.Now;
                     ticketRequester.createdby = this.createdby;
                     ticketRequester.id = this.requesterId.Value;
-
                     rs &= this.db.InsertHDM_TicketRequester(ticketRequester, this.trans);
                 }
                 else
@@ -284,7 +246,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     dbrequesterControl.phone = ticketRequester.phone;
                     dbrequesterControl.fullName = ticketRequester.fullName;
                     dbrequesterControl.company = ticketRequester.company;
-
                     rs &= this.db.UpdateHDM_TicketRequester(dbrequesterControl, false, this.trans);
                 }
             }
@@ -295,10 +256,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.requesterId = ticketRequester.id;
                 rs &= this.db.InsertHDM_TicketRequester(ticketRequester, this.trans);
             }
-
             return rs;
         }
-
         private ResultStatus InsertAction(Guid userid, int type)
         {
             var action = new HDM_TicketAction
@@ -315,17 +274,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var personelRol = new Guid(SHRoles.YardimMasaPersonel);
             var customerRol = new Guid(SHRoles.YardimMasaMusteri);
             var talepRol = new Guid(SHRoles.YardimMasaTalep);
-
             switch (type)
             {
                 case (int)EnumHDM_TicketActionType.YeniTalep:
                     action.description = "Talep oluşturuldu";
-
                     if (!String.IsNullOrEmpty(this.Requester.email) && this.requesterId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.requesterId.Value);
                         var isRequesterRole = roles.Where(a => a.userid == this.requesterId.Value && a.roleid == talepRol).FirstOrDefault();
-
                         if (isRequesterRole != null)
                         {
                             var text = "<h3>Sayın " + this.Requester.fullName + "</h3>";
@@ -335,12 +291,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new Email().Template("Template1", "teknikserviszimmet.jpg", _tenantName + " | WorkOfTime | Yardım Destek Yönetimi", text).Send((Int16)EmailSendTypes.YardimCozum, this.Requester.email, "Yardım Talebi Oluşturuldu", true);
                         }
                     }
-
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
                         var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
-
                         if (isPersonelRole != null)
                         {
                             var text = "<h3>Sayın " + this.AssignUser.FullName + "</h3>";
@@ -350,19 +304,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new Email().Template("Template1", "teknikserviszimmet.jpg", _tenantName + " | WorkOfTime | Yardım Destek Yönetimi", text).Send((Int16)EmailSendTypes.YardimTalep, this.AssignUser.email, "Yardım Talebi Oluşturuldu", true);
                         }
                     }
-
                     break;
                 case (int)EnumHDM_TicketActionType.PersonelAtama:
                     action.description = "Personel ataması yapıldı";
                     break;
                 case (int)EnumHDM_TicketActionType.BaskaPersonelAta:
                     action.description = "Görevli personel değiştirildi";
-
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
                         var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
-
                         if (isPersonelRole != null)
                         {
                             var text = "<h3>Sayın " + this.AssignUser.FullName + "</h3>";
@@ -372,7 +323,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new Email().Template("Template1", "teknikserviszimmet.jpg", _tenantName + " | WorkOfTime | Yardım Destek Yönetimi", text).Send((Int16)EmailSendTypes.YardimTalep, this.AssignUser.email, "Yardım Talebi Oluşturuldu", true);
                         }
                     }
-
                     break;
                 case (int)EnumHDM_TicketActionType.Beklemede:
                     this.status = (int)EnumHDM_TicketStatus.Pending;
@@ -392,12 +342,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.status = (int)EnumHDM_TicketStatus.Closed;
                     action.ticketStatus = (int)EnumHDM_TicketStatus.Closed;
                     action.description = "Talep çözümlenerek kapatıldı";
-
                     if (!String.IsNullOrEmpty(this.Requester.email) && this.requesterId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.requesterId.Value);
                         var isRequesterRole = roles.Where(a => a.userid == this.requesterId.Value && a.roleid == talepRol).FirstOrDefault();
-
                         if (isRequesterRole != null)
                         {
                             var text = "<h3>Sayın " + this.Requester.fullName + "</h3>";
@@ -407,7 +355,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new Email().Template("Template1", "teknikserviszimmet.jpg", _tenantName + " | WorkOfTime | Yardım Destek Yönetimi", text).Send((Int16)EmailSendTypes.YardimCozum, this.Requester.email, "Yardım Talebi Kapatıldı", true);
                         }
                     }
-
                     break;
                 case (int)EnumHDM_TicketActionType.Onay:
                     this.status = (int)EnumHDM_TicketStatus.Closed;
@@ -418,12 +365,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     action.description = "Talebin çözümü reddedildi";
                     this.status = (int)EnumHDM_TicketStatus.InProgress;
                     action.ticketStatus = (int)EnumHDM_TicketStatus.InProgress;
-
                     if (this.AssignUser != null && !String.IsNullOrEmpty(this.AssignUser.email) && this.assignUserId.HasValue)
                     {
                         var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
                         var isPersonelRole = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRol || a.roleid == customerRol)).FirstOrDefault();
-
                         if (isPersonelRole != null)
                         {
                             var text = "<h3>Sayın " + this.AssignUser.FullName + "</h3>";
@@ -433,13 +378,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new Email().Template("Template1", "teknikserviszimmet.jpg", _tenantName + " | WorkOfTime | Yardım Destek Yönetimi", text).Send((Int16)EmailSendTypes.YardimCozum, this.AssignUser.email, "Yardım Talebi Çözüm Reddedildi", true);
                         }
                     }
-
                     break;
                 case (int)EnumHDM_TicketActionType.CozumSaglandi:
                     this.status = (int)EnumHDM_TicketStatus.Done;
                     action.ticketStatus = (int)EnumHDM_TicketStatus.Done;
                     action.description = "Talep için çözüm sağlandı";
-
                     if (this.IssueManagers != null && this.IssueManagers.Count() > 0)
                     {
                         foreach (var manager in this.IssueManagers)
@@ -454,7 +397,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                         }
                     }
-
                     break;
                 case (int)EnumHDM_TicketActionType.Vazgec:
                     this.status = (int)EnumHDM_TicketStatus.Cancelled;
@@ -464,12 +406,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 default:
                     break;
             }
-
             var rs = this.db.InsertHDM_TicketAction(action, this.trans);
-
             return rs;
         }
-
         public string GetPassingTime(DateTime? time)
         {
             if (this.created.HasValue && time.HasValue)
@@ -486,31 +425,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return "-";
             }
         }
-
         public ResultStatus Delete(Guid[] authorizedRoles)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             this.trans = trans ?? db.BeginTransaction();
-
             var ticket = this.db.GetHDM_TicketById(this.id);
-
             if (ticket == null)
             {
                 return new ResultStatus { message = "Yardım talebi zaten silinmiş durumda.", result = false };
             }
-
             var actions = this.db.GetHDM_TicketActionByTicketId(this.id);
             var messages = this.db.GetHDM_TicketMessageByTicketId(this.id);
-
             if (!authorizedRoles.Contains(new Guid(SHRoles.YardimMasaYonetim)) && !authorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
             {
                 return new ResultStatus { message = "Yardım talebi silme yetkiniz bulunmuyor.", result = false };
             }
-
             var dbresult = db.BulkDeleteHDM_TicketAction(actions, this.trans);
             dbresult &= db.BulkDeleteHDM_TicketMessage(messages, this.trans);
             dbresult &= db.DeleteHDM_Ticket(ticket, this.trans);
-
             if (this.trans != null)
             {
                 if (dbresult.result)
@@ -518,35 +450,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                     this.trans.Rollback();
             }
-
             return dbresult;
         }
-
         public SummaryHeadersTicket GetMyTicketSummary(Guid userId)
         {
             this.Load();
             return db.GetDBVWHDM_GetMyTicketSummary(userId);
         }
-
         public SummaryHeadersTicket GetMyMasterManagerTicketSummary(Guid userId)
         {
             this.Load();
             return db.GetDBVWHDM_GetMyMasterManagerTicketSummary(userId);
         }
-
-
         public SummaryHeadersTicket GetMyManagerTicketSummary(Guid userId)
         {
             this.Load();
             return db.GetDBVWHDM_GetMyManagerTicketSummary(userId);
         }
-
         public ResultStatus<Splitted<VWHDM_Ticket>> MySummaryTickets(Guid userid)
         {
             var db = new WorkOfTimeDatabase();
             var datas = db.GetDBVWHDM_TicketMyWaiting(userid);
             var onaylanan = datas;
-
             return new ResultStatus<Splitted<VWHDM_Ticket>>
             {
                 result = true,
@@ -556,13 +481,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             };
         }
-
         public ResultStatus<Splitted<VWHDM_Ticket>> MySummaryManagerTickets(Guid userid)
         {
             var db = new WorkOfTimeDatabase();
             var datas = db.GetDBVWHDM_TicketMyManagerWaiting(userid);
             var onaylanan = datas;
-
             return new ResultStatus<Splitted<VWHDM_Ticket>>
             {
                 result = true,
@@ -572,6 +495,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             };
         }
-
     }
 }
