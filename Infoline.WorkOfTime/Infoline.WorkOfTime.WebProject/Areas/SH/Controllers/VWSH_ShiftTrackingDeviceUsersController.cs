@@ -98,20 +98,43 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		public JsonResult Update(SH_ShiftTrackingDeviceUsers item)
 		{
 		    var db = new WorkOfTimeDatabase();
+			var trans = db.BeginTransaction();
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
 		
 		    item.changed = DateTime.Now;
 		    item.changedby = userStatus.user.id;
 		
-		    var dbresult = db.UpdateSH_ShiftTrackingDeviceUsers(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var shifts = db.GetSH_ShiftTrackingByDeviceIdAndUserDeviceId(item.deviceId.Value, item.deviceUserId).ToList();
+			shifts.ForEach(s => s.userId = item.userId);
+			
+
+			var dbresult = db.UpdateSH_ShiftTrackingDeviceUsers(item, false, trans);
+			dbresult = db.BulkUpdateSH_ShiftTracking(shifts, false, trans);
+
+            if (dbresult.result)
+            {
+				trans.Commit();
+				var result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = feedback.Success("Güncelleme işlemi başarılı")
+				};
+
+				return Json(result, JsonRequestBehavior.AllowGet);
+			}
+            else
+            {
+				trans.Rollback();
+				var result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = feedback.Error("Güncelleme işlemi başarısız", dbresult.message)
+				};
+
+				return Json(result, JsonRequestBehavior.AllowGet);
+			}
+		   
 		}
 
 

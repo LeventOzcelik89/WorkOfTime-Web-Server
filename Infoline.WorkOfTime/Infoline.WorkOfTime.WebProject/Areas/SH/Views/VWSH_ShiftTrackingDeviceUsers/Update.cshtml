@@ -4,138 +4,46 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg2 {
+        width: 30% !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    $("#VWSH_ShiftTrackingDeviceUsersForm").closest('.modal-lg').addClass("modal-lg2").removeClass("modal-lg");
+</script>
+
 @using(Html.BeginForm("Update", "VWSH_ShiftTrackingDeviceUsers", FormMethod.Post, new Dictionary<string, object>() {  
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
+    { "id", "VWSH_ShiftTrackingDeviceUsersForm" },
     { "data-formType", "Ajax" }
 }))
 {
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.deviceId)
+    @Html.HiddenFor(model => model.deviceUserId)
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="deviceId">deviceId</label>
+            <label class="control-label label-md" for="userId">Çalışan Seçiniz</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.deviceId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen deviceId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="deviceUserId">deviceUserId</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.deviceUserId, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen deviceUserId Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="userId">userId</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.userId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen userId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="DeviceName">DeviceName</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.DeviceName, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen DeviceName Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="DeviceSerialNo">DeviceSerialNo</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.DeviceSerialNo, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen DeviceSerialNo Girin.."},
-            }).Validate(Validations.Required)
+            @(Html.Akilli()
+            .DropDownListFor(model => model.userId)
+            .OptionLabel("Lütfen Çalışan Seçiniz..")
+            .DataTextField("FullName")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+            .Sort(x => x.Add("FullName").Descending())
+            .Validate(Validations.Required)
+            .Execute()
+            )
         </div>
     </div>
 
