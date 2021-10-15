@@ -159,7 +159,14 @@
 
                 $('[aria-controls="EndDate_timeview"]')[canHourly ? "show" : "hide"]();
                 $('[aria-controls="StartDate_timeview"]')[canHourly ? "show" : "hide"]();
-
+                if (person.JobStartDate) {
+                    $("#StartDate").data("kendoDateTimePicker").min(new Date(person.JobStartDate));
+                    $("#StartDate").trigger("change");
+                }
+                if (person.IsWorking == 0) {
+                    $('#StartDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
+                    $('#EndDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
+                }
 
                 if (e.sender.element.attr("name") == "PermitTypeId") {
                     permitPage.functions.SetCommencementDate();
@@ -273,6 +280,7 @@
                     @(
                         Html.Akilli()
                         .DateTimePickerFor(model => model.StartDate)
+                        .Max(new DateTime(Model.EndDate.Value.Ticks).AddMinutes(1))
                         .MaxDateElement("EndDate")
                         .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
                         .Interval(15)

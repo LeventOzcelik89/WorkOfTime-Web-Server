@@ -46,6 +46,19 @@
                 if (dataItem.assignUserId) {
                     $('#assignUserId').data("kendoDropDownList").value(dataItem.assignUserId);
                 }
+            },
+            onSubjectChange: function (e) {
+                debugger
+                var suggestionDropDown = e.sender;
+                var dataItem = suggestionDropDown.dataItem();
+                  GetJsonDataFromUrl("/HDM/VWHDM_IssueUser/Datasource", { filter: "issueId~eq~'" + dataItem.id + "'" }, function (data) {
+                    
+                    if (data.Data.length > 0) {
+                        
+                        $('#assignUserId').data("kendoDropDownList").value(data.Data[0].userId);
+
+                    }
+                })
             }
         }
     }
@@ -116,6 +129,7 @@
                                 .Filter<VWHDM_Issue>(f => f.status == (int)EnumHDM_IssueStatus.Yayında)
                                 .Sort(x => x.Add("title").Ascending())
                                 .Validate(Validations.Required)
+                                .Events(e => { e.Change("ticket.fnc.onSubjectChange"); })
                                 .Execute("id"))
                         </div>
                     </div>
