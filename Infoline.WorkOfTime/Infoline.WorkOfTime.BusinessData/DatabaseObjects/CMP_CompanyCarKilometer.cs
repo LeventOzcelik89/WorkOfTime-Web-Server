@@ -10,5 +10,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public IGeometry  location { get; set;}
         public string image { get; set;}
         public Guid? companyCarId { get; set;}
+        public Guid? commissionId { get; set;}
     }
 }

@@ -86,7 +86,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                     FeedBack = feedback.Warning("Bir önceki tarihteki kilometre değerinden daha büyük bir değer girmelisiniz.")
                 }, JsonRequestBehavior.AllowGet);
             }
-            if (kilometerCheckMax!=null && (float)item.kilometer.Value == (float)kilometerCheckMax.kilometer.Value)
+            if (kilometerCheckMax != null && (float)item.kilometer.Value == (float)kilometerCheckMax.kilometer.Value)
             {
                 return Json(new ResultStatusUI
                 {
@@ -108,12 +108,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 
         [PageInfo("Görevlendirmeye Araç Kilometre Tanımla", SHRoles.Personel)]
         [AllowEveryone]
-        public ActionResult CommissionsInsert(Guid? id, Guid? companyCarId)
+        public ActionResult CommissionsInsert(Guid? id, Guid? companyCarId, Guid? commissionId)
         {
             var data = new VWCMP_CompanyCarKilometer();
             var db = new WorkOfTimeDatabase();
             if (id.HasValue)
-            {   
+            {
                 var lastKilometer = db.GetCMP_CompanyCarKilometerByMaxStartKm(companyCarId.Value);
                 data.kilometer = lastKilometer.kilometer;
                 data.companyCarId = companyCarId;
@@ -125,7 +125,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 return View(data);
             }
             data.id = Guid.NewGuid();
-
+            data.commissionId = commissionId;
             return View(data);
         }
 
@@ -141,59 +141,69 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             item.created = DateTime.Now;
             item.createdby = userStatus.user.id;
 
-            //var kilometerCheckMax = db.GetCMP_CompanyCarKilometerByMaxStartKm(item.companyCarId.Value);
-            //if (kilometerCheckMax != null && StartKm < kilometerCheckMax.kilometer.Value)
-            //{
-            //    return Json(new ResultStatusUI
-            //    {
-            //        Result = false,
-            //        FeedBack = feedback.Warning("Bir önceki tarihteki kilometre değerinden daha büyük bir değer girmelisiniz.")
-            //    }, JsonRequestBehavior.AllowGet);
-            //}
-            //if (kilometerCheckMax != null && EndKm == kilometerCheckMax.kilometer.Value)
-            //{
-            //    return Json(new ResultStatusUI
-            //    {
-            //        Result = false,
-            //        FeedBack = feedback.Warning("Bir önceki tarihteki kilometre değeriyle aynı olamaz.")
-            //    }, JsonRequestBehavior.AllowGet);
-            //}
-            //if (kilometerCheckMax != null)
-            //{
-            //    var dbKM = db.GetCMP_CompanyCarKilometerById(kilometerCheckMax.id);
-            //    var totalKm = EndKm - StartKm;
-            //    item.kilometer = dbKM.kilometer + totalKm;
-            //}
-            //var commissions = db.GetINV_CommissionsById(item.companyCarId.Value);
-        
-            //var Start = new CMP_CompanyCarKilometer
-            //{
-            //    created = DateTime.Now,
-            //    kilometer = StartKm,
-            //    companyCarId = item.companyCarId,
-            //    entryDate = Date.t
-            //};
 
-            //var End = new CMP_CompanyCarKilometer
-            //{
-            //    created = DateTime.Now,
-            //    kilometer = EndKm,
-            //    companyCarId = item.companyCarId,
-            //    //entryDate =
-            //};
+            var commission = db.GetINV_CommissionsById(item.commissionId.Value);
 
-            //var startkm görevlendirme oluşma tarihi
-            //var endDate
-            var dbresult = db.InsertCMP_CompanyCarKilometer(item);
-            //dbresult &= db.InsertCMP_CompanyCarKilometer(End);
 
+            if (StartKm == null || EndKm == null)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning("Başlangıç veya Bitiş kilometresini giriniz.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            if (EndKm <= StartKm)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning("Bitiş kilometresi başlangıç kilometresinden büyük olamaz.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            var Start = new CMP_CompanyCarKilometer
+            {
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                kilometer = StartKm,
+                companyCarId = item.companyCarId,
+                entryDate = commission.StartDate,
+            };
+
+            var End = new CMP_CompanyCarKilometer
+            {
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                kilometer = EndKm,
+                companyCarId = item.companyCarId,
+                entryDate = DateTime.Now
+            };
+
+            commission.VehicleKilometer = EndKm - StartKm;
+
+            var trans = db.BeginTransaction();
+
+            var dbresult = db.InsertCMP_CompanyCarKilometer(Start, trans);
+            dbresult &= db.InsertCMP_CompanyCarKilometer(End, trans);
+            dbresult &= db.UpdateINV_Commissions(commission, true, trans);
+
+            if (dbresult.result)
+            { 
+                trans.Commit();
+            }
+            else
+            { 
+                trans.Rollback();
+            }
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
                 FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
             };
-
             return Json(result, JsonRequestBehavior.AllowGet);
+
         }
 
     }
