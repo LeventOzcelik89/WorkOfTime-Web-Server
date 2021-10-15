@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<Guid?> personUserIds { get; set; }
         public DateTime? taskStartDate { get; set; }
         public DateTime? taskEndDate { get; set; }
+        public Guid? companyStorageId { get; set; }
         public string[] files { get; set; }
         public static TimeSpan VerifyCodeDueDate = new TimeSpan(999, 30, 0);
         private static Random random = new Random();
@@ -69,6 +70,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 assignableUsers = taskUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
                 helperUsers = taskUsersHelper.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
                 followUpUsers = taskFollowUpUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
+                if (this.companyCarId.HasValue)
+                {
+                    var companyCar= db.GetCMP_CompanyCarsById(this.companyCarId.Value);
+                    if (companyCar!=null)
+                    {
+                        this.companyStorageId = companyCar.companyStorageId;
+                    }
+                }
                 if (taskOperations.Count() > 0)
                 {
                     var firstOperation = taskOperations.Where(a => a.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && a.created.HasValue && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi).FirstOrDefault();
