@@ -298,6 +298,10 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
+			if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
+			{
+                menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
+            }
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
