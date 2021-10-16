@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string categoryId_Title { get; set; }
         public string description { get; set; }
         public short? stockType { get; set; }
+        public string currencyTitle { get; set; }
     }
 
     public class VMPRD_TransactionModel : VWPRD_Transaction
@@ -48,6 +49,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
         public bool hasUpdate { get; set; }
         public string tenderIds { get; set; }
+        public Guid? taskId { get; set; }
         public VMPRD_TransactionModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -144,6 +146,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     item.unitId_Title = products.Where(x => x.id == item.productId).Select(a => a.unitId_Title).FirstOrDefault();
                     item.description = products.Where(x => x.id == item.productId).Select(a => a.description).FirstOrDefault();
                     item.stockType = products.Where(x => x.id == item.productId).Select(x => x.stockType).FirstOrDefault();
+                    item.currencyTitle = products.Where(x => x.id == item.productId).Select(x => x.currentSellingCurrencyId_Title).FirstOrDefault();
                 }
             }
 
@@ -519,7 +522,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     DBResult &= new VMCMP_TenderModels { id = tender }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifIrsaliye, this.createdby.Value, this.trans);
                 }
-                
+
             }
 
             if (DBResult.result == true)
@@ -877,6 +880,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Kayboldu;
                 case EnumPRD_TransactionType.Transfer:
                     return EnumPRD_InventoryActionType.Depoda;
+                case EnumPRD_TransactionType.HarcamaBildirimi:
+                    return EnumPRD_InventoryActionType.Harcandi;
+                case EnumPRD_TransactionType.UretimBildirimi:
+                    return EnumPRD_InventoryActionType.Uretildi;
                 default:
                     return null;
             }
@@ -914,6 +921,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.SayimEksigi;
                 case EnumPRD_TransactionType.Transfer:
                     return EnumPRD_InventoryActionType.Transfer;
+                case EnumPRD_TransactionType.HarcamaBildirimi:
+                    return EnumPRD_InventoryActionType.Harcandi;
+                case EnumPRD_TransactionType.UretimBildirimi:
+                    return EnumPRD_InventoryActionType.Uretildi;  
                 default:
                     return null;
             }
@@ -963,6 +974,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             Adress = ""
                         };
                         break;
+                    case "CMP_CompanyCars":
+                        var cmpCars = db.GetVWCMP_CompanyCarsById(dataId.Value);
+                        result = new OwnerInfo
+                        {
+                            CompanyId = cmpCars?.companyId,
+                            CompanyIdTitle = cmpCars?.companyId_Title,
+                            Location = null,
+                            Text = cmpCars?.name,
+                            Adress = ""
+                        };
+                        break;
+
                     default:
                         break;
                 }

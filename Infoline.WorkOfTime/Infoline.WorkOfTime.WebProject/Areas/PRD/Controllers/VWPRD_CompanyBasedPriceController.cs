@@ -12,12 +12,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_CompanyBasedPriceController : Controller
     {
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat listeme sayfası", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ActionResult Index()
         {
             return View();
         }
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat listeme verileri", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -30,50 +30,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_CompanyBasedPriceCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
-        public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
-        {
-            var condition = KendoToExpression.Convert(request);
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWPRD_CompanyBasedPrice(condition);
-            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
-        }
-        [AllowEveryone]
+
+        [PageInfo("Ürün fiyat listesi detay sayfası", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ActionResult Detail(Guid id)
         {
             var model = new VMPRD_CompanyBasedPriceModel { id = id };
-            //var data = model.Load();
-            return View(model);
-        }
-        [AllowEveryone]
-        public ActionResult Insert()
-        {
-            var data = new VWPRD_CompanyBasedPrice { id = Guid.NewGuid() };
+            var data = model.Load();
             return View(data);
         }
-        [HttpPost, ValidateAntiForgeryToken]
-        [AllowEveryone]
-        public JsonResult Insert(VMPRD_CompanyBasedPriceModel item)
-        {
-            var userStatus = (PageSecurity)Session["userStatus"];
-            var feedback = new FeedBack();
-            var dbresult = item.Save();
-            var result = new ResultStatusUI
-            {
-                Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-            };
-            return Json(result, JsonRequestBehavior.AllowGet);
-        }
-        [AllowEveryone]
+
+        [PageInfo("Ürün fiyat listesi güncelleme sayfası", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public ActionResult Update(Guid id)
         {
             var model = new VMPRD_CompanyBasedPriceModel { id = id };
-            //var data = model.Load();
-            return View(model);
+            return View(model.Load());
         }
         [HttpPost, ValidateAntiForgeryToken]
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat listesi güncelleme metodu", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public JsonResult Update(VMPRD_CompanyBasedPriceModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -87,7 +60,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        [AllowEveryone]
+        [PageInfo("Ürün fiyat listesi silme metodu", SHRoles.IKYonetici, SHRoles.OnMuhasebe)]
         public JsonResult Delete(string id)
         {
             var db = new WorkOfTimeDatabase();
@@ -96,7 +69,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message,"Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Error(dbresult.message, "Silme işlemi başarılı")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }

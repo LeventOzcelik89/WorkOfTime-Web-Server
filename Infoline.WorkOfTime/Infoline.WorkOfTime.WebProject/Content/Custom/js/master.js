@@ -64,6 +64,20 @@ Date.prototype.addMinutes = function (minutes) {
     return this;
 }
 
+Date.prototype.GetMonday = function () {
+
+    var d = this;
+
+    var day = d.getDay();
+    var diff = d.getDate() - day + (day == 0 ? -6 : 1);
+    var nd = new Date(d.getFullYear(), d.getMonth(), diff);
+    
+    return nd;
+
+}
+
+getMonday
+
 Date.prototype.addSeconds = function (seconds) {
     this.setSeconds(this.getSeconds() + seconds);
     return this;

@@ -61,6 +61,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public VWINV_Permit[] GetVWINV_PermitByDateRangeAndUserId(DateTime start, DateTime end, Guid userId)
+		{
+			using (var db = GetDB())
+			{
+				return db.Table<VWINV_Permit>().Where(x => x.StartDate >= start && x.EndDate <= end && x.IdUser == userId).Execute().ToArray();
+			}
+		}
+
+
 		public VWINV_Permit[] GetVWINV_PermitByApproveStatusHealtyPermit(DateTime start, DateTime end)
 		{
 			using (var db = GetDB())

@@ -16,36 +16,7 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
 
-    if (!Model.companyCarId.HasValue)
-    {
-        <div class="form-group">
-            <div class="col-md-4">
-                <label class="control-label label-md req" for="customerId">Araçlarım</label>
-            </div>
-            <div class="col-md-8">
-                @(
-        Html.Akilli()
-        .DropDownListFor(model => model.companyCarId)
-        .OptionLabel("Lütfen Aracınızı Seçiniz..")
-        .DataValueField("id")
-        .DataTextField("plate")
-        //.Template("#=TemplateEngine('companyTemplate',data)#")
-        .Template("#=TemplateEngine('carKilometerTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWCMP_CompanyCars", new { area = "CMP" }))
-        .Filter<VWCMP_CompanyCarKilometer>(a => a.responsiblePersonId == userStatus.user.id)
-        //.BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name", true)
-        //.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
-        //.Sort(x => x.Add("fullName").Ascending())
-        .Validate(Validations.Required)
-        .Execute()
-            )
-            </div>
-        </div>
-    }
-    else
-    {
         @Html.HiddenFor(model => model.companyCarId)
-    }
 
     <div class="form-group">
         <div class="col-md-4">
@@ -57,7 +28,7 @@
                 {"class", "form-control"},
                 {"placeholder", "Lütfen Giriş Tarihi Girin.."},
             })
-            .Format(Extensions.DateFormatShort())
+            .Format(Extensions.DateFormatFull())
             .Validate(Validations.Required)
             .Value(Model.entryDate != null ? Model.entryDate : DateTime.Now)
             )

@@ -108,6 +108,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var managerRol = new Guid(SHRoles.YardimMasaYonetim);
             var personelRol = new Guid(SHRoles.YardimMasaPersonel);
+            var customerRole = new Guid(SHRoles.YardimMasaMusteri);
             var talepRol = new Guid(SHRoles.YardimMasaTalep);
 
             if (this.type == (int)EnumHDM_TicketMessageType.Reply)
@@ -125,6 +126,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                         var roles = this.db.GetSH_UserRoleByUserId(this.Ticket.assignUserId.Value);
                         var isPersonelRole = roles.Where(a => a.userid == this.Ticket.assignUserId.Value && a.roleid == personelRol).FirstOrDefault();
+
+                        if(isPersonelRole == null)
+                        {
+                            isPersonelRole = roles.Where(a => a.userid == this.Ticket.assignUserId.Value && a.roleid == customerRole).FirstOrDefault();
+                        }
 
                         if (isPersonelRole != null)
                         {

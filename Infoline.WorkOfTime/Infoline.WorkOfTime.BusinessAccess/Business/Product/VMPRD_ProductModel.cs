@@ -249,6 +249,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public ResultStatus Delete(DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
+            var transaction = trans ?? db.BeginTransaction();
             var _product = db.GetPRD_ProductById(this.id);
             if (_product == null)
             {
@@ -274,19 +275,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
             var dbres = new ResultStatus { result = true };
-            var transaction = trans ?? db.BeginTransaction();
-
             var priceBuying = db.GetPRD_ProductPriceByProductIdAll(_product.id);
-            dbres &= db.BulkDeletePRD_ProductPrice(priceBuying, trans);
+            dbres &= db.BulkDeletePRD_ProductPrice(priceBuying, transaction);
 
             var pointSelling = db.GetPRD_ProductPointSellingByProductId(_product.id);
-            dbres &= db.BulkDeletePRD_ProductPointSelling(pointSelling, trans);
+            dbres &= db.BulkDeletePRD_ProductPointSelling(pointSelling, transaction);
 
             var productCompany = db.GetPRD_ProductCompanyByProductId(_product.id);
-            dbres &= db.BulkDeletePRD_ProductCompany(productCompany, trans);
+            dbres &= db.BulkDeletePRD_ProductCompany(productCompany, transaction);
 
             var product = new PRD_Product().B_EntityDataCopyForMaterial(_product, true);
-            dbres &= db.DeletePRD_Product(product, trans);
+            dbres &= db.DeletePRD_Product(product, transaction);
 
             if (dbres.result == true)
             {
@@ -294,7 +293,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Ürün silme işlemi başarıslı oldu."
+                    message = "Ürün silme işlemi başarılı oldu."
                 };
             }
             else

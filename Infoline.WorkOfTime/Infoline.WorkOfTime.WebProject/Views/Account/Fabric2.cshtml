@@ -1,0 +1,2750 @@
+﻿@{
+    ViewBag.Title = "Model Editörü";
+    var burl = "http://10.100.0.222:3457";
+}
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title>Model Editörü</title>
+    <link rel="Model Editör" href="@burl/favicon.ico" type="image/x-icon">
+    <!--Others-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto|Oswald" rel="stylesheet">
+    <link href="@burl/Content/bootstrap.min.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/Dialog/css/bootstrap-dialog.min.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/dropdown-hover/css/animate.min.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/dropdown-hover/css/bootstrap-dropdownhover.min.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/GoldenLayout/css/goldenlayout-base.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/GoldenLayout/css/goldenlayout-light-theme.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/TreeView/jquery.treefilter.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/Loading/css/jquery.loadingModal.min.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/AkillliModel.css" rel="stylesheet" />
+    <!--Others-->
+    <!--Kendo-->
+    <link href="@burl/Scripts/FormulaV2/Kendo/css/kendo.common-material.min.css" rel="stylesheet" type="text/css" />
+    <link href="@burl/Scripts/FormulaV2/Kendo/css/kendo.mobile.all.min.css" rel="stylesheet" type="text/css" />
+    <link href="@burl/Scripts/FormulaV2/Kendo/css/kendo.dataviz.min.css" rel="stylesheet" type="text/css" />
+    <link href="@burl/Scripts/FormulaV2/Kendo/css/kendo.material.min.css" rel="stylesheet" type="text/css" />
+    <link href="@burl/Scripts/FormulaV2/Kendo/css/kendo.dataviz.material.min.css" rel="stylesheet" type="text/css" />
+    <!--Kendo-->
+    <!--Harita-->
+    <link href="@burl/Scripts/FormulaV2/Harita/fonts/MapIcon/flaticon.css" rel="stylesheet" />
+    <link href="@burl/Scripts/FormulaV2/Harita/css/ol.custom.css" rel="stylesheet" />
+    <!--Harita-->
+    <!--Base-->
+    <script src="@burl/Scripts/FormulaV2/JqueryUI/jquery-1.11.3.min.js"></script>
+    <script src="@burl/Scripts/bootstrap.min.js"></script>
+    <script src="@burl/Scripts/jquery.signalR-2.2.1.js"></script>
+    <script src="/signalr/hubs"></script>
+    <!--Base-->
+    <!--Others-->
+    <script src="@burl/Scripts/FormulaV2/dropdown-hover/js/bootstrap-dropdownhover.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/JqueryUI/jquery-ui.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Loading/js/jquery.loadingModal.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Dialog/js/bootstrap-dialog.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/GoldenLayout/js/goldenlayout.js"></script>
+    <script src="@burl/Scripts/FormulaV2/TreeView/jquery.treefilter.js"></script>
+    <script src="@burl/Scripts/FormulaV2/FabricJS/fabric.js"></script>
+    <script src="@burl/Scripts/FormulaV2/FileSaver/FileSaver.js"></script>
+    <!--Others-->
+    <!--Kendo-->
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/jszip.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/kendo.all.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/kendo.aspnetmvc.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/messages/kendo.messages.en-US.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/messages/kendo.messages.tr-TR.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/cultures/kendo.culture.tr-TR.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Kendo/js/cultures/kendo.culture.en-US.min.js"></script>
+    <!--Kendo-->
+    <!--Harita-->
+    <script src="@burl/Scripts/FormulaV2/harita/data/projlist.js"></script>
+    <script src="@burl/Scripts/FormulaV2/harita/js/proj4.js"></script>
+    <script src="@burl/Scripts/FormulaV2/harita/js/turf.min.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Harita/js/ol.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Harita/js/ol.extensions.js"></script>
+    <script src="@burl/Scripts/FormulaV2/Harita/js/ol.custom.js"></script>
+    <!--Harita-->
+
+
+    <script type="text/javascript">
+
+        kendo.culture("tr-TR");
+
+        var Formula = function (elementId, options) {
+
+            var $this = this;
+            var defaultOptions = {
+                width: 640,
+                height: 480,
+                gridSize: 20,
+                debug: true,
+                grid: false
+            };
+            var options = $.extend(defaultOptions, options);
+            var canvasElement = document.getElementById(elementId);
+            var Grid = function (size) {
+
+                var _this = this;
+                var canvas = $this.canvas;
+                _this.status = false;
+                _this.size = size;
+
+                function buildLines() {
+                    var gg = new fabric.Group([], {
+                        _is: "grid",
+                        _id: $this.helper.Guid.New(),
+                        selectable: false,
+                        hasControls: false,
+                    });
+
+                    //Normelde width heighte göre işlem yapıyoruz
+                    var index = 10000;
+
+                    for (var i = 1; i < (index / size); i++) {
+                        gg.add(new fabric.Line([i * size, 0, i * size, index], { stroke: '#e0e0e0', selectable: false, }));
+                        gg.add(new fabric.Line([0, i * size, index, i * size], { stroke: '#e0e0e0', selectable: false, }))
+                    }
+                    return gg;
+                }
+
+                _this.gridGroup = buildLines();
+                $this.canvas.add(_this.gridGroup);
+
+
+                _this.setVisible = function (status) {
+                    _this.status = status;
+                    _this.gridGroup.setVisible(_this.status);
+                    $this.canvas.renderAll();
+                }
+
+                _this.refresh = function () {
+                    $this.canvas.remove(_this.gridGroup);
+                    _this.gridGroup = buildLines();
+                    if (_this.status) {
+                        $this.canvas.add(_this.gridGroup);
+                        $this.canvas.moveTo(_this.gridGroup, 0);
+                        _this.gridGroup.setVisible(true);
+                        $this.canvas.renderAll();
+                    }
+                }
+
+                canvas.on('object:moving', function (options) {
+                    if (_this.status) {
+                        options.target.set({
+                            left: Math.round(options.target.left / size) * size,
+                            top: Math.round(options.target.top / size) * size
+                        })
+                    } else {
+                        options.target.set({
+                            left: options.target.left,
+                            top: options.target.top
+                        })
+                    }
+                });
+
+            }
+
+            $this.helper = {
+                Guid: {
+                    New: function () {
+                        var d = new Date().getTime();
+                        var uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            var r = (d + Math.random() * 16) % 16 | 0;
+                            d = Math.floor(d / 16);
+                            return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+                        });
+                        return uuid;
+                    },
+                    Empty: function () {
+                        return 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'.split("x").join("0");
+                    }
+                },
+                Console: {
+                    Log: function (message, type, trigger) {
+                        if (options.debug) {
+                            console.log(message);
+                        }
+                    },
+                    Error: function (message, type) {
+                        if (options.debug) {
+                            console.error(message);
+                        }
+                    },
+                    Warning: function (message, type) {
+                        if (options.debug) {
+                            console.warn(message);
+                        }
+                    }
+                },
+                colorToRGBA: function (color, opacity) {
+
+                    var opacity = typeof (opacity) == "number" ? opacity : 1;
+
+                    var resultObject = [255, 255, 255, opacity];
+
+                    if (typeof (color) == "object") {
+
+                        if (color.length == 3) {
+                            resultObject = color.push(opacity);
+                        }
+
+                        resultObject = color;
+
+                    } else {
+
+                        color = color.toUpperCase().trim();
+
+                        if (color.indexOf("#") == 0) {
+                            var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+                            color = color.replace(shorthandRegex, function (m, r, g, b) {
+                                return r + r + g + g + b + b;
+                            });
+                            var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(color);
+
+                            if (result) {
+                                resultObject = [parseInt(result[1], 16), parseInt(result[2], 16), parseInt(result[3], 16), opacity];
+                            }
+                        }
+
+                        if (color.indexOf("RGBA(") == 0) {
+                            resultObject = color.replace("RGBA(", "").replace(")", "").split(" ").join("").split(",");
+                        }
+
+                        if (color.indexOf("RGB(") == 0) {
+                            var result = color.replace("RGB(", "").replace(")", "").split(" ").join("").split(",");
+                            result.push(opacity);
+                            resultObject = result;
+                        }
+                    }
+
+                    return "rgba(" + resultObject.map(function (e) { return parseFloat(e) }).join(",") + ")";
+
+                },
+                toCapitalize: function (str) {
+                    return str.charAt(0).toUpperCase() + str.slice(1);
+                },
+                objectClone: function (object) {
+                    var objectNew = new Object();
+                    for (var prop in object) { objectNew[prop] = object[prop]; }
+                    return objectNew;
+                }
+            }
+
+            $this.util = {
+                toJSON: function () {
+
+                    var components = $this.element.custom.component.get().map(function (e) {
+                        return {
+                            id: e._id,
+                            properties: e._properties,
+                            left: e.left,
+                            top: e.top,
+                            connectors: $this.element.custom.connector.get(e).map(function (b) {
+                                return {
+                                    id: b._id,
+                                    type: b._type,
+                                    properties: b._properties
+                                }
+                            })
+                        }
+                    });
+
+                    var connections = $this.element.custom.connection.get().map(function (e) {
+                        return {
+                            id: e._id,
+                            relations: {
+                                start: {
+                                    id: e._relations.start._id,
+                                    type: e._relations.start._type
+                                },
+                                end: {
+                                    id: e._relations.end._id,
+                                    type: e._relations.end._type
+                                }
+
+                            }
+                        }
+                    });
+
+                    return {
+                        components: components,
+                        connections: connections,
+                    }
+
+                    return result;
+                },
+                saveJSON: function () {
+                    var json = this.toJSON();
+                    var name = new Date().toLocaleString().split(".").join("-").split(" ").join("-").split(":").join("-");
+                    var blob = new Blob([JSON.stringify(json)], { type: "text/plain" });
+                    var file = new File([blob], name + ".json");
+                    return file;
+                },
+                loadJSON: function (response) {
+
+                    if (!response) return;
+                    var components = {};
+                    var connectors = {};
+                    var connections = {};
+
+                    response.components.forEach(function (e) {
+                        components[e.id] = $this.element.custom.component.add(e.properties, e.left, e.top, false, e.id);
+                        e.connectors.forEach(function (conn) {
+                            connectors[conn.id] = $this.element.custom.connector.add(components[e.id], conn.type, conn.properties, conn.id);
+                        });
+                    });
+
+                    response.connections.forEach(function (e) {
+                        connections[e.id] = $this.element.custom.connection.add(connectors[e.relations.start.id], connectors[e.relations.end.id], e.id);
+                        $this.canvas.moveTo(connections[e.id], 1);
+                    });
+                }
+            }
+
+            $this.history = {
+                state: [],
+                mods: 0,
+                save: function () {
+                    var obj = $this.util.toJSON();
+                    this.state.push(obj);
+                },
+                undo: function () {
+                    if (this.mods < this.state.length) {
+                        $this.element.clear();
+                        $this.util.loadJSON(this.state[this.state.length - 1 - this.mods - 1]);
+                        this.mods += 1;
+                    }
+                },
+                redo: function () {
+                    if (this.mods > 0) {
+                        $this.element.clear();
+                        $this.util.loadJSON(this.state[this.state.length - 1 - this.mods + 1]);
+                        this.mods -= 1;
+                    }
+                }
+            }
+
+            $this.element = {
+                custom: {
+                    component: {
+                        add: function (properties, left, top, createConnector, id) {
+
+                            var size = $this.grid.size;
+                            var width = (size * 16);
+                            var height = (size * 7);
+                            var fill = $this.helper.colorToRGBA(properties.Color, 0.8);
+                            var stroke = $this.helper.colorToRGBA(properties.Color, 1);
+                            var nameArr = $this.element.get().filter(function (e) { return e._properties.Name == properties.Name; }).map(function (e) {
+                                return parseInt(e._id.replace(properties.Name + "_", ""));
+                            });
+                            var index = nameArr.length == 0 ? 0 : nameArr.sort().reverse()[0] + 1;
+                            var name = $this.helper.toCapitalize(properties.Name) + "_" + index;
+                            var label = properties.Label.tr;
+
+                            var group = new fabric.Group([], {
+                                _id: name,
+                                _is: "component",
+                                _properties: properties,
+                                _color: fill,
+                                _height: height,
+                                hasControls: false,
+                                left: Math.round(left / size) * size,
+                                top: Math.round(top / size) * size,
+                            });
+
+                            var body = new fabric.Rect({
+                                _is: "body",
+                                width: width,
+                                height: height,
+                                fill: fill,
+                                stroke: stroke,
+                                left: group.left,
+                                top: group.top
+                            });
+
+                            group.addWithUpdate(body);
+
+                            var title = new fabric.IText(name, {
+                                _is: "title",
+                                fontSize: 10,
+                                fontFamily: "Verdana",
+                                fill: '#000',
+                                top: group.top - 11,
+                                left: group.left + (width / 2),
+                                originX: "center"
+                            });
+
+                            group.addWithUpdate(title);
+
+
+                            var description = new fabric.IText(label, {
+                                _is: "description",
+                                fontSize: 9,
+                                fontFamily: "Verdana",
+                                fill: '#fff',
+                                top: group.top + (height / 2) + 10,
+                                left: group.left + (width / 2),
+                                originX: 'center',
+                                originY: 'center',
+                            });
+
+                            group.addWithUpdate(description);
+
+
+                            fabric.Image.fromURL('@burl/assets/formula/img/functions.png', function (img) {
+                                group.addWithUpdate();
+                                img.set({
+                                    _is: "image",
+                                    width: 36,
+                                    height: 36,
+                                    left: body.originalLeft + (width / 2),
+                                    top: body.originalTop + (body.height / 2) - 5,
+                                    originX: "center",
+                                    originY: "center",
+                                    stroke: "#fff"
+                                });
+                                group.addWithUpdate(img);
+                            });
+
+
+                            var component = $this.element.add(group, (id ? id : name));
+
+                            if (createConnector) {
+                                properties.Inputs.forEach(function (conn) {
+                                    // if (conn.InputType.Name == "In") return;
+                                    $this.element.custom.connector.add(component, "input", conn);
+                                });
+
+                                properties.Outputs.forEach(function (conn) {
+                                    $this.element.custom.connector.add(component, "output", conn);
+                                });
+                            }
+
+                            return component;
+
+                        },
+                        get: function (params) {
+                            var result = $this.canvas.getObjects().filter(function (e) {
+                                return e._is == "component" && (!params || (typeof (params) == "string" && e._id == params) || (params instanceof Array && params.indexOf(e._id) > -1))
+                            });
+                            return result;
+                        },
+                        remove: function (params) {
+                            return $this.element.remove(this.get(params));
+                        },
+                        text: {
+                            get: function (component) {
+                                var text = component.getObjects().filter(function (e) {
+                                    return e._is == "title";
+                                })[0];
+                                return text ? text.getText() : "";
+                            },
+                            set: function (component, str) {
+                                var text = component.getObjects().filter(function (e) {
+                                    return e._is == "title";
+                                })[0];
+                                text.setText(str);
+                                $this.canvas.renderAll();
+                            }
+                        },
+                        getConnector: function (o) {
+                            if (!o.target) return null;
+                            if (!o.target["forEachObject"]) return null;
+                            var c = $this.canvas.getPointer(o.e);
+                            var xx = c.x - (o.target.width / 2) - o.target.left;
+                            var yy = c.y - (o.target.height / 2) - o.target.top;
+                            var pt = { x: xx, y: yy };
+                            return o.target.getObjects().filter(function (e) {
+                                return e._is == "connector" && e.containsPoint(pt);
+                            })[0];
+                        }
+                    },
+                    connector: {
+                        add: function (component, type, properties, id) {
+
+                            $this.canvas.renderAll();
+                            component.addWithUpdate();
+
+                            var propertiesNew = $this.helper.objectClone(properties);
+
+                            var circle = new fabric.Circle({
+                                radius: 10,
+                                fill: "#fdfdfd",
+                                stroke: "#ccc",
+                                originX: "center",
+                                originY: "center"
+                            });
+
+                            var text = new fabric.IText(type == "output" ? "O" : "I", {
+                                _is: "text",
+                                fontSize: 10,
+                                fontFamily: "Verdana",
+                                fill: component._color,
+                                originX: 'center',
+                                originY: 'center',
+                                top: 2,
+                            });
+
+                            var textClose = new fabric.IText("X", {
+                                _is: "close",
+                                fontSize: 11,
+                                fontFamily: "arial",
+                                fill: "red",
+                                fontWeight: "bold",
+                                top: -6.1,
+                                left: -3.4,
+                                visible: false
+                            });
+
+
+                            var body = component.getObjects().filter(function (e) { return e._is == "body" })[0];
+                            var image = component.getObjects().filter(function (e) { return e._is == "image" })[0];
+                            var description = component.getObjects().filter(function (e) { return e._is == "description" })[0];
+                            var inputArrLength = component.getObjects().filter(function (e) { return e._is == "connector" && e._type == "input" && e._properties.IsArray; }).length;
+
+
+                            propertiesNew["No"] = propertiesNew.IsArray ? propertiesNew.StartNumber + inputArrLength : propertiesNew.No;
+                            var conlength = component.getObjects().filter(function (e) { return e._is == "connector" && e._type == type && (e._type == "output" ? true : (e._properties.InputType.Name == "Out" || e._properties.InputType.Name == "Both")); }).length;
+
+                            var conn = new fabric.Group([circle, text, textClose], {
+                                _is: "connector",
+                                _id: (id ? id : $this.helper.Guid.New()),
+                                _type: type,
+                                _properties: propertiesNew,
+                                left: body.originalLeft + ((type == "input" ? 0 : body.width - 1)),
+                                top: component.top + ((conlength + 1) * 21) + 1,
+                                originX: "center",
+                                originY: "center",
+                                hasControls: false
+                            });
+
+                            if (propertiesNew.InputType && propertiesNew.InputType.Name == "In") {
+                                conn.setVisible(false);
+                            }
+
+
+                            conn.add(new fabric.IText((propertiesNew.IsArray ? propertiesNew.Label.tr.replace('[]', propertiesNew.No) : propertiesNew.Label.tr), {
+                                fontSize: 8, fontFamily: "arial", fill: "#fff", originY: 'center',
+                                originX: (type == "input" ? "left" : "right"), left: (type == "input" ? 12 : -12)
+                            }));
+
+                            component.addWithUpdate(conn);
+                            component.setCoords();
+
+                            var inputArr = component.getObjects().filter(function (e) { return e._is == "connector" && e._type == "input"; });
+                            var outputArr = component.getObjects().filter(function (e) { return e._is == "connector" && e._type == "input"; });
+
+                            var connlength = Math.max(inputArr.length, inputArr.length);
+
+
+                            if (image) { image.top = 0; }
+                            if (body) { body.height = Math.max(component._height, connlength * 21); }
+                            if (description) { description.top = 30; }
+
+                            $this.canvas.renderAll();
+
+                            return conn;
+
+                        },
+                        get: function (component, params) {
+                            var result = component.getObjects().filter(function (e) {
+                                return (e._is == "connector" && (!params || (typeof (params) == "string" && e._id == params) || (params instanceof Array && params.indexOf(e._id) > -1)))
+                            });
+                            return result;
+                        },
+                        remove: function (connector) {
+                            var _this = this;
+                            var connectors = [];
+                            var component = connector.group;
+
+                            _this.get(component).forEach(function (elem) {
+                                if (elem._properties.IsArray && elem._type == "input") {
+                                    if (connector != elem) {
+                                        connectors.push(elem);
+                                    }
+                                    component.removeWithUpdate(elem);
+                                }
+                            });
+
+                            connectors.forEach(function (conn) {
+                                var connection = $this.element.custom.connection.get(conn)[0];
+                                var connstart = _this.add(component, "input", conn._properties, conn._id);
+                                if (connection) {
+                                    var connend = connection._relations.start == conn ? connection._relations.end : connection._relations.start;
+                                    $this.element.custom.connection.remove(connection._id);
+                                    var connect = $this.element.custom.connection.add(connstart, connend, connection._id);
+                                    $this.canvas.moveTo(connect, 1);
+                                }
+                            });
+
+                        },
+                        close: function (connector, status) {
+                            connector.forEachObject(function (e) {
+                                if (e._is == "text") {
+                                    e.visible = !status;
+                                }
+                                if (e._is == "close") {
+                                    e.visible = status;
+                                }
+                            });
+                            $this.canvas.renderAll();
+                        }
+                    },
+                    connection: {
+                        add: function (connectorStart, connectorEnd, id) {
+
+                            var pointerstart = {
+                                x: connectorStart.group.getCenterPoint().x + connectorStart.getCenterPoint().x,
+                                y: connectorStart.group.getCenterPoint().y + connectorStart.getCenterPoint().y
+                            };
+
+                            var pointerEnd = {
+                                x: connectorEnd.group.getCenterPoint().x + connectorEnd.getCenterPoint().x,
+                                y: connectorEnd.group.getCenterPoint().y + connectorEnd.getCenterPoint().y
+                            };
+
+                            var element = new fabric.Line([pointerstart.x, pointerstart.y, pointerEnd.x, pointerEnd.y], {
+                                _is: "connection",
+                                _relations: { start: connectorStart, end: connectorEnd },
+                                strokeWidth: 1,
+                                strokeDashArray: [5, 5],
+                                stroke: "#4d4d4d",
+                                selectable: false
+                            });
+
+                            element.getConnectorInput = function () {
+                                return element._relations.start._type == "input" ? element._relations.start : element._relations.end;
+                            }
+
+                            element.getConnectorOutput = function () {
+                                return element._relations.start._type == "output" ? element._relations.start : element._relations.end;
+                            }
+
+                            return $this.element.add(element, (id ? id : $this.helper.Guid.New()));
+                        },
+                        get: function (params) {
+
+                            var result = $this.canvas.getObjects().filter(function (e) {
+                                return e._is == "connection" &&
+                                    (!params || (typeof (params) == "string" && e._id == params) ||
+                                        (params instanceof Array && params.indexOf(e._id) > -1) ||
+                                        (params._is && params._is == "connector" && (e._relations.start == params || e._relations.end == params)) ||
+                                        (params._is && params._is == "component" && (e._relations.start.group == params || e._relations.end.group == params)))
+                            });
+
+                            return result;
+                        },
+                        remove: function (params) {
+                            return $this.element.remove(this.get(params));
+                        }
+                    },
+                    query: function () {
+
+                        var components = page.workspace.element.custom.component.get();
+
+
+                        return components.map(function (e) {
+
+                            return {
+                                ComponentType: e._properties.Name,
+                                Name: e._id,
+                                Parameters: e.getObjects().filter(function (b) {
+
+                                    return b._is == "connector" && b._type == "input";
+
+
+                                }).map(function (input) {
+                                    var connection = $this.element.custom.connection.get(input)[0];
+                                    if (connection) {
+                                        var output = connection._relations.start == input ? connection._relations.end : connection._relations.start;
+                                        return {
+                                            Name: output.group._id,
+                                            ObjectType: "Connection",
+                                            Port: output._properties.No,
+                                        };
+                                    } else {
+                                        return input._properties.Value ? input._properties.Value : input._properties.Default;
+                                    }
+                                })
+                            };
+                        });
+
+                    }
+                },
+                add: function (element, id) {
+                    //kontrol koyulması gerekiyor,
+                    try {
+                        element.set("_id", (id ? id : $this.helper.Guid.New()));
+                        element.set("_properties", element._properties ? element._properties : {});
+                        $this.canvas.add(element);
+                        return element;
+                    } catch (e) {
+                        $this.helper.Console.Warning("Geçersiz Element." + e);
+                    }
+                },
+                get: function (params) {
+
+                    var objects = $this.canvas.getObjects().filter(function (e) {
+                        return (!params && e._is != "grid") || (typeof (params) == "string" && e._id == params) || (params instanceof Array && params.indexOf(e._id) > -1);
+                    });
+
+                    return objects;
+                },
+                remove: function (params) {
+
+                    if (!params) {
+                        $this.helper.Console.Log("Parametre girmelisiniz.");
+                        return;
+                    }
+
+                    if (params instanceof Array && params.length > 0 && params[0] instanceof fabric.Object) {
+                        var objects = params;
+                    } else if (params instanceof fabric.Object) {
+                        var objects = [params];
+                    } else {
+                        var objects = this.get(params);
+                    }
+
+                    for (var i = 0; i < objects.length; i++) {
+                        if (objects[i]._is == "component") {
+                            $this.element.custom.connection.remove(objects[i]);
+                        }
+                        $this.canvas.remove(objects[i]);
+                    }
+
+                    $this.canvas.deactivateAll().renderAll();
+                },
+                clear: function () {
+
+                    var objects = $this.canvas.getObjects().filter(function (e) {
+                        return (e._is != "grid");
+                    });
+
+                    for (var i = 0; i < objects.length; i++) {
+                        $this.canvas.remove(objects[i]);
+                    }
+
+                    $this.canvas.renderAll();
+                },
+                select: {
+                    get: function () {
+                        return $this.canvas.getActiveGroup() ? $this.canvas.getActiveGroup().getObjects() : [$this.canvas.getActiveObject()];
+                    },
+                    add: function (params) {
+
+                        if (params instanceof Array && params.length > 0 && params[0] instanceof fabric.Object) {
+                            var object = params;
+                        } else if (params instanceof fabric.Object) {
+                            var object = [params];
+                        } else {
+                            var object = $this.canvas.getObjects().filter(function (e) {
+                                return e.selectable == true && (!params || (typeof (params) == "string" && e._id == params) || (params instanceof Array && params.indexOf(e._id) > -1));
+                            });
+                        }
+
+                        if (!object || object && object.length == 0) {
+                            $this.helper.Console.Log("select edilecek element bulunamadı");
+                            return;
+                        }
+
+
+                        if (object.length == 1) {
+                            $this.canvas.deactivateAll().setActiveObject(object[0]).renderAll();
+                        } else {
+                            $this.canvas.deactivateAll().setActiveGroup(new fabric.Group(object, {
+                                hasControls: false
+                            })).renderAll();
+                        }
+
+
+                    },
+                    clear: function () {
+                        $this.canvas.deactivateAll().renderAll()
+                    }
+                }
+            }
+
+            $this.updateSize = function (width, height) {
+                options.width = width;
+                options.height = height;
+                $this.canvas.setWidth(options.width);
+                $this.canvas.setHeight(options.height);
+                $this.grid.refresh();
+            }
+
+            //init
+            {
+                if (!canvasElement) {
+                    $this.helper.Console.Write("Canvas Elementi bulunamadı.", "log");
+                    return;
+                }
+
+                canvasElement.width = options.width;
+                canvasElement.height = options.height;
+
+                /*İşlemler burda yapılacak*/
+                $this.canvas = new fabric.Canvas(elementId, {
+                    selection: true,
+                    backgroundColor: "#fff",
+                })
+                    .on("selection:created", function (event) {
+                        event.target.hasControls = false;
+                        event.target.lockMovementY = true;
+                        event.target.lockMovementX = true;
+                    })
+                $this.grid = new Grid(options.gridSize);
+                $this.grid.setVisible(options.grid);
+            }
+            //init
+
+
+            /*Opsiyonel Dışarı Taşınabilir*/
+            {
+
+                var connector, connection, isDown = null;
+                var timeout = null;
+                $this.canvas
+                    .on('mouse:move', function (event) {
+
+
+
+                        if (connector) {
+                            connector.setShadow(null);
+                            $this.element.custom.connector.close(connector, false);
+                            $this.canvas.setCursor($this.canvas.defaultCursor);
+                        };
+
+                        connector = $this.element.custom.component.getConnector(event);
+
+                        if (connector) {
+                            connector.setShadow({ color: 'black', blur: 7, offsetX: 0, offsetY: 0 });
+                            if (connector._type == "input" && ($this.element.custom.connection.get(connector).length > 0 || (connector._properties.IsArray && connector._properties.Value))) {
+                                connector.setShadow({ color: 'red', blur: 7, offsetX: 0, offsetY: 0 });
+                                $this.element.custom.connector.close(connector, true);
+                                $this.canvas.setCursor("pointer");
+                            }
+                        }
+
+                        $this.canvas.renderAll();
+
+                        if (isDown) {
+
+                            var pointer = $this.canvas.getPointer(event.e);
+
+                            //    console.log(event, $(canvasElement).parent().parent().position, $(canvasElement).parent().parent().scrollPosition);
+
+
+                            if (connection) {
+                                connection.set({ x2: pointer.x, y2: pointer.y });
+                            }
+
+
+
+                            var left = $('[class="' + page.workspace.canvas.containerClass + '"]').parent().scrollLeft();
+                            var top = $('[class="' + page.workspace.canvas.containerClass + '"]').parent().scrollTop();
+
+                            var cx = Math.max(pointer.x, $this.canvas.width);
+                            var cy = Math.max(pointer.y, $this.canvas.height);
+
+
+                            if (pointer.x > $this.canvas.width || pointer.y > $this.canvas.height) {
+                                $this.updateSize(cx, cy);
+                            }
+
+                            $(canvasElement).parent().parent().scrollLeft(pointer.x);
+                            $(canvasElement).parent().parent().scrollTop(pointer.y);
+                        }
+
+                        $this.canvas.renderAll();
+
+                    })
+                    .on('mouse:down', function (event) {
+
+                        isDown = true;
+
+                        if (!event.target) return;
+
+                        var connector = $this.element.custom.component.getConnector(event);
+
+                        if (event.target._is == "component") {
+                            event.target.set({
+                                lockMovementX: connector ? true : false,
+                                lockMovementY: connector ? true : false
+                            });
+                        }
+                        if (!connector) return;
+
+                        connection = $this.element.custom.connection.add(connector, connector);
+                        $this.canvas.moveTo(connection, 1);
+
+
+                    })
+                    .on('mouse:up', function (event) {
+
+                        var componentEnd = event.target;
+                        var connectionEnd = $this.element.custom.component.getConnector(event);
+
+                        if (connection && connectionEnd) {
+
+                            var componentStart = connection._relations.start.group;
+                            var connectionStart = connection._relations.start;
+
+                            var input = connectionEnd._type == "input" ? connectionEnd : connectionStart;
+                            var output = connectionEnd._type == "output" ? connectionEnd : connectionStart;
+                            var inputComponent = input.group;
+
+                            var inputRelations = $this.element.custom.connection.get(input).filter(function (e) {
+                                return e._relations.start != e._relations.end;
+                            });
+
+
+                            if (connectionStart == connectionEnd && connectionEnd._type == "input") {
+                                $this.element.custom.connection.remove(connectionEnd);
+                                if (input._properties.IsArray && (input._properties.Value)) {
+                                    $this.element.custom.connector.remove(input);
+                                }
+                            }
+
+
+                            //TODO:ŞAHİN ELİK Constraints Diğer şartı Döver ve buraya bakılacak (hatalar döndürülecek duruma göre)
+
+
+                            if ((inputRelations.length == 0) &&
+                                (componentStart != componentEnd) &&
+                                (input._type == "input" && output._type == "output") &&
+                                (input._properties.Type.filter(function (e) { return e.Value == 0 || e.Value == output._properties.Type.Value /*|| e.Name.indexOf(output._properties.Type.Name) > -1*/ || output._properties.Type.Name.indexOf(e.Name) > -1 }).length > 0)) {
+
+                                connection.set({
+                                    x2: componentEnd.getCenterPoint().x + connectionEnd.getCenterPoint().x,
+                                    y2: componentEnd.getCenterPoint().y + connectionEnd.getCenterPoint().y,
+                                });
+
+                                connection._relations.end = connectionEnd;
+
+                                $this.canvas.moveTo(connection, 1);
+
+                                var inputConnectorsIsArray = $this.element.custom.connector.get(input.group).filter(function (e) {
+                                    return e._is == "connector" && e._type == "input" && e._properties.IsArray;
+                                });
+
+                                var inputConnectorsIsArrayAllFull = $this.element.custom.connection.get(input.group).filter(function (e) {
+                                    return (inputConnectorsIsArray.indexOf(e._relations.start) > -1 || inputConnectorsIsArray.indexOf(e._relations.end) > -1)
+                                });
+
+                                ////buraya bırakılacak//
+                                if (input._properties.IsArray && inputConnectorsIsArray.length == inputConnectorsIsArrayAllFull.length) {
+                                    $this.element.custom.connector.add(input.group, "input", input._properties);
+                                }
+                                ////buraya bırakılacak//
+
+                                $this.history.save();
+
+                            } else {
+                                $this.element.remove(connection);
+                            }
+
+                            $this.element.select.add(inputComponent);
+
+                        } else {
+                            if (connection) $this.element.remove(connection);
+                        }
+
+
+                        isDown = false;
+                        connection = null;
+
+                    })
+                    .on('object:moving', function (e) {
+
+                        var component = e.target
+
+                        var connections = $this.element.custom.connection.get(component);
+
+                        if (!connections) return;
+
+                        connections.forEach(function (connection, i) {
+                            var index = connection._relations.start.group._id == component._id ? "start" : "end";
+                            var connector = connection._relations[index];
+                            var to = {
+                                x: component.getCenterPoint().x + connector.getCenterPoint().x,
+                                y: component.getCenterPoint().y + connector.getCenterPoint().y
+                            };
+                            connection.set('x' + (index == "start" ? 1 : 2), to.x);
+                            connection.set('y' + (index == "start" ? 1 : 2), to.y);
+                        });
+                        $this.canvas.renderAll();
+
+                        window.clearTimeout(timeout);
+                        timeout = window.setTimeout(function () {
+                            $this.history.save();
+                        }, 20);
+
+                    });
+
+                var resizeId;
+                $(window).resize(function () {
+                    clearTimeout(resizeId);
+                    resizeId = setTimeout(function () {
+                        var w = $('[class="' + page.workspace.canvas.containerClass + '"]').parent().width();
+                        var h = $('[class="' + page.workspace.canvas.containerClass + '"]').parent().height();
+                        if (page.workspace.canvas.width > w) w = page.workspace.canvas.width;
+                        if (page.workspace.canvas.height > h) h = page.workspace.canvas.height;
+                        page.workspace.updateSize(w, h);
+                    }, 100);
+                });
+
+
+            }
+            /*Opsiyonel Dışarı Taşınabilir*/
+
+        }
+
+    </script>
+
+
+</head>
+<body>
+
+    <div id="wrapper">
+        <div id="header">
+            <div class="header-top">
+                <div class="header-icon">
+                    <i class="glyphicon glyphicon-th-large"></i>
+                </div>
+                <div class="header-brand">
+                    <div class="pull-left">
+                        <strong>MODEL EDITOR</strong>
+                    </div>
+                    <div class="pull-right">
+
+                    </div>
+                </div>
+                <div class="header-nav">
+                    <div class="pull-left" data-hover="dropdown" data-animations="fadeInDownNew fadeInRightNew fadeInUpNew fadeInLeftNew">
+                        <ul class="nav navbar-nav">
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Dosya <span class="caret"></span></a>
+                                <ul class="dropdown-menu" data-hover="dropdown">
+                                    <li><a href="#" data-task="new">Yeni</a></li>
+                                    <li class="dropdown">
+                                        <a href="#">Aç <span class="caret caret-left"></span></a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" data-task="open">Dosya</a></li>
+                                            <li><a href="#">Veritabanı</a></li>
+                                        </ul>
+                                    </li>
+                                    <li class="dropdown">
+                                        <a href="#">Kaydet <span class="caret caret-left"></span></a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#" data-task="savefile">Dosyaya Kaydet</a></li>
+                                            <li><a href="#" data-task="savedb">Veritabanına Kaydet</a></li>
+                                        </ul>
+                                    </li>
+                                    <li role="separator" class="divider"></li>
+                                    <li class="dropdown">
+                                        <a href="#">Dışarı Çıkart <span class="caret caret-left"></span></a>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="#">GeoJSON</a></li>
+                                            <li><a href="#">SVG</a></li>
+                                            <li><a href="#">JPG</a></li>
+                                            <li><a href="#">PNG</a></li>
+                                        </ul>
+                                    </li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#">Yazdır</a></li>
+                                </ul>
+                            </li>
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle">Düzen <span class="caret"></span></a>
+                                <ul class="dropdown-menu" data-hover="dropdown">
+                                    <li><a href="#" data-task="grid">Grid Aç/Kapa</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" data-task="zoomIn">Yakınlaştır</a></li>
+                                    <li><a href="#" data-task="zoomOut">Uzaklaştır</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" data-task="undo">İleri</a></li>
+                                    <li><a href="#" data-task="redo">Geri</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" data-task="copy">Kopyala</a></li>
+                                    <li><a href="#" data-task="paste">Yapıştır</a></li>
+                                    <li><a href="#" data-task="delete">Seçiliyi Sil</a></li>
+                                    <li><a href="#" data-task="clear">Ekranı Temizle</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#" data-task="selection">Tümünü Seç</a></li>
+                                </ul>
+                            </li>
+
+                            <li class="dropdown">
+                                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Görünüm <span class="caret"></span></a>
+                                <ul class="dropdown-menu">
+
+                                    <li><a href="#">Operatörler</a></li>
+                                    <li><a href="#">Depo(Kayıtlı Süreçler)</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#">Geri Bildirim</a></li>
+                                    <li><a href="#">Özellikler</a></li>
+                                    <li><a href="#">Yardım</a></li>
+                                    <li role="separator" class="divider"></li>
+                                    <li><a href="#">Parametreler</a></li>
+                                </ul>
+                            </li>
+                            <li><a href="#" data-task="help">Yardım</a></li>
+                        </ul>
+                    </div>
+                    <div class="pull-right"></div>
+                </div>
+            </div>
+            <div class="header-bottom">
+                <div class="pull-left">
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-home" title="Ortala"></a>
+                    <span class="nav-divide"></span>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-th" data-task="grid" title="Grid Aç/Kapa"></a>
+                    <span class="nav-divide"></span>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-zoom-in" data-task="zoomIn" title="Yakınlaştır"></a>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-zoom-out" data-task="zoomOut" title="Uzaklaştır"></a>
+                    <span class="nav-divide"></span>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-chevron-left" data-task="undo" title="Geri Al"></a>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-chevron-right" data-task="redo" title="İleri Al"></a>
+                    <span class="nav-divide"></span>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-remove-sign" data-task="delete" title="Seçili element(ler)i sil"></a>
+                    <span class="nav-divide"></span>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon glyphicon-hdd" data-task="savedb" title="Süreci Düzenle"></a>
+                    <a class="btn btn-md navbar-btn glyphicon glyphicon-play" data-task="run" title="Süreci Çalıştır"></a>
+                    <span class="nav-divide"></span>
+                    <select id="servers" style="width:200px"></select>
+                </div>
+            </div>
+        </div>
+        <div id="content">
+
+        </div>
+    </div>
+
+
+
+
+    <div id="sources">
+        <div class="clearfix" data-selector="0">
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="control-label">Sunucu</label>
+                        <input class="form-control" type="text" placeholder="Lütfen sunucu giriniz..." name="server">
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="control-label">Katalog</label>
+                        <input class="form-control" type="text" placeholder="Lütfen katalog ismi giriniz..." name="catalog">
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Kullanıcı Adı</label>
+                        <input class="form-control" type="text" placeholder="Lütfen kullanıcıadı giriniz..." name="user">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="control-label">Şifre</label>
+                        <input class="form-control" type="password" placeholder="Lütfen şifre giriniz..." name="password">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+
+        <div class="clearfix" data-selector="1">
+            <div class="form-group">
+                <label class="control-label">WSDL Url</label>
+                <input class="form-control" type="text" placeholder="Lütfen wsdl url'ini giriniz..." name="WSDLUrl">
+            </div>
+        </div>
+    </div>
+
+
+
+    <script type="text/javascript">
+
+        var urls = {
+            SendCommand: "@burl@Url.Action("SendCommand", "Formula")",
+            GetServers: "@burl@Url.Action("GetServers", "Formula")",
+            GetData: "@burl@Url.Action("GetData", "Formula")",
+            GetDataResponse: "@burl@Url.Action("GetDataResponse", "Formula")",
+            GetScalarData: "@burl@Url.Action("GetScalarData", "Formula")",
+            GetVectorData: "@burl@Url.Action("GetVectorData", "Formula")",
+            GetWMS: function (computerId, pageId, responseId) { return "@Url.Action("GetWMS", "Formula")" + "/" + pageId + "/" + computerId + "/" + responseId; },
+            GetOperators: "@Url.Action("GetOperators", "Account")",
+            GetRepositories: "@burl@Url.Action("GetRepositories", "Formula")",
+            UpsertRepository: "@burl@Url.Action("UpsertRepository", "Formula",new {area="" })",
+            DeleteRepository: "@burl@Url.Action("DeleteRepository", "Formula",new {area="" })",
+            GetSources: "@burl@Url.Action("GetSources", "Formula")",
+            UpsertSource: "@burl@Url.Action("UpsertSource", "Formula",new {area="" })",
+            DeleteSource: "@burl@Url.Action("DeleteSource", "Formula",new {area="" })",
+        };
+
+
+        var communication = {
+            hub: $.connection.computerStatusHub,
+            hostCommand: {
+                AddWatchList: 8,             // Parameters = [ ComputerId, WatchLevel, [ExecutionId] ]
+                RemoveWatchList: 9,          // Parameters = [ ComputerId, WatchLevel, [ExecutionId] ]
+                StartExecution: 1,           // Parameters = [ ComputerId, ExecutionId, ModelText]
+                CancelExecution: 2,          // Parameters = [ ComputerId, ExecutionId ]
+                GetProgress: 3,              // Parameters = [ ComputerId, ExecutionId ]
+                GetWebService: 4,            // Parameters = [ ComputerId, Url ]
+                GetTableList: 5,             // Parameters = [ ComputerId, ConnectionString(Encrypted) ]
+                GetTableInfo: 6,             // Parameters = [ ComputerId, ConnectionString(Encrypted), TableName ]
+                GetComputerStatus: 7,        // Parameters = [ ComputerId ]
+                //GetCommandFromCache: 10,      // Parameters = [ CommandId ]
+            },
+            hostEvent: {
+                ServiceHostOpened: 1,         // Parameters = [ PageId[], ComputerId, DateTime ]
+                ServiceHostClosed: 2,         // Parameters = [ PageId[], ComputerId, DateTime ]
+                ExectionStarted: 3,           // Parameters = [ PageId[], ExecutionId, Success, DateTime ]
+                ExecutionComplated: 4,        // Parameters = [ PageId[], ExecutionId, Result[Name, ResultType, Result], DateTime ]
+                ExecutionThrowException: 5,   // Parameters = [ PageId[], ExecutionId, StepNo, Message, DateTime ]
+                ExecutionProgressRecived: 6,  // Parameters = [ PageId[], ExecutionId, StepNo, Value, DateTime ]
+                ExecutionStepStarted: 9,      // Parameters = [ PageId[], ExecutionId, StepNo, ComponentName, DateTime ]
+                Disconnected: 7,
+                Connected: 8,
+                WebServiceRecived: 10,     // Parameters = [ Data ]
+                TableListRecived: 11,
+                TableInfoRecived: 12,
+                DataRecived: 13,
+            },
+            watchLevel: {
+                Execution: 1,
+                ComputerAllEvents: 2,
+                ComputerOpenClose: 3,
+            },
+            displayType: {
+                WriteScreen: 1,
+                Table: 2,
+                MapVector: 3,
+                MapRaster: 4,
+            },
+            startSocket: function () {
+                communication.hub.connection.start({ waitForPageLoad: false })
+                    .done(function (e, b) {
+
+                        //console.log({ e: e, b: b });
+                    })
+                    .fail(function (e, b) {
+                        page.helper.Feedback("Web Soket Hatası", "Bağlantı kapandı", "danger");
+                    });
+            },
+            registerEvents: function () {
+
+                communication.hub.client.serviceHostEvent = function (computerId, evnt, parameters) {
+                    switch (evnt) {
+
+                        case communication.hostEvent.ServiceHostOpened: {
+
+                            $('select[id="servers"] option[value="' + computerId + '"]').each(function (i, e) {
+                                e.text = $(this).attr("name") + " (açık)";
+                                $(this).attr("data-active", "true")
+                            });
+
+                            break;
+
+                        }
+                        case communication.hostEvent.ServiceHostClosed: {
+
+                            $('select[id="servers"] option[value="' + computerId + '"]').each(function (i, e) {
+                                e.text = $(this).attr("name") + " (kapalı)";
+                                $(this).attr("data-active", "false");
+                            });
+
+                            break;
+                        }
+                        case communication.hostEvent.ExectionStarted: {
+                            if (parameters[1]) {
+                                page.helper.Feedback("Sunucuya bağlantı", "İstek işlenmeye başlandı", "success");
+                            }
+                            else {
+                                page.helper.Feedback("Sunucuya bağlantı", "Zaten bir istek işleniyor veya sunucuya bağlanamıyor.", "danger");
+                            }
+                            break;
+                        }
+                        case communication.hostEvent.ExecutionStepStarted: {
+
+                            page.helper.Feedback("İstek işleme", parameters[2] + " görevi işlenmeye başlandı", "warning");
+                            break;
+
+                        }
+                        case communication.hostEvent.ExecutionThrowException: {
+
+                            page.helper.Feedback("İstek işleme hatası", "'" + parameters[2] + "' hatası alındı.", "danger");
+                            break;
+
+                        }
+                        case communication.hostEvent.ExecutionProgressRecived: {
+
+                            page.helper.Feedback("İstek işleme Progress ", parameters[1] + ". görev işleniyor. Görevin " + parameters[2] + "% tamamlandı.", "warning");
+                            break;
+
+                        }
+                        case communication.hostEvent.ExecutionComplated: {
+
+                            var dat = communication.getData(parameters[1]);
+
+                            dat.forEach(function (e) {
+
+                                var center = page.layout.base.root.getItemsById("center")[0];
+                                var guid = page.workspace.helper.Guid.New();
+                                var id = e.component + "_" + e.port;
+
+                                var layoutWindow = center.contentItems.filter(function (e) { return e.config.componentState.id == id; })[0];
+
+                                if (layoutWindow) {
+                                    $('#' + id).empty();
+                                }
+                                else {
+                                    center.addChild({
+                                        title: e.component + " => " + e.port,
+                                        type: 'component',
+                                        componentName: 'example',
+                                        componentState: { id: id }
+                                    });
+                                }
+
+                                $("#" + id).attr("data-responseid", e.data.responseId);
+
+                                var dtype = e.type.DisplayType;
+
+                                switch (dtype) {
+
+                                    case communication.displayType.WriteScreen: {
+
+                                        $('<div class="alert alert-success alert-result" id="' + e.data.responseId + '"></div>').appendTo($('#' + id));
+
+                                        $.ajax({
+                                            url: urls.GetScalarData,
+                                            type: "POST",
+                                            data: { pageConnectionId: communication.hub.connection.id, computerId: $("#servers").val(), responseId: e.data.responseId },
+                                            dataType: "JSON",
+                                            async: true
+                                        });
+
+                                        break;
+                                    }
+                                    case communication.displayType.MapRaster: {
+
+                                        var harita = new AkilliHarita(id, {
+                                            zoom: 6,
+                                            minZoom: 0,
+                                            maxZoom: 22,
+                                            uiInfo: true,
+                                            uiDefault: false,
+                                            uiInfoContent: "Infoline Model",
+                                            uiMousePosition: true,
+                                            uiScaleLine: true
+                                        });
+
+                                        var wmsUrl = urls.GetWMS($("#servers").val(), communication.hub.connection.id, e.data.responseId);
+
+
+                                        $.ajax({
+                                            url: wmsUrl + "?SERVICE=WMS&REQUEST=GetCapabilities",
+                                            success: function (xmlstr) {
+
+                                                var layers = [];
+                                                var object = xmlstr;
+
+                                                $(object).find('Layer').each(function (i, e) {
+
+                                                    try {
+
+                                                        var version = $(object).children("WMS_Capabilities,WMT_MS_Capabilities").attr("version");
+                                                        var title = $(e).children("Title").text()
+                                                        var name = $(e).children("Name").text()
+                                                        var style = $(e).children("Style").children("Name");
+                                                        var formats = $(object).find("Capability").find("GetMap").find("Format").map(function (im, em) {
+                                                            return $(em).text();
+                                                        }).toArray();
+
+                                                        var bboxs = $(e).children("BoundingBox").map(function (im, em) {
+                                                            var crs = $(em).attr("CRS") || $(em).attr("SRS");
+                                                            var rcrs = crs == "CRS:84" ? "EPSG:4326" : crs;
+                                                            var bbox = [parseFloat(eval($(em).attr("minx"))), parseFloat(eval($(em).attr("miny"))), parseFloat(eval($(em).attr("maxx"))), parseFloat(eval($(em).attr("maxy")))];
+                                                            return { crs: rcrs, bbox: bbox };
+                                                        }).filter(function (im, em) {
+                                                            return em.crs == "EPSG:4326" || em.crs == "CRS:84" || im == 0;
+                                                        }).toArray();
+
+                                                        if (!name) { return; }
+
+                                                        format = formats.indexOf("image/png") > -1 ? "image/png" : formats[0];
+                                                        crs = bboxs && bboxs[0] ? bboxs[0].crs : "EPSG:4326";
+                                                        bbox = bboxs && bboxs[0] ? bboxs[0].bbox : "EPSG:4326";
+
+
+                                                        layers.push({
+                                                            params: {
+                                                                LAYERS: name,
+                                                                STYLES: "",
+                                                                TRANSPARENT: true,
+                                                                VERSION: version,
+                                                                FORMAT: format
+                                                            },
+                                                            projection: crs,
+                                                            extent: bbox,
+                                                            title: title
+                                                        });
+
+
+                                                    } catch (e) {
+
+                                                    }
+
+                                                });
+
+
+
+                                                harita.layer.remove("Preview");
+                                                harita.layer.addTileCustom("test", "Preview", "TileWMS", wmsUrl, JSON.stringify(layers));
+                                                harita.layer.setVisible("Preview", true);
+
+                                                var src = projlist.filter(function (a) { return "EPSG:" + a.code == layers[0].projection; })[0].wkt;
+                                                var dst = proj4.defs(harita.options.projection);
+
+                                                if (layers[0].projection == "EPSG:4326") {
+                                                    var p1 = proj4.toPoint([layers[0].extent[1], layers[0].extent[0]]);
+                                                    var p2 = proj4.toPoint([layers[0].extent[3], layers[0].extent[2]]);
+                                                }
+                                                else {
+                                                    var p1 = proj4.toPoint([layers[0].extent[0], layers[0].extent[1]]);
+                                                    var p2 = proj4.toPoint([layers[0].extent[2], layers[0].extent[3]]);
+                                                }
+                                                p1 = proj4(src, dst, p1);
+                                                p2 = proj4(src, dst, p2);
+                                                var ext = [p1.x, p1.y, p2.x, p2.y];
+
+                                                harita.helper.PanTo(ext);
+
+                                                if (layers[0].projection == "EPSG:15000")
+                                                    harita.layer.setVisible("Default1", false)
+
+                                            }
+
+                                        });
+
+                                        break;
+                                    }
+                                    case communication.displayType.MapVector: {
+
+                                        var harita = new AkilliHarita(id, {
+                                            zoom: 6,
+                                            minZoom: 0,
+                                            maxZoom: 22,
+                                            uiInfo: true,
+                                            uiDefault: true,
+                                            uiInfoContent: "Infoline Model",
+                                            uiMousePosition: true,
+                                            uiScaleLine: true
+                                        });
+
+                                        $.ajax({
+                                            url: urls.GetVectorData,
+                                            type: "POST",
+                                            data: { pageConnectionId: communication.hub.connection.id, computerId: $("#servers").val(), responseId: e.data.responseId },
+                                            dataType: "JSON",
+                                            async: true
+                                        });
+
+                                        break;
+                                    }
+                                    case communication.displayType.Table: {
+
+                                        var info = e.data.tableinfo;
+                                        if (e && e.data && e.data.count > 0) {
+
+                                            var myfields = {};
+
+                                            e.data.tableinfo.Columns.forEach(function (item) {
+                                                myfields[item.ColumnName] = { type: "string", defaultValue: null };
+                                            });
+
+                                            var gridid = e.data.responseId;
+
+
+                                            $('<div/>')
+                                                .attr("id", gridid)
+                                                .appendTo($('#' + id))
+                                                .kendoGrid({
+                                                    columns: e.data.tableinfo.Columns.map(function (e) {
+                                                        return {
+                                                            width: 200,
+                                                            field: e.ColumnName,
+                                                            sortable: true,
+                                                            filterable: true,
+                                                            encoded: true,
+                                                            headerAttributes: {
+                                                                "data-field": e.ColumnName,
+                                                                "data-title": e.ColumnName
+                                                            }
+                                                        }
+                                                    }),
+                                                    dataSource: new kendo.data.DataSource({
+                                                        type: "aspnetmvc-ajax",
+                                                        transport: {
+                                                            read: {
+                                                                url: urls.GetDataResponse,
+                                                                dataType: "json",
+                                                                type: "post",
+                                                                data: { responseId: e.data.responseId, pageConnectionId: communication.hub.connection.id, computerId: $("#servers").val() }
+                                                            }
+                                                        },
+                                                        error: function (e) {
+                                                            console.log(e);
+                                                        },
+                                                        serverFiltering: true,
+                                                        serverPaging: true,
+                                                        serverSorting: true,
+                                                        schema: {
+                                                            model: { fields: myfields },
+                                                            data: "Data",
+                                                            total: "Total",
+                                                            errors: "Errors"
+                                                        },
+                                                        pageSize: 20,
+                                                        page: 1,
+                                                        total: e.data.count,
+                                                    }),
+                                                    scrollable: {
+                                                        height: 500,
+                                                    },
+                                                    sortable: {
+                                                        mode: "multiple",
+                                                        allowUnsort: true,
+                                                        showIndexes: true
+                                                    },
+                                                    filterable: true,
+                                                    pageable: {
+                                                        input: true,
+                                                        numeric: false,
+                                                        refresh: true,
+                                                        pageSizes: [5, 10, 25, 50, 100, 250],
+                                                        buttonCount: 10,
+                                                        messages: {
+                                                            allPages: "Tümünü getir",
+                                                            itemsPerPage: "Sayfa başına ürün",
+                                                            first: "İlk sayfaya git",
+                                                            previous: "Bir önceki sayfaya git",
+                                                            next: "Bir sonraki sayfaya git",
+                                                            last: "Son sayfaya git",
+                                                            refresh: "Yenile"
+                                                        }
+                                                    },
+                                                });
+
+                                            $("#" + gridid).data("kendoGrid").dataSource.total = function () { return e.data.count; };
+
+                                            $("#" + gridid).find(".k-grid-content").height($("#" + gridid).parent().height() - 87);
+
+
+                                        } else {
+                                            $('<div class="alert alert-warning alert-result"><strong> Herhangi bir sonuç döndürülemedi.</strong></div>').appendTo($('#' + id));
+                                        }
+                                        break;
+                                    }
+                                    case communication.displayType.MapRaster: {
+
+                                        break;
+                                    }
+                                    case communication.displayType.MapVector: {
+
+                                        break;
+                                    }
+                                }
+
+                                console.log(e);
+                            });
+
+                            break;
+                        }
+                        case communication.hostEvent.DataRecived: {
+
+                            var responseId = parameters[0];
+
+                            var displaytype = parameters[1];
+
+                            var dat = communication.getData(parameters[2]);
+
+                            switch (displaytype) {
+
+                                case communication.displayType.WriteScreen:
+
+                                    $("#" + responseId).html('<strong> Sonuç :</strong> ' + dat.Text);
+
+                                    break;
+
+                                case communication.displayType.Table:
+                                    var grid = $("#" + responseId).data("kendoGrid");
+                                    grid.dataSource.data(dat.data);
+                                    grid.dataSource.total = function () { return dat.count; };
+                                    grid.pager.refresh()
+                                    break;
+
+                                case communication.displayType.MapVector:
+
+                                    var harita = $('[data-responseid="' + responseId + '"]').data("AkilliHarita");
+                                    var geojson = harita.helper.GeoJSONtoFeatures(dat);
+                                    if (geojson) {
+                                        harita.layer.addVector("preview", "preview").getSource().addFeatures(geojson);
+                                    }
+
+                                default:
+                                    break;
+                            }
+                            break;
+                        }
+                        case communication.hostEvent.WebServiceRecived:
+                        case communication.hostEvent.TableListRecived: {
+
+                            var data = communication.getData(parameters[0]);
+
+                            if (page.sourcesAction.save) {
+
+                                var Schema = data;
+                                var Type = $(page.sourcesAction.dialog.$modalBody).find('[name="Type"]').val();
+                                var Source = $(page.sourcesAction.dialog.$modalBody).find('[name="Source"]').val();
+
+                                $.ajax({
+                                    url: urls.UpsertSource,
+                                    data: { Source: Source, Schema: JSON.stringify(Schema), Type: Type },
+                                    type: "POST",
+                                    success: function (resp) {
+                                        if (resp.result) {
+                                            page.helper.Feedback("Kaynak kaydetme işlemi", "Kaynak başarıyla kaydedildi.", "success");
+                                        } else {
+                                            page.helper.Feedback("Kaynak kaydetme işlemi", "Kaynak kaydetme işlemi başarısız", "success");
+                                        }
+                                        page.sourcesAction.dialog.close();
+                                        $('body').loadingModal("destroy");
+                                    }
+                                });
+                            }
+
+
+                            if (page.sourcesAction.add) {
+                                page.helper.AddOperators($("#sourcesList"), $("#sourcesSearch"), data);
+                            }
+
+
+                            if (page.sourcesAction.add && !page.sourcesAction.save) {
+                                $('body').loadingModal("destroy");
+                            }
+
+
+
+                            break;
+
+                        }
+                        case communication.hostEvent.TableInfoRecived: {
+
+                            var data = communication.getData(parameters[0]);
+
+                            console.log(data);
+
+                            break;
+                        }
+                        default:
+
+                            break;
+
+                    }
+                }
+            },
+            startExecution: function (computerId, executionId, model) {
+
+                this.startSocket();
+
+                this.watchServiceHost(computerId, communication.watchLevel.Execution, executionId);
+
+                //communication.hub.server.sendCommandToServiceHost(computerId, communication.hostCommand.StartExecution, [executionId, model]);
+
+                $.ajax({
+                    url: urls.SendCommand,
+                    type: "POST",
+                    data: { pageConnectionId: communication.hub.connection.id, computerId: computerId, command: communication.hostCommand.StartExecution, parameters: [executionId, model] },
+                    dataType: "JSON",
+                    async: true
+                });
+
+
+            },
+            watchServiceHost: function (computerId, watchLevel, executionId) {
+
+                executionId = executionId || null;
+                communication.hub.connection.start().done(function (e, b) {
+                    communication.hub.server.sendCommandToServiceHost(computerId, communication.hostCommand.AddWatchList, [watchLevel, executionId]);
+                });
+
+            },
+            getWebService: function (computerId, url) {
+
+                communication.hub.connection.start().done(function (e, b) {
+                    communication.hub.server.sendCommandToServiceHost(computerId, communication.hostCommand.GetWebService, [url]);
+                });
+
+
+
+            },
+            getTableList: function (computerId, connectionString, returnComponent) {
+
+                communication.hub.connection.start().done(function (e, b) {
+                    communication.hub.server.sendCommandToServiceHost(computerId, communication.hostCommand.GetTableList, [connectionString, returnComponent]);
+                });
+
+            },
+            getTableInfo: function (computerId, connectionString, tableName) {
+
+                this.startSocket();
+
+                communication.hub.server.sendCommandToServiceHost(computerId, communication.hostCommand.GetTableInfo, [connectionString, tableName]);
+
+            },
+            getServers: function (ownerId) {
+
+                var data = $.ajax({
+                    url: urls.GetServers,
+                    type: "POST",
+                    data: { ownerId: ownerId },
+                    dataType: "JSON",
+                    async: false
+                }).responseJSON;
+
+                return data;
+            },
+            getData: function (e) {
+                var type = e.type;
+                var value = e.value;
+                var dat = null;
+                if (type == "dataid") {
+                    dat = $.ajax({
+                        url: urls.GetData,
+                        type: "POST",
+                        data: { dataId: value },
+                        dataType: "JSON",
+                        async: false
+                    }).responseJSON;
+                }
+                else if (type == "data") {
+                    dat = JSON.parse(value);
+                }
+                return dat;
+            },
+            init: function () {
+
+                communication.registerEvents();
+                communication.startSocket();
+
+                var serverSelect = $("#servers");
+                var servers = communication.getServers("8F270F0E-FADB-4F2C-9A5E-32E072289420");
+                servers.forEach(function (e) {
+                    var option = $('<option value="' + e.id + '" name = "' + e.Name + '">' + e.Name + '</option>');
+                    option.appendTo(serverSelect);
+                    communication.watchServiceHost(e.id, communication.watchLevel.ComputerOpenClose);
+                });
+
+            }
+        }
+
+        var config = {
+            settings: {
+                hasHeaders: true,
+                constrainDragToContainer: true,
+                reorderEnabled: true,
+                selectionEnabled: true,
+                popoutWholeStack: false,
+                blockedPopoutsThrowError: true,
+                closePopoutsOnUnload: true,
+                showPopoutIcon: false,
+                showMaximiseIcon: false,
+                showCloseIcon: false
+            },
+            dimensions: {
+                borderWidth: 10,
+                headerHeight: 35
+            },
+            labels: {
+                close: 'Kapat',
+                maximise: 'Ekranı kapla',
+                minimise: 'Simge durumu',
+                popout: 'Yeni pencerede aç'
+            },
+            content: [
+              {
+                  type: 'row',
+                  content: [
+                    {
+                        id: "left",
+                        type: 'column',
+                        width: 20,
+                        content: [
+                            {
+                                id: "left-bottom",
+                                type: 'column',
+                                content: [
+                                    {
+                                        type: "stack",
+                                        content: [
+                                          {
+                                              type: 'component',
+                                              componentName: 'example',
+                                              componentState: {
+                                                  id: "operators"
+                                              },
+                                              title: "Operatörler",
+                                              isClosable: false,
+                                          },
+                                          {
+                                              type: 'component',
+                                              componentName: 'example',
+                                              componentState: {
+                                                  id: "sources"
+                                              },
+                                              title: "Kaynaklar",
+                                              isClosable: false,
+                                          },
+                                          {
+                                              type: 'component',
+                                              componentName: 'example',
+                                              componentState: {
+                                                  id: "repositories"
+                                              },
+                                              title: "Depo",
+                                              isClosable: false,
+                                          }
+                                        ]
+                                    },
+                                    {
+                                        type: 'component',
+                                        componentName: 'example',
+                                        componentState: {
+                                            id: "feedback"
+                                        },
+                                        title: "Geri Bildirim",
+                                        height: 40
+                                    }
+                                ]
+                            }
+                        ]
+                    },
+                    {
+                        id: "center",
+                        type: 'stack',
+                        width: 60,
+                        content: [
+                          {
+                              type: 'component',
+                              componentName: 'example',
+                              componentState: {
+                                  id: "process"
+                              },
+                              title: "Süreç",
+                              isClosable: false,
+                              activeItemIndex: 1,
+                          }
+                        ]
+                    },
+                    {
+                        id: "right",
+                        type: 'column',
+                        width: 20,
+                        content: [
+                          {
+                              type: "stack",
+                              content: [
+                                    {
+                                        type: 'component',
+                                        componentName: 'example',
+                                        componentState: {
+                                            id: "parameters"
+                                        },
+                                        title: "Parametreler",
+                                        isClosable: false,
+                                    },
+                                    {
+                                        type: "component",
+                                        componentName: "example",
+                                        componentState: {
+                                            id: "properties"
+                                        },
+                                        title: "Özellikler",
+
+                                    },
+                                    {
+                                        type: "component",
+                                        componentName: "example",
+                                        componentState: {
+                                            id: "help"
+                                        },
+                                        title: "Yardım"
+                                    }
+
+                              ]
+                          }
+                        ]
+                    }
+                  ]
+              }
+            ]
+        };
+
+        var page = {
+            timeout: null,
+            sources: [],
+            repositories: [],
+            repositoriesSelected:null,
+            operators: [],
+            repositoriesCategory: ["Kaynak", "Süreç", "Alt Süreç", "Diğer", "Test"],
+            sourcesCategory: ["Veritabanı", "WSDL Servis"],
+            layout: {
+                base: new window.GoldenLayout(config, $("#content")),
+                config: config,
+            },
+            sourcesAction: {
+                dialog: null,
+                save: true,
+                add: false,
+            },
+            workspace: null,
+            helper: {
+                Feedback: function (title, text, type, time) {
+                    var time = time ? time : new Date().toLocaleTimeString("tr-TR");
+                    var type = type ? type : "warning";
+                    $('<div class="alert alert-' + type + '"><div class="clearfix"><strong class="pull-left">' + title + '</strong><strong class="pull-right">' + time + '</strong></div> <p>' + text + '</p></div>').prependTo($("#feedback"));
+                },
+                ToInputElement: function (label, name, value, type, required, disabled) {
+                    return $('<div class="form-group"/>')
+                         .append('<label class="control-label">' + label + '</label')
+                         .append('<input class="form-control" type="' + type + '" name="' + name + '" value="' + value + '" ' + (required ? "required" : "") + ' ' + (disabled ? "disabled" : "") + ' />');
+                },
+                AddOperators: function (elementList, elementSearch, data) {
+
+                    data.forEach(function (operator) {
+                        var paths = operator.Catagory.Path.tr.split("/");
+                        var pathsEN = operator.Catagory.Path.en.split("/");
+                        var selector = "";
+                        paths.forEach(function (path, i) {
+                            selectorBefore = selector;
+                            selector = selector + ' [data-tr="' + path + '"]';
+                            selectorElem = (i == 0 ? elementList : elementList.find(selectorBefore + ">ul"))
+                            if (elementList.find(selector).length == 0) {
+                                $('<li/>')
+                                    .attr("data-name", operator.Catagory.Name)
+                                    .attr('data-tr', path)
+                                    .attr("data-en", pathsEN[i])
+                                    .append('<div>' + path + '</div>')
+                                    .append('<ul></ul>')
+                                    .appendTo(selectorElem);
+                            }
+                        });
+                        operator.Components.forEach(function (comp, i) {
+                            $('<li/>')
+                                .attr("data-type", "operator")
+                                .data("source", comp)
+                                .append('<a href="#">' + comp.Label.tr + '</a>')
+                                .draggable({
+                                    revert: false,
+                                    helper: 'clone',
+                                    appendTo: 'body',
+                                    containment: "body",
+                                    scroll: false
+                                })
+                                .on("click", function (e) {
+                                    var left = 30;
+                                    var top = 30;
+                                    var property = $(this).data("source");
+                                    var component = page.workspace.element.custom.component.add(property, left, top, true);
+                                    page.workspace.element.select.add(component);
+                                    page.workspace.history.save();
+                                })
+                                .appendTo(elementList.find(selector + ">ul"));
+                        });
+                    });
+
+
+                    var tree = new treefilter(elementList, {
+                        searcher: elementSearch,
+                        multiselect: false
+                    });
+
+                    var id = elementList.attr("id");
+
+                    $('#' + id + '>li>div').trigger("click");
+
+                }
+            },
+            init: function () {
+
+
+                page.layout.base.registerComponent('example', function (container, state) {
+                    $("<div id='" + state.id + "'/>").appendTo(container.getElement());
+                });
+
+                page.layout.base.on("componentCreated", function (e) {
+
+                    var componentid = e.config.componentState.id;
+
+                    switch (componentid) {
+                        case "process":
+
+                            $('<canvas id="workspace"/>').appendTo($("#process"));
+                            page.workspace = new Formula("workspace", {
+                                width: $("#workspace").parent().width(),
+                                height: $("#workspace").parent().height(),
+                                debug: true,
+                                gridSize: 12,
+                            });
+
+                            page.workspace.canvas
+                                .on("object:selected", function (comp) {
+
+                                    var elem = comp.target;
+                                    if (elem._is == "component") {
+
+                                        $('#properties,#parameters,#help').empty();
+
+                                        /*Özellikler*/
+                                        {
+                                            page.helper.ToInputElement("Başlık", 'ComponentLabel', page.workspace.element.custom.component.text.get(elem), "text", false, false)
+                                            .on("keyup", "input", function () {
+                                                page.workspace.element.custom.component.text.set(elem, $(this).val())
+                                            })
+                                            .appendTo($('#properties'));
+                                            page.helper.ToInputElement("İsim", 'ComponentName', elem._id, "text", false, true).appendTo($('#properties'));
+                                            page.helper.ToInputElement("Konum X", 'ComponentPositionTop', elem.top, "number", false, true).appendTo($('#properties'));
+                                            page.helper.ToInputElement("Konum Y", 'ComponentPositionLeft', elem.left, "number", false, true).appendTo($('#properties'));
+                                        }
+                                        /*Özellikler*/
+
+                                        /*Parametreler*/
+                                        {
+                                            var inputs = page.workspace.element.custom.connector.get(elem).filter(function (e) { return e._type == "input" && e._properties.InputType.Name != "Out" });
+                                            if (inputs.length == 0) {
+
+                                                $('<div class="text-center text-bold" style="padding-top:20px;">Herangi bir parametre almamaktadır.</div>').appendTo($("#parameters"));
+
+                                            } else {
+
+                                                inputs.forEach(function (input) {
+
+                                                    var props = input._properties;
+                                                    var component = input.group;
+                                                    var connection = page.workspace.element.custom.connection.get(input)[0];
+                                                    var label = props.IsArray ? props.Label.tr.replace('[]', props.No) : props.Label.tr
+                                                    var value = props.Value ? props.Value : (props.Default ? props.Default : "");
+                                                    var disabled = "";
+
+
+                                                    var div = $('<div class="form-group"><label>' + label + (props.IsArray ? " (Array)" : "") + '</label><div class="input-group"></div></div>');
+                                                    var inputElem = $('<input class="form-control"  name="' + props.No + '" placeholder="' + label + ' alanını giriniz." type="text"/>');
+
+
+
+
+                                                    if (props.Type.filter(function (e) { return (e.Name == "SCALAR_INT" || e.Name == "SCALAR_DOUBLE") }).length > 0) {
+                                                        inputElem.attr("type", "number").attr("step", "1");
+                                                    } else if (props.Type.filter(function (e) { return (e.Name == "SCALAR_DATETIME") }).length > 0) {
+                                                        inputElem.attr("type", "datatime");
+                                                    } else if (props.Type.filter(function (e) { return (e.Name == "SCALAR_GEOMETRY") }).length > 0) {
+                                                        inputElem.attr("type", "map");
+                                                    } else if (props.Type.filter(function (e) { return (e.Name == "SCALAR_BOOLEAN") }).length > 0) {
+                                                        inputElem.attr("type", "checkbox").removeClass("form-control").addClass("checkbox")
+                                                    } else if (props.Type.filter(function (e) { return (e.Name == "SCALAR_MULTILINESTRING") }).length > 0) {
+                                                        var inputElem = $('<textarea class="form-control" name="' + props.No + '" rows="3" placeholder="' + label + '" ></textarea>');
+                                                    } else if (props.Type.filter(function (e) { return (e.EnumItems != null && e.EnumItems.length > 0) }).length > 0) {
+                                                        var inputElem = $('<select class="form-control" name="' + props.No + '" rows="3" placeholder="' + label + '" ></select>');
+                                                        props.Type[0].EnumItems.forEach(function (item) {
+                                                            var option = $('<option>' + item.Label.tr + '</option>');
+                                                            option.appendTo(inputElem);
+                                                        })
+
+                                                    }
+
+
+
+
+                                                    var icon = "glyphicon glyphicon-floppy-disk";
+
+                                                    if (connection) {
+                                                        var icon = "glyphicon glyphicon-remove-sign";
+                                                        var output = connection._relations.start == input ? connection._relations.end : connection._relations.start;
+                                                        var value = output.group._id + " => " + output._properties.Label.tr;
+                                                        inputElem.attr("disabled", "disabled");
+                                                        inputElem.attr("type", "text");
+                                                    }
+
+                                                    if (props.IsArray && props.Value && props.Value != "") {
+                                                        var icon = "glyphicon glyphicon-remove-sign";
+                                                        inputElem.attr("disabled", "disabled");
+                                                    }
+
+
+
+                                                    $('<span class="input-group-addon" id="basic-addon2"><i class="glyphicon ' + icon + '"></i></span>')
+                                                        .on("click", function (e) {
+
+
+                                                            var isdelete = $(this).siblings("input").prop("disabled");
+                                                            var val = $(this).siblings("input").val();
+
+                                                            if (isdelete) {
+                                                                if (connection) {
+                                                                    page.workspace.element.custom.connection.remove(input);
+                                                                }
+                                                                if (props.IsArray) {
+                                                                    page.workspace.element.custom.connector.remove(input);
+                                                                }
+                                                            } else {
+
+                                                                if (val != "") {
+                                                                    props.Value = $(this).siblings(":input").val();
+                                                                    if (props.IsArray) {
+                                                                        var newProps = page.workspace.helper.objectClone(props);
+                                                                        newProps["Value"] = null;
+                                                                        page.workspace.element.custom.connector.add(component, "input", newProps);
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            var inputName = $(this).parent().find(":input").attr("name");
+                                                            page.workspace.element.select.add(component);
+                                                            $('[name="' + inputName + '"]').parents(".form-group").next().find(":input").trigger("focus");
+
+                                                        })
+                                                        .appendTo(div.find('.input-group'));
+
+
+                                                    inputElem.val(value);
+                                                    inputElem.on("keypress", function (e) {
+                                                        if (e.keyCode == 13) {
+                                                            $(this).siblings(".input-group-addon").trigger("click");
+                                                        }
+                                                    });
+                                                    div.find('.input-group').prepend(inputElem);
+                                                    div.appendTo($("#parameters"));
+
+                                                });
+                                            }
+
+
+                                        }
+                                        /*Parametreler*/
+
+                                        /*Help*/
+                                        {
+                                            var helpElem = $('<div class="clearfix" style="padding:10px;"/>');
+
+                                            helpElem.append('<div class="form-group control-label text-bold">' + comp.target._properties.Label.tr + ' (' + comp.target._properties.Label.en + ') </div>')
+                                            helpElem.append('<div class="form-group" style="padding-left:10px;"><label class="control-label"> - Kategori : </label><span style="font-weight:normal; padding-left:5px;">' + comp.target._properties.Catagory.Path.tr + '</span></div>');
+                                            helpElem.append('<div class="form-group" style="padding-left:10px;"><label class="control-label"> - Wiki Linki : </label><span style="font-weight:normal; padding-left:5px;"><a target="_blank" href="' + comp.target._properties.DescriptionUrl + '">Tıklayınız</a></span></div>');
+
+                                            helpElem.append('<div class="form-group control-label text-bold" style="padding-left:10px;">- Giriş Parametreleri </div>')
+                                            comp.target._properties.Inputs.forEach(function (input) {
+
+                                                var description = (input.Type.map(function (e) { return e.Label.tr }).join(",")) + " tip(ler)inde değer alır. ";
+                                                description = description + (input.Default != null ? "Varsayılan değeri " + input.Default.toString() + " dur. " : "");
+                                                description = description + (input.IsArray ? "Veri kümesi (Array) alabilir. " : "");
+                                                description = description + (!input.IsNullable ? "Zorunlu bir parametredir. " : "");
+
+                                                helpElem.append('<div class="form-group" style="padding-left:20px;"><label class="control-label"> - ' + input.Label.tr + ' : </label><span style="font-weight:normal; padding-left:5px;">' + description + '</span></div>');
+                                            });
+
+                                            helpElem.append('<div class="form-group control-label text-bold" style="padding-left:10px;">- Çıkış Parametreleri </div>')
+                                            comp.target._properties.Outputs.forEach(function (input) {
+
+                                                var description = (input.Type.Label.tr + " tipinde değer döndürür. ");
+                                                description = description + (input.IsArray ? "Veri kümesi (Array) dödürebilir." : "");
+
+                                                helpElem.append('<div class="form-group" style="padding-left:20px;"><label class="control-label"> - ' + input.Label.tr + ' : </label><span style="font-weight:normal;">' + description + '</span></div>');
+                                            });
+
+                                            helpElem.appendTo($("#help"))
+                                        }
+                                        /*Help*/
+
+                                    }
+
+                                })
+                                .on("object:moving", function (comp) {
+                                    $('#properties [name="ComponentPositionTop"]').val(comp.target.top);
+                                    $('#properties [name="ComponentPositionLeft"]').val(comp.target.left);
+                                });
+
+                            break;
+                        case "operators":
+
+                            page.operators = $.ajax({
+                                url: urls.GetOperators,
+                                type: "POST",
+                                dataType: "JSON",
+                                async: false
+                            }).responseJSON;
+
+
+                            var elementList = $('<ul id="operatorList" class="resizelist" />');
+                            var elementSearch = $('<input type="text" id="operatorSearch" class="form-control control-md" placeholder="Arama için operatör ismi giriniz">');
+
+
+                            $("#operators")
+                                .empty()
+                                .append(elementSearch)
+                                .append(elementList);
+
+
+                            page.helper.AddOperators(elementList, elementSearch, page.operators);
+
+                            break;
+                        case "repositories":
+
+                            page.repositories = $.ajax({
+                                url: urls.GetRepositories,
+                                type: "POST",
+                                dataType: "JSON",
+                                async: false
+                            }).responseJSON;
+
+                            var elementList = $('<ul id="repositoryList" class="resizelist" />');
+                            var elementSearch = $('<input type="text" id="repositorySearch" class="form-control control-md" placeholder="Arama için süreç ismi giriniz">')
+
+                            page.repositories.forEach(function (repository) {
+
+                                var category = elementList.children('[data-name="' + repository.Category + '"]')
+                                if (category.length == 0) {
+                                    category = $('<li/>')
+                                        .attr("data-name", repository.Category)
+                                        .attr('data-tr', repository.Category)
+                                        .attr("data-en", repository.Category)
+                                        .append('<div>' + repository.Category + '</div>')
+                                        .append('<ul></ul>')
+                                        .appendTo(elementList);
+                                }
+
+
+                                $('<li/>')
+                                    .attr("data-type", "repository")
+                                    .attr("data-name", repository.Name)
+                                    .data("source", repository)
+                                    .append('<a href="#">' + repository.Name + '</a>')
+                                    .on("click", function (e) {
+                                        page.workspace.util.loadJSON(JSON.parse(repository.Schema));
+                                        page.repositoriesSelected = repository.id;
+
+                                    })
+                                    .draggable({
+                                        revert: false,
+                                        helper: 'clone',
+                                        appendTo: 'body',
+                                        containment: "body",
+                                        scroll: false
+                                    })
+                                    .appendTo(category.children("ul"));
+                            });
+
+
+                            $("#repositories")
+                                .empty()
+                                .append(elementSearch)
+                                .append(elementList);
+
+
+                            var tree = new treefilter(elementList, {
+                                searcher: elementSearch,
+                                multiselect: false
+                            });
+
+                            var id = elementList.attr("id");
+                            $('#' + id + '>li>div').trigger("click");
+
+
+                            break;
+                        case "sources":
+
+                            var sources = $.ajax({
+                                url: urls.GetSources,
+                                type: "POST",
+                                dataType: "JSON",
+                                async: false
+                            }).responseJSON;
+
+
+                            if (sources) {
+                                sources.forEach(function (e) {
+                                    try {
+                                        page.sources = page.sources.concat(JSON.parse(e.Schema));
+                                    } catch (e) {
+                                    }
+                                });
+                            }
+
+
+
+
+                            var elementSearch = $('<input type="text" id="sourcesSearch" class="form-control control-md"  placeholder="Arama için kaynak ismi giriniz">')
+                            var elementList = $('<ul id="sourcesList" class="resizelist2" />')
+                            var elementAddButton = $('<button type="button" class="btn btn-block btn-sm btn-warning" data-task="addSource"></button>" ')
+                            .append('<i class="glyphicon glyphicon-plus-sign"></i> Yeni Kaynak Ekle')
+                            .on("click", function (e) {
+
+
+                                var content = $('<div class="clearfix"/>')
+
+                                $('<div class="form-group"/>')
+                                        .append('<input type="hidden" name="Source" />')
+                                        .append('<label class="control-label">Kaynak Kategori</label>')
+                                        .append('<select class="form-control" name="Type"><option value="">Kaynak Tipi Seçiniz</option</select>')
+                                        .on("change", "select", function (e) {
+                                            $('#sourcesform').html($('#sources [data-selector="' + $(this).val() + '"]').html());
+                                        })
+                                        .appendTo(content);
+
+
+                                $('<div id="sourcesform">').appendTo(content);
+
+                                page.sourcesCategory.forEach(function (category, i) {
+                                    content.find('[name="Type"]').append('<option value="' + i + '">' + category + '</option>');
+                                });
+
+
+                                function CallSinglar(dialog) {
+
+                                    page.sourcesAction.dialog = dialog;
+
+                                    try {
+
+                                        $('body').loadingModal({ text: 'Kaynak kontrol ediliyor.Lütfen bekleyiniz.', 'animation': 'wanderingCubes' });
+
+                                        var type = $(dialog.$modalBody).find('[name="Type"]').val();
+                                        var sourceElement = $(dialog.$modalBody).find('[name="Source"]');
+                                        var schemaElement = $(dialog.$modalBody).find('[name="Schema"]');
+
+                                        switch (type) {
+                                            case "0":
+
+                                                var server = $(dialog.$modalBody).find('[name="server"]').val();
+                                                var catalog = $(dialog.$modalBody).find('[name="catalog"]').val();
+                                                var user = $(dialog.$modalBody).find('[name="user"]').val();
+                                                var password = $(dialog.$modalBody).find('[name="password"]').val();
+                                                var url = 'Data Source=' + server + ';Initial Catalog=' + catalog + ';User ID=' + user + ';Password=' + password + ';'
+                                                communication.getTableList($('#servers').val(), url, true);
+
+                                                break;
+                                            case "1":
+                                                var url = $(dialog.$modalBody).find('[name="WSDLUrl"]').val();
+                                                communication.getWebService($('#servers').val(), url, true);
+
+                                                break;
+                                            default:
+                                        }
+
+                                        sourceElement.val(url);
+
+                                    } catch (e) {
+                                        page.helper.Feedback("Erişim Hatası", "Kaynak erişim hatası lütfen bilgileri kontrol ediniz.", "warning");
+                                        $('body').loadingModal("destroy");
+                                        dialog.close();
+                                    }
+                                }
+
+
+
+                                BootstrapDialog.show({
+                                    type: BootstrapDialog.TYPE_INFO,
+                                    title: 'Kaynak Sihirbazı',
+                                    message: content,
+                                    buttons: [
+                                        {
+                                            label: 'Kapat',
+                                            cssClass: "btn-default pull-left",
+                                            action: function (dialog) {
+                                                dialog.close();
+                                            }
+                                        },
+                                        {
+                                            label: 'Kaydet',
+                                            cssClass: "btn-default pull-right",
+                                            action: function (dialog) {
+
+
+                                                page.sourcesAction.save = true;
+                                                page.sourcesAction.add = true;
+
+                                                CallSinglar(dialog);
+
+
+                                            }
+                                        },
+                                        {
+                                            label: 'Ekle',
+                                            cssClass: "btn-default pull-right",
+                                            action: function (dialog) {
+
+                                                page.sourcesAction.save = false;
+                                                page.sourcesAction.add = true;
+
+                                                CallSinglar(dialog);
+
+                                            }
+                                        }
+                                    ]
+                                });
+
+
+                            })
+
+
+
+                            $("#sources")
+                                .empty()
+                                .append(elementSearch)
+                                .append(elementList)
+                                .append(elementAddButton);
+
+
+
+                            page.helper.AddOperators(elementList, elementSearch, page.sources)
+
+
+
+                            break;
+                        default:
+                            break;
+                    }
+
+
+
+                    $("#workspace").droppable({
+                        drop: function (event, ui) {
+                            var elem = ui.draggable;
+                            var property = elem.data("source");
+                            var type = elem.attr("data-type");
+
+                            switch (type) {
+                                case "repository":
+
+                                    var property = elem.data("source");
+                                    page.workspace.util.loadJSON(JSON.parse(property.Schema));
+                                    page.repositoriesSelected = property.id;
+
+                                    break;
+                                case "operator":
+
+                                    var left = event.pageX - $(this).offset().left;
+                                    var top = event.pageY - $(this).offset().top;
+                                    var component = page.workspace.element.custom.component.add(property, left, top, true);
+                                    page.workspace.element.select.add(component);
+                                    page.workspace.history.save();
+
+                                    break;
+                                default:
+                            }
+                        }
+                    });
+
+
+                });
+
+                page.layout.base.init();
+
+
+            }
+        }
+
+
+        $(document)
+            .on("ready", function (e) {
+
+                communication.init();
+                page.init();
+
+
+                $('[data-task="grid"]').trigger("click");
+                $('[data-task="new"]').trigger("click");
+            })
+            .on("click", '[data-task="grid"]', function (e) {
+                e.preventDefault();
+                page.workspace.grid.setVisible(!$(this).hasClass("active"));
+                $(this).toggleClass("active");
+            })
+            .on("click", '[data-task="open"]', function () {
+
+                $('<input type="file" accept="application/json"/>')
+                    .on("change", function (e) {
+
+                        if (this.files.length != 1) {
+                            //feedbackWarning("Proje yüklemek dosya seçmelisiniz.");
+                        }
+                        var file = this.files[0];
+
+                        if (file.name.indexOf(".json") == -1) {
+                            //feedbackWarning("Proje dosyası json formatında olmalıdır.");
+                        }
+
+
+                        var reader = new FileReader();
+                        reader.onload = function (e) {
+                            try {
+                                var object = JSON.parse(e.target.result);
+                                page.workspace.element.clear();
+                                page.workspace.util.loadJSON(object);
+                            } catch (e) {
+                                //feedbackWarning("Proje dosyası okunurken bir sorun oluştu.");
+                            }
+                        };
+                        reader.readAsText(file);
+                    })
+                    .trigger("click");
+            })
+            .on("click", '[data-task="delete"]', function () {
+                page.workspace.element.remove(page.workspace.element.select.get());
+            })
+            .on("click", '[data-task="new"]', function () {
+                page.workspace.element.clear();
+            })
+            .on("click", '[data-task="selection"]', function () {
+                page.workspace.element.select.add(page.workspace.element.get());
+            })
+            .on("click", '[data-task="zoomIn"]', function () {
+                page.workspace.canvas.setZoom(page.workspace.canvas.getZoom() * 1.1);
+                //page.workspace.grid.refresh();
+            })
+            .on("click", '[data-task="zoomOut"]', function () {
+                page.workspace.canvas.setZoom(page.workspace.canvas.getZoom() / 1.1);
+                //page.workspace.grid.refresh();
+            })
+            .on("click", '[data-task="run"]', function () {
+
+                var model = JSON.stringify(page.workspace.element.custom.query());
+
+                var computerId = $("#servers").val(); //"73D9A0B8-8C44-48D1-92A6-2E08F31A1F7B";
+                var executionId = page.workspace.helper.Guid.New();
+
+                communication.startExecution(computerId, executionId, model);
+                //communication.hub.connection.start();
+                //communication.hub.server.page_StartWatchExecution(executionId);
+                //communication.hub.server.page_SendCommand(computerId, "StartExecution", [executionId, model]);
+
+            })
+            .on("click", '[data-task="undo"]', function () {
+                page.workspace.history.undo();
+            })
+            .on("click", '[data-task="redo"]', function () {
+                page.workspace.history.redo();
+            })
+            .on("click", '[data-task="help"]', function () {
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_INFO,
+                    title: 'Yardım',
+                    message: "<p class='text-center'> İnfoline Model Copright © 2017 Tüm hakları Saklıdır</p>",
+                    buttons: [{
+                        label: 'Kapat',
+                        action: function (dialog) {
+                            dialog.close();
+                        }
+                    }]
+                });
+            })
+            .on("click", '[data-task="savefile"]', function () {
+                saveAs(page.workspace.util.saveJSON());
+            })
+
+            .on("click", '[data-task="savedb"]', function () {
+
+                if (page.workspace.element.get().length == 0) {
+                    page.helper.Feedback("Depoya kaydetme işlemi", "Süreç kaydetme yapılamıyor. Mesaj : En az bir operatör olmalı.", "warning");
+                    return false;
+                }
+
+                var newId = page.workspace.helper.Guid.New();
+                var content = $('<div class="clearfix"/>')
+
+                $('<div class="form-group"/>')
+                       .append('<label class="control-label">Süreç Seçimi</label>')
+                       .append('<select class="form-control" name="Id"><option value="' + newId + '">Yeni Süreç Olarak Kaydet</option</select>')
+                       .on("change", "select", function (e) {
+                           var val = $(this).val();
+                           var Name = $(this).find('[value="' + val + '"]').text();
+                           var Category = $(this).find('[value="' + val + '"]').parent("optgroup").attr("label")
+                           if (val != newId) {
+                               content.find('[name="Name"]').val(Name);
+                               content.find('[name="Category"]').val(Category);
+                           }
+                       })
+                       .appendTo(content);
+
+
+                $('<div class="form-group"/>')
+                        .append('<label class="control-label">Süreç Kategori</label>')
+                        .append('<select class="form-control" name="Category"></select>')
+                        .appendTo(content);
+
+                $('<div class="form-group"/>')
+                        .append('<label class="control-label">Süreç İsmi</label>')
+                        .append('<input class="form-control" type="text" placeholder="Lütfen süreç ismini giriniz..." name="Name"/>')
+                        .appendTo(content);
+
+
+                page.repositoriesCategory.forEach(function (e) {
+                    content.find('select[name="Category"]').append('<option>' + e + '</option>')
+                    content.find('select[name="Id"]').append('<optgroup label="' + e + '"></optgroup >')
+                });
+
+
+                page.repositories.forEach(function (repository) {
+                    content.find('select[name="Id"] optgroup[label="' + repository.Category + '"]').append('<option  value="' + repository.id + '">' + repository.Name + '</option >');
+                });
+
+
+                if (page.repositoriesSelected != null) {
+                    
+                    content.find('select[name="Id"]').val(page.repositoriesSelected).trigger("change");
+                }
+
+
+
+
+                BootstrapDialog.show({
+                    type: BootstrapDialog.TYPE_INFO,
+                    title: 'Depoya Kaydet',
+                    message: content,
+                    buttons: [
+                        {
+                            label: 'Kapat',
+                            cssClass: "btn-default pull-left",
+                            action: function (dialog) {
+                                dialog.close();
+                            }
+
+                        },
+                        {
+                            label: 'Kaydet',
+                            action: function (dialog) {
+
+                                var ExecuteString = JSON.stringify(page.workspace.element.custom.query());
+                                var Schema = JSON.stringify(page.workspace.util.toJSON());
+                                var Id = content.find('[name="Id"]').val();
+                                var Name = content.find('[name="Name"]').val();
+                                var Category = content.find('[name="Category"]').val();
+
+
+
+
+                                $.ajax({
+                                    url: urls.UpsertRepository,
+                                    data: { id: Id, Category: Category, Name: Name, Schema: Schema, ExecuteString: ExecuteString },
+                                    type: "POST",
+                                    success: function (resp) {
+
+                                        if (resp.result) {
+                                            page.repositoriesSelected = null;
+                                            page.helper.Feedback("işlem başırılı", "Depoya Kaydetme işlemi başarılı", "success");
+                                            page.layout.base.trigger("componentCreated", { config: { componentState: { id: "repositories" } } })
+                                        } else {
+                                            page.helper.Feedback("işlem başırız.", "Depoya Kaydetme işlemi başarısız", "warning");
+                                        }
+
+
+                                        dialog.close();
+                                    }
+                                });
+                            }
+                        },
+                        {
+                            label: 'Sil',
+                            cssClass: "btn-default pull-right",
+                            action: function (dialog) {
+
+                                var ExecuteString = JSON.stringify(page.workspace.element.custom.query());
+                                var Schema = JSON.stringify(page.workspace.util.toJSON());
+                                var Id = content.find('[name="Id"]').val();
+                                var Name = content.find('[name="Name"]').val();
+                                var Category = content.find('[name="Category"]').val();
+
+                                $.ajax({
+                                    url: urls.DeleteRepository,
+                                    data: { id: Id },
+                                    type: "POST",
+                                    success: function (resp) {
+
+                                        if (resp.result) {
+                                            page.repositoriesSelected = null;
+                                            page.helper.Feedback("işlem başırılı", "Depodan Silme işlemi başarılı", "success");
+                                            page.layout.base.trigger("componentCreated", { config: { componentState: { id: "repositories" } } })
+                                        } else {
+                                            page.helper.Feedback("işlem başırız.", "Depoya Silme işlemi başarısız", "warning");
+                                        }
+
+                                        dialog.close();
+                                    }
+                                });
+
+                            }
+
+                        }
+                    ]
+                });
+
+            })
+            .on("keydown", function (e) {
+
+                //delete
+                if (e.keyCode == 46 && e.ctrlKey && page.workspace.element.select.get()) {
+                    page.workspace.element.remove(page.workspace.element.select.get());
+                }
+
+                //save
+                if (e.keyCode == 83 && e.ctrlKey) {
+                    $('[data-task="savefile"]').trigger("click");
+                }
+
+                //ileri
+                if (e.keyCode == 89 && e.ctrlKey) {
+                    $('[data-task="redo"]').trigger("click");
+                }
+
+                //geri
+                if (e.keyCode == 90 && e.ctrlKey) {
+                    $('[data-task="undo"]').trigger("click");
+                }
+
+                //ctrl+a
+                if (e.keyCode == 65 && e.ctrlKey && e.shiftKey) {
+                    page.workspace.element.select.add(page.workspace.element.get());
+                }
+            })
+
+
+        $(window)
+            .on("resize", function (e) {
+                e.preventDefault();
+                page.timeout = window.setTimeout(function () {
+                    clearTimeout(page.timeout);
+                    page.layout.base.updateSize();
+                    //page.workspace.updateSize($("#process").innerWidth() - 2, $("#process").innerHeight() - 3);
+                }, 100);
+            });
+
+    </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</body>
+</html>

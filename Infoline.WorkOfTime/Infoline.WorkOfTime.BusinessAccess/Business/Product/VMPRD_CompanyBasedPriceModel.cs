@@ -13,19 +13,30 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public List<VMPRD_CompanyBasedPriceDetailModel> BasePriceDetailItems { get; set; }
+        public List<VMPRD_CompanyBasedPriceDetailModel> BasePriceDetailItems { get; set; } = new List<VMPRD_CompanyBasedPriceDetailModel>();
+        public short discountType { get; set; }
         public VMPRD_CompanyBasedPriceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceById(id);
+            var data = db.GetVWPRD_CompanyBasedPriceById(id);
             if (data != null)
             {
                 var getSubData = db.GetPRD_CompanyBasedPriceDetailsByCompanyBasedId(data.id);
                 if (getSubData != null)
                 {
-                    foreach (var item in getSubData)
+                    
+                    foreach (var item in getSubData.OrderByDescending(x=>x.startDate))
                     {
-                        BasePriceDetailItems = new List<VMPRD_CompanyBasedPriceDetailModel>();
+                        if (item.discount<0)
+                        {
+                            item.discount = item.discount * -1;
+                            this.discountType = 1;
+                        }
+                        else
+                        {
+                            this.discountType = 0;
+                        }
+                        
                         BasePriceDetailItems.Add(new VMPRD_CompanyBasedPriceDetailModel().B_EntityDataCopyForMaterial(item));
                     }
                 }
@@ -36,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus Save(Guid? userId = null, HttpRequestBase request = null, DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();
-            trans = transaction ?? db.BeginTransaction();
+            this.trans = transaction ?? db.BeginTransaction();
             var data = db.GetPRD_CompanyBasedPriceById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
@@ -94,28 +105,37 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 foreach (var item in BasePriceDetailItems)
                 {
-                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.AllProducts || this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedCategory)
+                    if (item.discount>100)
+                    {
+                        dbresult.result = false;
+                        dbresult.message = "İskonto 100'den büyük olamaz";
+                    }
+                    if (productType == (short)EnumPRD_CompanyBasedPriceProductType.AllProducts || productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedCategory)
                     {
                         item.price = null;
                     }
-                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && this.type == (short)EnumPRD_CompanyBasedPriceType.Fiyat)
+                    if (productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && type == (short)EnumPRD_CompanyBasedPriceType.Fiyat)
                     {
                         item.discount = null;
                     }
-                    if (this.productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && this.type == (short)EnumPRD_CompanyBasedPriceType.Oran)
+                    if (productType == (short)EnumPRD_CompanyBasedPriceProductType.SelectedProduct && type == (short)EnumPRD_CompanyBasedPriceType.Oran)
                     {
                         item.price = null;
                     }
-                    if (this.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Genel || this.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Peşin)
+                    if (sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Genel || sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Peşin)
                     {
                         item.monthCount = null;
                     }
-                    if (this.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Genel)
+                    if (conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Genel)
                     {
                         item.minCondition = null;
                     }
-                    item.companyBasedPriceId = this.id;
-                    dbresult &= item.Insert(this.trans);
+                    if (discountType==1)
+                    {
+                        item.discount = item.discount * -1;
+                    }
+                    item.companyBasedPriceId = id;
+                    dbresult &= item.Insert(trans);
                 }
             }
             if (!dbresult.result)
@@ -149,9 +169,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             {
                 foreach (var item in BasePriceDetailItems)
                 {
-                    dbresult &= item.Delete(this.trans);
-                    item.companyBasedPriceId = this.id;
-                    dbresult &= item.Save(this.changedby, null, this.trans);
+                    item.companyBasedPriceId = id;
+                    dbresult &= item.Save(changedby, null, trans);
                 }
             }
             if (!dbresult.result)

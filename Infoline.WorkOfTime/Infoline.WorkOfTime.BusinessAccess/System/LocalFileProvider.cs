@@ -602,17 +602,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 "HDM_Ticket", new []{
                     new FileBase("Yardım Talep Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep },
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep},
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep}),
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep },
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep},
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep}),
                 }
             },
             {
                 "HDM_TicketMessage", new []{
                     new FileBase("Mesaj Ek Dosya", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  99,
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep },
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep},
-                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep}),
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep },
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep},
+                                                                                 new string[]{ SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep}),
                 }
             },
 

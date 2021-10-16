@@ -14,8 +14,10 @@ namespace Infoline.WorkOfTime.BusinessData
         public string productId_Title { get; set;}
         public string materialId_Title { get; set;}
         public string unitId_Title { get; set;}
+        public Guid? unitId { get; set;}
         public double? price { get; set;}
         public string currencySymbol { get; set;}
+        public Guid? currencyId { get; set;}
         public double? stockTotal { get; set;}
         public string stockCompanyIds { get; set;}
     }

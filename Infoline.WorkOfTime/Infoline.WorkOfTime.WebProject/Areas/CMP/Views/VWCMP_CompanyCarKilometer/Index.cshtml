@@ -22,13 +22,13 @@
             <div class="ibox-content">
                 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCarKilometer>("VWCMP_CompanyCarKilometers")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_CompanyCarKilometer", new { area = "CMP" })).Filter(c => c.responsiblePersonId == userStatus.user.id).PageSize(25).Sort(s => s.Add(a => a.entryDate).Descending()))
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_CompanyCarKilometer", new { area = "CMP" })).Filter(c => c.responsiblePersonId == userStatus.user.id).PageSize(25).Sort(s => s.Add(a => a.kilometer).Descending()))
     .Columns(x =>
     {
         x.Bound(y => y.carPlate).Title("Plaka").Width(180);
         x.Bound(y => y.carBrand).Title("Marka").Width(180);
         x.Bound(y => y.carModel).Title("Model").Width(180);
-        x.Bound(y => y.entryDate).Title("Bildirim Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.entryDate).Title("Bildirim Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
         x.Bound(y => y.kilometer).Title("Kilometre").ClientTemplate("#=TemplateEngine('projectTemplate',data)#").Width(180);
         x.Bound(y => y.createdby_Title).Title("Bildiren Personel").Width(180);
 
@@ -36,7 +36,7 @@
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
     {
-        x.Custom().Text((Request.Cookies["language"].Value == "ENG" ? "<i class='fa fa-plus' data-original-title='My Car Km'></i>" : "<i class='fa fa-plus' data-original-title='Kilometre Bildirimi'></i>")).HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWDOC_Document", new { area = "DOC" }));
+        x.Custom().Text("<i class='fa fa-plus' data-original-title='Kilometre Bildirimi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Insert", "VWCMP_CompanyCarKilometer", new { area = "CMP" }));
 
     }))
 

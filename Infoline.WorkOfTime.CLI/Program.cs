@@ -12,10 +12,10 @@ namespace Infoline.WorkOfTime.CLI
         static void Main(string[] args)
         {
 
-            var path = @"C:\Users\bilal\OneDrive\Documents\GitHub\WorkOfTime-Web-Server";
-            var newPath = @"C:\Users\bilal\OneDrive\Documents\GitHub\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server-Vedas";
-            var key = "Infoline.WorkOfTime";
-            var replacer = "Infoline.Vedas";
+            var path = @"D:\GIT\Infoline-Bilgi-Teknolojileri\SIM-Web-Server-Cyprus";
+            var newPath = @"D:\GIT\Infoline-Bilgi-Teknolojileri\SIM-Web-Server-CyprusNew";
+            var key = "Infoline.CevreSis";
+            var replacer = "Infoline.SISCyprus";
             var ext = new string[] { ".sln", ".csproj", ".cs", ".config", ".cshtml", ".asax" };
             var directories = Directory.GetDirectories(path, "*", System.IO.SearchOption.AllDirectories).ToList();
             directories.Add(path);

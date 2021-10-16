@@ -17,7 +17,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
         }
 
 
-        [PageInfo("Çözüm Önerileri Metodu", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel)]
+        [PageInfo("Çözüm Önerileri Metodu", SHRoles.YardimMasaYonetim, SHRoles.YardimMasaTalep, SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

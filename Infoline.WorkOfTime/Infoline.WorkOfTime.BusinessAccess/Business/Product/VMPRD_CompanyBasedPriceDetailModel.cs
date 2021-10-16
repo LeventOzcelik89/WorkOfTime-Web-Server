@@ -12,11 +12,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public short companyType { get; set; }
-        public short productType { get; set; }
+        public short productType { get; set; } 
         public VMPRD_CompanyBasedPriceDetailModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetPRD_CompanyBasedPriceById(this.companyBasedPriceId);
+            var data = db.GetPRD_CompanyBasedPriceDetailById(this.id);
             
             if (data != null)
             {
@@ -119,8 +119,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             }
             else
             {
-                dbresult.result = false;
-                dbresult.message = "Böyle bir kayıt yoktur!";
+                return new ResultStatus
+                {
+                    message = "Böyle bir kayıt yoktur",
+                    result = true
+                };
             }
             if (!dbresult.result)
             {

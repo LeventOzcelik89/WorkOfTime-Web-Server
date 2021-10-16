@@ -14,10 +14,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<VMPRD_TransactionItems> items { get; set; } = new List<VMPRD_TransactionItems>() { };
 		private WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
-		private List<VWPRD_Product> products { get; set; }
-		private List<VWPRD_Inventory> inventories { get; set; }
+		private List<VWPRD_Product> products { get; set; }	//	tek gelecek.
+		private List<VWPRD_Inventory> inventories { get; set; }	//	ÜRÜNÜN ÜRETİLMESİ İÇİN GEREKLİ MATERYALLERİ.
 		public Guid? productionId { get; set; }
-
+	
 		public string inputId_Adress { get; set; }
 		public string outputId_Adress { get; set; }
 		public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
@@ -29,8 +29,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public double? quantity { get; set; }
 		public double? totalQuantity { get; set; }
 		public bool isExpense { get; set; }
+		public int amount { get; set; }
+        public double OutOfStock { get; set; }
 
-		public VMPRD_ProductionTransactionModel Load()
+        public VMPRD_ProductionTransactionModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			var transaction = db.GetVWPRD_TransactionById(this.id);
@@ -46,6 +48,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			else
 			{
+
 				this.hasUpdate = false;
 				this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 				this.date = this.date ?? DateTime.Now;
@@ -126,17 +129,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.items.AddRange(productionProducts.Select(x => new VMPRD_TransactionItems
 					{
 						productId = x.materialId,
-						unitPrice = x.price
+						unitPrice = x.price,
+						quantity=x.quantity
 					}));
 				}
 				else if (this.type == (int)EnumPRD_TransactionType.UretimBildirimi || this.type == (int)EnumPRD_TransactionType.GelenIrsaliye)
 				{
+					var getVWPRD_Production = db.GetVWPRD_ProductionById(this.productionId.Value);
+                    if (getVWPRD_Production!=null)
+                    {
+						this.OutOfStock = getVWPRD_Production.producedQuantity.HasValue?getVWPRD_Production.producedQuantity.Value:0;
+
+					}
 					var productionProduct = db.GetVWPRD_ProductionById(this.productionId.Value);
 					if (productionProduct != null)
 					{
 						this.productId = productionProduct.productId.Value;
 						this.productId_Title = productionProduct.productId_Title;
 						this.totalQuantity = productionProduct.quantity;
+						
+						
 						//this.items.Add(new VMPRD_TransactionItems
 						//{
 						//	productId = productionProduct.productId,
@@ -244,7 +256,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
 			this.products = db.GetVWPRD_ProductByIds(productids).ToList();
 			this.inventories = db.GetVWPRD_InventoryBySerialCodesAndIds(productids, serials).ToList();
-
+           
 			var control = this.items.Where(a => a.serialCodes != null).GroupBy(a => a.productId).Select(a => new { productId = a.Key, serialCodes = a.SelectMany(c => c.serialCodes.Split(',')).GroupBy(g => g.ToLower()).ToArray() }).ToArray();
 			var controlText = control.Where(a => a.serialCodes.Count(c => c.Count() > 1) > 0).Select(a => string.Format("{0} ürünü için {1} serinumaraları", this.products.Where(c => c.id == a.productId).Select(c => c.code + " | " + c.name).FirstOrDefault(), string.Join(",", a.serialCodes.Where(c => c.Count() > 1).Select(g => g.Key)))).ToArray();
 
@@ -254,7 +266,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return new ResultStatus { result = false, message = "Giriş deposu seçilmedi." };
 			if (((this.type >= 10 && this.type < 20) || (this.type == 1)) && this.status == (int)EnumPRD_TransactionStatus.islendi && this.outputId == null)
 				return new ResultStatus { result = false, message = "Çıkış deposu seçilmedi." };
-
+			
 			var rs = new ResultStatus { result = true };
 			if (transaction == null)
 			{
@@ -466,18 +478,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var outputInfo = GetInfo(this.outputId, this.outputTable, this.outputCompanyId);
 
 
-			this.inputId_Title = inputInfo.Text;
-			this.inputCompanyId = inputInfo.CompanyId;
-			this.inputCompanyId_Title = inputInfo.CompanyIdTitle;
-			this.inputId = inputInfo.DataId;
-			this.inputTable = inputInfo.DataTable;
+				this.inputId_Title = inputInfo.Text;
+				this.inputCompanyId = inputInfo.CompanyId;
+				this.inputCompanyId_Title = inputInfo.CompanyIdTitle;
+				this.inputId = inputInfo.DataId;
+				this.inputTable = inputInfo.DataTable;
 
 
-			this.outputId_Title = outputInfo.Text;
-			this.outputCompanyId = outputInfo.CompanyId;
-			this.outputCompanyId_Title = outputInfo.CompanyIdTitle;
-			this.outputId = outputInfo.DataId;
-			this.outputTable = outputInfo.DataTable;
+				this.outputId_Title = outputInfo.Text;
+				this.outputCompanyId = outputInfo.CompanyId;
+				this.outputCompanyId_Title = outputInfo.CompanyIdTitle;
+				this.outputId = outputInfo.DataId;
+				this.outputTable = outputInfo.DataTable;
 
 
 			var DBResult = new ResultStatus { result = true };
@@ -1245,5 +1257,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 			return result;
 		}
+		
 	}
 }

@@ -1,110 +1,116 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPrice
+﻿@model Infoline.WorkOfTime.BusinessAccess.Business.Product.VMPRD_CompanyBasedPriceModel
 @{
-    ViewBag.Title = "Kayıt Detay";
+    ViewBag.Title = "Özel Fiyat Bilgileri Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<div class="form-horizontal" data-selector="modalContainer">
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="conditionType">conditionType</label>
+<div class="row">
+    <div class="col-sm-3">
+        <div class="ibox">
+            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+                <div class="m-b-md">
+                    <h2 class="font-bold no-margins">
+                        Müşteri Bazlı Fiyat Detayı
+                    </h2>
+
+                </div>
+                <img src="/Content/Custom/img/product.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px; margin: auto; border: 2px solid #fff;">
+                <div style="margin-top: 15px;">
+                   
+                        <a class="btn btn-xs btn-primary" href="/PRD/VWPRD_CompanyBasedPrice/Update?id=@Model.id"  target="_blank" > <i class="fa fa-edit"></i> Tümünü Düzenle </a>
+                    
+                </div>
+            </div>
         </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.conditionType, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
+        <div class="ibox ">
+
+            <div class="ibox-content no-padding">
+                <ul class="list-group">
+                    @if (Model.companyId == null)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white"> <label for="">Tüm Müşteriler</label></span>
+                            Müşteri :
+                        </li>
+
+                    }
+                    @if (Model.companyId != null)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white"> <label for="">@Model.companyId_Title</label></span>
+                            Müşteri :
+                        </li>
+
+                    }
+                    @if (Model.productId != null)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><label for="">@Model.productId_Title</label></span>
+                            Ürün:
+                        </li>
+                    }
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="sellingType">sellingType</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.sellingType, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
+                    @if (Model.productId == null && Model.categoryId == null)
+                    {
+                        <li class="list-group-item">
+                            <span class="badge badge-white"><label for="">Tüm Ürünlere</label></span>
+                            Ürün:
+                        </li>
+                    }
+                    <li class="list-group-item">
+                        <span class="fitWrap badge badge-white">@Model.conditionType_Title</span>
+                        Koşul Türü :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fitWrap badge badge-white">@Model.sellingType_Title</span>
+                        Satış Tipi :
+                    </li>
+                    <li class="list-group-item">
+                        <span class="fitWrap badge badge-white">
+                            @if (Model.type == 0)
+                            {
+                                <b>Oran Bazlı</b>
+                            }
+                            @if (Model.type == 1)
+                            {
+                                <b>Fiyat Bazlı</b>
+                            }
+                        </span>
+                        Tip :
+                    </li>
+                </ul>
 
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="productId_Title">productId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.productId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyId_Title">companyId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.companyId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
+            </div>
         </div>
     </div>
+    <div class="col-sm-9">
+        @{var singleItem = Model.BasePriceDetailItems.FirstOrDefault();}
+        @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_CompanyBasedPriceDetail>("VWPRD_CompanyBasedPrice")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" })).Filter(a=>a.companyBasedPriceId==Model.id).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd/MM/yyyy}");
+        x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd/MM/yyyy}");
+        x.Bound(y => y.price).Title("Fiyat").Hidden(singleItem.price==null||singleItem.price==0?true:false).ClientTemplate("#=kendo.toString(data.price,'N2') # ₺ ");
+        x.Bound(y => y.discount).Title("İskonto Oranı").Hidden(singleItem.discount != null ? false : true).ClientTemplate("#=kendo.toString(data.discount,'N2') # % ");;
+        x.Bound(y => y.minCondition).Title("Minimum Fiyat Miktarı").Hidden(singleItem.minCondition != null &&Model.conditionType==(short)EnumPRD_CompanyBasedPriceConditionType.Fiyat ? false : true);
+        x.Bound(y => y.minCondition).Title("Minimum Adet Tutarı").Hidden(singleItem.minCondition != null && Model.conditionType == (short)EnumPRD_CompanyBasedPriceConditionType.Adet? false : true);
+        x.Bound(y => y.monthCount).Title("Vade Sayısı").Hidden(singleItem.monthCount != null && Model.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Vadeli? false : true);
+        x.Bound(y => y.monthCount).Title("Taksit Sayısı").Hidden(singleItem.monthCount != null && Model.sellingType == (short)EnumPRD_CompanyBasedPriceSellingType.Taksitli? false : true);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+      .Scrollable(x => x.Height(650))
+
+    .ToolBar(x =>
+    {
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="categoryId_Title">categoryId_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.categoryId_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"readonly", "readonly"}
-            })
-        </div>
+        x.Custom().Text("<i class='fa fa-trash' data-original-title='Kaydı Sil'</i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Kayıdı Silmek İstediğinize Emin Misiniz? " } }).Url(Url.Action("Delete", "VWPRD_CompanyBasedPriceDetail", new { area = "PRD" }));
+    }))
+
+
+
     </div>
-
-
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-    </div>
-
 </div>

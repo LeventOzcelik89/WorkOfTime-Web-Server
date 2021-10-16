@@ -29,7 +29,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
-
 			var page = request.Page;
 			request.Filters = new FilterDescriptor[0];
 			request.Sorts = new SortDescriptor[0];
@@ -44,8 +43,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
-
 			var db = new WorkOfTimeDatabase();
+			var userStatus = (PageSecurity)Session["userStatus"];
+			condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 5);
 			var data = db.GetVWCMP_Storage(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}

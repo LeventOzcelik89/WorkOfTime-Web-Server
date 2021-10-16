@@ -109,9 +109,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var roles = this.db.GetSH_UserRoleByUserId(this.assignUserId.Value);
                 var personelRole = new Guid(SHRoles.YardimMasaPersonel);
-
+                var customerRole = new Guid(SHRoles.YardimMasaMusteri);
                 var newManagerRoles = new List<SH_UserRole>();
-                var userRoles = roles.Where(a => a.userid == this.assignUserId.Value && a.roleid == personelRole).ToArray();
+                var userRoles = roles.Where(a => a.userid == this.assignUserId.Value && (a.roleid == personelRole || a.roleid == customerRole)).ToArray();
 
                 if (userRoles.Count() == 0)
                 {

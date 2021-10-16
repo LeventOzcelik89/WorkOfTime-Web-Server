@@ -6,6 +6,12 @@
 <style>
 </style>
 <script>
+
+    function blockClick() {
+
+    }
+
+
     $(document)
         .on("change", "[name='companyType']", function () {
             let value = $("[name='companyType']:checked").val();
@@ -33,6 +39,9 @@
                 $("#categoryDropDown").hide();
                 $("#priceorDiscountDiv").hide();
                 $("[for=type_0]").trigger("click")
+                $("#discountTypeDiv").show();
+                $("[data-order=7]").hide();
+                $("[data-order=8]").hide();
             }
             else if (value == 1) { //Seçili Kategoriye
                 $("#productId").data("kendoDropDownList").value(-1);
@@ -40,6 +49,9 @@
                 $("#productDropDown").hide();
                 $("#priceorDiscountDiv").hide();
                 $("[for=type_0]").trigger("click")
+                $("#discountTypeDiv").show();
+                $("[data-order=7]").hide();
+                $("[data-order=8]").hide();
             }
             else if (value == 2) { //Seçili Ürüne
                 $("#productId").data("kendoDropDownList").value(-1);
@@ -52,6 +64,9 @@
                 $("#priceorDiscountDiv").show();
                 $("#priceDiscount0").prop("checked", true);
                 $("#priceDiscount1").prop("checked", false);
+                $("#discountTypeDiv").show();
+                $("[data-order=7]").hide();
+                $("[data-order=8]").hide();
             }
         })
         .on("change", "[name='sellingType']", function () {
@@ -77,8 +92,8 @@
             else {
                 if (value == 1) { //Minimum Satış Fiyatı
                     $($("[data-order=3]")[0]).text("Minimum Satış Tutarı");
-                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
                     $("[data-conditionCurr=minConditionCurrency]").hide();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
                 }
                 if (value == 2) { // Minimum Adet
                     $($("[data-order=3]")[0]).text("Minimum Birim");
@@ -90,26 +105,131 @@
         })
         .on("change", "[name='type']", function () {
             let value = $("[name='type']:checked").val();
-            if (value == 1) { //Fiyat girelecek 
+            var rowLength = $('[data-row]').length;
+            if (value == 1) { //Fiyat girelecek
                 $("[data-order=5]").hide();
                 $("[data-order=6]").show();
+                $("#discountTypeDiv").hide();
+
+                if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise
+                    for (var i = 0; i < rowLength; i++) {
+                        var priceForRow = $($("td[data-order=6]")[i]).find("input").val();
+                        $($("td[data-order=8]")[i]).find("input").val(priceForRow);
+                    }
+                }
             }
             else { //Oran Girilecek
                 $("[data-order=6]").hide();
                 $("[data-order=5]").show();
+                $("#discountTypeDiv").show();
+                if ($("[name='productType']:checked").val() == 2) { //seçili ürüne ise
+                    if ($("#productId").data("kendoDropDownList").dataItem().currentSellingPrice != undefined) {//ürün currentSellingPrice null değilse
+                        var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+                        for (var i = 0; i < rowLength; i++) {
+                            var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
+                            var discountForRow = parseFloat(discountForRow);
+                            var effectedRowPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discountForRow) / 100)) : (currentPrice * ((100 + discountForRow) / 100));
+                            effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
+                            effectedRowPrice = effectedRowPrice.replace(".", "");
+                            effectedRowPrice = effectedRowPrice.replace(",", ".");
+                            effectedRowPrice = parseFloat(effectedRowPrice);
+                            $($("td[data-order=8]")[i]).find("input").val(effectedRowPrice);
+                        }
+                    } else {
+                        $("td[data-order=8]").find("input").val("-");
+                    }
+                }
+            }
+        })
+        .on("change", "[name='discountType']", function () {
+            
+            let value = $("[name='discountType']:checked").val();
+
+            $("th[data-order=5]").text(value == 0 ? "İskonto Oranı" : "Fiyat Artış Oranı");
+
+            let type = $("[name='type']:checked").val();
+            let currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+            if (currentPrice != undefined && type == 0) {
+                if (value == 0) { //indirim
+                    var length = $('[data-row]').length;
+                    for (var i = 0; i < length; i++) {
+                        var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
+                        var discountForRow = parseFloat(discountForRow);
+                        var effectedRowPrice = currentPrice * ((100 - discountForRow) / 100);
+                        effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
+                        effectedRowPrice = effectedRowPrice.replace(".", "");
+                        effectedRowPrice = effectedRowPrice.replace(",", ".");
+                        effectedRowPrice = parseFloat(effectedRowPrice);
+                        $($("td[data-order=8]")[i]).find("input").val(effectedRowPrice);
+                    }
+                }
+                else { //fiyat artışı
+                    var length = $('[data-row]').length;
+                    for (var i = 0; i < length; i++) {
+                        var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
+                        var discountForRow = parseFloat(discountForRow);
+                        var effectedRowPrice = currentPrice * ((100 + discountForRow) / 100);
+                        effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
+                        effectedRowPrice = effectedRowPrice.replace(".", "");
+                        effectedRowPrice = effectedRowPrice.replace(",", ".");
+                        effectedRowPrice = parseFloat(effectedRowPrice);
+                        $($("td[data-order=8]")[i]).find("input").val(effectedRowPrice);
+                    }
+                }
             }
         })
         .on("ready", function () {
             page.functions.AddRow(true);
         })
-        .on("before:submit", "#VWPRD_CompanyBasedPriceDetailForm", function () {
-            var inputs = $("td[data-order]");
-            for (var i = 0; i < inputs.length; i++) {
-                if ($(inputs[i]).attr("style") == "display:none") {
-                    $(inputs[i]).find("input").prop("disabled", true)
-                }
+        .on("submit", "#submitButtonId", function (e) {
+            $("#submitButtonId").attr("disabled", true)
+        })
+
+        .on("keyup", "[data-item=discount]", function () {
+            var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+            if (currentPrice != undefined) {
+                var discount = $(this).val();
+                discount = parseFloat(discount);
+                var effectedPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discount) / 100)) : (currentPrice * ((100 + discount) / 100));
+                effectedPrice = kendo.toString(effectedPrice, "N2");
+                effectedPrice = effectedPrice.replace(".", "");
+                effectedPrice = effectedPrice.replace(",", ".");
+                effectedPrice = parseFloat(effectedPrice);
+                $(this).closest("tr").find("[data-effectedPrice=true]").val(effectedPrice);
             }
+        })
+        .on("keyup", "[data-item=price]", function () {
+            var price = $(this).val();
+            $(this).closest("tr").find("[data-effectedPrice=true]").val(price);
         });
+
+    function beforeFunc(e) {
+        let productType = $("[name='productType']:checked").val();
+        let companyType = $("[name='companyType']:checked").val();
+
+        if (productType == 2 && $("#productId").data("kendoDropDownList").dataItem().id == "") {
+            MesajWarning("Lütfen Ürün Seçiniz", "Ürün Seçimi Yapmadınız");
+
+            return false;
+        }
+        if (productType == 1 && $("#categoryId").data("kendoDropDownList").dataItem().id == "") {
+            MesajWarning("Lütfen Kategori Seçiniz", "Kategori Seçimi Yapmadınız");
+            return false;
+        }
+        if (companyType == 1 && $("#companyId").data("kendoDropDownList").dataItem().id == "") {
+            MesajWarning("Lütfen Şirket Seçiniz", "Şirket Seçimi Yapmadınız");
+            return false;
+        }
+
+        $("#submitButtonId").attr("disabled", true)
+
+        setTimeout(function () {
+            $("#submitButtonId").removeAttr("disabled")
+        }, 2500);
+        
+
+        return true;
+    }
     var page = {};
     page = {
         defines: {
@@ -120,14 +240,6 @@
         },
         functions: {
             AddRow: function (control) {
-                //if (control == true) {
-                //    var row = $('[data-row]').first();
-                //    var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
-                //    if (product && (!product.value() || product.value() == "" || product.value() == null)) {
-                //        MesajWarning("Lütfen önce ürün seçiniz.");
-                //        return false;
-                //    }
-                //}
                 var template = page.functions.GetRowTemplate();
                 var length = $('#productsTable tbody tr:not(.table-row-2lines)').length;
                 var ids = [];
@@ -196,13 +308,80 @@
 
                 //gizli - açık columların ayarlanması
                 page.functions.ShowCols();
+
+                //işaretlerin ayarlanması
+                page.functions.SetCurrrency();
+
+                //güncel fiyat ataması
+                page.functions.SetPrice();
+
             },
-            ShowCols: function () {
-                for (var i = 3; i <= 6; i++) {
-                    if ($("th[data-order=" + i + "]").attr("style") == undefined || $("th[data-order=" + i + "]").attr("style") == '') {
-                        $("[data-order="+i+"]").show();
+            SetPrice: function () {
+                if ($("#productId").data("kendoDropDownList").dataItem().id != "") {
+                    $("[data-order=7]").show();
+                    $("[data-order=8]").show();
+                    var currentPrice = $("#productId").data("kendoDropDownList").dataItem().currentSellingPrice;
+                    if (currentPrice == null) {
+                        $("[data-currentPrice=true]").attr("type", "text");
+                        $("[data-currentPrice=true]").val("-");
+
+                        if ($("[name='type']:checked").val() == 0) {
+                            $("[data-effectedPrice=true]").attr("type", "text");
+                            $("[data-effectedPrice=true]").val("-");
+                        }
+                    } else {
+                        $("[data-currentPrice=true]").val(currentPrice);
+
+                        if ($("[name='type']:checked").val() == 0) {
+                            var length = $('[data-row]').length;
+                            for (var i = 0; i < length; i++) {
+                                var discountForRow = $($("td[data-order=5]")[i]).find("input").val();
+                                var discountForRow = parseFloat(discountForRow);
+                                var effectedRowPrice = $("[name='discountType']:checked").val() == 0 ? (currentPrice * ((100 - discountForRow) / 100)) : (currentPrice * ((100 + discountForRow) / 100));
+                                effectedRowPrice = kendo.toString(effectedRowPrice, "N2");
+                                effectedRowPrice = effectedRowPrice.replace(".", "");
+                                effectedRowPrice = effectedRowPrice.replace(",", ".");
+                                effectedRowPrice = parseFloat(effectedRowPrice);
+                                $($("td[data-order=8]")[i]).find("input").val(effectedRowPrice);
+                            }
+                        }
                     }
                 }
+            },
+            ShowCols: function () {
+                for (var i = 0; i <= 7; i++) {
+                    if ($("th[data-order=" + i + "]").attr("style") == undefined || $("th[data-order=" + i + "]").attr("style") == '') {
+                        $("[data-order=" + i + "]").show();
+                    }
+                }
+
+                if ($("[name='productType']:checked").val() == 2) {
+                    $("td[data-order=7]").find("input").val($("#productId").data("kendoDropDownList").dataItem().currentSellingPrice)
+                    $("[data-order=7]").show()
+                    $("[data-order=8]").show()
+                }
+            },
+            SetCurrrency: function () {
+                let typeValue = $("[name='type']:checked").val();
+                let conditionValue = $("[name='conditionType']:checked").val();
+
+                if (typeValue == 0) {
+                    $("[data-order=6]").hide();
+                    $("[data-order=5]").show();
+                } else {
+                    $("[data-order=5]").hide();
+                    $("[data-order=6]").show();
+                }
+
+
+                if (conditionValue == 1) {
+                    $("[data-conditionCurr=minConditionCurrency]").hide();
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").show();
+                } else if (conditionValue == 2) {
+                    $("[data-conditionCurr=minConditionMoneyCurrency]").hide();
+                    $("[data-conditionCurr=minConditionCurrency]").show();
+                }
+
             },
             GetRowTemplate: function () {
                 var templateRow = $('#rowTemplate');
@@ -249,20 +428,19 @@
                 $("#productDropDown").find(".k-dropdown-wrap").attr("style", "background-color:#ececec !important;");
             },
             onChangeProduct(e) {
-                var value = this
-                var dataitem = value.dataItem();
-                var price = dataitem.currentSellingPrice;
-                $("#basePrice").val(price);
+                page.functions.SetPrice();
             }
         }
     }
+
 </script>
 @using (Html.BeginForm("Insert", "VWPRD_CompanyBasedPriceDetail", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "id", "VWPRD_CompanyBasedPriceDetailForm" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+    { "data-formType", "Ajax" },
+    { "data-before", "beforeFunc" }
 }))
 {
     @Html.AntiForgeryToken()
@@ -343,6 +521,21 @@
                 </div>
             </div>
         </div>
+        <div class="form-group" id="discountTypeDiv">
+            <div class="col-sm-12">
+                <div class="radio akilliRadioGrup clearfix">
+                    <input type="radio" name="discountType" id="discountType_0" checked value="0">
+                    <label tabindex="0" class="radio-label" for="discountType_0">
+                        Fiyat İndirimi
+                    </label>
+                    <input type="radio" name="discountType" id="discountType_1" value="1">
+                    <label tabindex="0" class="radio-label" for="discountType_1">
+                        Fiyat Artışı
+                    </label>
+                </div>
+            </div>
+        </div>
+
     </div>
     <div class="form-group">
         <div class="col-sm-12">
@@ -356,7 +549,9 @@
                         <th data-order="4" style="display: none;">Takit / Vade Sayısı</th>
                         <th data-order="5">İskonto Oranı</th>
                         <th data-order="6" style="display: none;">Fiyat</th>
-                        <th data-order="7"></th>
+                        <th width="10%" data-order="7" style="display: none;">Liste Fiyat</th>
+                        <th width="15%" data-order="8" style="display: none;">İşlem Sonrası Satış Fiyatı</th>
+                        <th width="3%" data-order="9"></th>
                     </tr>
                 </thead>
                 <tbody class="table-body">
@@ -371,7 +566,7 @@
     </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        <button class="btn btn-md btn-success pull-right" onclick="blockClick()" id="submitButtonId" type="submit">Kaydet</button>
     </div>
 }
 <template id="rowTemplate" data-selector="modalContainer">
@@ -434,7 +629,21 @@
                 </div>
                 <input type="hidden" data-name="price" value="0" />
             </td>
-            <td data-order="7">
+            <td data-order="7" style="display:none;">
+                <div class="input-group m-b">
+                    <input class="form-control" type="text" name="currentprice" disabled data-currentPrice="true" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+
+            </td>
+            <td data-order="8" style="display:none;">
+                <div class="input-group m-b">
+                    <input class="form-control" type="text" name="effectedprice" disabled data-effectedPrice="true" />
+                    <span class="input-group-addon" data-cur="currency">₺</span>
+                </div>
+
+            </td>
+            <td data-order="9">
                 <button class="btn btn-md btn-danger" onclick="page.functions.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
             </td>
         </tr>

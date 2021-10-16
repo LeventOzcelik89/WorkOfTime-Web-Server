@@ -27,6 +27,14 @@ namespace System.Web.Mvc
                 {
                     _root.Add(GetGorevYonetimi());
                 }
+                else if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YardimMasaMusteri)))
+                {
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
+                    {
+                        _root.Add(GetCustomerPage());
+                    }
+                    _root.Add(GetYardimDestekYonetimi());
+                }
                 else
                 {
                     _root.Add(GetHomePage());
@@ -90,6 +98,12 @@ namespace System.Web.Mvc
             return mypage;
         }
 
+        private Menu GetCustomerPage()
+        {
+            var mypage = new Menu("Görev Raporu", "/Customer/Index", "fa fa-wrench");
+            return mypage;
+        }
+
         private Menu MyJobs()
         {
             var menu = new Menu("Benim İşlemlerim", "#", "fa fa-user");
@@ -135,7 +149,9 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Personel Listesi", "/SH/VWSH_User/Index"));
             personel.AddChild(new Menu("Personel Raporları", "/INV/INV_CompanyPerson/Dashboard"));
             personel.AddChild(new Menu("Sertifika/Dosya/Eğitim Raporları", "/SH/VWSH_User/CertificateReport"));
-            personel.AddChild(new Menu("Personel Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
+            personel.AddChild(new Menu("Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
+            personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/TotalStaffWorkingStatus"));
+            personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
@@ -305,6 +321,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
+            menu.AddChild(new Menu("Ürün Fiyat Listeleri", "/PRD/VWPRD_CompanyBasedPrice/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
             menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
             menu.AddChild(new Menu("Cari Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/Index"));
@@ -316,7 +333,7 @@ namespace System.Web.Mvc
         private Menu GetProduction()
         {
             var menu = new Menu("Üretim Yönetimi", "#", "fa fa-qrcode");
-            menu.AddChild(new Menu("Üretimler", "/PRD/VWPRD_Production/Index"));
+            menu.AddChild(new Menu("Üretim Emirleri", "/PRD/VWPRD_Production/Index"));
             menu.AddChild(new Menu("Üretim Şemaları", "/PRD/VWPRD_ProductionSchema/Index"));
             return menu;
         }
@@ -353,11 +370,13 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(rules);
             sistemYonetim.AddChild(new Menu("Dil Tanımlamaları", "/SYS/Language/Index"));
             sistemYonetim.AddChild(new Menu("Ürün Kategorileri", "/PRD/VWPRD_Category"));
+            sistemYonetim.AddChild(new Menu("Pdks Cihaz Tanımlamaları", "/SH/VWSH_ShiftTrackingDevice"));
             sistemYonetim.AddChild(new Menu("Birim Tanımları", "/UT/UT_Unit/Index"));
             sistemYonetim.AddChild(new Menu("Para Birimleri", "/UT/UT_Currency/Index"));
             sistemYonetim.AddChild(new Menu("Lokasyonlar (Ülke/İl/İlçe)", "/UT/VWUT_Location/Index"));
             sistemYonetim.AddChild(new Menu("Firma&Cari Tip Tanımları", "/CMP/CMP_Types/Index"));
             sistemYonetim.AddChild(new Menu("Görev Konusu Tanımları", "/FTM/FTM_TaskSubject/Index"));
+            sistemYonetim.AddChild(new Menu("Görev Yetki Tanımları", "/FTM/VWFTM_TaskAuthority/Index"));
             sistemYonetim.AddChild(new Menu("Sektör Tanımları", "/UT/VWUT_Sector/Index"));
             sistemYonetim.AddChild(new Menu("Banka Tanımları", "/UT/VWUT_Bank/Index"));
             sistemYonetim.AddChild(new Menu("Satış Teklifi Şablonları", "/CMP/CMP_InvoiceDocumentTemplate/Index"));

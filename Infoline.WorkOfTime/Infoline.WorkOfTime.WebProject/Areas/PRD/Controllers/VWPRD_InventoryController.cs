@@ -49,6 +49,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
+		[PageInfo("Envanterler DataSource Bakım Envanteri", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
+		public ContentResult DataSourceMaintenance([DataSourceRequest] DataSourceRequest request)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			request.Page = 1;
+			var db = new WorkOfTimeDatabase();
+			condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 3);
+			var data = db.GetVWPRD_Inventory(condition).ToDataSourceResult(request);
+			data.Total = db.GetVWPRD_InventoryCount(condition.Filter);
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		}
+
 		[PageInfo("IOT Kamera DataSource", SHRoles.Personel)]
 		public ContentResult DataSourceCameraLog([DataSourceRequest] DataSourceRequest request)
 		{
@@ -94,7 +107,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 			return View(data);
 		}
-
 		[PageInfo("Bakım Envanter Ekleme", SHRoles.SahaGorevYonetici)]
 		public ActionResult InsertMaintance(VWPRD_Inventory item)
 		{

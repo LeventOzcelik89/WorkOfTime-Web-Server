@@ -1,0 +1,113 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWFTM_TaskAuthority
+@{
+    ViewBag.Title = "Kayıt Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("Update", "VWFTM_TaskAuthority", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    if (Model.projectId.HasValue)
+    {
+        @Html.HiddenFor(model => model.projectId)
+
+        //Proje cascade olacak mı ?
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label req"> Müşteri </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.customerId)
+                  .OptionLabel("Lütfen Müşteri Seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                  .Sort(x => x.Add("name").Ascending())
+                  .Execute("id")
+                  .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                  .Template("#=TemplateEngine('companyTemplate',data)#")
+                  .ValueTemplate("<span>#=name#</span>")
+                  .Validate(Validations.Required)
+            )
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label"> Proje </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
+                     .DropDownListFor(model => model.projectId)
+                     .OptionLabel("Lütfen Proje Seçiniz..")
+                     .DataTextField("ProjectName")
+                     .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                     .Sort(x => x.Add("ProjectName").Ascending())
+                     .Execute()
+            )
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label req"> Müşteri </label>
+            </div>
+            <div class="col-sm-8">
+                @(Html.Akilli()
+                  .DropDownListFor(model => model.customerId)
+                  .OptionLabel("Lütfen Müşteri Seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                  .Sort(x => x.Add("name").Ascending())
+                  .Execute("id")
+                  .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP", type = (int)EnumCMP_CompanyType.Diger }), "name", true)
+                  .Template("#=TemplateEngine('companyTemplate',data)#")
+                  .ValueTemplate("<span>#=name#</span>")
+                  .Validate(Validations.Required)
+            )
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label req"> Personel </label>
+        </div>
+        <div class="col-sm-8">
+            @(Html.Akilli()
+                .DropDownListFor(model => model.userId)
+                .OptionLabel("Lütfen Personel Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Filter<VWSH_User>(x=> x.IsWorking == true && !string.IsNullOrEmpty(x.FullName) && (x.RoleIds.Contains(SHRoles.SahaGorevOperator) || x.RoleIds.Contains(SHRoles.SahaGorevYonetici)))
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute("id")
+             )
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

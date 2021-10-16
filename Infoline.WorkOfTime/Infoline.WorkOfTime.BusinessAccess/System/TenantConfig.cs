@@ -216,7 +216,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.UretimPersonel,
             SHRoles.YardimMasaPersonel,
             SHRoles.YardimMasaTalep,
-            SHRoles.YardimMasaYonetim
+            SHRoles.YardimMasaYonetim,
+            SHRoles.YardimMasaMusteri
         };
         public IysInformation IysInformations { get; set; }
         public ICallCenterService CallCenterService { get; set; }
@@ -353,7 +354,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     break;
                 case 1115:
                     this.MailingUsers = new string[] { "recep@kar-des.com", "ahmet.temiz@infoline-tr.com" };
-                    this.AllowModules = new List<Enum_Modules>() { Enum_Modules.MODULE_DASHBOARD, Enum_Modules.MODULE_TASKS };
                     break;
                 case 1127:
                     this.MailingUsers = new string[] { "kobi@kobikom.com.tr", "ahmet.temiz@infoline-tr.com" };

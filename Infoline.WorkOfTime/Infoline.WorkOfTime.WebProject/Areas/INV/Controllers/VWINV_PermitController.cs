@@ -378,7 +378,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     <p>{1} tarihinde talep ettiğiniz <u> {2} - {3} </u> tarihleri arasındaki {4} {5}  yöneticileriniz {6} ve insan kaynakları tarafından onaylanmıştır.</p>
                     <p>İzin sürecinizin devam edebilmesi için ıslak imzalı izin formunuzu yüklemelisiniz. Yüklemek için <a href='{7}/INV/VWINV_Permit/MyIndex'>Buraya tıklayınız! </a><br/>Bilgilerinize.<br>İyi Çalışmalar.</p>";
 				var mesaj = string.Format(text, permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title, permit.Manager1Approval_Title + "," + permit.Manager2Approval_Title, url);
-				var notify = String.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3} </u> tarihleri arasındaki {4} {5}, yöneticileriniz {6} ve  insan kaynakları tarafından reddedilmiştir  ", permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title, permit.Manager1Approval_Title + "," + permit.Manager2Approval_Title);
+				var notify = string.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3} tarihleri arasındaki {4} {5}, yöneticileriniz {6} ve  insan kaynakları tarafından onaylanmıştır  ", permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title, permit.Manager1Approval_Title + "," + permit.Manager2Approval_Title);
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 					.Send((Int16)EmailSendTypes.IzinSurecTamamlama, permitUser.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
 				notification.NotificationSend(permitUser.id, "İzin Talebi Onayı Hakkında", notify);
