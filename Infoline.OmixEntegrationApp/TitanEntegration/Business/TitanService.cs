@@ -43,7 +43,10 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                     IMEI2 = x.IMEI2,
                     InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
                     ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
-                    SerialNumber = x.Serial
+                    SerialNumber = x.Serial,
+                    TitanDeviceName = x.DeviceName,
+                    TitanModel = x.Model,
+                    TitanProduct = x.Product
                 }));
             }
             Log.Info("Titan Services Compenstate End...");

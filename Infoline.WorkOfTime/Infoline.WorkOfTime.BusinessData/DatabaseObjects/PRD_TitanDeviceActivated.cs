@@ -33,5 +33,8 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Envanter 
         /// </summary>
         public Guid? InventoryId { get; set;}
+        public string TitanDeviceName { get; set;}
+        public string TitanModel { get; set;}
+        public string TitanProduct { get; set;}
     }
 }
