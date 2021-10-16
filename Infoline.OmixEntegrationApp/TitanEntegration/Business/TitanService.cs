@@ -13,7 +13,7 @@ using System.Configuration;
 
 namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
-    public class TitanService 
+    public class TitanService
     {
         private WorkOfTimeDatabase db = new WorkOfTimeDatabase();
         public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
@@ -23,12 +23,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             db = tenant.GetDatabase();
         }
-       
+
         public void CompensateFromTitanServices()
         {
             Log.Info("Titan Services Compenstate is Start...");
-            var getAllDevices =  GetLastDeviceListFromTitanServices();
-            if (getAllDevices.objects!=null)
+            var getAllDevices = GetLastDeviceListFromTitanServices();
+            if (getAllDevices.objects != null)
             {
                 var getAllDevicesList = (DeviceResultList)getAllDevices.objects;
                 var databaseDevices = db.GetPRD_TitanDeviceActivated().ToList();
@@ -47,6 +47,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 }));
             }
             Log.Info("Titan Services Compenstate End...");
+        }
+
+        public void CompensateFromInventory()
+        {
+            //DB den Eşleşmemişleri bul
+            //Eşleşmemişleri tekrar karşılaştır Envanter ID si bulunanları Update et
         }
 
         private ResultStatus GetLastDeviceListFromTitanServices()
