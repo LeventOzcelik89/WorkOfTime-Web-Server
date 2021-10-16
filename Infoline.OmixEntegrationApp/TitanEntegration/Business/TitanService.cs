@@ -23,7 +23,47 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             db = tenant.GetDatabase();
         }
-        private  ResultStatus Sender<T>(string uri, string query = null)
+       
+        public void CompensateFromTitanServices()
+        {
+            Log.Info("Titan Services Compenstate is Start...");
+            var getAllDevices =  GetLastDeviceListFromTitanServices();
+            if (getAllDevices.objects!=null)
+            {
+                var getAllDevicesList = (DeviceResultList)getAllDevices.objects;
+                var databaseDevices = db.GetPRD_TitanDeviceActivated().ToList();
+                var savingList = getAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1) || !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2) || !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
+                Log.Info("New Activated Device Count : {0}", savingList.Count());
+
+                var resut = db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x => new PRD_TitanDeviceActivated
+                {
+                    CreatedOfTitan = x.Created,
+                    DeviceId = new Guid(x.DeviceId),
+                    IMEI1 = x.IMEI1,
+                    IMEI2 = x.IMEI2,
+                    InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
+                    ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
+                    SerialNumber = x.Serial
+                }));
+            }
+            Log.Info("Titan Services Compenstate End...");
+        }
+
+        private ResultStatus GetLastDeviceListFromTitanServices()
+        {
+            var lastDataTime = db.GetPRD_TitanDeviceActivatedGetAllLastDate();
+            Log.Info("Titan Services last connected time : {0}", lastDataTime);
+
+            var query = Helper.Json.Serialize(new
+            {
+                DataType = 0,
+                Start = lastDataTime,
+                End = DateTime.Now
+            });
+            return GetDeviceListFromTitanServices<DeviceResultList>(ConfigurationManager.AppSettings["GetDeviceActivationInformation"].ToString(), query);
+        }
+
+        private ResultStatus GetDeviceListFromTitanServices<T>(string uri, string query = null)
         {
             try
             {
@@ -38,7 +78,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
                 using (var streamWriter = new StreamWriter(request.GetRequestStream()))
                 {
-                     streamWriter.Write(query);
+                    streamWriter.Write(query);
                 }
                 var response = (HttpWebResponse)(request.GetResponse());
                 using (var reader = new StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
@@ -50,6 +90,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                         objects = JsonConvert.DeserializeObject<T>(reader.ReadToEnd())
                     };
                 }
+
             }
             catch (Exception ex)
             {
@@ -60,39 +101,6 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                     objects = null
                 };
             }
-        }
-        public void SaveAll()
-        {
-         
-            var getAllDevices =  GetAll();
-            if (getAllDevices.objects!=null)
-            {
-                var getAllDevicesList = (DeviceResultList)getAllDevices.objects;
-                var databaseDevices = db.GetPRD_TitanDeviceActivated().ToList();
-                var savingList = getAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1) || !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2) || !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
-                var resut = db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x => new PRD_TitanDeviceActivated
-                {
-                    CreatedOfTitan = x.Created,
-                    DeviceId = new Guid(x.DeviceId),
-                    IMEI1 = x.IMEI1,
-                    IMEI2 = x.IMEI2,
-                    InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
-                    ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
-                    SerialNumber = x.Serial
-                }));
-            }
-          
-        }
-        private ResultStatus GetAll()
-        {
-            var lastDataTime = db.GetPRD_TitanDeviceActivatedGetAllLastDate();
-            var query = Helper.Json.Serialize(new
-            {
-                DataType = 0,
-                Start = lastDataTime,
-                End = DateTime.Now
-            });
-            return Sender<DeviceResultList>(ConfigurationManager.AppSettings["GetDeviceActivationInformation"].ToString(), query);
         }
     }
 }

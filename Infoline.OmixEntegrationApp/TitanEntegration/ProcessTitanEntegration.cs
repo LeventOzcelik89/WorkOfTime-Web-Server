@@ -19,7 +19,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration
         {
             while (true)
             {
-                TitanService.SaveAll();
+                TitanService.CompensateFromTitanServices();
                 Task.Delay(new TimeSpan(1, 0, 0)).Wait();
             }
         }

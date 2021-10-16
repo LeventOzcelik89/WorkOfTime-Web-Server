@@ -83,7 +83,7 @@
 </div>
 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TitanDeviceActivated>("VWPRD_TitanDeviceActivated")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_TitanDeviceActivated", new { area = "PRD" })).PageSize(25).Sort(y=>y.Add("CreatedOfTitan")))
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_TitanDeviceActivated", new { area = "PRD" })).PageSize(25).Sort(y=>y.Add("CreatedOfTitan").Descending()))
     .Columns(x =>
     {
         x.Bound(y => y.id).Hidden(true);
@@ -91,10 +91,15 @@
         x.Bound(y => y.CreatedOfTitan).Title("Cihazın Açılma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
         x.Bound(y => y.InvetoryId_Code).Title("Envanter Kodu").Width(180);
         x.Bound(y => y.SerialNumber).Title("Seri Numarası").Width(180);
+        x.Bound(y => y.IMEI1).Title("IMEI 1").Width(180);
+        x.Bound(y => y.IMEI2).Title("IMEI 2").Width(180);
         x.Bound("id").Title("").Width(80).ClientTemplate("#if(InvetoryId_Code != null){# <span class='text-primary' data-original-title='Bu cihazın envanterde karşılığı vardır' data-placement='right'  ><i class='fa fa-exchange fa-2x'></i></span> #}else{#<span class='text-danger' data-original-title='Bu cihazın envanterde karşılığı yoktur!' data-placement='right' ><i class='fa fa-exchange fa-2x'></i></span>#}#");
     })
     .Filterable()
     .Selectable(x => x.Mode(GridSelectionMode.Single)).ToolBar(x => {
-        x.Custom().Text("<i  data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "" }, { "data-default", "" } ,{"id", "detailButton" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD"}));
+        x.Custom()
+                    .Text("<i  data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>")
+                    .HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "" }, { "data-default", "" } ,{"id", "detailButton" } })
+                    .Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD"}));
     }
     ))
