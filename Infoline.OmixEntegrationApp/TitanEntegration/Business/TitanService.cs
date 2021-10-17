@@ -39,7 +39,7 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 {
                     CreatedOfTitan = x.Created,
                     DeviceId = new Guid(x.DeviceId),
-                    IMEI1 = x.IMEI1,
+                    IMEI1 = x.IMEI1 == null ? x.Serial : x.IMEI1,
                     IMEI2 = x.IMEI2,
                     InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
                     ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
@@ -77,7 +77,10 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             try
             {
                 ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
+                       | SecurityProtocolType.Tls11
+                       | SecurityProtocolType.Tls12
+                       | SecurityProtocolType.Ssl3;
                 var request = WebRequest.Create(Host + uri);
                 request.ContentType = "application/json";
                 request.Method = "GET";
@@ -103,6 +106,8 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             }
             catch (Exception ex)
             {
+                Log.Error("Servis Çağırılırken Hata Alındı : {0} ", ex.Message);
+
                 return new ResultStatus
                 {
                     result = false,

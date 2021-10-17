@@ -20,13 +20,13 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration
             while (true)
             {
                 TitanService.CompensateFromTitanServices();
-                Task.Delay(new TimeSpan(1, 0, 0)).Wait();
+                Task.Delay(new TimeSpan(0, 1, 0)).Wait();
             }
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+
         }
     }
 }

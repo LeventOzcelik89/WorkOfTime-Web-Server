@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return db.Table<PRD_TitanDeviceActivated>().Where(a => a.SerialNumber == id).Execute().FirstOrDefault();
             }
-            
+
         }
         public PRD_TitanDeviceActivated[] GetPRD_TitanDeviceActivatedByProductId(Guid id, DbTransaction tran = null)
         {
@@ -40,13 +40,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return db.Table<PRD_TitanDeviceActivated>().Execute().Count();
             }
-          
+
         }
         public int GetPRD_TitanDeviceActivatedTodayCount(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Where(x=>x.CreatedOfTitan>DateTime.Now.AddDays(-1)).Execute().Count();
+                var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > today).Execute().Count();
             }
 
         }
@@ -54,7 +55,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Where(x=>x.CreatedOfTitan>DateTime.Now.AddDays(-7)).Execute().Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-7)).Execute().Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedThirtyDaysCount(DbTransaction tran = null)
