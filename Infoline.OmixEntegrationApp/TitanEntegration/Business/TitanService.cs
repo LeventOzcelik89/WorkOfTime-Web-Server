@@ -10,6 +10,8 @@ using System.Text;
 using System.Linq;
 using Infoline.WorkOfTime.BusinessData;
 using System.Configuration;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
@@ -76,15 +78,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
         {
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
-                       | SecurityProtocolType.Tls11
-                       | SecurityProtocolType.Tls12
-                       | SecurityProtocolType.Ssl3;
-                var request = WebRequest.Create(Host + uri);
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Host + uri);
                 request.ContentType = "application/json";
                 request.Method = "GET";
                 var type = request.GetType();
+
                 var currentMethod = type.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
                 var methodType = currentMethod.GetType();
                 methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
@@ -92,6 +91,17 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 {
                     streamWriter.Write(query);
                 }
+
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
+                                                        | SecurityProtocolType.Tls11
+                                                        | SecurityProtocolType.Tls12
+                                                        | SecurityProtocolType.Ssl3
+                                                        | SecurityProtocolType.SystemDefault
+                                                        | (SecurityProtocolType)12288;
+
+                ServicePointManager.ServerCertificateValidationCallback += ValidateServerCertificate;
+
                 var response = (HttpWebResponse)(request.GetResponse());
                 using (var reader = new StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
                 {
@@ -114,6 +124,33 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                     message = ex.Message,
                     objects = null
                 };
+            }
+        }
+        private static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+            else
+            {
+                var requestCertificate = (X509Certificate2)certificate;
+                var logEntry = new StringBuilder();
+                logEntry.AppendFormat("SSL Policy Error(s): {0} - Cert Issuer: {1} - SubjectName: {2}",
+                   sslPolicyErrors.ToString(),
+                   requestCertificate.Issuer,
+                   requestCertificate.SubjectName.Name);
+                if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) //Root CA problem
+                {
+                    if (chain != null && chain.ChainStatus != null)
+                    {
+                        foreach (var chainStatus in chain.ChainStatus)
+                        {
+                            logEntry.AppendFormat("|Chain Status: {0} - {1}", chainStatus.Status.ToString(), chainStatus.StatusInformation.Trim());
+                        }
+                    }
+                }
+                return false;
             }
         }
     }
