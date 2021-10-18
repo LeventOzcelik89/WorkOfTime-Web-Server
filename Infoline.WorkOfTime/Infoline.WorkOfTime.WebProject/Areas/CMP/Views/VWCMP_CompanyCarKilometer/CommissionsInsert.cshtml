@@ -1,0 +1,62 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_CompanyCarKilometer
+@{
+    ViewBag.Title = "Görevlendirmeye Kilometre Bildirimi Yap";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+@using (Html.BeginForm("CommissionsInsert", "VWCMP_CompanyCarKilometer", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.companyCarId)
+    @Html.HiddenFor(model => model.commissionId)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="kilometer">Başlangıç Km <i class="fa fa-info-circle" data-toggle="tooltip" data-original-title="En son kilometre : @Model.kilometer"></i></label>
+        </div>
+        <div class="col-md-8">
+            @Html.Akilli().NumericTextBox("StartKm").Min(0).Spinners(false).Decimals(0).Format("N0").MaxElement("EndKm").Placeholder("Lütfen Başlangıç Km'yi Giriniz..")
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="kilometer">Bitiş Km</label>
+        </div>
+        <div class="col-md-8">
+            @Html.Akilli().NumericTextBox("EndKm").Min(0).Spinners(false).Decimals(0).Format("N0").MinElement("StartKm").Placeholder("Lütfen Bitiş Km'yi Giriniz..")
+        </div>
+    </div>
+    <div class="form-group hide">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="entryDate">Giriş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Kendo().DatePickerFor(model => model.entryDate).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Giriş Tarihi Girin.."},
+            })
+            .Format(Extensions.DateFormatFull())
+            .Validate(Validations.Required)
+            .Value(DateTime.Now)
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

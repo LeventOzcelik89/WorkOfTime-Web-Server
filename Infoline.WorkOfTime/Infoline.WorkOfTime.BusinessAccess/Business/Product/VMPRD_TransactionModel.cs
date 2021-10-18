@@ -49,6 +49,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public PrintInfo printInfo { get; set; } = new PrintInfo { user = new VWSH_User { }, logo = "" };
         public bool hasUpdate { get; set; }
         public string tenderIds { get; set; }
+        public Guid? taskId { get; set; }
         public VMPRD_TransactionModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -973,6 +974,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             Adress = ""
                         };
                         break;
+                    case "CMP_CompanyCars":
+                        var cmpCars = db.GetVWCMP_CompanyCarsById(dataId.Value);
+                        result = new OwnerInfo
+                        {
+                            CompanyId = cmpCars?.companyId,
+                            CompanyIdTitle = cmpCars?.companyId_Title,
+                            Location = null,
+                            Text = cmpCars?.name,
+                            Adress = ""
+                        };
+                        break;
+
                     default:
                         break;
                 }

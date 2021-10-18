@@ -14,10 +14,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
     public partial class WorkOfTimeDatabase
     {
-
-        
-
-
         public VWINV_Commissions[] GetVWINV_CommissionsByYear(DateTime date)
         {
             using (var db = GetDB())
@@ -51,7 +47,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         .Where(x => x.StartDate.Value.Date <= DateTime.Now.Date && x.EndDate.Value.Date >= DateTime.Now.Date).ToArray();
             }
         }
-
 
     }
 }

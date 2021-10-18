@@ -1,0 +1,189 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_ShiftTrackingDevice
+@{
+    ViewBag.Title = "Cihaz Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="form-horizontal" data-selector="modalContainer">
+
+    <div class="form-group col-md-12">
+        <div class="">
+            <label class="control-label label-md" for="DeviceName">Cihaz İsmi</label>
+        </div>
+        <div class="" style="margin-right: -30px;">
+            @Html.TextBoxFor(model => model.DeviceName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6">
+        <div class="">
+            <label class="control-label label-md" for="DeviceCode">Cihaz Kodu</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.DeviceCode, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6  pull-right">
+        <div class="">
+            <label class="control-label label-md" for="DeviceBrand">Cihaz Markası</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.DeviceBrand, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6">
+        <div class="">
+            <label class="control-label label-md" for="DeviceModel">Cihaz Modeli</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.DeviceModel, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6  pull-right">
+        <div class="">
+            <label class="control-label label-md" for="DeviceSerialNo">Cihaz Seri Numarası</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.DeviceSerialNo, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6">
+        <div class="">
+            <label class="control-label label-md" for="Location">Cihaz Konumu</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.Location, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6  pull-right">
+        <div class="">
+            <label class="control-label label-md" for="IPAddress">Cihaz IP Adresi</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.IPAddress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6">
+        <div class="">
+            <label class="control-label label-md" for="SubnetAddress">Cihaz Alt Ağ Adresi</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.SubnetAddress, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6  pull-right">
+        <div class="">
+            <label class="control-label label-md" for="Gateway">Cihaz Geçiş Adresi</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.Gateway, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6">
+        <div class="">
+            <label class="control-label label-md" for="Port">Cihaz Portu</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.Port, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+
+    <div class="form-group col-md-6  pull-right">
+        <div class="">
+            <label class="control-label label-md" for="MachineNumber">Makine Numarası</label>
+        </div>
+        <div class="">
+            @Html.TextBoxFor(model => model.MachineNumber, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"readonly", "readonly"}
+            })
+        </div>
+    </div>
+
+    <div class="form-group col-md-12">
+        <div class="">
+            <label class="control-label label-md" for="MachineNumber">Kayıtlı Kullanıcılar</label>
+        </div>
+        <div class="">
+            @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_ShiftTrackingDeviceUsers>("VWSH_ShiftTrackingDeviceUsers")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_ShiftTrackingDeviceUsers", new { area = "SH" })).Sort(a => a.Add(c => c.created)).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).Hidden(true);
+        x.Bound(y => y.deviceUserId).Title("Cihaz Kullanıcı Id'si").Width(180);
+        x.Bound(y => y.userId_Title).Title("Personel İsmi").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(x => x.Height(200))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("<i class='fa fa-edit' data-original-title='Kayıtı Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_ShiftTrackingDeviceUsers", new { area = "SH" }));
+    }))
+        </div>
+    </div>
+
+    <div class="buttons col-md-12">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
+
+</div>

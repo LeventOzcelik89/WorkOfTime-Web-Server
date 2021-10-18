@@ -346,7 +346,7 @@
                             </div>
                         </div>
 
-                        <div class="tab-pane ">
+                        <div class="tab-pane" id="uretimBildirimleri">
                             <div class="ibox">
                                 <div class="ibox-title">
                                     <h5>Üretim Bildirimleri</h5>
@@ -371,7 +371,7 @@
                     </div>
 
                 </div>
-                
+
             </div>
             <div class="col-lg-4">
                 @if (Model.productionProducts.Where(x => x.stockLeft <= 0 || x.stockLeft == null).Count() > 0)
@@ -429,114 +429,106 @@
                 </div>
                 <div class="ibox">
                     <div class="ibox-title">
-                        <h5><i class="fa text-success fa fa-list-alt"></i> Üretim Özeti</h5>
+                        <h5><i class="fa text-success fa fa-list-alt"></i> Üretim Operasyon Geçmişi</h5>
                     </div>
-                        <div class="ibox-content">
-                            <div id="shouldSpend"></div>
-                        </div>
-                    </div>
-                    <div class="ibox">
-                        <div class="ibox-title">
-                            <h5><i class="fa text-success fa fa-list-alt"></i> Üretim Operasyon Geçmişi</h5>
-                        </div>
-                        <div class="ibox-content">
-                            <div class="tab-content" style="max-height: 530px;overflow: scroll;">
+                    <div class="ibox-content">
+                        <div class="tab-content" style="max-height: 530px;overflow: scroll;">
 
-                                <div class="client-detail">
+                            <div class="client-detail">
 
-                                    <div id="vertical-timeline" class="vertical-container dark-timeline">
+                                <div id="vertical-timeline" class="vertical-container dark-timeline">
 
-                                        @foreach (var item in Model.productionOperations.OrderByDescending(a => a.created))
-                                        {
-                                            var statusEnum = enumProperties.Where(a => Convert.ToInt32(a.Key) == item.status.Value).FirstOrDefault();
+                                    @foreach (var item in Model.productionOperations.OrderByDescending(a => a.created))
+                                    {
+                                        var statusEnum = enumProperties.Where(a => Convert.ToInt32(a.Key) == item.status.Value).FirstOrDefault();
 
-                                            <div class="vertical-timeline-block" data-select="@item.status">
-                                                <div class="vertical-timeline-icon" style="background-color:#@statusEnum.Generic["color"];color: white;">
-                                                    <i class="@statusEnum.Generic["icon"]"></i>
-                                                </div>
-                                                <div class="vertical-timeline-content">
-                                                    <p class="clearfix ">
-                                                        @if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
-                                                        {
-                                                            <strong class="pull-left"> @item.status_Title (@item.dataId_Title.Split('_')[0])</strong>
-
-                                                        }
-                                                        else
-                                                        {
-                                                            <strong class="pull-left"> @item.status_Title</strong>
-
-                                                        }
-                                                        <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
-                                                    </p>
-                                                    <div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
+                                        <div class="vertical-timeline-block" data-select="@item.status">
+                                            <div class="vertical-timeline-icon" style="background-color:#@statusEnum.Generic["color"];color: white;">
+                                                <i class="@statusEnum.Generic["icon"]"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p class="clearfix ">
                                                     @if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
-                                                    {<div class="small text-muted"> Aşama : <strong>@item.dataId_Title</strong> </div>}
-
-                                                    @if (item.description != null)
                                                     {
-                                                        var splitTo = item.description.Split('_');
-                                                        if (splitTo.Length >= 2)
-                                                        {
-                                                            <div class="row">
-                                                                <div class="col-sm-12">
-                                                                    <div class="  text-warning" style="float:right;" data-step="@item.dataId"> Üretim Miktarı : <b>@splitTo[1]</b> @Model.ProductDetail.unitId_Title</div>
-                                                                </div>
-                                                            </div>
+                                                        <strong class="pull-left"> @item.status_Title (@item.dataId_Title.Split('_')[0])</strong>
 
-                                                        }
-                                                        else
+                                                    }
+                                                    else
+                                                    {
+                                                        <strong class="pull-left"> @item.status_Title</strong>
+
+                                                    }
+                                                    <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
+                                                </p>
+                                                <div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
+                                                @if (!String.IsNullOrEmpty(item.dataId_Title) && item.dataTable == "PRD_ProductionStage")
+                                                {<div class="small text-muted"> Aşama : <strong>@item.dataId_Title</strong> </div>}
+
+                                                @if (item.description != null)
+                                                {
+                                                    var splitTo = item.description.Split('_');
+                                                    if (splitTo.Length >= 2)
+                                                    {
+                                                        <div class="row">
+                                                            <div class="col-sm-12">
+                                                                <div class="  text-warning" style="float:right;" data-step="@item.dataId"> Üretim Miktarı : <b>@splitTo[1]</b> @Model.ProductDetail.unitId_Title</div>
+                                                            </div>
+                                                        </div>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <div class="small text-muted"> Açıklama : @item.description  </div>
+                                                    }
+                                                }
+                                                <div class="btnns m-t-xs">
+
+                                                    @if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi)
+                                                    {
+                                                        <a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD", id = item.dataId })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
+
+                                                    }
+                                                    else
+                                                    {
+                                                        <a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
+                                                    }
+                                                    @if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi)
+                                                    {
+                                                        if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu && Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).Count() <= 0 && Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).Count() <= 0)
                                                         {
-                                                            <div class="small text-muted"> Açıklama : @item.description  </div>
+                                                            <a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", transactionId = item.dataId, status_Title = item.status_Title })" data-task="Insert" data-ask="Üretim Operasyonu İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
                                                         }
                                                     }
-                                                    <div class="btnns m-t-xs">
 
-                                                        @if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi)
-                                                        {
-                                                            <a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD", id = item.dataId })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
+                                                    @if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
+                                                    {
+                                                        <a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-original-title="Yazdır"
+                                                           data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
+                                                            <i class="fa fa-print"></i>
+                                                        </a>
+                                                        <a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
+                                                           data-formMessage="Görev Operasyon Formu Ektedir." data-formEmail="" data-formSubject="Görev Operasyon Formu"
+                                                           data-original-title="Paylaş">
+                                                            <i class="fa fa-send"></i>
+                                                        </a>
 
-                                                        }
-                                                        else
-                                                        {
-                                                            <a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWPRD_ProductionOperation", new { area = "PRD", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-                                                        }
-                                                        @if (item.status == (int)EnumPRD_ProductionOperationStatus.HarcamaBildirildi || item.status == (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi || item.status == (int)EnumPRD_ProductionOperationStatus.FireBildirimiYapildi)
-                                                        {
-                                                            if (Model.lastOperationStatus != (int)EnumPRD_ProductionOperationStatus.UretimDurduruldu && Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimBitti).Count() <= 0 && Model.productionOperations.Where(x => x.status == (int)EnumPRD_ProductionOperationStatus.UretimIptalEdildi).Count() <= 0)
-                                                            {
-                                                                <a class="btn btn-xs btn-danger m-l-xs" data-original-title="Sil" data-href="@Url.Action("Delete", "VWPRD_ProductionOperation", new { area = "PRD", transactionId = item.dataId, status_Title = item.status_Title })" data-task="Insert" data-ask="Üretim Operasyonu İşlemini Silmek İstediğinize Emin Misiniz?" data-method="POST" data-selector="delete"><i class="icon-trash"></i></a>
-                                                            }
-                                                        }
+                                                    }
 
-                                                        @if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
-                                                        {
-                                                            <a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-original-title="Yazdır"
-                                                               data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
-                                                                <i class="fa fa-print"></i>
-                                                            </a>
-                                                            <a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id, operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
-                                                               data-formMessage="Görev Operasyon Formu Ektedir." data-formEmail="" data-formSubject="Görev Operasyon Formu"
-                                                               data-original-title="Paylaş">
-                                                                <i class="fa fa-send"></i>
-                                                            </a>
-
-                                                        }
-
-
-                                                    </div>
 
                                                 </div>
-                                            </div>
-                                        }
-                                    </div>
 
+                                            </div>
+                                        </div>
+                                    }
                                 </div>
 
                             </div>
+
                         </div>
                     </div>
-
                 </div>
+
+            </div>
         </div>
     </div>
 </div>

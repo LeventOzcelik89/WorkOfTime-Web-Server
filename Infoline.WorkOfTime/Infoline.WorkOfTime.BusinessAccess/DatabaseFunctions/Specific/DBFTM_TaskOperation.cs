@@ -56,7 +56,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Islak İmzalı Form Yüklendi"), Generic("icon", "fa fa-upload", "color", "00ad06", "description", "Islak İmzalı Form Sisteme Yüklendi")]
         IslakImzaliFormYuklendi = 40,
         [Description("Memnuniyet Anketi Dolduruldu"), Generic("icon", "fa fa-th-list", "color", "00ad06", "description", "Memnuniyet Anketi Sisteme Yüklendi")]
-        MemnuniyetAnketiYuklendi = 41
+        MemnuniyetAnketiYuklendi = 41,
+        [Description("Stoktan Malzeme Kullanımı"), Generic("icon", "fa fa-wrench", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        StoktanMalzemeKullanimi = 42,
 
 
         // NOT : Icon değiştirildiğinde Görev detayından svg nin de değişmesi gerekmektedir.

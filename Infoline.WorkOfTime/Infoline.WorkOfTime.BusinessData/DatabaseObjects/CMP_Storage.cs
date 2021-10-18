@@ -40,5 +40,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string fax { get; set;}
         public Guid? pid { get; set;}
         public string email { get; set;}
+        public string postCode { get; set;}
     }
 }

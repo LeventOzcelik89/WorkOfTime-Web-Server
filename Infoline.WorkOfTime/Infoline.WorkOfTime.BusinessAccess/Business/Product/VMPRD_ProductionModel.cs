@@ -337,39 +337,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.ProductDetail = db.GetVWPRD_ProductById(this.ProductDetail.id);
             var DBResult = new ResultStatus { result = true };
             var PRDTransaction = new PRD_Transaction().B_EntityDataCopyForMaterial(this.Transaction);
-            #region Biten Ürün Bildirimi 
-            var transModel = new VMPRD_TransactionModel
-            {
-                inputId = this.Transaction.outputId,
-                inputTable = this.Transaction.outputTable,
-                outputId = null,
-                outputTable = null,
-                created = this.created,
-                createdby = this.createdby,
-                status = (int)EnumPRD_TransactionStatus.islendi,
-                items = new List<VMPRD_TransactionItems> { new VMPRD_TransactionItems {
-                    productId=ProductDetail.id,
-                    serialCodes=ProductSerialCodes,
-                    quantity=amount,
-                    unitPrice=ProductDetail.currentSellingPrice
-                } },
-                date = DateTime.Now,
-                code = BusinessExtensions.B_GetIdCode(),
-                type = (short)EnumPRD_TransactionType.UretimBildirimi,
-                id = Guid.NewGuid()
-            };
-            DBResult &= transModel.Save(userId, trans);
-            DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
-            {
-                createdby = userId,
-                created = DateTime.Now,
-                productionId = this.id,
-                dataId = transModel.id,
-                dataTable = "PRD_Transaction",
-                status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
-                userId = userId,
-            }, trans);
-            #endregion
             #region harcama bildirimi
             if (expensReport)
             {
@@ -467,6 +434,41 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             }
             #endregion
+
+            #region Biten Ürün Bildirimi 
+            var transModel = new VMPRD_TransactionModel
+            {
+                inputId = this.Transaction.outputId,
+                inputTable = this.Transaction.outputTable,
+                outputId = null,
+                outputTable = null,
+                created = this.created,
+                createdby = this.createdby,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = new List<VMPRD_TransactionItems> { new VMPRD_TransactionItems {
+                    productId=ProductDetail.id,
+                    serialCodes=ProductSerialCodes,
+                    quantity=amount,
+                    unitPrice=ProductDetail.currentSellingPrice
+                } },
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = (short)EnumPRD_TransactionType.UretimBildirimi,
+                id = Guid.NewGuid()
+            };
+            DBResult &= transModel.Save(userId, trans);
+            DBResult &= db.InsertPRD_ProductionOperation(new PRD_ProductionOperation
+            {
+                createdby = userId,
+                created = DateTime.Now,
+                productionId = this.id,
+                dataId = transModel.id,
+                dataTable = "PRD_Transaction",
+                status = (int)EnumPRD_ProductionOperationStatus.BitenUrunBildirimi,
+                userId = userId,
+            }, trans);
+            #endregion
+            
             if (DBResult.result)
             {
                 trans.Commit();

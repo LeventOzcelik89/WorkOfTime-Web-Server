@@ -613,6 +613,67 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             }
         }
 
+        [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId, Guid? outputId)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var model = transaction.Load();
+            model.taskId = taskId;
+            if (!string.IsNullOrEmpty(model.tenderIds))
+            {
+                model.items = new List<VMPRD_TransactionItems>();
+                var db = new WorkOfTimeDatabase();
+                var tenders = db.GetVWCMP_TenderByIds(model.tenderIds.Split(',').Select(x => Guid.Parse(x)).ToArray());
+                foreach (var tender in tenders)
+                {
+                    var tenderItems = db.GetCMP_InvoiceItemByInvoiceId(tender.id);
+                    model.items.AddRange(tenderItems.Select(x => new VMPRD_TransactionItems
+                    {
+                        unitPrice = x.price,
+                        quantity = x.quantity,
+                        productId = x.productId
+                    }).ToList());
+                }
+            }
+
+            if (model.items.Count() == 1 && !model.items.Select(x => x.productId.HasValue).FirstOrDefault())
+            {
+                model.items = new List<VMPRD_TransactionItems>();
+            }
+            model.outputId = outputId;
+            model.type = (int)EnumPRD_TransactionType.SarfFisi;
+            return View(model);
+        }
+
+        [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
+        [HttpPost]
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId,Guid? outputId,bool? isPost)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            var dbresult = new ResultStatus { result = true };
+            var taskOperation = new VMFTM_TaskOperationModel();
+            transaction.status = (int)EnumPRD_TransactionStatus.islendi;
+            transaction.outputId = outputId;
+            transaction.outputTable = "CMP_Storage";
+            dbresult &= transaction.Save(userStatus.user.id);
+            taskOperation.taskId = taskId;
+            taskOperation.status = (int)EnumFTM_TaskOperationStatus.StoktanMalzemeKullanimi;
+            taskOperation.description = transaction.description;
+            taskOperation.userId = userStatus.user.id;
+            taskOperation.created = DateTime.Now;
+            taskOperation.createdby = userStatus.user.id;
+            taskOperation.fixtureId = transaction.outputId;
+            dbresult &= taskOperation.Insert(userStatus.user.id);
+
+            return Json(new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev başarıyla oluşturuldu.", false,Url.Action("Detail","VWFTM_Task", new { area = "FTM", id = taskId })) :
+                                             feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev oluşturma işlemi başarısız oldu.")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
         [PageInfo("Saha Görev Şablonu Ekle (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         public ActionResult InsertTemplate(VMFTM_TaskModel request)
         {
@@ -923,7 +984,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-
 
         [PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]

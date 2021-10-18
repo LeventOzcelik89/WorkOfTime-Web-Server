@@ -11,7 +11,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
 {
     public class VWHDM_TicketController : Controller
     {
-        [PageInfo("Yardım Talepleri", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaMusteri, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Talepleri", SHRoles.YardimMasaPersonel, SHRoles.YardimMasaYonetim)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -40,7 +40,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(model);
         }
 
-        [PageInfo("Yardım Taleplerim", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Yardım Taleplerim", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaMusteri)]
         public ActionResult IndexMy()
         {
             return View();
@@ -94,7 +94,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
             return View(data);
         }
 
-        [PageInfo("Talep Oluştur", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim)]
+        [PageInfo("Talep Oluştur", SHRoles.YardimMasaTalep, SHRoles.YardimMasaYonetim, SHRoles.YardimMasaMusteri)]
         public ActionResult InsertBasic(VMHDM_TicketModel item)
         {
             item.Load();

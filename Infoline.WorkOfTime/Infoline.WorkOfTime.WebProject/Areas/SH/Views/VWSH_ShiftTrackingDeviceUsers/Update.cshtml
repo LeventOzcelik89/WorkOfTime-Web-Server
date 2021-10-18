@@ -1,0 +1,56 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_ShiftTrackingDeviceUsers
+@{
+    ViewBag.Title = "Kayıt Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg2 {
+        width: 30% !important;
+    }
+</style>
+
+<script type="text/javascript" data-selector="modalContainer">
+    $("#VWSH_ShiftTrackingDeviceUsersForm").closest('.modal-lg').addClass("modal-lg2").removeClass("modal-lg");
+</script>
+
+@using(Html.BeginForm("Update", "VWSH_ShiftTrackingDeviceUsers", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "id", "VWSH_ShiftTrackingDeviceUsersForm" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.deviceId)
+    @Html.HiddenFor(model => model.deviceUserId)
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="userId">Çalışan Seçiniz</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+            .DropDownListFor(model => model.userId)
+            .OptionLabel("Lütfen Çalışan Seçiniz..")
+            .DataTextField("FullName")
+            .DataValueField("id")
+            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+            .Sort(x => x.Add("FullName").Descending())
+            .Validate(Validations.Required)
+            .Execute()
+            )
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

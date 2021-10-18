@@ -12,5 +12,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Marka isminin tutulduğu alandır.
         /// </summary>
         public string name { get; set;}
+        public string code { get; set;}
     }
 }

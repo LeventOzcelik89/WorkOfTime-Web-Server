@@ -50,11 +50,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_Inventory>().Where(x => x.productId == productId).Execute().ToArray();
             }
         }
-        public PRD_Inventory GetPRD_InventoryBySerialCode(string serialCode, DbTransaction tran = null)
+
+        /// <summary>
+        /// Bu Method Omix 1194 Tenant, Envanter ve IMEI numarası Eşleştirilmesi için kullanılacaktır. Başka İşlem İçin Kullanmayınız...
+        /// </summary>
+        /// <param name="serialCode"></param>
+        /// <param name="imei1"></param>
+        /// <param name="imei2"></param>
+        /// <param name="tran"></param>
+        /// <returns></returns>
+        public VWPRD_Inventory GetPRD_InventoryBySerialCodeOrImei(string serialCode, string imei1, string imei2, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_Inventory>().Where(x => x.serialcode == serialCode).Execute().FirstOrDefault();
+                var inventory = new VWPRD_Inventory();
+                var inventoryList = db.Table<VWPRD_Inventory>().Where(x => x.serialcode == serialCode || x.serialcode == imei1 || x.serialcode == imei2).Execute().ToArray();
+                if (inventoryList != null && inventoryList.Count() > 0)
+                {
+                    inventory = inventoryList.Where(a => a.productId_Title.Contains("MP")).FirstOrDefault();
+                    if (inventory == null)
+                        inventory = inventoryList.FirstOrDefault();
+                }
+                else
+                {
+                    inventory = inventoryList.FirstOrDefault();
+                }
+                return inventory;
             }
         }
 

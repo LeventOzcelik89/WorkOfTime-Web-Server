@@ -14,11 +14,15 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? tableId { get; set;}
         public string tableName { get; set;}
         public string qrCodeDataText { get; set;}
+        public Guid? shiftTrackingDeviceId { get; set;}
+        public int? passType { get; set;}
+        public string deviceUserId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string UserId_Title { get; set;}
         public string CompanyId_Title { get; set;}
         public string table_Title { get; set;}
         public string ShiftTrackingStatus_Title { get; set;}
+        public string passType_Title { get; set;}
     }
 }

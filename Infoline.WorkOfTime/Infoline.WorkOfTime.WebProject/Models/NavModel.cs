@@ -314,6 +314,10 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
+			if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
+			{
+                menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
+            }
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
@@ -366,6 +370,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(rules);
             sistemYonetim.AddChild(new Menu("Dil Tanımlamaları", "/SYS/Language/Index"));
             sistemYonetim.AddChild(new Menu("Ürün Kategorileri", "/PRD/VWPRD_Category"));
+            sistemYonetim.AddChild(new Menu("Pdks Cihaz Tanımlamaları", "/SH/VWSH_ShiftTrackingDevice"));
             sistemYonetim.AddChild(new Menu("Birim Tanımları", "/UT/UT_Unit/Index"));
             sistemYonetim.AddChild(new Menu("Para Birimleri", "/UT/UT_Currency/Index"));
             sistemYonetim.AddChild(new Menu("Lokasyonlar (Ülke/İl/İlçe)", "/UT/VWUT_Location/Index"));

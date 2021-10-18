@@ -38,5 +38,17 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public string tableName { get; set;}
         public string qrCodeDataText { get; set;}
+        /// <summary>
+        /// PDKS cihazı ile kayıt gelmiş ise, Cihaz Id'si
+        /// </summary>
+        public Guid? shiftTrackingDeviceId { get; set;}
+        /// <summary>
+        /// Geçiş Tipini Gösterir (Pdks Parmak İzi, Pdks Şifre, Mobil Cihaz vs.)
+        /// </summary>
+        public int? passType { get; set;}
+        /// <summary>
+        /// Pdks cihazı ile kayıt oluşmuş ise cihazdaki user Id
+        /// </summary>
+        public string deviceUserId { get; set;}
     }
 }

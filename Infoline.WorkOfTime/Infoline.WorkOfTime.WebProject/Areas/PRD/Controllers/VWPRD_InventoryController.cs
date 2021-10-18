@@ -107,7 +107,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 			return View(data);
 		}
-
 		[PageInfo("Bakım Envanter Ekleme", SHRoles.SahaGorevYonetici)]
 		public ActionResult InsertMaintance(VWPRD_Inventory item)
 		{

@@ -90,12 +90,12 @@
         </div>
         <div class="col-sm-8">
             @(Html.Akilli()
-                .DropDownListFor(model => model.userId)
-                .OptionLabel("Lütfen Personel Seçiniz..")
+                .MultiSelect("users")
+                .Placeholder("Lütfen Personel Seçiniz..")
                 .DataTextField("FullName")
                 .DataValueField("id")
                 .Filter<VWSH_User>(x=> x.IsWorking == true && !string.IsNullOrEmpty(x.FullName) && (x.RoleIds.Contains(SHRoles.SahaGorevOperator) || x.RoleIds.Contains(SHRoles.SahaGorevYonetici)))
-                .Template("#=TemplateEngine('userTemplate',data)#")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
                 .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                 .Sort(x => x.Add("FullName").Ascending())
                 .Validate(Validations.Required)
