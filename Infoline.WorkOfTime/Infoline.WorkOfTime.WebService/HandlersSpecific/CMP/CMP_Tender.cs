@@ -114,5 +114,22 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
+        [HandleFunction("VWCMP_Tender/TenderTransferToOrder")]
+        public void VWCMP_TenderTransferToOrder(HttpContext context)
+        {
+            try
+            {
+                var userId = CallContext.Current.UserId;
+                var db = new WorkOfTimeDatabase();
+                var model = ParseRequest<VMCMP_OrderModels>(context);
+                var res = model.Save(userId);
+                RenderResponse(context, res);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
     }
 }
