@@ -10,10 +10,12 @@ using System.Text;
 using System.Linq;
 using Infoline.WorkOfTime.BusinessData;
 using System.Configuration;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
 
 namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
 {
-    public class TitanService 
+    public class TitanService
     {
         private WorkOfTimeDatabase db = new WorkOfTimeDatabase();
         public string Host { get => ConfigurationManager.AppSettings["Host"].ToString(); }
@@ -23,12 +25,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             db = tenant.GetDatabase();
         }
-       
+
         public void CompensateFromTitanServices()
         {
             Log.Info("Titan Services Compenstate is Start...");
-            var getAllDevices =  GetLastDeviceListFromTitanServices();
-            if (getAllDevices.objects!=null)
+            var getAllDevices = GetLastDeviceListFromTitanServices();
+            if (getAllDevices.objects != null)
             {
                 var getAllDevicesList = (DeviceResultList)getAllDevices.objects;
                 var databaseDevices = db.GetPRD_TitanDeviceActivated().ToList();
@@ -39,14 +41,23 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 {
                     CreatedOfTitan = x.Created,
                     DeviceId = new Guid(x.DeviceId),
-                    IMEI1 = x.IMEI1,
+                    IMEI1 = x.IMEI1 == null ? x.Serial : x.IMEI1,
                     IMEI2 = x.IMEI2,
                     InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
                     ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
-                    SerialNumber = x.Serial
+                    SerialNumber = x.Serial,
+                    TitanDeviceName = x.DeviceName,
+                    TitanModel = x.Model,
+                    TitanProduct = x.Product
                 }));
             }
             Log.Info("Titan Services Compenstate End...");
+        }
+
+        public void CompensateFromInventory()
+        {
+            //DB den Eşleşmemişleri bul
+            //Eşleşmemişleri tekrar karşılaştır Envanter ID si bulunanları Update et
         }
 
         private ResultStatus GetLastDeviceListFromTitanServices()
@@ -67,12 +78,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
         {
             try
             {
-                ServicePointManager.Expect100Continue = true;
-                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
-                var request = WebRequest.Create(Host + uri);
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Host + uri);
                 request.ContentType = "application/json";
                 request.Method = "GET";
                 var type = request.GetType();
+
                 var currentMethod = type.GetProperty("CurrentMethod", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(request);
                 var methodType = currentMethod.GetType();
                 methodType.GetField("ContentBodyNotAllowed", BindingFlags.NonPublic | BindingFlags.Instance).SetValue(currentMethod, false);
@@ -80,6 +91,17 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 {
                     streamWriter.Write(query);
                 }
+
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
+                                                        | SecurityProtocolType.Tls11
+                                                        | SecurityProtocolType.Tls12
+                                                        | SecurityProtocolType.Ssl3
+                                                        | SecurityProtocolType.SystemDefault
+                                                        | (SecurityProtocolType)12288;
+
+                ServicePointManager.ServerCertificateValidationCallback += ValidateServerCertificate;
+
                 var response = (HttpWebResponse)(request.GetResponse());
                 using (var reader = new StreamReader(response.GetResponseStream(), ASCIIEncoding.ASCII))
                 {
@@ -94,12 +116,41 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             }
             catch (Exception ex)
             {
+                Log.Error("Servis Çağırılırken Hata Alındı : {0} ", ex.Message);
+
                 return new ResultStatus
                 {
                     result = false,
                     message = ex.Message,
                     objects = null
                 };
+            }
+        }
+        private static bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+            {
+                return true;
+            }
+            else
+            {
+                var requestCertificate = (X509Certificate2)certificate;
+                var logEntry = new StringBuilder();
+                logEntry.AppendFormat("SSL Policy Error(s): {0} - Cert Issuer: {1} - SubjectName: {2}",
+                   sslPolicyErrors.ToString(),
+                   requestCertificate.Issuer,
+                   requestCertificate.SubjectName.Name);
+                if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) //Root CA problem
+                {
+                    if (chain != null && chain.ChainStatus != null)
+                    {
+                        foreach (var chainStatus in chain.ChainStatus)
+                        {
+                            logEntry.AppendFormat("|Chain Status: {0} - {1}", chainStatus.Status.ToString(), chainStatus.StatusInformation.Trim());
+                        }
+                    }
+                }
+                return false;
             }
         }
     }
