@@ -69,5 +69,35 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
+        [HandleFunction("VWCMP_Tender/GetRateExchange")]
+        public void CMP_TenderGetRateExchange(HttpContext context)
+        {
+            try
+            {
+                var date = context.Request["date"];
+                var convertDate = Convert.ToDateTime(date);
+                if (convertDate > DateTime.Now.Date)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Lütfen gelecek tarih girmeyiniz." });
+                    return;
+                }
+                else if (convertDate == DateTime.Now.Date)
+                {
+                    RenderResponse(context, CurrencyExchangeRates.GetAllCurrenciesTodaysExchangeRates());
+                    return;
+                }
+
+                else
+                {
+                    RenderResponse(context, CurrencyExchangeRates.GetAllCurrenciesHistoricalExchangeRates(convertDate));
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
     }
 }
