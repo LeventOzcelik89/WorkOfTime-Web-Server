@@ -240,6 +240,7 @@
             <div class="col-md-8" data-container>
 
                 <select data-filterelement="CustomerCompanyId"
+                        id="customFilter_CustomerCompanyId"
                         class="form-control" style="width: 100%;"
                         data-dataidfield="id"
                         data-datatextfield="name"
@@ -261,6 +262,7 @@
                         class="form-control" style="width: 100%;"
                         data-dataidfield="id"
                         data-datatextfield="FullName"
+                        id="customFilter_SalesPersonId"
                         data-href="/SH/VWSH_User/DataSourceDropDown"
                         data-placeholder="Lütfen Satış Personeli seçiniz..."
                         data-tagtemplate="#= TagTemplate(data, 'FullName') #"
@@ -278,6 +280,7 @@
                 <select data-filterelement="ChannelCompanyId"
                         class="form-control" style="width: 100%;"
                         data-dataidfield="id"
+                        id="customFilter_ChannelCompanyId"
                         data-datatextfield="name"
                         data-href="/CMP/VWCMP_Company/DataSourceDropDown"
                         data-placeholder="Lütfen Kanal seçiniz..."
@@ -294,6 +297,7 @@
             <div class="col-md-4">
 
                 <input data-filterelement="CompletionRate_Min"
+                       id="customFilter_CompletionRate_Min"
                        style="width: 100%;"
                        placeholder="Min. Tamamlanma Oranı"
                        max="100"
@@ -308,6 +312,7 @@
 
                 <input data-filterelement="CompletionRate_Max"
                        style="width: 100%;"
+                       id="customFilter_CompletionRate_Max"
                        placeholder="Max. Tamamlanma Oranı"
                        max="100"
                        min="0"
@@ -327,6 +332,7 @@
                        placeholder="Min. Tahmini Ciro"
                        style="width: 100%;"
                        step="1"
+                       id="customFilter_VodafoneOffer_Min"
                        data-cascadefrom="VodafoneOffer_Max"
                        data-cascadetype="max"
                        type="text">
@@ -348,11 +354,11 @@
                 <label class="control-label label-md ">Son Teklif</label>
             </div>
             <div class="col-md-4">
-
                 <input data-filterelement="lastTenderTotalAmount_Min"
                        placeholder="Min. Son Teklif"
                        style="width: 100%;"
                        step="1"
+                       id="customFilter_lastTenderTotalAmount_Min"
                        data-cascadefrom="lastTenderTotalAmount_Max"
                        data-cascadetype="max"
                        type="text">
@@ -364,6 +370,7 @@
                        placeholder="Max. Son Teklif"
                        style="width: 100%;"
                        step="1"
+                       id="customFilter_lastTenderTotalAmount_Max"
                        type="text">
 
             </div>
@@ -424,10 +431,10 @@
                     Sıralama Yönü
                 </div>
                 <div class="tglButton">
-                    
+
                     <input class="tgl tgl-ios" id="sortDir" type="checkbox" autocomplete="off">
                     <label class="sortToggle tgl-btn" for="sortDir"></label>
-                    
+
                     <i data-target="sort.dir.asc" style="display: none;" class="icon-sort-name-up"></i>
                     <i data-target="sort.dir.desc" style="display: none;" class="icon-sort-name-down"></i>
 
@@ -506,6 +513,12 @@
 </script>
 
 <script type="text/javascript">
+    function getMonday(d) {
+        d = new Date(d);
+        var day = d.getDay(),
+            diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+        return new Date(d.setDate(diff));
+    }
 
     var agile = {
 
@@ -1012,7 +1025,7 @@
 
                             spinners: false,
                             value: $this.value,
-                            
+
                             change: function (evnt) {
 
                                 var val = evnt.sender.value();
@@ -1172,7 +1185,7 @@
                     title: 'Bu Hafta Açılanlar',
                     icon: 'icon-calendar-empty',
                     items: [
-                        { id: 'created_Min', field: 'created', value: new Date().GetMonday() },
+                        { id: 'created_Min', field: 'created', value: getMonday(new Date()) },
                         //  { field: 'created_Max', value: agile.fn.getMonday(new Date()).addDays(7).addSeconds(-1) },
                     ]
                 },
@@ -1311,8 +1324,9 @@
 
                 $.each($this.FilterElements, function (i, item) {
 
-                    var element = temp.find('[data-filterelement="' + i + '"]')
-                        .attr('id', item.id);
+                    var element = temp.find('[data-filterelement="' + i + '"]');
+
+                    element.attr('id', element.attr('id') != undefined ? element.attr('id') : item.id);
 
                     if ($this.Data != null && $this.Data.items != null) {
 

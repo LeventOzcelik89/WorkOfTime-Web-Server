@@ -82,8 +82,8 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         public IEnumerable<SellIn> GetToDayFile()
         {
-            //List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
-            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpUser", Password = "aA123456" } };
+            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
+            //List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpUser", Password = "aA123456" } };
             GetFileNames(listOfUrls);
             var datetimeNow = DateTime.Now;
             var genpaDate = datetimeNow.Day + "" + datetimeNow.Month + "" + datetimeNow.Year;
