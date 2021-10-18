@@ -99,5 +99,20 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
+        [HandleFunction("VWCMP_Tender/GetPageInfo")]
+        public void VWCMP_TenderGetPageInfo(HttpContext context)
+        {
+            try
+            {
+                var userId = CallContext.Current.UserId;
+                var data = new VMCMP_TenderModels().GetMyTenderPageInfo(userId);
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
     }
 }
