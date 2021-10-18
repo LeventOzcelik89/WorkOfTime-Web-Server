@@ -164,7 +164,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				rs = this.Update();
 			}
 
-			if (rs.result)
+			if (rs.result && request !=null)
 			{
 				new FileUploadSave(request, this.id).SaveAs();
 			}
