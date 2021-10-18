@@ -9,7 +9,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.HDM.Controllers
 {
 	public class VWHDM_IssueUserController : Controller
     {
-        [PageInfo("Konuların Görevlileri Metodu", SHRoles.Personel)]
+        [PageInfo("Konuların Görevlileri Metodu", SHRoles.Personel, SHRoles.YardimMasaMusteri)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
