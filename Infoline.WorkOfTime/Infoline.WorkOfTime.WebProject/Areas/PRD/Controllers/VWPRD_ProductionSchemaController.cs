@@ -13,7 +13,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
 	public class VWPRD_ProductionSchemaController : Controller
 	{
-		[PageInfo("Üretim Şeması Listesi", SHRoles.Personel)]
+		[PageInfo("Üretim Şeması Listesi", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
@@ -44,13 +44,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Üretim Şeması Detayı", SHRoles.Personel)]
+		[PageInfo("Üretim Şeması Detayı", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public ActionResult Detail(VWPRD_ProductionSchemaModel model)
 		{
 		    return View(model.Load());
 		}
 
-		[PageInfo("Üretim Şeması Ekleme", SHRoles.Personel)]
+		[PageInfo("Üretim Şeması Ekleme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public ActionResult Insert(Guid? productId, VWPRD_ProductionSchemaModel model)
 		{
 			model.id = Guid.NewGuid();
@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[PageInfo("Üretim Şeması Ekleme", SHRoles.Personel)]
+		[PageInfo("Üretim Şeması Ekleme", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
 		public JsonResult Insert(VWPRD_ProductionSchemaModel item)
 		{
 		    var userStatus = (PageSecurity)Session["userStatus"];
