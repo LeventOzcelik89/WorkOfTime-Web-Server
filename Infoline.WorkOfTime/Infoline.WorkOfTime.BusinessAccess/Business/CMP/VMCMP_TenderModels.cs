@@ -19,6 +19,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     }
 
+    public class SpecInvoiceItem : VWCMP_InvoiceItem
+    {
+        public double? unitPrice { get; set; }
+        public string unitPrice_Title { get; set; }
+    }
+
     public class VMCMP_TenderModels : VWCMP_Tender
     {
         private WorkOfTimeDatabase db { get; set; }
@@ -27,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private string _siteURL { get; set; } = TenantConfig.Tenant.GetWebUrl();
         private string _tenantName { get; set; } = TenantConfig.Tenant.TenantName;
         public List<VWCMP_InvoiceAction> InvoiceActions { get; set; }
-        public List<VWCMP_InvoiceItem> InvoiceItems { get; set; }
+        public List<SpecInvoiceItem> InvoiceItems { get; set; }
         public VWCMP_InvoiceTransform TransformFrom { get; set; }
         public VWCMP_InvoiceTransform[] TransformTo { get; set; }
         public CMP_Invoice Request { get; set; }
@@ -37,6 +43,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public static Guid muhasebeYonetici { get; set; } = new Guid(SHRoles.OnMuhasebe);
         public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatisOnaylayici);
         public Guid[] _approvalPersons = new Guid[0];
+
+
 
         public VMCMP_TenderModels Load(bool? isTransform, int? direction)
         {
@@ -51,8 +59,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (invoice != null)
             {
-                this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
                 this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
+                this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList().Select(x => new SpecInvoiceItem().B_EntityDataCopyForMaterial(x)).ToList();
+                foreach (var specInvoiceItem in this.InvoiceItems)
+                {
+                    if (specInvoiceItem.productId.HasValue)
+                    {
+                        var product = db.GetVWPRD_ProductById(specInvoiceItem.productId.Value);
+                        specInvoiceItem.unitPrice = product?.currentSellingPrice;
+                        specInvoiceItem.unitPrice_Title = product?.currentSellingCurrencyId_Title;
+                    }
+                }
 
 
                 if (invoice.invoiceDocumentTemplateId.HasValue)
@@ -97,7 +114,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 if (ids.Count() > 0)
                 {
-                    this.InvoiceItems = db.GetPRD_ProductByIds(ids).Select(s => new VWCMP_InvoiceItem
+                    this.InvoiceItems = db.GetPRD_ProductByIds(ids).Select(s => new SpecInvoiceItem
                     {
                         productId = s.id,
                         invoiceId = this.id,
