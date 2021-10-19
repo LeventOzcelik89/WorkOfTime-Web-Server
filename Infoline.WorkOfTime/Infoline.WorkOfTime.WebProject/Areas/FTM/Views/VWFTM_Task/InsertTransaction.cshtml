@@ -538,18 +538,62 @@
                     @Html.Hidden("outputTable", "CMP_Storage", new { id = "outputTable13", disabled = "true" })
                 </div>
             </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="inputCompanyId10">Alıcı Cari</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputCompanyId)
+                    .Id("inputCompanyId10")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .Sort(x => x.Add("name").Ascending())
+                    .Execute()
+                )
+                        </div>
+                    </div>
+         
         </div>
         <div class="col-md-6">
             <div class="form-group">
                 <div class="col-md-4">
                     <label class="control-label label-md" for="description">İşlem Açıklaması</label>
                 </div>
-                <div class="col-md-8">
+                <div class="col-md-8" style="height:148px!important">
                     @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
                     {
                         {"class", "form-control"},
                         {"placeholder", "Lütfen İşlem Açıklaması Giriniz.."}
                     })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md req" for="inputId">Alıcı Şube/Depo</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputId)
+                    .Id("inputId10")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.inputChange"))
+                    .Sort(x => x.Add("name").Ascending())
+                    .CascadeFrom("inputCompanyId10")
+                    .CascadeFromField("companyId")
+                    .Execute()
+                )
+                    @Html.Hidden("inputTable", "CMP_Storage", new { id = "inputTable10", disabled = "true" })
                 </div>
             </div>
         </div>
@@ -585,7 +629,7 @@
 
         @if (Model.status != (int)EnumPRD_TransactionStatus.islendi)
         {
-            <button data-type="13" class="btn btn-md btn-success pull-right hide m-r-sm" formaction="@Url.Action("InsertTransaction","VWFTM_Task",new {area="FTM" ,taskId=Model.taskId,outputId=Model.outputId})" name="status" value="@((int)EnumPRD_TransactionStatus.beklemede)" type="submit"><i class="icon-folder-open-1"></i> Kaydet </button>
+            <button data-type="10" class="btn btn-md btn-success pull-right hide m-r-sm" formaction="@Url.Action("InsertTransaction","VWFTM_Task",new {area="FTM" ,taskId=Model.taskId,outputId=Model.outputId,inputId=Model.inputId,inputCompanyId=Model.inputCompanyId})" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-folder-open-1"></i> Kaydet </button>
         }
 
     </div>

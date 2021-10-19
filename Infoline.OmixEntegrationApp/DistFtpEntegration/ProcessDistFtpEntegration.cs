@@ -17,7 +17,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
         {
             Log.Info("ProcessDistFtpEntegration is Start");
         }
-
         public Task Run()
         {
             while (true)

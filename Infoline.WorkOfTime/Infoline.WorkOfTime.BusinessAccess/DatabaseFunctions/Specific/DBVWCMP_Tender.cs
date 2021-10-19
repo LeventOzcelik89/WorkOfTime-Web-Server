@@ -12,7 +12,6 @@ using System.ComponentModel;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    [EnumInfo(typeof(CMP_Invoice), "tenderStatus")]
     public class SummaryHeadersTender
     {
         public int AllMyTender { get; set; }
@@ -38,6 +37,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool isActive { get; set; }
     }
 
+    [EnumInfo(typeof(CMP_Invoice), "tenderStatus")]
     public enum EnumCMP_TenderStatus
     {
         [Description("Yönetici Onayı Bekleniyor"), Generic("icon", "fa fa-spinner", "color", "rgb(248, 172, 89)")]
