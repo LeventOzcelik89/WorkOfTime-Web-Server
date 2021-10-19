@@ -37,27 +37,39 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
                 var savingList = getAllDevicesList.Data.Where(x => !databaseDevices.Select(a => a.IMEI1).Contains(x.IMEI1) || !databaseDevices.Select(a => a.IMEI2).Contains(x.IMEI2) || !databaseDevices.Select(a => a.SerialNumber).Contains(x.Serial));
                 Log.Info("New Activated Device Count : {0}", savingList.Count());
 
-                var resut = db.BulkInsertPRD_TitanDeviceActivated(savingList.Select(x => new PRD_TitanDeviceActivated
+
+                foreach (var item in savingList)
                 {
-                    CreatedOfTitan = x.Created,
-                    DeviceId = new Guid(x.DeviceId),
-                    IMEI1 = x.IMEI1 == null ? x.Serial : x.IMEI1,
-                    IMEI2 = x.IMEI2,
-                    InventoryId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.id,
-                    ProductId = db.GetPRD_InventoryBySerialCodeOrImei(x.Serial, x.IMEI1, x.IMEI2)?.productId,
-                    SerialNumber = x.Serial,
-                    TitanDeviceName = x.DeviceName,
-                    TitanModel = x.Model,
-                    TitanProduct = x.Product
-                }));
+                    var checkDb = db.GetVWPRD_TitanDeviceActivatedByImei(item.IMEI1 == null ? item.Serial : item.IMEI1);
+                    if (checkDb == null)
+                    {
+                        var prdTitanDeviceActivated = new PRD_TitanDeviceActivated();
+
+                        var getInventory = db.GetPRD_InventoryBySerialCodeOrImei(item.Serial, item.IMEI1, item.IMEI2);
+                        prdTitanDeviceActivated.CreatedOfTitan = item.Created.ToLocalTime();
+                        prdTitanDeviceActivated.DeviceId = new Guid(item.DeviceId);
+                        prdTitanDeviceActivated.IMEI1 = item.IMEI1 == null ? item.Serial : item.IMEI1;
+                        prdTitanDeviceActivated.IMEI2 = item.IMEI2;
+                        prdTitanDeviceActivated.InventoryId = getInventory?.id;
+                        prdTitanDeviceActivated.ProductId = getInventory?.productId;
+                        prdTitanDeviceActivated.SerialNumber = item.Serial;
+                        prdTitanDeviceActivated.TitanDeviceName = item.DeviceName;
+                        prdTitanDeviceActivated.TitanModel = item.Model;
+                        prdTitanDeviceActivated.TitanProduct = item.Product;
+
+                        var dbInsertResult = db.InsertPRD_TitanDeviceActivated(prdTitanDeviceActivated);
+
+                        if (!dbInsertResult.result)
+                            Log.Error("IMEI is {0} not saving for db", item.IMEI1);
+                    }
+                    else
+                    {
+                        Log.Warning("IMEI is {0} already exist...", item.IMEI1);
+                    }
+                }
+
             }
             Log.Info("Titan Services Compenstate End...");
-        }
-
-        public void CompensateFromInventory()
-        {
-            //DB den Eşleşmemişleri bul
-            //Eşleşmemişleri tekrar karşılaştır Envanter ID si bulunanları Update et
         }
 
         private ResultStatus GetLastDeviceListFromTitanServices()
