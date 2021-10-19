@@ -7,14 +7,16 @@ using System.Linq;
 using System.Net;
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
-    public class FtpWorker : IFtpWorker
+    public class FtpWorkerForWindows : IFtpWorker
     {
         public List<FileNameWithUrl> FptUrl=new List<FileNameWithUrl>();
         private IEnumerable<DirectoryItem> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
         {
+            Log.Info("Getting All File Names On Windows Server");
             List<DirectoryItem> returnValue = new List<DirectoryItem>();
             foreach (var url in ftpUrls)
             {
+                Log.Info(string.Format("Getting All File Names From Windows Server {0}",url.Url));
                 try
                 {
                     FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(url.Url);
@@ -49,13 +51,14 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                 }
                 catch (Exception e)
                 {
-                    Log.Error(url.Url + " bağlanılamadı! : " + e.Message);
+                    Log.Error(url.Url + " failed! : " + e.Message);
                 }
             }
             return returnValue;
         }
         private IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
         {
+            Log.Info(string.Format("Getting File Windows Server {0} on {1}"),fileNameWithUrl.FileName,fileNameWithUrl.Url);
             var liststringArray = new List<string[]>();
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fileNameWithUrl.Url + "/" + fileNameWithUrl.FileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
@@ -82,45 +85,60 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         public IEnumerable<SellIn> GetToDayFile()
         {
-            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
-            //List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpUser", Password = "aA123456" } };
+            Log.Info("Getting Today Files on Windows Server");
+         
+            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpuser", Password = "aA123456" } };
             GetFileNames(listOfUrls);
             var datetimeNow = DateTime.Now;
-            var genpaDate = datetimeNow.Day + "" + datetimeNow.Month + "" + datetimeNow.Year;
             var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
-            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x => x.FileName.Contains(genpaDate) || x.FileName.Contains(kvkDate)).ToList();
+            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x =>  x.FileName.Contains(kvkDate)).ToList();
             var res = new List<SellIn>();
+            Log.Info(string.Format("{0} File Found",fileNames.Count));
             foreach (var fileName in fileNames)
             {
-                List<PropertyIndex> Index = new List<PropertyIndex>();
-                var getRawFile = GetRawFile(fileName).ToList();
-                var getHeaders = getRawFile[0];
-                getRawFile.RemoveAt(0);
-                for (int i = 0; i < getHeaders.Length; i++)
+                try
                 {
-                    Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i] });
+                    List<PropertyIndex> Index = new List<PropertyIndex>();
+                    var getRawFile = GetRawFile(fileName).ToList();
+                    var getHeaders = getRawFile[0];
+                    getRawFile.RemoveAt(0);
+                    for (int i = 0; i < getHeaders.Length; i++)
+                    {
+                        Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i] });
+                    }
+                    foreach (var rawFile in getRawFile)
+                    {
+                        try
+                        {
+                            var item = new SellIn();
+                            if (fileName.FileName.Contains("SELLTHR"))
+                            {
+                                item = new SellThr();
+                            }
+                            for (int i = 0; i < rawFile.Length; i++)
+                            {
+                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                {
+                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                }
+                                else
+                                {
+                                    prop.SetValue(item, rawFile[i]);
+                                }
+                            }
+                            res.Add(item);
+                        }
+                        catch (Exception e )
+                        {
+                            Log.Error(e.ToString());
+                        }
+                    }
                 }
-                foreach (var rawFile in getRawFile)
+                catch (Exception e)
                 {
-                    var item = new SellIn();
-                    if (fileName.FileName.Contains("SELLTHR"))
-                    {
-                        item = new SellThr();
-                    }
-                    for (int i = 0; i < rawFile.Length; i++)
-                    {
-                        var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                        var prop = item.GetType().GetProperty(getIndexName);
-                        if (prop.PropertyType.IsAssignableFrom(typeof(int)))
-                        {
-                            prop.SetValue(item, Convert.ToInt32(rawFile[i]));
-                        }
-                        else
-                        {
-                            prop.SetValue(item, rawFile[i]);
-                        }
-                    }
-                    res.Add(item);
+                    Log.Error(e.ToString());
                 }
             }
             FptUrl = new List<FileNameWithUrl>();
