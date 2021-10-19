@@ -16,6 +16,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         private string SetCookie { get; set; }
         private string Token { get; set; }
         public FtpConfiguration ftpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public FtpConfiguration FtpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         private void Login()
         {
@@ -131,7 +132,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                                 var item = new SellIn();
                                 if (fileName.Contains("SELLTHR"))
                                 {
-                                    item = new SellThr();
+                                    //sitem = new SellThr();
                                 }
                                 for (int i = 0; i < headers.Length; i++)
                                 {

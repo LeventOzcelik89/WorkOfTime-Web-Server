@@ -30,7 +30,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
                 //{
                     foreach (var item in IFtpWorkerList)
                     {
-                        item.GetTodayFile();
+                        //item.GetTodayFile();
                     }
                 //}
                 Thread.Sleep(new TimeSpan(0, 1, 0));

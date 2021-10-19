@@ -10,10 +10,27 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
     public class FtpWorkerForKvk : IFtpWorker
     {
-        public List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
-
-        public FtpConfiguration ftpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+        private List<SellIn> SellIns { get; set; }
+        private List<SellThr> SellThrs { get; set; }
+        private List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
+        public FtpConfiguration FtpConfiguration { get; set; }
+        public void SetConfiguration(FtpConfiguration ftpConfiguration)
+        {
+            this.FtpConfiguration = ftpConfiguration;
+        }
+        public FtpConfiguration GetConfiguration()
+        {
+            return this.FtpConfiguration;
+        }
+        public IEnumerable<SellIn> GetSellInObjectForToday()
+        {
+            return this.SellIns;
+        }
+        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        {
+            return this.SellThrs;
+        }
+      
         private IEnumerable<DirectoryItem> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
         {
             Log.Info("Getting All File Names On Linux Server");
@@ -43,14 +60,11 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                         item.IsDirectory = isDirectory;
                         if (name=="."||name=="..")
                         {
-                            
                         }
                         else
                         {
                             item.Items = item.IsDirectory ? GetFileNames(new List<FtpUrl>() { new FtpUrl { Url = item.AbsolutePath, UserName = url.UserName, Password = url.Password } }).ToList() : null;
                         }
-                        
-                 
                         returnValue.Add(item);
                         if (!isDirectory)
                         {
@@ -90,10 +104,9 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             {
                 Log.Warning(e.Message);
             }
-
             return liststringArray;
         }
-        public IEnumerable<SellIn> GetSellInFileForToday()
+        private IEnumerable<SellIn> GetObjest()
         {
             Log.Info("Getting Today Files on Genpa Ftp Server");
             List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
@@ -122,7 +135,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                             var item = new SellIn();
                             if (fileName.FileName.Contains("SELLTHR"))
                             {
-                                item = new SellThr();
+                                //
                             }
                             for (int i = 0; i < rawFile.Length; i++)
                             {
@@ -143,7 +156,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                         {
                             Log.Error(e.ToString());
                         }
-                      
                     } 
                     Thread.Sleep(new TimeSpan(0,0,10));
                 }
@@ -154,26 +166,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             }
             FptUrl = new List<FileNameWithUrl>();
             return res;
-        }
-
-        public void SetConfiguration(FtpConfiguration ftpConfiguration)
-        {
-            throw new NotImplementedException();
-        }
-
-        public FtpConfiguration GetConfiguration()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<SellIn> GetSellInObjectForToday()
-        {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<SellThr> GetSellThrObjectForToday()
-        {
-            throw new NotImplementedException();
         }
     }
 }
