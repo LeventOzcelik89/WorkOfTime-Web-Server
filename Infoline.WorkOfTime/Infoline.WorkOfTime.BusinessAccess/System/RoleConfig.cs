@@ -31,6 +31,8 @@ namespace System
         //Insan Kaynakları
         [PropInfo("Personel İdari Yönetici Rolü", "Personel taleplerini onaylar.Görevlendirme bilgilendirmeleri Mail yoluyla düşer.Personel 2,6 aylık değerlendirmeleri onayına sunulur.")]
         public const string IdariPersonelYonetici = "00000000-0000-0000-0000-200000000000";
+        [PropInfo("Personel İdari Rolü", "Personel taleplerini onaylar.Görevlendirme bilgilendirmeleri Mail yoluyla düşer.Seyahat Bilgilerini Düzenler.")]
+        public const string IdariPersonel = "00000000-0000-0000-0000-210000000000";
         [PropInfo("Insan Kaynakları Yönetici Rolü", "Tüm personel işlemlerini yapabilir.")]
         public const string IKYonetici = "00000000-0000-0000-0000-220000000000";
         [PropInfo("Personel Talebi Rolü", "Personel talebi yapar.")]

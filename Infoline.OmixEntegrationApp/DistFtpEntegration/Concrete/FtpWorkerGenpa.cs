@@ -8,13 +8,16 @@ using System.Net;
 using System.Xml;
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
-    public class FtpWorkerForWingFtp : IFtpWorker
+    public class FtpWorkerGenpa : IFtpWorker
     {
         private List<string> FileList = new List<string>();
         private string DirUrl => "https://ftp.genpa.com.tr/dir.html";
         private string LoginUrl => "https://ftp.genpa.com.tr/loginok.html";
         private string SetCookie { get; set; }
         private string Token { get; set; }
+        public FtpConfiguration ftpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public FtpConfiguration FtpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         private void Login()
         {
             Log.Info("Logging On Genpa Wing Ftp Server");
@@ -101,7 +104,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             }
             return liststringArray;
         }
-        public IEnumerable<SellIn> GetToDayFile()
+        public IEnumerable<SellIn> GetSellInFileForToday()
         {
             Login();
             GetTodayFileNames();
@@ -129,7 +132,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                                 var item = new SellIn();
                                 if (fileName.Contains("SELLTHR"))
                                 {
-                                    item = new SellThr();
+                                    //sitem = new SellThr();
                                 }
                                 for (int i = 0; i < headers.Length; i++)
                                 {
@@ -159,6 +162,26 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                 }
             }
             return res;
+        }
+
+        public void SetConfiguration(FtpConfiguration ftpConfiguration)
+        {
+            throw new NotImplementedException();
+        }
+
+        public FtpConfiguration GetConfiguration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<SellIn> GetSellInObjectForToday()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -21,4 +21,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Evet = 1
 
     }
+    public partial class WorkOfTimeDatabase
+    {
+        public INV_CommissionsPersons[] GetINV_CommissionsPersonCommissionId(Guid Id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<INV_CommissionsPersons>().Where(a => a.IdCommisions == Id).OrderByDesc(x => x.created).Execute().ToArray();
+            }
+        }
+
+    }
 }

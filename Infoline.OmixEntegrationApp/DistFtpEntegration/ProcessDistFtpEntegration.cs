@@ -13,8 +13,8 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
     public class ProcessDistFtpEntegration : IDisposable
     {
         List<IFtpWorker> IFtpWorkerList = new List<IFtpWorker> {
-             new FtpWorkerForWingFtp(),
-             new FtpWorkerForLunix()
+             new FtpWorkerGenpa(),
+             new FtpWorkerForKvk()
 
 
         };
@@ -30,7 +30,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
                 //{
                     foreach (var item in IFtpWorkerList)
                     {
-                        item.GetToDayFile();
+                        //item.GetTodayFile();
                     }
                 //}
                 Thread.Sleep(new TimeSpan(0, 1, 0));

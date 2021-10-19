@@ -185,6 +185,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.CRMYonetici,
             SHRoles.DepoSorumlusu,
             SHRoles.IdariPersonelYonetici,
+            SHRoles.IdariPersonel,
             SHRoles.IKYonetici,
             SHRoles.IsGorusmesiMulakat,
             SHRoles.MuhasebeSatis,
@@ -795,6 +796,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
+                        SHRoles.YardimMasaMusteri,
                     });
                     break;
                 case 1186:

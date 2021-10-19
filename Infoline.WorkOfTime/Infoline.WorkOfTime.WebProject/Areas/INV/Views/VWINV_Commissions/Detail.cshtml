@@ -6,6 +6,7 @@
     var userStatus = (PageSecurity)Session["userStatus"];
     var Projects = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsProjects[])ViewBag.Projects;
     var Persons = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsPersons[])ViewBag.Persons;
+    var Information = (Infoline.WorkOfTime.BusinessData.VWINV_CommissionsInformation)ViewBag.Information;
 }
 
 @section Css{
@@ -28,8 +29,10 @@
         .bolds {
             font-weight: bold;
         }
+
     </style>
 }
+
 <div class="col-lg-12">
     <section style="margin-bottom: 20px;">
         <div class="tabs-container">
@@ -41,6 +44,9 @@
 
                 <li data-toggle="tooltip" data-placement="top" title="Masraf Talep Listesi">
                     <a data-toggle="tab" href="#PA_Transaction" aria-expanded="false"><i class="icon-money text-success fa-2x" aria-hidden="true"></i></a>
+                </li>
+                <li data-toggle="tooltip" data-placement="top" title="Personel Seyahat Detayları">
+                    <a data-toggle="tab" href="#ComissionInfo" aria-expanded="false"><i class="icon-plane text-success fa-2x" aria-hidden="true"></i></a>
                 </li>
             </ul>
             <div class="tab-content">
@@ -445,13 +451,451 @@
                             }
 
                             x.Custom().Text("<i data-original-title='Gider Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("DetailExpense", "VWPA_Transaction", new { area = "PA" }));
-                            
+
                         })
 
                 )
+                    </form>
+                </div>
+
+                <div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_CommissionsInformation", new { area = "INV" })" id="ComissionInfo">
+                    <form class="form-horizontal" data-selector="modalContainer">
+                        <div class="form-group wzrd">
+                            <div class="col-sm-4 step red" style="height: 48px;">
+                                <a>
+                                    Görevlendirme Talebi Yapıldı
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number">1. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.StartDate) - @string.Format("{0:dd.MM.yyyy HH:mm}", Model.EndDate) | Görevlendirme Talebi</div>
+                                        <div><strong>İşlem Yapan : </strong>@(Model.createdby_Title)</div>
+                                        <div><strong>İşlem Tarihi : </strong>@string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step orange @(Model.Manager1ApprovalDate.HasValue ? "" : "disabled")">
+                                <a>
+                                    1. Yönetici Yanıtlayacak
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content bottom">
+                                    <div class="number" id="ikirenk">2. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>@(Model.Manager1ApprovalDate.HasValue ? (Model.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi ? "Red" : "Onay") : "Onay/Red")</div>
+                                        <div><strong>İşlem @(Model.Manager1ApprovalDate.HasValue ? "Yapan" : "Yapacak")  : </strong>@(Model.Manager1Approval.HasValue ? Model.Manager1Approval_Title : "Sistem")</div>
+                                        <div class="@(Model.Manager1ApprovalDate.HasValue ? "" : "hide")"><strong>İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.Manager1ApprovalDate))</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-sm-4 step green @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi ? "" : "disabled")">
+                                <a>
+                                    Islak imza yüklenecek
+                                    <i class="fa fa-check @(Model.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi  ? "" : "hide")"></i>
+                                </a>
+                                <div class="content">
+                                    <div class="number" id="ikirenk">3. <span>Adım</span></div>
+                                    <div id="ccc">
+                                        <div><strong>İşlem : </strong>Islak İmza Yükleme</div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapmış: </strong>@(string.Join(" , ", Persons.Where(c => !string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>İşlem Yapacak: </strong>@(string.Join(" , ", Persons.Where(c => string.IsNullOrEmpty(c.Files)).Select(a => a.Person_Title)))
+                                        </div>
+                                        <div class="@(Persons.Count(c => !string.IsNullOrEmpty(c.Files)) == 0 ? "hide" : "")">
+                                            <strong>Son İşlem Tarihi : </strong>@(string.Format("{0:dd.MM.yyyy HH:mm}", Model.changed))
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.ShuttleUcak || Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.UcakAraba || Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.Ucak)
+                        {
+                            <fieldset>
+                                <legend>Uçuş Bilgileri</legend>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereden</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.to_Title, new Dictionary<string, object>()
+                                           {
+                                               {"class", "form-control"},
+                                               {"readonly", "readonly"}
+                                           })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereye</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.from_Title, new Dictionary<string, object>()
+                                            {
+                                                {"class", "form-control"},
+                                                {"readonly", "readonly"}
+                                            })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.departureDate, new Dictionary<string, object>()
+                                                  {
+                                                      {"class", "form-control"},
+                                                      {"readonly", "readonly"}
+                                                  })
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.returnDate, new Dictionary<string, object>()
+                                             {
+                                                 {"class", "form-control"},
+                                                 {"readonly", "readonly"}
+                                             })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Dosya">Uçuş Bilgi Dosyaları</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                       Html.Akilli().FileUpload()
+                                       .DataTable("INV_CommissionsInformation")
+                                       .DataId(Information.id)
+                                       .PreviewMode(true)
+                                       .DataKey(x => x.fileGroup == "Uçuş Bilgi Dosyaları")
+                                   )
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
+                        @if (Model.RequestForAccommodation == (int)EnumINV_CommissionsRequestForAccommodation.Var)
+                        {
+                    <fieldset>
+                        <legend>Konaklama Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md  " for="CommissionCode">Otel Adı</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => Information.hotelName, new Dictionary<string, object>()
+                                   {
+                                       {"class", "form-control"},
+                                       {"readonly", "readonly"}
+                                   })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md  " for="CommissionCode">Otel Konumu</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextBoxFor(model => Information.hotelLocation_Title, new Dictionary<string, object>()
+                                   {
+                                       {"class", "form-control"},
+                                       {"readonly", "readonly"}
+                                   })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md  " for="StartDate">Giriş / Çıkış Tarihi ve Saati</label>
+                            </div>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => Information.hotelEntryDate, new Dictionary<string, object>()
+                                  {
+                                      {"class", "form-control"},
+                                      {"readonly", "readonly"}
+                                  })
+                            </div>
+                            <div class="col-md-4">
+                                @Html.TextBoxFor(model => Information.hotelLeaveDate, new Dictionary<string, object>()
+                                  {
+                                      {"class", "form-control"},
+                                      {"readonly", "readonly"}
+                                  })
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="Dosya">Konaklama Bilgi Dosyaları</label>
+                            </div>
+                            <div class="col-md-8">
+                                @(
+                                               Html.Akilli().FileUpload()
+                                               .DataTable("INV_CommissionsInformation")
+                                               .DataId(Information.id)
+                                               .PreviewMode(true)
+                                               .DataKey(x => x.fileGroup == "Konaklama Bilgi Dosyaları")
+                                           )
+                            </div>
+                        </div>
+                    </fieldset>
+                        }
+                        @if (Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.KiralikArac || Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.UcakAraba)
+                        {
+                            <fieldset>
+                                <legend>Kiralık Araç Bilgileri</legend>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Araç Alım Yeri</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.rentalCarPlace_Title, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="StartDate">Alış / İade Tarihi ve Saati</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.rentalCarStartDate, new Dictionary<string, object>()
+                                          {
+                                              {"class", "form-control"},
+                                              {"readonly", "readonly"}
+                                          })
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.rentalCarEndDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Dosya">Kiralık Araç Bilgi Dosyaları</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                      Html.Akilli().FileUpload()
+                                      .DataTable("INV_CommissionsInformation")
+                                      .DataId(Information.id)
+                                      .PreviewMode(true)
+                                      .DataKey(x => x.fileGroup == "Kiralık Araç Bilgi Dosyaları")
+                                  )
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
+                        @if (Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.ShuttleUcak || Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.Shuttle)
+                        {
+                            <fieldset>
+                                <legend>Shuttle Bilgileri</legend>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereden</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.shuttleTo_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereye</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.shuttleFrom_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.shuttleDepartureDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.shuttleReturnDate, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Dosya">Shuttle Bilgi Dosyaları</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                       Html.Akilli().FileUpload()
+                                       .DataTable("INV_CommissionsInformation")
+                                       .DataId(Information.id)
+                                       .PreviewMode(true)
+                                       .DataKey(x => x.fileGroup == "Shuttle Bilgi Dosyaları")
+                                   )
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
+                        @if (Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.Otobus)
+                        {
+                            <fieldset>
+                                <legend>Otobüs Bilgileri</legend>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereden</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.to_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereye</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.from_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.departureDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.returnDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Dosya">Otobüs Bilgi Dosyaları</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                   Html.Akilli().FileUpload()
+                                   .DataTable("INV_CommissionsInformation")
+                                   .DataId(Information.id)
+                                   .PreviewMode(true)
+                                   .DataKey(x => x.fileGroup == "Otobüs Bilgi Dosyaları")
+                               )
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
+                        @if (Model.TravelInformation == (int)EnumINV_CommissionsTravelInformation.Arac)
+                        {
+                            <fieldset>
+                                <legend>Şirket Aracı Bilgileri</legend>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereden</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.to_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="locationId">Nereye</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @Html.TextBoxFor(model => Information.from_Title, new Dictionary<string, object>()
+                                        {
+                                            {"class", "form-control"},
+                                            {"readonly", "readonly"}
+                                        })
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.departureDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                    <div class="col-md-4">
+                                        @Html.TextBoxFor(model => Information.returnDate, new Dictionary<string, object>()
+                                         {
+                                             {"class", "form-control"},
+                                             {"readonly", "readonly"}
+                                         })
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-md-4">
+                                        <label class="control-label label-md" for="Dosya">Şirket Aracı Bilgi Dosyaları</label>
+                                    </div>
+                                    <div class="col-md-8">
+                                        @(
+                                     Html.Akilli().FileUpload()
+                                     .DataTable("INV_CommissionsInformation")
+                                     .DataId(Information.id)
+                                     .PreviewMode(true)
+                                     .DataKey(x => x.fileGroup == "Şirket Aracı Bilgi Dosyaları")
+                                 )
+                                    </div>
+                                </div>
+                            </fieldset>
+                        }
                     </form>
                 </div>
             </div>
         </div>
     </section>
 </div>
+@if (userStatus.user.RoleIds.Contains(SHRoles.IdariPersonel))
+{
+    <div class="fixedStart">
+        <input type="checkbox" checked id="fixed">
+        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+        <div class="fix-buttons">
+            <a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("TravelInsert","VWINV_Commissions",new {area="INV",commissionsId=Model.id,travelInformation= Model.TravelInformation,requestForAccommodation = Model.RequestForAccommodation })"><i data-toggle="tooltip" title="Seyahat Bilgileri Ekle" class="fa fa-plane"></i></a>
+        </div>
+    </div>
+}

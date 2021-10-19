@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 {
     public class VWINV_CommissionsController : Controller
     {
-        [PageInfo("Tüm Görevlendirmeler", SHRoles.IKYonetici)]
+        [PageInfo("Tüm Görevlendirmeler", SHRoles.IKYonetici,SHRoles.IdariPersonel)]
         public ActionResult Index()
         {
             return View();
@@ -57,6 +57,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             var commision = db.GetVWINV_CommissionsById(id);
             ViewBag.Projects = db.GetVWINV_CommissionsProjectsIds(commision.id) ?? new VWINV_CommissionsProjects[] { };
             ViewBag.Persons = db.GetVWINV_CommissionsPersonCommissionIds(commision.id) ?? new VWINV_CommissionsPersons[] { };
+            ViewBag.Information = db.GetVWINV_CommissionsInformationCommissionId(commision.id) ?? new VWINV_CommissionsInformation { };
             return View(commision);
         }
         [PageInfo("Personel Görevlendirmesi Ekleme", SHRoles.Personel, SHRoles.ProjeYonetici)]
@@ -253,6 +254,102 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 Result = true,
                 FeedBack = feedback.Success("Görev kaydetme işlemi başarı ile gerçekleşti", false, (Request.UrlReferrer.AbsolutePath == "/INV/VWINV_Commissions/Insert" ? Url.Action("MyIndex", "VWINV_Commissions", new { area = "INV" }) : null))
             }, JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Personel Seyahat Bilgileri Ekleme", SHRoles.Personel, SHRoles.IdariPersonel)]
+        public ActionResult TravelInsert(Guid? commissionsId, int? travelInformation, int? requestForAccommodation)
+        {
+            var db = new WorkOfTimeDatabase();
+            var existComissions = db.GetVWINV_CommissionsInformationCommissionId(commissionsId.Value);
+            var data = existComissions!=null ? existComissions : new VWINV_CommissionsInformation();
+            if (data==null || data.commissionsId==null)
+            {
+                data.commissionsId = commissionsId;
+                data.travelInformation = travelInformation;
+                data.requestForAccommodation = requestForAccommodation;
+            }
+            return View(data);
+        }
+        [PageInfo("Personel Seyahat Bilgileri Ekleme", SHRoles.Personel, SHRoles.IdariPersonel)]
+        [HttpPost]
+        public JsonResult TravelInsert(INV_CommissionsInformation item, bool? isPost)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            var result = new List<ResultStatus>();
+            if (item.commissionsId != null)
+            {
+                var existTravel = db.GetVWINV_CommissionsById(item.commissionsId.Value);
+                var checkUser = db.GetINV_CommissionsPersonCommissionId(item.commissionsId.Value);
+                var existTravelInfo = db.GetINV_CommissionsInformationById(item.id);
+                foreach (var user in checkUser)
+                {
+                    if (existTravelInfo == null)
+                    {
+                        item.created = DateTime.Now;
+                        item.createdby = userStatus.user.id;
+                        item.userId = user.id;
+                        if (Request != null)
+                        {
+                            new FileUploadSave(Request, item.id).SaveAs();
+                        }
+                        result.Add(db.InsertINV_CommissionsInformation(new INV_CommissionsInformation().B_EntityDataCopyForMaterial(item)));
+                    }
+                    else
+                    {
+                        item.userId = user.id;
+                        item.changed = DateTime.Now;
+                        item.changedby = userStatus.user.id;
+                        if (Request != null)
+                        {
+                            new FileUploadSave(Request, item.id).SaveAs();
+                        }
+                        result.Add(db.UpdateINV_CommissionsInformation(new INV_CommissionsInformation().B_EntityDataCopyForMaterial(item), false));
+                    }
+                }
+            }
+            else
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning("Kayıt Bulunamadı")
+                }, JsonRequestBehavior.AllowGet);
+
+            }
+
+            if (result.Count(a => a.result == false) == 0)
+            {
+                var checkUser = db.GetINV_CommissionsPersonCommissionId(item.commissionsId.Value);
+                var url = TenantConfig.Tenant.GetWebUrl();
+                var tenantName = TenantConfig.Tenant.TenantName;
+                foreach (var user in checkUser)
+                {
+                    var users = db.GetVWSH_UserById(user.IdUser.Value);
+
+                    var text = @"<h3>Sayın {0},</h3> 
+                <p>İdari Yöneticiniz, Seyahat Bilgileri Ve Dokümanlarınızın Düzenlenmesi Sağlanmıştır. </p>
+                <p>Kontrol etmek için lütfen <a href='{1}/INV/VWINV_Confirmation/Detail?id={2}'>Buraya tıklayınız! </a></p>
+                <p>Bilgilerinize.<br>İyi Çalışmalar.</p>";
+                    var mesaj = string.Format(text,users.FullName , url, item.commissionsId);
+                    new Email().Template("Template1", "working.jpg", "Görevlendirme Seyahat Bilgileri Hakkında", mesaj)
+                    .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, users.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Seyahat Bilgileri Hakkında.."), true);
+                }
+                
+                return Json(new ResultStatusUI
+                {
+                    Result = true,
+                    FeedBack = feedback.Success("Seyahat Bilgileri Güncelleme Başarılı",false, Url.Action("Detail", "VWINV_Commissions", new { area = "INV", id = item.commissionsId }))
+                }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning("Seyahat Bilgileri Güncelleme Başarısız.")
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
         [PageInfo("Personel Görevlendirmesi Güncelleme", SHRoles.Personel, SHRoles.IKYonetici)]
         public ActionResult Update(Guid id)
