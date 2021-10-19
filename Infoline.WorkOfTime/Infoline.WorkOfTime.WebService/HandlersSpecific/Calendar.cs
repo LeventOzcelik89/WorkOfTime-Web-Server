@@ -28,6 +28,14 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
+
+                var db = new WorkOfTimeDatabase();
+                var userRole = db.GetSH_UserRoleByUserId(CallContext.Current.UserId);
+                if(userRole.Count(x => x.roleid == new Guid(SHRoles.SahaGorevMusteri)) > 0)
+                {
+                    RenderResponse(context, new MyCalendar[] { });
+                }
+
                 var start = context.Request["start"];
                 var end = context.Request["end"];
                 var email = context.Request["email"];
