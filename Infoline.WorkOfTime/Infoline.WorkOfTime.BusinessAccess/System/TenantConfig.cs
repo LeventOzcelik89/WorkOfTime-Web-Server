@@ -185,6 +185,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.CRMYonetici,
             SHRoles.DepoSorumlusu,
             SHRoles.IdariPersonelYonetici,
+            SHRoles.IdariPersonel,
             SHRoles.IKYonetici,
             SHRoles.IsGorusmesiMulakat,
             SHRoles.MuhasebeSatis,

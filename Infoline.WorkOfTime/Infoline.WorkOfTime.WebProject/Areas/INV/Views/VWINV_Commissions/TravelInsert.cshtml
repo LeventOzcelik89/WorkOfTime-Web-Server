@@ -1,0 +1,490 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CommissionsInformation
+@{
+
+    ViewBag.Title = "Yeni Görevlendirme Talebi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var projectId = ViewBag.ProjectsId;
+
+}
+
+
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 60%;
+    }
+</style>
+@using (Html.BeginForm("TravelInsert", "VWINV_Commissions", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.commissionsId)
+
+    if (Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.ShuttleUcak || Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.UcakAraba || Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.Ucak)
+    {
+        <fieldset>
+            <legend>Uçuş Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereden</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.to)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereye</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.from)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.departureDate)
+                .Value(Model.departureDate != null ? Model.departureDate : DateTime.Now)
+            )
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.returnDate)
+                .MinDateElement("departureDate")
+                .Value(Model.returnDate != null ? Model.returnDate : DateTime.Now)
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Uçuş Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Uçuş Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+    if (Model.requestForAccommodation == (int)EnumINV_CommissionsRequestForAccommodation.Var)
+    {
+        <fieldset>
+            <legend>Konaklama Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Otel Adı</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextBoxFor(model => model.hotelName, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md " for="locationId">Otel Konumu</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.hotelLocation)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Giriş / Çıkış Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.hotelEntryDate)
+                .Value(Model.hotelEntryDate != null ? Model.hotelEntryDate : DateTime.Now)
+            )
+
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.hotelLeaveDate)
+                .MinDateElement("hotelEntryDate")
+                .Value(Model.hotelLeaveDate != null ? Model.hotelLeaveDate : DateTime.Now)
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Konaklama Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Konaklama Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+    if (Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.KiralikArac || Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.UcakAraba)
+    {
+        <fieldset>
+            <legend>Kiralık Araç Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Araç Alım Yeri</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.rentalCarPlace)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Alış / İade Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.rentalCarStartDate)
+                .Value(Model.rentalCarStartDate != null ? Model.rentalCarStartDate : DateTime.Now)
+            )
+
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.rentalCarEndDate)
+                .MinDateElement("rentalCarStartDate")
+                .Value(Model.rentalCarEndDate != null ? Model.rentalCarEndDate : DateTime.Now)
+
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Kiralık Araç Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Kiralık Araç Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+    if (Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.ShuttleUcak || Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.Shuttle)
+    {
+        <fieldset>
+            <legend>Shuttle Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereden</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.shuttleTo)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereye</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.shuttleFrom)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.shuttleDepartureDate)
+                .Value(Model.shuttleDepartureDate != null ? Model.shuttleDepartureDate : DateTime.Now)
+            )
+
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.shuttleReturnDate)
+                .MinDateElement("shuttleDepartureDate")
+                .Value(Model.shuttleReturnDate != null ? Model.shuttleReturnDate : DateTime.Now)
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Shuttle Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Shuttle Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+    if (Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.Otobus)
+    {
+        <fieldset>
+            <legend>Otobüs Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereden</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.to)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereye</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.from)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.departureDate)
+                .Value(Model.departureDate != null ? Model.departureDate : DateTime.Now)
+            )
+
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.returnDate)
+                .MinDateElement("departureDate")
+                .Value(Model.returnDate != null ? Model.returnDate : DateTime.Now)
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Otobüs Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Otobüs Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+    if (Model.travelInformation == (int)EnumINV_CommissionsTravelInformation.Arac)
+    {
+        <fieldset>
+            <legend>Şirket Aracı Bilgileri</legend>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereden</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.to)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="locationId">Nereye</label>
+                </div>
+                <div class="col-md-8">
+
+                    @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.from)
+                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                            .DataTextField("pid_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Execute()
+                        )
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="StartDate">Gidiş / Dönüş Tarihi ve Saati</label>
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.departureDate)
+                .Value(Model.departureDate!=null ? Model.departureDate : DateTime.Now)
+            )
+
+                </div>
+                <div class="col-md-4">
+                    @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.returnDate)
+                .Value(Model.returnDate != null ? Model.returnDate : DateTime.Now)
+                .MinDateElement("departureDate")
+            )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md" for="Dosya">Şirket Aracı Bilgi Dosyaları</label>
+                </div>
+                <div class="col-md-8">
+                    @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CommissionsInformation")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Şirket Aracı Bilgi Dosyaları")
+            )
+                </div>
+            </div>
+        </fieldset>
+    }
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
