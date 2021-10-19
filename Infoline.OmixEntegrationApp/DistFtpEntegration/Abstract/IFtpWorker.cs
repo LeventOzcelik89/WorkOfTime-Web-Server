@@ -10,6 +10,18 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Abstract
     public interface IFtpWorker
     {
 
-        IEnumerable<SellIn> GetToDayFile();
+        FtpConfiguration ftpConfiguration { get; set; }
+        void SetConfiguration(FtpConfiguration ftpConfiguration);
+        FtpConfiguration GetConfiguration();
+        IEnumerable<SellIn> GetSellInObjectForToday();
+        IEnumerable<SellThr> GetSellThrObjectForToday();
+
+    }
+
+    public class FtpConfiguration
+    {
+        string url { get; set; }
+        string userName { get; set; }
+        string password { get; set; }
     }
 }

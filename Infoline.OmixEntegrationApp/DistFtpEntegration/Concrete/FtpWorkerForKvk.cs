@@ -5,18 +5,22 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading;
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
-    public class FtpWorkerForWindows : IFtpWorker
+    public class FtpWorkerForKvk : IFtpWorker
     {
-        public List<FileNameWithUrl> FptUrl=new List<FileNameWithUrl>();
+        public List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
+
+        public FtpConfiguration ftpConfiguration { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
         private IEnumerable<DirectoryItem> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
         {
-            Log.Info("Getting All File Names On Windows Server");
+            Log.Info("Getting All File Names On Linux Server");
             List<DirectoryItem> returnValue = new List<DirectoryItem>();
             foreach (var url in ftpUrls)
             {
-                Log.Info(string.Format("Getting All File Names From Windows Server {0}",url.Url));
+                Log.Info(string.Format("Getting All File Names From Linux Server {0}", url.Url));
                 try
                 {
                     FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(url.Url);
@@ -32,16 +36,21 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     {
                         DirectoryItem item = new DirectoryItem();
                         string data = line;
-                        data = data.Remove(0, 24);
-                        string dir = data.Substring(0, 5);
-                        bool isDirectory = dir.Equals("<dir>", StringComparison.InvariantCultureIgnoreCase);
-                        data = data.Remove(0, 5);
-                        data = data.Remove(0, 10);
-                        string name = data;
+                        bool isDirectory = data[0].ToString() == "d";
+                        var name = data.Substring(56);
+                        item.Name = name;
                         item.BaseUri = new Uri(url.Url);
                         item.IsDirectory = isDirectory;
-                        item.Name = name;
-                        item.Items = item.IsDirectory ? GetFileNames(new List<FtpUrl>() { new FtpUrl { Url = item.AbsolutePath, UserName = url.UserName, Password = url.Password } }).ToList() : null;
+                        if (name=="."||name=="..")
+                        {
+                            
+                        }
+                        else
+                        {
+                            item.Items = item.IsDirectory ? GetFileNames(new List<FtpUrl>() { new FtpUrl { Url = item.AbsolutePath, UserName = url.UserName, Password = url.Password } }).ToList() : null;
+                        }
+                        
+                 
                         returnValue.Add(item);
                         if (!isDirectory)
                         {
@@ -58,7 +67,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         private IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
         {
-            Log.Info(string.Format("Getting File Windows Server {0} on {1}"),fileNameWithUrl.FileName,fileNameWithUrl.Url);
+            Log.Info(string.Format("Getting File  {0} on Linux Server {1}", fileNameWithUrl.FileName, fileNameWithUrl.Url) );
             var liststringArray = new List<string[]>();
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fileNameWithUrl.Url + "/" + fileNameWithUrl.FileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
@@ -81,19 +90,19 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             {
                 Log.Warning(e.Message);
             }
+
             return liststringArray;
         }
-        public IEnumerable<SellIn> GetToDayFile()
+        public IEnumerable<SellIn> GetSellInFileForToday()
         {
-            Log.Info("Getting Today Files on Windows Server");
-         
-            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://127.0.0.1", UserName = "ftpuser", Password = "aA123456" } };
+            Log.Info("Getting Today Files on Genpa Ftp Server");
+            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
             GetFileNames(listOfUrls);
             var datetimeNow = DateTime.Now;
             var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
-            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x =>  x.FileName.Contains(kvkDate)).ToList();
+            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x => x.FileName.Contains(kvkDate)).ToList();
             var res = new List<SellIn>();
-            Log.Info(string.Format("{0} File Found",fileNames.Count));
+            Log.Info(string.Format("{0} File Found", fileNames.Count));
             foreach (var fileName in fileNames)
             {
                 try
@@ -130,11 +139,13 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                             }
                             res.Add(item);
                         }
-                        catch (Exception e )
+                        catch (Exception e)
                         {
                             Log.Error(e.ToString());
                         }
-                    }
+                      
+                    } 
+                    Thread.Sleep(new TimeSpan(0,0,10));
                 }
                 catch (Exception e)
                 {
@@ -143,6 +154,26 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             }
             FptUrl = new List<FileNameWithUrl>();
             return res;
+        }
+
+        public void SetConfiguration(FtpConfiguration ftpConfiguration)
+        {
+            throw new NotImplementedException();
+        }
+
+        public FtpConfiguration GetConfiguration()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<SellIn> GetSellInObjectForToday()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        {
+            throw new NotImplementedException();
         }
     }
 }
