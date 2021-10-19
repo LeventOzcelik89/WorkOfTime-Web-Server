@@ -12,7 +12,12 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
 {
     public class ProcessDistFtpEntegration : IDisposable
     {
-        IFtpWorker FtpWorker = new FtpWorker();
+        List<IFtpWorker> IFtpWorkerList = new List<IFtpWorker> {
+             new FtpWorkerForWingFtp(),
+             new FtpWorkerForLunix()
+
+
+        };
         public ProcessDistFtpEntegration()
         {
             Log.Info("ProcessDistFtpEntegration is Start");
@@ -23,7 +28,10 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
             {
                 //if (DateTime.Now.Hour == 22 && DateTime.Now.Minute == 5)
                 //{
-                    FtpWorker.GetToDayFile();
+                    foreach (var item in IFtpWorkerList)
+                    {
+                        item.GetToDayFile();
+                    }
                 //}
                 Thread.Sleep(new TimeSpan(0, 1, 0));
             }
