@@ -26,20 +26,33 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
                 var sc = new Service1SoapClient();
                 foreach (var firmaNo in FirmaNo.Split(','))
                 {
-                    var getCariList = sc.GetCariList(new ClientFindParam { FirmaNo = firmaNo });
-                    var getProductList = sc.GetMalzemeList(new AdItemsFindParam { FirmaNo = firmaNo });
-                    _dataMapper.CompanySave(getCariList, firmaNo);
-                    _dataMapper.ProductSave(getProductList);
-                    if (getCariList.Count() > 0)
+                    try
                     {
-                        foreach (var cariKodu in getCariList)
+                        var getCariList = sc.GetCariList(new ClientFindParam { FirmaNo = firmaNo });
+                        var getProductList = sc.GetMalzemeList(new AdItemsFindParam { FirmaNo = firmaNo });
+                        _dataMapper.CompanySave(getCariList, firmaNo);
+                        _dataMapper.ProductSave(getProductList);
+                        if (getCariList.Count() > 0)
                         {
-                            var getStorageList = sc.GetSevkAdresList(new AdShipFindParam { FirmaNo = firmaNo, CariKodu = cariKodu.CariKodu });
-                            _dataMapper.StorageSave(getStorageList, firmaNo);
+                            foreach (var cariKodu in getCariList)
+                            {
+                                try
+                                {
+                                    var getStorageList = sc.GetSevkAdresList(new AdShipFindParam { FirmaNo = firmaNo, CariKodu = cariKodu.CariKodu });
+                                    _dataMapper.StorageSave(getStorageList, firmaNo);
+                                }
+                                catch (Exception ex)
+                                {
+                                    Log.Error("Kayıt Oluşturulurken Sorun Oluştu. Mesaj : " + ex.Message + " mm: " + ex.InnerException.Message);
+                                }
+                            }
                         }
                     }
+                    catch (Exception ex)
+                    {
+                        Log.Error("Kayıt Oluşturulurken. Mesaj : " + ex.Message + " mm: " + ex.InnerException.Message);
+                    }
                 }
-
                 Log.Info("işlem tamamlandı");
                 Thread.Sleep(new TimeSpan(2, 0, 0));
             }
