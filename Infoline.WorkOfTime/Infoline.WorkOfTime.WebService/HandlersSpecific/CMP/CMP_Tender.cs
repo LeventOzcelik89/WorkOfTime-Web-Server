@@ -123,7 +123,7 @@ namespace Infoline.WorkOfTime.WebService
                 var db = new WorkOfTimeDatabase();
                 var model = ParseRequest<VMCMP_OrderModels>(context);
                 var res = model.Save(userId);
-                RenderResponse(context, res);
+                RenderResponse(context, new ResultStatus() { result = true, message = "Teklif Başarılı Bir Şekilde Siparişe Dönüştürüldü." });
             }
             catch (Exception ex)
             {
