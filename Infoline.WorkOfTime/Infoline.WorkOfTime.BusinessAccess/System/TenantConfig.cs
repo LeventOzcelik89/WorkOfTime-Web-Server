@@ -795,6 +795,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaYonetim,
                         SHRoles.YardimMasaPersonel,
                         SHRoles.YardimMasaTalep,
+                        SHRoles.YardimMasaMusteri,
                     });
                     break;
                 case 1186:
