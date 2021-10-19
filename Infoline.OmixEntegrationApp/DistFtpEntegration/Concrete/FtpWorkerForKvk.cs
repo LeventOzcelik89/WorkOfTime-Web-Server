@@ -10,8 +10,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
     public class FtpWorkerForKvk : IFtpWorker
     {
-        private List<SellIn> SellIns { get; set; }
-        private List<SellThr> SellThrs { get; set; }
         private List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
         public FtpConfiguration FtpConfiguration { get; set; }
         public void SetConfiguration(FtpConfiguration ftpConfiguration)
@@ -24,64 +22,160 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         public IEnumerable<SellIn> GetSellInObjectForToday()
         {
-            return this.SellIns;
-        }
-        public IEnumerable<SellThr> GetSellThrObjectForToday()
-        {
-            return this.SellThrs;
-        }
-      
-        private IEnumerable<DirectoryItem> GetFileNames(IEnumerable<FtpUrl> ftpUrls)
-        {
-            Log.Info("Getting All File Names On Linux Server");
-            List<DirectoryItem> returnValue = new List<DirectoryItem>();
-            foreach (var url in ftpUrls)
+            List<SellIn> sellIns = new List<SellIn>();
+            GetFileNames(this.FtpConfiguration);
+            var datetimeNow = DateTime.Now;
+            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
+            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") && x.FileName.Contains(kvkDate)).ToList();
+            Log.Info(string.Format("{0} Sellin File Found On Kvk Ftp Server", fileNames.Count));
+            foreach (var file in fileNames)
             {
-                Log.Info(string.Format("Getting All File Names From Linux Server {0}", url.Url));
                 try
                 {
-                    FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(url.Url);
-                    request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-                    request.Credentials = new NetworkCredential(url.UserName, url.Password);
-                    string[] list = null;
-                    using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
-                    using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                    List<PropertyIndex> Index = new List<PropertyIndex>();
+                    var getRawFile = GetRawFile(file).ToList();
+                    var getHeaders = getRawFile[0];
+                    getRawFile.RemoveAt(0);
+                    for (int i = 0; i < getHeaders.Length; i++)
                     {
-                        list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i] });
                     }
-                    foreach (string line in list)
+                    foreach (var rawFile in getRawFile)
                     {
-                        DirectoryItem item = new DirectoryItem();
-                        string data = line;
-                        bool isDirectory = data[0].ToString() == "d";
-                        var name = data.Substring(56);
-                        item.Name = name;
-                        item.BaseUri = new Uri(url.Url);
-                        item.IsDirectory = isDirectory;
-                        if (name=="."||name=="..")
+                        try
                         {
+                            var item = new SellIn();
+                            for (int i = 0; i < rawFile.Length; i++)
+                            {
+                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                {
+                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                }
+                                else
+                                {
+                                    prop.SetValue(item, rawFile[i]);
+                                }
+                            }
+                            sellIns.Add(item);
                         }
-                        else
+                        catch (Exception e)
                         {
-                            item.Items = item.IsDirectory ? GetFileNames(new List<FtpUrl>() { new FtpUrl { Url = item.AbsolutePath, UserName = url.UserName, Password = url.Password } }).ToList() : null;
-                        }
-                        returnValue.Add(item);
-                        if (!isDirectory)
-                        {
-                            FptUrl.Add(new FileNameWithUrl { Password = url.Password, UserName = url.UserName, FileName = name, Url = item.BaseUri.ToString() });
+                            Log.Error(e.ToString());
                         }
                     }
+                    Thread.Sleep(new TimeSpan(0, 0, 10));
                 }
                 catch (Exception e)
                 {
-                    Log.Error(url.Url + " failed! : " + e.Message);
+                    Log.Error(e.ToString());
                 }
+            }
+            return sellIns;
+        }
+        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        {
+            List<SellThr> sellThrs = new List<SellThr>();
+            GetFileNames(this.FtpConfiguration);
+            var datetimeNow = DateTime.Now;
+            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
+            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLTHR") && x.FileName.Contains(kvkDate)).ToList();
+            Log.Info(string.Format("{0} SellThr File Found On Kvk Ftp Server", fileNames.Count));
+            foreach (var file in fileNames)
+            {
+                try
+                {
+                    List<PropertyIndex> Index = new List<PropertyIndex>();
+                    var getRawFile = GetRawFile(file).ToList();
+                    var getHeaders = getRawFile[0];
+                    getRawFile.RemoveAt(0);
+                    for (int i = 0; i < getHeaders.Length; i++)
+                    {
+                        Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i] });
+                    }
+                    foreach (var rawFile in getRawFile)
+                    {
+                        try
+                        {
+                            var item = new SellThr();
+                            for (int i = 0; i < rawFile.Length; i++)
+                            {
+                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                {
+                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                }
+                                else
+                                {
+                                    prop.SetValue(item, rawFile[i]);
+                                }
+                            }
+                            sellThrs.Add(item);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e.ToString());
+                        }
+                    }
+                    Thread.Sleep(new TimeSpan(0, 0, 10));
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.ToString());
+                }
+            }
+            return sellThrs;
+        }
+        private IEnumerable<DirectoryItem> GetFileNames(FtpConfiguration config)
+        {
+            Log.Info("Getting All File Names On KVK Server");
+            List<DirectoryItem> returnValue = new List<DirectoryItem>();
+            Log.Info(string.Format("Getting All File Names From Kvk Server {0}", config.Url));
+            try
+            {
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(config.Url);
+                request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                request.Credentials = new NetworkCredential(config.UserName, config.Password);
+                string[] list = null;
+                using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
+                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
+                {
+                    list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                }
+                foreach (string line in list)
+                {
+                    DirectoryItem item = new DirectoryItem();
+                    string data = line;
+                    bool isDirectory = data[0].ToString() == "d";
+                    var name = data.Substring(56);
+                    item.Name = name;
+                    item.BaseUri = config.Url;
+                    item.IsDirectory = isDirectory;
+                    if (name == "." || name == "..")
+                    {
+                    }
+                    else
+                    {
+                        item.Items = item.IsDirectory ? GetFileNames(new FtpConfiguration { Url = item.AbsolutePath, UserName = config.UserName, Password = config.Password }).ToList() : null;
+                        returnValue.Add(item);
+                        if (!isDirectory)
+                        {
+                            FptUrl.Add(new FileNameWithUrl { Password = GetConfiguration().Password, UserName = GetConfiguration().UserName, FileName = name, Url = item.BaseUri });
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(config.Url + " failed! : " + e.Message);
             }
             return returnValue;
         }
         private IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
         {
-            Log.Info(string.Format("Getting File  {0} on Linux Server {1}", fileNameWithUrl.FileName, fileNameWithUrl.Url) );
+            Log.Info(string.Format("Getting File  {0} on KVK Server {1}", fileNameWithUrl.FileName, fileNameWithUrl.Url));
             var liststringArray = new List<string[]>();
             FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fileNameWithUrl.Url + "/" + fileNameWithUrl.FileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
@@ -105,67 +199,6 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                 Log.Warning(e.Message);
             }
             return liststringArray;
-        }
-        private IEnumerable<SellIn> GetObjest()
-        {
-            Log.Info("Getting Today Files on Genpa Ftp Server");
-            List<FtpUrl> listOfUrls = new List<FtpUrl>() { new FtpUrl { Url = "ftp://82.222.178.101", UserName = "omixmobile", Password = "VpyC8g3R*" } };
-            GetFileNames(listOfUrls);
-            var datetimeNow = DateTime.Now;
-            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
-            var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")).Where(x => x.FileName.Contains(kvkDate)).ToList();
-            var res = new List<SellIn>();
-            Log.Info(string.Format("{0} File Found", fileNames.Count));
-            foreach (var fileName in fileNames)
-            {
-                try
-                {
-                    List<PropertyIndex> Index = new List<PropertyIndex>();
-                    var getRawFile = GetRawFile(fileName).ToList();
-                    var getHeaders = getRawFile[0];
-                    getRawFile.RemoveAt(0);
-                    for (int i = 0; i < getHeaders.Length; i++)
-                    {
-                        Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i] });
-                    }
-                    foreach (var rawFile in getRawFile)
-                    {
-                        try
-                        {
-                            var item = new SellIn();
-                            if (fileName.FileName.Contains("SELLTHR"))
-                            {
-                                //
-                            }
-                            for (int i = 0; i < rawFile.Length; i++)
-                            {
-                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
-                                {
-                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
-                                }
-                                else
-                                {
-                                    prop.SetValue(item, rawFile[i]);
-                                }
-                            }
-                            res.Add(item);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e.ToString());
-                        }
-                    } 
-                    Thread.Sleep(new TimeSpan(0,0,10));
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e.ToString());
-                }
-            }
-            FptUrl = new List<FileNameWithUrl>();
-            return res;
         }
     }
 }

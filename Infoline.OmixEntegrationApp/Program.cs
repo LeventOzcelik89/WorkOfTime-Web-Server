@@ -14,6 +14,7 @@ namespace Infoline.OmixEntegrationApp
 {
     class Program
     {
+        public static string TenantCode= ConfigurationManager.AppSettings["DefaultTenant"].ToString();
         static void Main(string[] args)
         {
             AgentRunControl(); //Çalışan Bir Uygulama Var İse Kapatalım
@@ -62,7 +63,7 @@ namespace Infoline.OmixEntegrationApp
 
         private static void ServiceControl(string[] args)
         {
-            var ServiceName = "Infoline.OmixEntegrationApp";
+            var ServiceName = "Infoline.Entegration"+TenantCode+"App";
             if (SvcInstaller.GetServiceStatus(ServiceName) == ServiceState.NotFound) // Windows Servisi Kur Yüklü Değil ise
             {
                 Console.WriteLine("Servis Kuruluyor");
@@ -81,7 +82,7 @@ namespace Infoline.OmixEntegrationApp
 
             if (Environment.UserInteractive)
             {
-                ServiceController sc = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName.Equals("Infoline.OmixEntegrationApp"));
+                ServiceController sc = ServiceController.GetServices().FirstOrDefault(s => s.ServiceName.Equals("Infoline.Entegration" + TenantCode + "App"));
                 if (sc != null)
                 {
                     if (sc.Status.Equals(ServiceControllerStatus.Running))
@@ -94,11 +95,11 @@ namespace Infoline.OmixEntegrationApp
                 }
             }
 
-            if (Process.GetProcessesByName("Infoline.OmixEntegrationApp").Length > 1)
+            if (Process.GetProcessesByName("Infoline.Entegration" + TenantCode + "App").Length > 1)
             {
                 Console.WriteLine("Çalışan bir Agent var...! Diğer Uygulama kapatılıyor...");
 
-                var runningProcesses = Process.GetProcesses().Where(a => a.ProcessName.Equals("Infoline.OmixEntegrationApp"));
+                var runningProcesses = Process.GetProcesses().Where(a => a.ProcessName.Equals("Infoline.Entegration" + TenantCode + "App"));
                 foreach (var process in runningProcesses)
                 {
                     if (System.IntPtr.Zero != process.MainWindowHandle && Process.GetCurrentProcess().MainWindowHandle != process.MainWindowHandle)
