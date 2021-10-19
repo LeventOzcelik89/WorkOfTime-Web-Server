@@ -176,6 +176,35 @@ namespace Infoline.WorkOfTime.BusinessAccess
                          new string[]{ SHRoles.Personel}),
                 }
             },
+              {
+                "INV_CommissionsInformation", new[]
+                {
+                   new FileBase("Uçuş Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici}),
+                    new FileBase("Konaklama Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici}),
+                    new FileBase("Kiralık Araç Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici}),
+                      new FileBase("Shuttle Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici}),
+                    new FileBase("Otobüs Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici}),
+                      new FileBase("Şirket Aracı Bilgi Dosyaları","*.jpg,.jpeg,.png,*.pdf",99,
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici },
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici},
+                         new string[]{ SHRoles.Personel,SHRoles.IdariPersonelYonetici})
+                }
+            },
             {
                 "SH_PersonCertificate", new[]
                 {

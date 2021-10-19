@@ -42,8 +42,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UcakAraba = 4,
         [Description("Shuttle")]
         Shuttle = 5,
-       
-   
+        [Description("Shuttle + Uçak")]
+        ShuttleUcak = 6,
+        [Description("Kiralık Araç")]
+        KiralikArac = 7,
+
+
     }
 
     [EnumInfo(typeof(INV_Commissions), "RequestForAccommodation")]
