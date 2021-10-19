@@ -41,7 +41,7 @@ namespace Infoline.WorkOfTime.WebService
             {
                 var db = new WorkOfTimeDatabase();
                 var id = context.Request["id"];
-                var data = db.GetVWCMP_CompanyById(new Guid((string)id));
+                var data = new VMCMP_CompanyModel().LoadCompanyDetail(new Guid((string)id));
                 RenderResponse(context, new ResultStatus() { result = true, objects = data });
             }
             catch (Exception ex)
