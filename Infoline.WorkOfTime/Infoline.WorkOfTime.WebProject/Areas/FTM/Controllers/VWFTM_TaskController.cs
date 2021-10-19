@@ -614,7 +614,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         }
 
         [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
-        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId, Guid? outputId)
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId, Guid? outputId, Guid? inputId, Guid? inputCompanyId)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var model = transaction.Load();
@@ -641,13 +641,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 model.items = new List<VMPRD_TransactionItems>();
             }
             model.outputId = outputId;
-            model.type = (int)EnumPRD_TransactionType.SarfFisi;
+            model.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
             return View(model);
         }
 
         [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
         [HttpPost]
-        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId,Guid? outputId,bool? isPost)
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId,Guid? outputId,Guid? inputId,Guid? inputCompanyId,bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
@@ -655,7 +655,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var taskOperation = new VMFTM_TaskOperationModel();
             transaction.status = (int)EnumPRD_TransactionStatus.islendi;
             transaction.outputId = outputId;
+            transaction.inputCompanyId = inputCompanyId;
+            transaction.inputId = inputId;
             transaction.outputTable = "CMP_Storage";
+            transaction.inputTable = "CMP_Storage";
             dbresult &= transaction.Save(userStatus.user.id);
             taskOperation.taskId = taskId;
             taskOperation.status = (int)EnumFTM_TaskOperationStatus.StoktanMalzemeKullanimi;
