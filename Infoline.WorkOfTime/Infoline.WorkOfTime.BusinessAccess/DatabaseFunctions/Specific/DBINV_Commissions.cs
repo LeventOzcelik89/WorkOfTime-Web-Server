@@ -23,7 +23,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Davet")]
         Davet = 6,
         [Description("Diğer")]
-        Diger = 7
+        Diger = 7,
+        [Description("Proje Çalışması")]
+        ProjeCalismasi = 7
 
     }
 
@@ -42,8 +44,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UcakAraba = 4,
         [Description("Shuttle")]
         Shuttle = 5,
-       
-   
+        [Description("Shuttle + Uçak")]
+        ShuttleUcak = 6,
+        [Description("Kiralık Araç")]
+        KiralikArac = 7,
+
+
     }
 
     [EnumInfo(typeof(INV_Commissions), "RequestForAccommodation")]
@@ -78,7 +84,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
 
     public partial class WorkOfTimeDatabase
-    {     
-   
+    {
+
     }
 }

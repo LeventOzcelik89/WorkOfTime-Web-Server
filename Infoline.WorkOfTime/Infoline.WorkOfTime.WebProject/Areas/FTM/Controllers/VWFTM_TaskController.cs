@@ -641,6 +641,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 model.items = new List<VMPRD_TransactionItems>();
             }
             model.outputId = outputId;
+            model.inputId = inputId;
+            model.inputCompanyId = inputCompanyId;
             model.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
             return View(model);
         }

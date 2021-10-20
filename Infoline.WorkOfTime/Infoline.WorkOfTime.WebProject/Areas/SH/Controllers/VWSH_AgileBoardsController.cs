@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return View(item);
         }
 
-        [PageInfo("Yeni Kanban Tanımlama", SHRoles.SistemYonetici, SHRoles.IKYonetici, SHRoles.IdariPersonelYonetici)]
+        [PageInfo("Yeni Kanban Tanımlama", SHRoles.SistemYonetici, SHRoles.IKYonetici, SHRoles.IdariPersonelYonetici, SHRoles.CRMYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VWAgileBoardModel item, bool? isPost)
         {
