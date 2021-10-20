@@ -87,8 +87,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string Version { get; set; }
         public string ActivityName { get; set; }
         public bool IsSystemApp { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
+        public DateTime? Created { get; set; }
+        public DateTime? Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceData
@@ -104,13 +104,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string IMEI1 { get; set; }
         public string IMEI2 { get; set; }
         public DeviceOperatingSystem OperatingSystem { get; set; } = new DeviceOperatingSystem();
-        public string HardwareDetail { get; set; }
+        public object HardwareDetail { get; set; }
         public List<object> GsmCarriers { get; set; }
         public DeviceLastUsageHistory LastUsageHistory { get; set; } = new DeviceLastUsageHistory();
         public DeviceLastLocation LastLocation { get; set; } = new DeviceLastLocation();
         public List<DeviceApplication> Applications { get; set; } = new List<DeviceApplication>();
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
+        public DateTime? Created { get; set; }
+        public DateTime? Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceLastLocation
@@ -122,8 +122,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string Longitude { get; set; } = "0";
         public string Latitude { get; set; } = "0";
         public double Altitude { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
+        public DateTime? Date { get; set; }
+        public DateTime? Created { get; set; }
         public object Modified { get; set; }
         public string DeviceId { get; set; }
         public IGeometry Location { get; set; }
@@ -131,15 +131,15 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
     public class DeviceLastUsageHistory
     {
         public string UsageHistoryId { get; set; }
-        public double Battery { get; set; }
-        public double Storage { get; set; }
-        public double CPU { get; set; }
-        public double RAM { get; set; }
-        public bool Broken { get; set; } = false;
-        public bool ForcedBreak { get; set; }
-        public DateTime Date { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
+        public double? Battery { get; set; }
+        public double? Storage { get; set; }
+        public double? CPU { get; set; }
+        public double? RAM { get; set; }
+        public bool? Broken { get; set; } = false;
+        public bool? ForcedBreak { get; set; }
+        public DateTime? Date { get; set; }
+        public DateTime? Created { get; set; }
+        public DateTime? Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceOperatingSystem
@@ -147,14 +147,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string OperatingSystemId { get; set; }
         public string Version { get; set; }
         public string BuildNumber { get; set; }
-        public DateTime Created { get; set; }
-        public DateTime Modified { get; set; }
+        public DateTime? Created { get; set; }
+        public DateTime? Modified { get; set; }
         public string DeviceId { get; set; }
     }
     public class DeviceResult
     {
         public DeviceData Data { get; set; }
-        public bool Success { get; set; }
+        public bool? Success { get; set; }
         public List<string> Messages { get; set; }
     }
     public class DeviceResultList
