@@ -48,6 +48,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public double GetCMP_CompanyTenderAmountByCustomerId(Guid id, int direction, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Invoice>().Where(a => a.customerId == id && a.totalAmountAsTL != null).Execute().Sum(a => a.totalAmountAsTL.Value);
+            }
+        }
+
+        public double GetCMP_CompanyInvoiceAmountBySuplierId(Guid id, int direction, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Invoice>().Where(a => a.supplierId == id && a.totalAmountAsTL != null).Execute().Sum(a => a.totalAmountAsTL.Value);
+            }
+        }
+
     }
 
     public class CompanyInvoiceMonthly
