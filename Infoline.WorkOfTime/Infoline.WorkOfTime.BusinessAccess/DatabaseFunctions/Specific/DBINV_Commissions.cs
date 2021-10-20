@@ -25,7 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Diğer")]
         Diger = 7,
         [Description("Proje Çalışması")]
-        ProjeCalismasi = 7
+        ProjeCalismasi = 8
 
     }
 
