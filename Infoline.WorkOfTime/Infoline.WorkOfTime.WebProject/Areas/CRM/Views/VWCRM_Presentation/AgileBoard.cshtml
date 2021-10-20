@@ -565,6 +565,10 @@
             $this.Agile.init(saved == undefined ? null : saved.StageList);
             $this.Kanban.init();
 
+            $('[data-render="CartItemFilter"]').removeClass('open');
+            $('[data-render="StageRender"]').removeClass('open');
+            $('[data-render="SortRender"]').removeClass('open');
+
         },
 
         Kanban: {
@@ -701,7 +705,7 @@
 
                 });
 
-                $this.RenderTarget.find('[name="sortField"], #sortDir').on('change', function () {
+                $this.RenderTarget.find('[name="sortField"], #sortDir').on('change', function (e) {
 
                     var _field = $('[name="sortField"]:checked').val();
                     var _dir = $('#sortDir').prop('checked') ? 'asc' : 'desc';
@@ -720,6 +724,8 @@
                     $this.Data = { field: _field, dir: _dir };
 
                     agile.Agile.UpdateFilters();
+
+                    $('[data-render="SortRender"]').addClass('open');
 
                 });
 
@@ -1450,6 +1456,8 @@
 
                         $this.CartList[_field].checked = _checked;
 
+                        $('[data-render="CartItemFilter"]').addClass('open');
+                        
                     });
 
                 });
@@ -1619,6 +1627,8 @@
 
                         }
 
+                        $('[data-render="StageRender"]').addClass('open');
+                        
                     });
 
                 });
@@ -1792,16 +1802,6 @@
         .on('click', '#VWSH_AgileBoardsInsertForm [data-event="Insert"]', function () {
 
             $('#VWSH_AgileBoardsInsertForm #id').val(null);
-
-        })
-
-        //  AŞAMALAR, SORT, KART İÇERİĞİ butonlarının otomatik kapanmaması için.
-        .on('hide.bs.dropdown', '.btn-group[data-render="CartItemFilter"], .btn-group[data-render="StageRender"], .btn-group[data-render="SortRender"]', function (e) {
-
-            if (!$(e.delegateTarget.activeElement).hasClass('dropdown-toggle')) {
-                e.preventDefault();
-                return false;
-            }
 
         })
 
