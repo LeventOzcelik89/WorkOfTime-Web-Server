@@ -22,6 +22,10 @@ namespace Infoline.WorkOfTime.BusinessData
         public DateTime? shuttleDepartureDate { get; set;}
         public DateTime? shuttleReturnDate { get; set;}
         public Guid? hotelLocation { get; set;}
+        public string note { get; set;}
+        public string hotelNote { get; set;}
+        public string rentalCarNote { get; set;}
+        public string shuttleNote { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string Information_Title { get; set;}
@@ -35,6 +39,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string shuttleTo_Title { get; set;}
         public string rentalCarPlace_Title { get; set;}
         public string hotelLocation_Title { get; set;}
+        public string airportFrom_Title { get; set;}
+        public string airportTo_Title { get; set;}
         public string flightInfoFiles { get; set;}
         public string hotelInfoFiles { get; set;}
         public string rentalCarInfoFiles { get; set;}

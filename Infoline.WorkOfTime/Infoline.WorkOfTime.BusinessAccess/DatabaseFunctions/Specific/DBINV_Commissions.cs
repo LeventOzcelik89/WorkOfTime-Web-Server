@@ -23,7 +23,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Davet")]
         Davet = 6,
         [Description("Diğer")]
-        Diger = 7
+        Diger = 7,
+        [Description("Proje Çalışması")]
+        ProjeCalismasi = 7
 
     }
 
@@ -82,7 +84,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
 
     public partial class WorkOfTimeDatabase
-    {     
-   
+    {
+
     }
 }
