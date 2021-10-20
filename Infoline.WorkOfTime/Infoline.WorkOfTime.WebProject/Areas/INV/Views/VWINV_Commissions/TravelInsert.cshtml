@@ -34,19 +34,18 @@
                     <label class="control-label label-md  " for="locationId">Nereden</label>
                 </div>
                 <div class="col-md-8">
-
                     @(
                             Html.Akilli()
                             .DropDownListFor(model => model.to)
-                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
-                            .DataTextField("pid_Title")
+                            .OptionLabel("Havalimanı Seçiniz..")
+                            .DataTextField("name")
                             .DataValueField("id")
-                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
-                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
-                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Airport", new { area = "UT" }))
+                            .Filter<VWUT_Airport>(a =>(a.status == (int)EnumUT_AirportStatus.active))
+                            .BasicInsert(Url.Action("Insert", "VWUT_Airport", new { area = "UT" }), "name", true)
+                            .Sort(x => x.Add("name").Ascending())
                             .Execute()
                         )
-
                 </div>
             </div>
             <div class="form-group">
@@ -54,19 +53,18 @@
                     <label class="control-label label-md  " for="locationId">Nereye</label>
                 </div>
                 <div class="col-md-8">
-
                     @(
                             Html.Akilli()
                             .DropDownListFor(model => model.from)
-                            .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
-                            .DataTextField("pid_Title")
+                            .OptionLabel("Havalimanı Seçiniz..")
+                            .DataTextField("name")
                             .DataValueField("id")
-                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
-                            .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
-                            .Sort(x => x.Add("pid_Title").Ascending())
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_Airport", new { area = "UT" }))
+                            .Filter<VWUT_Airport>(a =>(a.status == (int)EnumUT_AirportStatus.active))
+                            .BasicInsert(Url.Action("Insert", "VWUT_Airport", new { area = "UT" }), "name", true)
+                            .Sort(x => x.Add("name").Ascending())
                             .Execute()
                         )
-
                 </div>
             </div>
 
@@ -88,6 +86,17 @@
                 .MinDateElement("departureDate")
                 .Value(Model.returnDate != null ? Model.returnDate : DateTime.Now)
             )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.note, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
                 </div>
             </div>
             <div class="form-group">
@@ -162,6 +171,17 @@
             </div>
             <div class="form-group">
                 <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.hotelNote, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
                     <label class="control-label label-md" for="Dosya">Konaklama Bilgi Dosyaları</label>
                 </div>
                 <div class="col-md-8">
@@ -219,6 +239,17 @@
                 .Value(Model.rentalCarEndDate != null ? Model.rentalCarEndDate : DateTime.Now)
 
             )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.rentalCarNote, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
                 </div>
             </div>
             <div class="form-group">
@@ -299,6 +330,17 @@
                 .MinDateElement("shuttleDepartureDate")
                 .Value(Model.shuttleReturnDate != null ? Model.shuttleReturnDate : DateTime.Now)
             )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.shuttleNote, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
                 </div>
             </div>
             <div class="form-group">
@@ -384,6 +426,17 @@
             </div>
             <div class="form-group">
                 <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.note, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
                     <label class="control-label label-md" for="Dosya">Otobüs Bilgi Dosyaları</label>
                 </div>
                 <div class="col-md-8">
@@ -461,6 +514,17 @@
                 .Value(Model.returnDate != null ? Model.returnDate : DateTime.Now)
                 .MinDateElement("departureDate")
             )
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">
+                    <label class="control-label label-md  " for="CommissionCode">Not</label>
+                </div>
+                <div class="col-md-8">
+                    @Html.TextAreaFor(model => model.note, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                    })
                 </div>
             </div>
             <div class="form-group">

@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 {
     public class VWINV_CommissionsController : Controller
     {
-        [PageInfo("Tüm Görevlendirmeler", SHRoles.IKYonetici,SHRoles.IdariPersonel)]
+        [PageInfo("Tüm Görevlendirmeler", SHRoles.IKYonetici, SHRoles.IdariPersonel)]
         public ActionResult Index()
         {
             return View();
@@ -256,16 +256,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
         [PageInfo("Personel Seyahat Bilgileri Ekleme", SHRoles.Personel, SHRoles.IdariPersonel)]
-        public ActionResult TravelInsert(Guid? commissionsId, int? travelInformation, int? requestForAccommodation)
+        public ActionResult TravelInsert(Guid? commissionsId, int? travelInformation, int? requestForAccommodation, DateTime? startDate, DateTime? endDate)
         {
             var db = new WorkOfTimeDatabase();
             var existComissions = db.GetVWINV_CommissionsInformationCommissionId(commissionsId.Value);
-            var data = existComissions!=null ? existComissions : new VWINV_CommissionsInformation();
-            if (data==null || data.commissionsId==null)
+            var data = existComissions != null ? existComissions : new VWINV_CommissionsInformation();
+            if (data == null || data.commissionsId == null)
             {
                 data.commissionsId = commissionsId;
                 data.travelInformation = travelInformation;
                 data.requestForAccommodation = requestForAccommodation;
+                data.departureDate = startDate;
+                data.hotelEntryDate = startDate;
+                data.rentalCarStartDate = startDate;
+                data.shuttleDepartureDate = startDate;
+                data.shuttleReturnDate = endDate;
+                data.returnDate = endDate;
+                data.rentalCarEndDate = endDate;
+                data.hotelLeaveDate = endDate;
             }
             return View(data);
         }
@@ -320,26 +328,37 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
             if (result.Count(a => a.result == false) == 0)
             {
+                var filesList = new List<string>();
+                var files = db.GetSYS_FilesByDataIdArray(item.id);
+                var webUrl = TenantConfig.Tenant.GetWebUrl();
+
+                if (files.Count() > 0)
+                {
+                    foreach (var filesData in files)
+                    {
+                        filesList.Add(webUrl + "" + filesData.FilePath);
+                    }
+                }
+               
                 var checkUser = db.GetINV_CommissionsPersonCommissionId(item.commissionsId.Value);
                 var url = TenantConfig.Tenant.GetWebUrl();
                 var tenantName = TenantConfig.Tenant.TenantName;
                 foreach (var user in checkUser)
                 {
                     var users = db.GetVWSH_UserById(user.IdUser.Value);
-
                     var text = @"<h3>Sayın {0},</h3> 
-                <p>İdari Yöneticiniz, Seyahat Bilgileri Ve Dokümanlarınızın Düzenlenmesi Sağlanmıştır. </p>
-                <p>Kontrol etmek için lütfen <a href='{1}/INV/VWINV_Confirmation/Detail?id={2}'>Buraya tıklayınız! </a></p>
-                <p>Bilgilerinize.<br>İyi Çalışmalar.</p>";
-                    var mesaj = string.Format(text,users.FullName , url, item.commissionsId);
+                     <p>İdari Yöneticiniz, Seyahat Bilgileri Ve Dokümanlarınızı Sistemde Düzenlemiştir. </p>
+                     <p>Kontrol etmek için lütfen <a href='{1}/INV/VWINV_Confirmation/Detail?id={2}'>Buraya tıklayınız! </a></p>
+                     <p>Bilgilerinize.<br>İyi Çalışmalar.</p>";
+                    var mesaj = string.Format(text, users.FullName, url, item.commissionsId);
                     new Email().Template("Template1", "working.jpg", "Görevlendirme Seyahat Bilgileri Hakkında", mesaj)
-                    .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, users.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Seyahat Bilgileri Hakkında.."), true);
+                    .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, users.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Seyahat Bilgileri Hakkında.."), true,null,null,filesList.ToArray());
                 }
-                
+
                 return Json(new ResultStatusUI
                 {
                     Result = true,
-                    FeedBack = feedback.Success("Seyahat Bilgileri Güncelleme Başarılı",false, Url.Action("Detail", "VWINV_Commissions", new { area = "INV", id = item.commissionsId }))
+                    FeedBack = feedback.Success("Seyahat Bilgileri Güncelleme Başarılı", false, Url.Action("Detail", "VWINV_Commissions", new { area = "INV", id = item.commissionsId }))
                 }, JsonRequestBehavior.AllowGet);
             }
             else
