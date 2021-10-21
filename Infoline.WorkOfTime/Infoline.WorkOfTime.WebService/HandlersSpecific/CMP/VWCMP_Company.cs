@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.WebService
 
         }
         [HandleFunction("VWCMP_Company/SpecGetAll")]
-        public void VWCMP_CompanyGetAll(HttpContext context)
+        public void VWCMP_CompanySpecGetAll(HttpContext context)
         {
             try
             {
