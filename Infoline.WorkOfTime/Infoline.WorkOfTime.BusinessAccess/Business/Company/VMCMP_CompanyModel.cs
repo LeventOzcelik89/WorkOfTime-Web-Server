@@ -92,8 +92,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             companyDetail.invoiceSellingCount = invoiceSellingCount;
             companyDetail.invoiceSellingAmount = invoiceSellingAmount;
             companyDetail.inoviceBuyingAmount = invoiceBuyingAmount;
-
-            //this.B_EntityDataCopyForMaterial(companyDetail);
             return companyDetail;
         }
 
