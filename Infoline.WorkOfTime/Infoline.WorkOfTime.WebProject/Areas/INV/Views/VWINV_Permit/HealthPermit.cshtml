@@ -78,10 +78,10 @@
                         permitPage.functions.SetCommencementDate();
                     }
                     if(res.Text == "false"){
-                        $('#StartDate').data('kendoDateTimePicker').value(new Date());
-                        $('#EndDate').data('kendoDateTimePicker').value(new Date());
-                        $('form').validator('validate');
-                        permitPage.functions.SetCommencementDate();
+                        //$('#StartDate').data('kendoDateTimePicker').value(new Date());
+                        //$('#EndDate').data('kendoDateTimePicker').value(new Date());
+                        //$('form').validator('validate');
+                        //permitPage.functions.SetCommencementDate();
                     }
                     if (res && res.CommencementDate) {
                         $("#CommencementDate").val(new Date(res.CommencementDate).toLocaleString("tr-TR").replace(":00", ""));
@@ -163,9 +163,17 @@
                     $("#StartDate").data("kendoDateTimePicker").min(new Date(person.JobStartDate));
                     $("#StartDate").trigger("change");
                 }
+
                 if (person.IsWorking == 0) {
                     $('#StartDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
                     $('#EndDate').data("kendoDateTimePicker").max(new Date(person.JobEndDate));
+
+                    $("#EndDate").data("kendoDateTimePicker").value(new Date(person.JobEndDate));
+                    $("#StartDate").data("kendoDateTimePicker").value(new Date(person.JobEndDate));
+                }
+                else {
+                    $("#EndDate").kendoDateTimePicker({ value: new Date(), dateInput: true })
+                    $("#StartDate").kendoDateTimePicker({ value: new Date(), dateInput: true })
                 }
 
                 if (e.sender.element.attr("name") == "PermitTypeId") {
@@ -280,12 +288,10 @@
                     @(
                         Html.Akilli()
                         .DateTimePickerFor(model => model.StartDate)
-                        .Max(new DateTime(Model.EndDate.Value.Ticks).AddMinutes(1))
-                        .MaxDateElement("EndDate")
                         .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
                         .Interval(15)
                         .Validate(Validations.Required)
-                    )
+                      )
                 </div>
             </div>
 
@@ -295,13 +301,12 @@
                 </div>
                 <div class="col-md-8">
                     @(
-                        Html.Akilli()
-                        .DateTimePickerFor(model => model.EndDate)
-                        .MinDateElement("StartDate")
-                        .Interval(15)
-                        .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
-
-                    )
+                         Html.Akilli()
+                         .DateTimePickerFor(model => model.EndDate)
+                         .Events(a => a.Open("permitPage.functions.SetDisableDates").Change("permitPage.functions.SetCommencementDate"))
+                         .Interval(15)
+                         .Validate(Validations.Required)
+                       )
                 </div>
             </div>
 
