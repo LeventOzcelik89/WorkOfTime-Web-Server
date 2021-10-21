@@ -49,8 +49,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string phone { get; set; }
         public string email { get; set; }
         public string adress { get; set; }
-		public string companyDescription { get; set; }
-	}
+        public string companyDescription { get; set; }
+        public Guid companyCarStorageId { get; set; }
+        public string companyCarStorage_Title { get; set; }
+    }
 
     public class VMFTM_TaskUserInfo
     {
@@ -91,6 +93,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var data = _db.GetVWFTM_TaskById(taskId);
             var operations = _db.GetVWFTM_TaskOperationByTaskId(taskId).ToList();
+            var companyCarStorage = _db.GetVWCMP_StorageByName(data.plate);
             var model = new VMFTM_Task
             {
                 taskOperation = operations.Where(a => a.status != null).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList(),
@@ -108,7 +111,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     name = x.subjectId_Title
                 }).ToList();
             }
-
+            if (companyCarStorage != null && companyCarStorage.name != null && companyCarStorage.fullName != null)
+            {
+                model.companyCarStorageId = companyCarStorage.id;
+                model.companyCarStorage_Title = companyCarStorage.fullName;
+            }
 
             if (data.assignableUserIds != null)
             {
@@ -414,5 +421,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string adress { get; set; }
         public string phone { get; set; }
         public string email { get; set; }
-	}
+    }
 }

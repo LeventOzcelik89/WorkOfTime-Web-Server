@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutProduct(DateTime startDate,DateTime endDate)
         {
             using (var db = GetDB()){
-                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null).Execute().ToList().Where(x=>x.productId_Title.Contains("MP") && (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null).Execute().ToList().Where(x=> (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
                    GroupBy(a => a.productId_Title).Select(b => new SellOutReportModel { Count = b.Count(), Name = b.Key })
                    .ToArray();
             }
@@ -80,15 +80,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Inventory>().Where(x => x.id.In(ids)&&x.lastActionDataCompanyId_Title!=null).Execute().ToList().GroupBy(x=>x.lastActionDataCompanyId_Title).Select(x=>new SellOutReportModel {Count=x.Count(),Name=x.Key }).ToArray();
             }
         }
-        public Guid[] GetPRD_TitanDeviceActivatedInventoryIdsLikeMp(DateTime startDate, DateTime endDate)
+
+
+        public VWPRD_Inventory[] GetPRD_TitanDeviceActivatedSellOutChartInventoryData(Guid[] ids)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_Inventory>().Where(x => x.id.In(ids) && x.lastActionDataCompanyId_Title != null).Execute().ToArray();
+            }
+        }
+        public Guid[] GetPRD_TitanDeviceActivatedInventoryIds(DateTime startDate, DateTime endDate)
         {
            
             using (var db = GetDB())
             {
-                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null).Execute().ToList().Where(x => x.productId_Title.Contains("MP") && (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null).Execute().ToList().Where(x =>  (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
                   Select(x=>x.InventoryId.Value) 
                    .ToArray();
             }
         }
+       
     }
 }

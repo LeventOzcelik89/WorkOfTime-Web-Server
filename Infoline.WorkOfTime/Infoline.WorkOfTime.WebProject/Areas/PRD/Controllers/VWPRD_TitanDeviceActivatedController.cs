@@ -78,17 +78,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
             return Json(data,JsonRequestBehavior.AllowGet);
-
-            
         }
         [AllowEveryone]
         public JsonResult GetDistSellOut(DateTime startDate, DateTime endDate)
         {
             var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
             return Json(data, JsonRequestBehavior.AllowGet);
-
-
         }
+        [AllowEveryone]
+        public JsonResult GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public JsonResult GetProductSellOutDistChartData(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
 
     }
 }

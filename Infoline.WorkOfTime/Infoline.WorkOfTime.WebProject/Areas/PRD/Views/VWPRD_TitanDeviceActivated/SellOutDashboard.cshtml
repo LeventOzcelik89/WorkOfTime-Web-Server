@@ -11,31 +11,6 @@
     var endDateAll = new DateTime(now.Year, now.Month, 1).AddYears(50).Date;
 }
 <style type="text/css">
-    #vertical-timeline::before {
-        left: 37px;
-    }
-
-    #vertical-timeline-content {
-        background-color: #f5f5f5;
-    }
-
-    #vertical-timeline {
-        margin-top: auto !important;
-        margin-bottom: auto !important;
-    }
-
-    .vertical-container {
-        width: auto;
-    }
-
-    .vertical-timeline-icon {
-        background-color: #e7e7e7;
-    }
-
-    .k-grid-content #VWFTM_TaskOperation {
-        height: 750px !important;
-    }
-
     .filterButtonActive {
         background-color: #2f96b4;
         border-color: #2f96b4;
@@ -75,11 +50,11 @@
                 <div class="pull-left" style="margin-top:17px">
                     <div class="btn-group rounded" role="group" aria-label="Basic example">
                         <button type="button" data-id="all" data-selector="created" data-query="" data-startDate="@startDateAll.Date" data-endDate="@endDateAll.Date" class="btn btn-rounded filterButtonPassive"><span></span> TÜMÜ</button>
-                        <button type="button" data-id="lastMonth" data-query="" data-startDate="@startOfLastMonth.Date" data-endDate="@endOfMonth.Date"  data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN AY</button>
-                        <button type="button" data-id="lastWeek" data-query="" data-startDate="@startOfWeek.AddDays(-7).Date" data-endDate="@startOfWeek.Date"  data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN HAFTA</button>
-                        <button type="button" data-id="yesterday" data-selector="created" data-query="" data-startDate="@now.AddDays(-1).Date" data-endDate="@now.Date"   data-name="filterDate" class="btn filterButtonPassive"><span></span>DÜN</button>
+                        <button type="button" data-id="lastMonth" data-query="" data-startDate="@startOfLastMonth.Date" data-endDate="@startOfMonth.Date" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN AY</button>
+                        <button type="button" data-id="lastWeek" data-query="" data-startDate="@startOfWeek.AddDays(-7).Date" data-endDate="@startOfWeek.Date" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>GEÇEN HAFTA</button>
+                        <button type="button" data-id="yesterday" data-selector="created" data-query="" data-startDate="@now.AddDays(-1).Date" data-endDate="@now.Date" data-name="filterDate" class="btn filterButtonPassive"><span></span>DÜN</button>
                         <button type="button" data-id="today" data-selector="created" data-query="" data-startDate="@now.Date" data-endDate="@now.Date" data-name="filterDate" class="btn filterButtonPassive"><span></span>BUGÜN</button>
-                        <button type="button" data-query="startDate=@startOfWeek&&endDate=@endOfWeek.Date"  data-startDate="@startOfWeek" data-endDate="@endOfWeek.Date" data-id="thisWeek" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>BU HAFTA</button>
+                        <button type="button" data-query="" data-startDate="@startOfWeek" data-endDate="@endOfWeek.Date" data-id="thisWeek" data-selector="created" data-name="filterDate" class="btn filterButtonPassive"><span></span>BU HAFTA</button>
                         <button type="button" data-id="thisMonth" data-query="" data-startDate="@startOfMonth.Date" data-endDate="@endOfMonth.Date" data-selector="created" data-name="filterDate" class="btn btn-rounded filterButtonActive"><span class="fa fa-check"></span>BU AY</button>
                     </div>
                 </div>
@@ -95,7 +70,7 @@
                 </div>
             </div>
         </div>
-        <div class="col-sm-12  " style="margin-top:10px" >
+        <div class="col-sm-12  " style="margin-top:10px">
             <div class="col-sm-3">
                 <div class="widget style1 yellow-bg">
                     <div class="row">
@@ -153,22 +128,42 @@
             <div class="ibox-title">
                 <h4>Ürün Bazlı Toplam Kanal Sell-Out Raporu</h4>
             </div>
-            <div class="ibox-content clearfix">
-                <div class="" id="sellOutProduct"></div>
+            <div class="ibox-content clearfix" style="min-height:350px">
+                <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutProduct">
+                </ul>
             </div>
         </div>
         <div class="col-sm-6">
             <div class="ibox-title">
                 <h4>Distribütör Bazlı Sell-Out Raporu</h4>
             </div>
+            <div class="ibox-content clearfix" style="min-height:350px">
+                <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDist">
+                </ul>
+            </div>
+        </div>
+        <div class="col-sm-6" style="margin-top:25px">
             <div class="ibox-content clearfix">
-                <div class="" id="sellOutDist"></div>
+                <div id="chart"></div>
+            </div>
+        </div>
+        <div class="col-sm-6" style="margin-top:25px">
+            <div class="ibox-content clearfix">
+                <div id="chart1"></div>
             </div>
         </div>
     </div>
 </div>
 <script>
     var page = {
+        getRandomColor: function () {
+                var letters = '0123456789ABCDEF'.split('');
+                var color = '#';
+                for (var i = 0; i < 6; i++) {
+                    color += letters[Math.round(Math.random() * 15)];
+                }
+                return color;
+        },
         setIndexData: function () {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetIndexData", {}, function (data) {
                 $("#total").text(data.All);
@@ -177,80 +172,138 @@
                 $("#thirty").text(data.Month);
             });
         },
-        setTableForProductSellOut: function () {
-            var cols = [
-                { field: 'Name', title: 'Ürün Adı', },
-                { field: 'Count', title: 'Toplam', template: function (data) { return kendo.toString(data.Count, "N0") } },
-            ];
-            $("#sellOutProduct").kendoGrid({
-                toolbar: [
-                    { name: "excel", text: "" },
-                ], excel: {
-                    fileName: "Sell-Out Products.xlsx"
-                },
-                dataSource: "",
-                pageSize: 100,
-                height: 540,
-                sortable: true,
-                resizable: true,
-                selectable: 'Single, Row',
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
-                },
-                columns: cols
-            });
-
+        removeAllLis: function () {
+            $("#sellOutProduct li").remove()
+            $("#sellOutDist li").remove()
         },
         setDataSourceForProductSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-
-                var dataSource = new kendo.data.DataSource({ data: data.objects });
-                var grid = $("#sellOutProduct").data("kendoGrid");
-                dataSource.read();
-                grid.setDataSource(dataSource);
-            });
-        },
-        setTableForDistSellOut: function () {
-            var cols = [
-                { field: 'Name', title: 'Distribütör Adı', },
-                { field: 'Count', title: 'Toplam', template: function (data) { return kendo.toString(data.Count, "N0") } },
-            ];
-            $("#sellOutDist").kendoGrid({
-                toolbar: [
-                    { name: "excel", text: "" },
-                ], excel: {
-                    fileName: "Sell-Out Products.xlsx"
-                },
-                dataSource: "",
-                pageSize: 100,
-                height: 540,
-                sortable: true,
-                resizable: true,
-                selectable: 'Single, Row',
-                pageable: {
-                    refresh: true,
-                    pageSizes: true,
-                    buttonCount: 5
-                },
-                columns: cols
+                $.each(data.objects, function (i,item) {
+                    $("#sellOutProduct").append(
+                        '<li class= "clearfix">' +
+                        '<span class="pull-left" data-category="0">' +
+                        '<i class="fa fa-mobile-phone" style="color:gray"></i>'+item.Name+
+                        '</span>' +
+                        '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + item.Count + '</span>' +
+                        '</li>'
+                    );
+                });
             });
         },
         setDataSourceForDistSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetDistSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-                var dataSource = new kendo.data.DataSource({ data: data.objects });
-                var grid = $("#sellOutDist").data("kendoGrid");
-                dataSource.read();
-                grid.setDataSource(dataSource);
+                $.each(data.objects, function (i, item) {
+                    $("#sellOutDist").append(
+                        '<li class= "clearfix">' +
+                        '<span class="pull-left" data-category="0">' +
+                        '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
+                        '</span>' +
+                        '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + item.Count + '</span>' +
+                        '</li>'
+                    );
+                });
             });
         },
+        createProductChart(startDate,endDate) {
+            GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutProductChartData", { startDate: startDate, endDate: endDate }, function (data) {
+                var obj = data.objects;
+                $("#chart").kendoChart({
+                    title: {
+                        text: "30 Günlük Ürün Bazlı SellOut Grafiği"
+                    },
+                    legend: {
+                        position: "bottom"
+                    },
+                    chartArea: {
+                        background: ""
+                    },
+                    seriesDefaults: {
+                        type: "line",
+                        style: "smooth"
+                    },
+                    series: obj.data.Series,
+                    valueAxis: {
+                        labels: {
+                            format: "{0}"
+                        },
+                        line: {
+                            visible: false
+                        },
+                        axisCrossingValue: -10
+                    },
+                    categoryAxis: {
+                        categories: obj.data.Dates,
+                        majorGridLines: {
+                            visible: false
+                        },
+                        labels: {
+                            rotation: "auto"
+                        }
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{0}%",
+                        template: "#= series.name #: #= value #"
+                    }
+                });
+            });
+
+        },
+          createDistChart(startDate, endDate) {
+              GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutDistChartData", { startDate: startDate, endDate: endDate }, function (data) {
+                var obj = data.objects;
+                $("#chart1").kendoChart({
+                    title: {
+                        text: "30 Günlük Distribütör Bazlı SellOut Grafiği"
+                    },
+                    legend: {
+                        position: "bottom"
+                    },
+                    chartArea: {
+                        background: ""
+                    },
+                    seriesDefaults: {
+                        type: "line",
+                        style: "smooth"
+                    },
+                    series: obj.data.Series,
+                    valueAxis: {
+                        labels: {
+                            format: "{0}"
+                        },
+                        line: {
+                            visible: false
+                        },
+                        axisCrossingValue: -10
+                    },
+                    categoryAxis: {
+                        categories: obj.data.Dates,
+                        majorGridLines: {
+                            visible: false
+                        },
+                        labels: {
+                            rotation: "auto"
+                        }
+                    },
+                    tooltip: {
+                        visible: true,
+                        format: "{0}%",
+                        template: "#= series.name #: #= value #"
+                    }
+                });
+            });
+
+        }
+
     }
+
     page.setIndexData();
     page.setDataSourceForProductSellOut('@startOfMonth','@endOfMonth');
-    page.setDataSourceForDistSellOut('@startOfMonth','@endOfMonth');
-    page.setTableForProductSellOut();
-    page.setTableForDistSellOut();
+    page.setDataSourceForDistSellOut('@startOfMonth', '@endOfMonth');
+    $(document).ready(page.createProductChart('@startOfMonth', '@endOfMonth'));
+    $(document).bind("kendo:skinChange", page.createProductChart('@startOfMonth', '@endOfMonth'));
+      $(document).ready(page.createDistChart('@startOfMonth', '@endOfMonth'));
+    $(document).bind("kendo:skinChange", page.createDistChart('@startOfMonth', '@endOfMonth'));
     $('[data-query]').on("click", function (e) {
         if ($(this).attr("data-selector") == "created") {
             var _this = $(this);
@@ -272,24 +325,24 @@
             })
             $(this).toggleClass("active");
         }
+        page.removeAllLis();
         var startDate = $(this).attr("data-startdate");
         var endDate = $(this).attr("data-enddate");
         page.setDataSourceForProductSellOut(startDate, endDate);
         page.setDataSourceForDistSellOut(startDate, endDate);
+       
     });
     $(document).on("change", "#startDate", function () {
+        page.removeAllLis();
         var startDate = $(this).val();
         var endDate = $("#endDate").val();
         page.setDataSourceForDistSellOut(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
-
     }).on("change", "#endDate", function () {
-
+        page.removeAllLis();
         var startDate = $("#startDate").val();
         var endDate = $(this).val();
         page.setDataSourceForDistSellOut(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
     });
-      
-
 </script>
