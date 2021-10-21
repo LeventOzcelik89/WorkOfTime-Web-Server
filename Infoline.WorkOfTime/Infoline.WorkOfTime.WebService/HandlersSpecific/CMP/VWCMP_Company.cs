@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
-        [HandleFunction("VWCMP_Company/CompanyInsert")]
+        [HandleFunction("VWCMP_Company/CompanyInsertWithUser")]
         public void VWCMP_CompanyInsert(HttpContext context)
         {
             try
