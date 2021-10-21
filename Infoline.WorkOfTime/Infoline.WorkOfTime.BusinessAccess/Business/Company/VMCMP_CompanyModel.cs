@@ -24,7 +24,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int invoiceBuyingCount { get; set; }
         public double invoiceSellingAmount { get; set; }
         public double inoviceBuyingAmount { get; set; }
+        public VWCMP_Sector[] sectorList { get; set; }
+        public VWCMP_CompanyType[] companyTypeList { get; set; }
+
     }
+
 
     public class VMCMP_CompanyModel : VWCMP_Company
     {
@@ -70,11 +74,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var company = db.GetVWCMP_CompanyById(id);
             var companyDetail = new VWCMP_CompanyDetail();
             companyDetail = new VWCMP_CompanyDetail().B_EntityDataCopyForMaterial(company);
-            var storagesBexp = new BEXP{Operand1 = (COL)"companyId", Operator = BinaryOperator.Equal,Operand2 = (VAL)companyDetail.id };
-            var personalBexp = new BEXP{Operand1 = (COL)"companyId", Operator = BinaryOperator.Equal,Operand2 = (VAL)companyDetail.id };
-            var storageBexp = new BEXP{Operand1 = (COL)"pid", Operator = BinaryOperator.Equal,Operand2 = (VAL)companyDetail.id };
-            var tenderBexp = new BEXP{Operand1 = (COL)"customerId", Operator = BinaryOperator.Equal,Operand2 = (VAL)companyDetail.id };
-            var invoiceSellingBexp = new BEXP{Operand1 = (COL)"customerId", Operator = BinaryOperator.Equal,Operand2 = (VAL)companyDetail.id };
+            var storagesBexp = new BEXP { Operand1 = (COL)"companyId", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
+            var personalBexp = new BEXP { Operand1 = (COL)"companyId", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
+            var storageBexp = new BEXP { Operand1 = (COL)"pid", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
+            var tenderBexp = new BEXP { Operand1 = (COL)"customerId", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
+            var invoiceSellingBexp = new BEXP { Operand1 = (COL)"customerId", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
             var invoiceBuyingBexp = new BEXP { Operand1 = (COL)"supplierId", Operator = BinaryOperator.Equal, Operand2 = (VAL)companyDetail.id };
             var storagesCount = db.GetCMP_StorageCount(storagesBexp);
             var personalCount = db.GetVWSH_UserCount(personalBexp);
@@ -84,6 +88,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var invoiceBuyingCount = db.GetVWCMP_InvoiceCount(invoiceBuyingBexp);
             var invoiceSellingAmount = db.GetCMP_CompanyTenderAmountByCustomerId(companyDetail.id, (int)EnumCMP_InvoiceDirectionType.Alis);
             var invoiceBuyingAmount = db.GetCMP_CompanyInvoiceAmountBySuplierId(companyDetail.id, (int)EnumCMP_InvoiceDirectionType.Alis);
+            var sectors = db.GetVWCMP_SectorItemByCompanyId(id);
+            var companyTypeList = db.GetVWCMP_CompanyTypeByCompanyId(id);
             companyDetail.storagesCount = storagesCount;
             companyDetail.personalsCount = personalCount;
             companyDetail.storageCount = storageCount;
@@ -92,6 +98,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             companyDetail.invoiceSellingCount = invoiceSellingCount;
             companyDetail.invoiceSellingAmount = invoiceSellingAmount;
             companyDetail.inoviceBuyingAmount = invoiceBuyingAmount;
+            companyDetail.sectorList = sectors;
+            companyDetail.companyTypeList = companyTypeList;
             return companyDetail;
         }
 
