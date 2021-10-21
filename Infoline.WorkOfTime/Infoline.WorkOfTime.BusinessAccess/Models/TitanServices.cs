@@ -86,7 +86,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
         public string UniqueName { get; set; }
         public string Version { get; set; }
         public string ActivityName { get; set; }
-        public bool IsSystemApp { get; set; }
+        public bool? IsSystemApp { get; set; }
         public DateTime? Created { get; set; }
         public DateTime? Modified { get; set; }
         public string DeviceId { get; set; }
