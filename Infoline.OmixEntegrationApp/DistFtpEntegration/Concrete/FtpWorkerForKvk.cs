@@ -47,16 +47,25 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                             var item = new SellIn();
                             for (int i = 0; i < rawFile.Length; i++)
                             {
-                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                try
                                 {
-                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                    var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                    var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                    if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                    {
+                                        prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                    }
+                                    else
+                                    {
+                                        prop.SetValue(item, rawFile[i]);
+                                    }
                                 }
-                                else
+                                catch (Exception e)
                                 {
-                                    prop.SetValue(item, rawFile[i]);
+
+                                    Log.Error(e.ToString());
                                 }
+                                
                             }
                             sellIns.Add(item);
                         }
@@ -101,16 +110,25 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                             var item = new SellThr();
                             for (int i = 0; i < rawFile.Length; i++)
                             {
-                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                try
                                 {
-                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                    var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                    var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                    if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                    {
+                                        prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                    }
+                                    else
+                                    {
+                                        prop.SetValue(item, rawFile[i]);
+                                    }
                                 }
-                                else
+                                catch (Exception e)
                                 {
-                                    prop.SetValue(item, rawFile[i]);
+
+                                    Log.Error(e.ToString());
                                 }
+                                
                             }
                             sellThrs.Add(item);
                         }

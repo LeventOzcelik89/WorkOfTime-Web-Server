@@ -521,6 +521,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                         var lateArrived = (dayWorkHour.allowTimes[0].Start - new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second)).TotalMinutes;
                         ts = TimeSpan.FromMinutes(lateArrived);
+
+                        lateArrived = lateArrived + todayPermitMinutes;
                         var lateArrivedString = lateArrived >= 0 ? "YOK" : $"{(int)ts.TotalHours * -1} saat : {ts.Minutes * -1} dakika";
 
                         var earlyLeave = (dayWorkHour.allowTimes[1].End - new TimeSpan(shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second)).TotalMinutes;
