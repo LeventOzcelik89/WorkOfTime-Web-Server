@@ -218,7 +218,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                 {
                     document.Load(reader);
                     var tagName = document.DocumentElement.GetElementsByTagName("name");
-                    var dateTimeNow = DateTime.Now.Date.AddDays(-1);
+                    var dateTimeNow = DateTime.Now.Date;
                     var date = dateTimeNow.Year.ToString() + dateTimeNow.Month.ToString() + dateTimeNow.Day.ToString();
                     for (int i = 0; i < tagName.Count; i++)
                     {
