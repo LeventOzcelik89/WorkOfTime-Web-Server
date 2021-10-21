@@ -16,8 +16,6 @@ namespace Infoline.WorkOfTime.WebService
         {
 
         }
-
-
         [HandleFunction("VWCMP_Company/GetAll")]
         public void VWCMP_CompanyGetAll(HttpContext context)
         {
@@ -50,6 +48,21 @@ namespace Infoline.WorkOfTime.WebService
             }
         }
 
-
+        [HandleFunction("VWCMP_Company/CompanyInsert")]
+        public void VWCMP_CompanyInsert(HttpContext context)
+        {
+            try
+            {
+                var item = ParseRequest<VMCMP_CompanyModel>(context);
+                var userId = CallContext.Current.UserId;
+                var db = new WorkOfTimeDatabase();
+                item.Save(userId);
+                RenderResponse(context, new ResultStatus() { result = true, message = "Müşteri Başarılı Bir Şekilde Eklendi" });
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 }
