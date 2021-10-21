@@ -8,7 +8,6 @@ using System.Linq;
 using System.Web;
 namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 {
-   
     public class VMPRD_TitanDeviceActivated : VWPRD_TitanDeviceActivated
     {
         private TitanServices TitanServices = new TitanServices();
@@ -47,7 +46,26 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                     Seven = getSevenDayCount,
                     Month = getMonthCount
                 };
-            
+        }
+        public ResultStatus GetProductSellOutProductReport(DateTime startDate,DateTime endDate)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            return new ResultStatus
+            {
+                result = true,
+                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate,endDate)
+            };
+        }
+        public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var getIds =db.GetPRD_TitanDeviceActivatedInventoryIdsLikeMp(startDate,endDate);
+            var getData = db.GetPRD_TitanDeviceActivatedSellOutDist(getIds);
+            return new ResultStatus
+            {
+                result = true,
+                objects = getData
+            };
         }
         public ResultStatus GetAllDevices()
         {

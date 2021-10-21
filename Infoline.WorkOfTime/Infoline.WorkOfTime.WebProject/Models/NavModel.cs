@@ -317,6 +317,7 @@ namespace System.Web.Mvc
 			if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
 			{
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
+                menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
             }
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));

@@ -51,7 +51,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
             var res = new List<SellIn>();
-            Log.Info(string.Format("{0} Sellin File Found On Genpa Wing Ftp Server", FileList.Count));
+            Log.Info(string.Format("{0} Sellin File Found On Genpa Wing Ftp Server", FileList.Where(x=>x.Contains("SELLIN")).ToList().Count));
             if (FileList.Count >= 0)
             {
                 foreach (var fileName in FileList.Where(x => x.Contains("SELLIN")))
@@ -107,7 +107,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
             var res = new List<SellThr>();
-            Log.Info(string.Format("{0} SellThr File Found On Genpa Wing Ftp Server", FileList.Count));
+            Log.Info(string.Format("{0} SellThr File Found On Genpa Wing Ftp Server", FileList.Where(x => x.Contains("SELLTHR")).ToList().Count));
             if (FileList.Count >= 0)
             {
                 foreach (var fileName in FileList.Where(x => x.Contains("SELLTHR")))
@@ -200,8 +200,8 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                 {
                     document.Load(reader);
                     var tagName = document.DocumentElement.GetElementsByTagName("name");
-                    var dateTimeNow = DateTime.Now.Date;
-                    var date = dateTimeNow.Day.ToString() + dateTimeNow.Month.ToString() + dateTimeNow.Year.ToString();
+                    var dateTimeNow = DateTime.Now.Date.AddDays(-1);
+                    var date = dateTimeNow.Year.ToString() + dateTimeNow.Month.ToString() + dateTimeNow.Day.ToString();
                     for (int i = 0; i < tagName.Count; i++)
                     {
                         var fileName = tagName[i].InnerText;

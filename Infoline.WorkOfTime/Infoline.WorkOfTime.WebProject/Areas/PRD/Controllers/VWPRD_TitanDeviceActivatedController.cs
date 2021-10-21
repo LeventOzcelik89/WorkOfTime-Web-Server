@@ -24,7 +24,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             return View(data);
         }
+        [AllowEveryone]
+        public ActionResult SellOutDashboard()
+        {
 
+            return View();
+        }
         [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
@@ -63,6 +68,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             VMPRD_TitanDeviceActivated model = new VMPRD_TitanDeviceActivated();
             return Json(model.GetDeviceInformation(id), JsonRequestBehavior.AllowGet);
         }
-       
+        [AllowEveryone]
+        public JsonResult GetIndexData()
+        {
+            return Json(new VMPRD_TitanDeviceActivated().GetIndexData(),JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public JsonResult GetProductSellOut(DateTime startDate,DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
+            return Json(data,JsonRequestBehavior.AllowGet);
+
+            
+        }
+        [AllowEveryone]
+        public JsonResult GetDistSellOut(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+
+
+        }
+
     }
 }
