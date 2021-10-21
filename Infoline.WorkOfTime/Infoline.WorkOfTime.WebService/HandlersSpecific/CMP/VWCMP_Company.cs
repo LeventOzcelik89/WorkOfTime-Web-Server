@@ -90,20 +90,5 @@ namespace Infoline.WorkOfTime.WebService
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
-        [HandleFunction("VWCMP_Company/SpecInsert")]
-        public void VWCMP_CompanySpecInsert(HttpContext context)
-        {
-            try
-            {
-                var model = ParseRequest<VMCMP_CompanyModel>(context);
-                var userId = CallContext.Current.UserId;
-                var rs = model.Save(userId);
-                RenderResponse(context, rs);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
     }
 }
