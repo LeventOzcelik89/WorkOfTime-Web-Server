@@ -194,7 +194,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             try
             {
                 bool tmp = false;
-                StreamReader sr = new StreamReader("../../notes.txt");
+                StreamReader sr = new StreamReader("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -215,7 +215,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
 
                 sr.Close();
-                File.WriteAllLines("../../notes.txt", lines);
+                File.WriteAllLines("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt", lines);
                 
             }
             catch (Exception e)
@@ -237,7 +237,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
 
             try
             {
-                StreamReader sr = new StreamReader("../../notes.txt");
+                StreamReader sr = new StreamReader("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
