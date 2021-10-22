@@ -157,13 +157,16 @@
 </div>
 <script>
     var page = {
+        randomColorNumber:-1,
+        colorArray: ["badge-primary",  "badge-danger", "badge-warning", "badge-info"],
+
         getRandomColor: function () {
-                var letters = '0123456789ABCDEF'.split('');
-                var color = '#';
-                for (var i = 0; i < 6; i++) {
-                    color += letters[Math.round(Math.random() * 15)];
-                }
-                return color;
+            if (page.randomColorNumber >= page.colorArray.length) {
+                page.randomColorNumber = 0;
+            }
+            page.randomColorNumber++;
+            return page.colorArray[page.randomColorNumber];
+           
         },
         setIndexData: function () {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetIndexData", {}, function (data) {
@@ -174,8 +177,8 @@
             });
         },
         removeAllLis: function () {
-            $("#sellOutProduct li").remove()
-            $("#sellOutDist li").remove()
+            $("#sellOutProduct li").remove();
+            $("#sellOutDist li").remove();
         },
         setDataSourceForProductSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
@@ -185,18 +188,18 @@
                     $("#sellOutProduct").append(
                         '<li class= "clearfix">' +
                         '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-mobile-phone" style="color:gray"></i>'+item.Name+
+                        '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
                         '</span>' +
-                        '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + item.Count + '</span>' +
+                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
                         '</li>'
                     );
                 });
                 $("#sellOutProduct").append(
                     '<li class= "clearfix">' +
                     '<span class="pull-left" data-category="0">' +
-                    '<i class="fa fa-plus" style="color:gray"></i>Toplam'+
+                    '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
                     '</span>' +
-                    '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + count + '</span>' +
+                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
                     '</li>'
                 );
             });
@@ -211,7 +214,7 @@
                         '<span class="pull-left" data-category="0">' +
                         '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
                         '</span>' +
-                        '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + item.Count + '</span>' +
+                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
                         '</li>'
                     );
                 });
@@ -220,7 +223,7 @@
                     '<span class="pull-left" data-category="0">' +
                     '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
                     '</span>' +
-                    '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + count + '</span>' +
+                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
                     '</li>'
                 );
             });
@@ -330,7 +333,7 @@
                     tooltip: {
                         visible: true,
                         format: "{0}%",
-                        template: "#= series.name #: #= value #"
+                        template: "#= series.name #: #= value  # Adet"
                     }
                 });
             });
