@@ -16,29 +16,17 @@
         border-color: #2f96b4;
         color: white;
     }
-
     .filterButtonPassive {
         background-color: #49afcd;
         border-color: #2f96b4;
         color: white;
     }
-
     ul, li {
         list-style-type: none;
     }
-
-    .noContent {
-        color: #21B9BB;
-        text-align: center;
-        font-weight: bold;
-        padding-top: 25%;
-        font-size: 16px;
-    }
-
     .active {
         color: black !important;
     }
-
     .btn-group .btn + .btn {
         margin-left: -9px !important;
     }
@@ -136,7 +124,7 @@
         </div>
         <div class="col-sm-6">
             <div class="ibox-title">
-                <h4>Distribütör Bazlı Sell-Out Raporu</h4>
+                <h4>Distribütör Bazlı Toplam Kanal Sell-Out Raporu</h4>
             </div>
             <div class="ibox-content clearfix" style="min-height:350px">
                 <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDist">
@@ -159,14 +147,13 @@
     var page = {
         randomColorNumber:-1,
         colorArray: ["badge-primary",  "badge-danger", "badge-warning", "badge-info"],
-
         getRandomColor: function () {
-            if (page.randomColorNumber >= page.colorArray.length) {
+            if (page.randomColorNumber >= page.colorArray.length-1) {
                 page.randomColorNumber = 0;
+                return page.colorArray[page.randomColorNumber];
             }
             page.randomColorNumber++;
             return page.colorArray[page.randomColorNumber];
-           
         },
         setIndexData: function () {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetIndexData", {}, function (data) {
@@ -183,6 +170,7 @@
         setDataSourceForProductSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
                 var count = 0;
+                $("#sellOutProduct li").remove();
                 $.each(data.objects, function (i, item) {
                     count = count + parseInt(item.Count);
                     $("#sellOutProduct").append(
@@ -207,12 +195,13 @@
         setDataSourceForDistSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetDistSellOut", { startDate: startDate, endDate: endDate }, function (data) {
                 var count = 0;
+                $("#sellOutDist li").remove();
                 $.each(data.objects, function (i, item) {
                     count =count+ parseInt(item.Count);
                     $("#sellOutDist").append(
                         '<li class= "clearfix">' +
                         '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-mobile-phone" style="color:gray"></i>' + item.Name +
+                        '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
                         '</span>' +
                         '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
                         '</li>'
@@ -365,7 +354,6 @@
             })
             $(this).toggleClass("active");
         }
-        page.removeAllLis();
         var startDate = $(this).attr("data-startdate");
         var endDate = $(this).attr("data-enddate");
         page.createProductChart(startDate, endDate)
@@ -374,7 +362,6 @@
         page.setDataSourceForDistSellOut(startDate, endDate);
     });
     $(document).on("change", "#startDate", function () {
-        page.removeAllLis();
         var startDate = $(this).val();
         var endDate = $("#endDate").val();
         page.setDataSourceForDistSellOut(startDate, endDate);
@@ -382,7 +369,6 @@
         page.createProductChart(startDate, endDate)
         page.createDistChart(startDate, endDate);
     }).on("change", "#endDate", function () {
-        page.removeAllLis();
         var startDate = $("#startDate").val();
         var endDate = $(this).val();
         page.setDataSourceForDistSellOut(startDate, endDate);
