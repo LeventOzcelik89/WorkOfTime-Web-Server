@@ -41,7 +41,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
-                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > today&& x.InventoryId != null && x.ProductId != null).Execute().Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan >= today&& x.InventoryId != null && x.ProductId != null).Execute().Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedSevenDaysCount(DbTransaction tran = null)
