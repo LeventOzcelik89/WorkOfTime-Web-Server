@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Execute().Where(x=>x.InventoryId!=null).Count();
+                return db.Table<PRD_TitanDeviceActivated>().Execute().Where(x=>x.InventoryId!=null && x.ProductId != null).Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedTodayCount(DbTransaction tran = null)
@@ -41,21 +41,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0);
-                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > today&& x.InventoryId != null).Execute().Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > today&& x.InventoryId != null && x.ProductId != null).Execute().Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedSevenDaysCount(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-7)&& x.InventoryId != null).Execute().Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-7)&& x.InventoryId != null&&x.ProductId!=null).Execute().Count();
             }
         }
         public int GetPRD_TitanDeviceActivatedThirtyDaysCount(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-30)&& x.InventoryId != null).Execute().Count();
+                return db.Table<PRD_TitanDeviceActivated>().Where(x => x.CreatedOfTitan > DateTime.Now.AddDays(-30)&& x.InventoryId != null && x.ProductId != null).Execute().Count();
             }
         }
         public DateTime? GetPRD_TitanDeviceActivatedGetAllLastDate(DbTransaction tran = null)
@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public SellOutReportModel[] GetPRD_TitanDeviceActivatedSellOutProduct(DateTime startDate,DateTime endDate)
         {
             using (var db = GetDB()){
-                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null).Execute().ToList().Where(x=> (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title!=null&&x.CreatedOfTitan!=null && x.InventoryId != null).Execute().ToList().Where(x=> (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
                    GroupBy(a => a.productId_Title).Select(b => new SellOutReportModel { Count = b.Count(), Name = b.Key })
                    .ToArray();
             }
@@ -94,7 +94,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
            
             using (var db = GetDB())
             {
-                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null).Execute().ToList().Where(x =>  (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
+                return db.Table<VWPRD_TitanDeviceActivated>().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null).Execute().ToList().Where(x =>  (x.CreatedOfTitan.Value.Date >= startDate.Date && x.CreatedOfTitan.Value.Date <= endDate.Date)).
                   Select(x=>x.InventoryId.Value) 
                    .ToArray();
             }
