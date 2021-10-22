@@ -54,7 +54,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate)
+                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate).OrderBy(x=>x.Count)
             };
         }
         public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = getData
+                objects = getData.OrderBy(x => x.Count)
             };
         }
         public ResultStatus GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
@@ -87,6 +87,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 model.data= outcasteds.Concat(existents).OrderBy(x=>x.Date).Select(x=>x.Count).ToList();
                 data.Series.Add(model);
             }
+            
             return new ResultStatus
             {
                 result = true,
