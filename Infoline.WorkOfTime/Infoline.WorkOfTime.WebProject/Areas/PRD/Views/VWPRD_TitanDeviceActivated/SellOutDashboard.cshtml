@@ -61,11 +61,11 @@
                 <div class="pull-right">
                     <div class="col-sm-6">
                         <label class="">Başlangıç Tarihi</label>
-                        @Html.Akilli().DatePicker("startDate").Value(DateTime.Now.AddDays(-30))
+                        @Html.Akilli().DatePicker("startDate").Value(DateTime.Now.AddDays(-30)).Max(DateTime.Now)
                     </div>
                     <div class="col-sm-6">
                         <label class="">Bitiş Tarihi</label>
-                        @Html.Akilli().DatePicker("endDate").Value(DateTime.Now)
+                        @Html.Akilli().DatePicker("endDate").Value(DateTime.Now).Max(DateTime.Now)
                     </div>
                 </div>
             </div>
@@ -78,7 +78,8 @@
                             <i class="fa fa-mobile-phone fa-5x"></i>
                         </div>
                         <div class="col-xs-8 text-right">
-                            <span> Toplam Cihaz Sayısı </span>
+                            <span> Toplam Cihaz Sayısı </span><br />
+                            <small>Envanterde Karşılığı Olan</small>
                             <h2 id="total" class="font-bold">0</h2>
                         </div>
                     </div>
@@ -178,7 +179,9 @@
         },
         setDataSourceForProductSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOut", { startDate: startDate, endDate: endDate }, function (data) {
-                $.each(data.objects, function (i,item) {
+                var count = 0;
+                $.each(data.objects, function (i, item) {
+                    count = count + parseInt(item.Count);
                     $("#sellOutProduct").append(
                         '<li class= "clearfix">' +
                         '<span class="pull-left" data-category="0">' +
@@ -187,12 +190,23 @@
                         '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + item.Count + '</span>' +
                         '</li>'
                     );
+
                 });
+                $("#sellOutProduct").append(
+                    '<li class= "clearfix">' +
+                    '<span class="pull-left" data-category="0">' +
+                    '<i class="fa fa-plus" style="color:gray"></i>Toplam'+
+                    '</span>' +
+                    '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + count + '</span>' +
+                    '</li>'
+                );
             });
         },
         setDataSourceForDistSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetDistSellOut", { startDate: startDate, endDate: endDate }, function (data) {
+                var count = 0;
                 $.each(data.objects, function (i, item) {
+                    count =count+ parseInt(item.Count);
                     $("#sellOutDist").append(
                         '<li class= "clearfix">' +
                         '<span class="pull-left" data-category="0">' +
@@ -202,6 +216,14 @@
                         '</li>'
                     );
                 });
+                $("#sellOutDist").append(
+                    '<li class= "clearfix">' +
+                    '<span class="pull-left" data-category="0">' +
+                    '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
+                    '</span>' +
+                    '<span id="allTasks" class="badge badge-gray text-white pull-right m-l-md  m-t-xs" style="background-color:' + page.getRandomColor() + '">' + count + '</span>' +
+                    '</li>'
+                );
             });
         },
         createProductChart(startDate,endDate) {
@@ -240,6 +262,18 @@
                             rotation: "auto"
                         }
                     },
+                    pannable: {
+                        lock: "y"
+                    },
+                    zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
+                        selection: {
+                            lock: "y"
+                        }
+                    },
+
                     tooltip: {
                         visible: true,
                         format: "{0}%",
@@ -249,7 +283,7 @@
             });
 
         },
-          createDistChart(startDate, endDate) {
+        createDistChart(startDate, endDate) {
               GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetProductSellOutDistChartData", { startDate: startDate, endDate: endDate }, function (data) {
                 var obj = data.objects;
                 $("#chart1").kendoChart({
@@ -285,6 +319,17 @@
                             rotation: "auto"
                         }
                     },
+                    pannable: {
+                        lock: "y"
+                    },
+                    zoomable: {
+                        mousewheel: {
+                            lock: "y"
+                        },
+                        selection: {
+                            lock: "y"
+                        }
+                    },
                     tooltip: {
                         visible: true,
                         format: "{0}%",
@@ -301,9 +346,7 @@
     page.setDataSourceForProductSellOut('@startOfMonth','@endOfMonth');
     page.setDataSourceForDistSellOut('@startOfMonth', '@endOfMonth');
     $(document).ready(page.createProductChart('@startOfMonth', '@endOfMonth'));
-    $(document).bind("kendo:skinChange", page.createProductChart('@startOfMonth', '@endOfMonth'));
-      $(document).ready(page.createDistChart('@startOfMonth', '@endOfMonth'));
-    $(document).bind("kendo:skinChange", page.createDistChart('@startOfMonth', '@endOfMonth'));
+    $(document).ready(page.createDistChart('@startOfMonth', '@endOfMonth'));
     $('[data-query]').on("click", function (e) {
         if ($(this).attr("data-selector") == "created") {
             var _this = $(this);
@@ -328,9 +371,11 @@
         page.removeAllLis();
         var startDate = $(this).attr("data-startdate");
         var endDate = $(this).attr("data-enddate");
+        page.createProductChart(startDate, endDate)
+        page.createDistChart(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
         page.setDataSourceForDistSellOut(startDate, endDate);
-       
+
     });
     $(document).on("change", "#startDate", function () {
         page.removeAllLis();
@@ -338,11 +383,15 @@
         var endDate = $("#endDate").val();
         page.setDataSourceForDistSellOut(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
+        page.createProductChart(startDate, endDate)
+        page.createDistChart(startDate, endDate);
     }).on("change", "#endDate", function () {
         page.removeAllLis();
         var startDate = $("#startDate").val();
         var endDate = $(this).val();
         page.setDataSourceForDistSellOut(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
+        page.createProductChart(startDate, endDate)
+        page.createDistChart(startDate, endDate);
     });
 </script>
