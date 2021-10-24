@@ -40,6 +40,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [PageInfo("Araç Kilometre Detayı", SHRoles.Personel)]
+        public ActionResult Detail(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCMP_CompanyCarKilometerById(id);
+            return View(data);
+        }
+
         [PageInfo("Araç Kilometre Tanımla", SHRoles.Personel)]
         public ActionResult Insert(Guid? id, Guid? companyCarId)
         {
@@ -74,6 +82,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
+            //var res = new FileUploadSave(Request).SaveAs();
+
             item.id = Guid.NewGuid();
             item.created = DateTime.Now;
             item.createdby = userStatus.user.id;
@@ -136,6 +146,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
+            //var res = new FileUploadSave(Request).SaveAs();
 
             item.id = Guid.NewGuid();
             item.created = DateTime.Now;

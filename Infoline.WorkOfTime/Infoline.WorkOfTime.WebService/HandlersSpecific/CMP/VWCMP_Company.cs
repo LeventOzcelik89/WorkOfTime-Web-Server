@@ -30,6 +30,7 @@ namespace Infoline.WorkOfTime.WebService
                 var db = new WorkOfTimeDatabase();
                 var childPersons = new ManagersCalculator().GetAllChilds(CallContext.Current.UserId);
                 var childUserList = new List<Guid>();
+                childUserList.Add(userId);
                 foreach (var chilPerson in childPersons.Where(x => x.IdUser != CallContext.Current.UserId))
                 {
                     if (!chilPerson.IdUser.HasValue)

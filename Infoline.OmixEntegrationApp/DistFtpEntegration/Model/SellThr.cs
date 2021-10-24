@@ -3,8 +3,7 @@
     public class SellThr
     {
         public string Dist { get; set; }
-        public string StorageCode { get; set; }
-        public string StorageName { get; set; }
+        
         public string City { get; set; }
         public string Town { get; set; }
         public string ConsolidationCode { get; set; }

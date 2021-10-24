@@ -93,7 +93,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var data = _db.GetVWFTM_TaskById(taskId);
             var operations = _db.GetVWFTM_TaskOperationByTaskId(taskId).ToList();
-            var companyCarStorage = _db.GetVWCMP_StorageByName(data.plate);
+            var car = new VWCMP_CompanyCars();
+            var companyCarStorage = new VWCMP_Storage();
+            if (data.companyCarId.HasValue)
+            {
+                car = _db.GetVWCMP_CompanyCarsById(data.companyCarId.Value);
+            }
             var model = new VMFTM_Task
             {
                 taskOperation = operations.Where(a => a.status != null).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList(),
@@ -111,10 +116,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     name = x.subjectId_Title
                 }).ToList();
             }
-            if (companyCarStorage != null && companyCarStorage.name != null && companyCarStorage.fullName != null)
+            if (car != null && car.plate != null && car.companyStorageId.HasValue)
             {
-                model.companyCarStorageId = companyCarStorage.id;
-                model.companyCarStorage_Title = companyCarStorage.fullName;
+                model.companyCarStorageId = car.companyStorageId.Value;
+                model.companyCarStorage_Title = car.plate;
             }
 
             if (data.assignableUserIds != null)

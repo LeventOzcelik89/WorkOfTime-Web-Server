@@ -653,6 +653,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel}),
                 }
             },
+            {
+                "CMP_CompanyCarKilometer", new []{
+                    new FileBase("Araç Kilometre Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  2,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
+                }
+            },
         };
 
 
