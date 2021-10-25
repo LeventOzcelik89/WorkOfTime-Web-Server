@@ -82,7 +82,9 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 }
                 var db = new WorkOfTimeDatabase();
                 var data = db.GetVWPA_Transaction(cond);
-                data = data.Where(x => (x.confirmationUserIds != null && x.confirmationUserIds.Contains(userId.ToString().ToUpper())) || (x.confirmUserIds != null && x.confirmUserIds.Contains(userId.ToString().ToUpper())) || (x.rejectedUserIds != null && x.rejectedUserIds.Contains(userId.ToString().ToUpper()))).ToArray();
+                data = data.Where(x => 
+                (x.confirmationUserIds != null && x.confirmationUserIds.Contains(userId.ToString().ToUpper())) ||(x.confirmUserIds != null && x.confirmUserIds.Contains(userId.ToString().ToUpper())) || 
+                (x.rejectedUserIds != null && x.rejectedUserIds.Contains(userId.ToString().ToUpper()))).ToArray();
                 RenderResponse(context, data);
             }
             catch (Exception ex)
