@@ -1903,7 +1903,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         }
 
 
-        [PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel)]
+        [PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel,SHRoles.SahaGorevMusteri)]
         public JsonResult DownloadFiles(Guid taskId)
         {
             var db = new WorkOfTimeDatabase();

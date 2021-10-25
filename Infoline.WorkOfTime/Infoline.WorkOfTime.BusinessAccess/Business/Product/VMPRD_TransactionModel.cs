@@ -187,6 +187,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.products = db.GetVWPRD_ProductByIds(productids).ToList();
             this.inventories = db.GetVWPRD_InventoryBySerialCodesAndIds(productids, serials).ToList();
 
+            //Modelden gelen seri numaraları daha önceden varsa hata ver
+            var isExistBefore = false;
+            string existSerialNumber = "";
+            if (serials.Length > 0 && this.type == (int)EnumPRD_TransactionType.UretimBildirimi)
+            {
+                var checkAllSerialNumber = db.GetPRD_TransactionItemByProductIds(productids).Where(x=>!string.IsNullOrEmpty(x.serialCodes)).SelectMany(x=>x.serialCodes.Split(',')).ToArray();
+                var isExist= checkAllSerialNumber.Where(x=> serials.Contains(x)).ToArray();
+                if (isExist.Count() > 0)
+                {
+                    isExistBefore = true;
+                    existSerialNumber = isExist.FirstOrDefault();
+                }
+            }
+
             var control = this.items.Where(a => a.serialCodes != null).GroupBy(a => a.productId).Select(a => new { productId = a.Key, serialCodes = a.SelectMany(c => c.serialCodes.Split(',')).GroupBy(g => g.ToLower()).ToArray() }).ToArray();
             var controlText = control.Where(a => a.serialCodes.Count(c => c.Count() > 1) > 0).Select(a => string.Format("{0} ürünü için {1} serinumaraları", this.products.Where(c => c.id == a.productId).Select(c => c.code + " | " + c.name).FirstOrDefault(), string.Join(",", a.serialCodes.Where(c => c.Count() > 1).Select(g => g.Key)))).ToArray();
 
@@ -196,7 +210,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Giriş deposu seçilmedi." };
             if (((this.type >= 10 && this.type < 20) || (this.type == 1)) && this.status == (int)EnumPRD_TransactionStatus.islendi && this.outputId == null)
                 return new ResultStatus { result = false, message = "Çıkış deposu seçilmedi." };
-
+            if (isExistBefore)
+            {
+                return new ResultStatus { result = false, message = string.Join(",", existSerialNumber)+" bu seri nolu üründen üretilmiştir!" };
+            }
             var rs = new ResultStatus { result = true };
             if (transaction == null)
             {
@@ -924,7 +941,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 case EnumPRD_TransactionType.HarcamaBildirimi:
                     return EnumPRD_InventoryActionType.Harcandi;
                 case EnumPRD_TransactionType.UretimBildirimi:
-                    return EnumPRD_InventoryActionType.Uretildi;  
+                    return EnumPRD_InventoryActionType.Uretildi;
                 default:
                     return null;
             }

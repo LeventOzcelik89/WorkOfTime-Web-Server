@@ -29,6 +29,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_TransactionItem>().Where(a => a.transactionId.In(transactionIds)).Execute().ToArray();
             }
         }
+        public PRD_TransactionItem[] GetPRD_TransactionItemByProductIds(Guid[] productIds )
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<PRD_TransactionItem>().Where(a => a.productId.In(productIds)).Execute().ToArray();
+            }
+        }
 
     }
 }

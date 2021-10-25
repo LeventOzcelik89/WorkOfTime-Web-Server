@@ -32,6 +32,7 @@ namespace System.Web.Mvc
                     if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
                     {
                         _root.Add(GetCustomerPage());
+                        _root.Add(GetGorevYonetimi());
                     }
                     _root.Add(GetYardimDestekYonetimi());
                 }
@@ -50,6 +51,11 @@ namespace System.Web.Mvc
                     if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
                     {
                         _root.Add(GetGorevYonetimi());
+
+                    }
+                    else
+                    {
+                        _root.Add(GorevYonetimiForCustomer());
                     }
                     _root.Add(GetIsletmeCariler());
                     _root.Add(GetMuhasabeYonetimi());
@@ -60,7 +66,7 @@ namespace System.Web.Mvc
             }
 
 
-          
+
         }
 
         private Menu GetExternalLinks()
@@ -170,7 +176,7 @@ namespace System.Web.Mvc
             var görevlendirme = new Menu("Görevlendirme İşlemleri");
             görevlendirme.AddChild(new Menu("Tüm Görevlendirmeler", "/INV/VWINV_Commissions/Index"));
             görevlendirme.AddChild(new Menu("Görevlendirme Raporları", "/INV/VWINV_Commissions/Dashboard"));
-          
+
             ik.AddChild(görevlendirme);
 
             var maas = new Menu("Maaş İşlemleri");
@@ -276,7 +282,7 @@ namespace System.Web.Mvc
             sahayonetimi.AddChild(new Menu("Bakım Periyotları", "/PRD/VWPRD_InventoryTask/Index"));
             sahayonetimi.AddChild(new Menu("Görev Formları", "/FTM/VWFTM_TaskForm"));
             sahayonetimi.AddChild(new Menu("Görev Takvimi", "/FTM/VWFTM_TaskPlan/Calendar"));
-
+           
             var gorevRaporlari = new Menu("Görev Raporları");
             gorevRaporlari.AddChild(new Menu("Aktivite İzleme", "/FTM/VWFTM_Task/ActivityTracking"));
             gorevRaporlari.AddChild(new Menu("Müşteri Raporu", "/Customer"));
@@ -287,6 +293,12 @@ namespace System.Web.Mvc
             gorevRaporlari.AddChild(new Menu("Personel Raporu", "/FTM/VWFTM_Task/StaffReport"));
             sahayonetimi.AddChild(gorevRaporlari);
 
+            return sahayonetimi;
+        }
+        private Menu GorevYonetimiForCustomer()
+        {
+            var sahayonetimi = new Menu("Müşteri Görev Yönetimi", "#", "fa fa-wrench");
+            sahayonetimi.AddChild(new Menu("Görevler", "/FTM/VWFTM_Task/Index"));
             return sahayonetimi;
         }
 
@@ -314,8 +326,8 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
-			if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
-			{
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
+            {
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
                 menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
             }
