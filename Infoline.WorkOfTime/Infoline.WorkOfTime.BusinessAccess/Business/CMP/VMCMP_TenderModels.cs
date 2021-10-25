@@ -170,7 +170,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.created = DateTime.Now;
                 this.createdby = userId;
-                this.id = Guid.NewGuid();
+                this.id = this.id != null ? this.id : Guid.NewGuid();
                 this.status = (int)EnumCMP_TenderStatus.CevapBekleniyor;
                 rs = this.Insert();
             }
