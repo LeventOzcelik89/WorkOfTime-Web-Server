@@ -304,8 +304,9 @@
                 if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputCompanyId) };
             },
             outputChange: function (e) {
+                debugger;
                 page.outputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputId) };
+                page.events.openedProduct(page.outputId);
             },
             inputCompanyChange: function (e) {
                 page.inputCompanyId = e.sender.value() == "" ? null : e.sender.value();
@@ -316,6 +317,7 @@
                 if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputId) };
             },
             openedProduct: function (value) {
+                debugger;
                 $("#productTable")[value ? "slideDown" : "slideUp"]();
                 //return;
                 $("#productTable").find('[data-item="productId"]').each(function (c) {
@@ -530,6 +532,11 @@
                     .Template("#=TemplateEngine('storageTemplate',data)#")
                     .ValueTemplate("#=companyId_Title# | #=fullName#)")
                     .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .HtmlAttributes(new Dictionary<string, object>()
+                    {
+                        { "style", "width: 100%"},
+                        { "readonly", "readonly"},
+                    })
                     .Events(a => a.Change("page.events.outputChange").DataBound("page.events.outputChange"))
                     .Filter<VWCMP_Storage>(a => a.myStorage == true)
                     .Sort(x => x.Add("fullName").Ascending())
@@ -552,6 +559,11 @@
                     .DataValueField("id")
                     .Template("#=TemplateEngine('companyTemplate',data)#")
                     .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .HtmlAttributes(new Dictionary<string, object>()
+                    {
+                        { "style", "width: 100%"},
+                        { "readonly", "readonly"},
+                    })
                     .Sort(x => x.Add("name").Ascending())
                     .Execute()
                 )
@@ -588,6 +600,11 @@
                     .ValueTemplate("#=companyId_Title# | #=fullName#)")
                     .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
                     .Events(a => a.Change("page.events.inputChange"))
+                    .HtmlAttributes(new Dictionary<string, object>()
+                    {
+                        { "style", "width: 100%"},
+                        { "readonly", "readonly"},
+                    })
                     .Sort(x => x.Add("name").Ascending())
                     .CascadeFrom("inputCompanyId10")
                     .CascadeFromField("companyId")
