@@ -327,6 +327,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 												a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
 												a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
 												a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+												a.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
 												a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
 											}));
 										}
@@ -349,6 +350,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
 													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
 													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
 													rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
 												};
 											}
@@ -688,6 +690,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
 							a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
 							a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+							a.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
 							a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
 						}));
 					}
@@ -710,6 +713,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
 								rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
 								rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+								rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
 								rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
 							});
 						}
