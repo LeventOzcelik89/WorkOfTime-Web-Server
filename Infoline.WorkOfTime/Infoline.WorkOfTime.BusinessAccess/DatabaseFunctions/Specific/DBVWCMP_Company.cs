@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_Company>().Where(a => a.code == code).Execute().FirstOrDefault();
             }
         }
-        public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name,string code ,DbTransaction tran = null)
+        public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name, string code, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -42,6 +42,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 return db.Table<VWCMP_Company>().Where(x => x.createdby == userId && x.type == (int)EnumCMP_CompanyType.Diger).Execute().ToArray();
+            }
+        }
+
+        public VWCMP_Company[] GetVWCMP_CompanyByCreatedbyAll(Guid[] userId, SimpleQuery simpleQuery)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWCMP_Company>().ExecuteSimpleQuery(simpleQuery).Where(a => a.createdby.In(userId)).ToArray();
             }
         }
 
@@ -89,5 +97,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_Company>().Where(a => a.email != null).Select(a => new VWCMP_Company { email = a.email }).Execute().Select(a => a.email).Distinct().ToArray();
             }
         }
-	}
+    }
 }

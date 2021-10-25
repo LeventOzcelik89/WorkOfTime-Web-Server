@@ -51,7 +51,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
             var res = new List<SellIn>();
-            Log.Info(string.Format("{0} Sellin File Found On Genpa Wing Ftp Server", FileList.Count));
+            Log.Info(string.Format("{0} Sellin File Found On Genpa Wing Ftp Server", FileList.Where(x=>x.Contains("SELLIN")).ToList().Count));
             if (FileList.Count >= 0)
             {
                 foreach (var fileName in FileList.Where(x => x.Contains("SELLIN")))
@@ -73,16 +73,25 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                                 var item = new SellIn();
                                 for (int i = 0; i < headers.Length; i++)
                                 {
-                                    var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                    var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                    if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                    try
                                     {
-                                        prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                        var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                        var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                        if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                        {
+                                            prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                        }
+                                        else
+                                        {
+                                            prop.SetValue(item, rawFile[i]);
+                                        }
                                     }
-                                    else
+                                    catch (Exception e)
                                     {
-                                        prop.SetValue(item, rawFile[i]);
+                                        Log.Error(e.ToString());
+                                       
                                     }
+                                  
                                 }
                                 res.Add(item);
                             }
@@ -107,7 +116,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
             var res = new List<SellThr>();
-            Log.Info(string.Format("{0} SellThr File Found On Genpa Wing Ftp Server", FileList.Count));
+            Log.Info(string.Format("{0} SellThr File Found On Genpa Wing Ftp Server", FileList.Where(x => x.Contains("SELLTHR")).ToList().Count));
             if (FileList.Count >= 0)
             {
                 foreach (var fileName in FileList.Where(x => x.Contains("SELLTHR")))
@@ -129,16 +138,25 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                                 var item = new SellThr();
                                 for (int i = 0; i < headers.Length; i++)
                                 {
-                                    var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                    var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                    if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                    try
                                     {
-                                        prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                        var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                        var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
+                                        if (prop.PropertyType.IsAssignableFrom(typeof(int)))
+                                        {
+                                            prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                        }
+                                        else
+                                        {
+                                            prop.SetValue(item, rawFile[i]);
+                                        }
                                     }
-                                    else
+                                    catch (Exception e)
                                     {
-                                        prop.SetValue(item, rawFile[i]);
+
+                                        Log.Error(e.ToString());
                                     }
+                                  
                                 }
                                 res.Add(item);
                             }
@@ -201,7 +219,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     document.Load(reader);
                     var tagName = document.DocumentElement.GetElementsByTagName("name");
                     var dateTimeNow = DateTime.Now.Date;
-                    var date = dateTimeNow.Day.ToString() + dateTimeNow.Month.ToString() + dateTimeNow.Year.ToString();
+                    var date = dateTimeNow.Year.ToString() + dateTimeNow.Month.ToString() + dateTimeNow.Day.ToString();
                     for (int i = 0; i < tagName.Count; i++)
                     {
                         var fileName = tagName[i].InnerText;

@@ -74,8 +74,8 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                             saveUsers();
                             lastUserSync = _lastExecute;
                         }
-                        isConn = isConnected();
                         Thread.Sleep(new TimeSpan(0, 1, 0));
+                        isConn = isConnected();
                     }
                 }
                 catch (Exception ex)
@@ -123,9 +123,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             var rs = new ResultStatus { result = true };
             var trans = db.BeginTransaction();
 
-            var firstLogTime = getLastInsertTimeFromFile();
+            var firstLogTimeResulStatus = getLastInsertTimeFromFile();
             var lastLogTime = DateTime.Now;
 
+            if (!firstLogTimeResulStatus.result)
+            {
+                return false;
+            }
+
+            DateTime firstLogTime = DateTime.Parse(firstLogTimeResulStatus.objects.ToString());
             var logs = this.GetLogDataBetweenDates(firstLogTime, lastLogTime);
             foreach (var log in logs)
             {
@@ -188,7 +194,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             try
             {
                 bool tmp = false;
-                StreamReader sr = new StreamReader("../../notes.txt");
+                StreamReader sr = new StreamReader("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -209,7 +215,7 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
                 }
 
                 sr.Close();
-                File.WriteAllLines("../../notes.txt", lines);
+                File.WriteAllLines("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt", lines);
                 
             }
             catch (Exception e)
@@ -223,13 +229,15 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             return rs;
         }
 
-        private DateTime getLastInsertTimeFromFile()
+        private ResultStatus getLastInsertTimeFromFile()
         {
+            var rs = new ResultStatus { result = true };
             String line;
             var lastInsertDateTime = new DateTime(1990, 1, 1);
+
             try
             {
-                StreamReader sr = new StreamReader("../../notes.txt");
+                StreamReader sr = new StreamReader("C:\\github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -247,10 +255,13 @@ namespace Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration
             }
             catch (Exception e)
             {
-
+                rs.message = "Dosyadan son database'e kayıt zamanı okuma başarırız... Veritabanına kayıt aktarılmadı... Exception: " + e.Message;
+                Log.Error(rs.message);
+                rs.result = false;
             }
 
-            return lastInsertDateTime;
+            rs.objects = lastInsertDateTime.ToString();
+            return rs;
         }
 
         public bool AddUserToDevice(string userName, int password, int id, int privelage = 0)

@@ -32,6 +32,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWCMP_Storage GetVWCMP_StorageByName(string name, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCMP_Storage>().Where(a => a.name == name).Execute().FirstOrDefault();
+            }
+        }
+
         public VWCMP_Storage[] GetVWCMP_StorageOwner(DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

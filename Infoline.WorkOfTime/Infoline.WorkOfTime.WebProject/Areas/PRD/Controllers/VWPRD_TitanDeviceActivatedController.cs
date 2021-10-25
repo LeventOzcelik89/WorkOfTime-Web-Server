@@ -4,13 +4,11 @@ using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-
 using System.Web.Mvc;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
-	public class VWPRD_TitanDeviceActivatedController : Controller
-	{
+    public class VWPRD_TitanDeviceActivatedController : Controller
+    {
         [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public ActionResult Index()
         {
@@ -20,11 +18,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public ActionResult DetailForInventory(VMPRD_TitanDeviceActivated model)
         {
-            var data= model.Load();
-
+            var data = model.Load();
             return View(data);
         }
-
+        [AllowEveryone]
+        public ActionResult SellOutDashboard()
+        {
+            return View();
+        }
         [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
@@ -59,10 +60,37 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         public JsonResult GetDeviceInformation(Guid id)
         {
-
             VMPRD_TitanDeviceActivated model = new VMPRD_TitanDeviceActivated();
             return Json(model.GetDeviceInformation(id), JsonRequestBehavior.AllowGet);
         }
-       
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetIndexData()
+        {
+            return Json(new VMPRD_TitanDeviceActivated().GetIndexData(), JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetProductSellOut(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductReport(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetDistSellOut(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistReport(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutProductChartData(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetProductSellOutDistChartData(DateTime startDate, DateTime endDate)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
     }
 }
