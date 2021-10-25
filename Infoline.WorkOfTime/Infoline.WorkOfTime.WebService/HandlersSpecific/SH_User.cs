@@ -120,6 +120,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 managerList.Add(usermanagers.Manager3);
                 managerList.Add(usermanagers.Manager4);
                 managerList.Add(usermanagers.Manager5);
+                managerList.Add(usermanagers.Manager6);
                 var childUserList = new List<VWSH_UserOrderType>();
                 var chsay = 0;
                 if (Convert.ToBoolean(upDown))
