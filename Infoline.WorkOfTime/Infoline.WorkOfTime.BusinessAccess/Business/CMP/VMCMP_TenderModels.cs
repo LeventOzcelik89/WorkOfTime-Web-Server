@@ -43,7 +43,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public static Guid muhasebeYonetici { get; set; } = new Guid(SHRoles.OnMuhasebe);
         public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatisOnaylayici);
         public Guid[] _approvalPersons = new Guid[0];
-
+        public Guid? forMobile { get; set; }
 
 
         public VMCMP_TenderModels Load(bool? isTransform, int? direction)
@@ -170,7 +170,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.created = DateTime.Now;
                 this.createdby = userId;
-                this.id = this.id != null ? this.id : Guid.NewGuid();
+                this.id = this.forMobile ?? Guid.NewGuid();
                 this.status = (int)EnumCMP_TenderStatus.CevapBekleniyor;
                 rs = this.Insert();
             }

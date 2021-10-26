@@ -51,7 +51,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
 
 
         [HandleFunction("VWCMP_Company/Insert")]
-        public void VWCMP_CompanyInsert(HttpContext context)
+        public void VWCMP_InsertCompany(HttpContext context)
         {
             try
             {
