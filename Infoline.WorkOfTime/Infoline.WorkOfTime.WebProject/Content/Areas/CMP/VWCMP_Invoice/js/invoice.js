@@ -441,6 +441,18 @@
                 $(elem).attr("name", 'InvoiceItems[' + i + '].' + field);
             })
         })
+        var valueArray = [];
+        $.each($('[data-item="quantity"]'), function (i, item) {
+            valueArray.push($(item).val());
+        });
+        debugger
+        var isContains = $.Enumerable.From(valueArray).Contains('');
+        if (!isContains) {
+            $("#save").removeAttr("disabled");
+        }
+        else {
+            $("#save").attr("disabled", "");
+        }
         _invoice.CalculateProduct(_this);
     },
     ClearAdditionalInfo: function (_this) {
