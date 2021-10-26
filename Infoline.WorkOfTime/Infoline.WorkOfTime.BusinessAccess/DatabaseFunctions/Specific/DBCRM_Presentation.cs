@@ -42,7 +42,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         SirketTelefonu = 5,
         [Description("Bayi Referansı")]
         BayiReferansi = 6,
-        [Description("Danışma Referansı")]
+        [Description("Danışman Referansı")]
         DanismaReferansi = 7,
     }
 
