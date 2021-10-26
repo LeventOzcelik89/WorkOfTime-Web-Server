@@ -445,7 +445,7 @@
         $.each($('[data-item="quantity"]'), function (i, item) {
             valueArray.push($(item).val());
         });
-        debugger
+        
         var isContains = $.Enumerable.From(valueArray).Contains('');
         if (!isContains) {
             $("#save").removeAttr("disabled");
@@ -970,7 +970,7 @@ $(document)
         $.each($('[data-item="quantity"]'), function (i, item) {
             valueArray.push($(item).val());
         });
-        debugger
+        
         var isContains = $.Enumerable.From(valueArray).Contains('');
         if (!isContains) {
             $("#save").removeAttr("disabled");
