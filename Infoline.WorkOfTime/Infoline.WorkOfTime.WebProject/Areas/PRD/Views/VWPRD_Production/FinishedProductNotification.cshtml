@@ -452,6 +452,7 @@
                 $('#ProductSerialCodes').tagify({
                     placeholder: "Seri Numarasını yazın ve Enter'a basınız"
                 }).on("add removetag", function (e) {
+                    
                     let amount = $("#ProductSerialCodes").data("tagify").value;
                     if (amount.length == 0) {
                         $("#amount").data("kendoNumericTextBox").value(1)
@@ -469,6 +470,17 @@
                         quantity.value(parseInt(productSerialCode.value.length) * parseInt(value.value()));
                     });
 
+                }).on("add", function (e, tagData) {
+                    debugger
+                    GetJsonDataFromUrl('/PRD/VWPRD_Transaction/IsSerialUserBefore', { serial: tagData.data.value, productId: '@Model.productId' }, function (data) {
+                        if (data.result == false) {
+                            tagData.tag.remove();
+                            MesajWarning(tagData.data.value + " seri numarası daha önce kullanılmıştır", "Seri Numarası Daha Önce Kullanılmıştır")
+                        }
+                        
+
+
+                    });
                 });
             </script>
         }
