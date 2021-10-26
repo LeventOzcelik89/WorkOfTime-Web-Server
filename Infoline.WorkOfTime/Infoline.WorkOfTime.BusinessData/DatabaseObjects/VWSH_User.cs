@@ -56,6 +56,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Manager4_Title { get; set;}
         public Guid? Manager5 { get; set;}
         public string Manager5_Title { get; set;}
+        public Guid? Manager6 { get; set;}
+        public string Manager6_Title { get; set;}
         public Guid? DepartmentId { get; set;}
         public Guid? CompanyPersonDepartmentId { get; set;}
         public string Department_Title { get; set;}

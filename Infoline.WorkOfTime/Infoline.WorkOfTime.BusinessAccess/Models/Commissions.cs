@@ -204,7 +204,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
             var notification = new Notification();
             item.changed = DateTime.Now;
             item.changedby = userId;
-
             var commision = db.GetVWINV_CommissionsById(item.id);
             if (commision == null)
             {
@@ -275,9 +274,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
             var personsInfo = db.GetVWSH_UserByIds(persons.Select(a => a.IdUser.Value).ToArray());
             var owner = persons.Where(a => a.IsOwner == true).FirstOrDefault();
             var ownerInfo = personsInfo.Where(a => a.id == owner.IdUser).FirstOrDefault();
-            var created = string.Format("{0:dd.MM.yyyy HH:mm}", item.created);
-            var start = string.Format("{0:dd.MM.yyyy HH:mm}", item.StartDate);
-            var end = string.Format("{0:dd.MM.yyyy HH:mm}", item.EndDate);
+            var created = string.Format("{0:dd.MM.yyyy HH:mm}", commision.created);
+            var start = string.Format("{0:dd.MM.yyyy HH:mm}", commision.StartDate);
+            var end = string.Format("{0:dd.MM.yyyy HH:mm}", commision.EndDate);
 
 
             if (ownerInfo == null)
@@ -340,8 +339,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                           .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, genelMudur.email, "Görev Talebi Bilgilendirmesi Hakkında..", true);
                         notification.NotificationSend(genelMudur.id, "Görev Talebi Bilgilendirmesi Hakkında", notify);
                     }
-
-                }
+               }
             }
 
             return new ResultStatus { result = dbresult.result, message = "Görev yanıtlama işlemi başarılı" };

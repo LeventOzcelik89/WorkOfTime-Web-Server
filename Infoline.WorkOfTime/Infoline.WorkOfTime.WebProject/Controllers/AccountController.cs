@@ -351,7 +351,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Şifre güncelle", SHRoles.Personel)]
+        [PageInfo("Şifre güncelle", SHRoles.Personel,SHRoles.SahaGorevMusteri)]
         public ActionResult UpdatePassword()
         {
             var db = new WorkOfTimeDatabase();
@@ -369,7 +369,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return View(kullanici);
         }
 
-        [PageInfo("Şifre güncelleme methodu", SHRoles.Personel)]
+        [PageInfo("Şifre güncelleme methodu", SHRoles.Personel,SHRoles.SahaGorevMusteri)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult UpdatePassword(string oldPassword, string password, string rePassword)
         {

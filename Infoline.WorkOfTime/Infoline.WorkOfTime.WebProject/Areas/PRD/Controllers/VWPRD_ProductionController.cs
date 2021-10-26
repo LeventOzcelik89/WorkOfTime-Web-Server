@@ -180,7 +180,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Üretime ait ürünler ve stok hareketlerinde ki harcamaları dönen method", SHRoles.Personel)]
+        [PageInfo("Üretime ait ürünler ve stok hareketlerindeki harcamaları dönen method", SHRoles.Personel)]
         public JsonResult ProductionProductAndTransactionDataSource(Guid productionId)
         {
             var productionProducts = new VMPRD_ProductionModel().GetProductionProductAndTransaction(productionId);

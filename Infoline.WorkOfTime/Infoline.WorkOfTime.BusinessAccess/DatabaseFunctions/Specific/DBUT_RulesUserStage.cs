@@ -25,6 +25,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Manager4 = 3,
         [Description("5. Yönetici")]
         Manager5 = 4,
+        [Description("6. Yönetici")]
+        Manager6 = 5,
         [Description("Role Bağlı Seçim")]
         RoleBagliSecim = 10,
         [Description("Seçime Bağlı Kullanıcı")]

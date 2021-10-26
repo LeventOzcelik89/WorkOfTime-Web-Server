@@ -393,7 +393,7 @@
     AddRowForProduct: function (control) {
 
 
-
+        $("#save").attr("disabled","")
         if (control == true) {
             var row = $('[data-row]').first();
             var product = $(row).find('[data-item=productId]').data("kendoDropDownList");
@@ -514,8 +514,18 @@
                 $(elem).attr("name", 'InvoiceItems[' + i + '].' + field);
             })
         })
-
+       
         _invoice.CalculateProduct(_this);
+        var valueArray = [];
+        $.each($('[data-item="quantity"]'), function (i, item) {
+            valueArray.push($(item).val());
+        });
+        if (JQuery.inArray(0 || '0' || '', valueArray) == -1) {
+            $("#save").removeAttr("disabled");
+        }
+        else {
+            $("#save").attr("disabled", "");
+        }
     },
     ClearAdditionalInfo: function (_this) {
         $(_this).parents("td").addClass("hide");
@@ -1168,3 +1178,18 @@ $(document)
     .on("change", '#issueDate', function (e) {
         $(".filterButtonActive").trigger("click");
     })
+    .on("change", '[data-item="quantity"]', function () {
+        
+        var valueArray = [];
+        $.each($('[data-item="quantity"]'), function (i, item) {
+            valueArray.push($(item).val());
+        });
+        if (JQuery.inArray(0 || '0' || '', valueArray)==-1) {
+            $("#save").removeAttr("disabled");
+        }
+        else {
+            $("#save").attr("disabled","");
+        }  
+    });
+   
+    

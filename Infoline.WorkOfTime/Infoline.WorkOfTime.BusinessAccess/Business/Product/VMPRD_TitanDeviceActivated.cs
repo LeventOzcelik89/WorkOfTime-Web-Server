@@ -54,7 +54,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate)
+                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate).OrderByDescending(x=>x.Count)
             };
         }
         public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
@@ -65,14 +65,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = getData
+                objects = getData.OrderByDescending(x => x.Count)
             };
         }
         public ResultStatus GetProductSellOutProductChartData(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
-            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
+            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
             var getDates = getAllDevices.GroupBy(x => x.CreatedOfTitan.Value.Date).OrderBy(x => x.Key).Select(x => x.Key).ToList();
             data.Dates = getDates.Select(x=>x.ToShortDateString()).ToList();
             var groupedProducts = getAllDevices.GroupBy(x => x.productId_Title).ToList();
@@ -87,6 +87,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 model.data= outcasteds.Concat(existents).OrderBy(x=>x.Date).Select(x=>x.Count).ToList();
                 data.Series.Add(model);
             }
+            
             return new ResultStatus
             {
                 result = true,
@@ -97,7 +98,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
-            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
+            var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
             var allInventories =db.GetPRD_TitanDeviceActivatedSellOutChartInventoryData(getAllDevices.Where(x => x.InventoryId.HasValue).Select(x=>x.InventoryId.Value).ToArray());
             var getDates = allInventories.GroupBy(x => x.created.Value.Date).Select(x=>x.Key).OrderBy(x=>x).ToList();
             var inventories = allInventories.GroupBy(x => x.lastActionDataCompanyId_Title);

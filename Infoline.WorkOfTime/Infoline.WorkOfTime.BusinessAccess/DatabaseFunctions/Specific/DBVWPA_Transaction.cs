@@ -199,14 +199,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				headers.headerFilters.Filters.Add(new HeadersTransactionItem
 				{
-					title = "Düzenleme Bekleyenler",
-					filter = "{'Filter':{'Operand1':{'Operand1':'direction','Operator':'Equal','Operand2':'3'},'Operand2':{'Operand1':{'Operand1':'type','Operator':'Equal','Operand2':'8'},'Operand2':{'Operand1':'confirmationUserIds','Operator':'Like','Operand2':'%" + userId + "%'},'Operator':'And'},'Operator':'And'}}",
-					count = db.Table<VWPA_Transaction>().Where(a => (a.direction == 3 && a.type == (int)EnumPA_TransactionType.Masraf) && a.createdby == userId).Count(),
-					isActive = false
-				});
-
-				headers.headerFilters.Filters.Add(new HeadersTransactionItem
-				{
 					title = "Reddedilenler",
 					filter = "{'Filter':{'Operand1':{'Operand1':'direction','Operator':'Equal','Operand2':'2'},'Operand2':{'Operand1':{'Operand1':'type','Operator':'Equal','Operand2':'8'},'Operand2':{'Operand1':'rejectedUserIds','Operator':'Like','Operand2':'%" + userId + "%'},'Operator':'And'},'Operator':'And'}}",
 					count = db.Table<VWPA_Transaction>().Where(a => a.rejectedUserIds.Contains(userId.ToString()) || ((a.confirmationStatus == 1 || a.confirmationStatus == null) && ((a.direction == 2 && a.type == 8) && a.confirmationUserIds.Contains(userId.ToString())))).Count(),

@@ -575,34 +575,46 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 continue;
                             }
                         }
+                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager6 && shuser.Manager6.HasValue)
+                        {
+                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager6.Value).FirstOrDefault();
+                            if (lastValidatorData != null)
+                            {
+                                continue;
+                            }
+                        }
                         else if (rulesStage.type == (int)EnumUT_RulesUserStage.SonOnaylayici)
                         {
-                            var lastValidatorData = companyPersonDepart.Where(x => x.Manager1 == rulesStage.userId || x.Manager2 == rulesStage.userId || x.Manager3 == rulesStage.userId || x.Manager4 == rulesStage.userId || x.Manager5 == rulesStage.userId).FirstOrDefault();
-                            if (lastValidatorData == null)
+                            var lastValidatorData = companyPersonDepart.Where(x => x.Manager1 == rulesStage.userId || x.Manager2 == rulesStage.userId || x.Manager3 == rulesStage.userId || x.Manager4 == rulesStage.userId || x.Manager5 == rulesStage.userId || x.Manager6 == rulesStage.userId).FirstOrDefault();
+                            if (lastValidatorData != null)
                             {
                                 continue;
                             }
                         }
 
-                        advanceCofirmations.Add(new PA_AdvanceConfirmation
+                        if (advanceCofirmations.Count(x => x.ruleType == (Int16)EnumUT_RulesUserStage.SonOnaylayici) == 0)
                         {
-                            created = this.created,
-                            createdby = userId,
-                            advanceId = this.id,
-                            ruleType = rulesStage.type,
-                            ruleOrder = rulesStage.order,
-                            ruleUserId = rulesStage.userId,
-                            ruleRoleId = rulesStage.roleId,
-                            ruleTitle = rulesStage.title,
-                            userId = (rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesStage.userId : rulesStage.type == (Int16)EnumUT_RulesUserStage.SonOnaylayici ? rulesStage.userId : null)
 
-                        });
+                            advanceCofirmations.Add(new PA_AdvanceConfirmation
+                            {
+                                created = this.created,
+                                createdby = userId,
+                                advanceId = this.id,
+                                ruleType = rulesStage.type,
+                                ruleOrder = rulesStage.order,
+                                ruleUserId = rulesStage.userId,
+                                ruleRoleId = rulesStage.roleId,
+                                ruleTitle = rulesStage.title,
+                                userId = (rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+      rulesStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesStage.userId : rulesStage.type == (Int16)EnumUT_RulesUserStage.SonOnaylayici ? rulesStage.userId : null)
 
+                            });
+                        }
                     }
 
 

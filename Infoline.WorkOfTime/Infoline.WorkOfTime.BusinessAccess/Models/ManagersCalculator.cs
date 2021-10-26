@@ -57,6 +57,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 cpd.Manager3 = personManagers.Where(a => a.IdUser != cpd.Manager1 && a.IdUser != cpd.Manager2).Select(a => a.IdUser).FirstOrDefault();
                 cpd.Manager4 = personManagers.Where(a => a.IdUser != cpd.Manager1 && a.IdUser != cpd.Manager2 && a.IdUser != cpd.Manager3).Select(a => a.IdUser).FirstOrDefault();
                 cpd.Manager5 = personManagers.Where(a => a.IdUser != cpd.Manager1 && a.IdUser != cpd.Manager2 && a.IdUser != cpd.Manager3 && a.IdUser != cpd.Manager4).Select(a => a.IdUser).FirstOrDefault();
+                cpd.Manager6 = personManagers.Where(a => a.IdUser != cpd.Manager1 && a.IdUser != cpd.Manager2 && a.IdUser != cpd.Manager3 && a.IdUser != cpd.Manager4 && a.IdUser != cpd.Manager5).Select(a => a.IdUser).FirstOrDefault();
 
                 updateList.Add(cpd);
             }
