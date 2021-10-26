@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Envanter Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.IKYonetici,SHRoles.UretimPersonel,SHRoles.UretimYonetici)]
+        [PageInfo("Envanter Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.IKYonetici, SHRoles.UretimPersonel, SHRoles.UretimYonetici)]
         public ActionResult Detail(VMPRD_TransactionModel model)
         {
             var data = model.Load();
@@ -218,5 +218,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
+        [PageInfo("Ürününe ait daha önce seri kodu kullanıldığını kontrol eden metod", SHRoles.Personel)]
+        public JsonResult IsSerialUserBefore(string serial, Guid productId)
+        {
+            {
+                var result = new VMPRD_TransactionModel().IsSerialUsedBefore(serial, productId);
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+        }
     }
 }
+
