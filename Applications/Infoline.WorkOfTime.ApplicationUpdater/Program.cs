@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Infoline.WorkOfTime.ApplicationUpdater
@@ -36,8 +37,45 @@ namespace Infoline.WorkOfTime.ApplicationUpdater
                 FileUpdater();
                 //  ExConfigUpdate();
                 //  StartApplication();
+
+                UpdateVersionCode();
+
             }
             Console.ReadLine();
+        }
+
+        public static void UpdateVersionCode()
+        {
+
+            try
+            {
+                var fileDir = RootPath + "/" + "web.config";
+                if (File.Exists(fileDir))
+                {
+                    var fileText = File.ReadAllText(fileDir);
+
+                    var regx = new Regex("(<add key=\"VersionCode\" value=\"(.*)\" \\/>)");
+                    var rs = regx.Match(fileText);
+
+                    if (rs.Success)
+                    {
+
+                        var newValue = Guid.NewGuid().ToString().Substring(0, 8);
+                        fileText = fileText.Replace(rs.Value, "<add key=\"VersionCode\" value=\"" + newValue + "\" />");
+
+                        File.WriteAllText(fileDir, fileText);
+
+                    }
+
+                    Log.Success("web.config Güncellendi !");
+
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error("web.config Güncellenemedi :" + ex.Message);
+            }
+
         }
 
         public static bool ServicesCheck()
