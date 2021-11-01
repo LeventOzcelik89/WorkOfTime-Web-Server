@@ -336,7 +336,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 invoice.discount = invoice.discount != null ? invoice.discount : 0;
             }
 
-            var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, this.trans);
+            var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), true, this.trans);
             dbresult &= db.BulkDeleteCMP_InvoiceItem(oldItems, this.trans);
             dbresult &= db.BulkInsertCMP_InvoiceItem(this.InvoiceItems.Select(a => new CMP_InvoiceItem().B_EntityDataCopyForMaterial(a)), this.trans);
 
