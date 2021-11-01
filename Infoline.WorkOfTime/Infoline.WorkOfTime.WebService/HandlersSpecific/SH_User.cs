@@ -175,7 +175,17 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var db = new WorkOfTimeDatabase();
                 var userId = CallContext.Current.UserId;
                 var company = db.GetVWCMP_CompanyByCreatedby(userId);
-                var model = db.GetVWSH_UserOtherPerson(company.Select(x => x.id).ToArray());
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                BEXP filter = null;
+                 filter |= new BEXP
+                {
+                    Operand1 = (COL)"companyId",
+                    Operator = BinaryOperator.In,
+                    Operand2 = new ARR { Values = company.Select(x => (VAL)x.id).ToArray() }
+                };
+                cond.Filter &= filter;
+                var model = db.GetVWSH_UserOtherPersonWithCond(cond);
                 RenderResponse(context, new ResultStatus() { result = true, objects = model});
             }
             catch (Exception ex)

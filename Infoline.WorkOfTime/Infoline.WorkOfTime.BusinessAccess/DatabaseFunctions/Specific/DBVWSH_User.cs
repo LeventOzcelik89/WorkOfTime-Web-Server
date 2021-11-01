@@ -51,7 +51,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWSH_User>().Where(a => a.type == (int)EnumSH_UserType.OtherPerson && a.CompanyId.In(companyId)).Execute().ToArray();
+                return db.Table<VWSH_User>().Where(a => a.type == (int)EnumSH_UserType.OtherPerson && a.CompanyId.In(companyId)).Execute().OrderBy(x => x.FullName).ToArray();
+            }
+        }
+
+        public VWSH_User[] GetVWSH_UserOtherPersonWithCond(SimpleQuery simpleQuery, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+
+                return db.Table<VWSH_User>().ExecuteSimpleQuery(simpleQuery).ToArray();
             }
         }
         public VWSH_User[] GetVWSH_UserByIds(Guid[] id, DbTransaction tran = null)
