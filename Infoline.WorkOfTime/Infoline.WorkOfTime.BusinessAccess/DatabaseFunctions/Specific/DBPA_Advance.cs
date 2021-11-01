@@ -41,8 +41,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         IsAvansi = 0,
         [Description("Maaş Avansı"), Generic("icon", "icon-money")]
         MaasAvansi = 1,
-        [Description("Taksitli Maaş Avansı"), Generic("icon", "icon-credit-card-1")]
-        TaksitliMaasAvans = 2
+       
     }
 
     [EnumInfo(typeof(PA_AdvanceConfirmation), "status")]

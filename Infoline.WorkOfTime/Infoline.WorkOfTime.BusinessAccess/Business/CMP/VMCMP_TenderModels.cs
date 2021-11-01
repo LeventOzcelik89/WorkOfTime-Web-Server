@@ -43,7 +43,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public static Guid muhasebeYonetici { get; set; } = new Guid(SHRoles.OnMuhasebe);
         public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatisOnaylayici);
         public Guid[] _approvalPersons = new Guid[0];
-
+        public Guid? forMobile { get; set; }
+        public Boolean isTenderHaveOrder { get; set; }
 
 
         public VMCMP_TenderModels Load(bool? isTransform, int? direction)
@@ -51,6 +52,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var invoice = db.GetCMP_InvoiceById(this.id);
             var tender = db.GetVWCMP_TenderById(this.id);
+            var order = db.GetCMP_InvoiceActionByInvoiceId(this.id).Where(x => x.type == (Int16)EnumCMP_InvoiceActionType.TeklifSiparis).Count();
+            this.isTenderHaveOrder = order > 0 ? true : false;
 
             if (direction.HasValue)
             {
@@ -170,7 +173,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.created = DateTime.Now;
                 this.createdby = userId;
-                this.id = this.id != null ? this.id : Guid.NewGuid();
+                this.id = this.forMobile ?? Guid.NewGuid();
                 this.status = (int)EnumCMP_TenderStatus.CevapBekleniyor;
                 rs = this.Insert();
             }

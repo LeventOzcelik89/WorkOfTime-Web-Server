@@ -124,7 +124,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Json(new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Teklif kaydetme işlemi başarılı", false) :
+				FeedBack = dbresult.result ? feedback.Success("Teklif kaydetme işlemi başarılı", false, Request.UrlReferrer.AbsoluteUri.Contains("/CRM/VWCRM_Presentation/Detail?") ? Request.UrlReferrer.AbsoluteUri : null) :
 						   feedback.Warning("Teklif kaydetme işlemi başarısız. Mesaj : " + dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
 		}

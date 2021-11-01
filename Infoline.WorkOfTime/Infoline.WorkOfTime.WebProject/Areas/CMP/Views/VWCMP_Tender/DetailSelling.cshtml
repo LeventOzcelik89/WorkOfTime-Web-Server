@@ -2,12 +2,8 @@
 @{
     ViewBag.Title = Model.Customer_Title + " İşletmesine Verilen Satış Teklifi Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
     var userStatus = (PageSecurity)Session["userStatus"];
-
     var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
-
-
     var createdTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.YeniTeklif).FirstOrDefault();
     var approveTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifYoneticiOnay).FirstOrDefault();
     var customerApprove = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifMusteriOnay).FirstOrDefault();
@@ -15,7 +11,6 @@
     var invoiceTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifFatura).FirstOrDefault();
     var orderTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifSiparis).FirstOrDefault();
 }
-
 <style type="text/css" data-selector="modalContainer">
     #VWCMP_InvoiceItem .k-grid-toolbar {
         display: none;
@@ -94,7 +89,6 @@
         top: -25px;
         left: 66%
     }
-
 
     .mlast {
         top: -25px;
@@ -205,9 +199,7 @@
         }
     }
 </style>
-
 <script type="text/javascript" data-selector="modalContainer">
-
     var tenderDetail = {
         dfn: {
             model: @(Html.Raw(Infoline.Helper.Json.Serialize(Model))),
@@ -226,7 +218,6 @@
                     MesajWarning("Lütfen önce not giriniz.");
                     return;
                 }
-
                 $.ajax({
                     type: "POST",
                     url: '/CMP/VWCMP_Tender/InsertNote',
@@ -243,7 +234,6 @@
             updateStatus: function (_this) {
                 _this.type = "button";
                 var type = $(_this).attr("data-type");
-
                 $.ajax({
                     type: "POST",
                     url: '/CMP/VWCMP_Tender/UpdateStatus',
@@ -279,9 +269,7 @@
                 var curEx = tenderDetail.dfn.exchangeRates[tenderDetail.dfn.model.Currency_Code].BanknoteSelling;
                 var title = '<p>Teklif Oluşturulduğundaki Kur : ' + kendo.toString(tenderDetail.dfn.model.rateExchange, "N2") + ' ₺</p>'+
                     '<p>Şu Anki Kur : ' + kendo.toString(curEx, "N2") + ' ₺</p>';
-
                 $('#contentTooltip').append('<span class="fa fa-info-circle" rel="tooltip" data-original-title="' + title + '"></span>');
-
                 $("[rel=tooltip]").tooltip({
                     html:true
                 });
@@ -293,14 +281,12 @@
                 if(unit == "ADET"){
                     return kendo.toString(item.quantity, "N0") + " " + unit;
                 }
-
                 return kendo.toString(item.quantity, "N2") + " " + unit;
             },
             descriptionTemp: function (data) {
                 if (data.description != null) {
                     return '<i class="fa fa-info-circle" data-original-title="' + data.description + '" data-placement="bottom"></i>';
                 }
-
                 return "";
             },
             currencyTemp: function (item, data, isTotal) {
@@ -308,17 +294,24 @@
                     return isTotal ? '<span style="color:#ff6a00">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>' :
                         kendo.toString(data, "N2") + " " + item.Currency_Symbol;
                 }
-
                 return "-";
             },
             discountTemp: function (data) {
                 if (data.discountType == '@((int)EnumCMP_InvoiceItemDiscountType.Tutar)') {
                     return kendo.toString(data.discount, "N2") + ' ' + data.Currency_Symbol;
                 }
-
                 var price = data.quantity * data.price;
                 var subTotal = ((price * data.discount) / 100);
                 return kendo.toString(subTotal, "N2") + " " + data.Currency_Symbol;
+            },
+            discountRateTemp: function (data) {
+                  if (data.discountType == '@((int)EnumCMP_InvoiceItemDiscountType.Tutar)') {
+                      var a = data.price * data.quantity;
+                      var b = data.discount;
+                      var result =100-(((a-b)/a)*100)
+                      return result + "%"
+                }
+                return data.discount+"%"
             },
             stockTemp: function (data) {
                 if (data.stockType!=0) {
@@ -329,14 +322,35 @@
                         return "Stokta Yok"
                     }
                 }
-
                 return "Stoksuz Ürün/Hizmet";
-            }
+            },
+            otvTemp: function (data) {
+                if (data.OTVType==0) {
+                    return data.OTV + "%"
+                }
+                else {
+                    return data.OTV + "₺"
+                }
+            },
+            oivTemp: function (data) {
+                if (data.OIVType == 0) {
+                    return data.OIV + "%"
+                }
+                else {
+                    return data.OIV + "₺"
+                }
+            },
+            kdvTemp: function (data) {
+                if (data.KDVType == 0) {
+                    return data.KDV + "%"
+                }
+                else {
+                    return data.KDV + "₺"
+                }
+            },
         }
     }
-
     tenderDetail.templates.stockTemp
-
     $(document)
         .on("ready", function () {
             if (tenderDetail.dfn.model.Currency_Code != "TL") {
@@ -350,14 +364,11 @@
         })
         .on("load:grid", '#VWCMP_InvoiceItem', function (e) {
             $(this).find('table').toggleClass("k-selectable");
-
             var productIds = tenderDetail.dfn.model.InvoiceItems.map(a => a.productId).join(",");
             $('[data-button="stock"]').attr("data-href", "/PRD/VWPRD_StockSummary/StockDetailProducts?productIds=" + productIds);
             $('[data-button="stock"]').removeClass("hide");
         })
-
 </script>
-
 <div class="row" id="detailInvoice">
     <div class="col-lg-12">
         <div class="wrapper wrapper-content">
@@ -431,7 +442,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                             <div class="ibox-title heightMin">
                                 <h5> <i class="fa fa-warning"></i> Teklif Durumu </h5>
                                 <div class="ibox-tools">
-
                                     @if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor)
                                     {
                                         <strong class="text-warning">
@@ -473,7 +483,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         </div>
                     </div>
                 </div>
-
                 <div class="ibox ">
                     <div class="ibox-title">
                         <h5> <i class="fa fa-puzzle-piece"></i> Teklife Eklenen Ürün Kalemleri</h5>
@@ -494,31 +503,35 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                            .Columns(x =>
                            {
                                x.Bound(y => y.Product_Title).Title("Ürün/Hizmet").Width(250).Filterable(false);
-
                                x.Bound(y => y.price).Title("Birim Fiyat").Width(100).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.price)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
                                x.Bound(y => y.quantity).Title("Miktar").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.quantityTemp(data)#")
                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
-
                                x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
-
                                x.Bound(y => y.discount).Title("İndirim").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.discountTemp(data)#")
                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
-
+                               x.Bound(y => y.discount).Title("İndirim Oranı").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.discountRateTemp(data) #")
+                           .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                               .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
+                               x.Bound(y => y.OIV).Title("KDV").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.kdvTemp(data)#")
+                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+                               x.Bound(y => y.OTV).Title("ÖTV").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.otvTemp(data)#")
+                                   .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+                               x.Bound(y => y.OIV).Title("ÖİV").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.oivTemp(data)#")
+                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
                                x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(120).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalTax)#")
                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
-
                                x.Bound(y => y.totalAmount).Title("Toplam Fiyat").Width(100).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalAmount)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
                                x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
-
                                x.Bound(y => y.id).Title("").Width(30).Filterable(false).ClientTemplate("#=tenderDetail.templates.descriptionTemp(data)#");
                            })
                            .Selectable(x => x.Mode(GridSelectionMode.Single))
@@ -526,7 +539,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         )
                     </div>
                 </div>
-
                 <div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
                     <div class="ibox-title">
                         <h5> <i class="fa fa-line-chart"></i> Ürün Kalemleri Raporu</h5>
@@ -546,36 +558,27 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                x.Bound(y => y.quantity).Title("Miktar").Width(60).Filterable(false).ClientTemplate("#=tenderDetail.templates.quantityTemp(data)#")
                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
-
                                x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
-
                                x.Bound(y => y.Product_Title).Title("Ürün/Hizmet").Width(150).Filterable(false);
-
                                x.Bound(y => y.price).Title("Birim Fiyatı").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.price)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
                                x.Bound(y => y.discountTotal).Title("İndirim").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.discountTotal)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
+                               x.Bound(y => y.discount).Title("İndirim Oranı").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.discountRateTemp(data) #")
+                         .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
+                             .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
                                x.Bound(y => y.totalSubAmount).Title("Ara Toplam").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalSubAmount)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
-
                                x.Bound(y => y.totalTax).Title("Toplam Vergi").Width(80).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalTax)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
                                x.Bound(y => y.totalAmount).Title("Toplam Satış Fiyatı").Width(90).Filterable(false).ClientTemplate("#=tenderDetail.templates.currencyTemp(data, data.totalAmount, true)#")
                                .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } })
                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:right" } });
-
                                x.Bound(y => y.Currency_Symbol).Title("Para Birimi").Hidden(true);
-
-                               x.Bound(y => y.stockCount).Title("Stok Miktarı").Width(70).Filterable(false).ClientTemplate("#=tenderDetail.templates.stockTemp(data)#");
-
                                x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
                            })
                            .Selectable(x => x.Mode(GridSelectionMode.Single))
@@ -583,7 +586,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         )
                     </div>
                 </div>
-
                 <div class="ibox  collapsed">
                     <div class="ibox-title">
                         <h5> <i class="fa fa-file-text"></i> Teklif Koşulları</h5>
@@ -625,19 +627,16 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                 </div>
             </div>
             <div class="col-lg-3">
-
                 <div class="ibox ">
                     <div class="ibox-title">
                         <div style="font-size: 18px;" class="text-center @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "text-warning" :
                                                                Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "text-navy" :
                                                                Model.status == (int)EnumCMP_TenderStatus.Red ? "text-danger" :
                                                                Model.status == (int)EnumCMP_TenderStatus.TeklifFatura || Model.status == (int)EnumCMP_TenderStatus.TeklifSiparis ? "text-navy" : "")">
-
                             <i class="fa pulseicon @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "fa-spinner text-warning" :
                                                                Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "fa-thumbs-up text-navy" :
                                                                Model.status == (int)EnumCMP_TenderStatus.Red ? "fa-times-circle text-danger" :
                                                                Model.status == (int)EnumCMP_TenderStatus.TeklifFatura || Model.status == (int)EnumCMP_TenderStatus.TeklifSiparis ? "fa-check-circle text-navy" : "")">
-
                                 @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeSatis)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisFatura)))
                                 {
                                     @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "Teklifin onaylanması bekleniyor." :
@@ -647,7 +646,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                 }
                                 else
                                 {
-
                                     @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "Teklifin onaylanması bekleniyor." :
                                       Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "Teklif onaylandı. Teklifin faturasının girilmesi bekleniyor." :
                                       Model.status == (int)EnumCMP_TenderStatus.Red ? "Teklif Reddedildi." :
@@ -660,7 +658,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                             <div class="marker mfirst" data-html="true" data-original-title="@(createdTender != null ? string.Format("Teklif oluşturuldu.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", createdTender.createdby_Title, createdTender.created) : "İşlem yapılmadı.")" style="background-color:#1ab394;">
                                 <i class="fa fa-pencil"></i>
                             </div>
-
                             @if (rejectTender != null)
                             {
                                 <div class="marker m2" style="background-color:#ed5565;" data-html="true"
@@ -675,7 +672,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                     <i class="fa fa-thumbs-up"></i>
                                 </div>
                             }
-
                             @if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeSatis)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisFatura)))
                             {
                                 <div class="marker m3" style="background-color:@(invoiceTender != null || orderTender != null ? "#1ab394" : "");" data-html="true"
@@ -703,10 +699,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         </div>
                     </div>
                 </div>
-
-
-
-
                 @if (Model.status != (int)EnumCMP_TenderStatus.CevapBekleniyor && Model.status != (int)EnumCMP_TenderStatus.Red)
                 {
                     <div class="ibox ">
@@ -731,7 +723,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         </div>
                     </div>
                 }
-
                 <div class="ibox ">
                     <div class="ibox-title">
                         <h5>Özet</h5>
@@ -757,7 +748,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
                                 <tr>
                                     <td>
                                         <div class="col-md-6"><h4>Brüt Toplam</h4></div>
@@ -781,7 +771,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
                                 <tr>
                                     <td>
                                         <div id="totalOTVDiv">
@@ -794,7 +783,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </div>
                                     </td>
                                 </tr>
-
                                 @if (Model.tevkifat > 0)
                                 {
                                     <tr>
@@ -808,7 +796,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
                                 <tr>
                                     <td>
                                         <div class="col-md-6"><h4>Genel Toplam</h4></div>
@@ -819,7 +806,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </div>
                                     </td>
                                 </tr>
-
                                 @if (Model.Currency_Symbol != "₺")
                                 {
                                     <tr>
@@ -831,7 +817,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
                                 @if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisOnaylayici)))
                                 {
                                     <tr>
@@ -849,8 +834,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
-
                                 @if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli))
                                     || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli))))
                                 {
@@ -861,7 +844,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                             </a>
                                         </td>
                                     </tr>
-
                                     <tr>
                                         <td style="text-align:center;">
                                             <button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
@@ -870,7 +852,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </td>
                                     </tr>
                                 }
-
                                 <tr>
                                     <td style="padding-top: 20px;">
                                         @if (Model.status == (int)EnumCMP_TenderStatus.MusteriOnay && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeSatis)))
@@ -880,7 +861,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                                     <i class="fa fa-refresh"></i> Faturaya Dönüştür
                                                 </a>
                                             </div>
-
                                         }
                                         @if (Model.status == (int)EnumCMP_TenderStatus.MusteriOnay && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
                                         {
@@ -890,16 +870,12 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                                 </a>
                                             </div>
                                         }
-
                                     </td>
                                 </tr>
-
-
                             </tbody>
                         </table>
                     </div>
                 </div>
-
                 <div class="ibox ">
                     <div class="ibox-title">
                         <h5>Teklife Not Ekleme</h5>
@@ -916,7 +892,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         <button type="button" onclick="tenderDetail.events.addNote(this)" class="btn btn-md btn-primary pull-right">Ekle</button>
                     </div>
                 </div>
-
                 <div class="ibox ">
                     <div class="ibox-title">
                         <h5>Teklif Geçmişi</h5>
@@ -931,7 +906,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                             @foreach (var item in Model.InvoiceActions.OrderByDescending(a => a.created))
                             {
                                 var statusProps = EnumProperties.Where(a => Convert.ToInt32(a.Key) == item.type.Value).FirstOrDefault();
-
                                 <div class="vertical-timeline-block">
                                     <div class="vertical-timeline-icon gray-bg">
                                         <i class="fa fa-bolt"></i>
@@ -942,7 +916,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                         </p>
                                         <span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span> <br />
                                         <span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
-
                                         @if (item.transformInvoiceId != null)
                                         {
                                             if (item.type == (int)EnumCMP_InvoiceActionType.TeklifSiparis)
@@ -951,7 +924,6 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                                                     <i class="fa fa-arrow-right"></i>
                                                 </a>
                                             }
-
                                             if (item.type == (int)EnumCMP_InvoiceActionType.TeklifFatura)
                                             {
                                                 <a href="/CMP/VWCMP_Invoice/DetailSelling?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Faturaya Git">
