@@ -170,7 +170,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
 
             if (!Directory.Exists(path + fileName))
             {
-                var dateNowStringFormat = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff").Replace("-", "_").Replace("T", "_").Replace(":", "_");
+                var dateNowStringFormat = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:ffffff").Replace("-", "_").Replace("T", "_").Replace(":", "_");
                 var pathFileName = path + fileName + "___" + dateNowStringFormat + extension;
                 if (pathFileName.Length > 260)
                 {
