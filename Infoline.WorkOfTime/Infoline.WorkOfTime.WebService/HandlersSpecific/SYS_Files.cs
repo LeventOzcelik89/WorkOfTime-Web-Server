@@ -169,11 +169,11 @@ namespace Infoline.WorkOfTime.WebService.Handler
             fileName = (fileName.Replace(extension, "")).Replace(" ", "-").Replace("/", "-").Replace(".", "-");
             if (!Directory.Exists(path + fileName))
             {
-                var pathFileName = path + fileName + "___" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
-                var fl = fileName + "___" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
+                var pathFileName = path + fileName + "___" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
+                var fl = fileName + "___" + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
                 if (pathFileName.Length > 260)
                 {
-                    return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + "___" + extension;
+                    return DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss:fff").Replace("-", "_").Replace("T", "_").Replace(":", "_") + "___" + extension;
                 }
                 return fl;
             }
