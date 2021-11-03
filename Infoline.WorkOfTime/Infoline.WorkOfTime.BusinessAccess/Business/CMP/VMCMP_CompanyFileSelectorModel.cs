@@ -90,7 +90,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business
         public ResultStatus GetAllDataTableFromSysFile()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var data = LocalFileProvider._dataTableFileGroup.Keys.Select(x=>new { DataTable = x}).ToList();
+            var data = LocalFileProvider._dataTableFileGroup.Keys.Where(x=>x.Equals("SH_User") || x.Equals("CMP_Company")).Select(x=> new { DataTable = x}).ToList();
             return new ResultStatus { result = true, objects = data };
         }
      

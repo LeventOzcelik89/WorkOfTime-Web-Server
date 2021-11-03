@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [PageInfo("Ekleme Sayfası için Tüm datatabların çekildiği metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
-        public JsonResult GetAllDataTableFromSysFile(Guid companyId)
+        public JsonResult GetAllDataTableFromSysFile()
         {
             var data = new VMCMP_CompanyFileSelectorModel().GetAllDataTableFromSysFile();
             return Json(data.objects, JsonRequestBehavior.AllowGet);
