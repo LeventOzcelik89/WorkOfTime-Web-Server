@@ -335,6 +335,19 @@ namespace System.Web.Mvc
     public static class Extensions
     {
 
+        public static string VersionCode
+        {
+            get
+            {
+                if (System.Configuration.ConfigurationManager.AppSettings["VersionCode"] != null)
+                {
+                    return System.Configuration.ConfigurationManager.AppSettings["VersionCode"].ToString();
+                }
+
+                return "1989Kl";
+            }
+        }
+
         public static object GetPropertyValue<T>(this T obj, string name) where T : class
         {
             Type t = typeof(T);

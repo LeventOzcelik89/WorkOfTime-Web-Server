@@ -167,15 +167,16 @@ namespace Infoline.WorkOfTime.WebService.Handler
         private string GenerateFileName(string path, string fileName, string extension)
         {
             fileName = (fileName.Replace(extension, "")).Replace(" ", "-").Replace("/", "-").Replace(".", "-");
+
             if (!Directory.Exists(path + fileName))
             {
-                var pathFileName = path + fileName + "___" + DateTime.Now.ToString("s").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
-                var fl = fileName + "___" + DateTime.Now.ToString("s").Replace("-", "_").Replace("T", "_").Replace(":", "_") + extension;
+                var dateNowStringFormat = DateTime.Now.ToString("yyyy-MM-dd-HH:mm:ss:ffffff").Replace("-", "_").Replace("T", "_").Replace(":", "_");
+                var pathFileName = path + fileName + "___" + dateNowStringFormat + extension;
                 if (pathFileName.Length > 260)
                 {
-                    return DateTime.Now.ToString("s").Replace("-", "_").Replace("T", "_").Replace(":", "_") + "___" + extension;
+                    return dateNowStringFormat + "___" + extension;
                 }
-                return fl;
+                return fileName + "___" + dateNowStringFormat + extension; ;
             }
             return fileName + extension;
         }

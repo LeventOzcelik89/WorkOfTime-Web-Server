@@ -165,6 +165,34 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
+
+
+        [HandleFunction("VWSH_User/CompanyGuide")]
+        public void VWSH_UserGetCompanyGuide(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var userId = CallContext.Current.UserId;
+                var company = db.GetVWCMP_CompanyByCreatedby(userId);
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                BEXP filter = null;
+                 filter |= new BEXP
+                {
+                    Operand1 = (COL)"companyId",
+                    Operator = BinaryOperator.In,
+                    Operand2 = new ARR { Values = company.Select(x => (VAL)x.id).ToArray() }
+                };
+                cond.Filter &= filter;
+                var model = db.GetVWSH_UserOtherPersonWithCond(cond);
+                RenderResponse(context, new ResultStatus() { result = true, objects = model});
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 
     public class VWSH_UserOrderType : VWSH_User
