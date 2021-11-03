@@ -1,0 +1,28 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_CompanyFileSelector>("VWCMP_CompanyFileSelector")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_CompanyFileSelector", new { area = "CMP" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.fileGroupName).Title("fileGroupName").Width(180);
+        x.Bound(y => y.fileGroupModule).Title("fileGroupModule").Width(180);
+        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
+        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
+        x.Bound(y => y.CustomerId_Title).Title("CustomerId_Title").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_CompanyFileSelector", new { area = "CMP" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_CompanyFileSelector", new { area = "CMP" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_CompanyFileSelector", new { area = "CMP" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_CompanyFileSelector", new { area = "CMP" }));
+    }))

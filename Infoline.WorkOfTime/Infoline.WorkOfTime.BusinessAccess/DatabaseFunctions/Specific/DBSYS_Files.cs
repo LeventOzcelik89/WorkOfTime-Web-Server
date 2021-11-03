@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-using Infoline.WorkOfTime.BusinessData;
+﻿using Infoline.WorkOfTime.BusinessData;
 using System.Data.Common;
 using System;
 using System.Linq;
@@ -68,6 +67,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         FilePath = a.FilePath
                     })
                     .Execute<SYS_Files>().FirstOrDefault();
+            }
+        }
+        public object[] GetSysFilesGroupedByDataTable(DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<SYS_Files>().Execute().GroupBy(x => x.DataTable).Select(x => new { value = x.Key }).ToArray();
+            }
+        }
+        public object[] GetSYS_FilesByFileGroup(DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<SYS_Files>().Execute().GroupBy(x=>x.FileGroup).Select(x=>new {file=x.Key,value=x.GroupBy(a=>a.DataTable).Select(b=>b.Key).FirstOrDefault() }).ToArray();
             }
         }
     }

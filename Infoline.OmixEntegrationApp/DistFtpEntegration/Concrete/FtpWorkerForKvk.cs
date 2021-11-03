@@ -25,7 +25,12 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             List<SellIn> sellIns = new List<SellIn>();
             GetFileNames(this.FtpConfiguration);
             var datetimeNow = DateTime.Now;
-            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
+            var day = datetimeNow.Day.ToString();
+            if (datetimeNow.Day < 10)
+            {
+                day = "0" + datetimeNow.Day;
+            }
+            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + day;
             var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLIN") && x.FileName.Contains(kvkDate)).ToList();
             Log.Info(string.Format("{0} Sellin File Found On Kvk Ftp Server", fileNames.Count));
             foreach (var file in fileNames)
@@ -88,7 +93,12 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             List<SellThr> sellThrs = new List<SellThr>();
             GetFileNames(this.FtpConfiguration);
             var datetimeNow = DateTime.Now;
-            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + datetimeNow.Day;
+            var day = datetimeNow.Day.ToString();
+            if (datetimeNow.Day < 10)
+            {
+                day = "0" + datetimeNow.Day;
+            }
+            var kvkDate = datetimeNow.Year + "" + datetimeNow.Month + "" + day;
             var fileNames = FptUrl.Where(x => x.FileName.Contains("SELLTHR") && x.FileName.Contains(kvkDate)).ToList();
             Log.Info(string.Format("{0} SellThr File Found On Kvk Ftp Server", fileNames.Count));
             foreach (var file in fileNames)
@@ -113,6 +123,10 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                                 try
                                 {
                                     var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                    if (getIndexName=="CustomerGenpaCode"|| getIndexName == "CustomerKVKCode"|| getIndexName == "CustomerMobitelCode")
+                                    {
+                                        getIndexName = "CustomerCode";
+                                    }
                                     var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
                                     if (prop.PropertyType.IsAssignableFrom(typeof(int)))
                                     {

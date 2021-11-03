@@ -1,0 +1,70 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.Business.VMCMP_CompanyFileSelectorModel
+@{
+    ViewBag.Title = "Kayıt Ekleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script data-selector="modalContainer">
+   
+</script>
+@using (Html.BeginForm("Insert", "VWCMP_CompanyFileSelector", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model=>model.customerId)
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="customerId">Modül Seçiniz</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.Kendo().DropDownListFor(model => model.fileGroupModule).HtmlAttributes(new Dictionary<string, object>()
+            {
+                {"style", "width:100%"},
+                {"class", "form-control"},
+            })
+            .OptionLabel("Lütfen Modül Seçiniz")
+            .Filter(FilterType.Contains)
+            .DataTextField("DataTable")
+            .DataValueField("DataTable")
+            .DataSource(s =>
+            {
+                s.Read(r =>
+                {
+                    r.Action("GetAllDataTableFromSysFile", "VWCMP_CompanyFileSelector", new { area = "CMP", companyId = Model.customerId});
+                });
+            })
+             .Validate(Validations.Required)
+             .Execute()
+             )
+    </div>
+</div>
+<div class="form-group">
+    <div class="col-md-4">
+        <label class="control-label label-md" for="customerId">Dosya Seçiniz</label>
+    </div>
+    <div class="col-md-8">
+        @(Html.Akilli()
+     .MultiSelectFor(x => x.FileNames)
+     .Placeholder("Lütfen Dosya Seçiniz..")
+     .DataTextField("FileGroup")
+     .DataValueField("FileGroup")
+     .Action(b => b.Action("GetAllFileGroupNameFromSysFile", "VWCMP_CompanyFileSelector", new { area = "CMP" , companyId = Model.customerId }))
+     .Sort(x => x.Add("file").Ascending())
+     .Validate(Validations.Required)
+     .CascadeFrom("fileGroupModule")
+     .CascadeFromField("DataTable")
+     .Execute()
+            )
+    </div>
+</div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
