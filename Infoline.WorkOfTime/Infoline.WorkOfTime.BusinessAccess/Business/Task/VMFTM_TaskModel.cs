@@ -937,7 +937,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     foreach (var documents in wantedDocuments)
                     {
                         var doc = personDocuments.Where(x => x.DataId == person.Key && x.FileGroup == documents.fileGroupName).FirstOrDefault();
-                        documentList.Add(webUrl + "" + doc.FilePath);
+                        if (doc!=null)
+                        {
+                            documentList.Add(webUrl + "" + doc.FilePath);
+                        }
+                        
                     }
                 }
             }
