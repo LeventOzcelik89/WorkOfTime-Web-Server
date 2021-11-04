@@ -51,7 +51,24 @@ namespace Infoline.WorkOfTime.WebService
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
-
+        [HandleFunction("VWCMP_Tender/UpdateStatus")]
+        public void CMP_TenderUpdateStatus(HttpContext context)
+        {
+            try
+            {
+                var id = context.Request["id"];
+                var type= context.Request["type"];
+                var db = new WorkOfTimeDatabase();
+                var model = new VMCMP_TenderModels() { id=Guid.Parse(id)}.Load(false,null);
+                var userId = CallContext.Current.UserId;
+                var rs = model.UpdateStatus(int.Parse(type),userId);
+                RenderResponse(context, new ResultStatus() { result = true, message = "Teklif başarılı bir şekilde güncellendi.", objects = null });
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
         [HandleFunction("VWCMP_Tender/Insert")]
         public void CMP_TenderInsert(HttpContext context)
         {

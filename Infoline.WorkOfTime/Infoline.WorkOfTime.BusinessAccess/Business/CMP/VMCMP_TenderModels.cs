@@ -320,7 +320,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private ResultStatus Update()
         {
             var oldItems = db.GetCMP_InvoiceItemByInvoiceId(this.id);
-
             foreach (var invoice in this.InvoiceItems)
             {
                 invoice.id = Guid.NewGuid();
@@ -339,7 +338,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), true, this.trans);
             dbresult &= db.BulkDeleteCMP_InvoiceItem(oldItems, this.trans);
             dbresult &= db.BulkInsertCMP_InvoiceItem(this.InvoiceItems.Select(a => new CMP_InvoiceItem().B_EntityDataCopyForMaterial(a)), this.trans);
-
+          
             return dbresult;
         }
 
@@ -425,6 +424,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public ResultStatus UpdateStatus(int type, Guid userId, DbTransaction trans = null)
         {
+           
             var _trans = trans ?? db.BeginTransaction();
 
             var status = this.status;
