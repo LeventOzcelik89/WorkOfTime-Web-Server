@@ -12,6 +12,8 @@ namespace Infoline.PdksEntegrationApp.Models
         public int UserDeviceId { get; set; }
         public DateTime DateTimeRecord { get; set; }
         public string logType { get; set; }
+        public int inOutMode { get; set; }
+        public int verifyMode { get; set; }
     }
     public enum LogType
     {

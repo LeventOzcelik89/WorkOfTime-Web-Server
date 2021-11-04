@@ -1,4 +1,4 @@
-﻿using Infoline.PdksEntegrationApp.ZKTEcoSF300Entegration;
+﻿using Infoline.PdksEntegrationApp.PDKSEntegration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,7 +22,7 @@ namespace Infoline.PdksEntegrationApp
 
             var taskProcessZKTEcoSF300Entegration = new Task(() =>
             {
-                new ProcessZKTEcoSF300Entegration().Run();
+                new PdksDevicesEntegration().Run();
             });
             Tasks.Add(taskProcessZKTEcoSF300Entegration);
 
