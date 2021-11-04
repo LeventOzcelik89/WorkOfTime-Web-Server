@@ -21,6 +21,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Cikis = -1,
         [Description("Talep")]
         Talep = 0,
+        [Description("Red")]
+        Red = 2,
+        [Description("Düzeltme")]
+        Duzeltme = 3
     }
 
     [EnumInfo(typeof(PA_Advance), "status")]
