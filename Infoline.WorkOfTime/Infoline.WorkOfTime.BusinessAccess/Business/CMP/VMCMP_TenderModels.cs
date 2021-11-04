@@ -492,24 +492,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                var user = db.GetVWSH_UserById(this.createdby.Value);
-
-                if (type == (int)EnumCMP_TenderStatus.YoneticiOnay)
+                if (this.createdby.HasValue)
                 {
-                    var text = "<h3>Sayın " + user.FullName + "</h3>";
-                    text += "<p>" + this.rowNumber + " kodlu teklif satış onaylayıcısı tarafından onaylanmıştır. </p>";
-                    text += "<p>Teklif detayını görüntülemek ve müşteriye sunmak için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
-                    text += "<p>Bilgilerinize.</p>";
-                    new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Onay", true);
-                }
+                    var user = db.GetVWSH_UserById(this.createdby.Value);
 
-                if (type == (int)EnumCMP_TenderStatus.Red)
-                {
-                    var text = "<h3>Sayın " + user.FullName + "</h3>";
-                    text += "<p>" + this.rowNumber + " kodlu teklif satış onaylayıcısı tarafından reddedilmiştir. </p>";
-                    text += "<p>Teklif detayını görüntülemek ve teklifi yenilemek için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
-                    text += "<p>Bilgilerinize.</p>";
-                    new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Red", true);
+                    if (type == (int)EnumCMP_TenderStatus.YoneticiOnay)
+                    {
+                        var text = "<h3>Sayın " + user.FullName + "</h3>";
+                        text += "<p>" + this.rowNumber + " kodlu teklif satış onaylayıcısı tarafından onaylanmıştır. </p>";
+                        text += "<p>Teklif detayını görüntülemek ve müşteriye sunmak için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
+                        text += "<p>Bilgilerinize.</p>";
+                        new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Onay", true);
+                    }
+
+                    if (type == (int)EnumCMP_TenderStatus.Red)
+                    {
+                        var text = "<h3>Sayın " + user.FullName + "</h3>";
+                        text += "<p>" + this.rowNumber + " kodlu teklif satış onaylayıcısı tarafından reddedilmiştir. </p>";
+                        text += "<p>Teklif detayını görüntülemek ve teklifi yenilemek için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
+                        text += "<p>Bilgilerinize.</p>";
+                        new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Red", true);
+                    }
                 }
             }
 
