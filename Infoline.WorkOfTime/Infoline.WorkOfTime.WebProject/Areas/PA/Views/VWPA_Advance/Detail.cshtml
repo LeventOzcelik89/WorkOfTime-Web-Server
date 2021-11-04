@@ -1,168 +1,176 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_AdvanceModel
 @{
-	ViewBag.Title = Model.type_Title + " İşlem Detayı";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.type_Title + " İşlem Detayı";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 
-	@if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
-	{
-		<style type="text/css" data-selector="modalContainer">
-			.modal-body {
-				height: 786px;
-			}
+@if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
+{
+    <style type="text/css" data-selector="modalContainer">
+        .modal-body {
+            height: 786px;
+        }
 
-			.scroller {
-				height: 180px;
-				overflow-y: scroll;
-				scrollbar-color: rebeccapurple green;
-				scrollbar-width: thin;
-			}
+        .scroller {
+            height: 180px;
+            overflow-y: scroll;
+            scrollbar-color: rebeccapurple green;
+            scrollbar-width: thin;
+        }
 
-			.scroller-list {
-				height: 152px;
-				overflow-y: scroll;
-				scrollbar-color: rebeccapurple green;
-				scrollbar-width: thin;
-			}
-		</style>
-	}
-	<div class="row" data-selector="modalContainer">
-		<div class="col-sm-12">
-			<div class="ibox ">
-				<div>
-					<div class="client-detail" style="height:412px;">
-						<ul class="list-group clear-list">
-							<li class="list-group-item">
-								<span class="pull-right"> @Model.createdby_Title </span>
-								Talep Eden
-							</li>
-							<li class="list-group-item">
-								<span class="pull-right"> @Model.type_Title </span>
-								Avans Tipi
-							</li>
-							<li class="list-group-item">
-								<span class="pull-right"> @Model.accountDataId_Title </span>
-								Tedarikçi Hesap
-							</li>
-							<li class="list-group-item">
-								<span class="pull-right"> @String.Format("{0:dd.MM.yyyy}", Model.progressDate) </span>
-								Talep Tarihi
-							</li>
-							<li class="list-group-item">
-								<span class="pull-right"> @String.Format("{0:N2}", Model.amount) @Model.Currency_Symbol </span>
-								Tutar
-							</li>
+        .scroller-list {
+            height: 152px;
+            overflow-y: scroll;
+            scrollbar-color: rebeccapurple green;
+            scrollbar-width: thin;
+        }
+    </style>
+}
+<div class="row" data-selector="modalContainer">
+    <div class="col-sm-12">
+        <div class="ibox ">
+            <div>
+                <div class="client-detail" style="height:412px;">
+                    <ul class="list-group clear-list">
+                        <li class="list-group-item">
+                            <div class="pull-right" style=" position: relative; ">
+                                
+                                <img src="@(userStatus.user.ProfilePhoto!=null ? userStatus.user.ProfilePhoto :  "/Content/Custom/img/na.png")"
+                                     onerror="ImageError(this,'/Content/Custom/img/na.png')"
+                                     style="width: 40px; height: 40px; vertical-align: middle; position: absolute; left: -43px; top: -10px;"
+                                     class="img-circle circle-border " alt="profile">
+                                @Model.createdby_Title
+                            </div>
+                            Talep Eden
+                        </li>
+                        <li class="list-group-item">
+                            <span class="pull-right"> @Model.type_Title </span>
+                            Avans Tipi
+                        </li>
+                        <li class="list-group-item">
+                            <span class="pull-right"> @Model.accountDataId_Title </span>
+                            Tedarikçi Hesap
+                        </li>
+                        <li class="list-group-item">
+                            <span class="pull-right"> @String.Format("{0:dd.MM.yyyy}", Model.progressDate) </span>
+                            Talep Tarihi
+                        </li>
+                        <li class="list-group-item">
+                            <span class="pull-right"> @String.Format("{0:N2}", Model.amount) @Model.Currency_Symbol </span>
+                            Tutar
+                        </li>
 
-							<li class="list-group-item">
-								<span class="pull-right">  @(Model.description != null ? Model.description : "-") </span>
-								Açıklama
-							</li>
-							@if (!String.IsNullOrEmpty(Model.statusDescription))
-							{
-								<li class="list-group-item">
-									<span class="pull-right">  @Model.statusDescription </span>
-									Red Açıklaması
-								</li>
-							}
+                        <li class="list-group-item">
+                            <span class="pull-right">  @(Model.description != null ? Model.description : "-") </span>
+                            Açıklama
+                        </li>
+                        @if (!String.IsNullOrEmpty(Model.statusDescription))
+                        {
+                            <li class="list-group-item">
+                                <span class="pull-right">  @Model.statusDescription </span>
+                                Red Açıklaması
+                            </li>
+                        }
 
-							<li class="list-group-item">
-								Kalan
-								@if (Model.debt == 0)
-								{
-									<span style="color: green;" class="pull-right"> <i class="fa fa-check"></i> Ödendi </span>
-								}
-								else
-								{
-									<span class="pull-right"> @String.Format("{0:N2}", Model.debt) @Model.Currency_Symbol </span>
-								}
-							</li>
-							<li class="list-group-item scroller-list">
-								@(
+                        <li class="list-group-item">
+                            Kalan
+                            @if (Model.debt == 0)
+                            {
+                                <span style="color: green;" class="pull-right"> <i class="fa fa-check"></i> Ödendi </span>
+                            }
+                            else
+                            {
+                                <span class="pull-right"> @String.Format("{0:N2}", Model.debt) @Model.Currency_Symbol </span>
+                            }
+                        </li>
+                        <li class="list-group-item scroller-list">
+                            @(
 				                          Html.Akilli().FileUpload()
 				                          .DataTable("PA_Advance")
 				                          .DataId(Model.id)
 				                          .DataKey(x => x.fileGroup == "Avans Dosyası")
 				                          .PreviewMode(true)
 				                     )
-							</li>
-						</ul>
-						@if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
-						{
-							<strong>Avans Onay Geçmişi</strong>
-							<hr />
-							<div id="vertical-timeline" class="vertical-container dark-timeline scroller">
-                                <div class="full-height-scroll">
+                        </li>
+                    </ul>
+                    @if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
+                    {
+                        <strong>Avans Onay Geçmişi</strong>
+                        <hr />
+                        <div id="vertical-timeline" class="vertical-container dark-timeline scroller">
+                            <div class="full-height-scroll">
 
-                                    @foreach (var advanceHistory in Model.AdvanceHistory)
+                                @foreach (var advanceHistory in Model.AdvanceHistory)
+                                {
+                                    if (advanceHistory.status == null)
                                     {
-                                        if (advanceHistory.status == null)
-                                        {
-                                            <div class="vertical-timeline-block">
-                                                <div class="vertical-timeline-icon gray-bg">
-                                                    <i class="fa fa-spinner"></i>
-                                                </div>
-                                                <div class="vertical-timeline-content">
-                                                    <p>
-                                                        @Html.Raw(advanceHistory.userId_Title + " tarafından onaylanmayı beklemektedir.").
-                                                    </p>
-                                                </div>
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon gray-bg">
+                                                <i class="fa fa-spinner"></i>
                                             </div>
-                                        }
-                                        else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.Onay)
-                                        {
-                                            <div class="vertical-timeline-block">
-                                                <div class="vertical-timeline-icon navy-bg">
-                                                    <i class="fa fa-check"></i>
-                                                </div>
-                                                <div class="vertical-timeline-content">
-                                                    <p>
-                                                        @Html.Raw(advanceHistory.userId_Title + " tarafından onaylanmıştır.")
-                                                    </p>
-                                                </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.userId_Title + " tarafından onaylanmayı beklemektedir.").
+                                                </p>
                                             </div>
-                                        }
-                                        else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.YenidenTalep)
-                                        {
-                                            <div class="vertical-timeline-block">
-                                                <div class="vertical-timeline-icon orange-bg" style="background-color:orange;color:white;">
-                                                    <i class="fa fa-refresh"></i>
-                                                </div>
-                                                <div class="vertical-timeline-content">
-                                                    <p>
-                                                        @Html.Raw(advanceHistory.userId_Title + " tarafından düzeltme talebinde bulunulmuştur.")
-                                                    </p>
-                                                </div>
-                                            </div>
-                                        }
-                                        else
-                                        {
-                                            <div class="vertical-timeline-block">
-                                                <div class="vertical-timeline-icon red-bg">
-                                                    <i class="fa fa-times"></i>
-                                                </div>
-                                                <div class="vertical-timeline-content">
-                                                    <p>
-                                                        @Html.Raw(advanceHistory.userId_Title + " tarafından reddedilmiştir.").
-                                                    </p>
-                                                </div>
-                                            </div>
-                                            break;
-                                        }
+                                        </div>
                                     }
+                                    else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.Onay)
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon navy-bg">
+                                                <i class="fa fa-check"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.date.ToShortDateString() + " tarihinde " +advanceHistory.userId_Title + " tarafından onaylanmıştır.")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                    else if (advanceHistory.status == (Int16)EnumPA_AdvanceConfirmationStatus.YenidenTalep)
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon orange-bg" style="background-color:orange;color:white;">
+                                                <i class="fa fa-refresh"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.date.ToShortDateString() + " tarihinde " + advanceHistory.userId_Title + " tarafından düzeltme talebinde bulunulmuştur.")
+                                                </p>
+                                            </div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="vertical-timeline-block">
+                                            <div class="vertical-timeline-icon red-bg">
+                                                <i class="fa fa-times"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <p>
+                                                    @Html.Raw(advanceHistory.date.ToShortDateString() + " tarihinde " + advanceHistory.userId_Title + " tarafından reddedilmiştir.").
+                                                </p>
+                                            </div>
+                                        </div>
+                                        break;
+                                    }
+                                }
 
-                                </div>
-							</div>
-						}
-						else
-						{
-							<div class="ibox">
-								<div id="bilgi" class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
-									<strong> Avans Onay Geçmişi Bulunmamaktadır </strong>
-								</div>
-							</div>
-						}
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ibox">
+                            <div id="bilgi" class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+                                <strong> Avans Onay Geçmişi Bulunmamaktadır </strong>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
