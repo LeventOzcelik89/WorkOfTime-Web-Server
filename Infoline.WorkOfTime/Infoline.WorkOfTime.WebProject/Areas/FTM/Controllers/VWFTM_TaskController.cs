@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
                 if (ids == null && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
                 {
-                    //return RedirectToAction("");
+                    return RedirectToAction("IndexCustomer");
                 }
 
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/IndexAll.cshtml", _ids);
