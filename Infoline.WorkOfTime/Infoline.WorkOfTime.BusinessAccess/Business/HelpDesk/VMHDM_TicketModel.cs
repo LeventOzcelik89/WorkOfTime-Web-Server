@@ -95,7 +95,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             this.trans = trans ?? this.db.BeginTransaction();
             var ticket = this.db.GetVWHDM_TicketById(this.id);
-            if (AssignUser==null||this.assignUserId!=null)
+            if (AssignUser == null && this.assignUserId != null)
             {
                 AssignUser = db.GetVWSH_UserById(this.assignUserId.Value);
             }
