@@ -32,6 +32,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             public string ruleTitle { get; set; }
             public short? ruleOrder { get; set; }
             public short? ruleType { get; set; }
+            public Guid? ruleUserId { get; set; }
 
         }
 
@@ -55,7 +56,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         userId_Title = x.confirmationUserIds_Titles,
                         status = x.status,
                         ruleType = x.ruleType,
-                        ruleOrder = x.ruleOrder
+                        ruleOrder = x.ruleOrder,
+                        ruleUserId=x.ruleUserId
                     }).ToArray();
                 }
 
