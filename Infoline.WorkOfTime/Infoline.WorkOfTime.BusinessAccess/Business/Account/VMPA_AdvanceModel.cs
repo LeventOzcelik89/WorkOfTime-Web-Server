@@ -708,6 +708,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                         }
                     }
+
+                    else if(confirmations.Count(c => c.status == 3) > 0)
+                    {
+                        continue;
+                    }
                     db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
                     UpdateDataControl(confirmations, "");
                 }
