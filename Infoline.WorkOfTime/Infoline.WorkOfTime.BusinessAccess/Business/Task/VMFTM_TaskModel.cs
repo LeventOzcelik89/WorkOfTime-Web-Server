@@ -919,7 +919,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var wantedDocuments = db.GetVWCMP_CompanyFileSelectorByCustomerId(this.customerId.Value);
             var documentList = new List<string>();
-            var emailSender = this.userMails?.Split(',').ToList();
+            var emailSender = this.userMails?.Split(',').ToList()??new List<string>();
             if (this.customerStorage.email != null)
             {
                 emailSender.Remove(this.customerStorage.email);
