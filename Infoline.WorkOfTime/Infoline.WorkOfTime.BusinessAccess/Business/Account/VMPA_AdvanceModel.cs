@@ -32,7 +32,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             public string ruleTitle { get; set; }
             public short? ruleOrder { get; set; }
             public short? ruleType { get; set; }
-            public Guid? ruleUserId { get; set; }
+            public Guid? userId { get; set; }
 
         }
 
@@ -57,7 +57,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         status = x.status,
                         ruleType = x.ruleType,
                         ruleOrder = x.ruleOrder,
-                        ruleUserId=x.ruleUserId
+                        userId=x.userId
                     }).ToArray();
                 }
 
@@ -146,10 +146,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
             UpdateDataControl(advanceConfirmations, this.statusDescription);
 
-            if (res.result && request != null)
-            {
-                new FileUploadSave(request, this.id).SaveAs();
-            }
+            
+
 
             return res;
         }
@@ -319,7 +317,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var message = "Avans düzenleme işlemi ";
 
-            message = this.direction == 0 ? "Avans düzenleme işlemi " : this.direction == -1 ? "Avans onaylama işlemi " : " Avans reddetme işlemi ";
+            message = this.direction == 0 ? "Avans düzenleme işlemi " : this.direction == -1 ? "Avans onaylama işlemi " : this.direction == 3 ? "Avans düzeltme talebi ":" Avans reddetme işlemi ";
             var pA_Advance = db.GetPA_AdvanceById(this.id);
 
             if (pA_Advance != null)
@@ -379,6 +377,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Reddi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Reddi", true);
+            }
+            if (this.direction == 3)
+            {
+
+                var url = TenantConfig.Tenant.GetWebUrl();
+                var user = db.GetVWSH_UserById(this.createdby.Value);
+                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                text += "<p>Avans talebinize yeniden düzeltme istenmiştir.</p>";
+                if (!string.IsNullOrEmpty(this.statusDescription))
+                {
+                    text += "<p>Açıklaması : " + this.statusDescription + "</p>";
+                }
+                text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                text += "<p>Bilgilerinize.</p>";
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Düzeltme ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Düzeltme", true);
             }
 
             return new ResultStatus
@@ -654,12 +667,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             for (int i = 0; i < confirmations.Count(); i++)
             {
-                if (this.direction == 3)
-                {
-                    confirmations[i].status = null;
-                    var data = new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
-                    db.UpdatePA_AdvanceConfirmation(data, true);
-                }
+                
 
                 if (confirmations[i].confirmationUserIds == null && !control)
                 {
