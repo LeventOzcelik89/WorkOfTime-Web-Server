@@ -6,6 +6,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
     {
         FtpWorkerForGenpa Genpa = new FtpWorkerForGenpa();
         FtpWorkerForKvk Kvk = new FtpWorkerForKvk();
+        FtpWorkerForMobitel Mobitel = new FtpWorkerForMobitel();
         public Worker()
         {
             var genpaUserName = ConfigurationManager.AppSettings["GenpaUserName"].ToString();
@@ -28,14 +29,16 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         public void GetObjects()
         {
-            new Thread(() =>
-            {
-                GetKvkObjects();
-            }).Start();
-            new Thread(() =>
-            {
-                GetGenpaObjects();
-            }).Start();
+
+            Mobitel.GetFileNames(Mobitel.FtpConfiguration);
+            //new Thread(() =>
+            //{
+            //    GetKvkObjects();
+            //}).Start();
+            //new Thread(() =>
+            //{
+            //    GetGenpaObjects();
+            //}).Start();
         }
     }
 }
