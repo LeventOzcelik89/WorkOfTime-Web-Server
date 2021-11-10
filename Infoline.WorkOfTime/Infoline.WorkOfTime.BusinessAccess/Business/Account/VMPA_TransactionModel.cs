@@ -819,7 +819,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 db = db ?? new WorkOfTimeDatabase();
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
-                var notNullOrder = confirmations.Where(x => (x.status != null ||x.status==0)&& x.confirmationUserIds != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();//en son onaylayan kişi
+                var notNullOrder = confirmations.Where(x =>x.userId==this.changedby).OrderByDescending(a => a.ruleOrder).FirstOrDefault();//en son onaylayan kişi
                 var findUncommited = confirmations.Where(x => x.status == null && x.confirmationUserIds == null).ToList();
                 foreach (var confirmation in findUncommited)
                 {
@@ -837,8 +837,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
                     {
-                        if (this.direction != 3 || this.direction != 2)
-                        {
+                        
                             this.createdby = getTrans.createdby;
                             var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                             foreach (var user in users)
@@ -854,13 +853,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
                                 notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
                             }
-                        }
+                       
                     }
                 }
                 else
                 {
-                    var findNotCommited = confirmations.Where(x => (x.status != null || x.status == 0) && x.confirmationUserIds != null).ToList();
-                    foreach (var confirmation in findUncommited)
+                    var findNotCommited = confirmations.Where(x => (x.status != null || x.status != 0) && x.confirmationUserIds != null).OrderBy(x=>x.ruleOrder).ToList();
+                    foreach (var confirmation in findNotCommited)
                     {
                         if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
                         {
@@ -868,8 +867,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             var getTrans = db.GetPA_TransactionById(this.id);
                             if (getTrans != null)
                             {
-                                if (this.direction != 3 || this.direction != 2)
-                                {
+                                
                                     this.createdby = getTrans.createdby;
                                     var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                                     foreach (var user in users)
@@ -885,10 +883,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
                                         notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
                                     }
-                                }
                             }
 
                         }
+                       
                     }
 
 
