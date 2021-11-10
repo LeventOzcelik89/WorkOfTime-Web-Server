@@ -819,7 +819,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 db = db ?? new WorkOfTimeDatabase();
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
-                var notNullOrder = confirmations.Where(x =>x.userId==this.changedby).OrderByDescending(a => a.ruleOrder).FirstOrDefault();//en son onaylayan kişi
+                var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
                 var findUncommited = confirmations.Where(x => x.status == null && x.confirmationUserIds == null).ToList();
                 foreach (var confirmation in findUncommited)
                 {
@@ -858,7 +858,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 else
                 {
-                    var findNotCommited = confirmations.Where(x => (x.status != null || x.status != 0) && x.confirmationUserIds != null).OrderBy(x=>x.ruleOrder).ToList();
+                    var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x=>x.ruleOrder).ToList();
                     foreach (var confirmation in findNotCommited)
                     {
                         if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
