@@ -469,5 +469,50 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
+        [HandleFunction("Demo/Task")]
+        public void InsertDemoTask(HttpContext context)
+        {
+            try
+            {
+                var description = context.Request["description"];
+
+                var task = new VMFTM_TaskModel
+                {
+                    id = Guid.NewGuid(),
+                    notificationDate = DateTime.Now,
+                    planStartDate = DateTime.Now,
+                    dueDate = DateTime.Now.AddMinutes(30),
+                    companyId = new Guid("101F88C2-DC52-4794-919B-F3B8207A68FE"),
+                    type = 0,
+                    fixtureId = new Guid("37DD1EA9-C2F0-475D-B3B1-A2B7CA7E2225"),
+                    priority = 0,
+                    customerId = new Guid("0E0B290F-432A-4128-8871-B8D54389AFBD"),
+                    customerStorageId = new Guid("477F0663-C8B9-43F9-9BE5-ABE8C6F7E806"),
+                    description = description,
+                    companyCarId = new Guid("C86CB220-B078-4819-84FC-111D1AA416BF"),
+                    planLater = 0,
+                    assignableUsers = new System.Collections.Generic.List<Guid> { new Guid("CBFA6929-87D7-4B40-A8CB-205B40841A98") },
+                    FTM_TaskSubjectTypeIds = new System.Collections.Generic.List<Guid> { new Guid("8914E5B6-D52E-5223-8B6D-5B9C8176DF85") }.ToArray(),
+                    sendMail = true
+                };
+
+                if (task == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Görev nesnesi boş gönderilemez." });
+                    return;
+                }
+
+                var result = task.InsertAll(new Guid("00000000-0000-0000-0000-000000000000"));
+
+                RenderResponse(context, new ResultStatus { result = true, message = result.message });
+                return;
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message.ToString() });
+                return;
+            }
+        }
+
     }
 }
