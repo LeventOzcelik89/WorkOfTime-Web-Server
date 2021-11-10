@@ -821,7 +821,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();//en son onaylayan kişi
             if (this.direction==0||this.direction==-1||this.direction==1)//red ve yeniden talep değilse 
             {
+
+
+
+
                 confirmations = confirmations.Where(x => x.status == null).ToArray();
+
                 foreach (var confirmation in confirmations)
                 {
                     if (string.IsNullOrEmpty(confirmation.confirmationUserIds))
@@ -886,7 +891,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                
                             }
-                            else if (!mailControl)
+                            else if (!mailControl&& notNullOrder.confirmationUserIds!=null)
                             {
                                 mailControl = true;
                                 var users = db.GetVWSH_UserByIds(confirmation.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
