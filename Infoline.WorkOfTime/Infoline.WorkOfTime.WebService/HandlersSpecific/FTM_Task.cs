@@ -474,7 +474,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
-                var description = context.Request["aciklama"];
+                var description = context.Request["description"];
 
                 var task = new VMFTM_TaskModel
                 {
@@ -492,7 +492,8 @@ namespace Infoline.WorkOfTime.WebService.Handler
                     companyCarId = new Guid("C86CB220-B078-4819-84FC-111D1AA416BF"),
                     planLater = 0,
                     assignableUsers = new System.Collections.Generic.List<Guid> { new Guid("CBFA6929-87D7-4B40-A8CB-205B40841A98") },
-                    FTM_TaskSubjectTypeIds = new System.Collections.Generic.List<Guid> { new Guid("8914E5B6-D52E-5223-8B6D-5B9C8176DF85") }.ToArray()
+                    FTM_TaskSubjectTypeIds = new System.Collections.Generic.List<Guid> { new Guid("8914E5B6-D52E-5223-8B6D-5B9C8176DF85") }.ToArray(),
+                    sendMail = true
                 };
 
                 if (task == null)
