@@ -67,6 +67,7 @@ namespace Infoline.OmixEntegrationApp
                     else
                     {
                         Console.Write(DateTime.Now.ToString().PadRight(20) + " ");
+                    
                     }
                     Console.ResetColor();
                 }

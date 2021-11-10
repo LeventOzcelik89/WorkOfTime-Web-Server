@@ -3,7 +3,7 @@
     ViewBag.Title = Model.type_Title + " İşlem Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
-    var whosChanged = Model.AdvanceHistory?.Where(x => x.ruleUserId.HasValue).Where(x => x.ruleUserId == Model.changedby).FirstOrDefault();
+    var whosChanged = Model.AdvanceHistory.Where(x => x.userId.HasValue).Where(x => x.userId == Model.changedby).FirstOrDefault();
 }
 
 @if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
@@ -66,10 +66,10 @@
                             <span class="pull-right">  @(Model.description != null ? Model.description : "-") </span>
                             Açıklama
                         </li>
-                        @if (Model.confirmationStatus==3&& whosChanged != null)
+                        @if ( whosChanged != null)
                         {
                             <li class="list-group-item">
-                                <span class="pull-right">  @whosChanged.description</span>
+                                <span class="pull-right">  @(whosChanged.description??"-")</span>
                                 Red/Düzeltme Açıklaması
                             </li>
                         }

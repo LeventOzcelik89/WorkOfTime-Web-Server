@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					var transactionConfirmation = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
 					if (transactionConfirmation.Count() > 0)
 					{
-						this.statusDescription = transactionConfirmation.Where(x => x.status == 3 && x.description != null).Select(a => a.description).FirstOrDefault();
+						this.statusDescription = transactionConfirmation.Where(x => x.status == 3||x.status==0 && x.description != null).Select(a => a.description).FirstOrDefault();
 						TransactionHistory = transactionConfirmation.Where(a => a.confirmationUserIds != null).Select(x => new VWPA_TransactionHistory
 						{
 							date = x.created.Value,
@@ -794,12 +794,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			for (int i = 0; i < confirmations.Count(); i++)
 			{
-				if (this.direction == 3)
-				{
-					confirmations[i].status = null;
-					var data = new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
-					db.UpdatePA_TransactionConfirmation(data, true);
-				}
+				//if (this.direction == 3)
+				//{
+				//	confirmations[i].status = null;
+				//	var data = new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
+				//	db.UpdatePA_TransactionConfirmation(data, true);
+				//}
 				if (confirmations[i].confirmationUserIds == null && !control)
 				{
 					if (this.direction == 2)

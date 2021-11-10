@@ -23,6 +23,9 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Manager1_Title { get; set;}
         public string Manager2_Title { get; set;}
         public string Manager3_Title { get; set;}
+        public string Manager4_Title { get; set;}
+        public string Manager5_Title { get; set;}
+        public string Manager6_Title { get; set;}
         public Guid? ProjectId { get; set;}
         public string Project_Title { get; set;}
         public string Department_Title { get; set;}

@@ -781,7 +781,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) ||
-                userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)))
+                userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli))||
+                userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)))
             {
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/DetailAll.cshtml", data);
             }

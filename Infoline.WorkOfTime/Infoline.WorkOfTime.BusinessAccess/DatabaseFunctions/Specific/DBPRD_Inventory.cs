@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         /// <param name="imei2"></param>
         /// <param name="tran"></param>
         /// <returns></returns>
-        public VWPRD_Inventory GetPRD_InventoryBySerialCodeOrImei(string serialCode, string imei1, string imei2, DbTransaction tran = null)
+        public VWPRD_Inventory GetPRD_InventoryBySerialCodeOrImei(string serialCode, string imei1, string imei2=null, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {

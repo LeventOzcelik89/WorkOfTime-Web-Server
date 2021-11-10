@@ -6,6 +6,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
     {
         FtpWorkerForGenpa Genpa = new FtpWorkerForGenpa();
         FtpWorkerForKvk Kvk = new FtpWorkerForKvk();
+        FtpWorkerForMobiltel Mobitel = new FtpWorkerForMobiltel();
         public Worker()
         {
             var genpaUserName = ConfigurationManager.AppSettings["GenpaUserName"].ToString();
@@ -26,16 +27,23 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             var sellIn = Genpa.GetSellInObjectForToday();
             var sellThr = Genpa.GetSellThrObjectForToday();
         }
+        private void GetMobitelObjects()
+        {
+            var sellIn =Mobitel.GetSellInObjectForToday();
+            var sellThr = Mobitel.GetSellThrObjectForToday();
+        }
         public void GetObjects()
         {
-            new Thread(() =>
-            {
-                GetKvkObjects();
-            }).Start();
-            new Thread(() =>
-            {
-                GetGenpaObjects();
-            }).Start();
+
+            GetMobitelObjects();
+            //new Thread(() =>
+            //{
+            //    GetKvkObjects();
+            //}).Start();
+            //new Thread(() =>
+            //{
+            //    GetGenpaObjects();
+            //}).Start();
         }
     }
 }

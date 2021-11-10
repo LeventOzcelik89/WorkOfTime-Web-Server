@@ -6,7 +6,6 @@ using System.Data.Common;
 using System.Web;
 using System.Linq;
 using System.Collections.Generic;
-
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMPA_AdvanceModel : VWPA_Advance
@@ -22,7 +21,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPA_AdvanceHistory[] AdvanceHistory { get; set; }
         public DateTime? payBackDate { get; set; }
         public string statusDescription { get; set; }
-
         public class VWPA_AdvanceHistory
         {
             public string description { get; set; }
@@ -32,10 +30,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             public string ruleTitle { get; set; }
             public short? ruleOrder { get; set; }
             public short? ruleType { get; set; }
-            public Guid? ruleUserId { get; set; }
-
+            public Guid? userId { get; set; }
         }
-
         public VMPA_AdvanceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -47,7 +43,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (advanceConfirmation.Count() > 0)
                 {
                     this.statusDescription = advanceConfirmation.Where(x => x.status == 3 && x.description != null).Select(a => a.description).FirstOrDefault();
-
                     AdvanceHistory = advanceConfirmation.Where(a => a.confirmationUserIds != null).Select(x => new VWPA_AdvanceHistory
                     {
                         date = x.created.Value,
@@ -57,10 +52,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         status = x.status,
                         ruleType = x.ruleType,
                         ruleOrder = x.ruleOrder,
-                        ruleUserId=x.ruleUserId
+                        userId = x.userId
                     }).ToArray();
                 }
-
                 //if (this.IsCopy == true)
                 //{
                 //	Files = db.GetSYS_FilesByDataIdAll(this.id);
@@ -75,7 +69,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-
         public VMPA_AdvanceModel LoadMobile()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -87,7 +80,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (advanceConfirmation.Count() > 0)
                 {
                     this.statusDescription = advanceConfirmation.Where(x => x.status == 0 && x.description != null).Select(a => a.description).FirstOrDefault();
-
                     AdvanceHistory = advanceConfirmation.Where(a => a.confirmationUserIds != null).Select(x => new VWPA_AdvanceHistory
                     {
                         date = x.created.Value,
@@ -99,7 +91,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         ruleOrder = x.ruleOrder
                     }).ToArray();
                 }
-
                 Files = db.GetSYS_FilesByDataIdAll(this.id);
                 this.id = Guid.NewGuid();
                 this.newId = this.id;
@@ -111,21 +102,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-
-
         public ResultStatus Save(Guid userId, HttpRequestBase request = null, DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             var advance = db.GetVWPA_AdvanceById(this.id);
             var res = new ResultStatus { result = true };
-
             if (this.status == (int)EnumPA_AdvanceStatus.Odendi)
             {
                 if (!this.Ledger.date.HasValue) { return new ResultStatus { result = false, message = "Ödeme yapılan tarihi seçmelisiniz. Lütfen kontrol ediniz!" }; }
                 if (!this.Ledger.accountId.HasValue) { return new ResultStatus { result = false, message = "Ödenen hesabı seçmelisiniz. Lütfen kontrol ediniz!" }; }
             }
-
-
             if (this.IsCopy == true || advance == null)
             {
                 this.created = DateTime.Now;
@@ -142,18 +128,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.changedby = userId;
                 res = Update(trans);
             }
-
             var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
             UpdateDataControl(advanceConfirmations, this.statusDescription);
-
-            if (res.result && request != null)
-            {
-                new FileUploadSave(request, this.id).SaveAs();
-            }
-
             return res;
         }
-
         private ResultStatus Insert(DbTransaction trans = null)
         {
             var transaction = trans ?? db.BeginTransaction();
@@ -178,19 +156,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     color = color
                 }, trans);
             }
-
             var account = db.GetVWPA_AccountByDataId(this.createdby.Value);
             if (account != null)
             {
                 this.accountId = account.id;
             }
-
             else
             {
                 var currencies = db.GetUT_Currency();
                 var TL = currencies.Where(a => a.code == "TL").FirstOrDefault();
                 this.accountId = Guid.NewGuid();
-
                 dbresult &= db.InsertPA_Account(new PA_Account()
                 {
                     id = this.accountId.Value,
@@ -206,16 +181,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     dataTable = "SH_User"
                 }, transaction);
             }
-
-
             this.tax = this.tax.HasValue ? this.tax.Value : 0;
             dbresult &= db.InsertPA_Advance(new PA_Advance().B_EntityDataCopyForMaterial(this), transaction);
-
             if (this.status == (int)EnumPA_AdvanceStatus.Odendi)
             {
                 dbresult &= InsertLedger(transaction);
             }
-
             if (trans == null)
             {
                 if (dbresult.result)
@@ -223,15 +194,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     dbresult &= InsertConfirmation(this.createdby.Value, transaction);
                     transaction.Commit();
                 }
-
                 else
                 {
                     transaction.Rollback();
                 }
             }
-
             var message = "Avans talep oluşturma işlemi ";
-
             return new ResultStatus
             {
                 result = dbresult.result,
@@ -246,9 +214,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.date = DateTime.Now.AddMonths(1);
             }
-
             this.tax = this.tax.HasValue ? this.tax.Value : 0;
-
             var confirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
             if (confirmations.Count() > 0)
             {
@@ -262,13 +228,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         confirmation.status = null;
                         dbresult &= db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmation), true, transaction);
                     }
-
                     dbresult &= db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(refreshConfirm), true, transaction);
                 }
-
                 else
                 {
-
                     var confirm = confirmations.Where(x => x.status == null).FirstOrDefault();
                     if (this.direction == -1)
                     {
@@ -291,7 +254,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                     else if (this.direction == 0)
                     {
-
                     }
                     else
                     {
@@ -302,13 +264,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     dbresult &= db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirm), true, transaction);
                 }
             }
-
             dbresult &= db.UpdatePA_Advance(new PA_Advance().B_EntityDataCopyForMaterial(this), false, transaction);
             if (this.status == (int)EnumPA_TransactionStatus.Odendi || this.status == (int)EnumPA_AdvanceStatus.CalisanOdedi)
             {
                 dbresult &= InsertLedger(transaction);
             }
-
             if (trans == null)
             {
                 if (dbresult.result)
@@ -316,12 +276,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                     transaction.Rollback();
             }
-
             var message = "Avans düzenleme işlemi ";
-
-            message = this.direction == 0 ? "Avans düzenleme işlemi " : this.direction == -1 ? "Avans onaylama işlemi " : " Avans reddetme işlemi ";
+            message = this.direction == 0 ? "Avans düzenleme işlemi " : this.direction == -1 ? "Avans onaylama işlemi " : this.direction == 3 ? "Avans düzeltme talebi " : " Avans reddetme işlemi ";
             var pA_Advance = db.GetPA_AdvanceById(this.id);
-
             if (pA_Advance != null)
             {
                 var currency = db.GetUT_CurrencyById(this.currencyId.Value);
@@ -339,8 +296,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }, trans);
                 }
             }
-
-
             if (dbresult.result && this.direction == (int)EnumPA_AdvanceDirection.Cikis)
             {
                 string[] roles = new string[3] { SHRoles.OnMuhasebe, SHRoles.MuhasebeAlis, SHRoles.MuhasebeAlis };
@@ -349,7 +304,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var users = db.GetVWSH_UserByIds(userIds);
                     var confirming = db.GetVWSH_UserById(this.changedby.Value);
-
                     foreach (var user in users)
                     {
                         var text = "<h3>Sayın " + user.FullName + ",</h3>";
@@ -364,10 +318,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                 }
             }
-
             if (this.direction == 2)
             {
-
                 var url = TenantConfig.Tenant.GetWebUrl();
                 var user = db.GetVWSH_UserById(this.createdby.Value);
                 var text = "<h3>Sayın " + user.FullName + ",</h3>";
@@ -380,26 +332,35 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Reddi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Reddi", true);
             }
-
+            if (this.direction == 3)
+            {
+                var url = TenantConfig.Tenant.GetWebUrl();
+                var user = db.GetVWSH_UserById(this.createdby.Value);
+                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                text += "<p>Avans talebinize yeniden düzeltme istenmiştir.</p>";
+                if (!string.IsNullOrEmpty(this.statusDescription))
+                {
+                    text += "<p>Açıklaması : " + this.statusDescription + "</p>";
+                }
+                text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                text += "<p>Bilgilerinize.</p>";
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Düzeltme ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Düzeltme", true);
+            }
             return new ResultStatus
             {
                 result = dbresult.result,
                 message = dbresult.result ? message + "başarılı bir şekilde gerçekleştirildi." : message + "başarısız oldu."
             };
         }
-
         private ResultStatus InsertLedger(DbTransaction trans = null)
         {
             var transaction = trans ?? db.BeginTransaction();
             var dbresult = new ResultStatus { result = true };
-
             var currency = db.GetUT_CurrencyById(this.currencyId.Value);
             var rate = CurrencyExchangeRates.GetExchangeRatesByDate(currency.code, this.Ledger.date.Value);
-
             if (this.status == (int)EnumPA_AdvanceStatus.Odendi)
             {
                 var account = db.GetVWPA_AccountById(this.Ledger.accountId.Value);
-
                 var newLedger = new VMPA_LedgerModel
                 {
                     advanceId = this.id,
@@ -414,14 +375,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Currency_Code = currency.code,
                     Currency_Symbol = currency.symbol
                 };
-
                 newLedger.accountId = this.accountId;
                 newLedger.accountRealtedId = account.id;
                 newLedger.direction = (short)(this.direction.Value * -1);
-
                 dbresult &= newLedger.Save(this.createdby.Value, null, transaction);
             }
-
             if (trans == null)
             {
                 if (dbresult.result)
@@ -429,17 +387,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                     transaction.Rollback();
             }
-
             return dbresult;
         }
-
         public ResultStatus Delete(DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             var _trans = trans ?? db.BeginTransaction();
             var advance = db.GetPA_AdvanceById(this.id);
             var ledger = db.GetPA_LedgerByAdvanceId(this.id);
-
             if (advance == null)
             {
                 return new ResultStatus
@@ -448,10 +403,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Avans Kaydı Bulunamadı."
                 };
             }
-
             var dbresult = db.BulkDeletePA_Ledger(ledger, _trans);
             dbresult &= db.DeletePA_Advance(advance, _trans);
-
             if (trans == null)
             {
                 if (dbresult.result == true)
@@ -459,19 +412,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                     _trans.Rollback();
             }
-
             return new ResultStatus
             {
                 result = dbresult.result,
                 message = dbresult.result ? "Avans silme işlemi başarılı bir şekilde gerçekleştirildi." : "Avans silme işlemi başarısız oldu."
             };
         }
-
-
         public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
         {
             BEXP filter = null;
-
             if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
             {
                 filter |= new BEXP
@@ -481,36 +430,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Operand2 = (VAL)string.Format("%{0}%", userStatus.user.id.ToString())
                 };
             }
-
             query.Filter &= filter;
-
             return query;
-
         }
-
         public SummaryHeadersAdvance GetAdvanceSummary(Guid userId)
         {
             this.Load();
             return db.GetVWPA_AdvanceByUserIdCounts(userId);
         }
-
         public SummaryHeadersAdvance GetListAdvanceSummary(Guid userId)
         {
             this.Load();
             return db.GetVWPA_AdvancesByUserId(userId);
         }
-
         public SummaryHeadersAdvance GetListMyApprovedAdvanceSummary(Guid userId)
         {
             this.Load();
             return db.GetVWPA_AdvancesApprovedByUserId(userId);
         }
-
         public ResultStatus InsertConfirmation(Guid userId, DbTransaction trans = null)
         {
             var dbresult = new ResultStatus { result = true };
             var _trans = trans ?? db.BeginTransaction();
-
             this.db = this.db ?? new WorkOfTimeDatabase();
             var advanceCofirmations = new List<PA_AdvanceConfirmation>();
             //Kullanıcıya ait avans kurallarını çektim.
@@ -525,14 +466,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
             }
-
             var shuser = db.GetVWSH_UserById(userId);
-
             if (rulesUserStages.Count() > 0)
             {
                 var lastValidator = rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).ToArray();
                 var companyPersonDepart = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-
                 foreach (var rulesStage in rulesUserStages)
                 {
                     if (rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).Count() > 0 && lastValidator.Count() > 0)
@@ -588,19 +526,82 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         else if (rulesStage.type == (int)EnumUT_RulesUserStage.SonOnaylayici)
                         {
                             var lastValidatorData = companyPersonDepart
-                                .Where(x => x.Manager1 == rulesStage.userId || 
-                                x.Manager2 == rulesStage.userId || 
-                                x.Manager3 == rulesStage.userId || 
-                                x.Manager4 == rulesStage.userId || 
-                                x.Manager5 == rulesStage.userId || 
+                                .Where(x => x.Manager1 == rulesStage.userId ||
+                                x.Manager2 == rulesStage.userId ||
+                                x.Manager3 == rulesStage.userId ||
+                                x.Manager4 == rulesStage.userId ||
+                                x.Manager5 == rulesStage.userId ||
                                 x.Manager6 == rulesStage.userId).FirstOrDefault();
-
                             if (lastValidatorData == null)
                             {
-                                continue;
+                                if (companyPersonDepart.Where(x => x.Manager6.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager6;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson,rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
+                                else if (companyPersonDepart.Where(x => x.Manager5.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager5;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
+                                else if (companyPersonDepart.Where(x => x.Manager4.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager4;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
+                                else if (companyPersonDepart.Where(x => x.Manager3.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager3;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
+                                else if (companyPersonDepart.Where(x => x.Manager2.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager2;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
+                                else if (companyPersonDepart.Where(x => x.Manager1.HasValue).Count() > 0)
+                                {
+                                    var manager = companyPersonDepart.FirstOrDefault().Manager1;
+                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
+                                    if (getCompanyPerson == null)
+                                    {
+                                        continue;
+                                    }
+                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
+                                }
                             }
                         }
-
                         advanceCofirmations.Add(new PA_AdvanceConfirmation
                         {
                             created = this.created,
@@ -611,18 +612,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             ruleUserId = rulesStage.userId,
                             ruleRoleId = rulesStage.roleId,
                             ruleTitle = rulesStage.title,
-                            userId = (rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                            userId = (
+                            rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
   rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
   rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
   rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
   rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
   rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesStage.userId : rulesStage.type == (Int16)EnumUT_RulesUserStage.SonOnaylayici ? rulesStage.userId : null)
-
+  rulesStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesStage.userId :
+  rulesStage.type == (Int16)EnumUT_RulesUserStage.SonOnaylayici ? rulesStage.userId : null)
                         });
                     }
-
-
                 }
             }
             else
@@ -640,8 +640,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
             };
         }
-
-
         public void UpdateDataControl(VWPA_AdvanceConfirmation[] confirmations, string statusDescription)
         {
             var control = false;
@@ -654,20 +652,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             for (int i = 0; i < confirmations.Count(); i++)
             {
-                if (this.direction == 3)
-                {
-                    confirmations[i].status = null;
-                    var data = new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]);
-                    db.UpdatePA_AdvanceConfirmation(data, true);
-                }
-
                 if (confirmations[i].confirmationUserIds == null && !control)
                 {
                     if (this.direction == 2)
                     {
                         confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Red;
                         confirmations[i].description = statusDescription;
-
                         if (confirmations[i].createdby.HasValue)
                         {
                             var url = TenantConfig.Tenant.GetWebUrl();
@@ -700,6 +690,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                         }
                     }
+                    else if (confirmations.Count(c => c.status == 3) > 0)
+                    {
+                        continue;
+                    }
                     db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
                     UpdateDataControl(confirmations, "");
                 }
@@ -712,7 +706,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Onay;
                             confirmations[i].description = "Otomatik Onay";
                             db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
-
                             if (confirmations[i].advanceId.HasValue)
                             {
                                 var advance = db.GetPA_AdvanceById(confirmations[i].advanceId.Value);
@@ -730,12 +723,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         {
                             mailControl = true;
                             var users = db.GetVWSH_UserByIds(confirmations[i].confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-
                             if (this.createdby.HasValue)
                             {
                                 var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                                 var url = TenantConfig.Tenant.GetWebUrl();
-
                                 foreach (var user in users)
                                 {
                                     var text = "<h3>Sayın " + user.FullName + ",</h3>";
@@ -755,13 +746,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             }
         }
-
-
         public static SimpleQuery MyAdvanceQuery(SimpleQuery query, PageSecurity userStatus, int? direction)
         {
             BEXP filter = null;
-
-
             if (!direction.HasValue)
             {
                 filter = new BEXP
@@ -796,16 +783,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             },
                             Operator = BinaryOperator.Or
                         },
-
                         Operator = BinaryOperator.Or
                     },
-
                     Operator = BinaryOperator.Or
                 };
             }
             else
             {
-
                 filter &= new BEXP
                 {
                     Operand1 = new BEXP
@@ -843,18 +827,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Operator = BinaryOperator.And
                 };
             }
-
             query.Filter &= filter;
             return query;
-
         }
-
-
         public static SimpleQuery MyAdvanceApprovedQuery(SimpleQuery query, PageSecurity userStatus, int? direction)
         {
             BEXP filter = null;
             string userId = userStatus.user.id.ToString();
-
             if (!direction.HasValue)
             {
                 filter = new BEXP
@@ -865,7 +844,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         Operator = BinaryOperator.Equal,
                         Operand2 = (VAL)15
                     },
-
                     Operator = BinaryOperator.Or,
                     Operand2 = new BEXP
                     {
@@ -915,7 +893,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         },
                         Operator = BinaryOperator.And
                     };
-
                 }
                 else if (direction == -1)
                 {
@@ -994,14 +971,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         },
                         Operator = BinaryOperator.And
                     };
-
                 }
             }
-
             query.Filter &= filter;
             return query;
         }
-
-
+        public VWINV_CompanyPersonDepartments GetCompanyPerson(VWINV_CompanyPersonDepartments[] companyPerson, Guid? ruleStage)
+        {
+            return companyPerson.Where(x => x.Manager1 == ruleStage ||
+                                x.Manager2 == ruleStage ||
+                                x.Manager3 == ruleStage ||
+                                x.Manager4 == ruleStage ||
+                                x.Manager5 == ruleStage ||
+                                x.Manager6 == ruleStage).FirstOrDefault();
+        }
     }
 }
