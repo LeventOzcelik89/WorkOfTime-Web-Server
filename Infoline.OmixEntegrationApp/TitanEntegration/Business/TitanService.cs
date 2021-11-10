@@ -91,6 +91,12 @@ namespace Infoline.OmixEntegrationApp.TitanEntegration.Business
             try
             {
 
+                ServicePointManager.Expect100Continue = true;
+                ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls
+                       | SecurityProtocolType.Tls11
+                       | SecurityProtocolType.Tls12
+                       | SecurityProtocolType.Ssl3;
+                
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(Host + uri);
                 request.ContentType = "application/json";
                 request.Method = "GET";
