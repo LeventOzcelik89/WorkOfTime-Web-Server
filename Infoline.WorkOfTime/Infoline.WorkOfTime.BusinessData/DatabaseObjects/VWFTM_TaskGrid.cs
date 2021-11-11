@@ -36,6 +36,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string city { get; set;}
         public string description { get; set;}
         public string personelDescription { get; set;}
+        public string DurdurulmaDescription { get; set;}
         public string helperUserIds { get; set;}
         public string helperUserTitles { get; set;}
         public string lastOperationStatus_Title { get; set;}
