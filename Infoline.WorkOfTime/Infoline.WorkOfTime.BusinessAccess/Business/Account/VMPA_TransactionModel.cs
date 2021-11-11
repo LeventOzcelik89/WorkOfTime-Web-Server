@@ -58,11 +58,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             ruleOrder = x.ruleOrder
                         }).ToArray();
                     }
-                    //if (this.IsCopy == true)
-                    //{
-                    //    Files = db.GetSYS_FilesByDataIdAll(this.id);
-                    //    db.BulkInsertSYS_Files(Files.Select(x => new SYS_Files { DataId = this.id, FilePath = x.FilePath, id = Guid.NewGuid(), FileGroup = x.FileGroup, DataTable = x.DataTable, FileExtension = x.FileExtension }));
-                    //}
                 }
             }
             else
@@ -121,25 +116,54 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = new Guid(this.ProjectId);
                 this.dataTable = "PRJ_Project";
             }
-            //if (this.dataId.HasValue && isService != null && !isService.Value )
-            //{
-            //	this.id = Guid.NewGuid();
-            //}
+
             var transaction = db.GetVWPA_TransactionById(this.id);
             var res = new ResultStatus { result = true };
+
+            //Ödeme Aşaması ise Ödeme Kontrolü Yapılıyor
             if (this.status == (int)EnumPA_TransactionStatus.Odendi)
             {
-                if (!this.Ledger.date.HasValue) { return new ResultStatus { result = false, message = "Ödeme yapılan tarihi seçmelisiniz. Lütfen kontrol ediniz!" }; }
-                if (!this.Ledger.accountId.HasValue) { return new ResultStatus { result = false, message = "Ödenen hesabı seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.Ledger.date.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılan tarihi seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
+                if (!this.Ledger.accountId.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödenen hesabı seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
             else if (this.status == (int)EnumPA_TransactionStatus.Odenecek)
             {
-                if (!this.date.HasValue && this.type != (int)EnumPA_TransactionType.Masraf) { return new ResultStatus { result = false, message = "Ödeme yapılacak tarihi seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.date.HasValue && this.type != (int)EnumPA_TransactionType.Masraf)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılacak tarihi seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
             else
             {
-                if (!this.Account.dataId.HasValue) { return new ResultStatus { result = false, message = "Ödeme yapılan personeli seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.Account.dataId.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılan personeli seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
+
+            //Kopyalanmış ise Yeni kayıt açılıyor değil ise update işlemine gönderilir.
             if (this.IsCopy == true || transaction == null)
             {
                 var getTransaction = db.GetVWPA_TransactionById(this.id);
@@ -164,12 +188,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 res = Update(trans);
             }
+
             if (this.type == (Int16)EnumPA_TransactionType.Masraf)
             {
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
                 var transactionConfirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
-                
+                UpdateDataControl(transactionConfirmations, this.statusDescription, userId);
                 if (this.direction == 2)// red ise
                 {
                     if (this.createdby.HasValue)
@@ -187,7 +212,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
                         notification.NotificationSend(user.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
                     }
-
                 }
                 else if (this.direction == 3)// yeniden talep 
                 {
@@ -206,7 +230,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Düzenleme ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Düzenleme", true);
                         notification.NotificationSend(user.id, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
                     }
-
                 }
                 else
                 {
