@@ -696,30 +696,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                 {
                     var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x => x.ruleOrder).ToList();
-                    foreach (var confirmation in findNotCommited)
+                    var findWillCommit = findNotCommited.Where(x => x.confirmationUserIds != null && x.ruleOrder == notNullOrder.ruleOrder + 1).FirstOrDefault();
+                    if (findWillCommit != null)
                     {
-                        if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
+                        var users = db.GetVWSH_UserByIds(findWillCommit.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                        var getAdvance = db.GetPA_AdvanceById(this.id);
+                        if (getAdvance != null)
                         {
-                            var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                            var getAdvance = db.GetPA_AdvanceById(this.id);
-                            if (getAdvance != null)
+
+                            this.createdby = getAdvance.createdby;
+                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                            foreach (var user in users)
                             {
-
-                                this.createdby = getAdvance.createdby;
-                                var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                                foreach (var user in users)
+                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                                text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
+                                if (!string.IsNullOrEmpty(this.description))
                                 {
-
-                                    var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                                    text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
-                                    if (!string.IsNullOrEmpty(this.description))
-                                    {
-                                        text += "<p>Açıklaması : " + this.description + "</p>";
-                                    }
-                                    text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
-                                    text += "<p>Bilgilerinize.</p>";
-                                    new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
+                                    text += "<p>Açıklaması : " + this.description + "</p>";
                                 }
+                                text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                                text += "<p>Bilgilerinize.</p>";
+                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
                             }
                         }
                     }

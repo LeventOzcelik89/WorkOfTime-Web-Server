@@ -163,6 +163,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public void Send(int enumKey, string email, string baslik, bool asenkron = true, string[] cc = null, string[] bcc = null, string[] files = null, bool hasWarning = false)
         {
+#if DEBUG
+            email = "seyit.tekce@infoline-tr.com";
+#endif
             var ts = Task.Run(() => _send(enumKey, email, baslik, cc, files, bcc, hasWarning));
             if (!asenkron)
             {

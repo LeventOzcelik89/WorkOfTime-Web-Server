@@ -1,23 +1,29 @@
 ﻿@{
-	ViewBag.Title = "Avans Talepleri";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Avans Talepleri";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var userId = userStatus.user.id;
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userId = userStatus.user.id;
 
-	var query = "(confirmationUserIds~contains~'" + userId + "'))~and~";
-	query += "((confirmationStatus~eq~'" + (Int16)EnumPA_AdvanceConfirmationStatus.Onay + "')~or~";
-	query += "(confirmationStatus~eq~'" + System.UIHelper.Int32.Null + "'))";
+    var query = "(confirmUserIds~contains~'" + userId + "'))";
 }
 
 <script type="text/javascript" data-selector="modalContainer">
     $(document)
         .on("selected:grid", "#VWPA_Advance", function (e, res) {
-            $('[data-id="approve"]').removeClass("hide");
-
-            if (res.direction == '@((int)EnumPA_AdvanceDirection.Cikis)' || res.direction == '2') {
-                $('[data-id="approve"]').addClass("hide");
+           $('[data-id="approve"]').show();
+			$('[data-id="approveDataId"]').show();
+			var isConfirm = false;
+			if (res.confirmUserIds != null) {
+				res.confirmUserIds = res.confirmUserIds.toLowerCase();
+				isConfirm = res.confirmUserIds.includes('@userId');
             }
+
+
+			if ((res.direction == '@((int)EnumPA_TransactionDirection.Cikis)' || res.direction == '2' || res.direction == '3') || isConfirm) {
+				$('[data-id="approve"]').hide();
+                $('[data-id="approveDataId"]').hide();
+			}
 
             var grid = $('#VWPA_Advance').data("kendoGrid");
             var _selectedRows = $.Enumerable.From(grid.select().map(function (i, elem) { return grid.dataItem(elem)["id"]; }).toArray()).GroupBy(a => a).Select(a => a.Key());
@@ -107,7 +113,7 @@
                             x.Custom().Text("<i data-original-title='Avans Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-id", "detail" } }).Url(Url.Action("Detail", "VWPA_Advance", new { area = "PA" }));
 
 
-                            x.Custom().Text("<i data-original-title='Tümünü Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-selector", "approveData" }, { "data-ask", "Avansları onaylamak istiyor musunuz?" } }).Url(Url.Action("AllApprovalAdvance", "VWPA_Advance", new { area = "PA" }));
+                            x.Custom().Text("<i data-original-title='Tümünü Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-selector", "approveData" }, { "data-id", "approveDataId" }, { "data-ask", "Avansları onaylamak istiyor musunuz?" } }).Url(Url.Action("AllApprovalAdvance", "VWPA_Advance", new { area = "PA" }));
                         }))
 			</div>
 		</div>

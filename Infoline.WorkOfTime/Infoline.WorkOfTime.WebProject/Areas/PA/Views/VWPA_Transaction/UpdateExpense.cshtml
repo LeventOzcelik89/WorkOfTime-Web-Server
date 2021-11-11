@@ -1,10 +1,16 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMPA_TransactionModel
 @{
-	ViewBag.Title = Model.type == (int)EnumPA_TransactionType.Masraf ? "Masraf Onayla-Reddet" : Model.type_Title + " Güncelle";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = Model.type == (int)EnumPA_TransactionType.Masraf ? "Masraf Onayla-Reddet" : Model.type_Title + " Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var userId = userStatus.user.id;
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userId = userStatus.user.id;
+    var didUserProvedBefore = false;
+    if (Model.confirmUserIds != null)
+    {
+        didUserProvedBefore = Model.confirmUserIds.ToLower().Contains(userId.ToString());
+    }
+
 }
 
 <style type="text/css" data-selector="modalContainer">
@@ -280,10 +286,10 @@
 	<div class="buttons">
 		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
 
-		@if (Model.Ledgers.Count() == 0)
-		{
-			if (Model.direction == (int)EnumPA_TransactionDirection.Talep && Model.createdby != userId)
-			{
+		@if (Model.Ledgers.Count() == 0 && !didUserProvedBefore)
+        {
+            if (Model.direction == (int)EnumPA_TransactionDirection.Talep && Model.createdby != userId)
+            {
 				<button class="btn btn-md btn-warning pull-right" type="button" style="margin-left: 15px;" onclick="expense.events.beforeSubmit(this, '3')"> Düzeltme Talebi Yap </button>
 				<button class="btn btn-md btn-primary pull-right" type="button" onclick="expense.events.beforeSubmit(this, '-1')" style="margin-left: 15px;"> Onayla </button>
 				<button class="btn btn-md btn-danger pull-right" type="button" onclick="expense.events.beforeSubmit(this, '2')"> Reddet </button>

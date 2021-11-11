@@ -194,7 +194,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
                 var transactionConfirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
-                UpdateDataControl(transactionConfirmations, this.statusDescription, userId);
                 if (this.direction == 2)// red ise
                 {
                     if (this.createdby.HasValue)
@@ -908,33 +907,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                 {
                     var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x => x.ruleOrder).ToList();
-                    foreach (var confirmation in findNotCommited)
+                    var findWillCommit = findNotCommited.Where(x=>x.confirmationUserIds!=null&&x.ruleOrder==notNullOrder.ruleOrder+1).FirstOrDefault();
+                    if (findWillCommit!=null)
                     {
-                        if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
+                        var users = db.GetVWSH_UserByIds(findWillCommit.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                        var getTrans = db.GetPA_TransactionById(this.id);
+                        if (getTrans != null)
                         {
-                            var users = db.GetVWSH_UserByIds(confirmation.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                            var getTrans = db.GetPA_TransactionById(this.id);
-                            if (getTrans != null)
-                            {
 
-                                this.createdby = getTrans.createdby;
-                                var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                                foreach (var user in users)
+                            this.createdby = getTrans.createdby;
+                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                            foreach (var user in users)
+                            {
+                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                                text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
+                                if (!string.IsNullOrEmpty(this.description))
                                 {
-                                    var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                                    text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                                    if (!string.IsNullOrEmpty(this.description))
-                                    {
-                                        text += "<p>Açıklaması : " + this.description + "</p>";
-                                    }
-                                    text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                                    text += "<p>Bilgilerinize.</p>";
-                                    new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                    notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                    text += "<p>Açıklaması : " + this.description + "</p>";
                                 }
+                                text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
+                                text += "<p>Bilgilerinize.</p>";
+                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
+                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
                             }
                         }
                     }
+                   
                 }
             }
         }

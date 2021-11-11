@@ -1,11 +1,11 @@
 ﻿
 @{
-	ViewBag.Title = "Masraf Taleplerim";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Masraf Taleplerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var userId = userStatus.user.id;
-	Guid? transactionId = ViewBag.TransactionId;
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var userId = userStatus.user.id;
+    Guid? transactionId = ViewBag.TransactionId;
 
 }
 
@@ -14,11 +14,19 @@
 
     $(document)
         .on("selected:grid", "#VWPA_Transaction", function (e, res) {
-            $('[data-id="approve"]').removeClass("hide");
-
-            if (res.direction == '@((int)EnumPA_TransactionDirection.Cikis)' || res.direction == '3') {
-                $('[data-id="approve"]').addClass("hide");
+            $('[data-id="approve"]').show();
+			$('[data-id="approveDataId"]').show();
+           var isConfirm = false;
+			if (res.confirmUserIds != null) {
+				res.confirmUserIds = res.confirmUserIds.toLowerCase();
+				isConfirm = res.confirmUserIds.includes('@userId');
             }
+
+
+			if ((res.direction == '@((int)EnumPA_TransactionDirection.Cikis)' || res.direction == '2' || res.direction == '3') || isConfirm) {
+				$('[data-id="approve"]').hide();
+                $('[data-id="approveDataId"]').hide();
+			}
 
 			if (res.direction != 3) {
 				$('[data-id="demandAgain"]').addClass("hide");
@@ -38,62 +46,62 @@
                     </a>
                     <div class="space-25"></div>
                     <h5>DURUMA GÖRE</h5>
-					<ul class="folder-list m-b-md" style="padding: 0">
-						@if (transactionId.HasValue)
-						{
-                        <li class="clearfix">
-                            <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="(dataId~eq~'@transactionId')">
-                                <i class="fa fa-list"></i>  Tümü
-                                <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=(dataId~eq~'@transactionId')" class="badge badge-success pull-right">0</span>
-                            </a>
-                            <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~dataId~eq~'@transactionId'))">
-                                <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
-                                <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~dataId~eq~'@transactionId'))" class="badge badge-warning pull-right">0</span>
-                            </a>
-                            <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~dataId~eq~'@transactionId'))">
-                                <i class="fa fa-check text-primary"></i>  Onaylananlar
-                                <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~dataId~eq~'@transactionId'))" class="badge badge-primary pull-right">0</span>
-                            </a>
+                    <ul class="folder-list m-b-md" style="padding: 0">
+                        @if (transactionId.HasValue)
+                        {
+                            <li class="clearfix">
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="(dataId~eq~'@transactionId')">
+                                    <i class="fa fa-list"></i>  Tümü
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=(dataId~eq~'@transactionId')" class="badge badge-success pull-right">0</span>
+                                </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~dataId~eq~'@transactionId'))">
+                                    <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~dataId~eq~'@transactionId'))" class="badge badge-warning pull-right">0</span>
+                                </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~dataId~eq~'@transactionId'))">
+                                    <i class="fa fa-check text-primary"></i>  Onaylananlar
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~dataId~eq~'@transactionId'))" class="badge badge-primary pull-right">0</span>
+                                </a>
 
-                            <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~3~and~dataId~eq~'@transactionId'))">
-                                <i class="fa fa-refresh text-warning"></i>  Düzeltme Beklenenler
-                                <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~3~and~dataId~eq~'@transactionId'))" class="badge badge-warning pull-right">0</span>
-                            </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~3~and~dataId~eq~'@transactionId'))">
+                                    <i class="fa fa-refresh text-warning"></i>  Düzeltme Beklenenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~3~and~dataId~eq~'@transactionId'))" class="badge badge-warning pull-right">0</span>
+                                </a>
 
-                            <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~2~and~dataId~eq~'@transactionId'))">
-                                <i class="fa fa-times text-danger"></i>  Reddedilenler
-                                <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~2~and~dataId~eq~'@transactionId'))" class="badge badge-danger pull-right">0</span>
-                            </a>
-                        </li>
-						}
-						else
-						{
-                    <li class="clearfix">
-                        <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
-                            <i class="fa fa-list"></i>  Tümü
-                            <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-success pull-right">0</span>
-                        </a>
-                        <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
-                            <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
-                            <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-warning pull-right">0</span>
-                        </a>
-                        <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
-                            <i class="fa fa-check text-primary"></i>  Onaylananlar
-                            <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-primary pull-right">0</span>
-                        </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~2~and~dataId~eq~'@transactionId'))">
+                                    <i class="fa fa-times text-danger"></i>  Reddedilenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~2~and~dataId~eq~'@transactionId'))" class="badge badge-danger pull-right">0</span>
+                                </a>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="clearfix">
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
+                                    <i class="fa fa-list"></i>  Tümü
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-success pull-right">0</span>
+                                </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
+                                    <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Talep)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-warning pull-right">0</span>
+                                </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
+                                    <i class="fa fa-check text-primary"></i>  Onaylananlar
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~@((int)EnumPA_TransactionDirection.Cikis)~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-primary pull-right">0</span>
+                                </a>
 
-                        <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~3~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
-                            <i class="fa fa-refresh text-warning"></i>  Düzeltme Beklenenler
-                            <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~3~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-warning pull-right">0</span>
-                        </a>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~3~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
+                                    <i class="fa fa-refresh text-warning"></i>  Düzeltme Beklenenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~3~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-warning pull-right">0</span>
+                                </a>
 
-                        <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~2~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
-                            <i class="fa fa-times text-danger"></i>  Reddedilenler
-                            <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~2~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-danger pull-right">0</span>
-                        </a>
-                    </li>
-						}
-					</ul>
+                                <a href="#" data-grid="VWPA_Transaction" data-switch="radio" data-category="1" data-query="((direction~eq~2~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')">
+                                    <i class="fa fa-times text-danger"></i>  Reddedilenler
+                                    <span data-counturl="/PA/VWPA_Transaction/DataSourceCount?filter=((direction~eq~2~and~type~eq~@((int)EnumPA_TransactionType.Masraf))~and~createdby~eq~'@userId')" class="badge badge-danger pull-right">0</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
                 </div>
             </div>
         </div>
@@ -108,10 +116,10 @@
                     </a>
                 </div>
             </div>
-			<div class="ibox-content no-padding">
-				@if (transactionId.HasValue)
-				{
-					@(Html.Akilli()
+            <div class="ibox-content no-padding">
+                @if (transactionId.HasValue)
+                {
+                    @(Html.Akilli()
 						.Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
 						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
 						.Filter(a => a.dataId == transactionId.Value)
@@ -134,10 +142,10 @@
 						})
 
                 )
-				}
-				else
-				{
-					@(Html.Akilli()
+                }
+                else
+                {
+                    @(Html.Akilli()
 						.Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
 						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" }))
 						.Filter(a => a.type == (int)EnumPA_TransactionType.Masraf && a.createdby == userId)
@@ -160,9 +168,9 @@
 						})
 
                 )
-				}
+                }
 
-			</div>
+            </div>
         </div>
     </div>
 </div>
