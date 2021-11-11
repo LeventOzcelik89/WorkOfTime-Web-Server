@@ -126,10 +126,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.changed = DateTime.Now;
                 this.changedby = userId;
+                var getChanged = db.GetPA_AdvanceById(this.id);
+                if (getChanged != null)
+                {
+                    this.createdby = getChanged.createdby;
+                }
                 res = Update(trans);
             }
-            var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
-            UpdateDataControl(advanceConfirmations, this.statusDescription);
+            if (this.direction == 1 || this.direction == -1 || this.direction == 0)
+            {
+                var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
+                UpdateDataControl(advanceConfirmations, this.statusDescription);
+            }
+
             return res;
         }
         private ResultStatus Insert(DbTransaction trans = null)
@@ -538,7 +547,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 {
                                     var manager = companyPersonDepart.FirstOrDefault().Manager6;
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson,rulesStage.userId);
+                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
                                     {
                                         continue;
@@ -642,109 +651,188 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         public void UpdateDataControl(VWPA_AdvanceConfirmation[] confirmations, string statusDescription)
         {
-            var control = false;
-            var mailControl = false;
-            var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
-            if (this.direction != 3)
+            if (this.direction == 0 || this.direction == -1 || this.direction == 1)
             {
-                confirmations = confirmations.Where(x => x.status == null).ToArray();
-            }
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            for (int i = 0; i < confirmations.Count(); i++)
-            {
-                if (confirmations[i].confirmationUserIds == null && !control)
+                db = db ?? new WorkOfTimeDatabase();
+                var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
+                var notification = new Notification();
+                var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
+                var findUncommited = confirmations.Where(x => x.status == null && x.confirmationUserIds == null).ToList();
+                foreach (var confirmation in findUncommited)
                 {
-                    if (this.direction == 2)
+                    if (confirmation.confirmationUserIds == null)
                     {
-                        confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Red;
-                        confirmations[i].description = statusDescription;
-                        if (confirmations[i].createdby.HasValue)
+                        confirmation.status = (Int16)EnumPA_TransactionConfirmationStatus.Onay;
+                        confirmation.description = "Otomatik Onay";
+                        db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmation));
+                    }
+
+                }
+                if (notNullOrder == null)
+                {
+                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                    var getAdvance = db.GetPA_AdvanceById(this.id);
+                    if (getAdvance != null)
+                    {
+
+                        this.createdby = getAdvance.createdby;
+                        var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                        foreach (var user in users)
                         {
-                            var url = TenantConfig.Tenant.GetWebUrl();
-                            var user = db.GetVWSH_UserById(confirmations[i].createdby.Value);
+
                             var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                            text += "<p>Avans talebiniz reddedilmiştir.</p>";
-                            if (!string.IsNullOrEmpty(this.statusDescription))
+                            text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
+                            if (!string.IsNullOrEmpty(this.description))
                             {
-                                text += "<p>Açıklaması : " + this.statusDescription + "</p>";
+                                text += "<p>Açıklaması : " + this.description + "</p>";
                             }
-                            text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + confirmations[i].advanceId + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                            text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" +this.id+ "'>Detaya gitmek için tıklayınız.</a> </p>";
                             text += "<p>Bilgilerinize.</p>";
-                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Reddi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Reddi", true);
+                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
                         }
                     }
-                    else if (this.direction != 3)
-                    {
-                        confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Onay;
-                        confirmations[i].description = "Otomatik Onay";
-                        if (confirmations.Count() == 1)
-                        {
-                            if (confirmations[i].advanceId.HasValue)
-                            {
-                                var advance = db.GetPA_AdvanceById(confirmations[i].advanceId.Value);
-                                if (advance != null)
-                                {
-                                    advance.direction = -1;
-                                    db.UpdatePA_Advance(advance);
-                                }
-                            }
-                        }
-                    }
-                    else if (confirmations.Count(c => c.status == 3) > 0)
-                    {
-                        continue;
-                    }
-                    db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
-                    UpdateDataControl(confirmations, "");
+
                 }
                 else
                 {
-                    if (notNullOrder != null)
+                    var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x => x.ruleOrder).ToList();
+                    foreach (var confirmation in findNotCommited)
                     {
-                        if (notNullOrder.confirmationUserIds == confirmations[i].confirmationUserIds && this.direction != 3)
+                        if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
                         {
-                            confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Onay;
-                            confirmations[i].description = "Otomatik Onay";
-                            db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
-                            if (confirmations[i].advanceId.HasValue)
+                            var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                            var getAdvance = db.GetPA_AdvanceById(this.id);
+                            if (getAdvance != null)
                             {
-                                var advance = db.GetPA_AdvanceById(confirmations[i].advanceId.Value);
-                                if (advance != null)
-                                {
-                                    advance.direction = -1;
-                                    db.UpdatePA_Advance(advance);
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        if (!mailControl)
-                        {
-                            mailControl = true;
-                            var users = db.GetVWSH_UserByIds(confirmations[i].confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                            if (this.createdby.HasValue)
-                            {
+
+                                this.createdby = getAdvance.createdby;
                                 var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                                var url = TenantConfig.Tenant.GetWebUrl();
                                 foreach (var user in users)
                                 {
+
                                     var text = "<h3>Sayın " + user.FullName + ",</h3>";
                                     text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
                                     if (!string.IsNullOrEmpty(this.description))
                                     {
                                         text += "<p>Açıklaması : " + this.description + "</p>";
                                     }
-                                    text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + confirmations[i].advanceId + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                                    text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
                                     text += "<p>Bilgilerinize.</p>";
                                     new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
                                 }
                             }
                         }
-                        control = true;
                     }
                 }
             }
+
+
+
+
+
+            //var control = false;
+            //var mailControl = false;
+            //var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
+            //if (this.direction != 3)
+            //{
+            //    confirmations = confirmations.Where(x => x.status == null).ToArray();
+            //}
+            //this.db = this.db ?? new WorkOfTimeDatabase();
+            //for (int i = 0; i < confirmations.Count(); i++)
+            //{
+            //    if (confirmations[i].confirmationUserIds == null && !control)
+            //    {
+            //        if (this.direction == 2)
+            //        {
+            //            confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Red;
+            //            confirmations[i].description = statusDescription;
+            //            if (confirmations[i].createdby.HasValue)
+            //            {
+            //                var url = TenantConfig.Tenant.GetWebUrl();
+            //                var user = db.GetVWSH_UserById(confirmations[i].createdby.Value);
+            //                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+            //                text += "<p>Avans talebiniz reddedilmiştir.</p>";
+            //                if (!string.IsNullOrEmpty(this.statusDescription))
+            //                {
+            //                    text += "<p>Açıklaması : " + this.statusDescription + "</p>";
+            //                }
+            //                text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + confirmations[i].advanceId + "'>Detaya gitmek için tıklayınız.</a> </p>";
+            //                text += "<p>Bilgilerinize.</p>";
+            //                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi Reddi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi Reddi", true);
+            //            }
+            //        }
+            //        else if (this.direction != 3)
+            //        {
+            //            confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Onay;
+            //            confirmations[i].description = "Otomatik Onay";
+            //            if (confirmations.Count() == 1)
+            //            {
+            //                if (confirmations[i].advanceId.HasValue)
+            //                {
+            //                    var advance = db.GetPA_AdvanceById(confirmations[i].advanceId.Value);
+            //                    if (advance != null)
+            //                    {
+            //                        advance.direction = -1;
+            //                        db.UpdatePA_Advance(advance);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        else if (confirmations.Count(c => c.status == 3) > 0)
+            //        {
+            //            continue;
+            //        }
+            //        db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
+            //        UpdateDataControl(confirmations, "");
+            //    }
+            //    else
+            //    {
+            //        if (notNullOrder != null)
+            //        {
+            //            if (notNullOrder.confirmationUserIds == confirmations[i].confirmationUserIds && this.direction != 3)
+            //            {
+            //                confirmations[i].status = (Int16)EnumPA_AdvanceConfirmationStatus.Onay;
+            //                confirmations[i].description = "Otomatik Onay";
+            //                db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmations[i]));
+            //                if (confirmations[i].advanceId.HasValue)
+            //                {
+            //                    var advance = db.GetPA_AdvanceById(confirmations[i].advanceId.Value);
+            //                    if (advance != null)
+            //                    {
+            //                        advance.direction = -1;
+            //                        db.UpdatePA_Advance(advance);
+            //                    }
+            //                }
+            //            }
+            //        }
+            //        else
+            //        {
+            //            if (!mailControl)
+            //            {
+            //                mailControl = true;
+            //                var users = db.GetVWSH_UserByIds(confirmations[i].confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+            //                if (this.createdby.HasValue)
+            //                {
+            //                    var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+            //                    var url = TenantConfig.Tenant.GetWebUrl();
+            //                    foreach (var user in users)
+            //                    {
+            //                        var text = "<h3>Sayın " + user.FullName + ",</h3>";
+            //                        text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
+            //                        if (!string.IsNullOrEmpty(this.description))
+            //                        {
+            //                            text += "<p>Açıklaması : " + this.description + "</p>";
+            //                        }
+            //                        text += "<p><a href='" + url + "/PA/VWPA_Advance/Detail?id=" + confirmations[i].advanceId + "'>Detaya gitmek için tıklayınız.</a> </p>";
+            //                        text += "<p>Bilgilerinize.</p>";
+            //                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
+            //                    }
+            //                }
+            //            }
+            //            control = true;
+            //        }
+            //    }
+            //}
         }
         public static SimpleQuery MyAdvanceQuery(SimpleQuery query, PageSecurity userStatus, int? direction)
         {
