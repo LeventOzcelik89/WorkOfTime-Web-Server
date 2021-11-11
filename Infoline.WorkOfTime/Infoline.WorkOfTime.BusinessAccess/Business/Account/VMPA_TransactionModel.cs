@@ -58,11 +58,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             ruleOrder = x.ruleOrder
                         }).ToArray();
                     }
-                    //if (this.IsCopy == true)
-                    //{
-                    //    Files = db.GetSYS_FilesByDataIdAll(this.id);
-                    //    db.BulkInsertSYS_Files(Files.Select(x => new SYS_Files { DataId = this.id, FilePath = x.FilePath, id = Guid.NewGuid(), FileGroup = x.FileGroup, DataTable = x.DataTable, FileExtension = x.FileExtension }));
-                    //}
                 }
             }
             else
@@ -121,29 +116,60 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = new Guid(this.ProjectId);
                 this.dataTable = "PRJ_Project";
             }
-            //if (this.dataId.HasValue && isService != null && !isService.Value )
-            //{
-            //	this.id = Guid.NewGuid();
-            //}
+
             var transaction = db.GetVWPA_TransactionById(this.id);
             var res = new ResultStatus { result = true };
+
+            //Ödeme Aşaması ise Ödeme Kontrolü Yapılıyor
             if (this.status == (int)EnumPA_TransactionStatus.Odendi)
             {
-                if (!this.Ledger.date.HasValue) { return new ResultStatus { result = false, message = "Ödeme yapılan tarihi seçmelisiniz. Lütfen kontrol ediniz!" }; }
-                if (!this.Ledger.accountId.HasValue) { return new ResultStatus { result = false, message = "Ödenen hesabı seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.Ledger.date.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılan tarihi seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
+                if (!this.Ledger.accountId.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödenen hesabı seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
             else if (this.status == (int)EnumPA_TransactionStatus.Odenecek)
             {
-                if (!this.date.HasValue && this.type != (int)EnumPA_TransactionType.Masraf) { return new ResultStatus { result = false, message = "Ödeme yapılacak tarihi seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.date.HasValue && this.type != (int)EnumPA_TransactionType.Masraf)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılacak tarihi seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
             else
             {
-                if (!this.Account.dataId.HasValue) { return new ResultStatus { result = false, message = "Ödeme yapılan personeli seçmelisiniz. Lütfen kontrol ediniz!" }; }
+                if (!this.Account.dataId.HasValue)
+                {
+                    return new ResultStatus
+                    {
+                        result = false,
+                        message = "Ödeme yapılan personeli seçmelisiniz. Lütfen kontrol ediniz!"
+                    };
+                }
             }
+
+            //Kopyalanmış ise Yeni kayıt açılıyor değil ise update işlemine gönderilir.
             if (this.IsCopy == true || transaction == null)
             {
+                var getTransaction = db.GetVWPA_TransactionById(this.id);
                 this.created = DateTime.Now;
                 this.createdby = userId;
+                
                 if (this.IsCopy == true)
                 {
                     this.id = this.newId;
@@ -154,12 +180,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.changed = DateTime.Now;
                 this.changedby = userId;
+                var getTransaction = db.GetVWPA_TransactionById(this.id);
+                if (getTransaction!=null)
+                {
+                    this.createdby =getTransaction.createdby;
+                }
+
                 res = Update(trans);
             }
+
             if (this.type == (Int16)EnumPA_TransactionType.Masraf)
             {
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
-                var notification= new Notification();
+                var notification = new Notification();
                 var transactionConfirmations = db.GetVWPA_TransactionConfirmationByTransactionId(this.id);
                 UpdateDataControl(transactionConfirmations, this.statusDescription, userId);
                 if (this.direction == 2)// red ise
@@ -179,7 +212,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
                         notification.NotificationSend(user.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
                     }
-                    
                 }
                 else if (this.direction == 3)// yeniden talep 
                 {
@@ -196,9 +228,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Düzenleme ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Düzenleme", true);
-                        notification.NotificationSend(user.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
+                        notification.NotificationSend(user.id, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
                     }
-                   
+                }
+                else
+                {
+                    UpdateDataControl(transactionConfirmations, this.statusDescription, userId);
                 }
             }
             if (res.result && request != null)
@@ -478,7 +513,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var message = "Gider düzenleme işlemi ";
             if (this.type == (int)EnumPA_TransactionType.Masraf)
             {
-                message = this.direction == 0 ? "Masraf düzenleme işlemi " : this.direction == -1 ? "Masraf onaylama işlemi " : " Masraf reddetme işlemi ";
+                message = this.direction == 0 ? "Masraf düzenleme işlemi " : this.direction == -1 ? "Masraf onaylama işlemi " : this.direction == 3 ? "Masraf Düzeltme İşlemi" : " Masraf reddetme işlemi ";
                 var pA_Transaction = db.GetPA_TransactionById(this.id);
                 if (pA_Transaction != null)
                 {
@@ -782,7 +817,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 ruleOrder = a.order,
                                 ruleUserId = a.userId,
                                 ruleRoleId = a.roleId,
-                                ruleTitle = a.title
+                                ruleTitle = a.title,
+                                userId = (a.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                            a.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+                            a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+                            a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+                            a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+                            a.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+                            a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
                             }));
                         }
                         else
@@ -798,8 +840,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                     ruleOrder = rulesUserStage.order,
                                     ruleUserId = rulesUserStage.userId,
                                     ruleRoleId = rulesUserStage.roleId,
-                                    ruleTitle = rulesUserStage.title
-                                });
+                                    ruleTitle = rulesUserStage.title,
+                                    userId = (rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
+                              
+                            });
                             }
                         }
                     }
@@ -816,7 +866,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             if (this.direction == 0 || this.direction == -1 || this.direction == 1)
             {
-                db = db ?? new WorkOfTimeDatabase();
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
                 var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
@@ -837,28 +886,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
                     {
-                        
-                            this.createdby = getTrans.createdby;
-                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                            foreach (var user in users)
+
+                        this.createdby = getTrans.createdby;
+                        var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                        foreach (var user in users)
+                        {
+                            var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                            text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
+                            if (!string.IsNullOrEmpty(this.description))
                             {
-                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                                text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                                if (!string.IsNullOrEmpty(this.description))
-                                {
-                                    text += "<p>Açıklaması : " + this.description + "</p>";
-                                }
-                                text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                                text += "<p>Bilgilerinize.</p>";
-                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                text += "<p>Açıklaması : " + this.description + "</p>";
                             }
-                       
+                            text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
+                            text += "<p>Bilgilerinize.</p>";
+                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
+                            notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                        }
+
                     }
                 }
                 else
                 {
-                    var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x=>x.ruleOrder).ToList();
+                    var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x => x.ruleOrder).ToList();
                     foreach (var confirmation in findNotCommited)
                     {
                         if (confirmation.confirmationUserIds != null && confirmation.ruleOrder == notNullOrder.ruleOrder + 1)
@@ -867,176 +916,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             var getTrans = db.GetPA_TransactionById(this.id);
                             if (getTrans != null)
                             {
-                                
-                                    this.createdby = getTrans.createdby;
-                                    var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                                    foreach (var user in users)
+
+                                this.createdby = getTrans.createdby;
+                                var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                                foreach (var user in users)
+                                {
+                                    var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                                    text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
+                                    if (!string.IsNullOrEmpty(this.description))
                                     {
-                                        var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                                        text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                                        if (!string.IsNullOrEmpty(this.description))
-                                        {
-                                            text += "<p>Açıklaması : " + this.description + "</p>";
-                                        }
-                                        text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                                        text += "<p>Bilgilerinize.</p>";
-                                        new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                        notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                        text += "<p>Açıklaması : " + this.description + "</p>";
                                     }
+                                    text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
+                                    text += "<p>Bilgilerinize.</p>";
+                                    new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
+                                    notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                }
                             }
-
                         }
-                       
                     }
-
-
-
-
-
-
                 }
             }
-           
-
-
-                //if (this.direction==0||this.direction==-1||this.direction==1)//red ve yeniden talep değilse 
-                //{
-                //    confirmations = confirmations.Where(x => x.status == null).ToArray();
-
-                //    foreach (var confirmation in confirmations)
-                //    {
-                //        if (string.IsNullOrEmpty(confirmation.confirmationUserIds))
-                //        {
-                //            confirmation.status = (Int16)EnumPA_TransactionConfirmationStatus.Onay;
-                //            confirmation.description = "Otomatik Onay";
-                //            if (confirmations.Count() == 1)
-                //            {
-                //                if (confirmation.transactionId.HasValue)
-                //                {
-                //                    var transaction = db.GetPA_TransactionById(confirmation.transactionId.Value);
-                //                    if (transaction != null)
-                //                    {
-                //                        transaction.direction = -1;
-                //                        db.UpdatePA_Transaction(transaction);
-                //                    }
-                //                }
-                //            }
-                //            db.UpdatePA_TransactionConfirmation(new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmation));
-                //            UpdateDataControl(confirmations, "", userId);
-                //        }
-                //        else
-                //        {
-                //            if (notNullOrder!=null)
-                //            {
-                //                if (notNullOrder.confirmationUserIds!=null)
-                //                {
-                //                    if (notNullOrder.confirmationUserIds.Split(',').Where(x => x.Contains(confirmation.confirmationUserIds)).Count() > 0)
-                //                    {
-                //                        confirmation.status = (Int16)EnumPA_TransactionConfirmationStatus.Onay;
-                //                        confirmation.description = "Otomatik Onay";
-                //                        db.UpdatePA_TransactionConfirmation(new PA_TransactionConfirmation().B_EntityDataCopyForMaterial(confirmation));
-
-                //                    }
-                //                    else if (!mailControl)
-                //                    {
-                //                        mailControl = true;
-                //                        var users = db.GetVWSH_UserByIds(confirmation.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                //                        var getTrans = db.GetPA_TransactionById(this.id);
-                //                        if (getTrans != null)
-                //                        {
-                //                            if (this.direction != 3 || this.direction != 2)
-                //                            {
-                //                                this.createdby = getTrans.createdby;
-                //                                var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                //                                foreach (var user in users)
-                //                                {
-                //                                    var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                //                                    text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                //                                    if (!string.IsNullOrEmpty(this.description))
-                //                                    {
-                //                                        text += "<p>Açıklaması : " + this.description + "</p>";
-                //                                    }
-                //                                    text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                //                                    text += "<p>Bilgilerinize.</p>";
-                //                                    new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                //                                    notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
-                //                                }
-                //                            }
-
-                //                        }
-                //                    }
-
-                //                }
-                //                else if (!mailControl)
-                //                {
-                //                    mailControl = true;
-                //                    var users = db.GetVWSH_UserByIds(confirmation.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                //                    var getTrans = db.GetPA_TransactionById(this.id);
-                //                    if (getTrans != null)
-                //                    {
-                //                        if (this.direction == 0 || this.direction == -1 || this.direction == 1)
-                //                        {
-                //                            this.createdby = getTrans.createdby;
-                //                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                //                            foreach (var user in users)
-                //                            {
-                //                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                //                                text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                //                                if (!string.IsNullOrEmpty(this.description))
-                //                                {
-                //                                    text += "<p>Açıklaması : " + this.description + "</p>";
-                //                                }
-                //                                text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                //                                text += "<p>Bilgilerinize.</p>";
-                //                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                //                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
-                //                            }
-                //                        }
-
-                //                    }
-                //                }
-                //            }
-                //            else
-                //            {
-                //                 if (!mailControl)
-                //                {
-                //                    mailControl = true;
-                //                    var users = db.GetVWSH_UserByIds(confirmation.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                //                    var getTrans = db.GetPA_TransactionById(this.id);
-                //                    if (getTrans != null)
-                //                    {
-                //                        if (this.direction == 0 || this.direction == -1 || this.direction == 1)
-                //                        {
-                //                            this.createdby = getTrans.createdby;
-                //                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                //                            foreach (var user in users)
-                //                            {
-                //                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                //                                text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                //                                if (!string.IsNullOrEmpty(this.description))
-                //                                {
-                //                                    text += "<p>Açıklaması : " + this.description + "</p>";
-                //                                }
-                //                                text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                //                                text += "<p>Bilgilerinize.</p>";
-                //                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                //                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
-                //                            }
-                //                        }
-
-                //                    }
-                //                }
-                //            }
-                //        }
-                //    }
-
-                //}
-
-            
-
-
-
-
         }
         public static SimpleQuery MyTransactionQuery(SimpleQuery query, PageSecurity userStatus, int? direction)
         {
