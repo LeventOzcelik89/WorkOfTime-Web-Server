@@ -163,9 +163,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public void Send(int enumKey, string email, string baslik, bool asenkron = true, string[] cc = null, string[] bcc = null, string[] files = null, bool hasWarning = false)
         {
-#if DEBUG
-            email = "seyit.tekce@infoline-tr.com";
-#endif
             var ts = Task.Run(() => _send(enumKey, email, baslik, cc, files, bcc, hasWarning));
             if (!asenkron)
             {
@@ -429,8 +426,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var tenant = tenantCode.HasValue ? TenantConfig.GetTenantByTenantCode(tenantCode) : TenantConfig.Tenant;
             _db = tenant.GetDatabase();
             _tenantname = tenant.TenantName;
-   
-            if(TenantConfig.Tenant.hasUser == true)
+
+            if (TenantConfig.Tenant.hasUser == true)
             {
                 _username = tenant.MailUser.Split('@').FirstOrDefault();
             }
@@ -438,7 +435,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 _username = tenant.MailUser;
             }
-            
+
             _password = tenant.MailPassword;
             _smtpClient.Host = tenant.MailHost;
             _smtpClient.Port = tenant.MailPort ?? 587;
