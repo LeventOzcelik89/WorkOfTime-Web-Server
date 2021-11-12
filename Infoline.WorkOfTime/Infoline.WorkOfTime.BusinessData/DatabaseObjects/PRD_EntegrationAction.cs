@@ -6,9 +6,13 @@ namespace Infoline.WorkOfTime.BusinessData
     public partial class PRD_EntegrationAction : InfolineTable
     {
         /// <summary>
-        /// FTP Dosya Adı
+        /// Distribütörün Cari İd si
         /// </summary>
-        public string FileName { get; set;}
+        public Guid? DistributorId { get; set;}
+        /// <summary>
+        /// Distribütör Adı
+        /// </summary>
+        public string DistributorName { get; set;}
         /// <summary>
         /// Fatura Numarası
         /// </summary>
@@ -17,18 +21,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Fatura Tablosunun ilişki idsidir. Buradaki Fatura id şayet sistemde mevcut ise buraya yazılır.
         /// </summary>
         public Guid? InvoiceId { get; set;}
-        /// <summary>
-        /// FTP Dosya Yükleme Tarihi
-        /// </summary>
-        public DateTime? DateInFtp { get; set;}
-        /// <summary>
-        /// Distribütörün Cari İd si
-        /// </summary>
-        public Guid? DistributorId { get; set;}
-        /// <summary>
-        /// Distribütör Adı
-        /// </summary>
-        public string DistributorName { get; set;}
         /// <summary>
         /// Bayi Kodu
         /// </summary>

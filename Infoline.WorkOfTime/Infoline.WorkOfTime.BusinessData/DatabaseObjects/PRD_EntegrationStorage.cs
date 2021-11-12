@@ -6,14 +6,6 @@ namespace Infoline.WorkOfTime.BusinessData
     public partial class PRD_EntegrationStorage : InfolineTable
     {
         /// <summary>
-        /// Dosya adı
-        /// </summary>
-        public string FileName { get; set;}
-        /// <summary>
-        /// FTP de oluşturulma tarihi
-        /// </summary>
-        public DateTime? DateInFtp { get; set;}
-        /// <summary>
         /// Distribütörün Cari İd si
         /// </summary>
         public Guid? DistributorId { get; set;}
@@ -49,6 +41,10 @@ namespace Infoline.WorkOfTime.BusinessData
         /// PRD_Product Tablosunun İd alanı tutulur. Zorunlu değildir, ConsalidateCode üzerinden bulunacaktır.
         /// </summary>
         public Guid? ProductId { get; set;}
+        /// <summary>
+        /// Inventory Tablosu id si bu alanda tutulur.
+        /// </summary>
+        public Guid? InventoryId { get; set;}
         /// <summary>
         /// Cihaz IMEI Numarası
         /// </summary>
