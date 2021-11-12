@@ -4,7 +4,7 @@ using System.Linq;
 using Infoline.OmixEntegrationApp.DistFtpEntegration.Model;
 using Infoline.OmixEntegrationApp.DistFtpEntegration.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.WorkOfTime.BusinessData;
+
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Business
 {
     public class PRD_EntegrationActionModel

@@ -1,4 +1,5 @@
-﻿using System.Configuration;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegration.Business;
+using System.Configuration;
 using System.Threading;
 namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
 {
@@ -7,6 +8,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         FtpWorkerForGenpa Genpa = new FtpWorkerForGenpa();
         FtpWorkerForKvk Kvk = new FtpWorkerForKvk();
         FtpWorkerForMobiltel Mobitel = new FtpWorkerForMobiltel();
+        PRD_EntegrationFilesModel EntegrationFilesModel = new PRD_EntegrationFilesModel();
         public Worker()
         {
             var genpaUserName = ConfigurationManager.AppSettings["GenpaUserName"].ToString();
@@ -35,7 +37,8 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         public void GetObjects()
         {
 
-            GetMobitelObjects();
+            //GetMobitelObjects();
+            EntegrationFilesModel.Save();
             //new Thread(() =>
             //{
             //    GetKvkObjects();

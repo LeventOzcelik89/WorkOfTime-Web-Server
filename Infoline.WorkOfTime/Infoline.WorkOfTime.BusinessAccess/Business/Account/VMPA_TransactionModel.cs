@@ -863,8 +863,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         public void UpdateDataControl(VWPA_TransactionConfirmation[] confirmations, string statusDescription, Guid userId)
         {
+            confirmations.OrderBy(x => x.ruleOrder);
             if (this.direction == 0 || this.direction == -1 || this.direction == 1)
             {
+
                 var getTenantUrl = TenantConfig.Tenant.GetWebUrl();
                 var notification = new Notification();
                 var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();

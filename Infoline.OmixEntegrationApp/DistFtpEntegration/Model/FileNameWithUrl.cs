@@ -9,6 +9,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Model
     public class FileNameWithUrl : FtpUrl
     {
         public string FileName { get; set; }
+        public DateTime FileCreatedDate { get; set; }
 
     }
 }

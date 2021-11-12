@@ -13,7 +13,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
     public class FtpWorkerForMobiltel
     {
         public FtpConfiguration FtpConfiguration { get; }
-        private List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
+        public List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
         public FtpWorkerForMobiltel()
         {
             var url = ConfigurationManager.AppSettings["MobitelUrl"].ToString();
@@ -72,7 +72,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     directoryItems.Add(item);
                     if (!item.IsDirectory)
                     {
-                        FptUrl.Add(new FileNameWithUrl { Password = FtpConfiguration.Password, UserName = FtpConfiguration.UserName, FileName = item.Name, Url = item.BaseUri });
+                        FptUrl.Add(new FileNameWithUrl { Password = FtpConfiguration.Password, UserName = FtpConfiguration.UserName, FileName = item.Name, Url = item.BaseUri ,FileCreatedDate=item.DateCreated});
                     }
                 }
             }
