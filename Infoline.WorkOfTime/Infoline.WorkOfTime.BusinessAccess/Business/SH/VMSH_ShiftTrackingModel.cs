@@ -283,6 +283,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
                         var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
 
+                        var tableTitle = "-";
+                        var lastRecord = db.GetVWSH_ShiftTrackingFirstByUseridBeforeDateAndTypeInvetory(shiftTracking.userId.Value, new DateTime(startDate.Year, startDate.Month, startDate.Day, 23, 59, 59));
+                        
+                        if(lastRecord != null)
+                        {
+                            tableTitle = lastRecord.table_Title;
+                        }
                         listData.Add(new VMSH_ShiftTrackingReport
                         {
                             totalWorking = workingHoursStringValue.ToString(),
@@ -291,7 +298,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             startDate = startDate,
                             endDate = endDate,
                             date = startDate,
-                            userId = shiftTracking.userId
+                            userId = shiftTracking.userId,
+                            table_Title = tableTitle
                         });
                     }
                     startDate = startDate.AddDays(1);
