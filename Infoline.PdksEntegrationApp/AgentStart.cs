@@ -34,21 +34,6 @@ namespace Infoline.PdksEntegrationApp
             Run();
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            Log.Success("Görevler dispose ediliyor");
-
-            if (Tasks != null && Tasks.Count > 0)
-            {
-                foreach (var task in Tasks)
-                {
-                    task.Dispose();
-                }
-                Tasks = new List<Task>();
-            }
-            base.Dispose(disposing);
-        }
-
         protected override void OnStop()
         {
             Log.Success("Tasklar durduruldu.");

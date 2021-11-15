@@ -136,7 +136,7 @@ namespace Infoline.PdksEntegrationApp.Devices.Models
             try
             {
                 bool tmp = false;
-                StreamReader sr = new StreamReader("C:\\Github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
+                StreamReader sr = new StreamReader("notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
@@ -157,7 +157,7 @@ namespace Infoline.PdksEntegrationApp.Devices.Models
                 }
 
                 sr.Close();
-                File.WriteAllLines("C:\\Github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt", lines);
+                File.WriteAllLines("notes.txt", lines);
                 
             }
             catch (Exception e)
@@ -179,7 +179,7 @@ namespace Infoline.PdksEntegrationApp.Devices.Models
 
             try
             {
-                StreamReader sr = new StreamReader("C:\\Github\\WorkOfTime\\Infoline.PdksEntegrationApp\\notes.txt");
+                StreamReader sr = new StreamReader("notes.txt");
                 line = sr.ReadLine();
                 while (line != null)
                 {
