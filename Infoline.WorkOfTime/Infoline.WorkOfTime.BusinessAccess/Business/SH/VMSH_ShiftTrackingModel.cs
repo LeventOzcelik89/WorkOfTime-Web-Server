@@ -284,7 +284,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
 
                         var tableTitle = "-";
-                        var lastRecord = db.GetVWSH_ShiftTrackingFirstByUseridBeforeDateAndTypeInvetory(shiftTracking.userId.Value, new DateTime(startDate.Year, startDate.Month, startDate.Day, 23, 59, 59));
+                        var lastRecord = db.GetVWSH_ShiftTrackingLastRecordByUserIdAndDateAndTypeInvetory(shiftTracking.userId.Value, startDate);
                         
                         if(lastRecord != null)
                         {

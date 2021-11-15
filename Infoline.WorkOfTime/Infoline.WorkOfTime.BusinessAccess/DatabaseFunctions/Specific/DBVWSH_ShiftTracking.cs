@@ -49,11 +49,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public VWSH_ShiftTracking GetVWSH_ShiftTrackingFirstByUseridBeforeDateAndTypeInvetory(Guid userid, DateTime beforeDate)
+        public VWSH_ShiftTracking GetVWSH_ShiftTrackingLastRecordByUserIdAndDateAndTypeInvetory(Guid userid, DateTime date)
         {
             using (var db = GetDB())
             {
-                return db.Table<VWSH_ShiftTracking>().Where(a => a.userId == userid && a.timestamp < beforeDate && a.tableName == "PRD_Inventory").OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
+                return db.Table<VWSH_ShiftTracking>().Where(a => a.userId == userid && a.timestamp > date && a.timestamp < date.AddDays(1).AddMinutes(-1)  && a.tableName == "PRD_Inventory").OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
             }
         }
     }
