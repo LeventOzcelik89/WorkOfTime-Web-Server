@@ -6,7 +6,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Utils
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Utils
 {
     public class Tools
     {

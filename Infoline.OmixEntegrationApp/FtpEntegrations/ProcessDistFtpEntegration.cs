@@ -1,13 +1,12 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations.Business;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations
 {
-    
+
     public class ProcessDistFtpEntegration : IDisposable
     {
-        Worker Worker = new Worker();
         public ProcessDistFtpEntegration()
         {
             Log.Info("ProcessDistFtpEntegration is Start");
@@ -16,17 +15,17 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration
         {
             while (true)
             {
-                if (DateTime.Now.Hour == 23 && DateTime.Now.Minute == 5)
-                {
-                    Worker.GetObjects();
-                }
-                Worker.GetObjects();
+                //Mobitel
+                var entegrationFilesModel = new FtpMobitel();
+                entegrationFilesModel.FileSave();
                 Thread.Sleep(new TimeSpan(0, 1, 0));
+
+
             }
         }
         public void Dispose()
         {
-            
+
         }
     }
 }

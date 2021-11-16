@@ -1,4 +1,4 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegration;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations;
 using Infoline.OmixEntegrationApp.LogoEntegration;
 using Infoline.OmixEntegrationApp.TitanEntegration;
 using System;

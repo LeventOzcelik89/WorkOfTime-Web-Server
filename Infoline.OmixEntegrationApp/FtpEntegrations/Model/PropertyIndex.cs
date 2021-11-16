@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Model
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Model
 {
     public class PropertyIndex
     {

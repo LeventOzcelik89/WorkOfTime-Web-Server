@@ -2,11 +2,11 @@
 using Infoline.WorkOfTime.BusinessData;
 using System;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Utils
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Utils
 {
     public class Finder
     {
-        public static VWPRD_Inventory FindProduct(string serialNumber,string imei)
+        public static VWPRD_Inventory FindInventory(string serialNumber,string imei)
         {
             var db =  new WorkOfTimeDatabase();
             return db.GetPRD_InventoryBySerialCodeOrImei(serialNumber,imei);

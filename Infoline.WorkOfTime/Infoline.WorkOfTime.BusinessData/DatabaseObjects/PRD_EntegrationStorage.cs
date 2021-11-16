@@ -5,6 +5,7 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class PRD_EntegrationStorage : InfolineTable
     {
+        public Guid? EntegrationFileId { get; set;}
         /// <summary>
         /// Distribütörün Cari İd si
         /// </summary>
@@ -13,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Distribütör Adı
         /// </summary>
         public string DistributorName { get; set;}
+        public Guid? DistStorageId { get; set;}
         /// <summary>
         /// Distribütör Depo Kodu
         /// </summary>
