@@ -8,6 +8,7 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Web.Mvc;
@@ -19,27 +20,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         [PageInfo("Görevler", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
         public ActionResult Index(Guid? userId, string ids)
         {
-
             var userStatus = (PageSecurity)Session["userStatus"];
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)))
             {
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/IndexDealer.cshtml");
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
             {
-
                 if (userId.HasValue)
                 {
                     /*Aktivite izleme sayfasında bulunan çağrı operatör işlem istatiğinde
 					 Operatorlerin oluşturduğu görevleri görmesi için.*/
                     ViewBag.userId = userId;
                 }
-
                 var _ids = new List<Guid>();
                 if (!String.IsNullOrEmpty(ids))
                 {
@@ -49,11 +45,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 {
                     return RedirectToAction("IndexCustomer");
                 }
-
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/IndexAll.cshtml", _ids);
-
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)))
             {
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/IndexYuklenici.cshtml");
@@ -62,38 +55,36 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/IndexMy.cshtml");
             }
-
         }
-
         [PageInfo("Müşteri Arıza&Bakım Kayıtları", SHRoles.SahaGorevMusteri)]
         public ActionResult IndexCustomer()
         {
             return View();
         }
-
         [PageInfo("Personel İş Takip", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult PersonDailyReport()
         {
             return View();
         }
-
-
         [PageInfo("Aylık Görev Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult MonthlyTaskReport()
         {
             return View();
         }
-
         [PageInfo("Personel Ay/Yıl Bazlı Çağrı Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult MonthlyPersonelReport()
         {
             return View();
         }
-
+        [AllowEveryone]
+        //[PageInfo("Haftalık Rapor", SHRoles.Personel)]
+        public ActionResult WeeklyReport()
+        {
+            return View();
+        }
         [PageInfo("Personel Ay/Yıl Bazlı Çağrı Raporu DataSource", SHRoles.Personel)]
         public ContentResult MonthlyPersonelReportData(int year, string[] months, List<Guid?> assignableUsers, Guid? customer, Guid? customerStorage)
         {
-
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var task = new List<VWFTM_Task>();
@@ -110,7 +101,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 monthString = String.Join(",", months.ToArray());
             }
             var taskMonthReportData = new List<MonthTaskReportModel>();
-
             if (assignableUsers != null && assignableUsers.Count(x => x.HasValue) > 0)
             {
                 foreach (var user in assignableUsers)
@@ -122,35 +112,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 taskMonthReportData = db.GetVWFTM_MonthPersonnelTaskReport(year, monthString).ToList();
             }
-
             if (customer.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer.Value).ToList();
             }
-
             if (customerStorage.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToList();
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
                     taskMonthReportData = taskMonthReportData.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId)).ToList();
-
             }
-
             var personels = taskMonthReportData.GroupBy(a => a.personnelName).Select(a => a.Key).ToArray();
             var monthms = taskMonthReportData.GroupBy(a => a.month).Select(a => a.Key).ToArray();
             var resultData = new List<MonthlyPersonData>();
             var res = new List<object>();
-
             List<int> monthList = months.Select(s => int.Parse(s)).ToList();
-
-
             var rDict = new List<Dictionary<string, object>>();
-
             if (personels.Count() <= 0 && assignableUsers.Where(x => x.HasValue).Count() <= 0)
             {
                 personels = db.GetVWSH_UserByRoleId(SHRoles.SahaGorevPersonel).Select(x => x.FullName).ToArray();
@@ -159,14 +140,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 personels = db.GetVWSH_UserByIds(assignableUsers.Where(x => x.HasValue).Select(x => x.Value).ToArray()).Select(x => x.FullName).ToArray();
             }
-
-
             foreach (var personel in personels)
             {
                 var personGroup = "";
                 var data = taskMonthReportData.Where(a => a.personnelName == personel);
                 var dict = new Dictionary<string, object>();
-
                 if (!String.IsNullOrEmpty(data.Select(x => x.groupId_Title).FirstOrDefault()))
                 {
                     personGroup = data.Select(x => x.groupId_Title).FirstOrDefault();
@@ -175,15 +153,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 {
                     personGroup = "Ekibi Olmayanlar";
                 }
-
-
                 dict.Add("Name", personel);
                 dict.Add("Group_Title", personGroup);
-
                 foreach (var month in monthList)
                 {
                     var t = taskMonthReportData.Where(a => a.personnelName == personel && a.month == month && a.month > 0);
-
                     var nDict = new Dictionary<string, object>();
                     nDict.Add("Month", month);
                     if (t.Count() > 0 && t.Average(a => a.resolutionTime) != 0 && t.Average(a => a.responseTime) != 0)
@@ -198,35 +172,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         nDict.Add("Resp", "0");
                     }
                     nDict.Add("Count", t.Count());
-
                     dict.Add("M" + month, nDict);
                 }
-
                 rDict.Add(dict);
-
             }
-
             return Content(Helper.Json.Serialize(rDict), "application/json");
-
         }
-
-
         [PageInfo("Çağrı Tipi Ay/Yıl Bazlı Rapor", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult MonthlyTypeReport()
         {
             return View();
         }
-
         [PageInfo("Çağrı Tipi Ay/Yıl Bazlı Rapor DataSource", SHRoles.Personel)]
         public ContentResult MonthlyTypeReportData(int year, string[] months, string[] taskTypes, Guid? customer, Guid? customerStorage)
         {
-
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var task = new List<VWFTM_Task>();
             var taskOperation = new List<VWFTM_TaskOperation>();
-
-
             var monthString = "";
             if (months.Count() > 0 && months.Where(x => String.IsNullOrEmpty(x)).Count() > 0)
             {
@@ -239,7 +202,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 monthString = String.Join(",", months.ToArray());
             }
             var taskMonthReportData = new List<MonthTaskReportModel>();
-
             if (taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
             {
                 foreach (var taskTypeTitle in taskTypes)
@@ -251,33 +213,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 taskMonthReportData = db.GetVWFTM_MonthTaskSubjectReport(year, monthString).ToList();
             }
-
             if (customer.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer.Value).ToList();
             }
-
             if (customerStorage.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToList();
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
                     taskMonthReportData = taskMonthReportData.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId)).ToList();
             }
-
             var taskType_Title = taskMonthReportData.GroupBy(a => a.taskType_Title).Select(a => a.Key).ToArray();
-
             var res = new List<object>();
-
             List<int> monthList = months.Select(s => int.Parse(s)).ToList();
-
             var rDict = new List<Dictionary<string, object>>();
-
-
             if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
             {
                 taskType_Title = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => c.Value).ToArray();
@@ -285,7 +238,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             else if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
             {
                 var taskType = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => new { Id = c.Key, Name = c.Value }).OrderBy(a => a.Name).ToList();
-
                 var typeString = new List<String>();
                 foreach (var typeTitle in taskTypes)
                 {
@@ -296,20 +248,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
                 taskType_Title = typeString.ToArray();
             }
-
             foreach (var taskTypeTitle in taskType_Title)
             {
-
                 var data = taskMonthReportData.Where(a => a.taskType_Title == taskTypeTitle);
                 var dict = new Dictionary<string, object>();
-
                 dict.Add("taskTypeTitle", taskTypeTitle);
-
-
                 foreach (var month in monthList)
                 {
                     var t = taskMonthReportData.Where(a => a.taskType_Title == taskTypeTitle && a.month == month && a.month > 0);
-
                     var nDict = new Dictionary<string, object>();
                     nDict.Add("Month", month);
                     if (t.Count() > 0 && t.Average(a => a.resolutionTime) != 0 && t.Average(a => a.responseTime) != 0)
@@ -326,15 +272,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     nDict.Add("Count", t.GroupBy(x => x.taskId).Count());
                     dict.Add("M" + month, nDict);
                 }
-
                 rDict.Add(dict);
-
             }
             return Content(Helper.Json.Serialize(rDict), "application/json");
-
         }
-
-
         [PageInfo("Aylık Görev Raporu DataSource Methodu", SHRoles.Personel)]
         public JsonResult MonthlyTaskReportDataSource(int year, string[] months, Guid? customer, Guid? customerStorage)
         {
@@ -344,17 +285,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var taskOperation = new List<VWFTM_TaskOperation>();
             var monthString = String.Join(",", months.ToArray());
             var taskMonthReportData = db.GetVWFTM_MonthTaskReport(year, monthString);
-
             if (customer.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer.Value).ToArray();
             }
-
             if (customerStorage.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToArray();
             }
-
             var dailyReportDatas = taskMonthReportData.GroupBy(a => a.month).Select(c => new
             {
                 text = c.Select(x => x.year).FirstOrDefault() + " " + GetMonthlyName(c.Key),
@@ -365,18 +303,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             });
             return Json(dailyReportDatas, JsonRequestBehavior.AllowGet);
         }
-
-
         [PageInfo("Çağrı Tipi ve Yanıtlama Süresi Ay/Yıl Bazlı Rapor DataSource", SHRoles.Personel)]
         public ContentResult MonthlyTypeLineChartData(int year, string[] months, string[] taskTypes, Guid? customer, Guid? customerStorage)
         {
-
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var task = new List<VWFTM_Task>();
             var taskOperation = new List<VWFTM_TaskOperation>();
-
-
             var monthString = "";
             if (months.Count() > 0 && months.Where(x => String.IsNullOrEmpty(x)).Count() > 0)
             {
@@ -389,7 +322,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 monthString = String.Join(",", months.ToArray());
             }
             var taskMonthReportData = new List<MonthTaskReportModel>();
-
             if (taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
             {
                 foreach (var taskTypeTitle in taskTypes)
@@ -401,26 +333,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 taskMonthReportData = db.GetVWFTM_MonthTaskSubjectReport(year, monthString).ToList();
             }
-
             if (customer.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer.Value).ToList();
             }
-
             if (customerStorage.HasValue)
             {
                 taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage.Value).ToList();
             }
-
             var taskType_Title = taskMonthReportData.GroupBy(a => a.taskType_Title).Select(a => a.Key).ToArray();
-
             var res = new List<object>();
-
             List<int> monthList = months.Select(s => int.Parse(s)).ToList();
-
             var rDict = new List<Dictionary<string, object>>();
-
-
             if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
             {
                 taskType_Title = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => c.Value).ToArray();
@@ -428,7 +352,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             else if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
             {
                 var taskType = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => new { Id = c.Key, Name = c.Value }).OrderBy(a => a.Name).ToList();
-
                 var typeString = new List<String>();
                 foreach (var typeTitle in taskTypes)
                 {
@@ -439,22 +362,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
                 taskType_Title = typeString.ToArray();
             }
-
             var listData = new List<MonthlyTypeLineChartDataModel>();
-
             foreach (var taskTypeTitle in taskType_Title)
             {
-
                 var data = taskMonthReportData.Where(a => a.taskType_Title == taskTypeTitle);
                 var dict = new Dictionary<string, object>();
-
                 dict.Add("taskTypeTitle", taskTypeTitle);
-
-
                 foreach (var month in monthList)
                 {
                     var t = taskMonthReportData.Where(a => a.taskType_Title == taskTypeTitle && a.month == month && a.month > 0);
-
                     if (t.Count() > 0 && t.Average(a => a.resolutionTime) != 0 && t.Average(a => a.responseTime) != 0)
                     {
                         listData.Add(new MonthlyTypeLineChartDataModel
@@ -479,9 +395,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
             }
             return Content(Helper.Json.Serialize(listData), "application/json");
-
         }
-
         [PageInfo("Aylık Görev Konu Raporu DataSource Methodu", SHRoles.Personel)]
         public JsonResult MonthlyTaskSubjectReportDataSource(int year, string[] months, Guid? customer, Guid? customerStorage)
         {
@@ -493,23 +407,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var taskMonthReportData = db.GetVWFTM_MonthTaskSubjectReport(year, monthString);
             var subjectTitles = taskMonthReportData.GroupBy(a => a.taskType_Title).Select(a => a.Key).ToArray();
             var monthms = taskMonthReportData.GroupBy(a => a.month).Select(a => a.Key).ToArray();
-
-
             if (taskMonthReportData.Count() > 0)
             {
                 if (customer.HasValue)
                 {
                     taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer).ToArray();
                 }
-
                 if (customerStorage.HasValue)
                 {
                     taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage).ToArray();
                 }
             }
-
             var res = new List<object>();
-
             foreach (var subjectTitle in subjectTitles)
             {
                 foreach (var month in monthms)
@@ -527,10 +436,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
             }
             return Json(res, JsonRequestBehavior.AllowGet);
-
         }
-
-
         [PageInfo("Aylık Personel Görev Raporu DataSource Methodu", SHRoles.Personel)]
         public JsonResult MonthlyEmployeeTaskReportDataSource(int year, string[] months, Guid? customer, Guid? customerStorage)
         {
@@ -542,24 +448,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var taskMonthReportData = db.GetVWFTM_MonthPersonnelTaskReport(year, monthString);
             var personels = taskMonthReportData.GroupBy(a => a.personnelName).Select(a => a.Key).ToArray();
             var monthms = taskMonthReportData.GroupBy(a => a.month).Select(a => a.Key).ToArray();
-
-
             if (taskMonthReportData.Count() > 0)
             {
                 if (customer.HasValue)
                 {
                     taskMonthReportData = taskMonthReportData.Where(x => x.customerId == customer).ToArray();
                 }
-
                 if (customerStorage.HasValue)
                 {
                     taskMonthReportData = taskMonthReportData.Where(x => x.customerStorageId == customerStorage).ToArray();
                 }
             }
-
-
             var res = new List<object>();
-
             foreach (var personel in personels)
             {
                 foreach (var month in monthms)
@@ -576,19 +476,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     });
                 }
             }
-
             return Json(res, JsonRequestBehavior.AllowGet);
         }
-
-
-
         [PageInfo("Saha Görevi Ekle (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
         public ActionResult Insert(VMFTM_TaskModel request, bool multiple = false)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var model = request.Load();
-
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
@@ -597,7 +491,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 {
                     return PartialView("~/Areas/FTM/Views/VWFTM_Task/InsertAllMultiple.cshtml", model);
                 }
-
                 model.companyId = userStatus.user.CompanyId;
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/InsertAll.cshtml", model);
             }
@@ -612,9 +505,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/InsertMy.cshtml", model);
             }
         }
-
         [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
-        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId, Guid? outputId, Guid? inputId, Guid? inputCompanyId)
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction, Guid? taskId, Guid? outputId, Guid? inputId, Guid? inputCompanyId)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var model = transaction.Load();
@@ -635,7 +527,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     }).ToList());
                 }
             }
-
             if (model.items.Count() == 1 && !model.items.Select(x => x.productId.HasValue).FirstOrDefault())
             {
                 model.items = new List<VMPRD_TransactionItems>();
@@ -646,10 +537,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             model.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
             return View(model);
         }
-
         [PageInfo("Stoktan Malzeme Kullanımı", SHRoles.SahaGorevPersonel)]
         [HttpPost]
-        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction,Guid? taskId,Guid? outputId,Guid? inputId,Guid? inputCompanyId,bool? isPost)
+        public ActionResult InsertTransaction(VMPRD_TransactionModel transaction, Guid? taskId, Guid? outputId, Guid? inputId, Guid? inputCompanyId, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
@@ -670,76 +560,54 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             taskOperation.createdby = userStatus.user.id;
             taskOperation.fixtureId = transaction.outputId;
             dbresult &= taskOperation.Insert(userStatus.user.id);
-
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev başarıyla oluşturuldu.", false,Url.Action("Detail","VWFTM_Task", new { area = "FTM", id = taskId })) :
+                FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev başarıyla oluşturuldu.", false, Url.Action("Detail", "VWFTM_Task", new { area = "FTM", id = taskId })) :
                                              feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Saha Görev Şablonu Ekle (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         public ActionResult InsertTemplate(VMFTM_TaskModel request)
         {
-
             var userStatus = (PageSecurity)Session["userStatus"];
             var model = request.Load();
-
             model.companyId = userStatus.user.CompanyId;
-
             return PartialView("~/Areas/FTM/Views/VWFTM_Task/InsertAll.cshtml", model);
-
         }
-
-
         [PageInfo("Saha Görev Şablonları (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         public ActionResult IndexTemplates()
         {
             return View();
         }
-
         [PageInfo("Personelin Görevleri", SHRoles.SahaGorevYonetici)]
         public ActionResult PersonTasks(Guid? personId)
         {
             return View(personId);
         }
-
-
         //[PageInfo("Saha Görev Şablonları (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         //public ActionResult Calendar()
         //{
         //    return View();
         //}
-
         //[PageInfo("Saha Görev Şablonları (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         //public ActionResult CalendarDetail(VMFTM_TaskModel request)
         //{
-
         //    request.Load();
         //    return View(request);
-
         //}
-
         //[PageInfo("Saha Görev Şablonları (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
         //public ContentResult CalendarDataSource()
         //{
-
         //    var res = new TaskSchedulerModel().TaskPlan.CalendarDataSource();
-
         //    return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
-
         //}
-
         [PageInfo("Personel Atama Ekranı", SHRoles.Personel)]
         public ActionResult AssignStaff(VMFTM_TaskModel request)
         {
-
             var model = request.Load();
             return View(model);
         }
-
-
         [HttpPost]
         [PageInfo("Personel Atama Ekranı", SHRoles.Personel)]
         public ActionResult AssignStaff(VMFTM_TaskModel request, bool isPost = false)
@@ -747,9 +615,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var model = request.Load();
             return View(model);
         }
-
-
-
         [AllowEveryone]
         [PageInfo("Planlanmış Başlangıç ve Bitiş Tarihi Atama", SHRoles.Personel)]
         public ActionResult AssignScheduledDate(VMFTM_TaskModel request)
@@ -757,8 +622,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var model = request.Load();
             return View(model);
         }
-
-
         [HttpPost]
         [AllowEveryone]
         [PageInfo("Planlanmış Başlangıç ve Bitiş Tarihi Atama", SHRoles.Personel)]
@@ -767,11 +630,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var db = new WorkOfTimeDatabase();
             var feedback = new FeedBack();
             var result = db.UpdateFTM_Task(new FTM_Task { id = request.id, planStartDate = request.planStartDate, dueDate = request.dueDate });
-
             return Json(new ResultStatusUI { Result = result.result, FeedBack = result.result ? feedback.Success("İşlem başarıyla gerçekleştirildi") : feedback.Warning("İşlem gerçekleştirilirken bir sorun oluştu.") });
         }
-
-
         [PageInfo("Görev Detayı", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
         public ActionResult Detail(VMFTM_TaskModel request)
         {
@@ -781,7 +641,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevPersonel)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) ||
-                userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli))||
+                userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)) ||
                 userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)))
             {
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/DetailAll.cshtml", data);
@@ -791,35 +651,29 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 return PartialView("~/Areas/FTM/Views/VWFTM_Task/DetailCustomer.cshtml", data);
             }
         }
-
         [PageInfo("Görev Formu Yazdır"), ExportPDF, AllowEveryone]
         public ActionResult Print(VMFTM_TaskModel request)
         {
             var data = request.Load();
             return View(data);
         }
-
         [PageInfo("Saha Görevi Düzenle (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult Update(VMFTM_TaskModel request)
         {
             var model = request.Load();
             return View(model);
         }
-
         [PageInfo("Saha Görevi Düzenle", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult UpdateStaff(VMFTM_TaskModel request)
         {
             var model = request.Load();
             return View(model);
         }
-
-
         [PageInfo("Görev Haritası", SHRoles.SahaGorevYonetici)]
         public ActionResult Map()
         {
             var db = new WorkOfTimeDatabase();
             var companyUsers = db.GetVWSH_UserMyPerson();
-
             var companyList = companyUsers.Select(x => new VWSH_User()
             {
                 created = x.created,
@@ -828,9 +682,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 id = x.id,
                 createdby = x.createdby
             }).ToList();
-
             var user = db.GetVWSH_UserById(Guid.Empty);
-
             companyList.Add(new VWSH_User()
             {
                 created = user.created,
@@ -839,11 +691,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 id = user.id,
                 createdby = user.createdby
             });
-
             return View(companyList.ToArray());
         }
-
-
         [PageInfo("Tüm Saha Görevleri", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
@@ -860,7 +709,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             data.Total = db.GetVWFTM_TaskCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-
         [PageInfo("Saha Görevleri Miktar DataSource", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli)]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
@@ -871,7 +719,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var count = db.GetVWFTM_TaskCount(condition.Filter);
             return count;
         }
-
         [PageInfo("İşletme detayında ve depo detayında arıza yapılan ürünler için özel", SHRoles.Personel)]
         public ContentResult DataSourceCustom([DataSourceRequest] DataSourceRequest request, Guid companyId, Guid? storageId)
         {
@@ -882,7 +729,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             data.Total = db.GetFTM_TaskCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-
         [PageInfo("Tüm Saha Görevleri", SHRoles.Personel)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
@@ -891,7 +737,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var data = db.GetVWFTM_Task(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-
         [PageInfo("Çoklu Saha Görevi Ekleme (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertAllMultiple(VMFTM_TaskModel request, Guid[] customerIds)
@@ -899,14 +744,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
             var dbresult = new ResultStatus { result = true };
-
             foreach (var customerId in customerIds)
             {
                 request.id = Guid.NewGuid();
                 request.code = BusinessExtensions.B_GetIdCode();
                 request.customerId = customerId;
                 dbresult &= request.InsertAll(userStatus.user.id, Request);
-
             }
             return Json(new ResultStatusUI
             {
@@ -915,7 +758,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                                             feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Saha Görevi Ekleme (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertAll(VMFTM_TaskModel request, Guid[] fixtureIds)
@@ -923,7 +765,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
             var dbresult = new ResultStatus { result = true };
-
             if (fixtureIds != null && fixtureIds.Count() > 0)
             {
                 foreach (var fixtureId in fixtureIds)
@@ -938,7 +779,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 dbresult = request.InsertAll(userStatus.user.id, Request);
             }
-
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
@@ -946,7 +786,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                                              feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Saha Görevi Ekleme (Görev Personeli)", SHRoles.SahaGorevPersonel, SHRoles.BayiGorevPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertMy(VMFTM_TaskModel request, Guid[] fixtureIds)
@@ -967,7 +806,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 dbresult = request.InsertMy(userStatus.user.id, Request);
             }
-
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
@@ -975,7 +813,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                                              feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Görev oluşturma işlemi başarısız oldu.")
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Arıza Bakım Kaydı Oluşturma (Müşteri)", SHRoles.SahaGorevMusteri)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertCustomer(VMFTM_TaskModel request)
@@ -990,7 +827,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMFTM_TaskModel request, bool? isPost)
@@ -1008,7 +844,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 FeedBack = dbresult.result ? feedback.Success("Görev güncelleme işlemi başarılı.", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Görev güncelleme başarısız. Mesaj : " + dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Saha Görevi Düzenleme Metodu (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult UpdateStaff(VMFTM_TaskModel request, bool? isPost)
@@ -1022,11 +857,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 FeedBack = dbresult.result ? feedback.Success("Görev personel atama işlemi başarılı.", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Görev personel atama işlemi başarısız. Mesaj : " + dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
-
-
-
-
-
         [PageInfo("Saha Görevi Sil (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel)]
         [HttpPost]
         public JsonResult Delete(Guid[] id)
@@ -1038,9 +868,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             {
                 list.Add(new VMFTM_TaskModel { id = item }.Delete(userStatus.user.id));
             }
-
             var mesages = string.Join("<br/>", list.Where(a => a.result == false).Select(a => a.message));
-
             var result = new ResultStatusUI
             {
                 Result = list.Count(a => a.result == false) > 0,
@@ -1048,14 +876,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Toplu Görev Onayı", SHRoles.SahaGorevYonetici)]
         public ActionResult ApproveAll(string taskIds)
         {
             ViewBag.TaskIds = taskIds;
             return View();
         }
-
         [PageInfo("Toplu Görev Onayı", SHRoles.SahaGorevYonetici)]
         [HttpPost]
         public ActionResult ApproveAll(string Description, IGeometry location, string taskIds)
@@ -1079,7 +905,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 };
                 dbresult &= item.Insert(userStatus.user.id);
             }
-
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
@@ -1087,16 +912,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
-
-
         [PageInfo("Personel Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult StaffReport()
         {
             return View();
         }
-
-
         [PageInfo("Görev Raporu", SHRoles.SahaGorevMusteri)]
         public ActionResult Dashboard()
         {
@@ -1104,68 +924,52 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var res = model.GetTaskTemplatePlanList();
             return View(res);
         }
-
         [PageInfo("Personel Görevleri", SHRoles.Personel)]
         public ContentResult DataSourceForStaffReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var ftmTask = new VWFTM_Task[0];
-
             if (assignableUsers == null)
             {
                 ftmTask = db.GetVWFTM_TaskTodayTask().Where(x => x.assignUserId.HasValue).ToArray();
             }
-
             if (assignableUsers != null && !assignableUsers.Contains(Guid.Empty) && planStartDate != null & dueDate != null)
             {
                 ftmTask = db.GetVWFTM_TaskByUserIdsAndDate(assignableUsers, planStartDate.Value, dueDate.Value).Where(x => x.assignUserId.HasValue).ToArray();
             }
-
             if (assignableUsers != null && assignableUsers.Contains(Guid.Empty) && planStartDate != null & dueDate != null)
             {
                 ftmTask = db.GetVWFTM_TaskByUserIdsAndDate(null, planStartDate.Value, dueDate.Value).Where(x => x.assignUserId.HasValue).ToArray();
             }
-
             if (ftmTask.Count() > 0)
             {
                 if (customer.HasValue)
                 {
                     ftmTask = ftmTask.Where(x => x.customerId == customer).ToArray();
                 }
-
                 if (customerStorage.HasValue)
                 {
                     ftmTask = ftmTask.Where(x => x.customerStorageId == customerStorage).ToArray();
                 }
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
                     ftmTask = ftmTask.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
             }
-
-
             var taskChart = taskChartMethod(ftmTask).ToList();
-
             string[] roles = new string[1] { SHRoles.SahaGorevPersonel };
-
-
             var userIds = ftmTask.Where(x => x.assignUserId.HasValue).Select(x => x.assignUserId.Value).ToArray();
-
-
             var list = new List<VWModelActivityResult>();
             var userActivityList = new List<VWModelActivityResult>();
             var taskOperatorActivityList = new List<VWModelOperatorActivityResult>();
             var taskStaffReportList = new List<VWFTM_Task>();
             var taskCustomerReportList = new List<VWModelTaskCustomerReportResult>();
-
             if (userIds.Length > 0)
             {
                 var user = db.GetVWSH_UserByIds(userIds, null);
-
                 foreach (var item in user)
                 {
                     var model = new VWModelActivityResult();
@@ -1175,7 +979,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     model.CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count();
                     model.WorkingNow = ftmTask.Where(x => x.assignUserId == item.id).Count() - model.CompleteCount;
                     list.Add(model);
-
                     var staffModel = new VWModelActivityResult
                     {
                         Id = item.id,
@@ -1184,11 +987,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         taskCount = ftmTask.Where(x => x.assignUserId == item.id).Count(),
                         CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count(),
                     };
-
-
-
                     var taskModel = ftmTask.Where(x => x.assignUserId != null && x.assignUserId == item.id).ToList();
-
                     foreach (var taskItem in taskModel)
                     {
                         var staffReportModel = new VWFTM_Task
@@ -1205,54 +1004,242 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             lastOperationDate = taskItem.lastOperationDate,
                             workingHour = taskItem.workingHour
                         };
-
                         taskStaffReportList.Add(staffReportModel);
                     }
-
-
                     taskCustomerReportList = ftmTask.GroupBy(x => x.customer_Title).Select(x => new VWModelTaskCustomerReportResult
                     {
                         FullName = x.Key,
                         allTaskCount = ftmTask.Where(c => c.customer_Title == x.Key).Count(),
-                        finishedTask = ftmTask.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Count()
+                        finishedTask = ftmTask.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Count(),
+                        finishedTaskIds = ftmTask.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Select(l => l.id).ToArray(),
                     }).ToList();
-
-
                     userActivityList.Add(staffModel);
-
                 }
             }
-
             var resultData = new
             {
                 Staff = list.OrderBy(x => x.CompleteCount).ToArray(),
                 StaffActivitys = userActivityList.OrderBy(x => x.FullName),
                 staffReportModel = taskStaffReportList,
                 taskCustomerReportList = taskCustomerReportList,
-                TaskChart = taskChart,
+                TaskChart = taskChart
             };
             return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
         }
+        //[PageInfo("Personel Görevleri", SHRoles.Personel)]
+        [AllowEveryone]
+        public ContentResult DataSourceForWeeklyReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var ftmTask = new VWFTM_Task[0];
+            if (!planStartDate.HasValue && !dueDate.HasValue)
+            {
+                planStartDate = DateTime.Now.AddDays(-7);
+                dueDate = DateTime.Now;
+            }
+            if (assignableUsers == null)
+            {
+                ftmTask = db.GetVWFTM_TaskTodayTask(planStartDate, dueDate).Where(x => x.assignUserId.HasValue).ToArray();
+            }
+            if (assignableUsers != null && !assignableUsers.Contains(Guid.Empty) && planStartDate != null & dueDate != null)
+            {
+                ftmTask = db.GetVWFTM_TaskByUserCreatedDate(assignableUsers, planStartDate.Value, dueDate.Value).Where(x => x.assignUserId.HasValue).ToArray();
+            }
+            if (assignableUsers != null && assignableUsers.Contains(Guid.Empty) && planStartDate != null & dueDate != null)
+            {
+                ftmTask = db.GetVWFTM_TaskByUserCreatedDate(null, planStartDate.Value, dueDate.Value).Where(x => x.assignUserId.HasValue).ToArray();
+            }
+            if (ftmTask.Count() > 0)
+            {
+                if (customer.HasValue)
+                {
+                    ftmTask = ftmTask.Where(x => x.customerId == customer).ToArray();
+                }
+                if (customerStorage.HasValue)
+                {
+                    ftmTask = ftmTask.Where(x => x.customerStorageId == customerStorage).ToArray();
+                }
+            }
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+            {
+                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+                if (authoritys.Count() > 0)
+                    ftmTask = ftmTask.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+            }
+            var taskChart = taskChartMethod(ftmTask).ToList();
+            string[] roles = new string[1] { SHRoles.SahaGorevPersonel };
+            var userIds = ftmTask.Where(x => x.assignUserId.HasValue).Select(x => x.assignUserId.Value).ToArray();
+            var taskOperatorActivityList = new List<VWModelOperatorActivityResult>();
+            var taskStaffReportList = new List<VWFTM_Task>();
+            var taskCustomerReportList = new List<VWModelTaskCustomerReportResult>();
+            if (userIds.Length > 0)
+            {
+                var user = db.GetVWSH_UserByIds(userIds, null);
+                foreach (var item in user)
+                {
+
+                    var taskModel = ftmTask.Where(x => x.assignUserId != null && x.assignUserId == item.id).ToList();
+                    foreach (var taskItem in taskModel)
+                    {
+                        var staffReportModel = new VWFTM_Task
+                        {
+                            id = taskItem.id,
+                            assignUser_Title = item.FullName,
+                            type_Title = taskItem.type_Title,
+                            type = taskItem.type,
+                            planStartDate = taskItem.planStartDate.HasValue ? taskItem.planStartDate.Value : new DateTime(),
+                            dueDate = taskItem.dueDate.HasValue ? taskItem.dueDate.Value : new DateTime(),
+                            customer_Title = taskItem.customer_Title,
+                            customerStorage_Title = taskItem.customerStorage_Title,
+                            lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
+                            lastOperationDate = taskItem.lastOperationDate,
+                            workingHour = taskItem.workingHour
+                        };
+                        taskStaffReportList.Add(staffReportModel);
+                    }
+                    taskCustomerReportList = ftmTask.GroupBy(x => x.customer_Title).Select(x => new VWModelTaskCustomerReportResult
+                    {
+                        FullName = x.Key,
+                        allTaskCount = ftmTask.Where(c => c.customer_Title == x.Key).Count(),
+                        finishedTask = ftmTask.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Count(),
+                        finishedTaskIds = ftmTask.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Select(l => l.id).ToArray(),
+                    }).ToList();
+
+                }
+            }
+            var taskType = ftmTask.GroupBy(x => x.type_Title).Select(x => new
+            {
+                category = x.Key,
+                value = x.Count()
+            });
+            List<WeeklyReportModel> weeklyReports = new List<WeeklyReportModel>();
+            List<WeeklyReportModel> budgetReports = new List<WeeklyReportModel>();
+            List<string> DateBetween = new List<string>();
+            var dutyCount = new List<ValueWithDate>();
+            var expensTotal = new List<ValueWithDate>();
+            for (DateTime i = planStartDate.Value.Date; i <= dueDate.Value.Date; i=i.AddDays(1))
+            {
+                dutyCount.Add(new ValueWithDate { Value = 0, Date = i });
+                expensTotal.Add(new ValueWithDate { Value = 0, Date = i });
+                DateBetween.Add(i.ToShortDateString());
+            }
+            for (int i = 0; i < 7; i++)
+            {
+                weeklyReports.Add(new WeeklyReportModel
+                {
+                    Ids = new List<Guid>(),
+                    Value = 0,
+                    Property = CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.DayNames[i]
+                });
+                budgetReports.Add(new WeeklyReportModel
+                {
+                    Ids = new List<Guid>(),
+                    Value = 0,
+                    Property = CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.DayNames[i]
 
 
+                });
+            }
+            weeklyReports.Add(weeklyReports.FirstOrDefault());
+            weeklyReports.RemoveAt(0);
+            budgetReports.Add(budgetReports.FirstOrDefault());
+            budgetReports.RemoveAt(0);
+            foreach (var item in ftmTask.Where(x => x.created.HasValue).GroupBy(x => x.created))
+            {
+                var dayName = CultureInfo.GetCultureInfo("tr-TR").DateTimeFormat.DayNames[(int)item.Key.Value.DayOfWeek];
+                var existBeforeOnWeeklyReport = weeklyReports.FirstOrDefault(x => x.Property == dayName);
+                var existBeforeOnBudgetReport = budgetReports.FirstOrDefault(x => x.Property == dayName);
+                if (existBeforeOnWeeklyReport != null)
+                {
+                    existBeforeOnWeeklyReport.Value += item.Count();
+                    existBeforeOnWeeklyReport.Ids.AddRange(item.Select(a => a.id));
+                }
+                else
+                {
+                    weeklyReports.Add(new WeeklyReportModel
+                    {
+                        Ids = item.Select(a => a.id).ToList(),
+                        Property = dayName,
+                        Value = item.Count()
+                    });
+                }
+                var findExpens = db.GetPA_TransactionByTaskId(item.Select(a => a.id).ToArray());
+                if (existBeforeOnBudgetReport != null)
+                {
+                    existBeforeOnBudgetReport.Value += findExpens.Sum(x => x.amount).Value;
+                    existBeforeOnBudgetReport.Ids.AddRange(item.Select(a => a.id));
+                }
+                else
+                {
+                    budgetReports.Add(new WeeklyReportModel
+                    {
+                        Ids = item.Select(a => a.id).ToList(),
+                        Property = dayName,
+                        Value = findExpens.Sum(x => x.amount).Value
+                    });
+                }
+                var existBeforeOnDutyCount = dutyCount.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                var existBeforeOnExpensTotal = expensTotal.FirstOrDefault(x => x.Date == item.Key.Value.Date);
+                if (existBeforeOnDutyCount != null)
+                {
+                    existBeforeOnDutyCount.Value += item.Count();
+                }
+                if (existBeforeOnExpensTotal != null)
+                {
+                    existBeforeOnExpensTotal.Value += findExpens.Sum(x => x.amount).Value;
+                }
+
+
+
+            }
+
+            var MultiAxisChart = new ExpensDayModel
+            {
+
+                Categories = DateBetween,
+                Series = new List<double[]> { dutyCount.Select(x => x.Value).ToArray(), expensTotal.Select(x => x.Value).ToArray() }
+            };
+            var cityReport = ftmTask.Where(x => x.customer_openAddressCityId.HasValue).GroupBy(x => x.customer_openAddressCityId_Title).Select(x => new WeeklyReportModel
+            {
+                Property = x.Key,
+                Value = x.Count(),
+                Ids = x.Select(a => a.id).ToList()
+            });
+
+            var resultData = new
+            {
+                staffReportModel = taskStaffReportList,
+                taskCustomerReportList = taskCustomerReportList,
+                TaskChart = taskChart,
+                ChartForTaskType = taskType,
+                weeklyReport = weeklyReports,
+                cityReport = cityReport,
+                budgetReport = budgetReports,
+                chartForMultiAxis = MultiAxisChart
+            };
+            return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI
+            {
+                Result = true,
+                Object = resultData
+            }), "application/json");
+        }
+        Func<DateTime, int> weekProjector = d => CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(d, CalendarWeekRule.FirstFullWeek, DayOfWeek.Monday);
         [PageInfo("Günlük Kullanıcı Raporunun Methodu", SHRoles.Personel)]
         public JsonResult DailyUserReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
-
             if (start == null)
             {
                 start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 00, 00, 00);
             }
-
             var task = new List<VWFTM_Task>();
             var taskOperation = new List<VWFTM_TaskOperation>();
             var taskIds = new List<Guid>();
             if (userIds.Count(x => x.HasValue) == 0)
             {
                 taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, null).ToList();
-
                 var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, null).ToList();
                 task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
                 task.AddRange(task2);
@@ -1260,7 +1247,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             else
             {
                 taskOperation = db.GetVWFTM_TaskOperationByCreated(start.Value, userIds).ToList();
-
                 var removedUserIds = new List<Guid?>();
                 if (taskOperation.Count() > 0)
                 {
@@ -1271,14 +1257,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         removedUserIds.Remove(removeIds.Key);
                     }
                 }
-
                 var task2 = db.GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(start.Value, userIds.ToList());
                 task = db.GetVWFTM_TaskByIds(taskOperation.Where(x => x.taskId.HasValue && !x.id.In(task2.Select(a => a.id).ToArray())).GroupBy(x => x.taskId.Value).Select(a => a.Key).ToArray()).ToList();
-
                 if (taskOperation.Count() > 0 && removedUserIds.Count() > 0)
                 {
                     var users = db.GetVWSH_UserByIds(userIds.Where(x => x.HasValue).Select(x => x.Value).ToArray());
-
                     task.AddRange(users.Select(x => new VWFTM_Task
                     {
                         id = Guid.NewGuid(),
@@ -1288,42 +1271,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     }));
                 }
                 task.AddRange(task2);
-
             }
-
             if (customer.HasValue)
             {
                 task = task.Where(x => x.customerId == customer.Value).ToList();
             }
-
             if (customerStorage.HasValue)
             {
                 task = task.Where(x => x.customerStorageId == customerStorage.Value).ToList();
             }
-
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
                     task = task.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToList();
             }
-
             var dailyReport = new List<DailyPersonalReportPersonalData>();
             var dailyReportData = new List<DailyPersonalReportModel>();
             var i = 0;
             int isItOver = 0;
-
             foreach (var taskItem in task)
             {
                 i++;
                 var operation = taskOperation.Where(x => x.taskId == taskItem.id && (x.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || x.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi));
-
                 if (operation.Count() > 0)
                 {
                     var startDate = operation.Where(a => a.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi && a.created.HasValue).Select(a => a.created.Value).FirstOrDefault();
-
                     var endDate = new DateTime();
-
                     var lastOperation = operation.Where(a => (a.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.status == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.created.HasValue).OrderBy(x => x.created).LastOrDefault();
                     if (lastOperation == null)
                     {
@@ -1343,7 +1317,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             isItOver = 1;
                         }
                     }
-
                     dailyReportData.Add(new DailyPersonalReportModel
                     {
                         id = i,
@@ -1360,9 +1333,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
                         color = isItOver == 0 ? "#f8ac59" : isItOver == 1 ? "#22e93f" : "#1ab394",
                         taskStatus_Title = isItOver == 0 ? "Görev Devam Etmekte." : isItOver == 1 ? "Çözüm Onaylandı." : "Çözüm Bildirildi.",
-
                     });
-
                     dailyReport.Add(new DailyPersonalReportPersonalData
                     {
                         dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == taskItem.assignUserId.Value).ToList(),
@@ -1375,7 +1346,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     var startDate = new DateTime();
                     var endDate = new DateTime();
                     bool taskStarted = false;
-
                     if (!taskItem.planStartDate.HasValue)
                     {
                         startDate = new DateTime(DateTime.Now.Year + 5, DateTime.Now.Month, DateTime.Now.Day, 7, 0, 0, 0);
@@ -1384,7 +1354,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     {
                         startDate = taskItem.planStartDate.Value;
                     }
-
                     if (!taskItem.dueDate.HasValue)
                     {
                         endDate = startDate.AddHours(1);
@@ -1393,10 +1362,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     {
                         endDate = taskItem.dueDate.Value;
                     }
-
                     var userId = new Guid();
                     var userName = "";
-
                     if (taskItem.assignUserId.HasValue)
                     {
                         userId = taskItem.assignUserId.Value;
@@ -1409,8 +1376,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         userName = taskItem.assignableUserTitles;
                         taskStarted = false;
                     }
-
-
                     if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Hayir)
                     {
                         dailyReportData.Add(new DailyPersonalReportModel
@@ -1431,7 +1396,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             taskStatus_Title = !taskStarted ? "Görev Üstlenilmeyi Bekleniyor." : "Görev Üstlenildi.",
                         });
                     }
-
                     if (taskItem.planLater.HasValue && taskItem.planLater.Value == (int)EnumFTM_TaskPlanLater.Evet)
                     {
                         dailyReportData.Add(new DailyPersonalReportModel
@@ -1450,11 +1414,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             lastOperationStatus_Title = taskItem.lastOperationStatus_Title,
                             color = taskItem.planLater == 1 ? "#ff0000" : "#1c84c6",
                             taskStatus_Title = taskItem.planLater == 1 ? "Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." : "Görev Üstlenildi.",
-
                         });
                     }
-
-
                     dailyReport.Add(new DailyPersonalReportPersonalData
                     {
                         dataSource = dailyReportData.Where(x => x.taskId == taskItem.id && x.attendees == userId).ToList(),
@@ -1462,9 +1423,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         value = userId
                     });
                 }
-
             }
-
             if (dailyReport.Count() <= 0)
             {
                 return Json(new ResultStatusUI
@@ -1472,8 +1431,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     FeedBack = new FeedBack().Warning("Kayıt Bulunamadı.", false)
                 }, JsonRequestBehavior.AllowGet);
             }
-
-
             var dailyReportDatas = dailyReport.GroupBy(a => a.text).Select(c => new DailyPersonalReportPersonalData
             {
                 text = c.Key,
@@ -1481,45 +1438,34 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 value = c.Select(a => a.value).FirstOrDefault(),
                 dataSource = c.SelectMany(b => b.dataSource).ToList()
             });
-
-
             return Json(dailyReportDatas, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Günlük Kullanıcı Raporunun Methodu", SHRoles.Personel)]
         public JsonResult DailyUserReportPersonals(Guid[] userIds)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
-
             string[] roles = new string[1] { SHRoles.SahaGorevPersonel };
             var users = db.GetVWSH_User().Where(x => x.RoleIds.In(roles)).ToList();
             var dailyReport = new List<DailyPersonalReportPersonalData>();
-
-
             dailyReport.AddRange(users.Select(x => new DailyPersonalReportPersonalData
             {
                 value = x.id,
                 text = x.FullName
             }));
-
             return Json(dailyReport, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Aktivite İzleme", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult ActivityTracking()
         {
             return View();
         }
-
         [PageInfo("Saha Görevi Aktivite Data Sayfası", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ContentResult ActivityResult(DateTime? startDate, DateTime? endDate)
         {
             var db = new WorkOfTimeDatabase();
             var ftmTask = startDate != null && endDate != null ? db.GetVWFTM_TaskBetweenDates(startDate, endDate) : db.GetVWFTM_Task();
-
             var taskChart = taskChartMethod(ftmTask).ToList();
-
             var sta = ftmTask.Where(x => x.assignUserId != null).GroupBy(x => x.assignUserId).ToArray();
             var resultData = new
             {
@@ -1528,11 +1474,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 TaskChart = taskChart,
             };
             return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
-
         }
-
-
-
         [PageInfo("Tüm Saha Görevleri", SHRoles.SahaGorevOperator, SHRoles.SahaGorevYonetici)]
         public ContentResult DataSourceForActivityResult([DataSourceRequest] DataSourceRequest request)
         {
@@ -1555,8 +1497,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 condition = new VMFTM_TaskModel().UpdateQuery(condition, userStatus, 1);
                 ftmTask = db.GetVWFTM_Task(condition);
             }
-
-
             var ftmTaskOperation = db.GetVWFTM_TaskOperationStatusApprovedByTaskIds(ftmTask.Select(x => x.id).ToArray());
             var taskChart = taskChartMethod(ftmTask).ToList();
             string[] roles = new string[3] { SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici };
@@ -1564,11 +1504,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var list = new List<VWModelActivityResult>();
             var userActivityList = new List<VWModelActivityResult>();
             var taskOperatorActivityList = new List<VWModelOperatorActivityResult>();
-
             if (userIds.Length > 0)
             {
                 var user = db.GetVWSH_UserByIds(userIds, null);
-
                 var operationStatus = db.GetVWFTM_TaskOperation().Where(x => x.status == 10).ToList();
                 //TODO:FTMTask model oluşturulacak
                 foreach (var item in user)
@@ -1580,10 +1518,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     model.CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count();
                     model.WorkingNow = ftmTask.Where(x => x.assignUserId == item.id).Count() - model.CompleteCount;
                     list.Add(model);
-
                     var workingHours = "";
                     var girdi = 0;
-
                     var operations = db.GetVWFTM_TaskOperationByTaskIds(ftmTask.Where(x => x.assignUserId == item.id).Select(x => x.id).ToArray());
                     if (operations.Count() > 0)
                     {
@@ -1593,35 +1529,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             StartDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi).Select(f => f.created).FirstOrDefault(),
                             EndDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi).Select(f => f.created).FirstOrDefault()
                         }).ToArray();
-
                         var operationFinish = groupOperations.Where(x => x.EndDatetime.HasValue && x.StartDatetime.HasValue).ToArray();
                         foreach (var opFinish in operationFinish)
                         {
                             TimeSpan res = opFinish.EndDatetime.Value - opFinish.StartDatetime.Value;
                             girdi += Convert.ToInt32(res.TotalSeconds);
                         }
-
                         int yil = 0;
                         int ay = 0;
                         int gun = 0;
                         int saat = 0;
                         int dakika = 0;
-
                         yil = girdi / 31104000;
                         girdi = girdi - yil * 3110400;
-
                         ay = girdi / 2592000;
                         girdi = girdi - ay * 2592000;
-
                         gun = girdi / 86400;
                         girdi = girdi - gun * 86400;
-
                         saat = girdi / 3600;
                         girdi = girdi - saat * 3600;
-
                         dakika = girdi / 60;
                         girdi = girdi - dakika * 60;
-
                         workingHours = (yil > 0 ? yil + " yıl " : "") +
                                        (ay > 0 ? ay + " ay " : "") +
                                        (gun > 0 ? gun + " gün " : "") +
@@ -1629,7 +1557,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                                        (dakika > 0 ? dakika + " dakika " : "") +
                                        (girdi > 0 ? girdi + " saniye " : "");
                     }
-
                     var staffModel = new VWModelActivityResult
                     {
                         Id = item.id,
@@ -1639,7 +1566,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count(),
                         totalWorkingHours = !string.IsNullOrEmpty(workingHours) ? workingHours : "0 saat"
                     };
-
                     if (item.RoleIds.Contains(SHRoles.SahaGorevOperator))
                     {
                         var taskOperatorModel = new VWModelOperatorActivityResult
@@ -1650,15 +1576,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             ApprovedTask = ftmTaskOperation.Where(x => x.createdby == item.id).Count(),
                             MyAppointmentTask = operationStatus.Where(x => x.createdby == item.id).GroupBy(a => a.taskId).Count()
                         };
-
                         taskOperatorActivityList.Add(taskOperatorModel);
                     }
-
                     userActivityList.Add(staffModel);
-
                 }
             }
-
             var resultData = new
             {
                 //FtmTask = ftmTask,
@@ -1669,8 +1591,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             };
             return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
         }
-
-
         [PageInfo("Tüm Saha Görevleri", SHRoles.SahaGorevMusteri)]
         public ContentResult DataSourceForDashboard([DataSourceRequest] DataSourceRequest request)
         {
@@ -1682,7 +1602,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var db = new WorkOfTimeDatabase();
             var ftmTask = new VWFTM_Task[0];
             var userStatus = (PageSecurity)Session["userStatus"];
-
             if (condition.Filter == null)
             {
                 if (userStatus.user.CompanyId.HasValue)
@@ -1711,7 +1630,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         name = c.Key,
                         value = c.Count()
                     }).OrderByDescending(x => x.value).ToDictionary(v => v.name, v => v.value).ToList();
-
                     dictData = res;
                     ftmTask = ftmTask.Where(x => x.customerId == cmp?.id).ToArray();
                 }
@@ -1725,7 +1643,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     dictData = res;
                 }
             }
-
             var ftmTaskOperation = db.GetVWFTM_TaskOperationStatusApprovedByTaskIds(ftmTask.Select(x => x.id).ToArray());
             var taskChart = taskChartMethod(ftmTask).ToList();
             string[] roles = new string[3] { SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici };
@@ -1733,11 +1650,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             var list = new List<VWModelActivityResult>();
             var userActivityList = new List<VWModelActivityResult>();
             var taskOperatorActivityList = new List<VWModelOperatorActivityResult>();
-
             if (userIds.Length > 0 && ftmTask.Count() > 0)
             {
                 var user = db.GetVWSH_UserByIds(userIds, null);
-
                 var operationStatus = db.GetVWFTM_TaskOperationByTaskIdsAndStatus(ftmTask.Select(x => x.id).ToArray()).ToList();
                 //TODO:FTMTask model oluşturulacak
                 foreach (var item in user)
@@ -1749,10 +1664,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     model.CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count();
                     model.WorkingNow = ftmTask.Where(x => x.assignUserId == item.id).Count() - model.CompleteCount;
                     list.Add(model);
-
                     var workingHours = "";
                     var girdi = 0;
-
                     var operations = db.GetVWFTM_TaskOperationByTaskIds(ftmTask.Where(x => x.assignUserId == item.id).Select(x => x.id).ToArray());
                     if (operations.Count() > 0)
                     {
@@ -1762,35 +1675,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             StartDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi).Select(f => f.created).FirstOrDefault(),
                             EndDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi).Select(f => f.created).FirstOrDefault()
                         }).ToArray();
-
                         var operationFinish = groupOperations.Where(x => x.EndDatetime.HasValue && x.StartDatetime.HasValue).ToArray();
                         foreach (var opFinish in operationFinish)
                         {
                             TimeSpan res = opFinish.EndDatetime.Value - opFinish.StartDatetime.Value;
                             girdi += Convert.ToInt32(res.TotalSeconds);
                         }
-
                         int yil = 0;
                         int ay = 0;
                         int gun = 0;
                         int saat = 0;
                         int dakika = 0;
-
                         yil = girdi / 31104000;
                         girdi = girdi - yil * 3110400;
-
                         ay = girdi / 2592000;
                         girdi = girdi - ay * 2592000;
-
                         gun = girdi / 86400;
                         girdi = girdi - gun * 86400;
-
                         saat = girdi / 3600;
                         girdi = girdi - saat * 3600;
-
                         dakika = girdi / 60;
                         girdi = girdi - dakika * 60;
-
                         workingHours = (yil > 0 ? yil + " yıl " : "") +
                                        (ay > 0 ? ay + " ay " : "") +
                                        (gun > 0 ? gun + " gün " : "") +
@@ -1798,7 +1703,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                                        (dakika > 0 ? dakika + " dakika " : "") +
                                        (girdi > 0 ? girdi + " saniye " : "");
                     }
-
                     var staffModel = new VWModelActivityResult
                     {
                         Id = item.id,
@@ -1808,7 +1712,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                         CompleteCount = ftmTask.Where(x => x.assignUserId == item.id && x.isComplete == true).Count(),
                         totalWorkingHours = !string.IsNullOrEmpty(workingHours) ? workingHours : "0 saat"
                     };
-
                     if (item.RoleIds.Contains("00000000-0000-0000-0000-620000000000"))
                     {
                         var taskOperatorModel = new VWModelOperatorActivityResult
@@ -1819,61 +1722,44 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                             ApprovedTask = ftmTaskOperation.Where(x => x.createdby == item.id).Count(),
                             MyAppointmentTask = operationStatus.Where(x => x.createdby == item.id).GroupBy(a => a.taskId).Count()
                         };
-
                         taskOperatorActivityList.Add(taskOperatorModel);
                     }
-
                     userActivityList.Add(staffModel);
-
                 }
             }
-
             var tasks = new List<ChartTask>();
-
             var listdata = new List<ChartTaskList>();
-
             for (int i = 1; i <= 12; i++)
             {
                 tasks.Add(new ChartTask
                 {
-
                     Ay = (DateTime.Now.Month >= i
                         ? DateTime.Now.Year
                         : (DateTime.Now.Year - 1)) + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.GetMonthName(i),
-
-
                     tum = ftmTask.Where(b => b.created.Value.Month == i && b.created.Value.Year == (DateTime.Now.Month >= i ? DateTime.Now.Year : (DateTime.Now.Year - 1))).Count(),
-
-
                 });
             }
-
             for (int i = 1; i <= 12; i++)
             {
                 listdata.Add(new ChartTaskList
                 {
-
                     Ay = (DateTime.Now.Month >= i
                         ? DateTime.Now.Year
                         : (DateTime.Now.Year - 1)) + " " + System.Globalization.DateTimeFormatInfo.CurrentInfo.GetMonthName(i),
-
                     orta = ftmTask.Where(b => b.priority == 0 && b.created.Value.Month == i && b.created.Value.Year == (DateTime.Now.Month >= i ? DateTime.Now.Year : (DateTime.Now.Year - 1))).Count(),
                     yuksek = ftmTask.Where(b => b.priority == 1 && b.created.Value.Month == i && b.created.Value.Year == (DateTime.Now.Month >= i ? DateTime.Now.Year : (DateTime.Now.Year - 1))).Count(),
                     dusuk = ftmTask.Where(b => b.priority == 2 && b.created.Value.Month == i && b.created.Value.Year == (DateTime.Now.Month >= i ? DateTime.Now.Year : (DateTime.Now.Year - 1))).Count(),
                     tum = ftmTask.Where(b => b.created.Value.Month == i && b.created.Value.Year == (DateTime.Now.Month >= i ? DateTime.Now.Year : (DateTime.Now.Year - 1))).Count()
                 });
             }
-
             var gecmisYillar = tasks.Skip(DateTime.Now.Month).Take(12).ToList();
             var mevcutYillar = tasks.Take(DateTime.Now.Month).ToList();
             tasks = gecmisYillar;
             tasks.AddRange(mevcutYillar);
-
             var gecmisYil = listdata.Skip(DateTime.Now.Month).Take(12).ToList();
             var mevcutYil = listdata.Take(DateTime.Now.Month).ToList();
             listdata = gecmisYil;
             listdata.AddRange(mevcutYil);
-
             var resultData = new
             {
                 ChartWarning = listdata,
@@ -1886,7 +1772,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             };
             return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
         }
-
         [PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel)]
         public JsonResult GetPermitUserAvailableStatus(Guid userid)
         {
@@ -1902,17 +1787,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 objects = model
             });
         }
-
-
-        [PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel,SHRoles.SahaGorevMusteri)]
+        [PageInfo("Kullanıcının Bir Ay İçinde Bulunan İzinleri", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
         public JsonResult DownloadFiles(Guid taskId)
         {
             var db = new WorkOfTimeDatabase();
             var task = db.GetFTM_TaskById(taskId);
             var operations = db.GetFTM_TaskOperationByTaskId(taskId);
             var filePath = System.Configuration.ConfigurationManager.AppSettings["FilesPath"];
-
-
 #if DEBUG
             filePath = Server.MapPath("/Files");
 #endif
@@ -1928,9 +1809,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }
                 catch { }
             }
-
-
-
             var files = new List<string>();
             foreach (var operation in operations)
             {
@@ -1939,7 +1817,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                     files.AddRange(Directory.GetFiles(Path.Combine(filePath, "FTM_TaskOperation", operation.id.ToString()), "*", SearchOption.AllDirectories).ToList());
                 }
             }
-
             if (files.Count() > 0)
             {
                 var webPath = "/Files/Temporary/" + task.code + "_gorev_dosya.zip";
@@ -1958,22 +1835,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
-
-        private KeyValuePair<string, int>[] taskChartMethod(VWFTM_Task[] ftmTask)
+        private object[] taskChartMethod(VWFTM_Task[] ftmTask)
         {
-            return new List<KeyValuePair<string, int>>()
+            return new List<object>()
             {
-                 new KeyValuePair<string, int>("Tüm Görevler", ftmTask.Count()),
-                 new KeyValuePair<string, int>("Personel Ataması Bekleyenler", ftmTask.Where(x => x.assignableUserIds == null && x.isComplete == false).Count()),
-                 new KeyValuePair<string, int>("Üstlenilmeyi Bekleyenler", ftmTask.Where(x => (x.assignUserId == null && x.assignableUserIds!= null) && x.isComplete ==false ).Count()),
-                 new KeyValuePair<string, int>("Devam Edenler", ftmTask.Where(x => (x.assignUserId != null && x.isComplete == false)&&x.lastOperationStatus!=30&&x.lastOperationStatus != 26).Count()),
-                  new KeyValuePair<string, int>("Durdurulanlar", ftmTask.Where(x => x.lastOperationStatus == 26).Count()),
-                 new KeyValuePair<string, int>("Çözüm Onayı Bekleyenler", ftmTask.Where(x => x.isComplete == false && x.lastOperationStatus == 30).Count()),
-                 new KeyValuePair<string, int>("Çözümlenmiş Görevler", ftmTask.Where(x => x.isComplete == true).Count()),
-                  new KeyValuePair<string, int>("Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler", ftmTask.Where(x => x.planLater == (int)EnumFTM_TaskPlanLater.Evet).Count()),
+                new { Key="Tüm Görevler",Value=ftmTask.Count(), ids=ftmTask.Select(x=>x.id) },
+                new { Key="Personel Ataması Bekleyenler",Value=ftmTask.Where(x => (x.assignUserId == null && x.assignableUserIds!= null) && x.isComplete ==false ).Count(), ids=ftmTask.Where(x => (x.assignUserId == null && x.assignableUserIds!= null) && x.isComplete ==false ).Select(x=>x.id) },
+                new { Key="Üstlenilmeyi Bekleyenler",Value= ftmTask.Where(x => (x.assignUserId == null && x.assignableUserIds!= null) && x.isComplete ==false ).Count(), ids= ftmTask.Where(x => (x.assignUserId == null && x.assignableUserIds!= null) && x.isComplete ==false ).Select(x=>x.id) },
+                new { Key="Devam Edenler",Value=ftmTask.Where(x => (x.assignUserId != null && x.isComplete == false)&&x.lastOperationStatus!=30&&x.lastOperationStatus != 26).Count(), ids=ftmTask.Where(x => (x.assignUserId != null && x.isComplete == false)&&x.lastOperationStatus!=30&&x.lastOperationStatus != 26).Select(x=>x.id) },
+                new { Key="Durdurulanlar",Value=ftmTask.Where(x => x.lastOperationStatus == 26).Count(), ids=ftmTask.Where(x => x.lastOperationStatus == 26).Select(x=>x.id) },
+                new { Key="Çözüm Onayı Bekleyenler",Value=ftmTask.Where(x => x.isComplete == false && x.lastOperationStatus == 30).Count(), ids=ftmTask.Where(x => x.isComplete == false && x.lastOperationStatus == 30).Select(x=>x.id) },
+                new { Key="Çözümlenmiş Görevler",Value=ftmTask.Where(x => x.isComplete == true).Count(), ids=ftmTask.Where(x => x.isComplete == true).Select(x=>x.id) },
+                new { Key="Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler",Value=ftmTask.Where(x => x.planLater == (int)EnumFTM_TaskPlanLater.Evet).Count(), ids=ftmTask.Where(x => x.planLater == (int)EnumFTM_TaskPlanLater.Evet).Select(x=>x.id) },
             }.ToArray();
         }
-
         public string getPassingTime(DateTime? time, DateTime? created)
         {
             if (created.HasValue && time.HasValue)
@@ -1990,11 +1865,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
                 return "-";
             }
         }
-
         public string GetMonthlyName(int month)
         {
             var monthText = "";
-
             switch (month)
             {
                 case 1:
@@ -2038,13 +1911,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             }
             return monthText;
         }
-
         public static SimpleQuery UpdateQuery(SimpleQuery query, PageSecurity userStatus)
         {
             var company = new WorkOfTimeDatabase().GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
-
             BEXP filter = null;
-
             if (!String.IsNullOrEmpty(company.customerIds))
             {
                 foreach (var customer in company.customerIds.Split(',').ToArray())
@@ -2069,16 +1939,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             query.Filter &= filter;
             return query;
         }
-
     }
-
-
     public class ChartTask
     {
         public string Ay { get; set; }
         public int tum { get; set; }
     }
-
     public class ChartTaskList
     {
         public string Ay { get; set; }
@@ -2087,4 +1953,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
         public int dusuk { get; set; }
         public int tum { get; set; }
     }
+    public class WeeklyReportModel
+    {
+        public string Property { get; set; }
+        public double Value { get; set; }
+        public List<Guid> Ids { get; set; }
+
+    }
+    public class ValueWithDate
+    {
+        public double Value { get; set; }
+        public DateTime Date { get; set; }
+    }
+
+
+    public class ExpensDayModel
+    {
+        public List<string> Categories { get; set; }
+        public List<double[]> Series { get; set; }
+    }
+
+
+
 }

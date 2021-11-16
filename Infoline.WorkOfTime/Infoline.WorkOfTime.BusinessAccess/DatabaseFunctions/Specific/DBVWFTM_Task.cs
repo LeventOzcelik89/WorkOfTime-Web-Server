@@ -180,12 +180,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
-		public VWFTM_Task[] GetVWFTM_TaskTodayTask()
+		public VWFTM_Task[] GetVWFTM_TaskTodayTask(DateTime? startDate =null  , DateTime? endDate = null)
 		{
 			using (var db = GetDB())
 			{
-				var startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);
-				var endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59);
+                if (!startDate.HasValue)
+                {
+					startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 0, 0, 0, 0);
+				}
+                if (!endDate.HasValue)
+                {
+					endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59);
+				}
+				
+	
 
 				return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= endDate) || (x.lastOperationDate >= startDate && x.lastOperationDate <= endDate)).Execute().ToArray();
 			}
@@ -202,10 +210,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= enddate || x.lastOperationDate >= startDate && x.lastOperationDate <= enddate) && x.assignUserId.In(userIds)).Execute().ToArray();
 				}
 
-				return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= enddate) || (x.lastOperationDate >= startDate && x.lastOperationDate <= enddate)).Execute().ToArray();
+				return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= enddate) || x.lastOperationDate >= startDate && x.lastOperationDate <= enddate).Execute().ToArray();
 			}
 		}
+		public VWFTM_Task[] GetVWFTM_TaskByUserCreatedDate(Guid[] userIds, DateTime startDate, DateTime endDate)
+		{
+			using (var db = GetDB())
+			{
+				var enddate = new DateTime(endDate.Year, endDate.Month, endDate.Day, 23, 59, 59);
 
+				if (userIds != null && userIds.Count() > 0)
+				{
+					return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= enddate ) && x.assignUserId.In(userIds)).Execute().ToArray();
+				}
+
+				return db.Table<VWFTM_Task>().Where(x => (x.created >= startDate && x.created <= enddate) ).Execute().ToArray();
+			}
+		}
 		public VWFTM_Task[] GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(DateTime date, List<Guid?> userIds, DbTransaction tran = null)
 		{
 			var startdate = new DateTime();
