@@ -291,6 +291,7 @@ namespace System.Web.Mvc
             gorevRaporlari.AddChild(new Menu("Personel Yıl/Ay Bazlı Rapor", "/FTM/VWFTM_Task/MonthlyPersonelReport"));
             gorevRaporlari.AddChild(new Menu("Çağrı Tipi Yıl/Ay Bazlı Rapor", "/FTM/VWFTM_Task/MonthlyTypeReport"));
             gorevRaporlari.AddChild(new Menu("Personel Raporu", "/FTM/VWFTM_Task/StaffReport"));
+            gorevRaporlari.AddChild(new Menu("Operasyon Raporu", "/FTM/VWFTM_Task/WeeklyReport"));
             sahayonetimi.AddChild(gorevRaporlari);
 
             return sahayonetimi;

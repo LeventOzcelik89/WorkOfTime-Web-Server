@@ -670,7 +670,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 if (notNullOrder == null)
                 {
-                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).Where(x => x.ruleUserId.HasValue).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
                     var getAdvance = db.GetPA_AdvanceById(this.id);
                     if (getAdvance != null)
                     {

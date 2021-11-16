@@ -125,7 +125,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PA_Transaction>().Where(a => a.accountId == accountId).Execute().ToArray();
             }
         }
+        public PA_Transaction[] GetPA_TransactionByTaskId(Guid[] taskId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
+            {
+                return db.Table<PA_Transaction>().Where(a => a.dataTable == "FTM_Task" && a.dataId.In(taskId)).Execute().ToArray();
+            }
+        }
         public PA_Transaction[] GetPA_TransactionByAccountIds(Guid[] accountIds, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

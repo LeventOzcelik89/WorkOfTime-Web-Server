@@ -24,7 +24,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             }
             return View(ids);
         }
-
         [PageInfo("Tüm Saha Görevleri Veri Methodu", SHRoles.Personel, SHRoles.SahaGorevMusteri)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {

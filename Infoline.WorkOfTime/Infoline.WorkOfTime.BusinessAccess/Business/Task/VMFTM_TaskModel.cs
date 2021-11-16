@@ -1311,6 +1311,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public string FullName { get; set; }
 			public int allTaskCount { get; set; }
 			public int finishedTask { get; set; }
+			public Guid[] finishedTaskIds { get; set; }
 		}
 		public partial class VWINV_Fixture : InfolineTable
 		{

@@ -883,7 +883,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 if (notNullOrder == null)
                 {
-                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.ruleUserId.HasValue).confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
                     {
