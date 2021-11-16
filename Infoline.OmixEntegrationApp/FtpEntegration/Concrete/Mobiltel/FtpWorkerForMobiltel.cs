@@ -73,7 +73,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegration.Concrete.Mobiltel
                     item.BaseUri = configuration.Url;
                     item.IsDirectory = Tools.IsDir(line);
                     item.Name = Tools.GetItemName(line);
-                    item.Items = item.IsDirectory ? GetAllFilesNames(new FtpConfiguration { Url = item.AbsolutePath, UserName = configuration.UserName, Password = config.Password }).ToList() : null;
+                    item.Items = item.IsDirectory ? GetAllFilesNames(new FtpConfiguration { Url = item.AbsolutePath, UserName = configuration.UserName, Password = configuration.Password }).ToList() : null;
                     directoryItems.Add(item);
                 }
             }

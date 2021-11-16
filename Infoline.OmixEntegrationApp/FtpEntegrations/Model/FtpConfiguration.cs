@@ -1,4 +1,4 @@
-﻿namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Model
+﻿namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Model
 {
     public class FtpConfiguration
     {

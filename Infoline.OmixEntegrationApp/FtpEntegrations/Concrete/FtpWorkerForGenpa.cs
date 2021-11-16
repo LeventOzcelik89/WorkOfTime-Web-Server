@@ -1,5 +1,5 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegration.Abstract;
-using Infoline.OmixEntegrationApp.DistFtpEntegration.Model;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations.Model;
+using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -7,9 +7,9 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Xml;
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Concrete
 {
-    public class FtpWorkerForGenpa : IFtpWorker
+    public class FtpWorkerForGenpa
     {
         private List<string> FileList = new List<string>();
         private string DirUrl { get; }
@@ -45,12 +45,12 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         {
             return this.FtpConfiguration;
         }
-        public IEnumerable<SellIn> GetSellInObjectForToday()
+        public IEnumerable<PRD_EntegrationStorage> GetSellInObjectForToday()
         {
             Login();
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
-            var res = new List<SellIn>();
+            var res = new List<PRD_EntegrationStorage>();
             Log.Info(string.Format("{0} Sellin File Found On Genpa Wing Ftp Server", FileList.Where(x=>x.Contains("SELLIN")).ToList().Count));
             if (FileList.Count >= 0)
             {
@@ -70,7 +70,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                         {
                             try
                             {
-                                var item = new SellIn();
+                                var item = new PRD_EntegrationStorage();
                                 for (int i = 0; i < headers.Length; i++)
                                 {
                                     try
@@ -110,12 +110,12 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             FileList = new List<string>();
             return res;
         }
-        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        public IEnumerable<PRD_EntegrationAction> GetSellThrObjectForToday()
         {
             Login();
             GetTodayFileNames();
             Log.Info("Getting Today Files On Genpa Wing Ftp Server");
-            var res = new List<SellThr>();
+            var res = new List<PRD_EntegrationAction>();
             Log.Info(string.Format("{0} SellThr File Found On Genpa Wing Ftp Server", FileList.Where(x => x.Contains("SELLTHR")).ToList().Count));
             if (FileList.Count >= 0)
             {
@@ -135,7 +135,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                         {
                             try
                             {
-                                var item = new SellThr();
+                                var item = new PRD_EntegrationAction();
                                 for (int i = 0; i < headers.Length; i++)
                                 {
                                     try

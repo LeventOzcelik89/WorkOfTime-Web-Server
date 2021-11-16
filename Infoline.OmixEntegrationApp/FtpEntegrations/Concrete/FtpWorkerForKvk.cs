@@ -1,14 +1,14 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegration.Abstract;
-using Infoline.OmixEntegrationApp.DistFtpEntegration.Model;
+﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations.Model;
+using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Concrete
 {
-    public class FtpWorkerForKvk : IFtpWorker
+    public class FtpWorkerForKvk
     {
         private List<FileNameWithUrl> FptUrl = new List<FileNameWithUrl>();
         public FtpConfiguration FtpConfiguration { get; set; }
@@ -20,9 +20,9 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         {
             return this.FtpConfiguration;
         }
-        public IEnumerable<SellIn> GetSellInObjectForToday()
+        public IEnumerable<PRD_EntegrationStorage> GetSellInObjectForToday()
         {
-            List<SellIn> sellIns = new List<SellIn>();
+            List<PRD_EntegrationStorage> sellIns = new List<PRD_EntegrationStorage>();
             GetFileNames(this.FtpConfiguration);
             var datetimeNow = DateTime.Now;
             var day = datetimeNow.Day.ToString();
@@ -49,7 +49,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     {
                         try
                         {
-                            var item = new SellIn();
+                            var item = new PRD_EntegrationStorage();
                             for (int i = 0; i < rawFile.Length; i++)
                             {
                                 try
@@ -88,9 +88,9 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
             }
             return sellIns;
         }
-        public IEnumerable<SellThr> GetSellThrObjectForToday()
+        public IEnumerable<PRD_EntegrationAction> GetSellThrObjectForToday()
         {
-            List<SellThr> sellThrs = new List<SellThr>();
+            List<PRD_EntegrationAction> sellThrs = new List<PRD_EntegrationAction>();
             GetFileNames(this.FtpConfiguration);
             var datetimeNow = DateTime.Now;
             var day = datetimeNow.Day.ToString();
@@ -117,7 +117,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                     {
                         try
                         {
-                            var item = new SellThr();
+                            var item = new PRD_EntegrationAction();
                             for (int i = 0; i < rawFile.Length; i++)
                             {
                                 try
@@ -194,7 +194,7 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
                         returnValue.Add(item);
                         if (!isDirectory)
                         {
-                            FptUrl.Add(new FileNameWithUrl { Password = GetConfiguration().Password, UserName = GetConfiguration().UserName, FileName = name, Url = item.BaseUri });
+                            FptUrl.Add(new FileNameWithUrl {FileName = name });
                         }
                     }
                 }
@@ -207,11 +207,11 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Concrete
         }
         private IEnumerable<string[]> GetRawFile(FileNameWithUrl fileNameWithUrl)
         {
-            Log.Info(string.Format("Getting File  {0} on KVK Server {1}", fileNameWithUrl.FileName, fileNameWithUrl.Url));
+            Log.Info(string.Format("Getting File  {0} on KVK Server {1}", fileNameWithUrl.FileName, FtpConfiguration.Url));
             var liststringArray = new List<string[]>();
-            FtpWebRequest request = (FtpWebRequest)WebRequest.Create(fileNameWithUrl.Url + "/" + fileNameWithUrl.FileName);
+            FtpWebRequest request = (FtpWebRequest)WebRequest.Create(FtpConfiguration.Url + "/" + fileNameWithUrl.FileName);
             request.Method = WebRequestMethods.Ftp.DownloadFile;
-            request.Credentials = new NetworkCredential(fileNameWithUrl.UserName, fileNameWithUrl.Password);
+            request.Credentials = new NetworkCredential(FtpConfiguration.UserName, FtpConfiguration.Password);
             FtpWebResponse response = (FtpWebResponse)request.GetResponse();
             Stream responseStream = response.GetResponseStream();
             StreamReader reader = new StreamReader(responseStream);

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-namespace Infoline.OmixEntegrationApp.DistFtpEntegration.Model
+namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Model
 {
     public class DirectoryItem
     {
