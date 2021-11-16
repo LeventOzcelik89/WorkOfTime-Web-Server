@@ -13,6 +13,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Ftp Dosya Tarihi 
         /// </summary>
         public DateTime? FileNameDate { get; set;}
+        public string FileTypeName { get; set;}
         /// <summary>
         /// Ftpdeki dosyanın oluşturma tarihi 
         /// </summary>

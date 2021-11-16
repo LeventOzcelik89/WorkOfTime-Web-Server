@@ -1,4 +1,4 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations;
+﻿using Infoline.OmixEntegrationApp.FtpEntegrations;
 using Infoline.OmixEntegrationApp.LogoEntegration;
 using Infoline.OmixEntegrationApp.TitanEntegration;
 using System;
@@ -36,7 +36,7 @@ namespace Infoline.OmixEntegrationApp
 
             var taskProcessFtpDistEntegration = new Task(() =>
             {
-               new ProcessDistFtpEntegration().Run();
+               new ProcessFtpEntegration().Run();
             });
             Tasks.Add(taskProcessFtpDistEntegration);
 

@@ -112,7 +112,7 @@ namespace Infoline.OmixEntegrationApp
                 }
             }
         }
-        public static void Success2(string message, params object[] parameters)
+        public static void SuccessMagenta(string message, params object[] parameters)
         {
             lock (sync)
             {

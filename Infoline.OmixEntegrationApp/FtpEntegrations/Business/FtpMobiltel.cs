@@ -1,31 +1,37 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.OmixEntegrationApp.DistFtpEntegrations.Concrete;
-using Infoline.OmixEntegrationApp.DistFtpEntegrations.Model;
-using Infoline.OmixEntegrationApp.DistFtpEntegrations.Utils;
+using Infoline.OmixEntegrationApp.FtpEntegrations.Model;
+using Infoline.OmixEntegrationApp.FtpEntegrations.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Data.Common;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
+namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 {
-    public class FtpMobitel
+    public class FtpMobitel : IFtpDistributorEntegration
     {
-        public FtpConfiguration ftpConfiguration { get; }
-        public string DistributorName = "Mobiltel";
-        public Guid DistributorId = new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf");
+        public FtpConfiguration ftpConfiguration { get; set; }
+        public string DistributorName { get { return "MobilTel"; } }
+        public Guid DistributorId { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); }}
 
         public FtpMobitel()
         {
+            SetFtpConfiguration();
+        }
+
+        public WorkOfTimeDatabase GetDbConnection()
+        {
             var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            return tenant.GetDatabase();
+        }
 
+        public void SetFtpConfiguration()
+        {
             var url = ConfigurationManager.AppSettings["MobiltelUrl"].ToString();
             var userName = ConfigurationManager.AppSettings["MobiltelUserName"].ToString();
             var password = ConfigurationManager.AppSettings["MobiltelPassword"].ToString();
@@ -44,32 +50,17 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
             };
         }
 
-        public ResultStatus FileSave()
+        public ResultStatus ProcessFiles()
         {
-            var db = new WorkOfTimeDatabase();
-
-            var fileNames = GetFiles();
-            var entegrationFileList = new List<PRD_EntegrationFiles>();
-
-            foreach (var file in fileNames.Where(x => x.FileName.Contains("SELLIN") || x.FileName.Contains("SELLTHR")))
-            {
-                entegrationFileList.Add(new PRD_EntegrationFiles
-                {
-                    id = Guid.NewGuid(),
-                    created = DateTime.Now,
-                    createdby = Guid.Empty,
-                    CreateDateInFtp = file.FileCreatedDate,
-                    DistributorName = this.DistributorName,
-                    DistributorId = this.DistributorId,
-                    FileName = file.DirectoryFileName,
-                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
-                    ProcessTime = DateTime.Now,
-                });
-            }
+            var processDate = DateTime.Now.AddDays(-30);
+            var entegrationFileList = GetFiles(processDate);
 
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
+                Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
+
+                var db = GetDbConnection();
                 result = db.InsertPRD_EntegrationFiles(entegrationFile);
                 if (!result.result)
                 {
@@ -77,144 +68,87 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
                     continue;
                 }
 
-                var sellIn = GetSellInObjectForToday(entegrationFile.FileName, entegrationFile.id);
-                if (sellIn != null && sellIn.Count() > 0)
+                if (entegrationFile.FileTypeName == "SELLTHR")
                 {
-                    db.BulkInsertPRD_EntegrationStorage(sellIn);
+                    var sellThr = GetSellThr(entegrationFile.FileName, entegrationFile.id);
+                    if (sellThr != null && sellThr.Count() > 0)
+                    {
+                        var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
+                        if (!bultInsertResult.result)
+                            Log.Info("SellIn Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
+                    }
                 }
-                var sellThr = GetSellThrObjectForToday(entegrationFile.FileName, entegrationFile.id);
-                if (sellThr != null && sellThr.Count() > 0)
-                {
-                    db.BulkInsertPRD_EntegrationAction(sellThr);
-                }
+                Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
             }
-            //TODO : kayıtlar içerisinde problem var ise ne yapılacak...
             return result;
         }
 
-        private IEnumerable<FileNameWithUrl> GetFiles()
+        public PRD_EntegrationFiles[] GetFiles(DateTime processDate)
         {
             Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
-            var directoryItems = new List<DirectoryItem>();
-            var ftpUrl = new List<FileNameWithUrl>();
+            var directoryItems = new List<FtpEntegration.Entities.DirectoryItem>();
+            var fileList = new List<FileNameWithUrl>();
 
             try
             {
-
                 var request = (FtpWebRequest)WebRequest.Create(this.ftpConfiguration.Url + this.ftpConfiguration.Directory);
                 request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 request.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
-                string[] list = null;
+                string[] lineList = null;
                 using (var response = (FtpWebResponse)request.GetResponse())
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {
-                    list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                    lineList = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 }
 
-                foreach (string line in list)
+                foreach (string line in lineList.Where(x => x.Contains("SELLIN") || x.Contains("SELLTHR")))
                 {
-                    var item = new DirectoryItem();
+                    var item = new FtpEntegration.Entities.DirectoryItem();
 
-                    item.DateCreated = Tools.GetDate(line);
+                    var fileName = Tools.GetItemName(line);
                     item.BaseUri = this.ftpConfiguration.Url;
                     item.IsDirectory = Tools.IsDir(line);
-                    item.Name = Tools.GetItemName(line);
+                    item.Name = fileName;
                     directoryItems.Add(item);
                     if (!item.IsDirectory)
                     {
-                        ftpUrl.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
+                        fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                     }
                 }
             }
             catch (Exception e)
             {
                 Log.Error(this.ftpConfiguration.Url + " failed! : " + e.Message);
+                return null;
             }
-            return ftpUrl;
+
+            var db = GetDbConnection();
+            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate);
+            var entegrationFileList = new List<PRD_EntegrationFiles>();
+            foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
+            {
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
+                    continue;
+
+                entegrationFileList.Add(new PRD_EntegrationFiles
+                {
+                    id = Guid.NewGuid(),
+                    created = DateTime.Now,
+                    createdby = Guid.Empty,
+                    CreateDateInFtp = file.FileCreatedDate,
+                    DistributorName = DistributorName,
+                    DistributorId = DistributorId,
+                    FileName = file.DirectoryFileName,
+                    FileNameDate = FtpEntegration.Utils.Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
+                    ProcessTime = DateTime.Now,
+                    FileTypeName = FileTypeName(file.FileName)
+                });
+            }
+            Log.Warning("There are {0} Files to Process...", entegrationFileList.Count());
+            return entegrationFileList.ToArray();
         }
 
-        private IEnumerable<PRD_EntegrationStorage> GetSellInObjectForToday(string fileName, Guid entegrationFilesId)
-        {
-            List<PRD_EntegrationStorage> sellIns = new List<PRD_EntegrationStorage>();
-
-            try
-            {
-                List<PropertyIndex> Index = new List<PropertyIndex>();
-                var getRawFile = GetRawFile(fileName).ToList();
-                var getHeaders = getRawFile[0];
-
-                getRawFile.RemoveAt(0);
-                for (int i = 0; i < getHeaders.Length; i++)
-                {
-                    Index.Add(new PropertyIndex { Index = i, Name = getHeaders[i].Replace("\\", "").Replace("\"", "") });
-                }
-
-                foreach (var rawFile in getRawFile)
-                {
-                    try
-                    {
-                        var item = new PRD_EntegrationStorage();
-                        for (int i = 0; i < rawFile.Length; i++)
-                        {
-                            try
-                            {
-                                var indexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                if (indexName != null)
-                                {
-                                    if (indexName == "Dist")
-                                        item.DistributorName = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "StorageCode")
-                                        item.DistStorageCode = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "StorageName")
-                                        item.DistStorageName = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "City")
-                                        item.DistStorageCity = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "Town")
-                                        item.DistStorageTown = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "ConsolidationCode")
-                                        item.ConsolidationCode = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "ConsolidationName")
-                                        item.ConsolidationName = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "Imei")
-                                        item.Imei = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "SeriNo")
-                                        item.SerialNo = rawFile[i].Replace("\\", "").Replace("\"", "");
-                                    if (indexName == "Quantity")
-                                        item.Quantity = Convert.ToInt32(rawFile[i].Replace("\\", "").Replace("\"", ""));
-                                }
-                                else
-                                {
-                                    Log.Error("There is a null ColumnName...");
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
-                            }
-                        }
-
-                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
-                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
-                        item.DistributorId = this.DistributorId;
-                        item.DistributorName = this.DistributorName;
-                        item.EntegrationFileId = entegrationFilesId;
-                        sellIns.Add(item);
-                    }
-                    catch (Exception e)
-                    {
-                        Log.Error("There is a Problem When Reading Raw File {0}", e.ToString());
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e.ToString());
-            }
-
-            return sellIns;
-        }
-
-        private IEnumerable<PRD_EntegrationAction> GetSellThrObjectForToday(string fileName, Guid entegrationFilesId)
+        public PRD_EntegrationAction[] GetSellThr(string fileName, Guid entegrationFilesId)
         {
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;
@@ -238,34 +172,65 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
                         {
                             try
                             {
-                                var getIndexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
-                                if (getIndexName == "CustomerGenpaCode" || getIndexName == "CustomerKVKCode" || getIndexName == "CustomerMobitelCode")
+                                var indexName = Index.Where(x => x.Index == i).Select(x => x.Name).FirstOrDefault();
+                                if (indexName != null)
                                 {
-                                    getIndexName = "CustomerCode";
-                                }
-                                var prop = item.GetType().GetProperty(getIndexName.Replace(" ", ""));
-                                if (prop.PropertyType.IsAssignableFrom(typeof(int)))
-                                {
-                                    prop.SetValue(item, Convert.ToInt32(rawFile[i]));
+                                    var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
+                                    if (!string.IsNullOrEmpty(rawFileCheckedData))
+                                    {
+                                        if (indexName == "InvoiceNumber")
+                                            item.InvoiceNumber = rawFileCheckedData;
+                                        if (indexName == "Dist")
+                                            item.DistributorName = rawFileCheckedData;
+                                        if (indexName == "CustomerOperatorCode")
+                                            item.CustomerOperatorCode = rawFileCheckedData;
+                                        if (indexName == "CustomerGenpaCode" || indexName == "CustomerKVKCode" || indexName == "CustomerMobitelCode")
+                                            item.CustomerOperatorCode = rawFileCheckedData; //TODO: Check
+                                        if (indexName == "CustomerName")
+                                            item.CustomerOperatorName = rawFileCheckedData;
+                                        if (indexName == "BranchCode")
+                                            item.BranchCode = rawFileCheckedData;
+                                        if (indexName == "BranchName")
+                                            item.BranchName = rawFileCheckedData;
+                                        if (indexName == "TaxNumber")
+                                            item.TaxNumber = rawFileCheckedData;
+                                        if (indexName == "ConsolidationCode")
+                                            item.ConsolidationCode = rawFileCheckedData;
+                                        if (indexName == "ConsolidationName")
+                                            item.ConsolidationName = rawFileCheckedData;
+                                        if (indexName == "Imei")
+                                            item.Imei = rawFileCheckedData;
+                                        if (indexName == "SeriNo")
+                                            item.SerialNo = rawFileCheckedData;
+                                        if (indexName == "Quantity")
+                                            item.Quantity = Convert.ToInt32(rawFileCheckedData);
+                                        if (indexName == "City")
+                                            item.CustomerOperatorStorageCity = rawFileCheckedData;
+                                        if (indexName == "Town")
+                                            item.CustomerOperatorStorageTown = rawFileCheckedData;
+                                    }
                                 }
                                 else
                                 {
-                                    prop.SetValue(item, rawFile[i]);
+                                    Log.Error("There is a null ColumnName...");
                                 }
                             }
                             catch (Exception e)
                             {
-                                Log.Error(e.ToString());
+                                Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
-                        item.DistributorId = this.DistributorId;
+
+                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
+                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
+                        item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;
                         sellThrs.Add(item);
                     }
                     catch (Exception e)
                     {
-                        Log.Error(e.ToString());
+                        Log.Error("There is a Problem When Reading Raw File {0}", e.ToString());
                     }
                 }
             }
@@ -273,10 +238,10 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
             {
                 Log.Error(e.ToString());
             }
-            return sellThrs;
+            return sellThrs.ToArray();
         }
 
-        private IEnumerable<string[]> GetRawFile(string fileName)
+        public List<string[]> GetRawFile(string fileName)
         {
             Log.Info(string.Format("Getting File  {0} on Mobitel Server {1}", fileName, ftpConfiguration.Url));
             var listStringArray = new List<string[]>();
@@ -302,6 +267,18 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Business
                 Log.Warning(e.Message);
             }
             return listStringArray;
+        }
+
+        public string FileTypeName(string fileName)
+        {
+            if (fileName.Contains("SELLIN"))
+                return "SELLIN";
+            else if (fileName.Contains("SELLTHR"))
+                return "SELLTHR";
+            else if (fileName.Contains("STOK"))
+                return "SELLSTK";
+            else
+                return null;
         }
     }
 }

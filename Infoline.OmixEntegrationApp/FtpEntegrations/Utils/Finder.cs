@@ -2,7 +2,7 @@
 using Infoline.WorkOfTime.BusinessData;
 using System;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Utils
+namespace Infoline.OmixEntegrationApp.FtpEntegrations.Utils
 {
     public class Finder
     {
@@ -24,8 +24,11 @@ namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Utils
                     
         }
 
+        public static VWCMP_Storage FindStorage(string name, string code)
+        {
+            var db = new WorkOfTimeDatabase();
+            return db.GetVWCMP_StorageByNameOrCode(name, code);
 
+        }
     }
-
-
 }

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Model
+namespace Infoline.OmixEntegrationApp.FtpEntegrations.Model
 {
     public class FtpUrl
     {

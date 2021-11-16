@@ -1,4 +1,4 @@
-﻿using Infoline.OmixEntegrationApp.DistFtpEntegrations.Model;
+﻿using Infoline.OmixEntegrationApp.FtpEntegrations.Model;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -6,7 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Threading;
-namespace Infoline.OmixEntegrationApp.DistFtpEntegrations.Concrete
+namespace Infoline.OmixEntegrationApp.FtpEntegrations.Concrete
 {
     public class FtpWorkerForKvk
     {
