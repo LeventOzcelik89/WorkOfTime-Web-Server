@@ -1083,7 +1083,8 @@ else
 				},
 				dataSource: {
 					data: $.Enumerable.From(grid.data).ToArray(),
-					pageSize: 50
+                    pageSize: 50,
+                    sort: { field: "date", dir: "asc" }
 				},
 				columnMenu: true,
 				selectable: true,
@@ -1094,9 +1095,13 @@ else
 				change: function (e, resp) {
 					$('#shiftTrackingDetailButton').removeClass('hidden')
 					var grid = $("#shiftTrackingPersonalGrid").data("kendoGrid");
-					var selectedItem = grid.dataItem(grid.select());
+                    var selectedItem = grid.dataItem(grid.select());
+                    var selectedDay = selectedItem.date.getDate();
+                    var selectedMonth = selectedItem.date.getMonth() + 1;
+                    var selectedYear = selectedItem.date.getFullYear();
+                    var selectedDate = selectedDay + "." + selectedMonth + "." + selectedYear;
 					$('[data-button="ShiftDetail"]').show();
-					$('[data-button="ShiftDetail"]').attr('data-href', '/SH/VWSH_ShiftTracking/LogDetail?id=' + selectedItem.userId + '&date=' + dateData + '');
+                    $('[data-button="ShiftDetail"]').attr('data-href', '/SH/VWSH_ShiftTracking/LogDetail?id=' + selectedItem.userId + '&date=' + selectedDate + '');
 				},
 				scrollable: true,
 				resizable: true,
@@ -1143,7 +1148,7 @@ else
 						field: "table_Title",
 						title: "Envanter"
 					}
-				]
+                ]
 			});
 		}
 	}

@@ -69,7 +69,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
 
-
+        public VWCMP_Storage GetVWCMP_StorageByNameOrCode(string name, string code, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Storage>().Where(a => a.name == name || a.code == code).Execute().FirstOrDefault();
+            }
+        }
         public VWCMP_Storage[] GetVW_CMP_StorageSelected(DbTransaction tran = null)
         {
             using (var db = GetDB())
