@@ -77,7 +77,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             return View();
         }
         [AllowEveryone]
-        //[PageInfo("Haftalık Rapor", SHRoles.Personel)]
+        [PageInfo("Haftalık Rapor", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult WeeklyReport()
         {
             return View();
@@ -1026,8 +1026,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
             };
             return Content(Infoline.Helper.Json.Serialize(new ResultStatusUI { Result = true, Object = resultData }), "application/json");
         }
-        //[PageInfo("Personel Görevleri", SHRoles.Personel)]
-        [AllowEveryone]
+        [PageInfo("Personel Görevleri", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+     
         public ContentResult DataSourceForWeeklyReport(Guid[] assignableUsers, DateTime? planStartDate, DateTime? dueDate, Guid? customer, Guid? customerStorage)
         {
             var db = new WorkOfTimeDatabase();

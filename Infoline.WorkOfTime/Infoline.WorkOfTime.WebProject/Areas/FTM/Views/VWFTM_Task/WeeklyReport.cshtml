@@ -8,7 +8,6 @@
         if (this.value() == undefined) {
             return;
         }
-        debugger
         var users = $.ajax({
             type: "GET",
             url: '/General/GetGroupUsers?id=' + e.sender.dataItem().id,
@@ -210,7 +209,7 @@
                 <div class="col-sm-4">
                     <div class="ibox">
                         <div class="ibox-title">
-                            <h5><i class="fa fa-truck"></i> Görev Tipleri İstatistiği</h5>
+                            <h5><i class="fa fa-truck"></i> Görev Tipleri Dağılımı Grafiği</h5>
                             <div class="ibox-tools">
                             </div>
                         </div>
@@ -223,7 +222,7 @@
                 <div class="col-sm-4">
                     <div class="ibox">
                         <div class="ibox-title">
-                            <h5><i class="fa fa-list"></i> Hafta Bazlı Görev Sayısı İstatsliği </h5>
+                            <h5><i class="fa fa-list"></i> Gün Bazlı Görev İstatistiği </h5>
                             <div class="ibox-tools">
                             </div>
                         </div>
@@ -251,7 +250,7 @@
                 <div class="col-sm-4">
                     <div class="ibox">
                         <div class="ibox-title">
-                            <h5><i class="fa fa-list"></i> Haftalık Bütçe İstatisliği</h5>
+                            <h5><i class="fa fa-money"></i> Gün Bazlı Masraf İstatisliği</h5>
                             <div class="ibox-tools">
                             </div>
                         </div>
@@ -293,7 +292,12 @@
                             data: data.Series[1],
                             name: "Harcama",
                             color: "#ec5e0a",
-                            axis: "budget"
+                            axis: "budget",
+                            tooltip: {
+                                visible: true,
+                                format: "{0}%",
+                                template: "#= series.name #: #= value #"
+                            }
                         }, {
                             type: "line",
                             data: data.Series[0],
@@ -325,7 +329,7 @@
                         template: "#= series.name #: #= value #"
                     },
                     pannable: {
-                          lock: "y"
+                        lock: "y"
                     },
                     zoomable: {
                         mousewheel: {
@@ -415,8 +419,7 @@
                         '<td>' + item.Value + '  </td>'
                     '</tr>';
                 });
-                html += '<tr style="cursor:pointer;">' +
-                    '<td>Toplam</td>' +
+                '<td>Toplam</td>' +
                     '<td ><b>' + total + ' </b></td>'
                 '</tr>';
                 $("#weeklyReport").html(null);
@@ -441,7 +444,7 @@
                         '<td >' + item.Value + ' ₺</td>'
                     '</tr>';
                 });
-                html += '<tr style="cursor:pointer;">' +
+                html += '<tr >' +
                     '<td>Toplam</td>' +
                     '<td class="">' + total + ' ₺</td>'
                 '</tr>';
@@ -509,7 +512,7 @@
             getDatas: function (dataQuery) {
                 GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSourceForWeeklyReport' + dataQuery, null, function (res) {
                     activityTracking.data.taskDatas = res.Object;
-                    console.log(res.Object)
+
                     activityTracking.fnc.loadAllTasks()
                     activityTracking.fnc.createTaskTypeChart(activityTracking.data.taskDatas.ChartForTaskType);
                     activityTracking.fnc.cityReport(activityTracking.data.taskDatas.cityReport)
@@ -532,15 +535,15 @@
         }).on("click", "[data-ids]", function () {
             var ids = $(this).attr("data-ids");
             if (ids != "") {
-                window.open("/FTM/VWFTM_TaskGrid/Index?taskIds="+ids  , "_blank");
+                window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + ids, "_blank");
             }
-           
+
         }).on("click", "[data-budget]", function () {
             var ids = $(this).attr("data-budget");
             if (ids != "") {
                 window.open("/PA/VWPA_Transaction/IndexRequestByIds?ids=" + ids, "_blank");
             }
-         
+
         });
     $("#DashBoardFilter").click(function () {
         var userIds = $("#assignableUsers").val();
