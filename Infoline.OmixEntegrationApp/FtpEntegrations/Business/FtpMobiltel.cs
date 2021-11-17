@@ -50,10 +50,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             };
         }
 
-        public ResultStatus ProcessFiles()
+        public ResultStatus ExportFilesToDatabase()
         {
             var processDate = DateTime.Now.AddDays(-30);
-            var entegrationFileList = GetFiles(processDate);
+            var entegrationFileList = GetFilesInFtp(processDate);
 
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
@@ -70,7 +70,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
-                    var sellThr = GetSellThr(entegrationFile.FileName, entegrationFile.id);
+                    var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
                     if (sellThr != null && sellThr.Count() > 0)
                     {
                         var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
@@ -83,7 +83,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             return result;
         }
 
-        public PRD_EntegrationFiles[] GetFiles(DateTime processDate)
+        public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
             Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
             var directoryItems = new List<FtpEntegration.Entities.DirectoryItem>();
@@ -148,7 +148,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             return entegrationFileList.ToArray();
         }
 
-        public PRD_EntegrationAction[] GetSellThr(string fileName, Guid entegrationFilesId)
+
+        public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;

@@ -12,9 +12,9 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         Guid DistributorId { get; }
 
         void SetFtpConfiguration();
-        ResultStatus ProcessFiles();
-        PRD_EntegrationFiles[] GetFiles(DateTime processDate);
-        PRD_EntegrationAction[] GetSellThr(string fileName, Guid entegrationFilesId);
+        ResultStatus ExportFilesToDatabase();
+        PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate);
+        PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId);
         string FileTypeName(string fileName);
     }
 }
