@@ -512,7 +512,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var message = "Gider düzenleme işlemi ";
             if (this.type == (int)EnumPA_TransactionType.Masraf)
             {
-                message = this.direction == 0 ? "Masraf düzenleme işlemi " : this.direction == -1 ? "Masraf onaylama işlemi " : this.direction == 3 ? "Masraf Düzeltme İşlemi" : " Masraf reddetme işlemi ";
+                message = this.direction == 0 ? "Masraf Onaylama İşlemi " : this.direction == -1 ? "Masraf tamamlama işlemi " : this.direction == 3 ? "Masraf Düzeltme İşlemi" : " Masraf reddetme işlemi ";
                 var pA_Transaction = db.GetPA_TransactionById(this.id);
                 if (pA_Transaction != null)
                 {
@@ -885,8 +885,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {                    
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
-                    {
-                        var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.ruleUserId.HasValue);
+                    {   
+                        
+                        var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.confirmationUserIds!=null);
                         if (isUserExist != null)
                         {
                             var users = db.GetVWSH_UserByIds(isUserExist.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
