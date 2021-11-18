@@ -512,7 +512,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var message = "Gider düzenleme işlemi ";
             if (this.type == (int)EnumPA_TransactionType.Masraf)
             {
-                message = this.direction == 0 ? "Masraf düzenleme işlemi " : this.direction == -1 ? "Masraf onaylama işlemi " : this.direction == 3 ? "Masraf Düzeltme İşlemi" : " Masraf reddetme işlemi ";
+                message = this.direction == 0 ? "Masraf Onaylama İşlemi " : this.direction == -1 ? "Masraf tamamlama işlemi " : this.direction == 3 ? "Masraf Düzeltme İşlemi" : " Masraf reddetme işlemi ";
                 var pA_Transaction = db.GetPA_TransactionById(this.id);
                 if (pA_Transaction != null)
                 {
@@ -882,28 +882,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 }
                 if (notNullOrder == null)
-                {
-                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.ruleUserId.HasValue).confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
+                {                    
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
-                    {
-
-                        this.createdby = getTrans.createdby;
-                        var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                        foreach (var user in users)
+                    {   
+                        
+                        var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.confirmationUserIds!=null);
+                        if (isUserExist != null)
                         {
-                            var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                            text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
-                            if (!string.IsNullOrEmpty(this.description))
-                            {
-                                text += "<p>Açıklaması : " + this.description + "</p>";
-                            }
-                            text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
-                            text += "<p>Bilgilerinize.</p>";
-                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                            notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
-                        }
+                            var users = db.GetVWSH_UserByIds(isUserExist.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
 
+                            this.createdby = getTrans.createdby;
+                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                            foreach (var user in users)
+                            {
+                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                                text += "<p>" + createdUser.FullName + " kişisi masraf talebinde bulunmuştur.</p>";
+                                if (!string.IsNullOrEmpty(this.description))
+                                {
+                                    text += "<p>Açıklaması : " + this.description + "</p>";
+                                }
+                                text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
+                                text += "<p>Bilgilerinize.</p>";
+                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
+                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                            }
+                        }
                     }
                 }
                 else

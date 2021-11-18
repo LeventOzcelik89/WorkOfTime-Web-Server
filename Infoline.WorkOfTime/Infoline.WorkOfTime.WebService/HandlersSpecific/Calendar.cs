@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
 
                 var db = new WorkOfTimeDatabase();
                 var userRole = db.GetSH_UserRoleByUserId(CallContext.Current.UserId);
-                if(userRole.Count(x => x.roleid == new Guid(SHRoles.SahaGorevMusteri)) > 0)
+                if (userRole.Count(x => x.roleid == new Guid(SHRoles.SahaGorevMusteri)) > 0)
                 {
                     RenderResponse(context, new MyCalendar[] { });
                 }
@@ -138,7 +138,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
                             {
                                 first = true;
                             }
-                            listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+
+                            if (first)
+                            {
+                                listData.Add(new VWCRM_Contact().B_EntityDataCopyForMaterial(data));
+                            }
+
                             timeCounter = timeCounter.AddDays(1);
                         }
                     }
