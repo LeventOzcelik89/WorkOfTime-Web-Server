@@ -42,7 +42,7 @@
             });
         },
         kendoDropDownChange: function (e) {
-            var tagify = $("#userMails").data("tagify")
+            var tagify = $("#userMails").data("tagify");
             var item = e.sender.dataItem();
             tagify.removeAllTags();
             tagify.addTags(item.email, true, true);
@@ -88,7 +88,13 @@
     }
     function onChangeCustomer(e) {
         var customer = e.sender.dataItem();
+
+
         if (this.value() != "") {
+            $("#customerStorageModal").removeAttr("disabled");
+            $("#customerStorageModal").attr("data-href", "/CMP/VWCMP_Storage/GetTreeView?customerId=" + customer.id)
+
+
             var filter = ("(lastActionDataCompanyId~eq~'" + customer.id + "')");
             var filterJSON = kendo.filterParser(filter);
             $('#fixtureIds').data("kendoMultiSelect").dataSource.filter(filterJSON);
@@ -101,7 +107,7 @@
             $("#fixtureIds").data("handler").value([]);
         }
     }
-  
+
 
     $(document)
         .on("change", '[name="type"][type="radio"]', function (c) {
@@ -265,7 +271,8 @@
             <label class="control-label label-md " for="customerStorageId">Şube/Depo/Kısım</label>
         </div>
         <div class="col-md-8">
-            @(
+            <div class="input-group m-b">
+                @(
             Html.Akilli()
             .DropDownListFor(model => model.customerStorageId)
             .OptionLabel("Lütfen Şube/Depo/Kısım Seçimi Yapınız..")
@@ -278,8 +285,13 @@
             .CascadeFromField("companyId")
             .Sort(x => x.Add("fullName").Ascending())
             .Events(x=>x.Select("insertAll.kendoDropDownChange"))
+           
             .Execute()
                 )
+                <span class="input-group-addon"><a disabled id="customerStorageModal" data-task="Insert"  data-show="single" data-modal="true" data-method="get" data-href=""  class="btn btn-primary"><i class="fa fa-code-fork"></i></a></span>
+            </div>
+           
+       
         </div>
     </div>
     <div class="form-group">
@@ -587,4 +599,14 @@
             Görev Oluştur
         </button>
     </div>
+    <script>
+        
+        $(document).on("click", "#treeStorage", function () {
+
+            console.log("yes")
+
+        });
+
+
+    </script>
 }

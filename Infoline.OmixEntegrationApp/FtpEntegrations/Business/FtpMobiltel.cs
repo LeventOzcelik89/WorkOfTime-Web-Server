@@ -15,8 +15,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
     public class FtpMobitel : IFtpDistributorEntegration
     {
         public FtpConfiguration ftpConfiguration { get; set; }
-        public string DistributorName { get { return "MobilTel"; } }
-        public Guid DistributorId { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); }}
+        public string DistributorName
+        { get { return "MobilTel"; } }
+        public Guid DistributorId
+        { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
 
         public FtpMobitel()
         {
@@ -147,7 +149,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             Log.Warning("There are {0} Files to Process...", entegrationFileList.Count());
             return entegrationFileList.ToArray();
         }
-
 
         public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {

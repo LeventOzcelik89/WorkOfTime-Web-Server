@@ -58,6 +58,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_Storage>().Where(a => a.companyId == companyId).Execute().ToArray();
             }
         }
+        public bool GetVWCMP_StorageByPid(Guid pid, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCMP_Storage>().Where(a => a.pid == pid).Execute().Any();
+            }
+        }
 
         public Guid[] GetVWCMP_StorageBySupervisorIdOfCompanyIds(Guid userId, DbTransaction tran = null)
         {

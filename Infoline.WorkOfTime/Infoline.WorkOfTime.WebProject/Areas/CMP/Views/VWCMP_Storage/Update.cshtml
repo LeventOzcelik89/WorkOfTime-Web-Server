@@ -1,126 +1,142 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWCMP_Storage
 @{
-	ViewBag.Title = "İşletme Şube/Depo/Kısım Güncelle";
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "İşletme Şube/Depo/Kısım Güncelle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 
 <script type="text/javascript" data-selector="modalContainer">
-	$(document)
-		.on('change', '#location', function () {
-			var location = $('#location').val()
-			if (location != "") {
-				GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
-					if (resp) {
-						DropDownSetValue($("#locationId").data("kendoDropDownList"), resp.id);
-						$('#address').val(resp.pid_Title);
-					}
-				})
-			}
-		})
+    $(document)
+        .on('change', '#location', function () {
+            var location = $('#location').val()
+            if (location != "") {
+                GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
+                    if (resp) {
+                        DropDownSetValue($("#locationId").data("kendoDropDownList"), resp.id);
+                        $('#address').val(resp.pid_Title);
+                    }
+                })
+            }
+        })
 
-	function onChangeCompany(e) {
-		var company = e.sender.dataItem();
-		if (this.value() != "") {
-			var filter = ("((type~eq~'0'~or~companyId~eq~'" + company.id + "')~and~IsWorking~eq~'1')");
-			var filterJSON = kendo.filterParser(filter);
-			$('#supervisorId').data("kendoDropDownList").dataSource.filter(filterJSON);
-			$("#supervisorId").data("handler").enable(true);
+    function onChangeCompany(e) {
+        var company = e.sender.dataItem();
+        if (this.value() != "") {
+            var filter = ("((type~eq~'0'~or~companyId~eq~'" + company.id + "')~and~IsWorking~eq~'1')");
+            var filterJSON = kendo.filterParser(filter);
+            $('#supervisorId').data("kendoDropDownList").dataSource.filter(filterJSON);
+            $("#supervisorId").data("handler").enable(true);
 
-		} else {
-			$("#supervisorId").data("handler").enable(false);
-			$("#supervisorId").data("handler").value([]);
-		}
-	}
+        } else {
+            $("#supervisorId").data("handler").enable(false);
+            $("#supervisorId").data("handler").value([]);
+        }
+    }
 </script>
 
 @using (Html.BeginForm("Update", "VWCMP_Storage", FormMethod.Post, new Dictionary<string, object>() {
-	{ "class", "form-horizontal" },
-	{ "role", "form" },
-	{ "data-selector", "modalContainer" },
-	{ "data-formType", "Ajax" }
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
 }))
 {
-	@Html.AntiForgeryToken()
-	@Html.HiddenFor(model => model.id)
-	@Html.HiddenFor(model => model.companyId)
-	@Html.HiddenFor(model => model.pid)
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.companyId)
 
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md" for="companyId_Title">İşletme</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextBoxFor(model => model.companyId_Title, new Dictionary<string, object>()
-			 {
-				 {"class", "form-control"},
-				 {"readonly","readonly" }
-			 })
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="companyId_Title">İşletme</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.companyId_Title, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"readonly","readonly" }
+             })
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="code">Bağlı Depo/Şube/Kısım</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.pid)
+                    .OptionLabel("Lütfen Depo/Şube/Kısım Seçiniz")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Filter<CMP_Storage>(a => a.companyId== Model.companyId)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Execute()
+                )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="code">Kodu</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen Kodu giriniz.."}
+             }).Validate(Validations.TextEverywhere(true, 0, 50))
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md req" for="code">Kodu</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
-			 {
-				 {"class", "form-control"},
-				 {"placeholder", "Lütfen Kodu giriniz.."}
-			 }).Validate(Validations.TextEverywhere(true, 0, 50))
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="name">İsmi</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen İsmi giriniz.."}
+             }).Validate(Validations.TextEverywhere(true, 0, 250))
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md req" for="name">İsmi</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
-			 {
-				 {"class", "form-control"},
-				 {"placeholder", "Lütfen İsmi giriniz.."}
-			 }).Validate(Validations.TextEverywhere(true, 0, 250))
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Telefon">Telefon</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.phone, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Telefon giriniz.."}
+                        }).Validate(Validations.TelefonNo(false))
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md" for="Telefon">Telefon</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextBoxFor(model => model.phone, new Dictionary<string, object>()
-						{
-							{"class", "form-control"},
-							{"placeholder", "Lütfen Telefon giriniz.."}
-						}).Validate(Validations.TelefonNo(false))
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Email">Email</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Email giriniz.."}
+                        }).Validate(Validations.EMail(false))
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md" for="Email">Email</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
-						{
-							{"class", "form-control"},
-							{"placeholder", "Lütfen Email giriniz.."}
-						}).Validate(Validations.EMail(false))
-		</div>
-	</div>
+    if (Model.companyId.HasValue)
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="İşletme">Şube/Depo/Kısım Sorumlusu</label>
+            </div>
+            <div class="col-md-8">
 
-	if (Model.companyId.HasValue)
-	{
-		<div class="form-group">
-			<div class="col-md-4">
-				<label class="control-label label-md" for="İşletme">Şube/Depo/Kısım Sorumlusu</label>
-			</div>
-			<div class="col-md-8">
-
-				@(Html.Akilli()
+                @(Html.Akilli()
                 .DropDownListFor(model => model.supervisorId)
                 .OptionLabel("Lütfen Görevli Personel Seçiniz..")
                 .DataTextField("FullName")
@@ -134,18 +150,18 @@
                 .Execute("id")
                 )
 
-			</div>
-		</div>
-	}
-	else
-	{
-		<div class="form-group">
-			<div class="col-md-4">
-				<label class="control-label label-md" for="İşletme">Şube/Depo/Kısım Sorumlusu</label>
-			</div>
-			<div class="col-md-8">
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="İşletme">Şube/Depo/Kısım Sorumlusu</label>
+            </div>
+            <div class="col-md-8">
 
-				@(Html.Akilli()
+                @(Html.Akilli()
                 .DropDownListFor(model => model.supervisorId)
                 .OptionLabel("Lütfen Görevli Personel Seçiniz..")
                 .DataTextField("FullName")
@@ -159,16 +175,16 @@
                 .Execute("id")
             )
 
-			</div>
-		</div>
-	}
+            </div>
+        </div>
+    }
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md req" for="location">Lokasyon</label>
-		</div>
-		<div class="col-md-8">
-			@(
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="location">Lokasyon</label>
+        </div>
+        <div class="col-md-8">
+            @(
                  Html.Akilli().MapInputFor(a => a.location).
                  HelpText("Lütfen Lokasyon seçiniz.").
                  HtmlAttributes(new Dictionary<string, object>()
@@ -182,15 +198,15 @@
                  Navigation(false).
                  Searchable(true)
             )
-		</div>
-	</div>
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
-		</div>
-		<div class="col-md-8">
-			@(
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
+        </div>
+        <div class="col-md-8">
+            @(
                       Html.Akilli()
                       .DropDownListFor(model => model.locationId)
                       .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
@@ -201,25 +217,25 @@
                       .Sort(x => x.Add("pid_Title").Ascending())
                       .Execute()
             )
-		</div>
-	</div>
+        </div>
+    </div>
 
-	<div class="form-group">
-		<div class="col-md-4">
-			<label class="control-label label-md req" for="address">Adres</label>
-		</div>
-		<div class="col-md-8">
-			@Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
-			 {
-				 {"class", "form-control"},
-				 {"placeholder", "Lütfen Adres giriniz.."}
-			 }).Validate(Validations.TextEverywhere(true, 0, 1000))
-		</div>
-	</div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="address">Adres</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen Adres giriniz.."}
+             }).Validate(Validations.TextEverywhere(true, 0, 1000))
+        </div>
+    </div>
 
-	<div class="buttons">
-		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-	</div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
 
 }

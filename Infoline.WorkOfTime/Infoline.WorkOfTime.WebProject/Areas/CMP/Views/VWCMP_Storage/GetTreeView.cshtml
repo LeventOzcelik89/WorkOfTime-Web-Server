@@ -1,0 +1,52 @@
+﻿@model Guid
+@{
+    ViewBag.Title = "Bağlı Depo/Şube/Kısım";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+<script id="treeview-template" data-selector="modalContainer" type="text/kendo-ui-template">
+    <div data-id="#: item.id#"> #: item.Name# </div>
+   
+</script>
+<script data-selector="modalContainer">
+    function treeSelect(e) {
+        var id = $(e.node).find('[data-id]').attr("data-id");
+        var dropdownlist = $("#customerStorageId").data("kendoDropDownList");
+        dropdownlist.value(id);
+        dropdownlist.trigger("change");
+
+    }
+</script>
+
+@using (Html.BeginForm("", "", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id","VWFTM_TaskInsertForm" }
+}))
+{
+
+    @(
+        @Html.Kendo().TreeView()
+        .Name("treeview")
+        .DataTextField("Name")
+          .TemplateId("treeview-template")
+        .Events(x=>x.Select("treeSelect"))
+        .DataSource(dataSource => dataSource
+            .Read(read => read
+                .Action("GetTreeViewData", "VWCMP_Storage",new { area="CMP",customerId=Model })
+            )
+        )
+)
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" data-task="modalClose"  type="button">
+            Seç
+        </button>
+    </div>
+
+
+
+}
+
