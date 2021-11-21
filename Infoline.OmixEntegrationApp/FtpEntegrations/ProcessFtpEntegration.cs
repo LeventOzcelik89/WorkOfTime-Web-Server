@@ -16,8 +16,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
         public void Run()
         {
 
-            var entegrationFilesModel = new FtpMobitel();
-            entegrationFilesModel.ExportFilesToDatabase();
+            //var entegrationFilesModel = new FtpMobitel();
+            //entegrationFilesModel.ExportFilesToDatabase();
+            var entegrationForGenpa = new FtpGenpa();
+            entegrationForGenpa.ExportFilesToDatabase();
 
         }
         public void Dispose()

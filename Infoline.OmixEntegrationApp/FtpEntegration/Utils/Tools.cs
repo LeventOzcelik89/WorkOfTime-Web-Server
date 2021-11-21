@@ -36,5 +36,23 @@ namespace Infoline.OmixEntegrationApp.FtpEntegration.Utils
                 return DateTime.ParseExact(fileName, dateTimeFormat, CultureInfo.InvariantCulture);
             }
         }
+        public static DateTime GetDateFromFileNameForGenpa(string fileName, string dateTimeFormat)
+        {
+            if (fileName.Contains("SELLIN"))
+            {
+                fileName = fileName.Substring(7);
+                fileName = fileName.Substring(0, fileName.Length-13);
+                fileName = fileName.Split('.')[0];
+                return DateTime.ParseExact(fileName, dateTimeFormat, CultureInfo.InvariantCulture);
+            }
+            else
+            {
+                fileName = fileName.Substring(8);
+                fileName = fileName.Substring(0, fileName.Length-13);
+                fileName = fileName.Split('.')[0];
+
+                return DateTime.ParseExact(fileName, dateTimeFormat, CultureInfo.InvariantCulture);
+            }
+        }
     }
 }
