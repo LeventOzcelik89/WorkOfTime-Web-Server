@@ -359,12 +359,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             if (getStorage != null)
             {
                 var storages = from e in getStorage
-                               where (id.HasValue ? e.pid== id : e.pid== null)
+                               where (id.HasValue ? e.pid == id : e.pid == null)
                                select new
                                {
                                    id = e.id,
                                    Name = e.fullName,
-                                   hasChildren =  db.GetVWCMP_StorageByPid(e.id)
+                                   companyId_Image = e.companyId_Image,
+                                   companyId_Title = e.companyId_Title,
+                                   name = e.name,
+                                   code = e.code,
+                                   locationId_Title = e.locationId_Title,
+                                   hasChildren = db.GetVWCMP_StorageByPid(e.id)
                                };
                 return Json(storages, JsonRequestBehavior.AllowGet);
             }
@@ -481,6 +486,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             }).ToArray();
             return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
         }
+
+
+
+        [PageInfo("Tree View için veriler",SHRoles.Personel)]
+        public JsonResult TreeDataSource([DataSourceRequest] DataSourceRequest request, Guid? id)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var page = request.Page;
+            request.Filters = new FilterDescriptor[0];
+            request.Sorts = new SortDescriptor[0];
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWCMP_Storage(condition).RemoveGeographies().ToTreeDataSourceResult(request,
+               e => e,
+               e => id.HasValue ? e.pid.Value == id : e.pid == null
+                );
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+
+
+
         public string BreadCrumps(bool first = false, Guid? pid = null, string name = "")
         {
             var text = "#<li class=\"" + (first ? "active" : "") + "\" style=\"" + (first ? "font-weight:bold;" : "") + "\">";

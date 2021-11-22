@@ -6,6 +6,7 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -54,7 +55,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-30);
+            var processDate = DateTime.Now.AddDays(-150);
             var entegrationFileList = GetFilesInFtp(processDate);
 
             var result = new ResultStatus();
@@ -88,7 +89,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
             Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
-            var directoryItems = new List<FtpEntegration.Entities.DirectoryItem>();
+            var directoryItems = new List<DirectoryItem>();
             var fileList = new List<FileNameWithUrl>();
 
             try
@@ -105,16 +106,17 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
                 foreach (string line in lineList.Where(x => x.Contains("SELLIN") || x.Contains("SELLTHR")))
                 {
-                    var item = new FtpEntegration.Entities.DirectoryItem();
-
+                    var item = new DirectoryItem();
+                    var fileDate = DateTime.ParseExact(line.Substring(0, 17),"MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture);
                     var fileName = Tools.GetItemName(line);
                     item.BaseUri = this.ftpConfiguration.Url;
                     item.IsDirectory = Tools.IsDir(line);
                     item.Name = fileName;
+                    item.DateFileCreated = fileDate;
                     directoryItems.Add(item);
                     if (!item.IsDirectory)
                     {
-                        fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
+                        fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                     }
                 }
             }
@@ -125,7 +127,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
 
             var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate);
+            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate,DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
@@ -141,7 +143,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     DistributorName = DistributorName,
                     DistributorId = DistributorId,
                     FileName = file.DirectoryFileName,
-                    FileNameDate = FtpEntegration.Utils.Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
+                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
                     ProcessTime = DateTime.Now,
                     FileTypeName = FileTypeName(file.FileName)
                 });

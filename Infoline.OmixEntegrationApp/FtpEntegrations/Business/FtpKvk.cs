@@ -6,31 +6,24 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Xml;
 namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 {
-    public class FtpGenpa : IFtpDistributorEntegration
+    public class FtpKvk : IFtpDistributorEntegration
     {
-        public FtpConfiguration ftpConfiguration { get; private set; }
-        private string Token { get; set; }
-        public string DistributorName { get { return "Genpa"; } }
-        public Guid DistributorId { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
-        private string DirUrl { get; set; }
-        private string LoginUrl { get; set; }
-        public FtpGenpa()
+        public FtpConfiguration ftpConfiguration { get; set; }
+
+        public string DistributorName => "KVK";
+
+        public Guid DistributorId => new Guid("6fc15dc2-e1ce-46e2-8b3e-2e23badb1e80");
+
+
+        public FtpKvk()
         {
             SetFtpConfiguration();
-            Login();
-            GetFilesInFtp(DateTime.Now);
-        }
-        public WorkOfTimeDatabase GetDbConnection()
-        {
-            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
-            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
-            return tenant.GetDatabase();
         }
         public ResultStatus ExportFilesToDatabase()
         {
@@ -57,13 +50,21 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     {
                         var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
                         if (!bultInsertResult.result)
-                            Log.Info("SellIn Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
+                            Log.Info("SellThr Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
                     }
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
             }
             return result;
         }
+
+        public WorkOfTimeDatabase GetDbConnection()
+        {
+            var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
+            var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
+            return tenant.GetDatabase();
+        }
+
         public string FileTypeName(string fileName)
         {
             if (fileName.Contains("SELLIN"))
@@ -75,65 +76,82 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             else
                 return null;
         }
+
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
-            Log.Info("Getting All File Names On Genpa Wing Ftp Server");
-            var directoryItems = new List<DirectoryItem>();
+            Log.Info(string.Format("Getting All File Names From Kvk Server {0}", ftpConfiguration.Url));
+            var fileList = new List<FileNameWithUrl>();
             try
             {
-                var webRequest = WebRequest.Create(DirUrl);
-                webRequest.Headers.Add("Cookie", "client_lang=turkish; client_login_name=omix; viewmode=0; " + Token + " ");
-                webRequest.Method = "POST";
-                XmlDocument document = new XmlDocument();
-                using (var response = webRequest.GetResponse())
-                using (var content = response.GetResponseStream())
-                using (XmlReader reader = XmlReader.Create(content))
+                FtpWebRequest request = (FtpWebRequest)FtpWebRequest.Create(ftpConfiguration.Url);
+                request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
+                request.Credentials = new NetworkCredential(ftpConfiguration.UserName, ftpConfiguration.Password);
+                string[] list = null;
+                using (FtpWebResponse response = (FtpWebResponse)request.GetResponse())
+                using (StreamReader reader = new StreamReader(response.GetResponseStream()))
                 {
-                    document.Load(reader);
-                    var tagName = document.DocumentElement.GetElementsByTagName("name");
-                    var dates = document.DocumentElement.GetElementsByTagName("date");
-                    for (int i = 0; i < tagName.Count; i++)
+                    list = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+                }
+                foreach (string line in list)
+                {
+                    DirectoryItem item = new DirectoryItem();
+                    string data = line;
+                    var dateString = line.Substring(43, 56 - 44);
+
+                    bool isDirectory = data[0].ToString() == "d";
+                    var name = data.Substring(56);
+                    item.DateFileCreated = DateTime.ParseExact(line.Substring(43, 56 - 44), "MMM dd HH:mm", CultureInfo.InvariantCulture);
+                    item.Name = name;
+                    item.BaseUri = ftpConfiguration.Url;
+                    item.IsDirectory = isDirectory;
+
+                    if (name == "." || name == "..")
                     {
-                        var fileName = tagName[i].InnerText;
-                        var date = DateTime.Parse(dates[i].InnerText);
-                        if ((fileName.Contains("SELLIN") || fileName.Contains("SELLTHR")))
+                    }
+                    else
+                    {
+                        if (!isDirectory)
                         {
-                            directoryItems.Add(new DirectoryItem { Name = fileName, DateFileCreated = date });
+                            fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                         }
                     }
                 }
             }
             catch (Exception e)
             {
-                Log.Error("GENPA : " + e.ToString());
-            };
+                Log.Error(ftpConfiguration.Url + " failed! : " + e.Message);
+            }
             var db = GetDbConnection();
             var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate, DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
-            foreach (var file in directoryItems)
+            foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.Name)))
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
                     continue;
+
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
                     createdby = Guid.Empty,
-                    CreateDateInFtp = file.DateFileCreated,
+                    CreateDateInFtp = file.FileCreatedDate,
                     DistributorName = DistributorName,
                     DistributorId = DistributorId,
-                    FileName = file.Name,
-                    FileNameDate = Tools.GetDateFromFileNameForGenpa(file.Name, "yyyyMMdd"),
+                    FileName = file.DirectoryFileName,
+                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMdd"),
                     ProcessTime = DateTime.Now,
-                    FileTypeName = FileTypeName(file.Name)
+                    FileTypeName = FileTypeName(file.FileName)
                 });
             }
+            Log.Warning("There are {0} Files to Process...", entegrationFileList.Count());
             return entegrationFileList.ToArray();
         }
+
         public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;
+
             try
             {
                 List<PropertyIndex> Index = new List<PropertyIndex>();
@@ -159,35 +177,35 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        if (indexName == "InvoiceNumber")
+                                        if (indexName.ToLower() == "invoicenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
-                                        if (indexName == "Dist")
+                                        if (indexName.ToLower() == "dist"|| indexName.ToLower() == "dıst")
                                             item.DistributorName = rawFileCheckedData;
-                                        if (indexName == "CustomerOperatorCode")
+                                        if (indexName.ToLower() == "customeroperatorcode")
                                             item.CustomerOperatorCode = rawFileCheckedData;
-                                        if (indexName == "CustomerGenpaCode" || indexName == "CustomerKVKCode" || indexName == "CustomerMobitelCode")
+                                        if (indexName.ToLower() == "customerGenpaCode" || indexName.ToLower() == "customerkvkcode" || indexName == "customermobitelcode")
                                             item.CustomerOperatorCode = rawFileCheckedData; //TODO: Check
-                                        if (indexName == "CustomerName")
+                                        if (indexName.ToLower() == "customername"|| indexName.ToLower() == "customer_name")
                                             item.CustomerOperatorName = rawFileCheckedData;
-                                        if (indexName == "BranchCode")
+                                        if (indexName.ToLower() == "branchcode")
                                             item.BranchCode = rawFileCheckedData;
-                                        if (indexName == "BranchName")
+                                        if (indexName.ToLower() == "branchname")
                                             item.BranchName = rawFileCheckedData;
-                                        if (indexName == "TaxNumber")
+                                        if (indexName.ToLower() == "taxnumber"|| indexName.ToLower() == "tax_number")
                                             item.TaxNumber = rawFileCheckedData;
-                                        if (indexName == "ConsolidationCode")
+                                        if (indexName.ToLower() == "consolidationcode")
                                             item.ConsolidationCode = rawFileCheckedData;
-                                        if (indexName == "ConsolidationName")
+                                        if (indexName.ToLower() == "consolidationname")
                                             item.ConsolidationName = rawFileCheckedData;
-                                        if (indexName == "Imei")
+                                        if (indexName.ToLower() == "imei"|| indexName.ToLower() == "ımei")
                                             item.Imei = rawFileCheckedData;
-                                        if (indexName == "SeriNo")
+                                        if (indexName.ToLower() == "serino")
                                             item.SerialNo = rawFileCheckedData;
-                                        if (indexName == "Quantity")
+                                        if (indexName.ToLower() == "quantity")
                                             item.Quantity = Convert.ToInt32(rawFileCheckedData);
-                                        if (indexName == "City")
+                                        if (indexName.ToLower() == "city"||indexName.ToLower()=="cıty")
                                             item.CustomerOperatorStorageCity = rawFileCheckedData;
-                                        if (indexName == "Town")
+                                        if (indexName.ToLower() == "town")
                                             item.CustomerOperatorStorageTown = rawFileCheckedData;
                                     }
                                 }
@@ -201,6 +219,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
+
                         item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
                         item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
                         item.DistributorId = DistributorId;
@@ -220,87 +239,48 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return sellThrs.ToArray();
         }
-        private IEnumerable<string[]> GetRawFile(string FileName)
-        {
-            var liststringArray = new List<string[]>();
-            var downloadUrl = "https://ftp.genpa.com.tr/?download&filename=" + FileName + "&" + Token + "&r=0.9193858193742144";
-            var webRequest = WebRequest.Create(downloadUrl);
-            using (var response = webRequest.GetResponse())
-            using (var content = response.GetResponseStream())
-            using (var reader = new StreamReader(content))
-            {
-                string line;
-                try
-                {
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        List<string> splitedLines = line.Split('\t').ToList();
-                        liststringArray.Add(splitedLines.ToArray());
-                    }
-                    response.Close();
-                    reader.Close();
-                }
-                catch (Exception e)
-                {
-                    Log.Error(e.Message);
-                }
-            }
-            return liststringArray;
-        }
+
         public void SetFtpConfiguration()
         {
-            var userName = ConfigurationManager.AppSettings["GenpaUserName"].ToString();
-            var password = ConfigurationManager.AppSettings["GenpaPassword"].ToString();
-            var dirUrl = ConfigurationManager.AppSettings["GenpaDirUrl"].ToString();
-            if (dirUrl == null)
+            var kvkUserName = ConfigurationManager.AppSettings["KvkUserName"].ToString();
+            var kvkPassword = ConfigurationManager.AppSettings["KvkPassword"].ToString();
+            var kvkUrl = ConfigurationManager.AppSettings["KvkHost"].ToString() ?? "";
+            ftpConfiguration = new FtpConfiguration
             {
-                Log.Error("GenpaDir Url Not Found!");
-            }
-            else
-            {
-                this.DirUrl = dirUrl;
-            }
-            var loginUrl = ConfigurationManager.AppSettings["GenpaLoginUrl"].ToString();
-            if (loginUrl == null)
-            {
-                Log.Error("LoginUrl Not Found!");
-            }
-            else
-            {
-                this.LoginUrl = loginUrl;
-            }
-            this.ftpConfiguration = new FtpConfiguration
-            {
-                Password = password,
-                UserName = userName,
+                Url = kvkUrl,
+                UserName = kvkUserName,
+                Password = kvkPassword
             };
+
+
         }
-        private void Login()
+        private IEnumerable<string[]> GetRawFile(string fileName)
         {
-            Log.Info("Logging On Genpa Wing Ftp Server");
+            Log.Info(string.Format("Getting File  {0} on KVK Server", fileName));
+            var listStringArray = new List<string[]>();
+            var request = (FtpWebRequest)WebRequest.Create(fileName);
+            request.Method = WebRequestMethods.Ftp.DownloadFile;
+            request.Credentials = new NetworkCredential(ftpConfiguration.UserName, ftpConfiguration.Password);
+            var response = (FtpWebResponse)request.GetResponse();
+            var responseStream = response.GetResponseStream();
+            var reader = new StreamReader(responseStream);
+            string line;
             try
             {
-                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
-                var httpRequest = (HttpWebRequest)WebRequest.Create(LoginUrl);
-                httpRequest.Method = "POST";
-                httpRequest.ContentType = "multipart/form-data";
-                var formData = "username=" + this.ftpConfiguration.UserName + "&password=" + ftpConfiguration.Password + "&username_val=" + ftpConfiguration.UserName + "&password_val=" + ftpConfiguration.Password + "&submit_btn=Oturum%20A%C3%A7";
-                using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
+                while ((line = reader.ReadLine()) != null)
                 {
-                    streamWriter.Write(formData);
+                    List<string> splitedLines = line.Split('\t').ToList();
+                    listStringArray.Add(splitedLines.ToArray());
                 }
-                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
-                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
-                {
-                    var cookie = httpResponse.Headers["Set-Cookie"];
-                    int indexofComma = cookie.IndexOf(';');
-                    Token = cookie.Substring(0, indexofComma);
-                }
+                response.Close();
+                reader.Close();
             }
             catch (Exception e)
             {
-                Log.Error("GENPA : " + e.ToString());
+                Log.Warning(e.Message);
             }
+            return listStringArray;
         }
     }
 }
+

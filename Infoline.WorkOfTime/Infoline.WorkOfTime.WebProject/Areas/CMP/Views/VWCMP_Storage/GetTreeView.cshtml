@@ -5,8 +5,14 @@
 
 }
 <script id="treeview-template" data-selector="modalContainer" type="text/kendo-ui-template">
-    <div data-id="#: item.id#"> #: item.Name# </div>
-   
+     <div class="clearfix" style="padding:8px 0;" data-id="#:item.id#">
+        <img class="img-circle img-responsive pull-left" style="width:40px;height:40px;" src="#:(item.companyId_Image ? item.companyId_Image : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
+        <div style="height:60px;float:right;">
+            <div class="template-item">#:item.name# | #:item.code#</div>
+            <div class="template-item">#:(item.companyId_Title ? item.companyId_Title : '-')#</div>
+            <div class="template-item"><small>#:(item.locationId_Title ? item.locationId_Title : '-')#</small></div>
+        </div>
+    </div>
 </script>
 <script data-selector="modalContainer">
     function treeSelect(e) {
@@ -16,6 +22,12 @@
         dropdownlist.trigger("change");
 
     }
+    $("[data-id]").dblclick(function () {
+        var modal = $(this).parents('.modal')
+        modal.modal("hide");
+    });
+    
+
 </script>
 
 @using (Html.BeginForm("", "", FormMethod.Post, new Dictionary<string, object>() {
@@ -26,9 +38,9 @@
     { "id","VWFTM_TaskInsertForm" }
 }))
 {
-
+<div style="max-width:500px;width:500px;overflow-y:scroll"> 
     @(
-        @Html.Kendo().TreeView()
+        Html.Kendo().TreeView()
         .Name("treeview")
         .DataTextField("Name")
           .TemplateId("treeview-template")
@@ -39,6 +51,8 @@
             )
         )
 )
+</div>
+
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
         <button class="btn btn-md btn-success pull-right" data-task="modalClose"  type="button">
