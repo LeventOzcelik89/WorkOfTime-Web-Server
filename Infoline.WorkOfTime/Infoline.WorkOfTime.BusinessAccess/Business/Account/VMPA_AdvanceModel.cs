@@ -670,25 +670,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
                 if (notNullOrder == null)
                 {
-                    var users = db.GetVWSH_UserByIds(confirmations.OrderBy(x => x.ruleOrder).Where(x => x.ruleUserId.HasValue).FirstOrDefault().confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-                    var getAdvance = db.GetPA_AdvanceById(this.id);
-                    if (getAdvance != null)
+                    var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.confirmationUserIds != null);
+                    if (isUserExist != null)
                     {
+                        var users = db.GetVWSH_UserByIds(isUserExist.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
 
-                        this.createdby = getAdvance.createdby;
-                        var createdUser = db.GetVWSH_UserById(this.createdby.Value);
-                        foreach (var user in users)
+                        var getAdvance = db.GetPA_AdvanceById(this.id);
+                        if (getAdvance != null)
                         {
 
-                            var text = "<h3>Sayın " + user.FullName + ",</h3>";
-                            text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
-                            if (!string.IsNullOrEmpty(this.description))
+                            this.createdby = getAdvance.createdby;
+                            var createdUser = db.GetVWSH_UserById(this.createdby.Value);
+                            foreach (var user in users)
                             {
-                                text += "<p>Açıklaması : " + this.description + "</p>";
+
+                                var text = "<h3>Sayın " + user.FullName + ",</h3>";
+                                text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
+                                if (!string.IsNullOrEmpty(this.description))
+                                {
+                                    text += "<p>Açıklaması : " + this.description + "</p>";
+                                }
+                                text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" + this.id + "'>Detaya gitmek için tıklayınız.</a> </p>";
+                                text += "<p>Bilgilerinize.</p>";
+                                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
                             }
-                            text += "<p><a href='" + getTenantUrl + "/PA/VWPA_Advance/Detail?id=" +this.id+ "'>Detaya gitmek için tıklayınız.</a> </p>";
-                            text += "<p>Bilgilerinize.</p>";
-                            new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Avans Talebi ", text).Send((Int16)EmailSendTypes.AvansOnay, user.email, "Avans Talebi", true);
                         }
                     }
 

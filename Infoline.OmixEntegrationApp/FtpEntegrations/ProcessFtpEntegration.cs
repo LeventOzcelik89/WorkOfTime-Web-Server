@@ -1,8 +1,5 @@
 ﻿using Infoline.OmixEntegrationApp.FtpEntegrations.Business;
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 namespace Infoline.OmixEntegrationApp.FtpEntegrations
 {
 
@@ -18,6 +15,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
 
             var entegrationFilesModel = new FtpMobitel();
             entegrationFilesModel.ExportFilesToDatabase();
+            var entegrationForGenpa = new FtpGenpa();
+            entegrationForGenpa.ExportFilesToDatabase();
+            var entegrationForKvk = new FtpKvk();
+            entegrationForKvk.ExportFilesToDatabase();
+
+            var entegrationForPort = new FtpPort();
+            entegrationForPort.ExportFilesToDatabase();
+
 
         }
         public void Dispose()

@@ -559,6 +559,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             breakHoursStringValue = "-";
                             lateArrivedString = "Tatil Günü";
                             earlyLeaveString = "Tatil Günü";
+                            lastStatus = "Tatil Günü";
                         }
 
                         listData.Add(new VMSH_ShiftTrackingReport

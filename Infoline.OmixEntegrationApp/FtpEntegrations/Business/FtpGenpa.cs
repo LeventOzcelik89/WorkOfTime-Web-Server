@@ -6,56 +6,35 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-
+using System.Xml;
 namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 {
-    public class FtpMobitel : IFtpDistributorEntegration
+    public class FtpGenpa : IFtpDistributorEntegration
     {
-        public FtpConfiguration ftpConfiguration { get; set; }
-        public string DistributorName
-        { get { return "MobilTel"; } }
-        public Guid DistributorId
-        { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
-
-        public FtpMobitel()
+        public FtpConfiguration ftpConfiguration { get; private set; }
+        private string Token { get; set; }
+        public string DistributorName { get { return "Genpa"; } }
+        public Guid DistributorId { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
+        private string DirUrl { get; set; }
+        private string LoginUrl { get; set; }
+        public FtpGenpa()
         {
             SetFtpConfiguration();
+            Login();
+            GetFilesInFtp(DateTime.Now);
         }
-
         public WorkOfTimeDatabase GetDbConnection()
         {
             var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             return tenant.GetDatabase();
         }
-
-        public void SetFtpConfiguration()
-        {
-            var url = ConfigurationManager.AppSettings["MobiltelUrl"].ToString();
-            var userName = ConfigurationManager.AppSettings["MobiltelUserName"].ToString();
-            var password = ConfigurationManager.AppSettings["MobiltelPassword"].ToString();
-            var directory = ConfigurationManager.AppSettings["MobiltelDirectory"].ToString();
-            var readAllDirectory = ConfigurationManager.AppSettings["MobiltelReadAllDirectory"].ToString();
-            var fileExtension = ConfigurationManager.AppSettings["MobiltelFileExtension"].ToString();
-
-            this.ftpConfiguration = new FtpConfiguration
-            {
-                Directory = directory,
-                Password = password,
-                SearchAllDirectory = Convert.ToBoolean(readAllDirectory),
-                Url = url,
-                UserName = userName,
-                FileExtension = fileExtension
-            };
-        }
-
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-150);
+            var processDate = DateTime.Now.AddDays(-30);
             var entegrationFileList = GetFilesInFtp(processDate);
 
             var result = new ResultStatus();
@@ -85,78 +64,76 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return result;
         }
-
+        public string FileTypeName(string fileName)
+        {
+            if (fileName.Contains("SELLIN"))
+                return "SELLIN";
+            else if (fileName.Contains("SELLTHR"))
+                return "SELLTHR";
+            else if (fileName.Contains("STOK"))
+                return "SELLSTK";
+            else
+                return null;
+        }
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
-            Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
+            Log.Info("Getting All File Names On Genpa Wing Ftp Server");
             var directoryItems = new List<DirectoryItem>();
-            var fileList = new List<FileNameWithUrl>();
-
             try
             {
-                var request = (FtpWebRequest)WebRequest.Create(this.ftpConfiguration.Url + this.ftpConfiguration.Directory);
-                request.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
-                request.Credentials = new NetworkCredential(this.ftpConfiguration.UserName, this.ftpConfiguration.Password);
-                string[] lineList = null;
-                using (var response = (FtpWebResponse)request.GetResponse())
-                using (var reader = new StreamReader(response.GetResponseStream()))
+                var webRequest = WebRequest.Create(DirUrl);
+                webRequest.Headers.Add("Cookie", "client_lang=turkish; client_login_name=omix; viewmode=0; " + Token + " ");
+                webRequest.Method = "POST";
+                XmlDocument document = new XmlDocument();
+                using (var response = webRequest.GetResponse())
+                using (var content = response.GetResponseStream())
+                using (XmlReader reader = XmlReader.Create(content))
                 {
-                    lineList = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-                }
-
-                foreach (string line in lineList.Where(x => x.Contains("SELLIN") || x.Contains("SELLTHR")))
-                {
-                    var item = new DirectoryItem();
-                    var fileDate = DateTime.ParseExact(line.Substring(0, 17),"MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture);
-                    var fileName = Tools.GetItemName(line);
-                    item.BaseUri = this.ftpConfiguration.Url;
-                    item.IsDirectory = Tools.IsDir(line);
-                    item.Name = fileName;
-                    item.DateFileCreated = fileDate;
-                    directoryItems.Add(item);
-                    if (!item.IsDirectory)
+                    document.Load(reader);
+                    var tagName = document.DocumentElement.GetElementsByTagName("name");
+                    var dates = document.DocumentElement.GetElementsByTagName("date");
+                    for (int i = 0; i < tagName.Count; i++)
                     {
-                        fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
+                        var fileName = tagName[i].InnerText;
+                        var date = DateTime.Parse(dates[i].InnerText);
+                        if ((fileName.Contains("SELLIN") || fileName.Contains("SELLTHR")))
+                        {
+                            directoryItems.Add(new DirectoryItem { Name = fileName, DateFileCreated = date });
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
-                Log.Error(this.ftpConfiguration.Url + " failed! : " + e.Message);
-                return null;
-            }
-
+                Log.Error("GENPA : " + e.ToString());
+            };
             var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate,DistributorName);
+            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate, DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
-            foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
+            foreach (var file in directoryItems)
             {
-                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.Name)))
                     continue;
-
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
                     createdby = Guid.Empty,
-                    CreateDateInFtp = file.FileCreatedDate,
+                    CreateDateInFtp = file.DateFileCreated,
                     DistributorName = DistributorName,
                     DistributorId = DistributorId,
-                    FileName = file.DirectoryFileName,
-                    FileNameDate = Tools.GetDateFromFileName(file.FileName, "yyyyMMddss"),
+                    FileName = file.Name,
+                    FileNameDate = Tools.GetDateFromFileNameForGenpa(file.Name, "yyyyMMdd"),
                     ProcessTime = DateTime.Now,
-                    FileTypeName = FileTypeName(file.FileName)
+                    FileTypeName = FileTypeName(file.Name)
                 });
             }
-            Log.Warning("There are {0} Files to Process...", entegrationFileList.Count());
             return entegrationFileList.ToArray();
         }
-
         public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;
-
             try
             {
                 List<PropertyIndex> Index = new List<PropertyIndex>();
@@ -224,7 +201,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
-
                         item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
                         item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
                         item.DistributorId = DistributorId;
@@ -244,45 +220,87 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return sellThrs.ToArray();
         }
-
-        public List<string[]> GetRawFile(string fileName)
+        private IEnumerable<string[]> GetRawFile(string FileName)
         {
-            Log.Info(string.Format("Getting File  {0} on Mobitel Server {1}", fileName, ftpConfiguration.Url));
-            var listStringArray = new List<string[]>();
-            var request = (FtpWebRequest)WebRequest.Create(fileName);
-            request.Method = WebRequestMethods.Ftp.DownloadFile;
-            request.Credentials = new NetworkCredential(ftpConfiguration.UserName, ftpConfiguration.Password);
-            var response = (FtpWebResponse)request.GetResponse();
-            var responseStream = response.GetResponseStream();
-            var reader = new StreamReader(responseStream);
-            string line;
+            var liststringArray = new List<string[]>();
+            var downloadUrl = "https://ftp.genpa.com.tr/?download&filename=" + FileName + "&" + Token + "&r=0.9193858193742144";
+            var webRequest = WebRequest.Create(downloadUrl);
+            using (var response = webRequest.GetResponse())
+            using (var content = response.GetResponseStream())
+            using (var reader = new StreamReader(content))
+            {
+                string line;
+                try
+                {
+                    while ((line = reader.ReadLine()) != null)
+                    {
+                        List<string> splitedLines = line.Split('\t').ToList();
+                        liststringArray.Add(splitedLines.ToArray());
+                    }
+                    response.Close();
+                    reader.Close();
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e.Message);
+                }
+            }
+            return liststringArray;
+        }
+        public void SetFtpConfiguration()
+        {
+            var userName = ConfigurationManager.AppSettings["GenpaUserName"].ToString();
+            var password = ConfigurationManager.AppSettings["GenpaPassword"].ToString();
+            var dirUrl = ConfigurationManager.AppSettings["GenpaDirUrl"].ToString();
+            if (dirUrl == null)
+            {
+                Log.Error("GenpaDir Url Not Found!");
+            }
+            else
+            {
+                this.DirUrl = dirUrl;
+            }
+            var loginUrl = ConfigurationManager.AppSettings["GenpaLoginUrl"].ToString();
+            if (loginUrl == null)
+            {
+                Log.Error("LoginUrl Not Found!");
+            }
+            else
+            {
+                this.LoginUrl = loginUrl;
+            }
+            this.ftpConfiguration = new FtpConfiguration
+            {
+                Password = password,
+                UserName = userName,
+            };
+        }
+        private void Login()
+        {
+            Log.Info("Logging On Genpa Wing Ftp Server");
             try
             {
-                while ((line = reader.ReadLine()) != null)
+                ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+                var httpRequest = (HttpWebRequest)WebRequest.Create(LoginUrl);
+                httpRequest.Method = "POST";
+                httpRequest.ContentType = "multipart/form-data";
+                var formData = "username=" + this.ftpConfiguration.UserName + "&password=" + ftpConfiguration.Password + "&username_val=" + ftpConfiguration.UserName + "&password_val=" + ftpConfiguration.Password + "&submit_btn=Oturum%20A%C3%A7";
+                using (var streamWriter = new StreamWriter(httpRequest.GetRequestStream()))
                 {
-                    List<string> splitedLines = line.Split(';').ToList();
-                    listStringArray.Add(splitedLines.ToArray());
+                    streamWriter.Write(formData);
                 }
-                response.Close();
-                reader.Close();
+                var httpResponse = (HttpWebResponse)httpRequest.GetResponse();
+                using (var streamReader = new StreamReader(httpResponse.GetResponseStream()))
+                {
+                    var cookie = httpResponse.Headers["Set-Cookie"];
+                    int indexofComma = cookie.IndexOf(';');
+                    Token = cookie.Substring(0, indexofComma);
+                }
             }
             catch (Exception e)
             {
-                Log.Warning(e.Message);
+                Log.Error("GENPA : " + e.ToString());
             }
-            return listStringArray;
-        }
-
-        public string FileTypeName(string fileName)
-        {
-            if (fileName.Contains("SELLIN"))
-                return "SELLIN";
-            else if (fileName.Contains("SELLTHR"))
-                return "SELLTHR";
-            else if (fileName.Contains("STOK"))
-                return "SELLSTK";
-            else
-                return null;
         }
     }
 }

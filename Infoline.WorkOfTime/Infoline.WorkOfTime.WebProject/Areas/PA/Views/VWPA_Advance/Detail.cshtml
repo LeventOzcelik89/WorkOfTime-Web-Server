@@ -3,6 +3,11 @@
     ViewBag.Title = Model.type_Title + " İşlem Detayı";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
+    var db = new WorkOfTimeDatabase();
+    var getUser = db.GetVWSH_UserById(Model.createdby.Value);
+
+
+
     var whosChanged = Model.AdvanceHistory.Where(x => x.status==2||x.status==3).FirstOrDefault();
 }
 
@@ -37,7 +42,7 @@
                         <li class="list-group-item">
                             <div class="pull-right" style=" position: relative; ">
 
-                                <img src="@(userStatus.user.ProfilePhoto!=null ? userStatus.user.ProfilePhoto :  "/Content/Custom/img/na.png")"
+                                <img src="@(getUser.ProfilePhoto!=null ? getUser.ProfilePhoto:  "/Content/Custom/img/na.png")"
                                      onerror="ImageError(this,'/Content/Custom/img/na.png')"
                                      style="width: 40px; height: 40px; vertical-align: middle; position: absolute; left: -43px; top: -10px;"
                                      class="img-circle circle-border " alt="profile">
