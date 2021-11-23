@@ -23,6 +23,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         public FtpKvk()
         {
+            Log.Warning("Start Process Ftp KVK");
+
             SetFtpConfiguration();
         }
         public ResultStatus ExportFilesToDatabase()

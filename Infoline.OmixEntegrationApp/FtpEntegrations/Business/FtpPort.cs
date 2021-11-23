@@ -22,6 +22,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         public FtpPort()
         {
+            Log.Warning("Start Process Ftp Port");
+
             SetFtpConfiguration();
         }
         public ResultStatus ExportFilesToDatabase()
