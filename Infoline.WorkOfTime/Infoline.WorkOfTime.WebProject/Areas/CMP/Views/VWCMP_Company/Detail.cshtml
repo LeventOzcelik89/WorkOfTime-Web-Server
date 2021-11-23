@@ -1,14 +1,16 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_CompanyModel
 @{
-	ViewBag.Path = Model.breadCrumps;
-	ViewBag.Title = Model.fullName;
-	Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Path = Model.breadCrumps;
+    ViewBag.Title = Model.fullName;
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
-	var userStatus = (PageSecurity)Session["userStatus"];
-	var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
+    var userStatus = (PageSecurity)Session["userStatus"];
+    var accountIds = Model.VWPA_Accounts.Select(a => (Guid?)a.id).ToList();
 
 }
+
 <script type="text/javascript">
+
 	var first = false;
 	function FilterMenuTaskType(element) {
 		element.kendoDropDownList({
@@ -23,6 +25,7 @@
 			optionLabel: "Görev Tipi Seçiniz"
 		})
 	}
+
 		function FilterMenuTaskStatus(element) {
 			element.kendoDropDownList({
 				dataTextField: "Name",
@@ -36,6 +39,8 @@
 				optionLabel: "Son İşlem Seçiniz"
 			});
 		}
+
+
 		function FilterMenuTaskPriority(element) {
 			element.kendoDropDownList({
 				dataTextField: "Name",
@@ -49,6 +54,7 @@
 				optionLabel: "Görev Önceliği Seçiniz"
 			})
 	}
+
 	  function FilterMenuInventoryLastStatus(element) {
         element.kendoDropDownList({
             dataTextField: "Name",
@@ -60,30 +66,44 @@
 				}
 			},
 			optionLabel: "Durum Seçiniz"
+
         })
     }
+
+
 	$(document).on('shown.bs.tab', 'a[href="#VWFTM_Tasks"]', function (e) {
 		if (first == false) {
 			first = true;
 			$("#VWFTM_TaskContinuing").data("kendoGrid").refresh();
 		}
 	});
+
     $(document).on('shown.bs.tab', 'a[href="#VWPRD_Transaction"]', function (e) {
         if (first == false) {
             first = true;
             $("#VWPRD_Inventory").data("kendoGrid").refresh();
         }
 	});
+
+
 	$(document)
 		.on("selected:grid", "#VWFTM_TaskFormRelations", function (e, res) {
 			var detail = $("#taskFormDetail");
 			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
 		})
+		.on("success", '#InsertCustomer', function (e, res) {
+			if (res != null && res.Result) {
+				location.reload();
+			}
+		})
 
 
 </script>
+
+
 <script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
      #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPRD_InventoryActionType>()))#
+
     <div class="chat-element">
         <a class="pull-left">
             <img alt="image" style="height:80px;width:80px;" class="img-circle" src="#:(productId_Image ? productId_Image : '/Content/Custom/img/urun-bulunamadi.png')#" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )">
@@ -97,18 +117,25 @@
         </div>
     </div>
 </script>
+
+
 <script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
 	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
 	#if(type_Title != null){#
 	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
 	#}#
 </script>
+
+
 <script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
 	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
 	#if(lastOperationStatus_Title != null){#
 	<div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
 	#}#
 </script>
+
 <script type="text/javascript">
 
     function taskPriorityResult(data) {
@@ -296,21 +323,25 @@
 
 
 </script>
+
+
 <script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
-	#if(description!=null){#
-	#if(description.length >= 25){#
-	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
-	#}
-	else
-	{#
-	<div style="font-size:13px;">#=description#</div>
-	#}#
-	#}#
+    #if(description!=null){#
+    #if(description.length >= 25){#
+    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
+    #}
+    else
+    {#
+    <div style="font-size:13px;">#=description#</div>
+    #}#
+    #}#
 </script>
+
 <script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
 	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
 	#var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
 	#var color ="text-primary"#
+
 	#if(priority==0){#
 	#color = "text-danger"#
 	#}else if(priority==1){#
@@ -318,6 +349,7 @@
 	#}else if(priority==2){#
 	#color = "text-primary"#
 	#}#
+
 	<table class="table shoping-cart-table">
 		<tbody>
 			<tr>
@@ -337,10 +369,12 @@
                         #}#
 					</span>
 				</td>
+
 				<td class="desc" style="width:55%;">
 					#if(type_Title != null){#
 					<div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
 					#}#
+
 					#if(description!=null){#
 					#if(description.length >= 25){#
 					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
@@ -350,25 +384,34 @@
 					<div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
 					#}#
 					#}#
+
+
 					#if(code!=null){#
 					<div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
 					#}#
+
 					#if(customer_Title!=null){#
 					<div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
 					#}#
+
 					#if(customerStorage_Title!=null){#
 					<div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
 					#}#
+
 					#if(fixture_Title!=null){#
 					<div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
 					#}#
+
 					<div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(planStartDate,"dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(dueDate,"dd.MM.yyyy HH:mm") : '-')#</div>
+
 					#if(lastOperationStatus_Title!=null){#
 					<div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
 					#}#
+
 					#if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
 					<div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
 					#}#
+
 					#if(taskSubjectType_Title != null){#
 					<span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
 					#}#
@@ -390,38 +433,43 @@
 			</tr>
 		</tbody>
 	</table>
+
 </script>
+
 <style type="text/css">
-	.list-group.clear-list .list-group-item {
-		padding: 5px 0px !important;
-	}
+    .list-group.clear-list .list-group-item {
+        padding: 5px 0px !important;
+    }
 
-	.table {
-		border-top: 0px #ddd solid;
-	}
+    .table {
+        border-top: 0px #ddd solid;
+    }
 
-	.mywidget {
-		border-radius: 10px !important;
-		padding: 10px 15px !important;
-		margin-bottom: 10px !important;
-		margin-top: 0px !important;
-		min-height: 70px !important;
-	}
+    .mywidget {
+        border-radius: 10px !important;
+        padding: 10px 15px !important;
+        margin-bottom: 10px !important;
+        margin-top: 0px !important;
+        min-height: 70px !important;
+    }
 
-	.dl-horizontal dt {
-		text-align: left !important;
-	}
+    .dl-horizontal dt {
+        text-align: left !important;
+    }
 
-	.toggle-group label {
-		line-height: 20px !important;
-	}
+    .toggle-group label {
+        line-height: 20px !important;
+    }
 
-	.breadcrumb {
-		padding: 0px 0px !important;
-		margin-bottom: 0px !important;
-		border-radius: 4px !important;
-	}
+    .breadcrumb {
+        padding: 0px 0px !important;
+        margin-bottom: 0px !important;
+        border-radius: 4px !important;
+    }
 </style>
+
+
+
 <div class="row">
     <div class="col-lg-3">
         <div class="ibox ">
@@ -800,6 +848,7 @@
             .Filter(a => a.CompanyId == Model.id && a.IsWorking == true).PageSize(25).Sort(a => a.Add(c => c.FullName)))
             .Columns(x =>
             {
+
                 if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
                 {
                     x.Bound(y => y.FullName).Title("Personel Bilgileri").ClientTemplate("#=TemplateEngine('personelTemplate',data)#");
@@ -828,12 +877,14 @@
                     x.Bound(y => y.cellphone).Title("Cep Telefonu").Width(200);
                     x.Bound(y => y.phone).Title("Sabit Telefon").Width(200);
                     x.Bound(y => y.email).Title("Eposta Adresi").Width(200);
+
                 }
             })
             .Scrollable(x => x.Height(350))
             .Selectable(x => x.Mode(GridSelectionMode.Single))
             .ToolBar(x =>
             {
+
                 if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
                 {
                     x.Custom().Text("<i data-original-title='Personel Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-blank", "" } }).Url(Url.Action("Update", "VWSH_User", new { area = "SH" }));
@@ -846,6 +897,7 @@
                     x.Custom().Text("<i class='icon-mail-1'  data-original-title='Oturum Bilgisi (KullanıcıAdı,Şifre) Paylaş'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Oturum bilgisi paylaşmak istediğinizden eminmisiniz.Kullanıcı bu bilgilerle sistemde oturum açabilecektir." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
                     x.Custom().Text("<i title='Personeli Sİl' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
                 }
+
             }))
                     </div>
 
@@ -888,6 +940,51 @@
                         @Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Contact", DataIds = ((Guid[])ViewBag.ContactIds), Filter = false })
 
                         @Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Presentation", DataIds = ((Guid[])ViewBag.PresentationIds), Filter = false })
+
+                        @if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                        {
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Kütüphanesi </h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyPersonDocument" })
+                                </div>
+                            </div>
+
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  İSG Dosyaları</h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyWorkHealthDocument" })
+                                </div>
+                            </div>
+
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Evrakları </h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyDocument" })
+                                </div>
+                            </div>
+                        }
                     </div>
 
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" id="VWCMP_InvoiceSellings">
@@ -915,6 +1012,7 @@
                     x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP" }));
                     x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
                     x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+
                 }))
                         }
 
@@ -941,6 +1039,7 @@
                     x.Custom().Text("<i data-original-title='Faturayı Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Invoice", new { area = "CMP" }));
                     x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Invoice", new { area = "CMP" }));
                     x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
+
                 }))
                         }
                     </div>
@@ -971,11 +1070,11 @@
                     x.Custom().Text("<i data-original-title='Fatura Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Invoice", new { area = "CMP" }));
                     x.Custom().Text("<i data-original-title='Faturayı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Invoice", new { area = "CMP" }));
                 }))
-						}
-						else
-						{
-							<h4><i class="text-success icon-newspaper-1"></i> FİRMANIN KESTİĞİ FATURALAR  </h4>
-							@(Html.Akilli()
+                        }
+                        else
+                        {
+                            <h4><i class="text-success icon-newspaper-1"></i> FİRMANIN KESTİĞİ FATURALAR  </h4>
+                            @(Html.Akilli()
                 .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Invoice>("VWCMP_InvoiceBuying")
                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" }))
                 .Filter(a => a.supplierId == Model.id).PageSize(25))
@@ -1021,12 +1120,15 @@
                 {
                     x.Bound(y => y.fileGroupModule).Title("Modül Adı");
                     x.Bound(y => y.fileGroupName).Title("Dosya Adı");
+
+
                 })
                 .Scrollable(x => x.Height(350))
                 .Selectable(x => x.Mode(GridSelectionMode.Single))
                 .ToolBar(x =>
                 {
                     x.Custom().Text("<i data-original-title='İzin Evrağı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_CompanyFileSelector", new { area = "CMP",customerID=Model.id }));
+
                     x.Custom().Text("<i data-original-title='Evrağı Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_CompanyFileSelector", new { area = "CMP" }));
                 }))
 
@@ -1137,11 +1239,11 @@
                         x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateSelling", "VWCMP_Tender", new { area = "CMP" }));
                         x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailSelling", "VWCMP_Tender", new { area = "CMP" }));
                     }))
-						}
-						else
-						{
-							<h4><i class="text-success icon-pencil-alt"></i> FİRMAYA VERİLEN SATIŞ TEKLİFLERİ </h4>
-							@(Html.Akilli()
+                        }
+                        else
+                        {
+                            <h4><i class="text-success icon-pencil-alt"></i> FİRMAYA VERİLEN SATIŞ TEKLİFLERİ </h4>
+                            @(Html.Akilli()
                     .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderSelling")
                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
                     .Filter(a => a.customerId == Model.id).PageSize(25))
@@ -1195,11 +1297,11 @@
                         x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
                         x.Custom().Text("<i data-original-title='Teklif Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
                     }))
-						}
-						else
-						{
-							<h4><i class="text-success icon-edit-3"></i> FİRMADAN GELEN SATIN ALMA TEKLİFLERİ </h4>
-							@(Html.Akilli()
+                        }
+                        else
+                        {
+                            <h4><i class="text-success icon-edit-3"></i> FİRMADAN GELEN SATIN ALMA TEKLİFLERİ </h4>
+                            @(Html.Akilli()
                     .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderBuying")
                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
                     .Filter(a => a.supplierId == Model.id).PageSize(25))
@@ -1381,10 +1483,10 @@
                                             x.Bound(y => y.Currency_Symbol).Hidden(true).Title("Para Birimi");
                                         })
                                 .Selectable(x => x.Mode(GridSelectionMode.Single)))
-						}
-						else
-						{
-							@(Html.Akilli()
+                        }
+                        else
+                        {
+                            @(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Ledger>("VWPA_Ledger")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Ledger", new { area = "PA" }))
                         .Filter(a => a.accountId == Guid.NewGuid()).PageSize(25))
@@ -1419,11 +1521,11 @@
                     {
                         x.Custom().Text("<i data-original-title='Proje Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRJ_Project", new { area = "PRJ" }));
                     }))
-						}
-						else
-						{
-							<h4><i class="text-success icon-briefcase"></i> FİRMAYA YAPILAN PROJELER </h4>
-							@(Html.Akilli()
+                        }
+                        else
+                        {
+                            <h4><i class="text-success icon-briefcase"></i> FİRMAYA YAPILAN PROJELER </h4>
+                            @(Html.Akilli()
                     .Grid<Infoline.WorkOfTime.BusinessData.VWPRJ_Project>("VWPRJ_Project")
                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRJ_Project", new { area = "PRJ" }))
                     .Filter(a => a.CorporationId == Model.id).PageSize(25))
@@ -1467,15 +1569,18 @@
 								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
 								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
 							 }
+
 							 ))).Width(180).Format(Extensions.DateFormatFull(true));
 							 x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
 							 x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
 							 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
 							 {
+
 								 b.Clear();
 								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
 								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
 							 }
+
 							 ))).Width(180).Format(Extensions.DateFormatFull(true));
 						 })
 								.Events(ev => ev.FilterMenuInit("filterMenuInit"))
@@ -1662,10 +1767,10 @@
                                 })
                                 .Events(a => a.ExcelExport("Kendo_CustomExport"))
                                 .Selectable(x => x.Mode(GridSelectionMode.Single)))
-							}
-							else
-							{
-								@(Html.Akilli()
+                            }
+                            else
+                            {
+                                @(Html.Akilli()
                                 .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
                                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" }))
                                 .Filter(a => a.dataCompanyId == Model.id).PageSize(25))
@@ -1724,57 +1829,15 @@
             </div>
         </section>
 
-        @if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
-        {
 
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Kütüphanesi </h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyPersonDocument" })
-                </div>
-            </div>
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  İSG Dosyaları</h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyWorkHealthDocument" })
-                </div>
-            </div>
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Evrakları </h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyDocument" })
-                </div>
-            </div>
-        }
 
 
     </div>
 </div>
+
+
 <script type="text/javascript" data-selector="modalContainer">
+
     var cmpDetail = {
         dfn: {
             tenderStatusEnums: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_TenderStatus>())),
@@ -1793,9 +1856,11 @@
                 if (!data) {
                     return "-";
                 }
+
                 if (isTotal && isTotal == true) {
                     return '<span style="color:#ff6a00;font-weight:700;">' + kendo.toString(data, "N2") + " " + item.Currency_Symbol + '</span>';
                 }
+
                 return kendo.toString(data, "N2") + " " + item.Currency_Symbol;
             },
             requestStatusTemp: function (data) {
@@ -1812,9 +1877,11 @@
             },
             totalAmountTemp: function (data, amountTotal) {
                 var textColor = data.direction == -1 ? "text-danger" : "text-primary";
+
                 if (amountTotal != 0) {
                     return '<span class="' + textColor + ' pull-right" style="font-size:18px">' + kendo.toString(amountTotal, "n2") + " " + data.Currency_Symbol +  '</span>';
                 }
+
                 return "";
             },
             ledgerTypeTemp: function (data) {
@@ -1824,7 +1891,9 @@
             }
         }
     }
+
     $(document)
+
 		.on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
             var detail = $('[data-storage="detail"]');
             var dataProduct = $('[data-productStorage="detail"]');
@@ -1845,7 +1914,9 @@
         .on("load:grid", ".k-grid", function (e, resp) {
             var grid = $(this).data("kendoGrid");
             var adet = grid.dataSource.total();
+
             var gridId = grid.element.attr("id");
+
             if (gridId == "VWCMP_InvoiceSelling" || gridId == "VWCMP_InvoiceBuying" || gridId == "VWCMP_InvoiceSellingMy" || gridId == "VWCMP_InvoiceBuyingMy") {
                 var data = grid.dataSource.data();
                 var total = $.Enumerable.From(data).Sum(a => a.totalAmountAsTL);
@@ -1857,6 +1928,7 @@
                     height: 20
                 });
             }
+
             $('[data-id="' + gridId + '"]').text(adet + " Adet");
         })
         .on("click", '#locationArrow', function (e) {
@@ -1867,4 +1939,5 @@
             }, 250)
         })
         ;
+
 </script>
