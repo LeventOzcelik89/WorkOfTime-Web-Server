@@ -5,12 +5,10 @@
 
 }
 <script id="treeview-template" data-selector="modalContainer" type="text/kendo-ui-template">
-     <div class="clearfix" style="padding:8px 0;" data-id="#:item.id#">
-        <img class="img-circle img-responsive pull-left" style="width:40px;height:40px;" src="#:(item.companyId_Image ? item.companyId_Image : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
-        <div style="height:60px;float:right;">
+     <div class="clearfix"  data-id="#:item.id#">
+        <img class="img-circle img-responsive pull-left" style="width:30px;height:30px;margin-right:10px" src="#:(item.companyId_Image ? item.companyId_Image : '/Content/Custom/img/company.png')#" onerror="ImageError(this, '/Content/Custom/img/company.png')" />
+        <div style="height:10px;float:right;margin-top:5px">
             <div class="template-item">#:item.name# | #:item.code#</div>
-            <div class="template-item">#:(item.companyId_Title ? item.companyId_Title : '-')#</div>
-            <div class="template-item"><small>#:(item.locationId_Title ? item.locationId_Title : '-')#</small></div>
         </div>
     </div>
 </script>
@@ -26,8 +24,37 @@
         var modal = $(this).parents('.modal')
         modal.modal("hide");
     });
-    
+    $("input").on("input", function () {
+        var query = this.value.toLowerCase();
+        var dataSource = $("#treeview").data("kendoTreeView").dataSource;
+        filter(dataSource, query);
+    });
+    function filter(dataSource, query) {
+        var hasVisibleChildren = false;
+        var data = dataSource instanceof kendo.data.HierarchicalDataSource && dataSource.data();
 
+        for (var i = 0; i < data.length; i++) {
+            var item = data[i];
+            var text = item.name.toLowerCase();
+            var itemVisible =
+                query === true // parent already matches
+                || query === "" // query is empty
+                || text.indexOf(query) >= 0; // item text matches query
+
+            var anyVisibleChildren = filter(item.children, itemVisible || query); // pass true if parent matches
+
+            hasVisibleChildren = hasVisibleChildren || anyVisibleChildren || itemVisible;
+
+            item.hidden = !itemVisible && !anyVisibleChildren;
+        }
+
+        if (data) {
+            // Re-apply the filter on the children.
+            dataSource.filter({ field: "hidden", operator: "neq", value: true });
+        }
+
+        return hasVisibleChildren;
+    }
 </script>
 
 @using (Html.BeginForm("", "", FormMethod.Post, new Dictionary<string, object>() {
@@ -38,24 +65,27 @@
     { "id","VWFTM_TaskInsertForm" }
 }))
 {
-<div style="max-width:500px;width:500px;overflow-y:scroll"> 
+    <input class="form-control" placeholder="Ara.." />
+
     @(
         Html.Kendo().TreeView()
         .Name("treeview")
         .DataTextField("Name")
           .TemplateId("treeview-template")
         .Events(x=>x.Select("treeSelect"))
+        .LoadOnDemand(false)
+        .ExpandAll(true)
         .DataSource(dataSource => dataSource
             .Read(read => read
                 .Action("GetTreeViewData", "VWCMP_Storage",new { area="CMP",customerId=Model })
             )
         )
 )
-</div>
+
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
-        <button class="btn btn-md btn-success pull-right" data-task="modalClose"  type="button">
+        <button class="btn btn-md btn-success pull-right" data-task="modalClose" type="button">
             Seç
         </button>
     </div>

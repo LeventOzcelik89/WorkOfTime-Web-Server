@@ -749,7 +749,11 @@
                     </li>
 
                 </ul>
-
+                <style>
+                    .k-icon {
+                        margin-right: 10px
+                    }
+                </style>
                 <div class="tab-content">
                     <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
                         <h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
@@ -772,6 +776,13 @@
 
         x.Excel().Text("");
         x.Pdf().Text("");
+        x.Custom().Name("add").Text("");
+        x.Custom().Name("edits").Text("");
+        //x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
+        ////x.Custom().Text("<i data-original-title='Rafları Göster' class='fa fa-align-left'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("TreeViewStorage", "VWCMP_StorageSection", new { area = "CMP" }));
+        //x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+        //x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+        //x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
 
     })
     .DataSource(dataSource => dataSource
@@ -789,12 +800,20 @@
     .Height(600)
 )
                     </div>
+
                     <script>
                         $("#VWCMP_Storage").on("dblclick", "tr.k-state-selected", function () {
                             var find = $(this).find("td")[0];
                             var id = $(find).text();
                             window.open("/CMP/VWCMP_Storage/Detail?id=" + id)
                         });
+                        $(document).on("ready", document, function () {
+                            $('[data-command="add"]').parent().html('<a class="k-button k-button-icontext" data-method="GET" data-show="always" data-href="/CMP/VWCMP_Storage/Insert?companyId=@Model.id"><span></span><i class="fa fa-plus-circle" data-original-title="Şube/Depo/Kısım Ekle"></i></a>')
+                            $('[data-command="edits"]').parent().html('<a class="k-button k-button-icontext" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Storage/Update"><span></span><i class="fa fa-edit" data-original-title="Şube/Depo/Kısım Düzenle"></i></a>')
+                        });
+
+
+
                     </script>
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
                         <h4><i class="icon-adult text-success"></i> PERSONEL LİSTESİ </h4>
