@@ -19,10 +19,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public string InvoiceNumber { get; set;}
         /// <summary>
-        /// Fatura Tablosunun ilişki idsidir. Buradaki Fatura id şayet sistemde mevcut ise buraya yazılır.
-        /// </summary>
-        public Guid? InvoiceId { get; set;}
-        /// <summary>
         /// Bayi Kodu
         /// </summary>
         public string CustomerOperatorCode { get; set;}
