@@ -23,6 +23,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         public FtpMobitel()
         {
+            Log.Warning("Start Process Ftp Mobitel");
             SetFtpConfiguration();
         }
 

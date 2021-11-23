@@ -1,32 +1,61 @@
 ﻿using Infoline.OmixEntegrationApp.FtpEntegrations.Business;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Infoline.OmixEntegrationApp.FtpEntegrations
 {
 
     public class ProcessFtpEntegration : IDisposable
     {
-
+        List<Task> Tasks = new List<Task>();
         public ProcessFtpEntegration()
         {
             Log.Info("ProcessFtpEntegration is Start");
         }
         public void Run()
         {
+            var taskMobitel = new Task(() =>
+            {
+                new FtpMobitel().ExportFilesToDatabase(); ;
+            });
+            Tasks.Add(taskMobitel);
 
-            var entegrationFilesModel = new FtpMobitel();
-            entegrationFilesModel.ExportFilesToDatabase();
-            var entegrationForGenpa = new FtpGenpa();
-            entegrationForGenpa.ExportFilesToDatabase();
-            var entegrationForKvk = new FtpKvk();
-            entegrationForKvk.ExportFilesToDatabase();
+            var taskGenpa = new Task(() =>
+            {
+                new FtpGenpa().ExportFilesToDatabase(); ;
+            });
+            Tasks.Add(taskGenpa);
 
-            var entegrationForPort = new FtpPort();
-            entegrationForPort.ExportFilesToDatabase();
+            var taskKvk = new Task(() =>
+            {
+                new FtpKvk().ExportFilesToDatabase(); ;
+            });
+            Tasks.Add(taskKvk);
 
+            var taskPort = new Task(() =>
+            {
+                new FtpPort().ExportFilesToDatabase(); ;
+            });
+            Tasks.Add(taskPort);
+
+            foreach (var task in Tasks)
+            {
+                task.Start();
+            }
 
         }
         public void Dispose()
         {
+            Log.Success("Tasklar durduruldu.");
+            if (Tasks != null && Tasks.Count > 0)
+            {
+                foreach (var task in Tasks)
+                {
+                    task.Dispose();
+                }
+                Tasks = new List<Task>();
+            }
         }
     }
 }

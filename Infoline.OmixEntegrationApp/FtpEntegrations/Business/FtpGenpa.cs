@@ -22,6 +22,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         private string LoginUrl { get; set; }
         public FtpGenpa()
         {
+            Log.Warning("Start Process Ftp Genpa");
+
             SetFtpConfiguration();
             Login();
             GetFilesInFtp(DateTime.Now);
