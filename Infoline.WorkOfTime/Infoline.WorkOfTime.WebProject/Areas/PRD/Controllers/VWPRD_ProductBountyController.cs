@@ -78,7 +78,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[PageInfo("Ürün Tanımı Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public JsonResult Update(VMPRD_ProductBountyModel item, int[] status)
+		public JsonResult Update(VMPRD_ProductBountyModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
