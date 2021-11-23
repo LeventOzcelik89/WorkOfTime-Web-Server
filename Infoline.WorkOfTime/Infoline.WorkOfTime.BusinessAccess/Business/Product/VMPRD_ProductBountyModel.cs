@@ -59,11 +59,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (this.productId.HasValue)
 			{
-				var personIds = db.GetPRD_ProductBountyByPersonIds(this.personIds, this.productId.Value);
+				var productBounty = db.GetPRD_ProductBountyByPeriodAndPersonId(this.month.Value, this.year.Value, this.productId.Value, this.personIds);
 
-				if (personIds.Count() >= 1)
+				if (productBounty.Count() > 0)
 				{
-					return new ResultStatus { result = false, message = "Personel(ler) içerisinde daha önce prim tanımlaması yapılmış personel bulunmakta." };
+					return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de personel(lere) daha önceden prim tanımlaması yapılmıştır." };
 				}
 			}
 
@@ -73,7 +73,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				amount = this.amount,
 				personId = a,
 				productId = this.productId,
-				companyId = this.companyId
+				companyId = this.companyId,
+				month = this.month,
+				year = this.year
 			});
 
 			var rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);
