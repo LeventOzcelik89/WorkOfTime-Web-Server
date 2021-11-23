@@ -129,6 +129,13 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var db = new WorkOfTimeDatabase();
                 var id = context.Request["id"];
                 var data = new VMCRM_PresentationModel { id = new Guid((string)id) }.Load();
+
+                var tender = db.GetVWCMP_TenderByPresentationIdLast(new Guid(id));
+                if (tender != null)
+                {
+                    data.LastTender = tender;
+                }
+
                 RenderResponse(context, new ResultStatus
                 {
                     result = true,

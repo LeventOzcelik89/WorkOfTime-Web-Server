@@ -19,6 +19,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string ProductsJson { get; set; }
         public string customerEmail { get; set; }
         public string customerPhone { get; set; }
+        public VWCMP_Tender LastTender { get; set; }
 
         public VMCRM_PresentationModel Load()
         {
