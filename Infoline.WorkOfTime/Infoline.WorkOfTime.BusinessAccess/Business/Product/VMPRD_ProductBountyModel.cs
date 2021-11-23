@@ -61,7 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				var personIds = db.GetPRD_ProductBountyByPersonIds(this.personIds, this.productId.Value);
 
-				if (personIds.Count() > 1)
+				if (personIds.Count() >= 1)
 				{
 					return new ResultStatus { result = false, message = "Personel(ler) içerisinde daha önce prim tanımlaması yapılmış personel bulunmakta." };
 				}
