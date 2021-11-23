@@ -106,7 +106,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<CMP_Company>().Where(a => a.code == name).Execute().FirstOrDefault();
+                return db.Table<CMP_Company>().Where(a => a.name == name).Execute().FirstOrDefault();
             }
         }
 
