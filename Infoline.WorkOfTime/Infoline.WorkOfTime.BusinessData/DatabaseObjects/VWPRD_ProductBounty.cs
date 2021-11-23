@@ -9,6 +9,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? companyId { get; set;}
         public Guid? personId { get; set;}
         public Guid? productId { get; set;}
+        public int? year { get; set;}
+        public int? month { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string companyId_Title { get; set;}
