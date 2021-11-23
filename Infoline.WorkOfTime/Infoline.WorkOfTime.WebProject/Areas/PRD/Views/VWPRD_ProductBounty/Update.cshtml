@@ -1,4 +1,4 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_ProductBounty
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductBountyModel
 @{
 	ViewBag.Title = "Ürün Prim Tanımını Güncelle";
 	Layout = "~/Views/Shared/_Layout.cshtml";
@@ -8,13 +8,13 @@
 
 	function onChangeCompany(e) {
 		var companyId = this.value();
-		var personElem = $('#assignableUsers').data("kendoMultiSelect");
+		var personElem = $('#personId').data("kendoDropDown");
 		var basefilter = personElem.options.dataSource.filter;
 		personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
 	}
 </script>
 
-@using (Html.BeginForm("Update", "VWPRD_ProductBounty", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("Insert", "VWPRD_ProductBounty", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
 	{ "role", "form" },
 	{ "data-selector", "modalContainer" },
@@ -55,39 +55,40 @@
 
 	<div class="form-group">
 		<div class="col-md-4">
-			<label class="control-label label-md" for="companyId">Cari Firma</label>
+			<label class="control-label label-md" for="companyId">Firma Cari</label>
 		</div>
 		<div class="col-md-8">
 			@(
         Html.Akilli()
         .DropDownListFor(model => model.companyId)
-        .OptionLabel("Lütfen sorumlu işletmeyi seçiniz..")
+        .OptionLabel("Lütfen Firma Cari seçiniz..")
         .DataValueField("id")
         .DataTextField("fullName")
         .Template("#=TemplateEngine('companyTemplate',data)#")
         .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
         .Events(e => { e.Change("onChangeCompany"); })
         .Sort(x => x.Add("fullName").Ascending())
+		.Readonly(true)
         .Execute()
             )
 		</div>
 	</div>
 	<div class="form-group">
 		<div class="col-md-4">
-			<label class="control-label label-md" for="assignableUsers">Görevlendirilecek Personeller</label>
+			<label class="control-label label-md" for="personId">Personeller</label>
 		</div>
 		<div class="col-md-8">
 			@(
-        Html.Akilli()
-        .MultiSelectFor(a => a.personId)
-        .Placeholder("Lütfen sorumlu personelleri seçiniz..")
-        .DataValueField("id")
-        .DataTextField("FullName")
-        .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
-        .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-        .Filter<VWSH_User>(a => a.IsWorking == true)
-        .Sort(x => x.Add("FullName").Ascending())
-        .Execute()
+		Html.Akilli()
+		.DropDownListFor(model => model.personId)
+		.OptionLabel("Lütfen Personel seçiniz..")
+		.DataValueField("id")
+		.DataTextField("FullName")
+		.Template("#=TemplateEngine('userTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+		.Sort(x => x.Add("FullName").Ascending())
+		.Readonly(true)
+		.Execute()
             )
 		</div>
 	</div>

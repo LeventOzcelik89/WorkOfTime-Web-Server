@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		private WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
+		public Guid[] personIds { get; set; }
 
 		public VMPRD_ProductBountyModel Load()
 		{
@@ -55,9 +56,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			db = db ?? new WorkOfTimeDatabase();
 			var transaction = trans ?? db.BeginTransaction();
-			var productBounty = new PRD_ProductBounty().B_EntityDataCopyForMaterial(this, true);
 
-			var rs = db.InsertPRD_ProductBounty(productBounty, transaction);
+			if (this.productId.HasValue)
+			{
+				var personIds = db.GetPRD_ProductBountyByPersonIds(this.personIds, this.productId.Value);
+
+				if (personIds.Count() > 0)
+				{
+					return new ResultStatus { result = true, message = "Personel(ler) içerisinde daha önce prim tanımlaması yapılmış personel bulunmakta." };
+				}
+			}
+
+
+			var productBountys = this.personIds.Select(a => new PRD_ProductBounty
+			{
+				amount = this.amount,
+				personId = a,
+				productId = this.productId,
+				companyId = this.companyId
+			});
+
+			var rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);
 
 			if (rs.result == true)
 			{
@@ -77,7 +96,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var productBounty = new PRD_ProductBounty().B_EntityDataCopyForMaterial(this, true);
 
 			var rs = db.UpdatePRD_ProductBounty(productBounty, true, transaction);
-
 
 			if (rs.result == true)
 			{
