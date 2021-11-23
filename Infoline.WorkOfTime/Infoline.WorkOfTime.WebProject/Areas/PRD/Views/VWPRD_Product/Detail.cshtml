@@ -284,8 +284,8 @@
 						<a data-toggle="tab" href="#VWPRD_StockActions" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
 					</li>
 
-					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Satış Puanı Geçmişi">
-						<a data-toggle="tab" href="#VWPRD_ProductPointSellings" aria-expanded="false"><i class="icon-star-empty text-success fa-2x" aria-hidden="true"></i></a>
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Prim">
+						<a data-toggle="tab" href="#VWPRD_ProductBounties" aria-expanded="false"><i class="icon-gift text-success fa-2x" aria-hidden="true"></i></a>
 					</li>
 					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Satış Puanı Geçmişi">
 						<a data-toggle="tab" href="#VWPRD_ProductPointSellings" aria-expanded="false"><i class="icon-star-empty text-success fa-2x" aria-hidden="true"></i></a>
@@ -299,13 +299,13 @@
 					</li>
 
 				</ul>
-                <div class="tab-content">
+				<div class="tab-content">
 
-                    @if (Model.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
-                    {
-                        <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" id="VWPRD_Inventories">
-                            <h4><i class="icon-buffer text-success"></i> ENVANTER LİSTESİ </h4>
-                            @(Html.Akilli()
+					@if (Model.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip)
+					{
+						<div class="tab-pane active" data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" id="VWPRD_Inventories">
+							<h4><i class="icon-buffer text-success"></i> ENVANTER LİSTESİ </h4>
+							@(Html.Akilli()
                              .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
                              .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).Filter(a => a.productId == Model.id).PageSize(25))
                              .Scrollable(a => a.Height(485))
@@ -326,13 +326,13 @@
                                  x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
                                  // x.Custom().Text("<i title='Hareket Detayı' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Inventory", new { area = "PRD" }));
                              }))
-                        </div>
-                    }
+						</div>
+					}
 
-                    <div class="tab-pane @(Model.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip ? "" : "active")" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummaryStorages">
-                        <h4><i class="icon-home-4 text-success"></i> ŞUBE/DEPO STOK ÖZETİ </h4>
+					<div class="tab-pane @(Model.stockType == (short)EnumPRD_ProductStockType.SeriNoluTakip ? "" : "active")" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummaryStorages">
+						<h4><i class="icon-home-4 text-success"></i> ŞUBE/DEPO STOK ÖZETİ </h4>
 
-                        @(Html.Akilli()
+						@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.productId == Model.id).PageSize(25))
                             .Columns(x =>
@@ -349,12 +349,12 @@
                                 x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
                             }
                             ))
-                    </div>
+					</div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummaryPersons">
-                        <h4><i class="icon-adult text-success"></i> PERSONEL STOK ÖZETİ </h4>
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummaryPersons">
+						<h4><i class="icon-adult text-success"></i> PERSONEL STOK ÖZETİ </h4>
 
-                        @(Html.Akilli()
+						@(Html.Akilli()
                              .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryPerson")
                              .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "SH_User" && a.productId == Model.id).PageSize(25))
                              .Columns(x =>
@@ -370,13 +370,13 @@
                                  x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-person", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
                                   x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productPerson", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
                              }))
-                    </div>
+					</div>
 
 
-                    <div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_StockActions">
-                        <h4><i class="icon-exchange-1 text-success"></i> STOK HAREKETLERİ </h4>
+					<div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_StockActions">
+						<h4><i class="icon-exchange-1 text-success"></i> STOK HAREKETLERİ </h4>
 
-                        @(Html.Akilli()
+						@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockAction", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.productId == Model.id).PageSize(25))
                             .Groupable(a => a.Enabled(true))
@@ -409,11 +409,31 @@
                         //}
                         //)
                         )
-                    </div>
+					</div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "CMP" })" id="VWPRD_ProductPointSellings">
-                        <h4><i class="icon-star-empty text-success"></i> SATIŞ PUANI GEÇMİŞİ </h4>
-                        @(Html.Akilli()
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })" id="VWPRD_ProductBounties">
+						<h4><i class="icon-gift text-success"></i> ÜRÜN PRİMLERİ </h4>
+						@(Html.Akilli()
+							.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductBounty>("VWPRD_ProductBounty")
+							.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })).Filter(t => t.productId == Model.id).PageSize(25).Sort(t => t.Add(p => p.created).Descending()))
+							  .Scrollable(a => a.Height(485))
+							.Columns(x =>
+							{
+								x.Bound(y => y.companyId_Title).Title("Firma Cari").Format("{0:N2}").Width(130);
+								x.Bound(y => y.personId_Title).Title("Personel").Width(180).Format(Extensions.DateFormatShort(true));
+								x.Bound(y => y.amount).Title("Prim Tutarı").Width(180).Format("{0:N2} ₺");})
+							.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+							.ToolBar(x =>
+							{
+								x.Custom().Text("<i data-original-title='Ürüne Prim Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductBounty", new { area = "PRD", productId = Model.id }));
+								x.Custom().Text("<i title='Ürün Primini Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductBounty", new { area = "PRD" }));
+								x.Custom().Text("<i data-original-title='Ürün Prim Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductBounty", new { area = "PRD" }));
+							}))
+	 				</div>
+            
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "CMP" })" id="VWPRD_ProductPointSellings">
+						<h4><i class="icon-star-empty text-success"></i> SATIŞ PUANI GEÇMİŞİ </h4>
+						@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductPointSelling>("VWPRD_ProductPointSelling")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "PRD" })).Filter(t => t.productId == Model.id).PageSize(25).Sort(t => t.Add(p => p.endDate)))
                               .Scrollable(a => a.Height(485))
@@ -429,12 +449,12 @@
                                 x.Custom().Text("<i data-original-title='Satış Puanı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductPointSelling", new { area = "PRD", productId = Model.id }));
                                 x.Custom().Text("<i title='Ürün Puanı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductPointSelling", new { area = "PRD" }));
                             }))
-                    </div>
+					</div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource","VWPRD_ProductMateriel", new { area = "CMP" })" id="VWPRD_ProductMateriels">
-                        <h4><i class="icon-flow-tree text-success"></i> ÜRÜN AĞACI </h4>
+					<div class="tab-pane" data-href="@Url.Action("DataSource","VWPRD_ProductMateriel", new { area = "CMP" })" id="VWPRD_ProductMateriels">
+						<h4><i class="icon-flow-tree text-success"></i> ÜRÜN AĞACI </h4>
 
-                        @(Html.Akilli()
+						@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductMateriel>("VWPRD_ProductMateriel")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductMateriel", new { area = "PRD" })).PageSize(25).Filter(t => t.productId == Model.id))
                              .Scrollable(a => a.Height(485))
@@ -450,18 +470,18 @@
                                 x.Custom().Text("<i data-original-title='Materyali Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductMateriel", new { area = "PRD", productId = Model.id }));
                                 x.Custom().Text("<i data-original-title='Materyal Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductMateriel", new { area = "PRD" }));
                             }))
-                    </div>
+					</div>
 
-                    <div class="tab-pane" id="VWPRD_ProductFiles">
-                        <h4><i class="icon-attach text-success"></i> ÜRÜN DOSYALARI </h4>
-                        @Html.Action("Preview", "Files", new { area = "", DataId = Model.id, DataTable = "PRD_Product" })
-                    </div>
-
-
+					<div class="tab-pane" id="VWPRD_ProductFiles">
+						<h4><i class="icon-attach text-success"></i> ÜRÜN DOSYALARI </h4>
+						@Html.Action("Preview", "Files", new { area = "", DataId = Model.id, DataTable = "PRD_Product" })
+					</div>
 
 
 
-                </div>
+
+
+				</div>
 
             </div>
         </section>
