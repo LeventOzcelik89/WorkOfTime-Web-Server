@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Ürün Prim Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Ürün Prim Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.BayiPersoneli)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Ürün Prim Tanımı Detayı", SHRoles.StokYoneticisi, SHRoles.UretimYonetici)]
+		[PageInfo("Ürün Prim Tanımı Detayı", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
 		public ActionResult Detail(VMPRD_ProductBountyModel item)
 		{
 			var data = item.Load();
@@ -78,7 +78,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[PageInfo("Ürün Tanımı Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-		public JsonResult Update(VMPRD_ProductBountyModel item, int[] status)
+		public JsonResult Update(VMPRD_ProductBountyModel item, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -94,7 +94,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 		[HttpPost]
-		[PageInfo("Ürün Tanımı Silme", SHRoles.StokYoneticisi)]
+		[PageInfo("Ürün Tanımı Silme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
 		public JsonResult Delete(VMPRD_ProductBountyModel item)
 		{
 			var db = new WorkOfTimeDatabase();

@@ -91,6 +91,11 @@
 			var detail = $("#taskFormDetail");
 			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
 		})
+		.on("success", '#InsertCustomer', function (e, res) {
+			if (res != null && res.Result) {
+				location.reload();
+			}
+		})
 
 
 </script>
@@ -749,7 +754,11 @@
                     </li>
 
                 </ul>
-
+                <style>
+                    .k-icon {
+                        margin-right: 10px
+                    }
+                </style>
                 <div class="tab-content">
                     <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
                         <h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
@@ -769,10 +778,12 @@
     })
     .Selectable(true)
     .Toolbar(x=> {
-
         x.Excel().Text("");
         x.Pdf().Text("");
-
+        x.Custom().Name("add").Text("");
+        x.Custom().Name("edits").Text("");
+        x.Custom().Name("deletes").Text("");
+        x.Custom().Name("detail").Text("");
     })
     .DataSource(dataSource => dataSource
         .Read(read => read.Action("TreeDataSource", "VWCMP_Storage",new {area="CMP" })).Filter(a=>a.companyId==Model.id).PageSize(25)
@@ -784,17 +795,50 @@
             m.Field(f => f.address);
             m.Field(f => f.locationId_Title);
             m.Field(f => f.supervisorId_Title);
-        })
+        }).AutoSync(true)
     )
-    .Height(600)
+    .Height(600).Filterable().Resizable(true)
 )
                     </div>
+
                     <script>
                         $("#VWCMP_Storage").on("dblclick", "tr.k-state-selected", function () {
                             var find = $(this).find("td")[0];
                             var id = $(find).text();
                             window.open("/CMP/VWCMP_Storage/Detail?id=" + id)
                         });
+                        $("#VWCMP_Storage").on("click", "tr.k-state-selected", function () {
+                            $("#edit-storage").show();
+                            $("#delete-storage").show();
+                            $("#detail-storage").show();
+                                var find = $(this).find("td")[0];
+                                var id = $(find).text();
+                                $("#add-storage").attr("data-href", "/CMP/VWCMP_Storage/Insert?companyId=@Model.id" + "&pid=" + id)
+                                $("#edit-storage").attr("data-href", "/CMP/VWCMP_Storage/Update?id=" + id)
+                                $("#delete-storage").attr("data-href", "/CMP/VWCMP_Storage/Delete?id=" + id)
+                                $("#detail-storage").attr("data-href", "/CMP/VWCMP_Storage/Detail?id=" + id)
+                            });
+                        $(document).on("ready", document, function () {
+                            $('[data-command="add"]').parent().append(
+                                '<a class="k-button k-button-icontext" id="add-storage" data-method="GET" data-show="always" data-href="/CMP/VWCMP_Storage/Insert?companyId=@Model.id"><span></span><i class="fa fa-plus-circle" data-original-title="Şube/Depo/Kısım Ekle"></i></a>'
+                            )
+                            $('[data-command="edits"]').parent().append(
+                                '<a class="k-button k-button-icontext " style="display:none;" data-method="GET" data-show="single" data-href id="edit-storage" ><span></span><i class="fa fa-edit" data-original-title="Şube/Depo/Kısım Düzenle"></i></a>'
+                              )
+                            $('[data-command="detail"]').parent().append(
+                                '<a class="k-button k-button-icontext " style="display:none;" data-method="GET" data-show="single" data-default data-modal="false" data-blank="true" data-href id="detail-storage" ><span></span><i class="fa fa-info-circle" data-original-title="Şube/Depo/Kısım Detay"></i></a>'
+                            )
+                            $('[data-command="deletes"]').parent().append(
+                            '<a class="k-button k-button-icontext"  style="display:none;" id="delete-storage" data-ask="" data-href="/CMP/VWCMP_Storage/Delete" data-show="default" data-method="POST"><span></span><i class="fa fa-trash" data-original-title="Şube/Depo/Kısım Sil"></i></a>'
+                            )
+                            $('[data-command="deletes"]').remove();
+                            $('[data-command="edits"]').remove();
+                            $('[data-command="detail"]').remove();
+                            $('[data-command="add"]').remove();
+                        });
+
+
+
                     </script>
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
                         <h4><i class="icon-adult text-success"></i> PERSONEL LİSTESİ </h4>
@@ -896,6 +940,51 @@
                         @Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Contact", DataIds = ((Guid[])ViewBag.ContactIds), Filter = false })
 
                         @Html.Action("PreviewTable", "Files", new { area = "", DataTable = "CRM_Presentation", DataIds = ((Guid[])ViewBag.PresentationIds), Filter = false })
+
+                        @if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                        {
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Kütüphanesi </h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyPersonDocument" })
+                                </div>
+                            </div>
+
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  İSG Dosyaları</h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyWorkHealthDocument" })
+                                </div>
+                            </div>
+
+                            <div class="ibox  collapsed">
+                                <div class="ibox-title">
+                                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Evrakları </h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyDocument" })
+                                </div>
+                            </div>
+                        }
                     </div>
 
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Invoice", new { area = "CMP" })" id="VWCMP_InvoiceSellings">
@@ -1740,52 +1829,7 @@
             </div>
         </section>
 
-        @if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
-        {
 
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Kütüphanesi </h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyPersonDocument" })
-                </div>
-            </div>
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  İSG Dosyaları</h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyWorkHealthDocument" })
-                </div>
-            </div>
-
-            <div class="ibox  collapsed">
-                <div class="ibox-title">
-                    <h5> <i class="fa text-success fa-list-alt"></i>  Şirket Evrakları </h5>
-                    <div class="ibox-tools">
-                        <a class="collapse-link">
-                            <i class="fa fa-chevron-up"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="ibox-content">
-                    @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_CompanyMyDocument" })
-                </div>
-            </div>
-        }
 
 
     </div>
