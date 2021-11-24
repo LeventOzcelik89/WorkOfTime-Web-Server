@@ -7,6 +7,7 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public short? direction { get; set;}
         public short? type { get; set;}
+        public Guid? taskId { get; set;}
         public string description { get; set;}
         public string rowNumber { get; set;}
         public Guid? customerId { get; set;}
