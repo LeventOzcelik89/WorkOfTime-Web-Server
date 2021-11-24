@@ -12,13 +12,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_RequestController : Controller
 	{
-		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi)]
+		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult Index()
 		{
 			return View();
 		}
 
-		[PageInfo("Satın Alma Talepleri Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel)]
+		[PageInfo("Satın Alma Talepleri Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -52,7 +52,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Satın Alma Talep Detayı", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SatinAlmaTalebi, SHRoles.SahaGorevPersonel)]
+		[PageInfo("Satın Alma Talep Detayı", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SatinAlmaTalebi, SHRoles.SahaGorevPersonel, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult Detail(Guid id)
 		{
 			var data = new VMCMP_RequestModels { id = id }.Load(false);
@@ -119,7 +119,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 
 
 
-		[PageInfo("Satın Alma Talebi Not Ekleme Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel)]
+		[PageInfo("Satın Alma Talebi Not Ekleme Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult InsertNote(Guid requestId, string note)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -127,7 +127,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(dbres), "application/json");
 		}
 
-		[PageInfo("Satın Alma Talebi Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel)]
+		[PageInfo("Satın Alma Talebi Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult UpdateStatus(Guid requestId, int type)
 		{
 			var feedback = new FeedBack();

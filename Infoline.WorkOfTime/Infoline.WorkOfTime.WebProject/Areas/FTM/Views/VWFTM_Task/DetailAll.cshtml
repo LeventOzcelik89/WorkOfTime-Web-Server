@@ -125,7 +125,7 @@
 							<a data-toggle="tab" href="#masrafgirisi" aria-expanded="false"><i class="icon-money text-success" aria-hidden="true"></i></a>
 						</li>
 
-						@if (Model.isTaskRule)
+						@if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
 						{
 							<li data-toggle="tooltip" data-placement="top" title="Satın Alma Talepleri">
 								<a data-toggle="tab" href="#satinalmatalepleri" aria-expanded="false"><i class="icon-basket-4 text-success" aria-hidden="true"></i></a>
@@ -232,7 +232,7 @@
 							</div>
 						</div>
 
-						@if (Model.isTaskRule)
+						@if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
 						{
 							<div class="tab-pane" id="satinalmatalepleri">
 								<div class="ibox">
@@ -243,7 +243,7 @@
 										@(Html.Akilli()
 				                         .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
 				                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
-				                         .Filter(a => a.type == (int)EnumCMP_InvoiceType.Talep && a.createdby == userStatus.user.id && a.taskId == Model.id).PageSize(25))
+				                         .Filter(a => a.type == (int)EnumCMP_InvoiceType.Talep && a.taskId == Model.id).PageSize(25))
 				                         .Columns(x =>
 				                         {
 				                         
@@ -255,7 +255,7 @@
 				                         	x.Bound(y => y.CustomerStorage_Title).Title("Giriş Yapılacak Şube/Depo").Width(220);
 				                         	x.Bound(y => y.projectId_Title).Title("Satın Alma Yapılacak Proje").Width(220);
 				                         })
-				                         .Scrollable(s => s.Height(650))
+				                         .Scrollable(s => s.Height(400))
 				                         .Selectable(x => x.Mode(GridSelectionMode.Multiple))
 				                         .ToolBar(x =>
 				                         {
