@@ -121,6 +121,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		private ResultStatus Insert(DbTransaction trans)
 		{
+			var dbresult = new ResultStatus { result = true };
 			foreach (var item in this.InvoiceItems)
 			{
 				item.id = Guid.NewGuid();
@@ -143,7 +144,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (this.taskId.HasValue)
 			{
-				InsertConfirmationTask(this.createdby.Value, this.taskId.Value);
+				dbresult &= InsertConfirmationTask(this.createdby.Value, this.taskId.Value);
 			}
 
 			//Onaylayıcı bir kişi talepde bulunduysa otomatik onay yapacağımız için mail atmıyoruz
@@ -166,7 +167,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}
 			}
 
-			var dbresult = db.InsertCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), this.trans);
+			dbresult &= db.InsertCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 			dbresult &= db.BulkInsertCMP_InvoiceItem(this.InvoiceItems.Select(a => new CMP_InvoiceItem().B_EntityDataCopyForMaterial(a)), this.trans);
 
@@ -509,6 +510,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var dbresult = new ResultStatus { result = true };
 			var _trans = trans ?? db.BeginTransaction();
 			this.db = this.db ?? new WorkOfTimeDatabase();
+			var invoiceCofirmations = new List<CMP_InvoiceConfirmation>();
+
 			var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Task);
 			var task = db.GetFTM_TaskById(taskId);
 
@@ -519,6 +522,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					this._managerPersons = new Guid[1] { shuser.id };
 					this._approvalPersons = new Guid[1] { task.createdby.Value};
+
+					invoiceCofirmations.Add(new CMP_InvoiceConfirmation
+					{
+						created = this.created,
+						createdby = userId,
+						advanceId = this.id,
+						ruleType = (int)EnumUT_RulesUserStage.SecimeBagliKullanici,
+						ruleOrder = 1,
+						status = 0,
+						ruleUserId = task.createdby.Value,
+						userId = shuser.id
+					});
+
+					dbresult &= db.BulkInsertCMP_InvoiceConfirmation(invoiceCofirmations, _trans);
 				}
 			}
 			else
