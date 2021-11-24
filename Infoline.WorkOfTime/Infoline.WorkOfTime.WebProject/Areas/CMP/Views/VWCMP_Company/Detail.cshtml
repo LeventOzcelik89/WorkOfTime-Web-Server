@@ -762,50 +762,114 @@
                 <div class="tab-content">
                     <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
                         <h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
-                        @(Html.Kendo().TreeList<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
+
+                        @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
     .Name("VWCMP_Storage")
-    .Columns(x =>
-    {
-        x.Add().Field(y => y.id).Hidden(true);
-        x.Add().Field(y => y.code).Title("Kodu").Width(100).Filterable(true);
-        x.Add().Field(y => y.name).Title("İsmi").Width(100).Filterable(true);
-        x.Add().Field(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
-        x.Add().Field(y => y.locationId_Title).Title("Ülke/İl/İlçe").Width(150).Filterable(true);
+    .Columns(columns => {
+        columns.Bound(p => p.code).Filterable(false);
+        columns.Bound(p => p.name);
+        columns.Bound(p => p.address);
+        columns.Bound(p => p.locationId);
+
         if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
         {
-            x.Add().Field(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
+            columns.Bound(p => p.supervisorId_Title);
         }
     })
-
-    .Selectable(true)
-    .Toolbar(x=> {
-        x.Excel().Text("");
-        x.Pdf().Text("");
-        x.Custom().Name("add").Text("");
-        x.Custom().Name("edits").Text("");
-        x.Custom().Name("deletes").Text("");
-        x.Custom().Name("detail").Text("");
-    })
-    .DataSource(dataSource => dataSource
-        .Read(read => read.Action("TreeDataSource", "VWCMP_Storage",new {area="CMP" })).Filter(a=>a.companyId==Model.id).PageSize(25).ServerOperation(true).PageSize(25)
-        .Model(m =>
-        {
-            m.Id(f => f.id);
-            m.ParentId(f => f.pid);
-            m.Field(f => f.name);
-            m.Field(f => f.address);
-            m.Field(f => f.locationId_Title);
-            m.Field(f => f.supervisorId_Title);
-        })
-    )
-    .Height(600)
+    .Pageable()
     .Sortable()
+    .Scrollable()
     .Filterable()
-    
-)
+    .HtmlAttributes(new { style = "height:550px;" })
+    .DataSource(dataSource => dataSource
+        .Ajax()
+        .PageSize(20)
+        .Read(read => read.Action("HierarchyDataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.companyId == Model.id))
+     )
+
+
+                        <script id="template" type="text/kendo-tmpl">
+    @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
+            .Name("grid_#=EmployeeID#") // template expression, to be evaluated in the master context
+            .Columns(columns =>
+            {
+                columns.Bound(p => p.code).Filterable(false);
+                columns.Bound(p => p.name);
+                columns.Bound(p => p.address);
+                columns.Bound(p => p.locationId);
+
+                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                {
+                    columns.Bound(p => p.supervisorId_Title);
+                }
+            })
+            .DataSource(dataSource => dataSource
+                .Ajax()
+                .PageSize(10)
+               .Read(read => read.Action("HierarchyDataSource", "VWCMP_Storage", new { area = "CMP" }))
+            )
+            .Pageable()
+            .Sortable()
+                .ClientDetailTemplateId("template")
+        .HtmlAttributes(new { style = "height:600px;" })
+    )
+                        </script>
+                        <script>
+                            function dataBound() {
+                                this.expandRow(this.tbody.find("tr.k-master-row").first());
+                            }
+                        </script>
+                        <script>
+                            function dataBound() {
+                                this.expandRow(this.tbody.find("tr.k-master-row").first());
+                            }
+                        </script>
+
+
+                        @*@(Html.Kendo().TreeList<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
+                                .Name("VWCMP_Storage")
+                                .Columns(x =>
+                                {
+                                    x.Add().Field(y => y.id).Hidden(true);
+                                    x.Add().Field(y => y.code).Title("Kodu").Width(100).Filterable(true);
+                                    x.Add().Field(y => y.name).Title("İsmi").Width(100).Filterable(true);
+                                    x.Add().Field(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
+                                    x.Add().Field(y => y.locationId_Title).Title("Ülke/İl/İlçe").Width(150).Filterable(true);
+                                    if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                                    {
+                                        x.Add().Field(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
+                                    }
+                                })
+
+                                .Selectable(true)
+                                .Toolbar(x=> {
+                                    x.Excel().Text("");
+                                    x.Pdf().Text("");
+                                    x.Custom().Name("add").Text("");
+                                    x.Custom().Name("edits").Text("");
+                                    x.Custom().Name("deletes").Text("");
+                                    x.Custom().Name("detail").Text("");
+                                })
+                                .DataSource(dataSource => dataSource
+                                    .Read(read => read.Action("TreeDataSource", "VWCMP_Storage",new {area="CMP" })).Filter(a=>a.companyId==Model.id).PageSize(1500)
+                                    .Model(m =>
+                                    {
+                                        m.Id(f => f.id);
+                                        m.ParentId(f => f.pid);
+                                        m.Field(f => f.name);
+                                        m.Field(f => f.address);
+                                        m.Field(f => f.locationId_Title);
+                                        m.Field(f => f.supervisorId_Title);
+                                    })
+                                )
+                                .Height(600)
+                                .Sortable()
+                                .Filterable()
+
+                            )*@
                     </div>
 
-                    <script>
+                    @*<script>
                         $("#VWCMP_Storage").on("dblclick", "tr.k-state-selected", function () {
                             var find = $(this).find("td")[0];
                             var id = $(find).text();
@@ -846,7 +910,7 @@
 
 
 
-                    </script>
+                    </script>*@
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
                         <h4><i class="icon-adult text-success"></i> PERSONEL LİSTESİ </h4>
                         @(Html.Akilli()
