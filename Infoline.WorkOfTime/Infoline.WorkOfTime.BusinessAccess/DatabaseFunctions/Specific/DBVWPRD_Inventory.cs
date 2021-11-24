@@ -64,7 +64,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_Inventory>().Where(x => x.productId==productid && x.serialcode.In(serialCodes)).Execute().ToArray();
+                return db.Table<VWPRD_Inventory>().Where(x => x.productId == productid && x.serialcode.In(serialCodes)).Execute().ToArray();
             }
         }
 
@@ -76,10 +76,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
-
-
-
-
+        public VWPRD_Inventory GetVWPRD_InventoryBySerialOrCode(string barcode, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_Inventory>().Where(x => x.serialcode.Contains(barcode) || x.code.Contains(barcode)).Execute().FirstOrDefault();
+            }
+        }
     }
 }

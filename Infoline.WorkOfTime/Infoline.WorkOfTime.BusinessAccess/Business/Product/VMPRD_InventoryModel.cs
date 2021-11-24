@@ -41,4 +41,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string fullName { get; set; }
 		public string productId_Title { get; set; }
 	}
+
+	public class VWPRD_InventoryWithActions : VWPRD_Inventory
+	{
+		public VWPRD_InventoryAction[] actions { get; set; }
+	}
 }
