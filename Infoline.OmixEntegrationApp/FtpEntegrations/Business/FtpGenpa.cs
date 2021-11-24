@@ -104,6 +104,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         }
                     }
                 }
+                Log.Info("Files Count:"+ directoryItems.Count);
+
             }
             catch (Exception e)
             {

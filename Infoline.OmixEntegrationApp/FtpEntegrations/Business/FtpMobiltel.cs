@@ -120,6 +120,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                     }
                 }
+                Log.Info("Files Count:" + fileList.Count);
             }
             catch (Exception e)
             {
