@@ -1,0 +1,74 @@
+﻿@{
+    ViewBag.Title = "Prim Tanımları";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+<script>
+    function monthTitleFunc(data) {
+        var month = "";
+        switch (data) {
+            case 1:
+                month = "Ocak";
+                break;
+            case 2:
+                month = "Şubat";
+                break;
+            case 3:
+                month = "Mart";
+                break;
+            case 4:
+                month = "Nisan";
+                break;
+            case 5:
+                month = "Mayıs";
+                break;
+            case 6:
+                month = "Haziran";
+                break;
+            case 7:
+                month = "Temmuz";
+                break;
+            case 8:
+                month = "Ağustos";
+                break;
+            case 9:
+                month = "Eylül";
+                break;
+            case 10:
+                month = "Ekim";
+                break;
+            case 11:
+                month = "Kasım";
+                break;
+            case 12:
+                month = "Aralık";
+                break;
+            default:
+        }
+        return month;
+    }
+</script>
+<div class="row">
+    <div class="col-sm-12">
+        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductBounty>("VWPRD_ProductBounty")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })).PageSize(25).Sort(t => t.Add(p => p.created).Descending()))
+                              .Scrollable(a => a.Height(600))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.companyId_Title).Title("Firma Cari").Format("{0:N2}").Width(200);
+                                x.Bound(y => y.personId_Title).Title("Personel").Width(180);
+                                x.Bound(y => y.month).Title("Ay").ClientTemplate("#=monthTitleFunc(data.month)#").Width(130);
+                                x.Bound(y => y.year).Title("Yıl").Width(130);
+                                x.Bound(y => y.amount).Title("Prim Tutarı").Width(100).Format("{0:N2} ₺");})
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .Groupable()
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Prim Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertCompanyBased", "VWPRD_ProductBounty", new { area = "PRD"}));
+                                x.Custom().Text("<i data-original-title='Kullanıcı Bazlı Prim Tanımla' class='fa fa-user-add'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductBounty", new { area = "PRD" }));
+                                x.Custom().Text("<i title='Ürün Primini Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductBounty", new { area = "PRD" }));
+                                x.Custom().Text("<i data-original-title='Ürün Prim Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductBounty", new { area = "PRD" }));
+                            }))
+    </div>
+</div>
