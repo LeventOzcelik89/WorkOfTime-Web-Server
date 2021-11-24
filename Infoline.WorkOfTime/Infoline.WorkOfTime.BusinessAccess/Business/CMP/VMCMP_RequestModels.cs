@@ -121,13 +121,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		private ResultStatus Insert(DbTransaction trans)
 		{
-			if (this.taskId.HasValue)
-			{
-
-				InsertConfirmationTask(this.createdby.Value, this.taskId.Value);
-
-			}
-
 			foreach (var item in this.InvoiceItems)
 			{
 				item.id = Guid.NewGuid();
@@ -146,6 +139,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			};
 
 			_approvalPersons = db.GetSH_UserByRoleId(_approvalRoleId);
+
+
+			if (this.taskId.HasValue)
+			{
+				InsertConfirmationTask(this.createdby.Value, this.taskId.Value);
+			}
 
 			//Onaylayıcı bir kişi talepde bulunduysa otomatik onay yapacağımız için mail atmıyoruz
 			if (!_approvalPersons.Contains(this.createdby.Value) && _approvalPersons.Count() > 0)
@@ -510,22 +509,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var dbresult = new ResultStatus { result = true };
 			var _trans = trans ?? db.BeginTransaction();
 			this.db = this.db ?? new WorkOfTimeDatabase();
-			var advanceCofirmations = new List<CMP_InvoiceConfirmation>();
-
 			var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Task);
-			var rulesUserStages = new VWUT_RulesUserStage[0];
-
 			var task = db.GetFTM_TaskById(taskId);
-			rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
 
-			if (rulesUserStages.Count() > 0 && task != null)
+			if (rulesUser != null && task != null)
 			{
 				var shuser = db.GetVWSH_UserById(userId);
 				if (shuser != null)
 				{
-					var lastValidator = rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).ToArray();
-					var companyPersonDepart = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-
 					this._managerPersons = new Guid[1] { shuser.id };
 					this._approvalPersons = new Guid[1] { task.createdby.Value};
 				}
@@ -539,7 +530,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				};
 			}
 
-			dbresult &= db.BulkInsertCMP_InvoiceConfirmation(advanceCofirmations, _trans);
 			return new ResultStatus
 			{
 				result = dbresult.result,
