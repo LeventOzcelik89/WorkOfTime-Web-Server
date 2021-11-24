@@ -31,6 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public CMP_Invoice Order { get; set; }
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
+		public Guid?[] taskIds { get; set; }
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
@@ -74,6 +75,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			return this;
 		}
+
+		public VMCMP_RequestModels Load(Guid userId)
+		{
+			var db = new WorkOfTimeDatabase();
+			this.taskIds = db.GetFTM_TaskByCreatedBy(userId);
+			return this;
+		}
+
 
 		public ResultStatus Save(Guid? userId, HttpRequestBase req = null, DbTransaction _trans = null)
 		{
