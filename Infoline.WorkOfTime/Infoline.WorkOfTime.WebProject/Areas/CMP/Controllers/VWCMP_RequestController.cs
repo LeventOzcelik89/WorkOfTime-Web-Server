@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_RequestController : Controller
 	{
-		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi)]
+		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult Index()
 		{
 			return View();
