@@ -1,25 +1,37 @@
 ﻿@model VMCMP_RequestModels
 @{
+	ViewBag.Title = "Görev Satın Alma Talepleri";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
 	var authorizedRoles = userStatus.AuthorizedRoles;
 	var onaylayici = new Guid(SHRoles.SatinAlmaOnaylayici);
-
 	var now = DateTime.Now;
 	var startOfWeek = now.AddDays(((int)(now.DayOfWeek) * -1) + 1).Date;
 	var endOfWeek = startOfWeek.AddDays(7).Date;
 	var startOfMonth = new DateTime(now.Year, now.Month, 1).Date;
 	var endOfMonth = startOfMonth.AddMonths(1).Date;
 	var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
-
 	var taskIds = Model.taskIds.Select(a => (Guid?)a).ToList();
-
 }
+
+<script type="text/javascript">
+    function statusTemplate(data) {
+        var statuslar = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_RequestStatus>()));
+        var res = statuslar.filter(a => a.Key == data.status)[0];
+        return '<i style="color:'+ res.Generic.color +'" data-original-title="'+data.status_Title+'" data-placement="right" class="' + res.Generic.icon + '"></i>';
+    }
+    function descriptionFunction(data) {
+        if (data.description != null) {
+            return '<i class="fa fa-info-circle" data-placement="right" data-original-title="Talep Açıklaması : ' + data.description + '" data-placement="bottom"></i>';
+        }
+        return "";
+    }
+</script>
 
 <div class="row">
 	<div class="col-md-2">
 		<div class="ibox ">
 			<div class="ibox-content mailbox-content">
-				<a class="btn btn-block btn-success" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Request/Insert"> <i class="fa fa-plus-circle"></i> Yeni Talep Ekle </a>
 				<div class="space-25"></div>
 				<h5>TALEP SÜRECİNE GÖRE</h5>
 				<ul class="folder-list m-b-md" style="padding: 0">
@@ -90,7 +102,7 @@
 	<div class="col-md-10">
 		<div class="ibox ">
 			<div class="ibox-title">
-				<h5>Tüm Satın Alma Talepleri Listesi</h5>
+				<h5>Görev Satın Alma Talepleri Listesi</h5>
 				<div class="ibox-tools">
 					<a class="collapse-link">
 						<i class="fa fa-chevron-up"></i>
