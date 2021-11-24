@@ -498,26 +498,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            var data = db.GetVWCMP_Storage(condition).RemoveGeographies().ToTreeDataSourceResult(request,
-
-               e => id.HasValue ? e.pid.HasValue ? e.pid == id : e.pid == null : e.pid == null,
-                    e => e
-                );
+            var data = db.GetVWCMP_Storage(condition).RemoveGeographies().ToTreeDataSourceResult(request);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
         [PageInfo("Tree View için veriler", SHRoles.Personel)]
-        public ActionResult HierarchyDataSource(Guid id, [DataSourceRequest] DataSourceRequest request)
+        public ActionResult HierarchyDataSource(Guid? id, [DataSourceRequest] DataSourceRequest request)
         {
-
             var condition = KendoToExpression.Convert(request);
             var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
-            return Json(db.GetVWCMP_Storage(condition).RemoveGeographies()
-                .Where(x=> x.pid== id)
-                .ToDataSourceResult(request));
+            var data = db.GetVWCMP_Storage().RemoveGeographies()
+                    .Where(x => x.pid==id)
+                .ToDataSourceResult(request);
+            return Json(data);
         }
 
 
