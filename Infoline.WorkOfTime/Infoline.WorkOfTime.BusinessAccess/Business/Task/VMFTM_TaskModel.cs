@@ -45,6 +45,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<Guid> projectIds { get; set; }
 		public Guid[] FTM_TaskSubjectTypeIds { get; set; }
 		public short? isSendDocuments { get; set; }
+		public bool isTaskRule { get; set; }
 		public string TypeTitle(short? key)
 		{
 			var enumTypeArray = EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().ToArray();
@@ -66,6 +67,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				assignableUsers = taskUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
 				helperUsers = taskUsersHelper.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
 				followUpUsers = taskFollowUpUsers.Where(a => a.userId.HasValue).Select(a => a.userId.Value).ToList();
+
+				if (task.assignUserId.HasValue)
+				{
+					var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(task.assignUserId.Value, (Int16)EnumUT_RulesType.Task);
+
+					if (rulesUser != null)
+					{
+						isTaskRule = true;
+					}
+				}
+
+
+
 				if (this.companyCarId.HasValue)
 				{
 					var companyCar = db.GetCMP_CompanyCarsById(this.companyCarId.Value);

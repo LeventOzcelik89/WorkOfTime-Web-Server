@@ -1,23 +1,23 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_RequestModels
 @{
-    ViewBag.Title = "Satın Alma Talebi";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Satın Alma Talebi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var userStatus = (PageSecurity)Session["userStatus"];
+	var userStatus = (PageSecurity)Session["userStatus"];
 }
 
 <style type="text/css" data-selector="modalContainer">
-    .modal-lg {
-        width: 75%;
-    }
+	.modal-lg {
+		width: 75%;
+	}
 
-    #VWCMP_RequestInsertForm .hr-line-dashed {
-        margin: 10px 0 !important;
-    }
+	#VWCMP_RequestInsertForm .hr-line-dashed {
+		margin: 10px 0 !important;
+	}
 
-    #VWCMP_RequestInsertForm .form-group {
-        margin-bottom: 10px !important;
-    }
+	#VWCMP_RequestInsertForm .form-group {
+		margin-bottom: 10px !important;
+	}
 </style>
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -208,32 +208,34 @@
 </script>
 
 @using (Html.BeginForm("Insert", "VWCMP_Request", FormMethod.Post, new Dictionary<string, object>() {
-    { "class", "form-horizontal" },
-    { "role", "form" },
-    { "id", "VWCMP_RequestInsertForm" },
-    { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "id", "VWCMP_RequestInsertForm" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true)
 
-    @Html.HiddenFor(model => model.id, new { @Value = Model.id })
-    @Html.HiddenFor(model => model.direction)
-    @Html.HiddenFor(model => model.status)
-    @Html.HiddenFor(model => model.type)
-    @Html.HiddenFor(model => model.customerAdress)
-    @Html.HiddenFor(model => model.IsTransform)
-    @Html.HiddenFor(model => model.IsCopy)
+	@Html.HiddenFor(model => model.id, new { @Value = Model.id })
+	@Html.HiddenFor(model => model.direction)
+	@Html.HiddenFor(model => model.status)
+	@Html.HiddenFor(model => model.type)
+	@Html.HiddenFor(model => model.customerAdress)
+	@Html.HiddenFor(model => model.IsTransform)
+	@Html.HiddenFor(model => model.IsCopy)
+	@Html.HiddenFor(model => model.taskId)
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-4">
-                    <label class="control-label req"><i class="fa fa-building-o"></i> Talep Eden İşletmem </label>
-                </div>
-                <div class="col-sm-8">
-                    @(Html.Akilli()
+
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label req"><i class="fa fa-building-o"></i> Talep Eden İşletmem </label>
+				</div>
+				<div class="col-sm-8">
+					@(Html.Akilli()
                         .DropDownListFor(model => model.customerId)
                         .OptionLabel("Lütfen İşletme Seçiniz..")
                         .DataTextField("name")
@@ -247,14 +249,14 @@
                         .Execute("id")
                         .Validate(Validations.Required)
                     )
-                </div>
-            </div>
-        </div>
-        <div class="col-md-6">
-            <div class="form-group" data-id="detail">
-                <label class="control-label col-sm-4 req"><i class="fa fa-building-o"></i> Giriş Yapılacak Şube/Depo </label>
-                <div class="col-sm-8">
-                    @(Html.Akilli()
+				</div>
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div class="form-group" data-id="detail">
+				<label class="control-label col-sm-4 req"><i class="fa fa-building-o"></i> Giriş Yapılacak Şube/Depo </label>
+				<div class="col-sm-8">
+					@(Html.Akilli()
                         .DropDownListFor(model => model.customerStorageId)
                         .OptionLabel("Lütfen Şube/Depo Seçiniz..")
                         .DataTextField("name")
@@ -268,19 +270,19 @@
                         .Execute("id")
                         .Validate(Validations.Required)
                     )
-                </div>
-            </div>
-        </div>
-    </div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-4">
-                    <label class="control-label"><i class="icon-briefcase"></i> Satın Alma Yapılacak Proje </label>
-                </div>
-                <div class="col-sm-8">
-                    @(Html.Akilli()
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label"><i class="icon-briefcase"></i> Satın Alma Yapılacak Proje </label>
+				</div>
+				<div class="col-sm-8">
+					@(Html.Akilli()
                      .DropDownListFor(model => model.projectId)
                      .OptionLabel("Lütfen Proje Seçiniz..")
                      .DataTextField("ProjectName")
@@ -288,33 +290,33 @@
                      .Sort(x => x.Add("ProjectName").Ascending())
                      .Execute()
                      )
-                </div>
-            </div>
-        </div>
-    </div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <div class="hr-line-dashed"></div>
+	<div class="hr-line-dashed"></div>
 
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group">
-                <div class="col-md-4">
-                    <label class="control-label label-md" for="rowNumber"> <i class="fa fa-info-circle"></i> Talep Kodu </label>
-                </div>
-                <div class="col-sm-8">
-                    @Html.TextBoxFor(model => model.rowNumber, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                            {"placeholder", "Lütfen Talep Kodu Girin.."},
-                        }).Validate(Validations.Number(true, 0, 15))
-                </div>
-            </div>
-            <div class="form-group">
-                <div class="col-md-4">
-                    <label class="control-label req"><i class="fa fa-calendar"></i> Şu Tarihe Kadar </label>
-                </div>
-                <div class="col-sm-8">
-                    @(
+	<div class="row">
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md" for="rowNumber"> <i class="fa fa-info-circle"></i> Talep Kodu </label>
+				</div>
+				<div class="col-sm-8">
+					@Html.TextBoxFor(model => model.rowNumber, new Dictionary<string, object>()
+						{
+							{"class", "form-control"},
+							{"placeholder", "Lütfen Talep Kodu Girin.."},
+						}).Validate(Validations.Number(true, 0, 15))
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label req"><i class="fa fa-calendar"></i> Şu Tarihe Kadar </label>
+				</div>
+				<div class="col-sm-8">
+					@(
                         Html.Akilli()
                         .DatePickerFor(model => model.sendingDate)
                         .Format("dd.MM.yyyy")
@@ -322,78 +324,78 @@
                         .Min(DateTime.Now)
                         .Validate(Validations.Required)
                     )
-                </div>
-            </div>
-        </div>
+				</div>
+			</div>
+		</div>
 
-        <div class="col-md-6">
-            <div class="form-group">
-                <label class="control-label col-sm-4 label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Talep Dosyası</label>
-                <div class="col-md-8">
-                    @(
+		<div class="col-md-6">
+			<div class="form-group">
+				<label class="control-label col-sm-4 label-md" for="Dosya"> <i class="fa fa-folder-open"></i> Talep Dosyası</label>
+				<div class="col-md-8">
+					@(
                         Html.Akilli().FileUpload()
                         .DataTable("CMP_Invoice")
                         .DataId(Model.id)
                         .DataKey(x => x.fileGroup == "Talep Dosyası")
                     )
-                </div>
-            </div>
-        </div>
-    </div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <div class="hr-line-dashed"></div>
+	<div class="hr-line-dashed"></div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="form-group">
-                <div class="col-md-2">
-                    <label class="control-label label-md" for="description"> <i class="fa fa-info-circle"></i>Talep Açıklaması </label>
-                </div>
-                <div class="col-md-10">
-                    @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Talebinize açıklama girebilirsiniz. (Ürün kalemi girmek istemiyorsanız talep edeceğiniz ürünlerle ilgili daha detaylı bilgi girişi yapınız.)"},
-                    })
-                </div>
-            </div>
-        </div>
-    </div>
+	<div class="row">
+		<div class="col-md-12">
+			<div class="form-group">
+				<div class="col-md-2">
+					<label class="control-label label-md" for="description"> <i class="fa fa-info-circle"></i>Talep Açıklaması </label>
+				</div>
+				<div class="col-md-10">
+					@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+					{
+						{"class", "form-control"},
+						{"placeholder", "Talebinize açıklama girebilirsiniz. (Ürün kalemi girmek istemiyorsanız talep edeceğiniz ürünlerle ilgili daha detaylı bilgi girişi yapınız.)"},
+					})
+				</div>
+			</div>
+		</div>
+	</div>
 
 
 
-    <div class="hr-line-dashed"></div>
+	<div class="hr-line-dashed"></div>
 
-    <table id="productsTable" class="table" style="background-color: #f8f8f8;">
-        <thead class="table-header" style="background-color: #c5c4c2;">
-            <tr>
-                <th width="40%">ÜRÜN</th>
-                <th width="35%">AÇIKLAMA <i class="fa fa-info-circle" data-original-title="Ürün detaylarını veya listede bulunmayan ürün kalemleri için açıklama alanını kullanabilirsiniz."></i> </th>
-                <th width="20%">MİKTAR</th>
-                <th width="50"></th>
-            </tr>
-        </thead>
-        <tbody class="table-body">
-            <tr class="table-row table-row-2lines">
-                <td colspan="11">
-                    <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="request.fnc.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ ÜRÜN EKLE </button>
-                </td>
-            </tr>
-        </tbody>
-    </table>
+	<table id="productsTable" class="table" style="background-color: #f8f8f8;">
+		<thead class="table-header" style="background-color: #c5c4c2;">
+			<tr>
+				<th width="40%">ÜRÜN</th>
+				<th width="35%">AÇIKLAMA <i class="fa fa-info-circle" data-original-title="Ürün detaylarını veya listede bulunmayan ürün kalemleri için açıklama alanını kullanabilirsiniz."></i> </th>
+				<th width="20%">MİKTAR</th>
+				<th width="50"></th>
+			</tr>
+		</thead>
+		<tbody class="table-body">
+			<tr class="table-row table-row-2lines">
+				<td colspan="11">
+					<button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="request.fnc.AddRowForProduct(true)"><i class="fa fa-plus"></i> YENİ ÜRÜN EKLE </button>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Talebi Gerçekleştir</button>
-    </div>
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Talebi Gerçekleştir</button>
+	</div>
 
 }
 
 <template id="rowTemplate" data-selector="modalContainer">
-    <tbody>
-        <tr class="table-row" data-row="InvoiceItems">
-            <td>
-                @(Html.Akilli()
+	<tbody>
+		<tr class="table-row" data-row="InvoiceItems">
+			<td>
+				@(Html.Akilli()
                     .DropDownList("Item")
                     .OptionLabel("Lütfen Ürün Seçiniz..")
                     .DataTextField("name")
@@ -408,27 +410,27 @@
                     .Execute("id")
                 )
 
-                <input type="hidden" data-item="itemOrder">
-                <input type="hidden" data-item="invoiceId" value="@Model.id">
-                <input type="hidden" data-item="id">
-            </td>
-            <td>
-                @Html.TextBox("Description", "", new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},  { "data-item", "description" }, {"placeholder", "Ürün seçimi yerine açıklamada girebilirsiniz."},
-                })
-            </td>
-            <td>
-                <div class="input-group m-b">
-                    <input class="form-control" type="number" data-item="quantity" />
-                    <span class="input-group-addon" data-label="unit">ADET</span>
-                    <input type="hidden" data-item="unitId" />
-                </div>
-            </td>
-            <td>
-                <button class="btn btn-md btn-danger" onclick="request.fnc.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
-            </td>
-        </tr>
-    </tbody>
+				<input type="hidden" data-item="itemOrder">
+				<input type="hidden" data-item="invoiceId" value="@Model.id">
+				<input type="hidden" data-item="id">
+			</td>
+			<td>
+				@Html.TextBox("Description", "", new Dictionary<string, object>()
+				{
+					{"class", "form-control"},  { "data-item", "description" }, {"placeholder", "Ürün seçimi yerine açıklamada girebilirsiniz."},
+				})
+			</td>
+			<td>
+				<div class="input-group m-b">
+					<input class="form-control" type="number" data-item="quantity" />
+					<span class="input-group-addon" data-label="unit">ADET</span>
+					<input type="hidden" data-item="unitId" />
+				</div>
+			</td>
+			<td>
+				<button class="btn btn-md btn-danger" onclick="request.fnc.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+			</td>
+		</tr>
+	</tbody>
 </template>
 
