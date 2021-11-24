@@ -37,6 +37,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string supplierAdress { get; set;}
         public Guid? invoiceDocumentTemplateId { get; set;}
         public string supplierTitle { get; set;}
+        public Guid? taskId { get; set;}
         public string type_Title { get; set;}
         public string discountType_Title { get; set;}
         public string paymentType_Title { get; set;}

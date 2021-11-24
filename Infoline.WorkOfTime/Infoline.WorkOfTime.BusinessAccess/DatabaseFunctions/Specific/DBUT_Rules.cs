@@ -22,7 +22,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Masraf")]
         Transaction = 20,
         [Description("Avans")]
-        Advance = 30
+        Advance = 30,
+        [Description("Görev")]
+        Task = 40,
+        [Description("Satın Alma")]
+        BuyRequest = 50
 
     }
 
