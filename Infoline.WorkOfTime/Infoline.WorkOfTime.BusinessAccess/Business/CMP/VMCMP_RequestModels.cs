@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool? IsCopy { get; set; }
 		public VWFTM_Task Task { get; set; }
 		public Guid[] taskIds { get; set; }
+		public Guid? projectCompanyId { get; set; }
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
@@ -52,6 +53,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (this.taskId.HasValue)
 				{
 					Task = db.GetVWFTM_TaskById(this.taskId.Value);
+
 				}
 
 				if (isTransform == true)
@@ -68,6 +70,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).ToArray();
 				}
 			}
+
 
 			this.rowNumber = String.IsNullOrEmpty(this.rowNumber) ? BusinessExtensions.B_GetIdCode() : this.rowNumber;
 			this.status = this.status.HasValue ? this.status.Value : (short)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor;
@@ -117,7 +120,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				rs = this.Update(trans);
 			}
 
-			if (rs.result)
+			if (rs.result && req != null)
 			{
 				new FileUploadSave(req, this.id).SaveAs();
 			}

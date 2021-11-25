@@ -50,23 +50,27 @@
 </script>
 <div class="row">
     <div class="col-sm-12">
-        @(Html.Akilli()
+                            @(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductBounty>("VWPRD_ProductBounty")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })).PageSize(25).Sort(t => t.Add(p => p.created).Descending()))
                               .Scrollable(a => a.Height(600))
                             .Columns(x =>
                             {
+
                                 x.Bound(y => y.companyId_Title).Title("Firma Cari").Format("{0:N2}").Width(200);
-                                x.Bound(y => y.personId_Title).Title("Personel").Width(180);
+
+                                x.Bound(y => y.productId_Title).Title("Ürün").Width(180);
                                 x.Bound(y => y.month).Title("Ay").ClientTemplate("#=monthTitleFunc(data.month)#").Width(130);
                                 x.Bound(y => y.year).Title("Yıl").Width(130);
+                                x.Bound(y => y.personId_Title).Title("Personel").Width(150);
                                 x.Bound(y => y.amount).Title("Prim Tutarı").Width(100).Format("{0:N2} ₺");})
-                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+
+                            .Selectable(x => x.Mode(GridSelectionMode.Single))
                             .Groupable()
                             .ToolBar(x =>
                             {
-                                x.Custom().Text("<i data-original-title='Prim Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertCompanyBased", "VWPRD_ProductBounty", new { area = "PRD"}));
-                                x.Custom().Text("<i data-original-title='Kullanıcı Bazlı Prim Tanımla' class='fa fa-user-add'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductBounty", new { area = "PRD" }));
+                                x.Custom().Text("<i data-original-title='Toplu Prim Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertCompanyBased", "VWPRD_ProductBounty", new { area = "PRD"}));
+                                x.Custom().Text("<i data-original-title='Prim Tanımla' class='fa fa-users'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductBounty", new { area = "PRD" }));
                                 x.Custom().Text("<i title='Ürün Primini Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductBounty", new { area = "PRD" }));
                                 x.Custom().Text("<i data-original-title='Ürün Prim Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductBounty", new { area = "PRD" }));
                             }))

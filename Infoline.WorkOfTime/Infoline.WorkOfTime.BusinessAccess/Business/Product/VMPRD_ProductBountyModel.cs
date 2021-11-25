@@ -82,7 +82,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     foreach (var product in Products)
                     {
-                        if (Companies.Length>0)
+                        if (Companies!=null)
                         {
                             foreach (var company in Companies)
                             {
@@ -90,7 +90,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 if (isExist.Count() > 0)
                                 {
                                     if (trans == null) transaction.Rollback();
-                                    return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                                    return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de prim tanımlaması yapılmıştır" };
                                 }
                                 rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty { 
                                 amount=range.amount,
@@ -117,7 +117,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 month = range.month,
                                 year = range.year,
                                 companyId = this.companyId,
-                                productId = this.productId,
+                                productId = product,
                                 createdby = createdby,
                                 created = created
                             }, transaction);
@@ -141,7 +141,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         amount = this.amount,
                         personId = a,
                         productId = this.productId,
-                        companyId = this.companyId
+                        companyId = this.companyId,
+                        month=this.month,
+                        year=this.year
                     });
 
                      rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);

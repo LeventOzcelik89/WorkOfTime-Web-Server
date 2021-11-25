@@ -2,7 +2,6 @@
 @{
     ViewBag.Title = "Bağlı Depo/Şube/Kısım";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
 <script id="treeview-template" data-selector="modalContainer" type="text/kendo-ui-template">
      <div class="clearfix"  data-id="#:item.id#">
@@ -16,47 +15,23 @@
     function treeSelect(e) {
         var id = $(e.node).find('[data-id]').attr("data-id");
         var dropdownlist = $("#customerStorageId").data("kendoDropDownList");
+        var filter = ("(id~eq~" + id + "')");
+        var filterJSON = kendo.filterParser(filter);
+        dropdownlist.dataSource.filter(filterJSON);
         dropdownlist.value(id);
-        dropdownlist.trigger("change");
-
+        dropdownlist.trigger("change");   
     }
     $("[data-id]").dblclick(function () {
         var modal = $(this).parents('.modal')
         modal.modal("hide");
     });
     $("input").on("input", function () {
-        var query = this.value.toLowerCase();
         var dataSource = $("#treeview").data("kendoTreeView").dataSource;
-        filter(dataSource, query);
+        var filter = ("(Name~contains~" + query + "')");
+        var query = this.value;
+        var filterJSON = kendo.filterParser(filter);
+        dataSource.filter(filterJSON)
     });
-    function filter(dataSource, query) {
-        var hasVisibleChildren = false;
-        var data = dataSource instanceof kendo.data.HierarchicalDataSource && dataSource.data();
-        if (data == null) {
-            return;
-        }
-        for (var i = 0; i < data.length; i++) {
-            var item = data[i];
-            var text = item.name.toLowerCase();
-            var itemVisible =
-                query === true // parent already matches
-                || query === "" // query is empty
-                || text.indexOf(query) >= 0; // item text matches query
-
-            var anyVisibleChildren = filter(item.children, itemVisible || query); // pass true if parent matches
-
-            hasVisibleChildren = hasVisibleChildren || anyVisibleChildren || itemVisible;
-
-            item.hidden = !itemVisible && !anyVisibleChildren;
-        }
-
-        if (data) {
-            // Re-apply the filter on the children.
-            dataSource.filter({ field: "hidden", operator: "neq", value: true });
-        }
-
-        return hasVisibleChildren;
-    }
 </script>
 
 @using (Html.BeginForm("", "", FormMethod.Post, new Dictionary<string, object>() {
@@ -73,9 +48,10 @@
         Html.Kendo().TreeView()
         .Name("treeview")
         .DataTextField("Name")
-          .TemplateId("treeview-template")
+        .TemplateId("treeview-template")
         .Events(x=>x.Select("treeSelect"))
         .LoadOnDemand(true)
+        .HighlightPath(true)
         .ExpandAll(true)
         .DataSource(dataSource => dataSource
             .Read(read => read

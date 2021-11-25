@@ -355,6 +355,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         public JsonResult GetTreeViewData(Guid customerId, Guid? id)
         {
             var db = new WorkOfTimeDatabase();
+
+            var company = db.GetCMP_CompanyById(customerId);
+            var storages = db.GetCMP_StorageByCompanyId(customerId);
+            var logo = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("CMP_Company", "İşletme Logosu", customerId);
+
+            if (company == null || storages.Count() == 0)
+            {
+                return Json("", JsonRequestBehavior.AllowGet);
+            }
+
+            return Json(storages.Select(a =>
+    new VWCMP_Storage
+    {
+        id = a.id,
+        //  Her satırda olmayacak.
+        companyId_Image = logo.FilePath,
+        companyId_Title = $"{company.name} | ({company.code})",
+        HASchild = hasChild
+    }))
+
             var getStorage = db.GetVWCMP_StorageByCompanyId(customerId);
             if (getStorage != null)
             {
@@ -511,7 +531,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             request.Page = 1;
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWCMP_Storage().RemoveGeographies()
-                    .Where(x => x.pid==id)
+                    .Where(x => x.pid == id)
                 .ToDataSourceResult(request);
             return Json(data);
         }

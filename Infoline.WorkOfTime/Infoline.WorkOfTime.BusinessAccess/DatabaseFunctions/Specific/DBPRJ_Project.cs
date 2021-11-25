@@ -105,5 +105,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRJ_Project>().Where(x => x.CompanyId == companyId || x.CorporationId == companyId).Execute().ToArray();
             }
         }
+
+        public PRJ_Project GetPRJ_ProjectByCompanyIdIsActive(Guid companyId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRJ_Project>().Where(x => (x.CompanyId == companyId || x.CorporationId == companyId) && x.IsActive == true).Execute().FirstOrDefault();
+            }
+        }
     }
 }
