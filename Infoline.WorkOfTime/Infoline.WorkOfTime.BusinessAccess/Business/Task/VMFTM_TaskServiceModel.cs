@@ -52,6 +52,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string companyDescription { get; set; }
 		public Guid companyCarStorageId { get; set; }
 		public string companyCarStorage_Title { get; set; }
+		public string project_Title { get; set; }
 	}
 
 	public class VMFTM_TaskUserInfo
@@ -78,7 +79,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private FTM_Task _task { get; set; }
 		private List<FTM_TaskOperation> _taskOperation { get; set; } = new List<FTM_TaskOperation>();
 		private List<FTM_TaskFormResult> _taskFormResult { get; set; } = new List<FTM_TaskFormResult>();
-		public Guid? projectId { get; set; }
 		public PRJ_Project project { get; set; }
 
 		public VMFTM_TaskServiceModel()
@@ -164,7 +164,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			if (model.companyId.HasValue)
 			{
-				model.project = _db.GetPRJ_ProjectByCompanyIdIsActive(model.companyId.Value);
+				var project = _db.GetPRJ_ProjectByCompanyIdIsActive(model.companyId.Value);
+
+				if (project != null)
+				{
+					model.projectId = project.id;
+					model.project_Title = project.ProjectName;
+				}
 			}
 
 
