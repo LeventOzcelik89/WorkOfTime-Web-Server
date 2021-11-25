@@ -59,11 +59,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         MemnuniyetAnketiYuklendi = 41,
         [Description("Stoktan Malzeme Kullanımı"), Generic("icon", "fa fa-wrench", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
         StoktanMalzemeKullanimi = 42,
-        [Description("Satın Alma Talebi Yapıldı"), Generic("icon", "fa fa-bookmark", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        [Description("Satın Alma Talebi Yapıldı"), Generic("icon", "fa fa-bookmark", "color", "e2c47f", "description", "Satın Alma Talebi Yapıldı")]
         SatinAlmaTalebiYapildi = 43,
-        [Description("Satın Alma Talebi Onaylandı"), Generic("icon", "fa fa-check-circle", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        [Description("Satın Alma Talebi Onaylandı"), Generic("icon", "fa fa-check-circle", "color", "e2c47f", "description", "Satın Alma Talebi Onaylandı")]
         SatinAlmaTalebiOnaylandi = 44,
-        [Description("Satın Alma Talebi Reddedildi"), Generic("icon", "fa fa-close", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        [Description("Satın Alma Talebi Reddedildi"), Generic("icon", "fa fa-close", "color", "e2c47f", "description", "Satın Alma Talebi Reddedildi")]
         SatinAlmaTalebiReddedildi = 45,
 
 

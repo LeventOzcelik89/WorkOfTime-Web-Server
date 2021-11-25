@@ -180,6 +180,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 			dbresult &= db.BulkInsertCMP_InvoiceItem(this.InvoiceItems.Select(a => new CMP_InvoiceItem().B_EntityDataCopyForMaterial(a)), this.trans);
 
+			if (this.taskId.HasValue)
+			{
+				var buyRequestOperation = new FTM_TaskOperation
+				{
+					taskId = taskId,
+					created = DateTime.Now,
+					status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
+					createdby = this.createdby,
+					description =  this.description,
+				};
+
+
+				dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
+			}
 			if (this.Order != null)
 			{
 				var listTransform = new List<CMP_InvoiceTransform>();
@@ -544,17 +558,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						userId = shuser.id
 					});
 
-					var buyRequestOperation = new FTM_TaskOperation
-					{
-						taskId = task.id,
-						created = DateTime.Now,
-						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
-						createdby = userId,
-						description =  "Satın Alma Talebi Oluşturuldu",
-					};
-
+					
 					dbresult &= db.BulkInsertCMP_InvoiceConfirmation(invoiceCofirmations, _trans);
-					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, _trans);
 				}
 			}
 			else
