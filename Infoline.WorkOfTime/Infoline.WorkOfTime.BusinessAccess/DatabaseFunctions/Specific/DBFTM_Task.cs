@@ -107,6 +107,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public Guid[] GetFTM_TaskByCreatedBy(Guid createdBy, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<FTM_Task>().Where(a => a.createdby == createdBy).Execute().Select(a=>a.id).ToArray();
+            }
+        }
 
     }
 }

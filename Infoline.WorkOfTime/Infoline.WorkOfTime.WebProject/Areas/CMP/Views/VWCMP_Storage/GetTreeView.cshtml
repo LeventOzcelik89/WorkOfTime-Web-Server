@@ -32,7 +32,9 @@
     function filter(dataSource, query) {
         var hasVisibleChildren = false;
         var data = dataSource instanceof kendo.data.HierarchicalDataSource && dataSource.data();
-
+        if (data == null) {
+            return;
+        }
         for (var i = 0; i < data.length; i++) {
             var item = data[i];
             var text = item.name.toLowerCase();
@@ -66,23 +68,22 @@
 }))
 {
     <input class="form-control" placeholder="Ara.." />
-
-    @(
+    <div style="height:500px;max-height:500px;overflow:scroll">
+        @(
         Html.Kendo().TreeView()
         .Name("treeview")
         .DataTextField("Name")
           .TemplateId("treeview-template")
         .Events(x=>x.Select("treeSelect"))
-        .LoadOnDemand(false)
+        .LoadOnDemand(true)
         .ExpandAll(true)
         .DataSource(dataSource => dataSource
             .Read(read => read
                 .Action("GetTreeViewData", "VWCMP_Storage",new { area="CMP",customerId=Model })
             )
-        )
+        ).Messages(x=>x.Loading("Yükleniyor.."))
 )
-
-
+    </div>
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
         <button class="btn btn-md btn-success pull-right" data-task="modalClose" type="button">

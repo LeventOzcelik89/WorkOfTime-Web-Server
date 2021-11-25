@@ -72,12 +72,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(task.assignUserId.Value, (Int16)EnumUT_RulesType.Task);
 
-					if (rulesUser != null)
+					if (rulesUser != null && this.lastOperationStatus >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi)
 					{
 						isTaskRule = true;
 					}
 				}
-
 
 
 				if (this.companyCarId.HasValue)

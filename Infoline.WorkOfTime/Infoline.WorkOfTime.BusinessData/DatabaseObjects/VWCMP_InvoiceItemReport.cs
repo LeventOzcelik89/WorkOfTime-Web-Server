@@ -13,6 +13,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? discount { get; set;}
         public short? discountType { get; set;}
         public int? itemOrder { get; set;}
+        public Guid? taskId { get; set;}
         public string description { get; set;}
         public string Product_Title { get; set;}
         public short? stockType { get; set;}

@@ -18,7 +18,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string verifyCode { get; set; }
         public string Logo { get; set; }
         public PRD_StockTaskPlan taskPlan { get; set; } = new PRD_StockTaskPlan();
-        public VMFTM_TaskOperationModel Load()
+		public VWCMP_Request Request { get; set; }
+		public VMFTM_TaskOperationModel Load()
         {
             this.db = new WorkOfTimeDatabase();
             var operation = db.GetVWFTM_TaskOperationById(this.id);
@@ -29,13 +30,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (this.taskId.HasValue)
             {
                 this.Task = db.GetVWFTM_TaskById(this.taskId.Value);
+
+				if (this.Task != null)
+				{
+                    this.Request = db.GetVWCMP_RequestByTaskId(this.taskId.Value);
+                }
             }
             if (this.formId == null)
             {
                 if (this.fixtureId == null && this.Task != null)
                 {
                     this.fixtureId = this.Task.fixtureId;
-
 
                 }
 

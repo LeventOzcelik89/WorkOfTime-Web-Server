@@ -29,5 +29,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return db.Table<PRD_ProductBounty>().Where(a => a.month == month && a.year == year && a.productId == productId && a.personId.In(personIds)).Execute().ToArray();
 			}
 		}
+
+		public PRD_ProductBounty[] GetPRD_ProductBountyByPeriodAndProductAndCompanyId(int month, int year, Guid productId,Guid companyId, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.Table<PRD_ProductBounty>().Where(a => a.month==month&& a.year==year&& a.productId==productId&& a.companyId==companyId).Execute().ToArray();
+			}
+		}
+
 	}
 }

@@ -30,5 +30,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     partial class WorkOfTimeDatabase
     {
+        public VWCMP_Request GetVWCMP_RequestByTaskId(Guid taskId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCMP_Request>().Where(a => a.taskId == taskId).Execute().FirstOrDefault();
+            }
+        }
     }
 }

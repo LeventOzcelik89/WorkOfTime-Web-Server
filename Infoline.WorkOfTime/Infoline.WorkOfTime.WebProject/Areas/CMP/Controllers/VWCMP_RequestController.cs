@@ -15,7 +15,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		[PageInfo("Satın Alma Talepleri", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult Index()
 		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var authorizedRoles = userStatus.AuthorizedRoles;
+			var satinAlmaOnaylayiciGorev = new Guid(SHRoles.SatinAlmaOnaylayiciGorev);
+
+			if (authorizedRoles.Contains(satinAlmaOnaylayiciGorev))
+			{
+				return RedirectToAction("IndexTask");
+			}
+
 			return View();
+		}
+
+		[PageInfo("Satın Alma Talepleri (Görev)", SHRoles.SatinAlmaOnaylayiciGorev)]
+		public ActionResult IndexTask()
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var data = new VMCMP_RequestModels().Load(userStatus.user.id);
+
+			return View(data);
 		}
 
 		[PageInfo("Satın Alma Talepleri Metodu", SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel,SHRoles.SatinAlmaOnaylayiciGorev)]
