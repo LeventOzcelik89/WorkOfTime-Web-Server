@@ -77,12 +77,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { result = false, message = "Firma/Cari Boş Olamaz" };
                 }
-                var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(month.Value, year.Value, Products, companyId);
-
-                if (isExist.Count() > 0)
-                {
-                    return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
-                }
+             
                 foreach ( var range in Bounty)
                 {
                     foreach (var product in Products)
@@ -91,6 +86,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         {
                             foreach (var company in Companies)
                             {
+                                var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, company);
+                                if (isExist.Count() > 0)
+                                {
+                                    if (trans == null) transaction.Rollback();
+                                    return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                                }
                                 rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty { 
                                 amount=range.amount,
                                 month=range.month,
@@ -104,6 +105,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         }
                         else
                         {
+                            var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, companyId.Value);
+                            if (isExist.Count() > 0)
+                            {
+                                if (trans == null) transaction.Rollback();
+                                return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                            }
                             rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
                             {
                                 amount = range.amount,
