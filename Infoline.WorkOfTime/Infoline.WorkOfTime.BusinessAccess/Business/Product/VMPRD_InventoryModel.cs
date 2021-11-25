@@ -26,37 +26,60 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return null;
                 }
 
-                this.B_EntityDataCopyForMaterial(thisItem);
-
-                var actions = db.GetVWPRD_InventoryActionByInventoryIdOrderByCreatedDesc(this.id);
-                var tasks = db.GetVWPRD_InventoryTaskByInventoryIdOrderByCreatedDesc(this.id);
-                var taskFormRelations = db.GetVWFTM_TaskFormRelationByInventoryId(this.id);
-                var tableAdditionalProperties = db.GetVWSYS_TableAdditionalPropertyByDataIdAndDataTable(this.id, "PRD_Inventory");
-
-                if (actions.Count() > 0)
-                {
-                    this.actions = actions;
-                }
-
-                if (tasks.Count() > 0)
-                {
-                    this.tasks = tasks;
-                }
-
-                if (taskFormRelations.Count() > 0)
-                {
-                    this.taskFormRelations = taskFormRelations;
-                }
-
-                if (tableAdditionalProperties.Count() > 0)
-                {
-                    this.tableAdditionalProperties = tableAdditionalProperties;
-                }
-
-                return this;
+                return LoadModelReturn(thisItem);
             }
 
             return null;
+        }
+
+        public VMPRD_InventoryModel LoadMobile(string barcode)
+        {
+            if (barcode != null)
+            {
+                this.db = this.db ?? new WorkOfTimeDatabase();
+
+                var thisItem = db.GetVWPRD_InventoryBySerialOrCode(barcode);
+                if (thisItem == null)
+                {
+                    return null;
+                }
+
+                return LoadModelReturn(thisItem);
+            }
+
+            return null;
+        }
+
+        private VMPRD_InventoryModel LoadModelReturn(VWPRD_Inventory thisItem)
+        {
+            this.B_EntityDataCopyForMaterial(thisItem);
+
+            var actions = db.GetVWPRD_InventoryActionByInventoryIdOrderByCreatedDesc(this.id);
+            var tasks = db.GetVWPRD_InventoryTaskByInventoryIdOrderByCreatedDesc(this.id);
+            var taskFormRelations = db.GetVWFTM_TaskFormRelationByInventoryId(this.id);
+            var tableAdditionalProperties = db.GetVWSYS_TableAdditionalPropertyByDataIdAndDataTable(this.id, "PRD_Inventory");
+
+            if (actions.Count() > 0)
+            {
+                this.actions = actions;
+            }
+
+            if (tasks.Count() > 0)
+            {
+                this.tasks = tasks;
+            }
+
+            if (taskFormRelations.Count() > 0)
+            {
+                this.taskFormRelations = taskFormRelations;
+            }
+
+            if (tableAdditionalProperties.Count() > 0)
+            {
+                this.tableAdditionalProperties = tableAdditionalProperties;
+            }
+
+            return this;
         }
     }
 

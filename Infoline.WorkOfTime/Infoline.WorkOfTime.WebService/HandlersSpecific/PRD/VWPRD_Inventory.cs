@@ -99,15 +99,12 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             {
                 var serial = context.Request["barcode"];
                 var db = new WorkOfTimeDatabase();
-                var inventory = db.GetVWPRD_InventoryBySerialOrCode(serial);
-                if (inventory == null)
-                {
-                    RenderResponse(context, new ResultStatus { result = false, message = "Envanter Bulunamadı" });
-                    return;
-                }
 
-                var data = new VWPRD_InventoryWithActions().B_EntityDataCopyForMaterial(inventory);
-                data.actions = db.GetVWPRD_InventoryActionByInventoryIdOrderByCreatedDesc(data.id);
+                var data = new VMPRD_InventoryModel().LoadMobile(serial);
+                if (data == null)
+                {
+                    RenderResponse(context, new ResultStatus() { result = false, message = "Envanter Bulunamadı" });
+                }
 
                 RenderResponse(context, data);
             }
