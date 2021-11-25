@@ -1,10 +1,9 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.Web.SmartHandlers;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.WorkOfTime.BusinessData.Specific;
+using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.ComponentModel.Composition;
-using System.Linq;
 using System.Web;
 
 namespace Infoline.WorkOfTime.WebService.HandlersSpecific
@@ -34,24 +33,6 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
-
-        [HandleFunction("VWPRD_Inventory/GetById")]
-        public void VWPRD_InventoryGetById(HttpContext context)
-        {
-            try
-            {
-                var id = context.Request["id"];
-                var db = new WorkOfTimeDatabase();
-                var data = db.GetVWPRD_InventoryById(new Guid(id));
-
-                RenderResponse(context, data);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
-
 
         [HandleFunction("VWPRD_Inventory/GetByCode")]
         public void VWPRD_InventoryGetByCode(HttpContext context)
@@ -111,37 +92,5 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
-
-        [HandleFunction("VWPRD_Inventory/GetPageInfo")]
-        public void VWPRD_InventoryGetPageInfo(HttpContext context)
-        {
-            try
-            {
-                var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
-                var model = new PageModel { SearchProperty = "searchField" };
-
-
-                model.Filters.Add(new PageFilter
-                {
-                    Title = "Son Durumuna Göre",
-                });
-
-                foreach (var item in items)
-                {
-                    model.Filters[0].Items.Add(new PageFilterItem
-                    {
-                        Title = item.EnumKey.ToString(),
-                        Filter = new BEXP { Operand1 = (COL)"lastActionType", Operator = BinaryOperator.Equal, Operand2 = (VAL)item.ToString() }.GetSerializeObject(),
-                    });
-                }
-
-                RenderResponse(context, model);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
-
     }
 }
