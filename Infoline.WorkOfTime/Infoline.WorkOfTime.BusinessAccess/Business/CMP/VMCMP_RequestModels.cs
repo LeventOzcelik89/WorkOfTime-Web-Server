@@ -31,6 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public CMP_Invoice Order { get; set; }
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
+		public VWFTM_Task Task { get; set; }
 		public Guid[] taskIds { get; set; }
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
@@ -47,6 +48,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.B_EntityDataCopyForMaterial(request, true);
 				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
 				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
+
+				if (this.taskId.HasValue)
+				{
+					Task = db.GetVWFTM_TaskById(this.taskId.Value);
+				}
 
 				if (isTransform == true)
 				{
