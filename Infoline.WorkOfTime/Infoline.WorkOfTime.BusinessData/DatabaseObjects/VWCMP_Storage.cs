@@ -7,6 +7,7 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public string fullName { get; set;}
         public string pid_Title { get; set;}
+        public bool? hasChildren { get; set;}
         public string searchField { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}

@@ -356,44 +356,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         {
             var db = new WorkOfTimeDatabase();
 
-            var company = db.GetCMP_CompanyById(customerId);
-            var storages = db.GetCMP_StorageByCompanyId(customerId);
-            var logo = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("CMP_Company", "İşletme Logosu", customerId);
-
-            if (company == null || storages.Count() == 0)
+            var storages = db.GetVWCMP_StorageByCompanyId(customerId);
+            if (storages.Count() == 0)
             {
                 return Json("", JsonRequestBehavior.AllowGet);
             }
-
-            return Json(storages.Select(a =>
-    new VWCMP_Storage
-    {
-        id = a.id,
-        //  Her satırda olmayacak.
-        companyId_Image = logo.FilePath,
-        companyId_Title = $"{company.name} | ({company.code})",
-        HASchild = hasChild
-    }))
-
-            var getStorage = db.GetVWCMP_StorageByCompanyId(customerId);
-            if (getStorage != null)
-            {
-                var storages = from e in getStorage
-                               where (id.HasValue ? e.pid == id : e.pid == null)
-                               select new
-                               {
-                                   id = e.id,
-                                   Name = e.fullName,
-                                   companyId_Image = e.companyId_Image,
-                                   companyId_Title = e.companyId_Title,
-                                   name = e.name,
-                                   code = e.code,
-                                   locationId_Title = e.locationId_Title,
-                                   hasChildren = db.GetVWCMP_StorageByPid(e.id)
-                               };
-                return Json(storages, JsonRequestBehavior.AllowGet);
-            }
-            return Json("", JsonRequestBehavior.AllowGet);
+            return Json(storages.Where(e=>id.HasValue ? e.pid == id : e.pid == null).Select(a =>
+                 new VWCMP_Storage
+                {
+                     id = a.id,
+                     companyId_Image = a.companyId_Image,
+                     companyId_Title = a.companyId_Title,
+                     name=a.fullName,
+                     code=a.code,
+                     hasChildren = a.hasChildren
+                 }),JsonRequestBehavior.AllowGet);
         }
         [PageInfo("Depoların QR Kodlarının Yazdırılması", SHRoles.Personel)]
         public ActionResult PrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
