@@ -53,6 +53,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (this.taskId.HasValue)
 				{
 					Task = db.GetVWFTM_TaskById(this.taskId.Value);
+
 				}
 
 				if (isTransform == true)
@@ -70,15 +71,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}
 			}
 
-			if (this.projectCompanyId.HasValue)
-			{
-				var project = db.GetPRJ_ProjectByCompanyIdIsActive(this.projectCompanyId.Value);
-
-				if (project != null)
-				{
-					this.projectId = project.id;
-				}
-			}
 
 			this.rowNumber = String.IsNullOrEmpty(this.rowNumber) ? BusinessExtensions.B_GetIdCode() : this.rowNumber;
 			this.status = this.status.HasValue ? this.status.Value : (short)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor;
@@ -128,7 +120,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				rs = this.Update(trans);
 			}
 
-			if (rs.result)
+			if (rs.result && req != null)
 			{
 				new FileUploadSave(req, this.id).SaveAs();
 			}
