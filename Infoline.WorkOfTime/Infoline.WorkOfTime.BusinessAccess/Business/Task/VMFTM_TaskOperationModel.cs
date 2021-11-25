@@ -19,7 +19,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string Logo { get; set; }
         public PRD_StockTaskPlan taskPlan { get; set; } = new PRD_StockTaskPlan();
 		public VWCMP_Request Request { get; set; }
-		public VMFTM_TaskOperationModel Load()
+        public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
+
+        public VMFTM_TaskOperationModel Load()
         {
             this.db = new WorkOfTimeDatabase();
             var operation = db.GetVWFTM_TaskOperationById(this.id);
@@ -34,6 +36,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (this.Task != null)
 				{
                     this.Request = db.GetVWCMP_RequestByTaskId(this.taskId.Value);
+                    this.CMP_InvoiceItemReports = db.GetVWCMP_InvoiceItemReportByTaskId(this.taskId.Value);
+
                 }
             }
             if (this.formId == null)
