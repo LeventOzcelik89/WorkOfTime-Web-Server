@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool? IsCopy { get; set; }
 		public VWFTM_Task Task { get; set; }
 		public Guid[] taskIds { get; set; }
+		public Guid? projectCompanyId { get; set; }
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
@@ -66,6 +67,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				else
 				{
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).ToArray();
+				}
+			}
+
+			if (this.projectCompanyId.HasValue)
+			{
+				var project = db.GetPRJ_ProjectByCompanyIdIsActive(this.projectCompanyId.Value);
+
+				if (project != null)
+				{
+					this.projectId = project.id;
 				}
 			}
 
