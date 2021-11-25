@@ -3,6 +3,7 @@ using Infoline.Web.SmartHandlers;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData.Specific;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Web;
@@ -35,14 +36,18 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             }
         }
 
-        [HandleFunction("VWPRD_Inventory/GetById")]
-        public void VWPRD_InventoryGetById(HttpContext context)
+        [HandleFunction("VWPRD_InventoryDetail/GetById")]
+        public void VWPRD_InventoryDetailGetById(HttpContext context)
         {
             try
             {
                 var id = context.Request["id"];
-                var db = new WorkOfTimeDatabase();
-                var data = db.GetVWPRD_InventoryById(new Guid(id));
+                var data = new VMPRD_InventoryModel().LoadMobile(new Guid(id));
+
+                if (data == null)
+                {
+                    RenderResponse(context, new ResultStatus() { result = false, message = "id Bulunamadı" });
+                }
 
                 RenderResponse(context, data);
             }
@@ -115,32 +120,50 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
         [HandleFunction("VWPRD_Inventory/GetPageInfo")]
         public void VWPRD_InventoryGetPageInfo(HttpContext context)
         {
-            try
+            var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
+
+            var headers = new SummaryHeadersAdvance();
+            headers.headerFilters = new HeadersAdvance();
+            headers.headerFilters.title = "Durumuna Göre";
+            headers.headerFilters.Filters = new List<HeadersAdvanceItem>();
+            foreach (var item in items)
             {
-                var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
-                var model = new PageModel { SearchProperty = "searchField" };
-
-
-                model.Filters.Add(new PageFilter
+                headers.headerFilters.Filters.Add(new HeadersAdvanceItem
                 {
-                    Title = "Son Durumuna Göre",
+                    title = item.EnumKey.ToString(),
+                    filter = "{'Filter':{'Operand1':'lastActionType','Operator':'Equal','Operand2':'" + item.Key.ToString() + "'},'Operator':'And'}",
+                    isActive = true
                 });
-
-                foreach (var item in items)
-                {
-                    model.Filters[0].Items.Add(new PageFilterItem
-                    {
-                        Title = item.EnumKey.ToString(),
-                        Filter = new BEXP { Operand1 = (COL)"lastActionType", Operator = BinaryOperator.Equal, Operand2 = (VAL)item.ToString() }.GetSerializeObject(),
-                    });
-                }
-
-                RenderResponse(context, model);
             }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
+
+            RenderResponse(context, headers);
+
+            //try
+            //{
+            //    var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
+            //    var model = new PageModel { SearchProperty = "searchField" };
+
+
+            //    model.Filters.Add(new PageFilter
+            //    {
+            //        Title = "Son Durumuna Göre",
+            //    });
+
+            //    foreach (var item in items)
+            //    {
+            //        model.Filters[0].Items.Add(new PageFilterItem
+            //        {
+            //            Title = item.EnumKey.ToString(),
+            //            Filter = new BEXP { Operand1 = (COL)"lastActionType", Operator = BinaryOperator.Equal, Operand2 = (VAL)item.Key.ToString() }.GetSerializeObject(),
+            //        });
+            //    }
+
+            //    RenderResponse(context, model);
+            //}
+            //catch (Exception ex)
+            //{
+            //    RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            //}
         }
 
     }

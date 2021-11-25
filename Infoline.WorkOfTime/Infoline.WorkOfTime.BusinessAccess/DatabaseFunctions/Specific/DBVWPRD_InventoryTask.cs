@@ -1,26 +1,21 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Infoline.Framework.Database;
-using System.Data.SqlClient;
-using System.Linq.Expressions;
-using System.Data.Common;
+﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
+using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     partial class WorkOfTimeDatabase
     {
-        public PRD_InventoryTask[] GetPRD_InventoryTaskByInventoryId(Guid inventoryId, DbTransaction tran = null)
+
+        public VWPRD_InventoryTask[] GetVWPRD_InventoryTaskByInventoryIdOrderByCreatedDesc(Guid inventoryId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
-
             {
-                return db.Table<PRD_InventoryTask>().Where(a => a.inventoryId == inventoryId).Execute().ToArray();
+                return db.Table<VWPRD_InventoryTask>().Where(x => x.inventoryId == inventoryId).OrderByDesc(x => x.created).Execute().ToArray();
             }
         }
-
     }
 }

@@ -17,7 +17,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Inventory>().Where(x => x.code == code).Execute().FirstOrDefault();
             }
         }
+        public VWPRD_Inventory GetVMPRD_InventoryById(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
+            {
+                return db.Table<VWPRD_Inventory>().Where(a => a.id == id).Execute().FirstOrDefault();
+            }
+        }
 
 
         public VWPRD_Inventory[] GetVWPRD_InventoryByCompanyId(Guid companyId, DbTransaction tran = null)
