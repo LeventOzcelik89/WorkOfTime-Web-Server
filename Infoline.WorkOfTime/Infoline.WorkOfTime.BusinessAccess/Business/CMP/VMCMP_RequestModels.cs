@@ -544,7 +544,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						userId = shuser.id
 					});
 
+					var buyRequestOperation = new FTM_TaskOperation
+					{
+						taskId = task.id,
+						created = DateTime.Now,
+						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
+						createdby = userId,
+						description =  "Satın Alma Talebi Oluşturuldu",
+					};
+
 					dbresult &= db.BulkInsertCMP_InvoiceConfirmation(invoiceCofirmations, _trans);
+					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, _trans);
 				}
 			}
 			else

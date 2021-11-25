@@ -59,6 +59,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         MemnuniyetAnketiYuklendi = 41,
         [Description("Stoktan Malzeme Kullanımı"), Generic("icon", "fa fa-wrench", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
         StoktanMalzemeKullanimi = 42,
+        [Description("Satın Alma Talebi Yapıldı"), Generic("icon", "fa fa-bookmark", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        SatinAlmaTalebiYapildi = 43,
+        [Description("Satın Alma Talebi Onaylandı"), Generic("icon", "fa fa-check-circle", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        SatinAlmaTalebiOnaylandi = 44,
+        [Description("Satın Alma Talebi Reddedildi"), Generic("icon", "fa fa-close", "color", "e2c47f", "description", "Stoktan Malzeme Kullanımı Yapıldı")]
+        SatinAlmaTalebiReddedildi = 45,
 
 
         // NOT : Icon değiştirildiğinde Görev detayından svg nin de değişmesi gerekmektedir.
