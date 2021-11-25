@@ -83,5 +83,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<SYS_Files>().Execute().GroupBy(x=>x.FileGroup).Select(x=>new {file=x.Key,value=x.GroupBy(a=>a.DataTable).Select(b=>b.Key).FirstOrDefault() }).ToArray();
             }
         }
+        public SYS_Files GetSysFilesByDataTableAndFileGroupAndDataId(string DataTable, string FileGroup, Guid DataId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<SYS_Files>().Where(x => x.DataTable == DataTable && x.FileGroup == FileGroup && x.DataId == DataId)
+                    .Execute<SYS_Files>().FirstOrDefault();
+            }
+        }
     }
 }
