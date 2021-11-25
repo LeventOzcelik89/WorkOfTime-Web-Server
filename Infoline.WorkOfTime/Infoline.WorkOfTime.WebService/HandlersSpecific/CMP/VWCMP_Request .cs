@@ -45,6 +45,7 @@ namespace Infoline.ProjectManagement.WebService.HandlersSpecific.CMP
                 var item = ParseRequest<VMCMP_RequestModels>(context);
                 var userId = CallContext.Current.UserId;
                 var db = new WorkOfTimeDatabase();
+                item.Load(false);
                 item.Save(userId);
                 RenderResponse(context, new ResultStatus() { result = true, message = "Satın Alma Talebi Başarıyla Oluşturuldu" });
             }
