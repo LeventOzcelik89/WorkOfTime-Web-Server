@@ -33,7 +33,11 @@
             $(row).remove();
         },
         addRow: function (data) {
-            
+            var validate = page.validateRow();
+            if (validate == false) {
+                swal("Aynı Tarihleri Giremezsiniz!", "", "warning");
+                return;
+            }
             var company = $($('#RowTempForCompany').html());
             $('#RowContainer_company').append(company);
             company.find('[data-company="id"]')
@@ -89,25 +93,45 @@
                 .kendoNumericTextBox({ "format": "N2", "culture": "tr-TR", "spinners": false, "value": (data.amount ?? 0) });
             page.Counter++;
         },
-        validateRow: function () {
-
-
+        validateRow: function() {
+            var list = [];
+            var value = true;
+            $("#RowContainer_company tr").each(function (i, item) {
+                var month = $(item).find('[data-company="month"]').data("kendoDropDownList").value();
+                var year = $(item).find('[data-company="year"]').data("kendoDropDownList").value();
+                var amount = $(item).find('[data-company="amount"]').data("kendoNumericTextBox").value();
+                var isExist = $.Enumerable.From(list).Where(x => x.month == month && x.year == year).ToArray();
+                if (isExist.length > 0) {
+                    value = false
+                }
+                list.push({ month: month, year: year, amount: amount });
+            });
+            return value;
         }
     }
     page.addRow([]);
+    $("#ProductBounty").submit(function (event) {
+
+        var validate = page.validateRow();
+        if (validate == false) {
+            swal("Aynı Tarihleri Giremezsiniz!", "", "warning");
+            event.preventDefault();
+        }
+
+    });
 </script>
 <script type="text/template" data-selector="modalContainer" id="RowTempForCompany">
     <tr>
         <td>
             <input data-company="id" style="display:none" hidden class="k-input form-control" />
-            <input data-company="month" class="k-input form-control" />
+            <input data-company="month" required class="k-input form-control" />
         </td>
         <td>
-            <input data-company="year" class="k-input form-control" />
+            <input data-company="year" required class="k-input form-control" />
         </td>
         <td>
             <div class="input-group">
-                <input data-company="amount" />
+                <input required data-company="amount" />
                 <span class="input-group-addon">₺</span>
             </div>
         </td>
@@ -120,7 +144,8 @@
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+    { "data-formType", "Ajax" },
+    {"id","ProductBounty" }
 }))
 {
     <style>
@@ -190,9 +215,7 @@
                     font-size: 11px;
             }
 
-            table.table-custom .form-control .k-dropdown-wrap, table.table-custom .form-control .k-picker-wrap, table.table-custom .form-control .k-multiselect-wrap {
-                    padding: 0px 0px 0px 0px !important
-            }
+            
 
             table.table-custom .form-control.k-widget {
                     padding: 0px !important;
@@ -263,7 +286,7 @@
     </div>
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md req" for="personIds">Bağlı Firmalar</label>
+            <label class="control-label label-md" for="personIds">Bağlı Firmalar</label>
         </div>
         <div class="col-md-8">
             @(
@@ -275,7 +298,7 @@
 		.ItemTemplate("#=TemplateEngine('companyTemplate',data)#")
 		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
 		.Sort(x => x.Add("FullName").Ascending())
-		.Validate(Validations.Required)
+		
 		.Execute()
         .Enable(false)
             )
@@ -291,7 +314,7 @@
                             <tr>
                                 <th width="32%">Ay</th>
                                 <th width="32%">Yıl</th>
-                                <th width="32%">Prim Oranı</th>
+                                <th width="32%">Prim Tutarı</th>
                                 <th width="4%"></th>
                             </tr>
                         </thead>

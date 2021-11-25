@@ -633,14 +633,15 @@
                         <h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
                         @(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
     .Columns(x => {
-                x.Bound(y => y.code).Title("Kodu").Width(100).Filterable(true);
-                x.Bound(y => y.name).Title("İsmi").Width(100).Filterable(true);
-                x.Bound(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
-                x.Bound(y => y.locationId_Title).Title("Ülke/İl/İlçe").Width(150).Filterable(true);
-                if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
-                {
-                    x.Bound(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
-                }
+        
+        x.Bound(y => y.code).Title("Kodu").Width(100).Filterable(true);
+        x.Bound(y => y.name).Title("İsmi").Width(100).Filterable(true);
+        x.Bound(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
+        x.Bound(y => y.locationId_Title).Title("Ülke/İl/İlçe").Width(150).Filterable(true);
+        if (Model.type == (int)EnumCMP_CompanyType.Benimisletmem)
+        {
+            x.Bound(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
+        }
     })
     .Pageable()
     .Sortable()
@@ -653,16 +654,16 @@
     .PageSize(20)
     .Read(read => read.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.companyId == Model.id&&a.pid==System.UIHelper.Guid.Null))
                     .ToolBar(x =>
-                {
-                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
-                    //x.Custom().Text("<i data-original-title='Rafları Göster' class='fa fa-align-left'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("TreeViewStorage", "VWCMP_StorageSection", new { area = "CMP" }));
-                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
-                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
-                    x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
-                })
+                    {
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "id", "storage-add" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
+                        //x.Custom().Text("<i data-original-title='Rafları Göster' class='fa fa-align-left'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("TreeViewStorage", "VWCMP_StorageSection", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "id", "storage-update" } ,{ "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" },{ "id","detail"}, {"data-default","" },{ "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } , { "id", "storage-delete" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
+                    })
      )
-                    <script id="template" type="text/kendo-tmpl">
-                            
+                        <script id="template" type="text/kendo-tmpl">
+
             @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
             .Name("grid_#=id#")
             .Columns(x =>
@@ -676,7 +677,6 @@
                     x.Bound(y => y.supervisorId_Title).Title("Sorumlu Personel").Width(150).Filterable(true);
                 }
             })
-            .Selectable()
             .DataSource(dataSource => dataSource
                 .Ajax()
                 .PageSize(25)
@@ -684,11 +684,11 @@
             )
             .Events(x=>x.DataBinding("hideHeader"))
             .Sortable()
+            .Selectable()
             .ClientDetailTemplateId("template")
             .ToClientTemplate()
     )
-                       
-                    </script>
+                        </script>
                         <script>
                             function hideHeader() {
                                 $("#VWCMP_Storage").children().find(".k-grid .k-grid-header").hide();
@@ -1683,6 +1683,22 @@
                 haritalar['LocationCompany'].feature.panTo('@Model.id');
                 haritalar['LocationCompany'].map.getView().setZoom(16);
             }, 250)
-        })
-        ;
+        });
+    $("#VWCMP_Storage").on("click", "tr.k-state-selected", function () {
+
+        $("tr.k-state-selected").removeClass("k-state-selected");
+        $(this).addClass("k-state-selected");
+        var dataUid = $(this).attr("data-uid");
+        var tableId = $(this).parents(".k-grid").first().attr("id");
+        var grid = $("#" + tableId).data("kendoGrid");
+        var dataSource = grid.dataSource.getByUid(dataUid);
+        $("#detail").removeClass("hide");
+        $("#storage-add").removeClass("hide");
+        $("#storage-delete").removeClass("hide");
+        $("#storage-update").removeClass("hide");
+        $("#detail").attr("data-href", "/CMP/VWCMP_Storage/Detail/" + dataSource.id);
+        $("#storage-add").attr("data-href", "/CMP/VWCMP_Storage/Insert?pid=" + dataSource.id);
+        $("#storage-delete").attr("data-href", "/CMP/VWCMP_Storage/Delete?id=" + dataSource.id);
+        $("#storage-update").attr("data-href", "/CMP/VWCMP_Storage/Update?id=" + dataSource.id);
+    });
 </script>
