@@ -54,6 +54,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					Task = db.GetVWFTM_TaskById(this.taskId.Value);
 
+					if (Task != null && Task.companyId.HasValue)
+					{
+						var project = db.GetPRJ_ProjectByCompanyIdIsActive(Task.companyId.Value);
+
+						if (project != null)
+						{
+							this.projectId = project.id;
+						}
+					}
+
 				}
 
 				if (isTransform == true)
