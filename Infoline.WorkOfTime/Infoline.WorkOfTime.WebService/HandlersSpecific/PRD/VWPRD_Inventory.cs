@@ -35,14 +35,18 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             }
         }
 
-        [HandleFunction("VWPRD_Inventory/GetById")]
-        public void VWPRD_InventoryGetById(HttpContext context)
+        [HandleFunction("VWPRD_InventoryDetail/GetById")]
+        public void VWPRD_InventoryDetailGetById(HttpContext context)
         {
             try
             {
                 var id = context.Request["id"];
-                var db = new WorkOfTimeDatabase();
-                var data = db.GetVWPRD_InventoryById(new Guid(id));
+                var data = new VMPRD_InventoryModel().LoadMobile(new Guid(id));
+
+                if (data == null)
+                {
+                    RenderResponse(context, new ResultStatus() { result = false, message = "id Bulunamadı" });
+                }
 
                 RenderResponse(context, data);
             }
