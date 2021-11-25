@@ -12,8 +12,27 @@
 	var endOfMonth = startOfMonth.AddMonths(1).Date;
 	var startOfLastMonth = new DateTime(now.Year, now.Month, 1).AddMonths(-1).Date;
 	var taskIds = Model.taskIds.Select(a => (Guid?)a).ToList();
-}
 
+	var filter = "";
+
+	var listCount = 0;
+
+	for (int i = 0; i < taskIds.Count; i++)
+	{
+		if (listCount == i)
+		{
+			filter += "taskId~contains~'" + taskIds[i] + "'";
+		}
+		else
+		{
+			filter += "taskId~contains~'" + taskIds[i] + "'~or~";
+
+		}
+
+		listCount++;
+	}
+
+}
 <script type="text/javascript">
     function statusTemplate(data) {
         var statuslar = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumCMP_RequestStatus>()));
@@ -36,51 +55,51 @@
 				<h5>TALEP SÜRECİNE GÖRE</h5>
 				<ul class="folder-list m-b-md" style="padding: 0">
 					<li>
-						<a class="active" data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(direction~eq~0)" href="#">
+						<a class="active" data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(direction~eq~0~and~@filter)" href="#">
 							<i class="text-success fa fa-align-justify" style="color:black;"></i> Tüm Talepler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(direction~eq~0)" class="badge badge-success pull-right black-bg"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(direction~eq~0~and~@filter)" class="badge badge-success pull-right black-bg"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor)~and~@filter)" href="#">
 							<i class="text-warning fa fa-spinner"></i>Talep Onay Sürecindekiler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor))" class="badge badge-warning pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor)~and~@filter)" class="badge badge-warning pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)~or~status~eq~@((int)EnumCMP_RequestStatus.YeniTeklifToplanmasiBekleniyor))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)~or~status~eq~@((int)EnumCMP_RequestStatus.YeniTeklifToplanmasiBekleniyor)~and~@filter)" href="#">
 							<i class="text-warning icon-hourglass-1"></i> Teklif Toplanması Beklenenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)~or~status~eq~@((int)EnumCMP_RequestStatus.YeniTeklifToplanmasiBekleniyor))" class="badge badge-warning pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor)~or~status~eq~@((int)EnumCMP_RequestStatus.YeniTeklifToplanmasiBekleniyor)~and~@filter)" class="badge badge-warning pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor)~and~@filter)" href="#">
 							<i class="text-success icon-back-in-time"></i> Teklif Onayı Bekleyenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor))" class="badge badge-success pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifToplandiOnayBekleniyor)~and~@filter)" class="badge badge-success pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifOnaylandi))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TeklifOnaylandi)~and~@filter)" href="#">
 							<i class="text-info icon-cart"></i> Tedarik Edilmeyi Bekleyenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifOnaylandi))" class="badge badge-info pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TeklifOnaylandi)~and~@filter)" class="badge badge-info pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.FaturasiAlindi))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.FaturasiAlindi)~and~@filter)" href="#">
 							<i class="text-primary fa fa-check-square-o"></i> Tedarik Edilenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.FaturasiAlindi))" class="badge badge-primary pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.FaturasiAlindi)~and~@filter)" class="badge badge-primary pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TalepReddedildi))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TalepReddedildi)~and~@filter)" href="#">
 							<i class="text-danger fa fa-times-circle"></i> Reddedilenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TalepReddedildi))" class="badge badge-danger pull-right"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TalepReddedildi)~and~@filter)" class="badge badge-danger pull-right"></span>
 						</a>
 					</li>
 					<li>
-						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TalepIptalEdildi))" href="#">
+						<a data-grid="VWCMP_Request" data-category="1" data-switch="radio" data-query="(status~eq~@((int)EnumCMP_RequestStatus.TalepIptalEdildi)~and~@filter)" href="#">
 							<i class="text-danger icon-cancel-outline" style="color: rgb(150, 17, 17, 1)"></i> İptal Edilenler
-							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TalepIptalEdildi))" class="badge badge-danger pull-right" style="background-color: rgb(150, 17, 17, 1)"></span>
+							<span data-counturl="/CMP/VWCMP_Request/DataSourceCount?filter=(status~eq~@((int)EnumCMP_RequestStatus.TalepIptalEdildi)~and~@filter)" class="badge badge-danger pull-right" style="background-color: rgb(150, 17, 17, 1)"></span>
 						</a>
 					</li>
 				</ul>
@@ -88,12 +107,12 @@
 				<h5> TALEP TARİHİNE GÖRE </h5>
 				<ul class="category-list" style="padding: 0">
 					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="(direction~eq~0)"> <i class="fa fa-clock-o text-success"></i> Tümü </a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0')"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
-					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0)"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0~and~@filter)"> <i class="fa fa-clock-o text-navy"></i> Bugün </a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0~and~@filter)"> <i class="fa fa-clock-o text-warning"></i> Dün </a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@endOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0~and~@filter)"> <i class="fa fa-clock-o text-success"></i> Bu Hafta </a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfWeek.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@startOfWeek.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0'~and~@filter)"> <i class="fa fa-clock-o text-danger"></i> Geçen Hafta </a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@endOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0~and~@filter)"> <i class="fa fa-clock-o text-info"></i> Bu Ay</a></li>
+					<li><a href="#" data-grid="VWCMP_Request" data-switch="radio" data-category="2" data-query="((created~gte~datetime'@startOfLastMonth.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@startOfMonth.ToString("yyyy-MM-ddT00-00-00")')~and~direction~eq~0~and~@filter)"> <i class="fa fa-clock-o text-navy"></i> Geçen Ay </a></li>
 				</ul>
 			</div>
 		</div>
@@ -131,10 +150,7 @@
                     .ToolBar(x =>
                     {
                         x.Custom().Text("<i data-original-title='Talep Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Request", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='Talebi Kopyala' class='fa fa-copy'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", IsCopy = true }));
                         x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='Talebi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Request", new { area = "CMP" }));
-
                         x.Custom().Text("<i data-original-title='Talebi İptal Et' class='icon-cancel-outline'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Talebi iptal etmek istediğinize emin misiniz?" } }).Url(Url.Action("Cancel", "VWCMP_Request", new { area = "CMP" }));
                     }))
 
