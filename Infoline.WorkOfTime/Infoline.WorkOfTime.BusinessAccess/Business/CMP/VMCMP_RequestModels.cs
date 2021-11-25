@@ -31,7 +31,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public CMP_Invoice Order { get; set; }
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
+		public VWFTM_Task Task { get; set; }
 		public Guid[] taskIds { get; set; }
+		public Guid? projectCompanyId { get; set; }
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
@@ -48,6 +50,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
 				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
 
+				if (this.taskId.HasValue)
+				{
+					Task = db.GetVWFTM_TaskById(this.taskId.Value);
+				}
+
 				if (isTransform == true)
 				{
 					this.rowNumber = null;
@@ -60,6 +67,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				else
 				{
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).ToArray();
+				}
+			}
+
+			if (this.projectCompanyId.HasValue)
+			{
+				var project = db.GetPRJ_ProjectByCompanyIdIsActive(this.projectCompanyId.Value);
+
+				if (project != null)
+				{
+					this.projectId = project.id;
 				}
 			}
 

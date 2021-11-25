@@ -12,8 +12,70 @@
 	var status = (EnumFTM_TaskOperationStatus)Model.status;
 }
 
-<style type="text/css">
+<script type="text/javascript" data-selector="modalContainer">
+	    var requestDetail = {
+        templates: {
+            quantityTemp: function (item) {
+                var unit = !item.Unit_Title ? "" : item.Unit_Title;
+                if(unit == "ADET"){
+                    return kendo.toString(item.quantity, "N0") + " " + unit;
+                }
+
+                return kendo.toString(item.quantity, "N2") + " " + unit;
+            },
+            currencyTemp: function (item, data, isTotal) {
+                if (!data) {
+                    return "-";
+                }
+                if (data != null) {
+                    var currency = item.Currency_Symbol ? item.Currency_Symbol : "₺";
+                    return isTotal ? '<span style="color:#ff6a00">' + kendo.toString(data, "N2") + " " + currency + '</span>' :
+                        kendo.toString(data, "N2") + " " + currency;
+                }
+                else {
+                    return "-";
+                }
+            },
+            stockTemp: function (data) {
+                if (data.stockType != 0) {
+                    if (data.stockCount && data.stockCount != null) {
+                        return kendo.toString(data.stockCount, "N2") + (data.Unit_Title ? data.Unit_Title : "");
+                    }
+                    else
+                    {
+                        return "Stokta Yok"
+                    }
+                }
+
+                return "Stoksuz Ürün/Hizmet";
+            },
+            statusTemp: function (data) {
+                if (data.status == '@((int)EnumCMP_TenderStatus.Red)') {
+                    return '<i class="fa text-danger fa-times-circle">';
+                }
+                else if (data.status == '@((int)EnumCMP_TenderStatus.CevapBekleniyor)') {
+                    return '<i class="fa text-warning fa-spinner">';
+                }
+                else {
+                    return '<i class="fa text-navy fa-check">';
+                }
+            }
+        }
+    }
+
+
+	function onDataBoundInvoiceItemGrid(e) {
+		$("[class='k-header k-grid-toolbar k-grid-top']").remove();
+	}
+
+</script>
+
+<style type="text/css" data-selector="modalContainer">
 	.k-pager-wrap.k-grid-pager.k-widget.k-floatwrap {
+		display: none;
+	}
+
+	.k-header k-grid-toolbar k-grid-top {
 		display: none;
 	}
 </style>
@@ -68,41 +130,6 @@
 		</div>
 	}
 
-	if (Model.Request != null)
-	{
-		<div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
-			<div class="ibox-title">
-				<h5> <i class="fa fa-line-chart"></i> Talep Ürün Kalem Bilgileri ve Stok Durumları</h5>
-				<div class="ibox-tools">
-					<a class="btn btn-xs btn-success hide" style="color:white;" data-button="stock" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="">
-						<i class="fa fa-align-justify"></i> Ürün Stok Özeti
-					</a>
-					<a class="collapse-link">
-						<i class="fa fa-chevron-up"></i>
-					</a>
-				</div>
-			</div>
-			<div class="ibox-content no-padding">
-				@(Html.Akilli()
-                           .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
-                           .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
-                           .Filter(a => a.taskId == Model.id).PageSize(999))
-                           .Columns(x =>
-                           {
-                               x.Bound(y => y.Product_Title).Title("Talep Edilen Ürün/Hizmet").Filterable(false);
-                               x.Bound(y => y.description).Title("Açıklama").Width(250).Filterable(false);
-                               x.Bound(y => y.quantity).Title("Talep Edilen Miktar").Width(200).Filterable(false).ClientTemplate("#=requestDetail.templates.quantityTemp(data)#")
-                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
-                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
-                               x.Bound(y => y.stockCount).Title("Stoklardaki Mevcut Miktar").Width(200).Filterable(false).ClientTemplate("#=requestDetail.templates.stockTemp(data)#");
-                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
-                           })
-                           .Selectable(x => x.Mode(GridSelectionMode.Single))
-                           .Scrollable(s => s.Height(200))
-                        )
-			</div>
-		</div>
-	}
 
 	if (status != EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi)
 	{
@@ -133,18 +160,38 @@
 		</div>
 	}
 
-	<div class="form-group">
-		<div class="col-md-3">
-			<label class="control-label label-md" for="description">Açıklama : </label>
+
+	if (Model.Request != null)
+	{
+		<div class="form-group">
+			<div class="col-md-3">
+				<label class="control-label label-md" for="description">Talep Açıklaması : </label>
+			</div>
+			<div class="col-md-9">
+				@Html.TextAreaFor(model => model.Request.description, new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"readonly","readonly" }
+				}).Validate(Validations.Required)
+			</div>
 		</div>
-		<div class="col-md-9">
-			@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
-			{
-				{"class", "form-control"},
-				{"readonly","readonly" }
-			}).Validate(Validations.Required)
+	}
+	else
+	{
+
+		<div class="form-group">
+			<div class="col-md-3">
+				<label class="control-label label-md" for="description">Açıklama : </label>
+			</div>
+			<div class="col-md-9">
+				@Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"readonly","readonly" }
+				}).Validate(Validations.Required)
+			</div>
 		</div>
-	</div>
+	}
 
 
 	if (status == EnumFTM_TaskOperationStatus.UrunDegisimi)
@@ -271,8 +318,36 @@
 			<button class="btn btn-md btn-warning pull-left" data-task="Insert" data-ask="Silmek istediğinizden eminmisiniz." data-show="single" data-method="POST" data-href="@Url.Action("Delete","VWFTM_TaskOperation",new {area="FTM" })" data-id="@Model.id"><i class="fa fa-trash"></i> Sil</button>
 		}
 
+		@if (Model.Request != null)
+		{
+
+
+			<div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
+				<div class="ibox-title">
+					<h5><i class="fa fa-tasks"></i> Satın Alma Talebi Yapılan Ürünler</h5>
+				</div>
+				<div class="ibox-content no-padding">
+					@(Html.Akilli()
+						   .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
+						   .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
+						   .Filter(a => a.taskId == Model.taskId).PageSize(999))
+						   .Columns(x =>
+						   {
+							   x.Bound(y => y.Product_Title).Title("Talep Edilen Ürün/Hizmet").Width(200).Filterable(false);
+							   x.Bound(y => y.description).Title("Açıklama").Width(250).Filterable(false);
+							   x.Bound(y => y.quantity).Title("Talep Edilen Miktar").Width(160).Filterable(false).ClientTemplate("#=requestDetail.templates.quantityTemp(data)#")
+									.HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+									.HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+							   x.Bound(y => y.stockCount).Title("Mevcut Miktar").Width(200).Filterable(false).ClientTemplate("#=requestDetail.templates.stockTemp(data)#");
+						   })
+		                     
+						   .Selectable(x => x.Enabled(false))
+						   .Scrollable(s => s.Height(300))
+                        )
+				</div>
+			</div>
+		}
 
 		<button class="btn btn-md btn-danger pull-right" data-task="modalClose">Kapat</button>
 	</div>
-
 }

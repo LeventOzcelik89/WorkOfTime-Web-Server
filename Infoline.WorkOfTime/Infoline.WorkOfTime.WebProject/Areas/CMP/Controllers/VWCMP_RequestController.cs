@@ -27,7 +27,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View();
 		}
 
-		[PageInfo("Satın Alma Talepleri (Görev)", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satın Alma Talepleri (Görev)", SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult IndexTask()
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];

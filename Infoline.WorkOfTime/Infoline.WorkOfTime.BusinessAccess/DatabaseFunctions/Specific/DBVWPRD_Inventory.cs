@@ -80,7 +80,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_Inventory>().Where(x => x.serialcode.Contains(barcode) || x.code.Contains(barcode)).Execute().FirstOrDefault();
+                return db.Table<VWPRD_Inventory>().Where(x => x.serialcode == barcode || x.code == barcode).Execute().FirstOrDefault();
             }
         }
     }
