@@ -180,20 +180,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 			dbresult &= db.BulkInsertCMP_InvoiceItem(this.InvoiceItems.Select(a => new CMP_InvoiceItem().B_EntityDataCopyForMaterial(a)), this.trans);
 
-			if (this.taskId.HasValue)
-			{
-				var buyRequestOperation = new FTM_TaskOperation
-				{
-					taskId = taskId,
-					created = DateTime.Now,
-					status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
-					createdby = this.createdby,
-					description =  this.description,
-				};
 
+			dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi);
 
-				dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
-			}
+			
 			if (this.Order != null)
 			{
 				var listTransform = new List<CMP_InvoiceTransform>();
@@ -324,7 +314,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				type = (short)EnumCMP_InvoiceActionType.TalepIptal
 			};
 
-			var dbresult = db.UpdateCMP_Invoice(invoice, true, this.trans);
+			var dbresult = new ResultStatus { result = true };
+
+			dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiIptalEdildi);
+
+			
+
+			dbresult &= db.UpdateCMP_Invoice(invoice, true, this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 
 			if (_trans == null)
@@ -472,7 +468,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				action.description = "Talebin Faturası Kesildi";
 			}
 
-			var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, this.trans);
+			var dbresult = new ResultStatus { result = true };
+
+			if (type == (int)EnumCMP_RequestStatus.TalepReddedildi)
+			{
+				dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiIptalEdildi);
+			}
+
+			if (type == (int)EnumCMP_InvoiceActionType.TalepOnay)
+			{
+				dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiOnaylandi);
+			}
+
+			dbresult &= db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 
 			if (type == (int)EnumCMP_RequestStatus.YeniTeklifToplanmasiBekleniyor)
@@ -575,6 +583,78 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				result = dbresult.result,
 				message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
+			};
+		}
+
+
+		public ResultStatus InsertTaskOperation(Guid? taskId, short? status)
+		{
+			var dbresult = new ResultStatus { result = true };
+
+			if (this.taskId.HasValue)
+			{
+				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi)
+				{
+					var buyRequestOperation = new FTM_TaskOperation
+					{
+						taskId = taskId,
+						created = DateTime.Now,
+						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
+						createdby = this.createdby,
+						description =  this.description,
+					};
+
+					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
+				}
+
+
+				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiIptalEdildi)
+				{
+					var buyRequestOperation = new FTM_TaskOperation()
+					{
+						taskId = this.taskId,
+						created = DateTime.Now,
+						status = status,
+						createdby = this.createdby,
+						description = "Satın Alma Talebi İptal Edildi."
+					};
+
+					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
+				}
+
+
+				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiOnaylandi)
+				{
+					var buyRequestOperation = new FTM_TaskOperation()
+					{
+						taskId = this.taskId,
+						created = DateTime.Now,
+						status = status,
+						createdby = this.createdby,
+						description = "Satın Alma Talebi Onaylandı."
+					};
+
+					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
+				}
+
+				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiReddedildi)
+				{
+					var buyRequestOperation = new FTM_TaskOperation()
+					{
+						taskId = this.taskId,
+						created = DateTime.Now,
+						status = status,
+						createdby = this.createdby,
+						description = "Satın Alma Talebi Reddedildi."
+					};
+
+					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
+				}
+			}
+
+			return new ResultStatus
+			{
+				result = dbresult.result
 			};
 		}
 	}

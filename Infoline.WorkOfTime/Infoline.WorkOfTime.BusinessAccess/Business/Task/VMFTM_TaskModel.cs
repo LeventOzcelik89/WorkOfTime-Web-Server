@@ -79,7 +79,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				}
 
 
-
 				if (this.companyCarId.HasValue)
 				{
 					var companyCar = db.GetCMP_CompanyCarsById(this.companyCarId.Value);
