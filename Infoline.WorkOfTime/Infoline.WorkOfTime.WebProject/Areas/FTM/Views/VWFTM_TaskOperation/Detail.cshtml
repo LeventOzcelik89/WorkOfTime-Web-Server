@@ -68,6 +68,42 @@
 		</div>
 	}
 
+	if (Model.Request != null)
+	{
+		<div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
+			<div class="ibox-title">
+				<h5> <i class="fa fa-line-chart"></i> Talep Ürün Kalem Bilgileri ve Stok Durumları</h5>
+				<div class="ibox-tools">
+					<a class="btn btn-xs btn-success hide" style="color:white;" data-button="stock" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="">
+						<i class="fa fa-align-justify"></i> Ürün Stok Özeti
+					</a>
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content no-padding">
+				@(Html.Akilli()
+                           .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
+                           .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
+                           .Filter(a => a.taskId == Model.id).PageSize(999))
+                           .Columns(x =>
+                           {
+                               x.Bound(y => y.Product_Title).Title("Talep Edilen Ürün/Hizmet").Filterable(false);
+                               x.Bound(y => y.description).Title("Açıklama").Width(250).Filterable(false);
+                               x.Bound(y => y.quantity).Title("Talep Edilen Miktar").Width(200).Filterable(false).ClientTemplate("#=requestDetail.templates.quantityTemp(data)#")
+                                    .HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
+                                    .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } });
+                               x.Bound(y => y.stockCount).Title("Stoklardaki Mevcut Miktar").Width(200).Filterable(false).ClientTemplate("#=requestDetail.templates.stockTemp(data)#");
+                               x.Bound(y => y.Unit_Title).Title("Birim").Hidden(true);
+                           })
+                           .Selectable(x => x.Mode(GridSelectionMode.Single))
+                           .Scrollable(s => s.Height(200))
+                        )
+			</div>
+		</div>
+	}
+
 	if (status != EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi)
 	{
 		<div class="form-group">

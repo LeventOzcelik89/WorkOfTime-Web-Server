@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Ürün Bazlı Rapor (Talep, Fatura, Teklif, İrsaliye, Sipariş)", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Ürün Bazlı Rapor (Talep, Fatura, Teklif, İrsaliye, Sipariş)", SHRoles.Personel)]
         public ContentResult DataSourceReport([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
