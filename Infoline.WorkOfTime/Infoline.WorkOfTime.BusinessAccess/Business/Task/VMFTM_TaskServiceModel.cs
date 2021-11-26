@@ -54,6 +54,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string companyCarStorage_Title { get; set; }
 		public string project_Title { get; set; }
 		public bool isTaskRule { get; set; }
+		public VWCMP_Request Request { get; set; }
+		public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
+
 	}
 
 	public class VMFTM_TaskUserInfo
@@ -173,6 +176,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					model.project_Title = project.ProjectName;
 				}
 			}
+
+
+			model.Request = _db.GetVWCMP_RequestByTaskId(model.id);
+			model.CMP_InvoiceItemReports = _db.GetVWCMP_InvoiceItemReportByTaskId(model.id);
 
 			if (model.assignUserId.HasValue)
 			{

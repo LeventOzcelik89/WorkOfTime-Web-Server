@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.B_EntityDataCopyForMaterial(operation);
             }
+
             if (this.taskId.HasValue)
             {
                 this.Task = db.GetVWFTM_TaskById(this.taskId.Value);
@@ -37,9 +38,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
                     this.Request = db.GetVWCMP_RequestByTaskId(this.taskId.Value);
                     this.CMP_InvoiceItemReports = db.GetVWCMP_InvoiceItemReportByTaskId(this.taskId.Value);
-
                 }
             }
+
             if (this.formId == null)
             {
                 if (this.fixtureId == null && this.Task != null)
