@@ -59,6 +59,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
+		public VWFTM_Task[] GetVWFTM_TaskByFixtureId(Guid fixtureId, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.Table<VWFTM_Task>().Where(a => a.fixtureId == fixtureId).Execute().ToArray();
+			}
+		}
+
 		public VWFTM_Task[] GetVWFTM_TaskByCustomerId(Guid customerId, Guid userId, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
