@@ -834,21 +834,11 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 										</td>
 									</tr>
 								}
-								@if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli))
-									|| userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli))))
+								@if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay)
 								{
 
-									if (Model.pid.HasValue && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
-									{
-										<tr>
-											<td style="text-align:center;">
-												<a onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" data-method="GET" data-show="single" class="btn btn-md btn-success">
-													<i class="fa fa-refresh"></i> Müşteri Onayladı
-												</a>
-											</td>
-										</tr>
-									}
-									else
+									if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli))
+									|| userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli))))
 									{
 										<tr>
 											<td style="text-align:center;">
@@ -857,15 +847,35 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 												</a>
 											</td>
 										</tr>
+
+										<tr>
+											<td style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
+													<i class="fa fa-times"></i> Müşteri Reddetti
+												</button>
+											</td>
+										</tr>
 									}
 
-									<tr>
-										<td style="text-align:center;">
-											<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
-												<i class="fa fa-times"></i> Müşteri Reddetti
-											</button>
-										</td>
-									</tr>
+									if (Model.pid.HasValue && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
+									{
+										<tr>
+											<td style="text-align:center;">
+												<a onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.MusteriOnay)" data-method="GET" data-show="single" class="btn btn-md btn-success">
+													<i class="fa fa-refresh"></i> Müşteri Onayladı
+												</a>
+											</td>
+										</tr>
+
+										<tr>
+											<td style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
+													<i class="fa fa-times"></i> Müşteri Reddetti
+												</button>
+											</td>
+										</tr>
+									}
+
 								}
 								<tr>
 									<td style="padding-top: 20px;">
@@ -880,7 +890,7 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 										@if (Model.status == (int)EnumCMP_TenderStatus.MusteriOnay && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
 										{
 											<div class="col-md-6" style="text-align:center;">
-												<a href="/CMP/VWCMP_Order/InsertSelling?id=@Model.id&transform=true" target="_blank" class="btn btn-md btn-success">
+												<a data-href="/CMP/VWCMP_Order/InsertSelling?id=@Model.id&transform=true" data-modal="true" data-task="Insert" data-method="GET" data-show="single" class="btn btn-md btn-success">
 													<i class="fa fa-refresh"></i> Siparişe Dönüştür
 												</a>
 											</div>
