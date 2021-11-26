@@ -10,6 +10,7 @@
 	}
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var status = (EnumFTM_TaskOperationStatus)Model.status;
+	var dataId = Model.dataId.HasValue ? Model.dataId.Value : Guid.NewGuid();
 }
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -320,7 +321,7 @@
 
 		@if (Model.Request != null)
 		{
-
+			
 
 			<div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
 				<div class="ibox-title">
@@ -330,7 +331,7 @@
 					@(Html.Akilli()
 						   .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
 						   .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
-						   .Filter(a => a.taskId == Model.taskId).PageSize(999))
+						   .Filter(a => a.invoiceId == dataId).PageSize(999))
 						   .Columns(x =>
 						   {
 							   x.Bound(y => y.Product_Title).Title("Talep Edilen Ürün/Hizmet").Width(200).Filterable(false);
