@@ -42,7 +42,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             try
             {
                 var id = context.Request["id"];
-                var data = new VMPRD_InventoryModel().LoadMobile(new Guid(id));
+                var data = new VMPRD_InventoryModel().LoadMobile(new Guid(id), CallContext.Current.UserId);
 
                 if (data == null)
                 {
@@ -100,7 +100,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var serial = context.Request["barcode"];
                 var db = new WorkOfTimeDatabase();
 
-                var data = new VMPRD_InventoryModel().LoadMobile(serial);
+                var data = new VMPRD_InventoryModel().LoadMobile(serial, CallContext.Current.UserId);
                 if (data == null)
                 {
                     RenderResponse(context, new ResultStatus() { result = false, message = "Envanter Bulunamadı" });
