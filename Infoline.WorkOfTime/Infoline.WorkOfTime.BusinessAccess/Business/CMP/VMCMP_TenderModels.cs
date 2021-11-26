@@ -138,6 +138,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			//Görev Kuralında bulunuyorsa eğer satış teklifi oluşturmak için ID yenilenir.
 			if (this.isTaskRule)
 			{
+				this.pid = this.id;
 				this.id = Guid.NewGuid();
 				this.rowNumber = BusinessExtensions.B_GetIdCode();
 				this.direction = (int)EnumCMP_InvoiceDirectionType.Satis;
