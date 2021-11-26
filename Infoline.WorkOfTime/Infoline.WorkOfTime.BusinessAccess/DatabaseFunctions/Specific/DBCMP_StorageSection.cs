@@ -32,11 +32,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public CMP_StorageSection[] GetCMP_StorageSectionByPidId(Guid? pidId, Guid storageId, DbTransaction tran = null)
+        public CMP_StorageSection[] GetCMP_StorageSectionByPidId(Guid? id, Guid storageId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<CMP_StorageSection>().Where(a => a.pid == pidId && a.storageId == storageId).Execute().ToArray();
+                return db.Table<CMP_StorageSection>().Where(a => a.pid == id && a.storageId == storageId).Execute().ToArray();
             }
         }
     }

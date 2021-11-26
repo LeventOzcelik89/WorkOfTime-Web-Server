@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPRD_InventoryTask[] inventoryTasks { get; set; }
         public FTM_TaskFormRelation[] taskFormRelations { get; set; }
         public VWSYS_TableAdditionalProperty[] tableAdditionalProperties { get; set; }
-        public VMPRD_InventoryModel LoadMobile(Guid? id, Guid? userId)
+        public VMPRD_InventoryModel LoadMobile(Guid? id)
         {
             if (id.HasValue)
             {
@@ -27,13 +27,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return null;
                 }
 
-                return LoadModelReturn(thisItem, userId);
+                return LoadModelReturn(thisItem);
             }
 
             return null;
         }
 
-        public VMPRD_InventoryModel LoadMobile(string barcode, Guid? userId)
+        public VMPRD_InventoryModel LoadMobile(string barcode)
         {
             if (barcode != null)
             {
@@ -45,17 +45,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return null;
                 }
 
-                return LoadModelReturn(thisItem, userId);
+                return LoadModelReturn(thisItem);
             }
 
             return null;
         }
 
-        private VMPRD_InventoryModel LoadModelReturn(VWPRD_Inventory thisItem, Guid? userId)
+        private VMPRD_InventoryModel LoadModelReturn(VWPRD_Inventory thisItem)
         {
             this.B_EntityDataCopyForMaterial(thisItem);
 
             var actions = db.GetVWPRD_InventoryActionByInventoryIdOrderByCreatedDesc(this.id);
+            var tasks = db.GetVWFTM_TaskByFixtureId(this.id);
             var inventoryTasks = db.GetVWPRD_InventoryTaskByInventoryIdOrderByCreatedDesc(this.id);
             var taskFormRelations = db.GetVWFTM_TaskFormRelationByInventoryId(this.id);
             var tableAdditionalProperties = db.GetVWSYS_TableAdditionalPropertyByDataIdAndDataTable(this.id, "PRD_Inventory");
@@ -63,6 +64,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (actions.Count() > 0)
             {
                 this.actions = actions;
+            }
+
+            if (tasks.Count() > 0)
+            {
+                this.tasks = tasks;
             }
 
             if (inventoryTasks.Count() > 0)
@@ -78,16 +84,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (tableAdditionalProperties.Count() > 0)
             {
                 this.tableAdditionalProperties = tableAdditionalProperties;
-            }
-
-            if (userId != null)
-            {
-                var tasks = db.GetVWFTM_TaskByFixtureId(this.id, new Guid(userId.ToString()));
-                if (tasks.Count() > 0)
-                {
-                    this.tasks = tasks;
-                }
-
             }
 
             return this;
