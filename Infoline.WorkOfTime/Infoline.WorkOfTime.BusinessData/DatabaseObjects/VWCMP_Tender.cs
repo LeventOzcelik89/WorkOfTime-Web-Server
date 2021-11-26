@@ -11,6 +11,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? type { get; set;}
         public string description { get; set;}
         public string serialNumber { get; set;}
+        public Guid? pid { get; set;}
         public string rowNumber { get; set;}
         public Guid? supplierId { get; set;}
         public Guid? customerId { get; set;}

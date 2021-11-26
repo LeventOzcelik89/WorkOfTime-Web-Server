@@ -150,13 +150,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private ResultStatus Insert(DbTransaction trans)
 		{
 			var dbresult = new ResultStatus { result = true };
-			foreach (var item in this.InvoiceItems)
-			{
-				item.id = Guid.NewGuid();
-				item.invoiceId = this.id;
-				item.created = DateTime.Now;
-				item.createdby = this.createdby;
-			}
 
 			var action = new CMP_InvoiceAction
 			{

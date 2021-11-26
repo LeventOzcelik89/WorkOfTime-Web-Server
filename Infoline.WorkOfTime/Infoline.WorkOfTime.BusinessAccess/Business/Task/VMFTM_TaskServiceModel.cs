@@ -53,6 +53,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid companyCarStorageId { get; set; }
 		public string companyCarStorage_Title { get; set; }
 		public string project_Title { get; set; }
+		public bool isTaskRule { get; set; }
 	}
 
 	public class VMFTM_TaskUserInfo
@@ -80,7 +81,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private List<FTM_TaskOperation> _taskOperation { get; set; } = new List<FTM_TaskOperation>();
 		private List<FTM_TaskFormResult> _taskFormResult { get; set; } = new List<FTM_TaskFormResult>();
 		public PRJ_Project project { get; set; }
-		public bool isTaskRule { get; set; }
 
 		public VMFTM_TaskServiceModel()
 		{
@@ -180,7 +180,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (rulesUser != null && model.lastOperationStatus >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi)
 				{
-					isTaskRule = true;
+					model.isTaskRule = true;
 				}
 			}
 
