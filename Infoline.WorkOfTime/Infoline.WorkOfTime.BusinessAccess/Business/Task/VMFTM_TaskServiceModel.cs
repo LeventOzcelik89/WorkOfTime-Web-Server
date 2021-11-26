@@ -80,6 +80,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private List<FTM_TaskOperation> _taskOperation { get; set; } = new List<FTM_TaskOperation>();
 		private List<FTM_TaskFormResult> _taskFormResult { get; set; } = new List<FTM_TaskFormResult>();
 		public PRJ_Project project { get; set; }
+		public bool isTaskRule { get; set; }
 
 		public VMFTM_TaskServiceModel()
 		{
@@ -170,6 +171,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					model.projectId = project.id;
 					model.project_Title = project.ProjectName;
+				}
+			}
+
+			if (model.assignUserId.HasValue)
+			{
+				var rulesUser = _db.GetVWUT_RulesUserByUserIdAndType(model.assignUserId.Value, (Int16)EnumUT_RulesType.Task);
+
+				if (rulesUser != null && model.lastOperationStatus >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi)
+				{
+					isTaskRule = true;
 				}
 			}
 
