@@ -633,7 +633,7 @@
                         <h4><i class="icon-home-4 text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI </h4>
                         @(Html.Akilli().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
     .Columns(x => {
-        
+        x.Bound(y => y.hasChildren).Hidden().HtmlAttributes(new {name="hasChildren" });
         x.Bound(y => y.code).Title("Kodu").Width(100).Filterable(true);
         x.Bound(y => y.name).Title("İsmi").Width(100).Filterable(true);
         x.Bound(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
@@ -647,6 +647,7 @@
     .Sortable()
     .Scrollable()
     .Filterable()
+    .Events(x=>x.DataBound("dataBound"))
     .Selectable()
     .ClientDetailTemplateId("template")
     .DataSource(dataSource => dataSource
@@ -655,19 +656,18 @@
     .Read(read => read.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.companyId == Model.id&&a.pid==System.UIHelper.Guid.Null))
                     .ToolBar(x =>
                     {
-                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "id", "storage-add" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
-                        //x.Custom().Text("<i data-original-title='Rafları Göster' class='fa fa-align-left'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("TreeViewStorage", "VWCMP_StorageSection", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "id", "storage-add" }, { "data-method", "GET" }, { "data-href", "/CMP/VWCMP_Storage/Insert?companyId="+Model.id } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id }));
                         x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "id", "storage-update" } ,{ "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
                         x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" },{ "id","detail"}, {"data-default","" },{ "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
-                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } , { "id", "storage-delete" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } , { "data-method", "POST" }, { "id", "storage-delete" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
                     })
      )
                         <script id="template" type="text/kendo-tmpl">
-
             @(Html.Kendo().Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>()
             .Name("grid_#=id#")
             .Columns(x =>
             {
+                x.Bound(y => y.hasChildren).Hidden().HtmlAttributes(new { name = "hasChildren" });
                 x.Bound(y => y.code).Title("Kodu").Width(100).Filterable(true);
                 x.Bound(y => y.name).Title("İsmi").Width(100).Filterable(true);
                 x.Bound(y => y.address).Title("Açık Adres").Width(150).Filterable(true);
@@ -682,7 +682,7 @@
                 .PageSize(25)
                .Read(read => read.Action("HierarchyDataSource", "VWCMP_Storage", new { area = "CMP" ,id="#=id#" }))
             )
-            .Events(x=>x.DataBinding("hideHeader"))
+            .Events(x=>x.DataBinding("hideHeader").DataBound("dataBound"))
             .Sortable()
             .Selectable()
             .ClientDetailTemplateId("template")
@@ -693,6 +693,15 @@
                             function hideHeader() {
                                 $("#VWCMP_Storage").children().find(".k-grid .k-grid-header").hide();
                             }
+                            function dataBound() {
+                                $('[name="hasChildren"]').each(function (i, item) {
+                                    var hasChildren = $(this).text();
+                                    if (hasChildren == "false") {
+                                        $(item).parents("tr").children("td.k-hierarchy-cell").children("a").hide();
+                                    }
+                                });
+                            }
+                            
                         </script>
                     </div>
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_User", new { area = "SH" })" id="VWSH_Users">
@@ -1684,8 +1693,16 @@
                 haritalar['LocationCompany'].map.getView().setZoom(16);
             }, 250)
         });
+    $("#VWCMP_Storage").on("dblclick", "tr.k-state-selected", function () {
+        debugger
+        var dataUid = $(this).attr("data-uid");
+        var tableId = $(this).parents(".k-grid").first().attr("id");
+        var grid = $("#" + tableId).data("kendoGrid");
+        var dataSource = grid.dataSource.getByUid(dataUid);
+        
+        window.open("/CMP/VWCMP_Storage/Detail/" + dataSource.id)
+    });
     $("#VWCMP_Storage").on("click", "tr.k-state-selected", function () {
-
         $("tr.k-state-selected").removeClass("k-state-selected");
         $(this).addClass("k-state-selected");
         var dataUid = $(this).attr("data-uid");
@@ -1697,7 +1714,7 @@
         $("#storage-delete").removeClass("hide");
         $("#storage-update").removeClass("hide");
         $("#detail").attr("data-href", "/CMP/VWCMP_Storage/Detail/" + dataSource.id);
-        $("#storage-add").attr("data-href", "/CMP/VWCMP_Storage/Insert?pid=" + dataSource.id);
+        $("#storage-add").attr("data-href", "/CMP/VWCMP_Storage/Insert?pid=" + dataSource.id + "&companyId=@Model.id");
         $("#storage-delete").attr("data-href", "/CMP/VWCMP_Storage/Delete?id=" + dataSource.id);
         $("#storage-update").attr("data-href", "/CMP/VWCMP_Storage/Update?id=" + dataSource.id);
     });

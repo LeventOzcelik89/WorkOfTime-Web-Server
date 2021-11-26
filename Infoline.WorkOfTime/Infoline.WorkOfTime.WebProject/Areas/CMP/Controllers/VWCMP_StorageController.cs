@@ -192,14 +192,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 var action = db.GetPRD_InventoryActionByDataId(storage.id);
                 var transaction = db.GetPRD_TransactionByDataId(storage.id);
+                var isHasChild = db.GetVWCMP_StorageByPid(storage.id);
+                if (isHasChild)
+                {
+                    errolist.Add("Bu Depo/Şube/Kısımlarının Alt Depo/Şube/Kısımları olduğundan silinemez");
+                }
                 if (transaction.Count() > 0 || action.Count() > 0)
                 {
                     errolist.Add(storage.code + " " + storage.name + " deposu içerisinde envanterler bulunduğundan silinemez.");
                 }
-                var dbresult = db.DeleteCMP_Storage(storage);
-                if (dbresult.result == false)
+                if (errolist.Count<=0)
                 {
-                    errolist.Add(storage.code + " " + storage.name + " deposu silinirken sorunlar oluştu.");
+                    var dbresult = db.DeleteCMP_Storage(storage);
+                    if (dbresult.result == false)
+                    {
+                        errolist.Add(storage.code + " " + storage.name + " deposu silinirken sorunlar oluştu.");
+                    }
                 }
             }
             var errormesage = string.Join("", errolist.Select(a => "<p>" + a + "<p/>"));
@@ -510,7 +518,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             var data = db.GetVWCMP_Storage().RemoveGeographies()
                     .Where(x => x.pid == id)
                 .ToDataSourceResult(request);
-            return Json(data);
+            return Json(data,JsonRequestBehavior.AllowGet);
         }
 
 
