@@ -98,7 +98,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(item);
 		}
 
-		[PageInfo("Satış Teklifi Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Satış Teklifi Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult InsertSelling(VMCMP_TenderModels item)
 		{
 			item.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis);
@@ -113,7 +113,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		}
 
 		[HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
-		[PageInfo("Teklif Ekleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Teklif Ekleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public JsonResult Insert(VMCMP_TenderModels item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];

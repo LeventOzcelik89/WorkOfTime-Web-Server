@@ -369,33 +369,38 @@
 
 
 							@(Html.Akilli()
-                            .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderPending")
-                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
-                            .Filter(a => tenderIds.Contains(a.id)).PageSize(25))
-                            .Columns(x =>
-                            {
-                                x.Bound(y => y.id).ClientTemplate("#= requestDetail.templates.statusTemp(data) #").Width(30).Filterable(false).Title("");
-                                x.Bound(y => y.rowNumber).Title("Teklif Kodu").Width(120);
-                                x.Bound(y => y.Supplier_Title).Title("Tedarikçi (Teklif Veren)").Width(200);
-                                x.Bound(y => y.createdby_Title).Title("Teklifi Giren Personel").Width(200);
-                                x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(140).Format(Extensions.DateFormatShort(true));
-                                x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(120).ClientTemplate("#=requestDetail.templates.currencyTemp(data, data.totalAmount, true)#");
-                            })
-                            .Scrollable(s => s.Height(200))
-                            .Selectable(x => x.Mode(GridSelectionMode.Single))
-                            .ToolBar(x =>
-                            {
-                                x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
-                                x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
+							.Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Tender>("VWCMP_TenderPending")
+							.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Tender", new { area = "CMP" }))
+							.Filter(a => tenderIds.Contains(a.id)).PageSize(25))
+							.Columns(x =>
+							{
+								x.Bound(y => y.id).ClientTemplate("#= requestDetail.templates.statusTemp(data) #").Width(30).Filterable(false).Title("");
+								x.Bound(y => y.rowNumber).Title("Teklif Kodu").Width(120);
+								x.Bound(y => y.Supplier_Title).Title("Tedarikçi (Teklif Veren)").Width(200);
+								x.Bound(y => y.createdby_Title).Title("Teklifi Giren Personel").Width(200);
+								x.Bound(y => y.issueDate).Title("Teklif Tarihi").Width(140).Format(Extensions.DateFormatShort(true));
+								x.Bound(y => y.totalAmount).Title("Toplam Tutar").Width(120).ClientTemplate("#=requestDetail.templates.currencyTemp(data, data.totalAmount, true)#");
+							})
+							.Scrollable(s => s.Height(200))
+							.Selectable(x => x.Mode(GridSelectionMode.Single))
+							.ToolBar(x =>
+							{
+								x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
+								x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
 
-                                if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) && (Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi))
-                                {
-                                    x.Custom().Text("<i data-original-title='Teklifi Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "approveTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
-                                    x.Custom().Text("<i data-original-title='Teklifi Reddet' class='fa fa-times'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "rejectTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
-                                }
+								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) && (Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi))
+								{
+									x.Custom().Text("<i data-original-title='Teklifi Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "approveTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+									x.Custom().Text("<i data-original-title='Teklifi Reddet' class='fa fa-times'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "rejectTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+								}
 
-                                x.Custom().Text("<i data-original-title='Teklifi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Tender", new { area = "CMP" }));
-                            }))
+								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
+								{
+									x.Custom().Text("<i data-original-title='Satış Teklifi Oluştur' class='fa fa-shopping-cart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP" }));
+								}
+
+								x.Custom().Text("<i data-original-title='Teklifi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Tender", new { area = "CMP" }));
+							}))
 						</div>
 					</div>
 				}
