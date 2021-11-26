@@ -11,6 +11,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private DbTransaction trans { get; set; }
         public VWPRD_InventoryAction[] actions { get; set; }
         public VWFTM_Task[] tasks { get; set; }
+        public VWPRD_InventoryTask[] inventoryTasks { get; set; }
         public FTM_TaskFormRelation[] taskFormRelations { get; set; }
         public VWSYS_TableAdditionalProperty[] tableAdditionalProperties { get; set; }
         public VMPRD_InventoryModel LoadMobile(Guid? id, Guid? userId)
@@ -55,12 +56,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.B_EntityDataCopyForMaterial(thisItem);
 
             var actions = db.GetVWPRD_InventoryActionByInventoryIdOrderByCreatedDesc(this.id);
+            var inventoryTasks = db.GetVWPRD_InventoryTaskByInventoryIdOrderByCreatedDesc(this.id);
             var taskFormRelations = db.GetVWFTM_TaskFormRelationByInventoryId(this.id);
             var tableAdditionalProperties = db.GetVWSYS_TableAdditionalPropertyByDataIdAndDataTable(this.id, "PRD_Inventory");
 
             if (actions.Count() > 0)
             {
                 this.actions = actions;
+            }
+
+            if (inventoryTasks.Count() > 0)
+            {
+                this.inventoryTasks = inventoryTasks;
             }
 
             if (taskFormRelations.Count() > 0)
