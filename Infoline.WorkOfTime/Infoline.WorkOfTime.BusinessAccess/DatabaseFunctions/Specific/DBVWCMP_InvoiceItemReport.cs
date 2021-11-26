@@ -20,5 +20,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_InvoiceItemReport>().Where(a => a.taskId == taskId).Execute().ToArray();
             }
         }
+
+        public VWCMP_InvoiceItemReport[] GetVWCMP_InvoiceItemReportByInvoiceIds(Guid[] invoiceIds, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_InvoiceItemReport>().Where(a => a.invoiceId.In(invoiceIds)).Execute().ToArray();
+            }
+        }
     }
 }

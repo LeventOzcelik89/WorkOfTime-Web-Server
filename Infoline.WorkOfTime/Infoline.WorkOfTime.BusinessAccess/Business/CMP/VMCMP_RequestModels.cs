@@ -614,6 +614,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
 						createdby = this.createdby,
 						description =  this.description,
+						dataId = this.id
 					};
 
 					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
@@ -628,7 +629,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						created = DateTime.Now,
 						status = status,
 						createdby = this.createdby,
-						description = "Satın Alma Talebi İptal Edildi."
+						description = "Satın Alma Talebi İptal Edildi.",
+						dataId = this.id
 					};
 
 					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
@@ -643,6 +645,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						created = DateTime.Now,
 						status = status,
 						createdby = this.createdby,
+						dataId = this.id,
 						description = "Satın Alma Talebi Onaylandı."
 					};
 
@@ -657,6 +660,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						created = DateTime.Now,
 						status = status,
 						createdby = this.createdby,
+						dataId = this.id,
 						description = "Satın Alma Talebi Reddedildi."
 					};
 

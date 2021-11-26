@@ -42,7 +42,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VMFTM_TaskUserInfo assignUserInfo { get; set; }
 		public VMFTM_TaskUserInfo[] assignableUsersInfo { get; set; }
 		public VMFTM_TaskUserInfo[] helperUsersInfo { get; set; }
-		public List<VWFTM_TaskOperation> taskOperation { get; set; }
+		public List<VWFTM_TaskOperationOperation> taskOperation { get; set; }
 		public VWPRD_Inventory fixtureModel { get; set; }
 		public List<VWFTM_TaskSubjectModel> FTM_TaskSubjects { get; set; }
 		public Guid[] FTM_TaskSubjectTypeIds { get; set; }
@@ -57,6 +57,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VWCMP_Request Request { get; set; }
 		public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
 
+	}
+
+
+	public class VWFTM_TaskOperationOperation : VWFTM_TaskOperation
+	{
+		public List<VWCMP_InvoiceItemReport> invoiceItems { get; set; }
 	}
 
 	public class VMFTM_TaskUserInfo
@@ -105,10 +111,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				car = _db.GetVWCMP_CompanyCarsById(data.companyCarId.Value);
 			}
+
+			var invoiceItems = _db.GetVWCMP_InvoiceItemReportByInvoiceIds(operations.Where(a=>a.dataId.HasValue).Select(a => a.dataId.Value).ToArray());
+
 			var model = new VMFTM_Task
 			{
-				taskOperation = operations.Where(a => a.status != null).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList(),
 			}.B_EntityDataCopyForMaterial(data);
+
+
+			model.taskOperation = operations.Select(a => new VWFTM_TaskOperationOperation
+			{
+				invoiceItems = invoiceItems.Where(b=>b.invoiceId == a.dataId).ToList(),
+				 dataId = a.dataId,
+				 battery = a.battery,
+				 changed = a.changed,
+				 changedby = a.changedby,
+				 changedby_Title = a.changedby_Title,
+				 created = a.created,
+				 createdby = a.createdby,
+				 createdby_Title = a.createdby_Title,
+				 description = a.description,
+				 distance = a.distance,
+				 fixtureId = a.fixtureId,
+				 fixture_Title = a.fixture_Title,
+				 formId = a.formId,
+				 formResultId = a.formResultId,
+				 id = a.id,
+				 user_Title = a.user_Title,
+				 jsonResult = a.jsonResult,
+				 location = a.location,
+				 passingTime = a.passingTime,
+				 status = a.status,
+				 status_Title = a.status_Title,
+				 subject = a.subject,
+				 subject_Title = a.subject_Title,
+				 taskId  = a.taskId,
+				 task_Name = a.task_Name,
+				 userId = a.userId
+			}).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList();
 
 			model.FTM_TaskSubjectTypeIds = _db.GetFTM_TaskSubjectTypeByTaskIdTypesIds(taskId);
 
