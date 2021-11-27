@@ -4,6 +4,54 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<script type="text/javascript">
+    function FilterMenuTaskType(element) {
+		element.kendoDropDownList({
+			dataTextField: "Name",
+			dataValueField: "Name",
+			filter: "contains",
+			dataSource: {
+				transport: {
+					read: "@Url.Action("FilterMenuTaskType", "General",  new { area = string.Empty })"
+				}
+			},
+			optionLabel: "Görev Tipi Seçiniz"
+		})
+    }
+
+    		function FilterMenuTaskStatus(element) {
+			element.kendoDropDownList({
+				dataTextField: "Name",
+                dataValueField: "Name",
+				filter: "contains",
+				dataSource: {
+					transport: {
+						read: "@Url.Action("FilterMenuTaskStatus", "General",  new { area = string.Empty })"
+					}
+				},
+				optionLabel: "Son İşlem Seçiniz"
+			});
+		}
+
+</script>
+
+
+<script type="text/x-kendo-template" id="taskStatusTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))#
+
+    #if(lastOperationStatus_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == status}).map(a=>a.Generic['icon'])#"></a></strong> #=lastOperationStatus_Title#</div>
+    #}#
+</script>
+
+<script type="text/x-kendo-template" id="taskTypeTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+
+    #if(type_Title != null){#
+    <div style="font-size:13px;"><strong><a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong> #=type_Title#</div>
+    #}#
+</script>
+
 @section Javascript{
     <script type="text/javascript">
 
@@ -144,9 +192,17 @@
 
                     var layer = page.dfn.harita.layer.addVector("Şirket Depoları", "MyStorages", styleId, selectedStyle, selectedStyle);
                     var layer2 = page.dfn.harita.layer.addVector("Müşteri Depoları", "OtherStorages", styleId2, selectedStyle2, selectedStyle2);
+					var layer3 = page.dfn.harita.layer.addVector("Polygon Depolar", "PolygonStorages", null, null, null);
+
 
                     data.forEach(function (storage) {
-                        var feature = page.dfn.harita.feature.add((storage.myStorage == true ? "MyStorages" : "OtherStorages"), storage.id, storage.location);
+                        var feature = null;
+                        if (storage.locationType == '@((int)EnumCMP_StorageLocationType.Alan)') {
+							feature = page.dfn.harita.feature.add("PolygonStorages", storage.id, storage.location);
+                        }
+						else {
+							feature = page.dfn.harita.feature.add((storage.myStorage == true ? "MyStorages" : "OtherStorages"), storage.id, storage.location);
+						}
                         if (feature) {
                             feature.set("properties", storage);
 
@@ -281,7 +337,6 @@
                         else {
                             $('#selectInventory').trigger("click");
                         }
-                        debugger;
                         $('#filter' + prop.id).trigger("click");
                         $('#inv' + prop.id).trigger("click");
 						$('#task' + prop.id).trigger("click");
@@ -299,7 +354,7 @@
         function resizeFnc() {
             $.each($(".k-grid"), function (i, item) {
                 var contentArea = $(item).find(".k-grid-content");
-                var finalHeight = $(item).parents(".pan-container").height() - 150;
+                var finalHeight = $(item).parents(".pan-container").height() - 200;
                 contentArea.height(finalHeight);
             })
         }
@@ -395,20 +450,21 @@
 				</div>
 				<div class="panel-body" style="padding: 5px !important;height:inherit !important;">
 					@(Html.Akilli()
-                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
-                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
-                        .AutoBind(false)
-                        .Columns(x =>
-                        {
-                            x.Bound(y => y.productId_Title).Title("Ürün");
-                            x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
+						.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
+						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
+						.AutoBind(false)
+						.Columns(x =>
+						{
+							x.Bound(y => y.productId_Title).Title("Ürün");
+							x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
 
-                        })
-                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                        .ToolBar(x =>
-                        {
-                             x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
-                        }))
+						})
+						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.Scrollable(s => s.Height(200))
+						.ToolBar(x =>
+						{
+							x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+						}))
 				</div>
 			</div>
 			<div id="selectedInventory" class="pan-content">
@@ -423,22 +479,23 @@
 				</div>
 				<div class="panel-body" style="padding: 5px !important;height:inherit !important;">
 					@(Html.Akilli()
-                        .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
-                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).PageSize(25))
-                        .AutoBind(false)
-                        .Columns(x =>
-                        {
-                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
-                            x.Bound(y => y.productId_Title).Title("Ürün").Width(130).Hidden(true);
-                            x.Bound(y => y.code).Title("Envanter Kodu").Width(130).Hidden(true);
-                            x.Bound(y => y.serialcode).Title("Envanter Seri Numarası").Width(130).Hidden(true);
-                        })
-                        .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                        .ToolBar(x =>
-                        {
-                            x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
-                            x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "true" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
-                        }))
+						.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
+						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).PageSize(25))
+						.AutoBind(false)
+						.Columns(x =>
+						{
+							x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+							x.Bound(y => y.productId_Title).Title("Ürün").Width(130).Hidden(true);
+							x.Bound(y => y.code).Title("Envanter Kodu").Width(130).Hidden(true);
+							x.Bound(y => y.serialcode).Title("Envanter Seri Numarası").Width(130).Hidden(true);
+						})
+						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.Scrollable(s => s.Height(200))
+						.ToolBar(x =>
+						{
+							x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
+							x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "true" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
+						}))
 				</div>
 			</div>
 			<div id="selectedTask" class="pan-content">
@@ -460,9 +517,33 @@
 						.Columns(x =>
 						{
 							//x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
-							x.Bound(y => y.code).Title("Görev Kodu").Width(130).Hidden(false);
+							x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+							x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+							x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+							//x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+							x.Bound(y => y.type_Title).Title("Görev Tipi").Width(125).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+							x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(180).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+							//x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(140).ClientTemplate("#=taskPriorityResult(data)#");
+							//x.Bound(y => y.id).Title("").Width(180).Filterable(false).ClientTemplate("#=assignStaffButton(data)#");
+							x.Bound(y => y.assignableUserTitles).Title("Üstlenebilecek Personeller").Width(180);
+							x.Bound(y => y.helperUserTitles).Title("Yardımcı Personeller").Width(180);
+							x.Bound(y => y.plate).Title("Araç").Width(180);
+							x.Bound(y => y.lastOperationDate).Title("Son Operasyon Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+							x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+							{
+								b.Clear();
+								b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+								b.IsLessThanOrEqualTo("Bitiş Tarihi");
+							}
+
+							))).Width(180).Format(Extensions.DateFormatFull(true));
+							x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+							x.Bound(y => y.stopSubject_Titles).Title("Durdurulma Nedenleri").Width(230);
+							x.Bound(y => y.taskSubjectType_Title).Title("Görev Konusu").Width(230);
+							x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
 						})
-						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.Selectable(x => x.Mode(GridSelectionMode.Single))
+						.Scrollable(s => s.Height(200))
 						.ToolBar(x =>
 						{
 							x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));

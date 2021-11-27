@@ -488,7 +488,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 companyId = x.companyId,
                 name = x.name,
                 companyId_Title = x.companyId_Title,
-                myStorage = x.myStorage
+                myStorage = x.myStorage,
+                locationType = x.locationType
             }).ToArray();
             return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
         }
