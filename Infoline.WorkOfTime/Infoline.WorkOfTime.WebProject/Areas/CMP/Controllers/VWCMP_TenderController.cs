@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_TenderController : Controller
 	{
-		[PageInfo("Satış Teklifleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli)]
+		[PageInfo("Satış Teklifleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult IndexSelling()
 		{
 			return View();
@@ -192,12 +192,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		}
 
 		[PageInfo("Teklif Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici)]
-		public ContentResult UpdateStatus(Guid tenderId, int type)
+		public ContentResult UpdateStatus(Guid tenderId, int type, bool isTaskRule)
 		{
 			var feedback = new FeedBack();
 			var userStatus = (PageSecurity)Session["userStatus"];
 
-			var dbresult = new VMCMP_TenderModels { id = tenderId }.Load(false, null).UpdateStatus(type, userStatus.user.id);
+			var dbresult = new VMCMP_TenderModels { id = tenderId }.Load(false, null).UpdateStatus(type, userStatus.user.id,isTaskRule);
 
 			var result = new ResultStatusUI
 			{

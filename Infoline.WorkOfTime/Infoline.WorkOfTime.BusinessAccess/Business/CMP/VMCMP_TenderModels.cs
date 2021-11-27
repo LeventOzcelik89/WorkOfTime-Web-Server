@@ -46,6 +46,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid? forMobile { get; set; }
 		public Boolean isTenderHaveOrder { get; set; }
 		public bool isTaskRule { get; set; }
+		public bool salesAfter { get; set; }
+		public VWCMP_Tender Tender { get; set; }
+		public VWCMP_Request VWCMP_Request { get; set; }
 
 		public VMCMP_TenderModels Load(bool? isTransform, int? direction)
 		{
@@ -144,6 +147,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.direction = (int)EnumCMP_InvoiceDirectionType.Satis;
 			}
 
+
+			if (this.pid.HasValue)
+			{
+				this.Tender = db.GetVWCMP_TenderByPid(this.id);
+				if (tender != null && tender.pid.HasValue)
+				{
+					this.VWCMP_Request = db.GetVWCMP_RequestById(tender.pid.Value);
+				}
+
+			}
+
+			var pidTender = db.GetVWCMP_TenderByPid(this.id);
+
+			if (pidTender != null && !this.pid.HasValue)
+			{
+				this.Tender = pidTender;
+			}
+
 			return this;
 		}
 
@@ -177,7 +198,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.Request = db.GetCMP_InvoiceById(this.id);
 			}
 
-			
+
 
 
 			if (tender == null || this.IsCopy == true)
@@ -433,7 +454,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return dbresult;
 		}
 
-		public ResultStatus UpdateStatus(int type, Guid userId, DbTransaction trans = null)
+		public ResultStatus UpdateStatus(int type, Guid userId, bool isTaskRule, DbTransaction trans = null)
 		{
 
 			var _trans = trans ?? db.BeginTransaction();
@@ -445,6 +466,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.status = (short)type;
 
 			var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, _trans);
+
+			if (isTaskRule && this.pid.HasValue)
+			{
+				var invoice = db.GetCMP_InvoiceById(this.pid.Value);
+				if (invoice != null)
+				{
+					invoice.status = this.status;
+					dbresult &= db.UpdateCMP_Invoice(invoice, true, _trans);
+				}
+			}
 
 			var action = new CMP_InvoiceAction
 			{

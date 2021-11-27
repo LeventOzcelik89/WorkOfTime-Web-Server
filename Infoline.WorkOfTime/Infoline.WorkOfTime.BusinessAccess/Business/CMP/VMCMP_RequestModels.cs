@@ -492,6 +492,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiOnaylandi);
 			}
 
+
 			dbresult &= db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 

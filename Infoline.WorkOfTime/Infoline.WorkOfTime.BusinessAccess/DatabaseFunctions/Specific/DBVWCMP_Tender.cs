@@ -245,5 +245,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWCMP_Tender GetVWCMP_TenderByPid(Guid pid, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Tender>().Where(a => a.pid == pid).Execute().FirstOrDefault();
+            }
+        }
+
     }
 }

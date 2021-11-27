@@ -309,7 +309,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 newAction.description = "Teklifin faturası kesildi.";
                 newAction.type = (int)EnumCMP_InvoiceActionType.TeklifFatura;
 
-                rs &= new VMCMP_TenderModels { id = this.oldInvoice.id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifFatura, this.createdby.Value, _trans);
+                rs &= new VMCMP_TenderModels { id = this.oldInvoice.id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifFatura, this.createdby.Value, false,_trans);
 
                 var requestControl = db.GetVWCMP_InvoiceTransformByIsTransformedTo(this.oldInvoice.id).FirstOrDefault();
 
