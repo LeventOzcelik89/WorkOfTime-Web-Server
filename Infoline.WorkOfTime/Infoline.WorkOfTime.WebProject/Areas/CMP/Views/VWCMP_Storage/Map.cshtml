@@ -135,6 +135,7 @@
                     var styleId2 = newGuid();
                     var selectedStyle2 = newGuid();
 
+
                     page.dfn.harita.style.add(styleId, "#000", "#000", 1, logomy, logomy, 1, 1);
                     page.dfn.harita.style.add(selectedStyle, "#000", "#000", 1, "/Content/Custom/img/marker-selected.png", "/Content/Custom/img/marker-selected.png", 1, 2);
 
@@ -151,6 +152,7 @@
 
                             $('#filterStock').append('<li><a data-grid="VWPRD_StockSummaryStorage" id="filter' + storage.id + '" data-category="1" data-switch="radio" data-query="(stockId~eq~' + storage.id + ')" href="#">' + storage.name + '</a></li>')
                             $('#filterInventory').append('<li><a data-grid="VWPRD_Inventory" id="inv' + storage.id + '" data-category="1" data-switch="radio" data-query="(lastActionDataId~eq~' + storage.id + ')" href="#">' + storage.name + '</a></li>')
+							$('#filterTask').append('<li><a data-grid="VWFTM_Task" id="task' + storage.id + '" data-category="1" data-switch="radio" data-query="(customerStorageId~eq~' + storage.id + ')" href="#">' + storage.name + '</a></li>')
                         }
                     })
                     //historyde var logo işlemleri
@@ -279,11 +281,14 @@
                         else {
                             $('#selectInventory').trigger("click");
                         }
-
+                        debugger;
                         $('#filter' + prop.id).trigger("click");
                         $('#inv' + prop.id).trigger("click");
+						$('#task' + prop.id).trigger("click");
                         $('#selectedInventory').find('[data-id="storageName"]').text(prop.name + " - Envanter Listesi");
                         $('#selectedStock').find('[data-id="storageName"]').text(prop.name + " - Stok Özeti");
+                        $('#selectedTask').find('[data-id="storageName"]').text(prop.name + " - Görevleri");
+                        $('#selectedTask').find('#insertTaskID').attr("data-href", "/FTM/VWFTM_Task/Insert?customerId=" + prop.companyId + "&customerStorageId=" + prop.id)
 
                         resizeFnc();
                     }
@@ -371,23 +376,25 @@
     </div>
 
     <div class="btn-bar right top animated slideInRight" style="width:660px;right:-700px;">
-        <div class="btn-container m-b-lg">
-            <button id="selectInventory" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedInventory')"><i class="fa fa-qrcode"></i></button>
-            <button id="selectStock" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedStock')"><i class="fa fa-cubes"></i></button>
-        </div>
-        <div class="pan-container">
-            <div id="selectedStock" class="pan-content">
-                <div class="pan-head clearfix">
-                    <div style="padding-top: 7px;">
-                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
-                    </div>
-                </div>
+		<div class="btn-container m-b-lg">
+			<button id="selectInventory" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedInventory')"><i class="fa fa-qrcode"></i></button>
+			<button id="selectStock" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedStock')"><i class="fa fa-cubes"></i></button>
+			<button id="selectTask" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'selectedTask')"><i class="fa fa-tasks"></i></button>
 
-                <div class="hide">
-                    <ul id="filterStock" class=""></ul>
-                </div>
-                <div class="panel-body" style="padding: 5px !important;height:inherit !important;">
-                    @(Html.Akilli()
+		</div>
+		<div class="pan-container">
+			<div id="selectedStock" class="pan-content">
+				<div class="pan-head clearfix">
+					<div style="padding-top: 7px;">
+						<span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
+					</div>
+				</div>
+
+				<div class="hide">
+					<ul id="filterStock" class=""></ul>
+				</div>
+				<div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+					@(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage").PageSize(25))
                         .AutoBind(false)
@@ -402,20 +409,20 @@
                         {
                              x.Custom().Text("<i data-original-title='Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
                         }))
-                </div>
-            </div>
-            <div id="selectedInventory" class="pan-content">
-                <div class="pan-head clearfix">
-                    <div style="padding-top: 7px;">
-                        <span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
-                    </div>
-                </div>
+				</div>
+			</div>
+			<div id="selectedInventory" class="pan-content">
+				<div class="pan-head clearfix">
+					<div style="padding-top: 7px;">
+						<span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Depolar</span>
+					</div>
+				</div>
 
-                <div class="hide">
-                    <ul style="height:300px !important;overflow:auto !important;" id="filterInventory" class=""></ul>
-                </div>
-                <div class="panel-body" style="padding: 5px !important;height:inherit !important;">
-                    @(Html.Akilli()
+				<div class="hide">
+					<ul style="height:300px !important;overflow:auto !important;" id="filterInventory" class=""></ul>
+				</div>
+				<div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+					@(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).PageSize(25))
                         .AutoBind(false)
@@ -432,9 +439,37 @@
                             x.Custom().Text("<i data-original-title='Envanter Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_Inventory", new { area = "PRD" }));
                             x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "true" }, { "data-modal", "false" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
                         }))
-                </div>
-            </div>
-        </div>
+				</div>
+			</div>
+			<div id="selectedTask" class="pan-content">
+				<div class="pan-head clearfix">
+					<div style="padding-top: 7px;">
+						<span style="padding-left: 5px;text-transform: uppercase;" data-id="storageName">Tüm Görevler</span>
+						<a class="btn pull-right m-r-sm btn-sm btn-success" id="insertTaskID" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert"> <i class="fa fa-plus-circle"></i> Yeni Görev </a>
+					</div>
+				</div>
+
+				<div class="hide">
+					<ul style="height:300px !important;overflow:auto !important;" id="filterTask" class=""></ul>
+				</div>
+				<div class="panel-body" style="padding: 5px !important;height:inherit !important;">
+					@(Html.Akilli()
+						.Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
+						.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25))
+						.AutoBind(false)
+						.Columns(x =>
+						{
+							//x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('inventoryTemplate',data)#");
+							x.Bound(y => y.code).Title("Görev Kodu").Width(130).Hidden(false);
+						})
+						.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+						.ToolBar(x =>
+						{
+							x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+						}))
+				</div>
+			</div>
+		</div>
     </div>
 </div>
 
