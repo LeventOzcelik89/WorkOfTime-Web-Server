@@ -13,7 +13,7 @@ using System.ComponentModel;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
 
-    [EnumInfo(typeof(VWCMP_Storage), "locationType")]
+    [EnumInfo(typeof(CMP_Storage), "locationType")]
     public enum EnumCMP_StorageLocationType
     {
         [Description("Depo"), Generic("order", "1")]
