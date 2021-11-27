@@ -13,7 +13,14 @@ using System.ComponentModel;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
 
-
+    [EnumInfo(typeof(VWCMP_Storage), "locationType")]
+    public enum EnumCMP_StorageLocationType
+    {
+        [Description("Depo"), Generic("order", "1")]
+        Depo = 0,
+        [Description("Alan"), Generic("order", "2")]
+        Alan = 1
+    }
     partial class WorkOfTimeDatabase
     {
         public CMP_Storage[] GetCMP_StroageByCompanyId(Guid companyId, DbTransaction tran = null)

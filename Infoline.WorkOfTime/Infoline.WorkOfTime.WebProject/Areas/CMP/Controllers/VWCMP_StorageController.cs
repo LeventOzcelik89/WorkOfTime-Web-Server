@@ -70,6 +70,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 data.code = BusinessExtensions.B_GetIdCode();
             }
+            data.locationType = (int)EnumCMP_StorageLocationType.Depo;
             if (data.pid.HasValue)
             {
                 var db = new WorkOfTimeDatabase();
