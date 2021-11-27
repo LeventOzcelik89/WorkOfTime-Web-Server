@@ -105,16 +105,45 @@
                             sort: [{ field: "UserId_Title", dir: "asc" }, { field: "date", dir: "asc" }]
                         },
                         dataBound: function (e) {
+                            //mesai saatinne uyum rengi ayarlama
                             $("#shiftTrackingPersonalGrid tbody tr:odd").css("background-color", "#f3f3f4");
                             $("#shiftTrackingPersonalGrid tbody tr td:last-child").each(function (i, e) {
                                 if ($(e).text().includes("Fazla")) {
                                     $(e).css("color", "green");
                                 } else if ($(e).text().includes("Az")) {
                                     $(e).css("color", "red");
-                                } else if ($(e).text().includes("Tam")) {
+                                } else if ($(e).text().includes("Tam") || $(e).text().includes("Tatil")) {
                                     $(e).css("color", "orange");
                                 }
-                            })
+                            });
+
+
+                            //son durum rengi ayarlama
+                            var coloredText = ["izni", "izin", "tatil", "bayram", "yıllık","mazeret"];
+                            var htmlStart = "<span style='color:orange;'>"
+                            var htmlEnd = "</span>"
+                            $("#shiftTrackingPersonalGrid tbody tr").each(function (i, e) {
+                                if ($(e).find("td:eq(3)").text().split(" ").some(a => coloredText.includes(a.toLowerCase()))) {
+                                    var html = htmlStart + $(e).find("td:eq(3)").text() + htmlEnd;
+                                    $(e).find("td:eq(3)").html(html);
+
+                                }
+                            });
+
+                            //bugunün bazı verilerini -' e eşitleme
+                            var lastRecord = $("#shiftTrackingPersonalGrid tbody tr:last td:eq(4)").text().split("/");
+                            var lastDate = new Date(lastRecord[2], lastRecord[1]-1, lastRecord[0]);
+                            var td = new Date();
+                            td.setHours(0, 0, 0, 0);
+                            debugger;
+                            if (td.getTime() == lastDate.getTime() && $("#shiftTrackingPersonalGrid tbody tr:last td:eq(3)").text().trim() != "Mesai Bitti") {
+                                $("#shiftTrackingPersonalGrid tbody tr:last td:eq(6)").text("-");
+                                $("#shiftTrackingPersonalGrid tbody tr:last td:eq(10)").text("-");
+                                $("#shiftTrackingPersonalGrid tbody tr:last td:eq(11)").text("-");
+                            }
+
+
+
                         },
                         columnMenu: true,
                         filterable: true,

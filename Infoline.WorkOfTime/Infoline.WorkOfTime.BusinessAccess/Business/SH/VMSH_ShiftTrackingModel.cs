@@ -522,18 +522,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         //workingMinutes -= todayPermitMinutes;
 
 
-                        var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes - todayPermitMinutes;
+                        var breakMinutes = (shiftEndTime - shiftStartTime).TotalMinutes - workingMinutes;
                         ts = TimeSpan.FromMinutes(breakMinutes);
                         var breakHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
 
 
                         var lateArrived = (dayWorkHour.allowTimes[0].Start - new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second)).TotalMinutes;
-                        ts = TimeSpan.FromMinutes(lateArrived);
+                        var lateArrivedWithPermit = lateArrived + todayPermitMinutes;
 
-                        lateArrived = lateArrived + todayPermitMinutes;
-                        var lateArrivedString = lateArrived >= 0 ? "YOK" : $"{(int)ts.TotalHours * -1} saat : {ts.Minutes * -1} dakika";
+                        var remainingPermitMinute = todayPermitMinutes - (-1 * lateArrived) > 0 ? todayPermitMinutes - (-1 * lateArrived) : 0;
+                        ts = TimeSpan.FromMinutes(lateArrivedWithPermit);
+                        var lateArrivedString = lateArrivedWithPermit >= 0 ? "YOK" : $"{(int)ts.TotalHours * -1} saat : {ts.Minutes * -1} dakika";
 
                         var earlyLeave = (dayWorkHour.allowTimes[1].End - new TimeSpan(shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second)).TotalMinutes;
+                        earlyLeave -= remainingPermitMinute;
                         ts = TimeSpan.FromMinutes(earlyLeave);
                         var earlyLeaveString = earlyLeave <= 0 ? "YOK" : $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
 
@@ -688,7 +690,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             foreach (var permit in permits)
                             {
 
-                                // tüm gün izinli
+                                // full day permit
                                 if (permit.StartDate.Value <= todayShiftStartDate && permit.EndDate.Value >= todayShiftEndDate)
                                 {
                                     todayPermitMinutes += (todayShiftEndDate - todayShiftStartDate).TotalMinutes;
@@ -764,10 +766,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
                         var lateArrived = (new TimeSpan(shiftStartTime.Hour, shiftStartTime.Minute, shiftStartTime.Second) - dayWorkHour.allowTimes[0].Start).TotalMinutes;
-                        lateArrived = lateArrived > 0 ? lateArrived : 0.0;
+                        var lateArrivedWithPermit = lateArrived - todayPermitMinutes;
+                        lateArrived = lateArrivedWithPermit > 0 ? lateArrivedWithPermit : 0.0;
+
+                        var remainingPermitMinute = (todayPermitMinutes - lateArrived) > 0 ? (todayPermitMinutes - lateArrived) : 0;
 
                         var earlyLeave = (dayWorkHour.allowTimes[1].End - new TimeSpan(shiftEndTime.Hour, shiftEndTime.Minute, shiftEndTime.Second)).TotalMinutes;
-                        earlyLeave = earlyLeave > 0 ? earlyLeave : 0.0;
+                        earlyLeave = earlyLeave-remainingPermitMinute > 0 ? earlyLeave - remainingPermitMinute : 0.0;
 
                         var extraShift = 0.0;
 
