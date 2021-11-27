@@ -28,5 +28,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? pid { get; set;}
         public string email { get; set;}
         public string postCode { get; set;}
+        public short? type { get; set;}
     }
 }
