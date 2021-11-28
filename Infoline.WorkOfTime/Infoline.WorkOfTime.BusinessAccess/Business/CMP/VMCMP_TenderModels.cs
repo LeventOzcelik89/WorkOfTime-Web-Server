@@ -126,13 +126,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (ids.Count() > 0)
 				{
-					this.InvoiceItems = db.GetPRD_ProductByIds(ids).Select(s => new SpecInvoiceItem
+					var products = db.GetPRD_ProductByIds(ids);
+					var invoiceItemList = new List<SpecInvoiceItem>();
+					foreach (var product in products)
 					{
-						productId = s.id,
-						invoiceId = this.id,
-						unitId = s.unitId,
-						quantity = presentationProducts.Where(a => a.ProductId == s.id).Select(a => a.Amount).FirstOrDefault(),
-					}).ToList();
+						foreach (var invoiceItem in this.InvoiceItems)
+						{
+							invoiceItem.productId = product.id;
+							invoiceItem.invoiceId = this.id;
+							invoiceItem.unitId = product.unitId;
+							invoiceItem.quantity = presentationProducts.Where(a => a.ProductId == product.id).Select(a => a.Amount).FirstOrDefault();
+							invoiceItemList.Add(invoiceItem);
+						}
+					}
+
+					this.InvoiceItems = new List<SpecInvoiceItem>();
+					this.InvoiceItems.AddRange(invoiceItemList);
 				}
 
 				this.customerId = presentation.CustomerCompanyId;
