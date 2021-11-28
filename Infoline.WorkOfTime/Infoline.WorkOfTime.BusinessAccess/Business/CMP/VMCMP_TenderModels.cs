@@ -46,6 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid? forMobile { get; set; }
 		public Boolean isTenderHaveOrder { get; set; }
 		public bool isTaskRule { get; set; }
+		public bool isBuying { get; set; }
 		public bool salesAfter { get; set; }
 		public VWCMP_Tender Tender { get; set; }
 		public VWCMP_Request VWCMP_Request { get; set; }
@@ -58,10 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var order = db.GetCMP_InvoiceActionByInvoiceId(this.id).Where(x => x.type == (Int16)EnumCMP_InvoiceActionType.TeklifSiparis).Count();
 			this.isTenderHaveOrder = order > 0 ? true : false;
 
-			if (direction.HasValue)
-			{
-				this.direction = (short)direction.Value;
-			}
+			
 
 			if (invoice != null)
 			{
@@ -108,7 +106,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id);
 				}
 
-				this.direction = invoice.direction;
+				if (!this.isTaskRule && !this.direction.HasValue)
+				{
+					this.direction = invoice.direction;
+				}
+
+				if (direction.HasValue)
+				{
+					this.direction = (short)direction.Value;
+				}
 			}
 
 			if (this.presentationId.HasValue)
@@ -142,9 +148,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.isTaskRule)
 			{
 				this.pid = this.id;
-				this.id = Guid.NewGuid();
+				if (!this.isBuying)
+				{
+					this.id = Guid.NewGuid();
+				}
+
 				this.rowNumber = BusinessExtensions.B_GetIdCode();
-				this.direction = (int)EnumCMP_InvoiceDirectionType.Satis;
 			}
 
 
