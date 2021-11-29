@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using Infoline.Framework.Database;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
@@ -24,9 +25,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Json("", JsonRequestBehavior.AllowGet);
 
 		}
-
-
-
 
 
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
@@ -59,6 +57,46 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		    };
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
+		}
+		[PageInfo("Dosyadan ekleme metodu ", SHRoles.Personel)]
+		[HttpPost]
+		public JsonResult Import(string model)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var db = new WorkOfTimeDatabase();
+			var feedback = new FeedBack();
+			var trans = db.BeginTransaction();
+			var result = new ResultStatus {result=true };
+			var excel = Helper.Json.Deserialize<PRD_EntegrationImportExcel[]>(model);
+            foreach (var item in excel)
+            {
+				var contractStarDate = new DateTime(1999, 1, 1);
+
+				DateTime.TryParse(item.contractStartDate,out contractStarDate);
+				var distributorConfirmationDate = new DateTime(1999,1,1);
+				DateTime.TryParse(item.distributorConfirmationDate, out distributorConfirmationDate);
+				var items = new PRD_EntegrationImport().B_EntityDataCopyForMaterial(item);
+				items.contractStartDate = contractStarDate;
+				items.contractStartDate = contractStarDate;
+				items.created = DateTime.Now;
+				items.createdby = userStatus.user.id;
+				items.distributorConfirmationDate = distributorConfirmationDate;
+				result &= db.InsertPRD_EntegrationImport(items, trans);			
+            }
+            if (result.result)
+            {
+				trans.Commit();
+			}
+            else
+            {
+				trans.Rollback();
+            }
+			var result1 = new ResultStatusUI
+			{
+				Result = result.result,
+				FeedBack = result.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+			};
+			return Json(result1, JsonRequestBehavior.AllowGet);
 		}
 	}
 }
