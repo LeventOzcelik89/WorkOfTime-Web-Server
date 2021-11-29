@@ -61,7 +61,7 @@ namespace Infoline.WorkOfTime.WebService
                 var db = new WorkOfTimeDatabase();
                 var model = new VMCMP_TenderModels() { id=Guid.Parse(id)}.Load(false,null);
                 var userId = CallContext.Current.UserId;
-                var rs = model.UpdateStatus(int.Parse(type),userId);
+                var rs = model.UpdateStatus(int.Parse(type),userId,false);
                 RenderResponse(context, new ResultStatus() { result = true, message = "Teklif başarılı bir şekilde güncellendi.", objects = null });
             }
             catch (Exception ex)

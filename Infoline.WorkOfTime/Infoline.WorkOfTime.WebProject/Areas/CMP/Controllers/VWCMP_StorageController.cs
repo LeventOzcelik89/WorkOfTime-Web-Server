@@ -70,6 +70,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             {
                 data.code = BusinessExtensions.B_GetIdCode();
             }
+            data.locationType = (int)EnumCMP_StorageLocationType.Depo;
             if (data.pid.HasValue)
             {
                 var db = new WorkOfTimeDatabase();
@@ -487,7 +488,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 companyId = x.companyId,
                 name = x.name,
                 companyId_Title = x.companyId_Title,
-                myStorage = x.myStorage
+                myStorage = x.myStorage,
+                locationType = x.locationType
             }).ToArray();
             return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
         }

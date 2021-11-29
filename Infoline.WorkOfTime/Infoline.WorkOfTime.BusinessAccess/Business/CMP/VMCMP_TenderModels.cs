@@ -46,6 +46,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid? forMobile { get; set; }
 		public Boolean isTenderHaveOrder { get; set; }
 		public bool isTaskRule { get; set; }
+		public bool isBuying { get; set; }
+		public bool salesAfter { get; set; }
+		public VWCMP_Tender Tender { get; set; }
+		public VWCMP_Request VWCMP_Request { get; set; }
 
 		public VMCMP_TenderModels Load(bool? isTransform, int? direction)
 		{
@@ -55,10 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var order = db.GetCMP_InvoiceActionByInvoiceId(this.id).Where(x => x.type == (Int16)EnumCMP_InvoiceActionType.TeklifSiparis).Count();
 			this.isTenderHaveOrder = order > 0 ? true : false;
 
-			if (direction.HasValue)
-			{
-				this.direction = (short)direction.Value;
-			}
+			
 
 			if (invoice != null)
 			{
@@ -105,7 +106,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id);
 				}
 
-				this.direction = invoice.direction;
+				if (!this.isTaskRule && !this.direction.HasValue)
+				{
+					this.direction = invoice.direction;
+				}
+
+				if (direction.HasValue)
+				{
+					this.direction = (short)direction.Value;
+				}
 			}
 
 			if (this.presentationId.HasValue)
@@ -117,13 +126,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (ids.Count() > 0)
 				{
-					this.InvoiceItems = db.GetPRD_ProductByIds(ids).Select(s => new SpecInvoiceItem
+					var products = db.GetPRD_ProductByIds(ids);
+					var invoiceItemList = new List<SpecInvoiceItem>();
+					foreach (var product in products)
 					{
-						productId = s.id,
-						invoiceId = this.id,
-						unitId = s.unitId,
-						quantity = presentationProducts.Where(a => a.ProductId == s.id).Select(a => a.Amount).FirstOrDefault(),
-					}).ToList();
+						foreach (var invoiceItem in this.InvoiceItems)
+						{
+							invoiceItem.productId = product.id;
+							invoiceItem.invoiceId = this.id;
+							invoiceItem.unitId = product.unitId;
+							invoiceItem.quantity = presentationProducts.Where(a => a.ProductId == product.id).Select(a => a.Amount).FirstOrDefault();
+							invoiceItemList.Add(invoiceItem);
+						}
+					}
+
+					this.InvoiceItems = new List<SpecInvoiceItem>();
+					this.InvoiceItems.AddRange(invoiceItemList);
 				}
 
 				this.customerId = presentation.CustomerCompanyId;
@@ -139,9 +157,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.isTaskRule)
 			{
 				this.pid = this.id;
-				this.id = Guid.NewGuid();
+				if (!this.isBuying)
+				{
+					this.id = Guid.NewGuid();
+				}
+
 				this.rowNumber = BusinessExtensions.B_GetIdCode();
-				this.direction = (int)EnumCMP_InvoiceDirectionType.Satis;
+			}
+
+
+			if (this.pid.HasValue)
+			{
+				this.Tender = db.GetVWCMP_TenderByPid(this.id);
+				if (tender != null && tender.pid.HasValue)
+				{
+					this.VWCMP_Request = db.GetVWCMP_RequestById(tender.pid.Value);
+				}
+
+			}
+
+			var pidTender = db.GetVWCMP_TenderByPid(this.id);
+
+			if (pidTender != null && !this.pid.HasValue)
+			{
+				this.Tender = pidTender;
 			}
 
 			return this;
@@ -177,7 +216,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.Request = db.GetCMP_InvoiceById(this.id);
 			}
 
-			
+
 
 
 			if (tender == null || this.IsCopy == true)
@@ -433,7 +472,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return dbresult;
 		}
 
-		public ResultStatus UpdateStatus(int type, Guid userId, DbTransaction trans = null)
+		public ResultStatus UpdateStatus(int type, Guid userId, bool isTaskRule, DbTransaction trans = null)
 		{
 
 			var _trans = trans ?? db.BeginTransaction();
@@ -445,6 +484,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.status = (short)type;
 
 			var dbresult = db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, _trans);
+
+			if (isTaskRule && this.pid.HasValue)
+			{
+				var invoice = db.GetCMP_InvoiceById(this.pid.Value);
+				if (invoice != null)
+				{
+					invoice.status = this.status;
+					dbresult &= db.UpdateCMP_Invoice(invoice, true, _trans);
+				}
+			}
 
 			var action = new CMP_InvoiceAction
 			{

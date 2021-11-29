@@ -229,7 +229,7 @@
 										<i class="fa fa-database"></i> Giriş Yapılacak Şube/Depo :
 										<strong> @(Model.CustomerStorage_Title) </strong>
 									</li>
-									
+
 									<li class="list-group-item fist-item">
 										<i class="icon-bri"></i>Satın Alma Yapılacak Proje :
 										<strong> @(Model.projectId_Title != null ? Model.projectId_Title : "-")</strong>
@@ -331,9 +331,18 @@
 
 											if (Model.status != (int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor && Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi)
 											{
-												<a style="color:white;" class="btn btn-success btn-xs" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying?id=@Model.id&customerId=@Model.customerId&transform=true">
-													<i class="fa fa-plus-circle"></i> Teklif Ekle
-												</a>
+												if (Model.taskId.HasValue)
+												{
+													<a style="color:white;" class="btn btn-success btn-xs" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying?id=@Model.id&customerId=@Model.customerId&transform=true&isTaskRule=true&isBuying=true">
+														<i class="fa fa-plus-circle"></i> Teklif Ekle
+													</a>
+												}
+												else
+												{
+													<a style="color:white;" class="btn btn-success btn-xs" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying?id=@Model.id&customerId=@Model.customerId&transform=true">
+														<i class="fa fa-plus-circle"></i> Teklif Ekle
+													</a>
+												}
 											}
 										}
 
@@ -396,7 +405,7 @@
 
 								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)) && Model.taskId.HasValue)
 								{
-									x.Custom().Text("<i data-original-title='Satış Teklifi Oluştur' class='fa fa-shopping-cart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", isTaskRule = true }));
+									x.Custom().Text("<i data-original-title='Satış Teklifi Oluştur' class='fa fa-shopping-cart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", isTaskRule = true,customerId = Model.Task.customerId, salesAfter = true  }));
 								}
 
 								x.Custom().Text("<i data-original-title='Teklifi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Tender", new { area = "CMP" }));

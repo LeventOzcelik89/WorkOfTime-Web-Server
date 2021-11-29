@@ -233,11 +233,12 @@
             },
             updateStatus: function (_this) {
                 _this.type = "button";
-                var type = $(_this).attr("data-type");
+				var type = $(_this).attr("data-type");
+				var isTaskRule = $(_this).attr("data-isTaskRule");
                 $.ajax({
                     type: "POST",
                     url: '/CMP/VWCMP_Tender/UpdateStatus',
-                    data: { tenderId: tenderDetail.dfn.model.id, type: type },
+					data: { tenderId: tenderDetail.dfn.model.id, type: type, isTaskRule : isTaskRule },
                     success: function (response) {
                         if (response.Result) {
                             location.reload();
@@ -420,6 +421,18 @@
 									@String.Format("{0:dd.MM.yyyy HH:mm}", Model.issueDate)
 								</div>
 							</div>
+							
+
+							@*@if (Model.Tender != null && !Model.Tender.pid.HasValue)
+							{
+								<div class="ibox-title heightMin">
+									<h5> <i class="fa fa-info-circle"></i> Satış Teklifi </h5>
+									<div class="ibox-tools">
+										@Model.Tender.rowNumber <a href="/CMP/VWCMP_Tender/DetailSelling?id=@(Model.Tender.id)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+									</div>
+								</div>
+							}*@
+
 						</div>
 					</div>
 					<div class="col-lg-6">
@@ -822,33 +835,23 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 									<tr>
 										<td style="padding-top: 20px;">
 											<div class="col-md-6" style="text-align:center;">
-												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" class="btn btn-md btn-primary">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" data-isTaskRule="false" class="btn btn-md btn-primary">
 													<i class="fa fa-check"></i> Onayla
 												</button>
 											</div>
 											<div class="col-md-6" style="text-align:center;">
-												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" data-isTaskRule="false" class="btn btn-md btn-danger">
 													<i class="fa fa-times"></i> Reddet
 												</button>
 											</div>
 										</td>
 									</tr>
 								}
-								@if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli))
-									|| userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli))))
+								@if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay)
 								{
 
-									if (Model.pid.HasValue && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
-									{
-										<tr>
-											<td style="text-align:center;">
-												<a onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" data-method="GET" data-show="single" class="btn btn-md btn-success">
-													<i class="fa fa-refresh"></i> Müşteri Onayladı
-												</a>
-											</td>
-										</tr>
-									}
-									else
+									if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli))
+									|| userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli))))
 									{
 										<tr>
 											<td style="text-align:center;">
@@ -857,15 +860,35 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 												</a>
 											</td>
 										</tr>
+
+										<tr>
+											<td style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" data-isTaskRule="false" class="btn btn-md btn-danger">
+													<i class="fa fa-times"></i> Müşteri Reddetti
+												</button>
+											</td>
+										</tr>
 									}
 
-									<tr>
-										<td style="text-align:center;">
-											<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
-												<i class="fa fa-times"></i> Müşteri Reddetti
-											</button>
-										</td>
-									</tr>
+									if (Model.pid.HasValue && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
+									{
+										<tr>
+											<td style="text-align:center;">
+												<a onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.MusteriOnay)" data-isTaskRule="true" data-method="GET" data-show="single" class="btn btn-md btn-success">
+													<i class="fa fa-refresh"></i> Müşteri Onayladı
+												</a>
+											</td>
+										</tr>
+
+										<tr>
+											<td style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" data-isTaskRule="true" class="btn btn-md btn-danger">
+													<i class="fa fa-times"></i> Müşteri Reddetti
+												</button>
+											</td>
+										</tr>
+									}
+
 								}
 								<tr>
 									<td style="padding-top: 20px;">
@@ -880,7 +903,7 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
 										@if (Model.status == (int)EnumCMP_TenderStatus.MusteriOnay && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatisPersoneli)))
 										{
 											<div class="col-md-6" style="text-align:center;">
-												<a href="/CMP/VWCMP_Order/InsertSelling?id=@Model.id&transform=true" target="_blank" class="btn btn-md btn-success">
+												<a data-href="/CMP/VWCMP_Order/InsertSelling?id=@Model.id&transform=true" data-modal="true" data-task="Insert" data-method="GET" data-show="single" class="btn btn-md btn-success">
 													<i class="fa fa-refresh"></i> Siparişe Dönüştür
 												</a>
 											</div>

@@ -13,6 +13,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public string companyId_Title { get; set;}
         public string companyId_Image { get; set;}
+        public string locationType_Title { get; set;}
         public string locationId_Title { get; set;}
         public string supervisorId_Title { get; set;}
         public bool? myStorage { get; set;}
@@ -28,5 +29,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? pid { get; set;}
         public string email { get; set;}
         public string postCode { get; set;}
+        public short? locationType { get; set;}
     }
 }

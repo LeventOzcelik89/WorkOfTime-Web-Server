@@ -99,7 +99,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         companyId = x.companyId,
                         name = x.name,
                         companyId_Title = x.companyId_Title,
-                        myStorage = x.myStorage
+                        myStorage = x.myStorage,
+                        locationType = x.locationType
                     }).OrderBy(x => x.code).Execute<VWCMP_Storage>().ToArray();
             }
         }

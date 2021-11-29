@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -34,6 +35,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VWFTM_Task Task { get; set; }
 		public Guid[] taskIds { get; set; }
 		public Guid? projectCompanyId { get; set; }
+		public IGeometry location { get; set; }
+		public double? battery { get; set; }
+
 		public static Guid _approvalRoleId { get; set; } = new Guid(SHRoles.SatinAlmaOnaylayici);
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
@@ -195,7 +199,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi);
 
-			
+
 			if (this.Order != null)
 			{
 				var listTransform = new List<CMP_InvoiceTransform>();
@@ -330,7 +334,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiIptalEdildi);
 
-			
+
 
 			dbresult &= db.UpdateCMP_Invoice(invoice, true, this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
@@ -492,6 +496,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				dbresult &= InsertTaskOperation(this.taskId, (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiOnaylandi);
 			}
 
+
 			dbresult &= db.UpdateCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), false, this.trans);
 			dbresult &= db.InsertCMP_InvoiceAction(action, this.trans);
 
@@ -564,7 +569,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (shuser != null)
 				{
 					this._managerPersons = new Guid[1] { shuser.id };
-					this._approvalPersons = new Guid[1] { task.createdby.Value};
+					this._approvalPersons = new Guid[1] { task.createdby.Value };
 
 					invoiceCofirmations.Add(new CMP_InvoiceConfirmation
 					{
@@ -578,7 +583,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						userId = shuser.id
 					});
 
-					
+
 					dbresult &= db.BulkInsertCMP_InvoiceConfirmation(invoiceCofirmations, _trans);
 				}
 			}
@@ -602,28 +607,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public ResultStatus InsertTaskOperation(Guid? taskId, short? status)
 		{
 			var dbresult = new ResultStatus { result = true };
+			var buyRequestOperation = new FTM_TaskOperation();
 
 			if (this.taskId.HasValue)
 			{
 				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi)
 				{
-					var buyRequestOperation = new FTM_TaskOperation
+					buyRequestOperation = new FTM_TaskOperation
 					{
 						taskId = taskId,
 						created = DateTime.Now,
 						status = (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiYapildi,
 						createdby = this.createdby,
 						description =  this.description,
+						battery = this.battery,
+						location = this.location,
 						dataId = this.id
 					};
-
-					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
 				}
 
 
 				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiIptalEdildi)
 				{
-					var buyRequestOperation = new FTM_TaskOperation()
+					buyRequestOperation = new FTM_TaskOperation()
 					{
 						taskId = this.taskId,
 						created = DateTime.Now,
@@ -632,14 +638,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						description = "Satın Alma Talebi İptal Edildi.",
 						dataId = this.id
 					};
-
-					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
 				}
 
 
 				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiOnaylandi)
 				{
-					var buyRequestOperation = new FTM_TaskOperation()
+					buyRequestOperation = new FTM_TaskOperation()
 					{
 						taskId = this.taskId,
 						created = DateTime.Now,
@@ -648,13 +652,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						dataId = this.id,
 						description = "Satın Alma Talebi Onaylandı."
 					};
-
-					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
 				}
 
 				if (status == (int)EnumFTM_TaskOperationStatus.SatinAlmaTalebiReddedildi)
 				{
-					var buyRequestOperation = new FTM_TaskOperation()
+					buyRequestOperation = new FTM_TaskOperation()
 					{
 						taskId = this.taskId,
 						created = DateTime.Now,
@@ -663,9 +665,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						dataId = this.id,
 						description = "Satın Alma Talebi Reddedildi."
 					};
-
-					dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
 				}
+
+				dbresult &= db.InsertFTM_TaskOperation(buyRequestOperation, this.trans);
 			}
 
 			return new ResultStatus
