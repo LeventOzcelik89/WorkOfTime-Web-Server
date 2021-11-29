@@ -43,6 +43,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public VMFTM_TaskUserInfo[] assignableUsersInfo { get; set; }
 		public VMFTM_TaskUserInfo[] helperUsersInfo { get; set; }
 		public List<VWFTM_TaskOperationOperation> taskOperation { get; set; }
+		public CMP_Storage TaskStorage { get; set; }
 		public VWPRD_Inventory fixtureModel { get; set; }
 		public List<VWFTM_TaskSubjectModel> FTM_TaskSubjects { get; set; }
 		public Guid[] FTM_TaskSubjectTypeIds { get; set; }
@@ -149,6 +150,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				 task_Name = a.task_Name,
 				 userId = a.userId
 			}).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList();
+
+			if (model.customerStorageId.HasValue)
+			{
+				var storage = _db.GetCMP_StorageById(model.customerStorageId.Value);
+
+				model.TaskStorage = storage;
+			}
 
 			model.FTM_TaskSubjectTypeIds = _db.GetFTM_TaskSubjectTypeByTaskIdTypesIds(taskId);
 
