@@ -17,7 +17,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         public FtpConfiguration ftpConfiguration { get; private set; }
         private string Token { get; set; }
         public string DistributorName { get { return "Genpa"; } }
-        public Guid DistributorId { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
+        public Guid DistributorId { get { return new Guid("32f1df56-636d-4d9e-917b-0878a6ee4c51"); } }
         private string DirUrl { get; set; }
         private string LoginUrl { get; set; }
         public FtpGenpa()
@@ -210,6 +210,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;
+                        item.CustomerOperatorId = Finder.FindCompany(item);
                         sellThrs.Add(item);
                     }
                     catch (Exception e)

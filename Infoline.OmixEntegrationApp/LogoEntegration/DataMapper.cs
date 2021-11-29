@@ -319,7 +319,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi.ToUpper()).FirstOrDefault();
-            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu);
+            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu,null);
             var insertStorage = new CMP_Storage
             {
                 id = Guid.NewGuid(),
@@ -342,7 +342,7 @@ namespace Infoline.OmixEntegrationApp.LogoEntegration
             var db = new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             var checkCode = db.GetCMP_StorageByCode(firmaNo + "-" + param.CariKodu + param.SevkKodu);
-            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu);
+            var findCari = db.GetVWCMP_CompanyByNameOrCode(param.CariUnvan, firmaNo + "-" + param.CariKodu,null);
             var findSH_User = db.GetVWSH_User().Where(a => a.FullName == param.SevkIlgiliKisi.ToUpper()).FirstOrDefault();
             var validator = StorageValidator(param, checkCode);
             if (validator.result)
