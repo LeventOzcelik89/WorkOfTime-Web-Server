@@ -164,6 +164,83 @@ namespace Infoline.WorkOfTime.WebService.Handler
             RenderResponse(context, new ResultStatus { result = true, message = "Dosya yükleme işlemi başarılı." });
         }
 
+        [HandleFunction("SYS_Files/UpdateProfileImage")]
+        public void SYS_FilesDeleteProfileImage(HttpContext context)
+        {
+            var db = new WorkOfTimeDatabase();
+
+            if (CallContext.Current == null)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = "Kullanıcı girişi yapmanız gerekmektedir." });
+                return;
+            }
+
+            var userId = CallContext.Current.UserId;
+            var sysFiles = db.GetSysFilesByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", userId);
+
+            var res = ParseRequest<UploadFileObject>(context);
+            var webPath = System.Configuration.ConfigurationManager.AppSettings["FilesPath"];
+            var path = string.Format("{0}/{1}/{2}/", webPath, res.fileName, res.id);
+            CreateFolder(path);
+
+            var extension = Path.GetExtension(res.tip);
+            var fileName = GenerateFileName(path, res.fileName, extension);
+            var imagesPath = Path.Combine(path, fileName);
+
+            if (Directory.Exists(path))
+            {
+                var bytes = Convert.FromBase64String(res.file64);
+                File.WriteAllBytes(imagesPath, bytes);
+            }
+
+            path = path.Substring(path.IndexOf("Files", StringComparison.Ordinal));
+
+            ResultStatus result = null;
+            if (sysFiles != null)
+            {
+                var oldFilePath = sysFiles.FilePath;
+
+                sysFiles.FilePath = "/" + path + fileName;
+                sysFiles.changed = DateTime.Now;
+                sysFiles.changedby = userId;
+
+                result = db.UpdateSYS_Files(sysFiles);
+
+                if (oldFilePath != null && oldFilePath != "")
+                {
+                    var deletePath = HttpContext.Current.Server.MapPath(oldFilePath);
+                    if (File.Exists(deletePath) == true)
+                    {
+                        File.Delete(deletePath);
+                    }
+                }
+            }
+            else
+            {
+                var sysfiles = new SYS_Files()
+                {
+                    id = Guid.NewGuid(),
+                    created = DateTime.Now,
+                    createdby = userId,
+                    DataId = res.id,
+                    FilePath = "/" + path + fileName,
+                    DataTable = res.fileName,
+                    FileGroup = res.fileGroup,
+                    FileExtension = res.tip.Replace(".", "")
+                };
+                result = db.InsertSYS_Files(sysfiles);
+            }
+
+            if (result != null && result.result == true)
+            {
+                RenderResponse(context, new ResultStatus { result = true, message = "Profil Resmi Başarılı Bir Şekilde Güncellendi" });
+            }
+            else
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = result.message });
+            }
+        }
+
         private string GenerateFileName(string path, string fileName, string extension)
         {
             fileName = (fileName.Replace(extension, "")).Replace(" ", "-").Replace("/", "-").Replace(".", "-");
