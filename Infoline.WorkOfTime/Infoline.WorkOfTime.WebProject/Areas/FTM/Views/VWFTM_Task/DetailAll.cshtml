@@ -514,30 +514,37 @@
                 var elem = resp.element;
                 var prop = elem.get("properties");
 
-                if (prop) {
-                    var text = "";
+				if (prop) {
+					var text = "";
 
-                    if(prop.operation){
-                        text = pageDetail.fnc.getHtmlOperation(prop.operation);
-                    }
-                    if (prop.task) {
-                        text = pageDetail.fnc.getHtmlTaskData();
-                    }
+					if (prop.operation) {
+						text = pageDetail.fnc.getHtmlOperation(prop.operation);
+					}
+					if (prop.task) {
+						text = pageDetail.fnc.getHtmlTaskData();
+					}
 
-                    var geometry = resp.element.getGeometry();
-                    var coordinate = geometry.getCoordinates();
-                    var pixel = pageDetail.dfn.harita.map.getPixelFromCoordinate(coordinate);
+					var geometry = resp.element.getGeometry();
+					var coordinate = geometry.getCoordinates();
+					var pixel = pageDetail.dfn.harita.map.getPixelFromCoordinate(coordinate);
 
-                    var tooltiplocation = "";
+					var tooltiplocation = "";
 
-                    if (pixel[1] < 400)
-                        tooltiplocation = "top-right";
-                    else if (screen.height - pixel[1] < 400)
-                        tooltiplocation = "bottom-right";
-                    else
-                        tooltiplocation = "center-right";
+					if (pixel[1] < 400)
+						tooltiplocation = "top-right";
+					else if (screen.height - pixel[1] < 400)
+						tooltiplocation = "bottom-right";
+					else
+						tooltiplocation = "center-right";
 
-                    pageDetail.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+
+					if (prop.task != null && prop.task.customerStorage != null && prop.task.customerStorage.locationType == '@((int)EnumCMP_StorageLocationType.Alan)') {
+						pageDetail.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates()[0][0], [-10, -30]);
+					}
+					else {
+						pageDetail.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+					}
+
                     pageDetail.dfn.harita.map.updateSize();
                 }
             }
@@ -730,7 +737,9 @@
                     feature.set("style", "TaskStyle");
                     feature.set("styleSelected", "TaskStyleHover");
                     feature.set("styleHover", "TaskStyleHover");
-                    feature.set("properties", { task: pageDetail.data });
+					feature.set("properties", { task: pageDetail.data });
+					pageDetail.dfn.harita.layer.panTo("Operations")
+
                 }
             },
             getColorFromEnumProperty: function(enumProperties){
