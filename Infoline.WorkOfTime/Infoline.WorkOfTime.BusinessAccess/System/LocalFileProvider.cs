@@ -513,9 +513,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                  new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
                         ),
                     new FileBase ("Talep Dosyası",  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
-                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel },
-                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel },
-                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaOnaylayici, SHRoles.ProjeYonetici }
+                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SahaGorevPersonel },
+                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SahaGorevPersonel },
+                                 new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaOnaylayici, SHRoles.ProjeYonetici, SHRoles.SahaGorevPersonel }
                         ),
                 }
             },
