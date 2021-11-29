@@ -204,7 +204,7 @@
                         if (storage.locationType == '@((int)EnumCMP_StorageLocationType.Alan)') {
 							feature = page.dfn.harita.feature.add("PolygonStorages", storage.id, storage.location);
                         }
-						else {
+                        else {
 							feature = page.dfn.harita.feature.add((storage.myStorage == true ? "MyStorages" : "OtherStorages"), storage.id, storage.location);
 						}
                         if (feature) {
@@ -280,7 +280,7 @@
             .on("hover:feature", "#Harita", function (e, resp) {
 
                 page.dfn.harita.overlay.remove('slider-station');
-
+                debugger;
                 if (resp.type == "add") {
                     var elem = resp.element;
                     var prop = elem.get("properties");
@@ -300,8 +300,15 @@
                         else
                             tooltiplocation = "center-right";
 
-                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
-                        page.dfn.harita.map.updateSize();
+                        if (prop.locationType == '@((int)EnumCMP_StorageLocationType.Alan)') {
+							page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates()[0][0], [-10, -30]);
+                        }
+						else {
+							page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+						}
+
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates()[0][0], [-10, -30]);
+                        page.dfn.harita.map.updateSize();0
                     }
                 }
             })
