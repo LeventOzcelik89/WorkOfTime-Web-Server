@@ -147,7 +147,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             item.changed = DateTime.Now;
             item.changedby = userStatus.user.id;
             var trans = db.BeginTransaction();
-            var dbresult = db.UpdateCMP_Storage(item, false, trans);
+            var dbresult = db.UpdateCMP_Storage(item, true, trans);
             if (item.supervisorId.HasValue)
             {
                 var hasRole = db.GetSH_UserRoleByUserIdRoleId(item.supervisorId.Value, Guid.Parse(SHRoles.DepoSorumlusu));

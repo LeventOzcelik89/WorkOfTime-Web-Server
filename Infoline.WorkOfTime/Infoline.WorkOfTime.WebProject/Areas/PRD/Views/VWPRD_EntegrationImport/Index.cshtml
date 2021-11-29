@@ -1,0 +1,56 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_EntegrationImport>("VWPRD_EntegrationImport")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_EntegrationImport", new { area = "PRD" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.customerName).Title("customerName").Width(180);
+        x.Bound(y => y.customerCode).Title("customerCode").Width(180);
+        x.Bound(y => y.productModel).Title("productModel").Width(180);
+        x.Bound(y => y.distributorName).Title("distributorName").Width(180);
+        x.Bound(y => y.distributorConfirmationDate).Title("distributorConfirmationDate").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.imei).Title("imei").Width(180);
+        x.Bound(y => y.customerType).Title("customerType").Width(180);
+        x.Bound(y => y.contractStartDate).Title("contractStartDate").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.contractEndDate).Title("contractEndDate").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.contractCode).Title("contractCode").Width(180);
+        x.Bound(y => y.productGroup).Title("productGroup").Width(180);
+        x.Bound(y => y.sellingChannelType).Title("sellingChannelType").Width(180);
+        x.Bound(y => y.distributorCode).Title("distributorCode").Width(180);
+        x.Bound(y => y.sellingQuantity).Title("sellingQuantity").Width(180);
+        x.Bound(y => y.month).Title("month").Width(180);
+        x.Bound(y => y.year).Title("year").Width(180);
+        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
+        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
+        x.Bound(y => y.distributor_Title).Title("distributor_Title").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_EntegrationImport", new { area = "PRD" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_EntegrationImport", new { area = "PRD" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_EntegrationImport", new { area = "PRD" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_EntegrationImport", new { area = "PRD" }));
+    }))
