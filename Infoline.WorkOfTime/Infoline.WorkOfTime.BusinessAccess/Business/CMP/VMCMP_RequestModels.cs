@@ -245,9 +245,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
 			//Onaylayıcı yoksa veya talep eden zaten onaylayıcıysa otomatik onay süreci
-			if (_approvalPersons.Count() == 0 || _approvalPersons.Contains(this.createdby.Value))
+
+			if (this.taskId.HasValue)
 			{
-				this.UpdateStatus((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor, _approvalPersons.Where(a => a == this.createdby.Value).FirstOrDefault(), this.trans);
+				if (_approvalPersons.Count() == 0 || _approvalPersons.Contains(this.createdby.Value))
+				{
+					this.UpdateStatus((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor, _approvalPersons.Where(a => a == this.createdby.Value).FirstOrDefault(), this.trans);
+				}
 			}
 
 			return dbresult;
