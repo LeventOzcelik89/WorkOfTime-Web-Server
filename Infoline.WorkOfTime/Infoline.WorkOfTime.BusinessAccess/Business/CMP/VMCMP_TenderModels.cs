@@ -119,6 +119,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.direction = (short)direction.Value;
 			}
 
+
 			if (this.presentationId.HasValue)
 			{
 				this.rowNumber = BusinessExtensions.B_GetIdCode();

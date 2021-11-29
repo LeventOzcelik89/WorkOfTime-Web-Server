@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_TenderController : Controller
 	{
-		[PageInfo("Satış Teklifleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satış Teklifleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult IndexSelling()
 		{
 			return View();
@@ -75,7 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
-		[PageInfo("Satış Teklifi Detayı", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satış Teklifi Detayı", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult DetailSelling(Guid id)
 		{
 			var data = new VMCMP_TenderModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis);
@@ -98,15 +98,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(item);
 		}
 
-		[PageInfo("Satış Teklifi Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
+		[PageInfo("Satış Teklifi Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult InsertSelling(VMCMP_TenderModels item)
 		{
 			item.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis);
+			var userStatus = (PageSecurity)Session["userStatus"];
 
 			if (item.presentationId.HasValue)
 			{
-				var userStatus = (PageSecurity)Session["userStatus"];
 				item.supplierId = userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : item.supplierId;
+			}
+
+			if (item.taskId.HasValue)
+			{
+				item.supplierId = userStatus.user.CompanyId;
 			}
 
 			return View(item);
@@ -197,7 +202,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var feedback = new FeedBack();
 			var userStatus = (PageSecurity)Session["userStatus"];
 
-			var dbresult = new VMCMP_TenderModels { id = tenderId }.Load(false, null).UpdateStatus(type, userStatus.user.id,isTaskRule);
+			var dbresult = new VMCMP_TenderModels { id = tenderId }.Load(false, null).UpdateStatus(type, userStatus.user.id, isTaskRule);
 
 			var result = new ResultStatusUI
 			{
