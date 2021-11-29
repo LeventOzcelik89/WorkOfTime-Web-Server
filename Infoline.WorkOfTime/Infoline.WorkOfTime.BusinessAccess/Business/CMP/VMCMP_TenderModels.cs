@@ -111,10 +111,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.direction = invoice.direction;
 				}
 
-				if (direction.HasValue)
-				{
-					this.direction = (short)direction.Value;
-				}
+				
+			}
+
+			if (direction.HasValue)
+			{
+				this.direction = (short)direction.Value;
 			}
 
 			if (this.presentationId.HasValue)
