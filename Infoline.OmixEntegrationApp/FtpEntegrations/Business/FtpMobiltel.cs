@@ -232,6 +232,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;
+                        item.CustomerOperatorId = Finder.FindCompany(item);
                         sellThrs.Add(item);
                     }
                     catch (Exception e)
