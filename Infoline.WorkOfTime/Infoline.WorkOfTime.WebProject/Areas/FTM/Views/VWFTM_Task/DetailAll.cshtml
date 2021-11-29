@@ -261,7 +261,11 @@
 										 {
 											 if (Model.assignUserId.HasValue && Model.assignUserId.Value == userStatus.user.id)
 											 {
-												 x.Custom().Text("<i data-original-title='Talep Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", customerId = Model.customerId, customerStorageId = Model.customerStorageId, createdby = userStatus.user.id, taskId = Model.id, projectCompanyId = Model.customerId }));
+												 x.Custom().Text("<i data-original-title='Talep Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Request", new { area = "CMP", customerId = userStatus.user.CompanyId, customerStorageId = Model.customerStorageId, createdby = userStatus.user.id, taskId = Model.id, projectCompanyId = Model.customerId }));
+											 }
+											 if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
+											 {
+												 x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
 											 }
 										 }))
 									</div>
@@ -427,10 +431,6 @@
 						{
 
 							<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWFTM_TaskOperation",new {area="FTM",taskId=Model.id,status=(int)EnumFTM_TaskOperationStatus.GorevDurduruldu })"><i data-toggle="tooltip" title="Görevi Durdur" class="fa fa-pause"></i> </a>
-
-
-
-
 							<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWFTM_TaskOperation",new {area="FTM",taskId=Model.id,status=(int)EnumFTM_TaskOperationStatus.CozumBildirildi })"><i data-toggle="tooltip" title="Görev Bitir" class="fa fa-check"></i> </a>
 							<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert", "VWFTM_TaskOperation" , new { area="FTM" , taskId=Model.id, status=(int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun })"><i data-toggle="tooltip" title="Görev Envanter Formu Doldur" class="fa fa-file-text"></i></a>
 							<a data-task="Insert" data-method="GET" data-modal="true" data-show="single" data-href="@Url.Action("Insert","VWFTM_TaskOperation",new {area="FTM" ,taskId=Model.id,status =(int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun })"><i data-toggle="tooltip" title="Görev Envanter Dosya Yükle" class="fa fa-image"></i></a>
