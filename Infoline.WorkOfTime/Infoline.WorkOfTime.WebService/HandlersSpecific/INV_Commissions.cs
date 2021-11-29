@@ -168,11 +168,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var db = new WorkOfTimeDatabase();
                 var projects = db.GetVWINV_CommissionsProjectsByCommissionsId(new Guid(commissionId));
                 var persons = db.GetVWINV_CommissionsPersonsByIdAll(new Guid(commissionId));
-
+                var information = db.GetVWINV_CommissionsInformationByComissionId(new Guid(commissionId));
                 var data = new VMINV_CommissionsProjectsAndPersons
                 {
                     ComissionsPersons = persons,
-                    CommissionsProjects = projects
+                    CommissionsProjects = projects,
+                    ComissionsInformation = information
                 };
 
                 RenderResponse(context, data);
