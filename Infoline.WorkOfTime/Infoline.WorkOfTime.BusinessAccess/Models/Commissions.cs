@@ -161,10 +161,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                 notifyText += "görevlendirme talebinde bulunmuştur";
                 text += "Onaya gitmek için lütfen <a href='{5}/INV/VWINV_Commissions/Update?id={6}'>Buraya tıklayınız! </a><p>Bilgilerinize.</p>";
                 var mesaj = string.Format(text, companyPerson.FullName, ownerInfo.FullName, created, start, end, siteName, item.id);
-                var notify = string.Format(notifyText,companyPerson.FullName,ownerInfo.FullName,created,start,end);
+                var notify = string.Format(notifyText, companyPerson.FullName, ownerInfo.FullName, created, start, end);
                 new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                                .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, companyPerson.email, "Görevlendirme Onayı Hakkında..", true);
-                notification.NotificationSend(companyPerson.id, "Görev Talep Onayı Hakkında",notify);
+                notification.NotificationSend(companyPerson.id, "Görev Talep Onayı Hakkında", notify);
             }
             else
             {
@@ -187,10 +187,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                     text += "Islak imzalı görevlendirme formunu yüklemek için lütfen <a href='{4}/INV/VWINV_Commissions/MyIndex'>Buraya tıklayınız! </a><p>Bilgilerinize.</p>";
 
                     var mesaj = string.Format(text, person.FullName, created, start, end, siteName);
-                    var notify = string.Format(notifyText,person.FullName,created,start,end);
+                    var notify = string.Format(notifyText, person.FullName, created, start, end);
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                               .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, person.email, "Görevlendirme Onayı Hakkında..", true);
-                    notification.NotificationSend(person.id, "Görev Talep Onayı Hakkında",notify);
+                    notification.NotificationSend(person.id, "Görev Talep Onayı Hakkında", notify);
                 }
 
             }
@@ -212,7 +212,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
 
             commision.changed = DateTime.Now;
             commision.changedby = userId;
-         
+
 
             if (commision.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || commision.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Reddedildi)
             {
@@ -244,7 +244,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                     var notify = string.Format(notifyText, string.Format("{0:dd.MM.yyyy HH:mm}", commision.StartDate), string.Format("{0:dd.MM.yyyy HH:mm}", commision.EndDate), userss);
                     var mesaj = string.Format(text, string.Format("{0:dd.MM.yyyy HH:mm}", commision.StartDate), string.Format("{0:dd.MM.yyyy HH:mm}", commision.EndDate), userss, string.IsNullOrEmpty(commision.ToAdress) ? "Belirtilmemiş" : commision.ToAdress, siteName);
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görevlendirmeye Çıkacak Personeller Hakkında", mesaj).Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, insankaynaklari.email, "Görevlendirmeye Çıkacak Personeller Hakkında", true);
-                    notification.NotificationSend(insankaynaklari.id, "Görevlendirmeye Çıkacak Personeller Hakkında",notify);
+                    notification.NotificationSend(insankaynaklari.id, "Görevlendirmeye Çıkacak Personeller Hakkında", notify);
                 }
             }
 
@@ -296,11 +296,11 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                 text += "<p>Bilgilerinize.</p>";
                 var mesaj = string.Format(text, ownerInfo.FullName, created, start, end, personels, commision.Manager1Approval_Title);
 
-                var notify= Regex.Replace(text,pattern,"");
+                var notify = Regex.Replace(text, pattern, "");
                 notify = string.Format(notify, ownerInfo.FullName, created, start, end, personels, commision.Manager1Approval_Title);
                 new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                         .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, ownerInfo.email, "Görevlendirme Onayı Hakkında..", true);
-                notification.NotificationSend(ownerInfo.id,"Görev Talep Onayı Hakkında",notify);
+                notification.NotificationSend(ownerInfo.id, "Görev Talep Onayı Hakkında", notify);
             }
             if (commision.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi && userId == commision.Manager1Approval)
             {
@@ -316,12 +316,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                         text += "<p> " + ownerInfo.FullName + " tarafından adınıza {1} tarihinde, {2} - {3} tarihleri arasında oluşturduğu görevlendirme talebi onaylanmıştır.</p>";
                     }
                     var notify = Regex.Replace(text, pattern, "");
-                    notify = string.Format(notify+ " Islak imzalı görevlendirme formunu yüklemeniz beklenmektedir.", person.FullName, created, start, end);
+                    notify = string.Format(notify + " Islak imzalı görevlendirme formunu yüklemeniz beklenmektedir.", person.FullName, created, start, end);
                     notification.NotificationSend(person.id, "Görev Talep Onayı Hakkında", notify);
                     text += "Islak imzalı görevlendirme formunu yüklemek için lütfen <a href='{4}/INV/VWINV_Commissions/MyIndex'>Buraya tıklayınız! </a><p>Bilgilerinize.</p>";
                     var mesaj = string.Format(text, person.FullName, created, start, end, url);
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
-                       .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, person.email, "Görevlendirme Onayı Hakkında..", true);               
+                       .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, person.email, "Görevlendirme Onayı Hakkında..", true);
                 }
                 var genelMudurAll = db.GetSH_UserByRoleId(SHRoles.IdariPersonelYonetici);
                 if (ownerInfo != null)
@@ -330,16 +330,16 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                     {
                         var baslik = "<h3>Sayın {0},</h3>";
                         baslik += "<p>{1} tarihinde, {2} - {3} tarihleri arasında {4} isimli personelin görevlendirme talebi onaylanmıştır.</p> ";
-                       
+
                         var notify = Regex.Replace(baslik, pattern, "");
-                        notify = string.Format(notify, (genelMudur.firstname != null ? genelMudur.firstname : " ") + " " + (genelMudur.lastname != null ? genelMudur.lastname : " "), created, start, end,ownerInfo.FullName);
+                        notify = string.Format(notify, (genelMudur.firstname != null ? genelMudur.firstname : " ") + " " + (genelMudur.lastname != null ? genelMudur.lastname : " "), created, start, end, ownerInfo.FullName);
                         baslik += "Görevlendirme formunu görüntülemek için lütfen <a href='{5}/INV/VWINV_Commissions/Index'>Buraya tıklayınız! </a><p>Bilgilerinize.</p>";
                         var mesajText = string.Format(baslik, (genelMudur.firstname != null ? genelMudur.firstname : " ") + " " + (genelMudur.lastname != null ? genelMudur.lastname : " "), created, start, end, ownerInfo.FullName, url);
                         new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talebi Bilgilendirmesi Hakkında", mesajText)
                           .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, genelMudur.email, "Görev Talebi Bilgilendirmesi Hakkında..", true);
                         notification.NotificationSend(genelMudur.id, "Görev Talebi Bilgilendirmesi Hakkında", notify);
                     }
-               }
+                }
             }
 
             return new ResultStatus { result = dbresult.result, message = "Görev yanıtlama işlemi başarılı" };
@@ -439,6 +439,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
     {
         public VWINV_CommissionsPersons[] ComissionsPersons { get; set; }
         public VWINV_CommissionsProjects[] CommissionsProjects { get; set; }
+        public VWINV_CommissionsInformation ComissionsInformation { get; set; }
     }
 
     public class INV_CommissionModel : INV_Commissions
@@ -448,6 +449,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
         public Guid[] IdProject { get; set; }
     }
 
-  
+
 }
 
