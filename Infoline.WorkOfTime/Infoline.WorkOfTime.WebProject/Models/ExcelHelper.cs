@@ -334,6 +334,40 @@ namespace System.Web.Mvc
         public string description { get; set; }
     }
 
+    public class PRD_EntegrationImportExcel
+    {
+        [ColumnInfoAttribute("Bayi Adi")]
+        public string customerName { get; set; }
+        [ColumnInfoAttribute("Bayi Kodu")]
+        public string customerCode { get; set; }
+        [ColumnInfoAttribute("Cihaz Modeli")]
+        public string productModel { get; set; }
+        [ColumnInfoAttribute("Distributor Adi")]
+        public string distributorName { get; set; }
+        [ColumnInfoAttribute("Distributor Onay Tarihi")]
+        public string distributorConfirmationDate { get; set; }
+        [ColumnInfoAttribute("Imei")]
+        public string imei { get; set; }
+         [ColumnInfoAttribute("Müsteri Tipi")]
+        public string customerType { get; set; }
+        [ColumnInfoAttribute("Sözlesme Baslangiç Tarihi")]
+        public string contractStartDate { get; set; }
+
+        [ColumnInfoAttribute("Sözlesme Numarasi")]
+        public string contractCode { get; set; }
+
+        [ColumnInfoAttribute("Ürün Grubu")]
+        public string productGroup { get; set; }
+       
+        [ColumnInfoAttribute("Satis Kanali Detayi")]
+        public string sellingChannelType { get; set; }
+        [ColumnInfoAttribute("Distributor Kodu")]
+        public string distributorCode { get; set; }
+        [ColumnInfoAttribute("Toplam Satis Adedi")]
+        public int? sellingQuantity { get; set; }
+    }
+
+
     public class ExcelResult
     {
         public bool status { get; set; }

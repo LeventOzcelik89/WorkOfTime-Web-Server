@@ -1,0 +1,62 @@
+﻿
+@{
+    ViewBag.Title = "Hakediş Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<div class="row">
+    <div class="ibox">
+        <div class="ibox-content clearfix">
+            <div class="col-sm-6">
+                <label>Cari Seçiniz</label>
+                @(
+		Html.Akilli()
+		.DropDownList("companyId")
+		.OptionLabel("Lütfen Firma Cari seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+		.Execute()
+            )
+            </div>
+            <div class="col-sm-2">
+                <label>Ay Seçiniz</label>
+                @(
+               Html.Akilli()
+             .DropDownList("month")
+               .OptionLabel("Ay Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Month.ToString())
+               .Execute()
+             )
+            </div>
+            <div class="col-sm-2">
+                <label>Yıl Seçiniz</label>
+                @(
+               Html.Akilli()
+             .DropDownList("year")
+               .OptionLabel("Lütfen Yıl Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetYears", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Month.ToString())
+               .Execute()
+             )
+            </div>
+            <div class="col-sm-2">
+                <button style="margin-bottom:10px;width:100%" class="btn btn-primary btn-large">Sorgula</button><br />
+                <a href="#" style="width:100%" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den İşletme Ekle" class="btn btn-info btn-block" data-gridRefresh="VWSH_User"
+                   data-properties="@ExcelHelper.GetSchema(typeof(PRD_EntegrationImportExcel))" data-post="@Url.Action("Import","VWPRD_EntegrationImport", new { area = "PRD" })">
+                    <i class="fa fa-file-excel-o"></i> Excel'den Personel Ekle
+                </a>
+
+            </div>
+        </div>
+        </div>
+</div>
