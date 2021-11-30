@@ -85,7 +85,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 productName=x.productModel,
                 serialNo=x.imei,
                 distControl=entegrationImeis.Contains(x.imei),
-                activationControl=getActivatedDeviceImeis.Contains(x.imei)
+                activationControl=getActivatedDeviceImeis.Contains(x.imei),
+                inventoryControl=db.GetPRD_InventoryBySerialCodeOrImei(x.imei,x.imei)!=null,
             });
 
 
@@ -94,7 +95,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var returnObject = new
             {
                 bounty,
-                grid
+                grid,
+
 
 
             };
