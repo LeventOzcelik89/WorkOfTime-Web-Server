@@ -37,12 +37,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             }
             var bounty = new List<PRD_ProductBounty>();
             var getCompanyBounty = db.GetPRD_ProductBountyByPeriodAndCompanyId(month, year, companyId);
-            if (getCompanyBounty == null|| getCompanyBounty.Length==0)
+            if (getCompanyBounty.Length==0)
             {
                 if (getCompany.pid.HasValue)
                 {
                     var getDistBounty = db.GetPRD_ProductBountyByPeriodAndCompanyId(month, year, getCompany.pid.Value);
-                    if (getDistBounty != null || getCompanyBounty.Length > 0)
+                    if ( getCompanyBounty.Length > 0)
                     {
                         bounty.AddRange(getDistBounty);
                     }
