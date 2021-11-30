@@ -933,7 +933,7 @@ var AkilliHarita = function (elementId, options) {
 
             /*Arama*/
             if (panel.content.children('input[name="search"]').length == 0) {
-                var input = $('<input type="text" name="search" class="form-control input-md input-search"  placeholder="Arama için katman ismi girin." />')
+                var input = $('<input type="text" name="search" class="form-control input-md input-search"  placeholder="Arama bölümü için bilgi giriniz." />')
                        .on("keyup", function (e) {
                            var _this = $(this);
                            window.setTimeout(function () {

@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View();
 		}
 
-		[PageInfo("Teklifler Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis, SHRoles.MuhasebeSatis, SHRoles.SatisOnaylayici, SHRoles.SatisFatura, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Teklifler Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.MuhasebeAlis, SHRoles.MuhasebeSatis, SHRoles.SatisOnaylayici, SHRoles.SatisFatura, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
