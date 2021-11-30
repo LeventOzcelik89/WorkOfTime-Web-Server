@@ -243,10 +243,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				dbresult &= db.InsertPRJ_ProjectInvoice(projectInvoice, this.trans);
 			}
 
-
 			//Onaylayıcı yoksa veya talep eden zaten onaylayıcıysa otomatik onay süreci
-
-			if (this.taskId.HasValue)
+			if (!this.taskId.HasValue)
 			{
 				if (_approvalPersons.Count() == 0 || _approvalPersons.Contains(this.createdby.Value))
 				{
