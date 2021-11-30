@@ -357,12 +357,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
         }
-        [PageInfo("Depoların Ağaç Şeklinde Listelendiği Safa", SHRoles.Personel)]
+        [PageInfo("Depoların Ağaç Şeklinde Listelendiği Safa", SHRoles.Personel,SHRoles.SahaGorevPersonel,SHRoles.SahaGorevMusteri,SHRoles.SistemYonetici,SHRoles.SahaGorevOperator)]
         public ActionResult GetTreeView(Guid customerId)
         {
             return View(customerId);
         }
-        [PageInfo("Depoların Ağaç Şeklinde Listelerin Verilerinin Alındığı Method", SHRoles.Personel)]
+        [PageInfo("Depoların Ağaç Şeklinde Listelendiği Metod", SHRoles.Personel, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.SistemYonetici, SHRoles.SahaGorevOperator)]
         public JsonResult GetTreeViewData(Guid customerId, Guid? id)
         {
             var db = new WorkOfTimeDatabase();
