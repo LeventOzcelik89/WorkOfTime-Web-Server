@@ -134,7 +134,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Satın Alma Teklifi Düzenleme", SHRoles.SatinAlmaPersonel)]
+		[PageInfo("Satın Alma Teklifi Düzenleme", SHRoles.SatinAlmaPersonel,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult UpdateBuying(Guid id)
 		{
 			var data = new VMCMP_TenderModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis);
@@ -142,7 +142,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
-		[PageInfo("Satış Teklifi Düzenleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
+		[PageInfo("Satış Teklifi Düzenleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ActionResult UpdateSelling(Guid id)
 		{
 			var data = new VMCMP_TenderModels { id = id }.Load(false, (int)EnumCMP_InvoiceDirectionType.Satis);
@@ -151,7 +151,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		}
 
 		[HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
-		[PageInfo("Teklif Düzenleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
+		[PageInfo("Teklif Düzenleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public JsonResult Update(VMCMP_TenderModels item)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -169,7 +169,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Teklif Koşul Dosyası Ekleme", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
+		[PageInfo("Teklif Koşul Dosyası Ekleme", SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public JsonResult EditorUploadFile(HttpPostedFileBase upload, string id)
 		{
 			if (upload != null)
@@ -188,7 +188,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 
 		}
 
-		[PageInfo("Teklif Not Ekleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Teklif Not Ekleme Metodu", SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult InsertNote(Guid tenderId, string note)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -196,7 +196,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(dbres), "application/json");
 		}
 
-		[PageInfo("Teklif Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici,SHRoles.SatinAlmaOnaylayici)]
+		[PageInfo("Teklif Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici,SHRoles.SatinAlmaOnaylayiciGorev)]
 		public ContentResult UpdateStatus(Guid tenderId, int type, bool isTaskRule)
 		{
 			var feedback = new FeedBack();
