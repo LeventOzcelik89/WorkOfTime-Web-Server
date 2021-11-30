@@ -1,10 +1,10 @@
 ﻿@using Infoline.WorkOfTime.BusinessAccess
 @model List<Guid?>
 @{
-    ViewBag.Title = "Hoş Geldiniz ";
-    Layout = "~/Views/Shared/_Layout.cshtml";
-    var userStatus = (PageSecurity)Session["userStatus"];
-    var now = DateTime.Now;
+	ViewBag.Title = "Hoş Geldiniz ";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+	var now = DateTime.Now;
 }
 
 
@@ -314,15 +314,15 @@
 </script>
 
 <script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
-    #if(description!=null){#
-    #if(description.length >= 25){#
-    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
-    #}
-    else
-    {#
-    <div style="font-size:13px;">#=description#</div>
-    #}#
-    #}#
+	#if(description!=null){#
+	#if(description.length >= 25){#
+	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
+	#}
+	else
+	{#
+	<div style="font-size:13px;">#=description#</div>
+	#}#
+	#}#
 </script>
 
 <script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
@@ -442,24 +442,34 @@
 @Html.Action("Dashboard", "VWFTM_Task", new { area = "FTM" })
 
 <section style="margin-bottom: 20px;">
-    <div class="tabs-container">
-        <ul class="nav nav-tabs">
-            <li class="active" data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" data-placement="top" title="Arıza Bakım Kayıtları">
-                <a data-toggle="tab" href="#ftmTaskGrid" aria-expanded="true">
-                    <i class="icon-wrench text-success fa-2x"></i>
-                </a>
-            </li>
-            <li data-href="@Url.Action("DataSource","VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Sahip Olduğum Envanterler">
-                <a data-toggle="tab" href="#inventoryGrid" aria-expanded="true">
-                    <i class="icon-cubes text-success fa-2x"></i>
-                </a>
-            </li>
+	<div class="tabs-container">
+		<ul class="nav nav-tabs">
+			<li class="active" data-toggle="tooltip" data-placement="top" title="Şube/Depo/Kısım Haritası">
+				<a data-toggle="tab" href="#VWCMP_StoragesMap" aria-expanded="true">
+					<i class="icon-map text-success fa-2x"></i>
+				</a>
+			</li>
+			<li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWFTM_Task", new {area="FTM" })" data-placement="top" title="Arıza Bakım Kayıtları">
+				<a data-toggle="tab" href="#ftmTaskGrid" aria-expanded="true">
+					<i class="icon-wrench text-success fa-2x"></i>
+				</a>
+			</li>
+			<li data-href="@Url.Action("DataSource","VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Sahip Olduğum Envanterler">
+				<a data-toggle="tab" href="#inventoryGrid" aria-expanded="true">
+					<i class="icon-cubes text-success fa-2x"></i>
+				</a>
+			</li>
 
-        </ul>
-        <div class="tab-content">
-            <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "INV" })" id="ftmTaskGrid">
-                <h4><i class="icon-wrench text-success"></i> ARIZA BAKIM KAYITLARI </h4>
-                @(Html.Akilli()
+		</ul>
+		<div class="tab-content">
+			<div class="tab-pane active" id="VWCMP_StoragesMap">
+				<h4><i class="icon-map text-success"></i> FİRMANIN ŞUBE/DEPO/KISIMLARI HARİTASI</h4>
+				<div id="Harita"></div>
+
+			</div>
+			<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "INV" })" id="ftmTaskGrid">
+				<h4><i class="icon-wrench text-success"></i> ARIZA BAKIM KAYITLARI </h4>
+				@(Html.Akilli()
 					.Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_Task")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" }))
 					.Filter(a => a.customerId == userStatus.user.CompanyId)
@@ -504,11 +514,11 @@
 						x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
 					})
                  )
-            </div>
+			</div>
 
-            <div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_Inventory", new {area="CMP" })" id="inventoryGrid">
-                <h4><i class="icon-cubes text-success"></i>  SAHİP OLDUĞUM ENVANTERLER </h4>
-                @(Html.Akilli()
+			<div class="tab-pane " data-href="@Url.Action("DataSource", "VWPRD_Inventory", new {area="CMP" })" id="inventoryGrid">
+				<h4><i class="icon-cubes text-success"></i>  SAHİP OLDUĞUM ENVANTERLER </h4>
+				@(Html.Akilli()
                 .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
                 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" }))
                 .Filter(a => a.lastActionDataCompanyId == userStatus.user.CompanyId)
@@ -531,65 +541,328 @@
                     x.Custom().Text("<i data-original-title='Arıza Kaydı Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "fixtureId" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
                     //x.Custom().Text("<i title='Görev Oluştur' class='fa fa-wrench'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "default" }, { "data-method", "GET" },{"data-idColumnKey","fixtureIds" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM" }));
                 }))
-            </div>
-        </div>
-    </div>
+			</div>
+		</div>
+	</div>
 </section>
 
 
 
-@*<div class="theme-config">
-    <div class="theme-config-box">
-        <div class="spin-icon">
-            <i class="fa fa-filter"></i>
-        </div>
-        <div class="skin-setttings">
-            <div class="title">FİLTRELEME</div>
-            <div class="file-manager">
-                <div class="space-25"></div>
-                <h5> Görev Durumuna Göre </h5>
-                <ul class="folder-list m-b-md" style="padding: 0">
-                    <li class="clearfix">
-                        <a class="pull-left active" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(customerId~eq~'@userStatus.user.CompanyId')">
-                            <i class="fa fa-align-justify"></i>  Tüm Görevler
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~neq~true~and~customerId~eq~'@userStatus.user.CompanyId')">
-                            <i class="icon-clock text-warning"></i> Çözülmesi Beklenen Kayıtlar
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(isComplete~neq~true~and~customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a class="pull-left" href="#" data-grid="VWFTM_Task" data-switch="radio" data-category="0" data-query="(isComplete~eq~true~and~customerId~eq~'@userStatus.user.CompanyId')">
-                            <i class="fa fa-check text-primary"></i>  Çözümlenmiş Kayıtlar
-                        </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=(isComplete~eq~true~and~customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                </ul>
+<script type="text/javascript">
 
-                <div class="space-25"></div>
-                <h5> GÖREV TARİHİNE GÖRE </h5>
-                <ul class="category-list" style="padding: 0">
-                    <li class="clearfix">
-                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-category="2" data-query="((created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')"> <i class="fa fa-calendar"></i> Bugün </a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-category="2" data-query="((created~gt~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')"> <i class="fa fa-calendar"></i> Dün</a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((created~gt~datetime'@now.AddDays(-1).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                    <li class="clearfix">
-                        <a href="#" class="pull-left" data-grid="VWFTM_Task" data-category="2" data-query="((created~gt~datetime'@now.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(0).ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')"> <i class="fa fa-calendar"></i> Son 7 Gün</a>
-                        <span class="badge badge-gray pull-right m-l-md  m-t-xs" data-counturl="/FTM/VWFTM_Task/DataSourceCount?filter=((created~gt~datetime'@now.AddDays(-7).ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(0).ToString("yyyy-MM-ddT00-00-00")')~and~customerId~eq~'@userStatus.user.CompanyId')">0</span>
-                    </li>
-                </ul>
+    var _ta = {
+        harita: null,
+        init: function () {
+            _ta.harita = new AkilliHarita('Harita', {
+                uiInfoContent: "VEDAŞ",
+                uiMesurement: true,
+                uiDefault: true,
+                uiSearch: false,
+                //center: [4771198.196008172, 4615410.685769245],
+                zoom: 8,
+				altlik: "Default1",
+            });
 
-            </div>
-        </div>
-    </div>
-</div>*@
+            //ReadData('/General/GetLayerList', {  }, function (res) {
+            //    $.each(res, function (i, item) {
+            //        _ta.harita.layer.addTileCustom(item.Name, item.id, item.Type, item.Url, item.Params, false);
+            //        if (item.DefaultBaseMap != null) {
+            //            if (item.ShowMobile == true) {
+            //                _ta.harita.layer.setVisible(item.id, false);
+            //            } else {
+            //                _ta.harita.layer.setVisible(item.id, true);
+            //            }
 
-@*<link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
-<script src="~/Content/Custom/js/filter.js"></script>*@
+            //        }
+            //    });
+            //    _ta.harita.layer.createControl("Tile", "Altlık ve WMS Servisler", "fa fa-picture-o", $.Enumerable.From(res).Select(function (a) { return a.id; }).ToArray());
+            //}, { Elem: $('#Tile') });
+
+            _ta.harita.layer.addVector('TaskArea', 'TaskArea');
+            _ta.harita.layer.createControl("TaskAreaList", "DEPOLARIN LİSTESİ", "fa fa-search", ["TaskArea"]);
+            _ta.harita.panel.add('AreaOptions', 'Depo Bilgileri', 'fa fa-pencil');
+
+            _ta.harita.style.add('updated', 'rgba(26, 179, 148, 0.3)', '#000000', 1, null, null, 0.75);
+            _ta.harita.style.add('updatedHover', 'rgba(26, 179, 148, 0.6)', '#000000', 1, null, null, 1);
+
+            _ta.harita.drawing.create(
+                ["Polygon", "PolygonFreeHand", "Square", "Box", "Select", "Hover", "DragSelect", "Modify", "HelpPolygon", "Transform", "MeasurementDraw", "DragAndDrop"],
+                _ta.harita.layer.get('TaskArea')['TaskArea'],
+                true,
+                false,
+                function (evnt) {
+
+                    var panel = _ta.harita.panel.get('AreaOptions')['AreaOptions'];
+
+                    console.log(evnt);
+                    if (evnt.event == 'Draw') {
+
+                        var panel = _ta.harita.panel.get('AreaOptions')['AreaOptions'];
+                        var feat = evnt.features.getArray()[0];
+                        var item = {
+                            id: feat.getId(),
+							location: feat.getSQL(),
+                            name: '',
+                            description: '',
+                            code: ''
+                        };
+
+                        feat.set('item', item);
+                        feat.set('updated', true);
+
+                        feat.set('style', _ta.harita.style.get('updated')['updated']);
+                        feat.set('styleSelected', _ta.harita.style.get('updatedHover')['updatedHover']);
+                        feat.set('styleHover', _ta.harita.style.get('updatedHover')['updatedHover']);
+
+                        panel.content.find('[data-target="updated"]').removeClass('hide');
+                        panel.content.find('#TaskInsert').addClass('hide');
+
+                        setTimeout(function () {
+                            $('[data-tool="Select"]').trigger('click');
+                        }, 200);
+
+                    } else if (evnt.event == 'Select' && evnt.features.getArray().length == 1) {
+
+                        var feat = evnt.features.getArray()[0];
+                        var item = feat.get('item');
+                        var temp = $(
+                            $('#TaskAreaTemplate').html()
+								.replace(/{{location}}/g, item.location)
+								.replace(/{{companyId}}/g, item.companyId)
+                                .replace(/{{created}}/g, (item.created != undefined ?
+                                    kendo.toString(new Date(Date.parse(item.created)), "dd.MM.yyyy HH:mm") :
+                                    kendo.toString(new Date(), "dd.MM.yyyy HH:mm")))
+                                .replace(/{{id}}/g, item.id)
+                                .replace(/{{hide}}/g, feat.get('updated') == true ? '' : 'hide')
+
+                                .replace(/{{code}}/g, item.code ?? '')
+                                .replace(/{{name}}/g, item.name ?? '')
+                                .replace(/{{description}}/g, item.description ?? '')
+                        );
+
+                        if (feat.get('updated') == true) {
+                            panel.content.find('[data-target="inserted"]').addClass('hide');
+                            temp.find('#TaskInsert').addClass('hide');
+                        }
+
+						temp.find('[name="name"], [name="description"], [name="location"]')
+                            .on('change', function () {
+
+                                feat.set('style', _ta.harita.style.get('updated')['updated']);
+                                feat.set('styleSelected', _ta.harita.style.get('updatedHover')['updatedHover']);
+                                feat.set('styleHover', _ta.harita.style.get('updatedHover')['updatedHover']);
+
+                                item.name = temp.find('[name="name"]').val();
+                                item.description = temp.find('[name="description"]').val();
+								item.location = feat.getSQL();
+
+                                feat.set('updated', true);
+                                feat.set('item', item);
+
+                                temp.find('[data-target="updated"]').removeClass('hide');
+                                panel.content.find('#TaskInsert').addClass('hide');
+
+                                var v = $('#form').data('bs.validator');
+                                v.validate();
+
+                            });
+
+                        temp.find('#TaskInsert').on('click', function () {
+                            debugger;
+							Kendo_GetRequest("/FTM/VWFTM_Task/Insert?customerStorageId=" + item.id +"&customerId="+item.companyId, null, $('<button data-task="Insert"></button>'))
+                        });
+
+
+                        if (item.eGuid == undefined) {
+                            temp.find('[data-key="globalId"]').hide();
+                        }
+                        if (item.globalId == undefined) {
+                            temp.find('[data-key="eGuid"]').hide();
+                        }
+                        if (item.gis_ID == undefined) {
+                            temp.find('[data-key="gis_ID"]').hide();
+                        }
+
+                        panel.content
+                            .html(null)
+                            .html(temp);
+
+                        if (!_ta.harita.panel.get('AreaOptions')['AreaOptions'].button.hasClass('active')) {
+                            _ta.harita.panel.get('AreaOptions')['AreaOptions'].button.trigger('click');
+                        }
+
+                        //  console.log(item);
+
+                    } else if (evnt.event == 'UnSelect') {
+
+                        panel.content
+                            .html($('#TaskAreaEmpty').html());
+
+                    } else if (evnt.event == 'Modify') {
+
+                        var feat = evnt.features.getArray()[0];
+                        var item = feat.get('item');
+
+                        panel.content
+							.find('[name="location"]')
+                            .val(feat.getSQL())
+                            .trigger('change');
+
+                    }
+
+                }
+            );
+
+            _ta.LoadTaskAreas();
+
+        },
+        LoadOptions: function () {
+
+
+
+        },
+        LoadTaskAreas: function () {
+
+            var areas_panel = _ta.harita.panel.get('TaskAreaList')['TaskAreaList'];
+            areas_panel.content.find('ul').html(null);
+
+			ReadData("/CMP/VWCMP_Storage/DataSourceDropdown?filter=companyId_Code~eq~'@userStatus.user.companyId_Code'", null, function (res) {
+
+                $.each(res, function (i, item) {
+
+                    var feat = _ta.harita.feature.add('TaskArea', item.id, item.location);
+                    if (feat != undefined) {
+
+                        feat.set('item', item);
+
+						$('<li data-id="' + item.id + '" >' + '<div><span>' + item.fullName + '</span></div>' + '</li>')
+                            .on('click', function (e) {
+                                _ta.harita.feature.panTo(item.id);
+                                var interact = _ta.harita.interaction.get('Select')['Select'];
+
+                                interact.getFeatures().push(feat);
+                                $('[data-tool="Select"]').trigger('click');
+
+                            })
+                            .appendTo(areas_panel.content.find('ul'));
+                    }
+                });
+                console.log(res);
+            });
+        }
+    };
+
+    $(document)
+
+        .on('ready', function () {
+
+            _ta.init();
+
+
+        })
+
+        .on('before:submit', '#form', function () {
+
+            //  _ta.harita.drawing.properties.selectedFeatures.getArray()[0].get('item');
+
+        })
+
+        .on('success', '#form', function () {
+
+            var panel = _ta.harita.panel.get('AreaOptions')['AreaOptions'];
+            var idInput = panel.content.find('[name="id"]');
+
+            if (idInput == undefined) {
+                return;
+            }
+
+            var id = idInput.val();
+            var feat = _ta.harita.feature.get(id)[id];
+            feat.set('updated', false);
+            panel.content.find('#TaskInsert').removeClass('hide');
+            panel.content.find('[data-target="updated"]').addClass('hide');
+
+            feat.set('style', null);
+            feat.set('styleSelected', null);
+            feat.set('styleHover', null);
+
+
+        })
+
+        .on('click', '[data-task="delete"]', function () {
+
+            var panel = _ta.harita.panel.get('AreaOptions')['AreaOptions'];
+            var idInput = panel.content.find('[name="id"]');
+
+            if (idInput == undefined) {
+                return;
+            }
+
+        })
+
+        .on('click', '#TaskInsert', function () {
+
+
+        })
+
+        ;
+
+</script>
+
+<script type="text/template" id="TaskAreaTemplate">
+
+	<form id="form" class="form-horizontal" data-formtype="Ajax" method="post" role="form" action="/CMP/VWCMP_Storage/Insert">
+
+		<input name="id" type="hidden" value="{{id}}" />
+		<input name="companyId" type="hidden" value="@userStatus.user.CompanyId" />
+		<input name="location" type="hidden" value="{{location}}" />
+		<input name="locationType" type="hidden" value="@((int)EnumCMP_StorageLocationType.Alan)" />
+
+		<h3 class="text-center text-danger {{hide}}" data-target="updated" style="margin: 10px 0px 30px 0px;">
+			Kaydedilmemiş Depo
+		</h3>
+
+		<div class="form-group">
+			<div class="col-md-12">
+				<label>Oluşturma Tarihi</label>
+			</div>
+			<div class="col-md-12">
+				<input class="form-control" name="created" type="datetime" readonly value="{{created}}" />
+			</div>
+		</div>
+
+		<div class="form-group" {{codeHide}}>
+			<div class="col-md-12">
+				<label>Kodu</label>
+			</div>
+			<div class="col-md-12">
+				<input class="form-control" data-type="text" maxlength="50" name="code" value="{{code}}" disabled="disabled" />
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-md-12">
+				<label>Depo Adı</label>
+			</div>
+			<div class="col-md-12">
+				<input class="form-control" data-type="text" name="name" required value="{{name}}" />
+			</div>
+		</div>
+
+		<div class="form-group">
+			<div class="col-md-12">
+				<label>Depo  Açıklaması</label>
+			</div>
+			<div class="col-md-12">
+				<input class="form-control" data-type="text" name="description" value="{{description}}" />
+			</div>
+		</div>
+
+		<div class="buttons text-right">
+			<button class="btn btn-md btn-success" type="submit">Kaydet</button>
+			<button class="btn btn-md btn-primary" type="button" id="TaskInsert" data-method="GET">
+				<i class="fa fa-plus-circle"></i> Yeni İş Emri
+			</button>
+		</div>
+	</form>
+</script>
