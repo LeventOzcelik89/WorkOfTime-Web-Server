@@ -390,6 +390,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					taskId = this.id,
 				}).ToList();
 			}
+
+			if (!this.companyId.HasValue)
+			{
+				this.companyId = user.CompanyId;
+				this.company_Title = user.Company_Title;
+			}
+
+
 			var rs = new ResultStatus { result = true };
 			rs &= db.InsertFTM_Task(new FTM_Task().B_EntityDataCopyForMaterial(this), this.trans);
 			rs &= db.BulkInsertFTM_TaskOperation(taskOperations.Select(a => new FTM_TaskOperation().B_EntityDataCopyForMaterial(a, true)), this.trans);
