@@ -50,6 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         {
             var db = new WorkOfTimeDatabase();
             var model = new VMCMP_StorageCompany().B_EntityDataCopyForMaterial(db.GetVWCMP_StorageById(id));
+            model.GetAllChildsIds(model.id);
+            model.PidIds.Add(model.id);
             if (model.companyId.HasValue)
             {
                 model.CMPCompany = db.GetVWCMP_CompanyById(model.companyId.Value);

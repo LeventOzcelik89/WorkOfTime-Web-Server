@@ -1,12 +1,9 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web.Mvc;
 using Infoline.Framework.Database;
 
