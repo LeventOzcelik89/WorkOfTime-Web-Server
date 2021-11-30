@@ -196,7 +196,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(dbres), "application/json");
 		}
 
-		[PageInfo("Teklif Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici)]
+		[PageInfo("Teklif Onay-Red Metodu", SHRoles.SatinAlmaOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici,SHRoles.SatinAlmaOnaylayici)]
 		public ContentResult UpdateStatus(Guid tenderId, int type, bool isTaskRule)
 		{
 			var feedback = new FeedBack();

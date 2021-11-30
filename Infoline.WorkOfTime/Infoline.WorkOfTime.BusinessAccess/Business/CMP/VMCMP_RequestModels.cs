@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
 		public VWFTM_Task Task { get; set; }
+		public VWCMP_Tender Tender { get; set; }
 		public Guid[] taskIds { get; set; }
 		public Guid? projectCompanyId { get; set; }
 		public IGeometry location { get; set; }
@@ -65,6 +66,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						if (project != null)
 						{
 							this.projectId = project.id;
+						}
+					}
+
+					if (request != null)
+					{
+						var tender = db.GetVWCMP_TenderByPid(request.id);
+						if (tender != null)
+						{
+							Tender = db.GetVWCMP_TenderByPid(tender.id);
 						}
 					}
 
