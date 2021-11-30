@@ -494,7 +494,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
         }
 
-
+        [PageInfo("Şube/Depo/Kısım Detay Haritası", SHRoles.Personel)]
+        public ContentResult GetMapDataByCompanyId(Guid companyId)
+        {
+            var db = new WorkOfTimeDatabase();
+            var storages = db.GetVW_CMP_StorageByCompanyId(companyId).Select(x => new
+            {
+                id = x.id,
+                code = x.code,
+                phone = x.phone,
+                address = x.address,
+                location = x.location,
+                companyId = x.companyId,
+                name = x.name,
+                companyId_Title = x.companyId_Title,
+                myStorage = x.myStorage,
+                locationType = x.locationType
+            }).ToArray();
+            return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
+        }
 
         [PageInfo("Tree View için veriler", SHRoles.Personel)]
         public JsonResult TreeDataSource([DataSourceRequest] DataSourceRequest request, Guid? id)
