@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View(data);
         }
         [PageInfo("İşletme Şube/Depo/Kısımları Ekleme İşlemi", SHRoles.StokYoneticisi)]
-        [HttpPost, ValidateAntiForgeryToken]
+        [HttpPost]
         public JsonResult Insert(CMP_Storage item)
         {
             var db = new WorkOfTimeDatabase();
@@ -98,6 +98,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             item.created = DateTime.Now;
             item.createdby = userStatus.user.id;
             var trans = db.BeginTransaction();
+            if (string.IsNullOrEmpty(item.code))
+            {
+                item.code = BusinessExtensions.B_GetIdCode();
+            }
             var dbresult = db.InsertCMP_Storage(item, trans);
             if (item.supervisorId.HasValue)
             {
