@@ -1,6 +1,6 @@
 ﻿
 @{
-    ViewBag.Title = "Hakediş Raporu";
+    ViewBag.Title = "Prim Hakediş Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <div class="row">
@@ -45,18 +45,58 @@
                .DataTextField("title")
                .Action(b => b.Action("GetYears", "General", new { area = "" }))
                .Validate(Validations.Required)
-               .Value(DateTime.Now.Month.ToString())
+               .Value(DateTime.Now.Year.ToString())
                .Execute()
              )
             </div>
             <div class="col-sm-2">
-                <button style="margin-bottom:10px;width:100%" class="btn btn-primary btn-large">Sorgula</button><br />
+                <button onclick="page.load()" id="queryButton"  style="margin-bottom:10px;width:100%" class="btn btn-primary btn-large">Sorgula</button><br />
                 <a href="#" style="width:100%" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den İşletme Ekle" class="btn btn-info btn-block" data-gridRefresh="VWSH_User"
                    data-properties="@ExcelHelper.GetSchema(typeof(PRD_EntegrationImportExcel))" data-post="@Url.Action("Import","VWPRD_EntegrationImport", new { area = "PRD" })">
-                    <i class="fa fa-file-excel-o"></i> Excel'den Personel Ekle
+                    <i class="fa fa-file-excel-o"></i> Excel'den Ham Veri Ekle
                 </a>
 
             </div>
         </div>
         </div>
 </div>
+<script>
+    var page = {
+        qButton: $("queryButton"),
+        load: function () {
+            var companyId = $("#companyId").data("kendoDropDownList").dataItem();
+            var month = $("#month").data("kendoDropDownList").dataItem();
+            var year = $("#year").data("kendoDropDownList").dataItem();
+            var validate = page.inputValidate(companyId, month, year);
+            if (validate.length > 0) {
+                return;
+            }
+            GetDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: companyId.id, year: year.id, month: month.id }, function (data) {
+                debugger
+
+
+            });
+        },
+        inputValidate: function (companyId, month, year) {
+            var errorList = [];
+            if (companyId == undefined || companyId.id == '') {
+                errorList.push("Cari Boş Olamaz");
+            }
+            if (month == undefined || month.id == '') {
+                errorList.push("Ay Boş Olamaz");
+            }
+            if (year == undefined || year.id == '') {
+                errorList.push("Yıl Boş Olamaz");
+            }
+
+            if (errorList.length > 0) {
+                swal("Boş Alanlar Var", errorList.join("\n"), "warning");
+            }
+            return errorList;
+
+
+
+        }
+
+    }
+</script>

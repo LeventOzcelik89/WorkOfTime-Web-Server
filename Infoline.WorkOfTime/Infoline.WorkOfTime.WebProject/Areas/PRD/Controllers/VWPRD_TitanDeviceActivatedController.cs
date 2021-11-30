@@ -21,7 +21,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = model.Load();
             return View(data);
         }
-        [AllowEveryone]
+        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici,SHRoles.SistemYonetici,SHRoles.UretimYonetici)]
         public ActionResult SellOutDashboard()
         {
             return View();

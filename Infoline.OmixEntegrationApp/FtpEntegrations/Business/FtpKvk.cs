@@ -180,14 +180,12 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        if (indexName.ToLower() == "invoicenumber")
+                                        if (indexName.ToLower() == "invoicenumber"|| indexName.ToLower() == "ınvoıcenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
                                         if (indexName.ToLower() == "dist"|| indexName.ToLower() == "dıst")
                                             item.DistributorName = rawFileCheckedData;
                                         if (indexName.ToLower() == "customeroperatorcode")
                                             item.CustomerOperatorCode = rawFileCheckedData;
-                                        if (indexName.ToLower() == "customerGenpaCode" || indexName.ToLower() == "customerkvkcode" || indexName == "customermobitelcode")
-                                            item.CustomerOperatorCode = rawFileCheckedData; //TODO: Check
                                         if (indexName.ToLower() == "customername"|| indexName.ToLower() == "customer_name")
                                             item.CustomerOperatorName = rawFileCheckedData;
                                         if (indexName.ToLower() == "branchcode")
