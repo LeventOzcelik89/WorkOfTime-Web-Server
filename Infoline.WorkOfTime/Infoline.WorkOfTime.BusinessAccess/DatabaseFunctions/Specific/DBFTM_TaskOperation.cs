@@ -63,9 +63,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         SatinAlmaTalebiYapildi = 43,
         [Description("Satın Alma Talebi Onaylandı"), Generic("icon", "fa fa-check-circle", "color", "e2c47f", "description", "Satın Alma Talebi Onaylandı")]
         SatinAlmaTalebiOnaylandi = 44,
-        [Description("Satın Alma Talebi Reddedildi"), Generic("icon", "fa fa-close", "color", "e2c47f", "description", "Satın Alma Talebi Reddedildi")]
+        [Description("Satın Alma Talebi Reddedildi"), Generic("icon", "fa fa-close", "color", "DD4B39", "description", "Satın Alma Talebi Reddedildi")]
         SatinAlmaTalebiReddedildi = 45,
-        [Description("Satın Alma Talebi İptal Edildi"), Generic("icon", "fa fa-times", "color", "e2c47f", "description", "Satın Alma Talebi İptal Edildi")]
+        [Description("Satın Alma Talebi İptal Edildi"), Generic("icon", "fa fa-times", "color", "DD4B39", "description", "Satın Alma Talebi İptal Edildi")]
         SatinAlmaTalebiIptalEdildi = 46,
 
 

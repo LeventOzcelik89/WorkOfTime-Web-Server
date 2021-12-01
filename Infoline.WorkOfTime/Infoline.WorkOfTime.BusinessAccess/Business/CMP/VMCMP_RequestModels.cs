@@ -689,7 +689,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						description = "Satın Alma Talebi İptal Edildi.",
 						dataId = this.id
 					};
