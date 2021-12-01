@@ -1,6 +1,7 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.ComponentModel;
+using System.Data.Common;
 using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
@@ -85,6 +86,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     public partial class WorkOfTimeDatabase
     {
+        public VWINV_CommissionsInformation GetVWINV_CommissionsInformationByComissionId(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
+            {
+                return db.Table<VWINV_CommissionsInformation>().Where(a => a.commissionsId == id).Execute().FirstOrDefault();
+            }
+        }
     }
 }

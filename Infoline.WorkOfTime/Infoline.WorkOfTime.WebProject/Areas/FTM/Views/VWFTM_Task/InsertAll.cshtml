@@ -24,6 +24,10 @@
 </script>
 <script data-selector="modalContainer" type="text/javascript">
     var insertAll = {
+        filter: function (e) {
+            debugger;
+
+        },
         makeTagify: function () {
             var whitelist = $.ajax({
                 url: '/General/DataSourceEmailsCompanyAndUsers',
@@ -132,6 +136,14 @@
                 $("#userMails").val(tag.value.map(a => a.value).join(","))
             }
 
+
+        }).on("click", ".clearDropdown", function () {
+         
+            var customer = $("#customerId").data("kendoDropDownList").dataItem().id;
+            var filter = ("(companyId~equals~'" + customer + "'')");
+            var filterJSON = kendo.filterParser(filter);
+            $('#customerStorageId').data("kendoDropDownList").dataSource.filter([])
+            $('#customerStorageId').data("kendoDropDownList").dataSource.filter(filterJSON)
 
         });
 
@@ -280,7 +292,7 @@
             .CascadeFrom("customerId")
             .CascadeFromField("companyId")
             .Sort(x => x.Add("fullName").Ascending())
-            .Events(x=>x.Select("insertAll.kendoDropDownChange"))
+            .Events(x=>x.Select("insertAll.kendoDropDownChange").Filtering("insertAll.filter"))
            
             .Execute()
                 )

@@ -250,7 +250,17 @@
 											<strong> @(Model.Task.code)</strong>
 											<a href="/FTM/VWFTM_Task/Detail?id=@Model.Task.id" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
 										</li>
+
+										if (Model.Tender != null)
+										{
+											<li class="list-group-item fist-item">
+												<i class="fa fa-envelope"></i> Onaylanan Satış Teklifi :
+												<strong> @(Model.Tender.rowNumber)</strong>
+												<a href="/CMP/VWCMP_Tender/DetailSelling?id=@Model.Tender.id" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+											</li>
+										}
 									}
+
 									<li class="list-group-item fist-item">
 										<i class="fa fa-calendar"></i> Düzenleme Tarihi :
 										<strong> @String.Format("{0:dd.MM.yyyy HH:mm}", Model.created) </strong>
@@ -394,21 +404,33 @@
 							.Selectable(x => x.Mode(GridSelectionMode.Single))
 							.ToolBar(x =>
 							{
+
+
 								x.Custom().Text("<i data-original-title='Teklifi Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateBuying", "VWCMP_Tender", new { area = "CMP" }));
 								x.Custom().Text("<i data-original-title='Teklif Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" }, { "data-transform", "detailTender" } }).Url(Url.Action("DetailBuying", "VWCMP_Tender", new { area = "CMP" }));
 
-								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) && (Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi))
+								if ((userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici))) && (Model.status != (int)EnumCMP_RequestStatus.FaturasiAlindi))
 								{
-									x.Custom().Text("<i data-original-title='Teklifi Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "approveTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
-									x.Custom().Text("<i data-original-title='Teklifi Reddet' class='fa fa-times'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "rejectTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
-								}
-
-								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)) && Model.taskId.HasValue)
-								{
-									x.Custom().Text("<i data-original-title='Satış Teklifi Oluştur' class='fa fa-shopping-cart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", isTaskRule = true,customerId = Model.Task.customerId, salesAfter = true  }));
+									if (Model.taskId.HasValue && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)))
+									{
+										x.Custom().Text("<i data-original-title='Teklifi Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "approveTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+										x.Custom().Text("<i data-original-title='Teklifi Reddet' class='fa fa-times'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "rejectTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+									}
+									if (!Model.taskId.HasValue)
+									{
+										x.Custom().Text("<i data-original-title='Teklifi Onayla' class='fa fa-check'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "approveTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+										x.Custom().Text("<i data-original-title='Teklifi Reddet' class='fa fa-times'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-ask", "" }, { "data-transform", "rejectTender" } }).Url(Url.Action("UpdateStatus", "VWCMP_Tender", new { area = "CMP" }));
+									}
 								}
 
 								x.Custom().Text("<i data-original-title='Teklifi Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Tender", new { area = "CMP" }));
+
+
+								if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev)) && Model.taskId.HasValue)
+								{
+									x.Custom().Text("<i data-original-title='Satış Teklifi Oluştur' class='fa fa-shopping-cart'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("InsertSelling", "VWCMP_Tender", new { area = "CMP", isTaskRule = true,customerId = Model.Task.customerId, salesAfter = true, taskId = Model.taskId  }));
+								}
+
 							}))
 						</div>
 					</div>
@@ -497,7 +519,7 @@
 					</div>
 				</div>
 
-				@if (Model.status == (int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))))
+				@if (Model.status == (int)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayiciGorev))))
 				{
 					<div class="ibox ">
 						<div class="ibox-title" style="text-align:center;">

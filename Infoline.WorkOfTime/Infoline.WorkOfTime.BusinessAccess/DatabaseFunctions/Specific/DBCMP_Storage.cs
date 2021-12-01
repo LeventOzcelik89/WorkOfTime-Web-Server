@@ -75,7 +75,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_Storage>().Where(a => a.id.In(ids)).OrderBy(x => x.created).Execute().ToArray();
             }
         }
+        public CMP_Storage[] GetCMP_StorageFromPidById(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
-       
+            {
+                return db.Table<CMP_Storage>().Where(a => a.pid == id).OrderBy(x => x.created).Execute().ToArray();
+            }
+        }
+
+
     }
 }

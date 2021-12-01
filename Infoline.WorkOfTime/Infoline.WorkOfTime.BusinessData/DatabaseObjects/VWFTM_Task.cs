@@ -79,6 +79,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? assignUserId { get; set;}
         public string assignUser_Title { get; set;}
         public bool? hasProblem { get; set;}
+        public short? locationType { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string type_Title { get; set;}

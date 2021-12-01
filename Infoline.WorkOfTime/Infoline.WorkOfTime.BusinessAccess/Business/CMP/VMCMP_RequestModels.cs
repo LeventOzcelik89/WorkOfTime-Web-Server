@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
 		public VWFTM_Task Task { get; set; }
+		public VWCMP_Tender Tender { get; set; }
 		public Guid[] taskIds { get; set; }
 		public Guid? projectCompanyId { get; set; }
 		public IGeometry location { get; set; }
@@ -68,6 +69,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						}
 					}
 
+					if (request != null)
+					{
+						var tender = db.GetVWCMP_TenderByPid(request.id);
+						if (tender != null)
+						{
+							Tender = db.GetVWCMP_TenderByPid(tender.id);
+						}
+					}
+
 				}
 
 				if (isTransform == true)
@@ -98,6 +108,64 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			return this;
 		}
+
+
+		public VMCMP_RequestModels Load(bool? isTransform, bool? isFatura)
+		{
+			db = db ?? new WorkOfTimeDatabase();
+			var invoice = db.GetCMP_InvoiceById(this.id);
+			var request = db.GetVWCMP_RequestById(this.id);
+
+			if (invoice != null)
+			{
+				this.B_EntityDataCopyForMaterial(request, true);
+				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
+				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
+
+				if (this.taskId.HasValue)
+				{
+					Task = db.GetVWFTM_TaskById(this.taskId.Value);
+
+					if (Task != null && Task.companyId.HasValue)
+					{
+						var project = db.GetPRJ_ProjectByCompanyIdIsActive(Task.companyId.Value);
+
+						if (project != null)
+						{
+							this.projectId = project.id;
+						}
+					}
+				}
+
+				if (isTransform == true)
+				{
+					this.rowNumber = null;
+					foreach (var item in this.InvoiceItems)
+					{
+						item.id = Guid.NewGuid();
+						item.description = "";
+					}
+				}
+				else
+				{
+					this.TransformTo = db.GetVWCMP_InvoiceTransformByIsTransformedFrom(this.id).ToArray();
+				}
+			}
+
+
+			this.rowNumber = String.IsNullOrEmpty(this.rowNumber) ? BusinessExtensions.B_GetIdCode() : this.rowNumber;
+			this.status = this.status.HasValue ? this.status.Value : (short)EnumCMP_RequestStatus.YoneticiOnayiBekleniyor;
+			this.type = (int)EnumCMP_InvoiceType.Talep;
+			this.direction = (int)EnumCMP_InvoiceDirectionType.Alis;
+
+			if (this.IsCopy == true)
+			{
+				this.id = Guid.NewGuid();
+			}
+
+			return this;
+		}
+
 
 		public VMCMP_RequestModels Load(Guid userId)
 		{
@@ -243,11 +311,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				dbresult &= db.InsertPRJ_ProjectInvoice(projectInvoice, this.trans);
 			}
 
-
 			//Onaylayıcı yoksa veya talep eden zaten onaylayıcıysa otomatik onay süreci
-			if (_approvalPersons.Count() == 0 || _approvalPersons.Contains(this.createdby.Value))
+			if (!this.taskId.HasValue)
 			{
-				this.UpdateStatus((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor, _approvalPersons.Where(a => a == this.createdby.Value).FirstOrDefault(), this.trans);
+				if (_approvalPersons.Count() == 0 || _approvalPersons.Contains(this.createdby.Value))
+				{
+					this.UpdateStatus((int)EnumCMP_RequestStatus.TeklifToplanmasiBekleniyor, _approvalPersons.Where(a => a == this.createdby.Value).FirstOrDefault(), this.trans);
+				}
 			}
 
 			return dbresult;

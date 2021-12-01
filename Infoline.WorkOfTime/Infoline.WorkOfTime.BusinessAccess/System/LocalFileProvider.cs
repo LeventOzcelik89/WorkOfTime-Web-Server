@@ -498,9 +498,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                  new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici }
                         ),
                     new FileBase ("Teklif Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
-                                 new string[]{ SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.SatinAlmaPersonel,  SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
+                                 new string[]{ SHRoles.SatinAlmaPersonel,  SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
+                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev }
                         ),
                     new FileBase ("İrsaliye Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
                                  new string[]{ SHRoles.DepoSorumlusu },

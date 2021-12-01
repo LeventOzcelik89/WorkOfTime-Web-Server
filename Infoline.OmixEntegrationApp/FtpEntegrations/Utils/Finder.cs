@@ -36,15 +36,16 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Utils
         {
             var db = new WorkOfTimeDatabase();
             var id = Guid.NewGuid();
-            db.InsertCMP_Storage(new CMP_Storage
+            db.InsertCMP_Company(new CMP_Company
             {
                 id = id,
                 code = item.CustomerOperatorCode,
                 created = DateTime.Now,
                 createdby = Guid.Empty,
-                companyId = item.DistributorId,
-                address = $"{item.CustomerOperatorStorageTown}/{item.CustomerOperatorStorageCity}",
-                name = item.CustomerOperatorName
+                name = item.CustomerOperatorName,
+                description="Otomatik Oluşturulmuştur",
+                taxNumber=item.TaxNumber,
+                pid=item.DistributorId
             }) ;
             return id;
         }

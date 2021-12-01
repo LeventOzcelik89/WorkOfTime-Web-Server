@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -112,6 +113,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 return db.Table<FTM_Task>().Where(a => a.createdby == createdBy).Execute().Select(a=>a.id).ToArray();
+            }
+        }
+
+
+        public object GetFTM_TaskLocationCenterPointByLocation(string location, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                var test = @"DECLARE @g geometry;  SET @g = geometry::STGeomFromText('"+location+"', 0); SELECT @g.STCentroid()";
+                
+                return db.ExecuteReader(test).FirstOrDefault();
             }
         }
 

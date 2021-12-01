@@ -12,6 +12,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         public VWCMP_Company CMPCompany { get; set; }
         public string breadCrumps { get; set; }
+        public List<Guid?> PidIds { get; set; } =new List<Guid?> ();
+        public void GetAllChildsIds(Guid id) {
+            var db = new WorkOfTimeDatabase();
+            var findStorage = db.GetCMP_StorageFromPidById(id);
+            if (findStorage.Length>0)
+            {
+                this.PidIds.AddRange(findStorage.Select(x=>(Guid?)x.id));
+                foreach (var item in findStorage)
+                {
+                    GetAllChildsIds(item.id);
+                }
+            }       
+        }
     }
 
     public class VWCMP_CompanyDetail : VWCMP_Company
