@@ -193,6 +193,32 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
+
+        [HandleFunction("VWSH_User/GetTaskPersonals")]
+        public void VWSH_GetTaskPersonals(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                cond.Take = 10000;
+                var users = db.GetVWSH_User(cond);
+                var cc = users.Where((x => x.RoleIds.Contains(SHRoles.SahaGorevYonetici) ||
+               x.RoleIds.Contains(SHRoles.SahaGorevOperator) || x.RoleIds.Contains(SHRoles.SahaGorevPersonel)));
+                foreach (var user in users)
+                {
+                    user.loginname = "******";
+                    user.password = "******";
+                }
+                // users.Where(x => x.RoleIds.IndexOf(roles.sahaGorev) )
+                RenderResponse(context, new ResultStatus { result = true, objects = cc });
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 
     public class VWSH_UserOrderType : VWSH_User
