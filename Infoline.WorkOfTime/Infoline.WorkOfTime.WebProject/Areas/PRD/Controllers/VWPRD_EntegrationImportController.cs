@@ -63,6 +63,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             }
             //  bayilerin sattım diye bildirdikleri.
             var getImports = db.GetVWPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
+
+            var bountyProducts = getImports.Where(x => !bounty.Select(a => a.productId).Contains(x.product_Id));
+            if (bountyProducts.Count()>0)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = "3",
+                    FeedBack = new FeedBack().Warning("Ürüne ait prim tanımı yoktur.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+
             if (getImports == null)
             {
                 return Json(new ResultStatusUI
