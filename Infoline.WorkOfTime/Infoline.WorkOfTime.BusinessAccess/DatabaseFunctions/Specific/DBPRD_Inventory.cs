@@ -79,6 +79,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public PRD_Inventory[] GetPRD_InventoryBySerialCodes(string[] serialCode, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_Inventory>().Where(x =>  x.serialcode.In(serialCode)).Execute().ToArray();
+            }
+        }
+
         public bool GetPRD_InventoryExistBySerialCode(Guid productId, Guid inventoryId, string serialCode, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

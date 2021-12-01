@@ -60,9 +60,76 @@
     </div>
 </div>
 
+<div class="ibox" id="info"  >
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+        Bilgilendirme : <strong> Yukarıdan verileri seçerek sorgula butonuna basınız... </strong>
+    </div>
+</div>
+
+
+<div class="row" id="boxes" style="display:none">
+    <div class="col-sm-3">
+        <div class="widget style1 yellow-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Beyan Edilen Toplam Cihaz Sayısı </span><br>
+                    <h2 id="total" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 blue-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Aktif Edilmiş Toplam Cihaz Sayısı</span><br>
+                    <h2 id="titan" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 navy-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Distribütör Tarafından Onaylanmış Cihaz Sayısı </span><br>
+                    <h2 id="dist" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 red-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Envanterde Karşılığı Olan Cihaz Sayısı</span><br>
+                    <h2 id="env" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
 <div class="row">
-    <div class="col-sm-12">
+    <div class="col-sm-12 mb-10">
         <div id="reportGrid"></div>
+    </div>
+    <div class="col-sm-12" style="margin-top:10px">
+        <div id="totalGrid"></div>
     </div>
 </div>
 
@@ -70,6 +137,7 @@
     var page = {
         qButton: $("queryButton"),
         load: function () {
+           
             var companyId = $("#companyId").data("kendoDropDownList").dataItem();
             var month = $("#month").data("kendoDropDownList").dataItem();
             var year = $("#year").data("kendoDropDownList").dataItem();
@@ -78,7 +146,6 @@
                 return;
             }
             GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: companyId.id, year: year.id, month: month.id }, function (data) {
-
                 if (data.Result != undefined && !data.Result) {
                     if (data.Object == "0") {
                         swal("Böyle bir cari yoktur", "", "warning");
@@ -98,9 +165,19 @@
                     swal("Veri yok!", "", "warning");
                     return;
                 }
+                if (data.total == null) {
+                    swal("Veri yok!", "", "warning");
+                    return;
+                }
+                $("#info").hide();
+                $("#boxes").show();
                 var grid = $("#reportGrid").data("kendoGrid");
                 if (grid != undefined) {
                     grid.destroy();
+                }
+                var gridTotal = $("#reportGridTotal").data("kendoGrid");
+                if (gridTotal != undefined) {
+                    gridTotal.destroy();
                 }
                 var cols = [
                     { field: 'productName', title: 'Ürün Adı', width: 250 },
@@ -130,7 +207,37 @@
                         }
                     },
                 ];
+                var totalCols = [
+                    { field: 'bountyProduct', title: 'Ürün Adı', width: 250 },
+                    {
+                        field: 'bountyAmount', title: 'Prim Tutarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return item.bountyAmount + " ₺";
+                        }
+                    },
+                    {
+                        field: 'totalCount', title: 'Beyan Edilen Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return item.totalCount + " Adet";
+                        }
+                    },
+                    {
+                        field: 'totalAmount', title: 'Beyana Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            return item.totalAmount + "₺";
+                        }
+                    },
+                    { field: 'distCount', title: 'Distribütör Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}' },
+                    {
+                        field: 'distAmount', title: 'Distribütör Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            return item.distAmount + "₺";
+                        }
+                    },
+                    { field: 'titanCount', title: 'Aktifleştirilmeye  Satış Miktarı', width: 150, format: '{0:N0}' },
+                    {
+                        field: 'titanAmount', title: 'Aktifleştirilmeye Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            return item.titanAmount + "₺";
+                        }
+                    },
 
+                ];
                 $("#reportGrid").kendoGrid({
                     toolbar: [{ name: "excel", text: "" }],
                     excel: {
@@ -151,6 +258,31 @@
                 });
                 var grid = $("#reportGrid").data("kendoGrid");
                 grid.dataSource.page(1);
+                $("#totalGrid").kendoGrid({
+                    toolbar: [{ name: "excel", text: "" }],
+                    excel: {
+                        fileName: "Kullanilan_Urunler.xlsx"
+                    },
+                    dataSource: data.total,
+                    pageSize: 100,
+                    height: 540,
+                    sortable: true,
+                    resizable: true,
+                    selectable: true,
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: totalCols
+                });
+                var totalG = $("#totalGrid").data("kendoGrid");
+                totalG.dataSource.page(1);
+
+                $("#total").text(data.counts.total);
+                $("#titan").text(data.counts.titan);
+                $("#dist").text(data.counts.dist);
+                $("#env").text(data.counts.env);
             });
         },
         inputValidate: function (companyId, month, year) {

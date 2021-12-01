@@ -9,24 +9,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_TitanDeviceActivatedController : Controller
     {
-        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator,SHRoles.Personel)]
+        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult Index()
         {
             ViewBag.data = new VMPRD_TitanDeviceActivated().GetIndexData();
             return View();
         }
-        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.Personel)]
+        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult DetailForInventory(VMPRD_TitanDeviceActivated model)
         {
             var data = model.Load();
             return View(data);
         }
-        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici,SHRoles.SistemYonetici,SHRoles.UretimYonetici, SHRoles.Personel)]
+        [PageInfo("Titan Cihaz Sell Out Raporu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici,SHRoles.SistemYonetici,SHRoles.UretimYonetici)]
         public ActionResult SellOutDashboard()
         {
             return View();
         }
-        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.Personel)]
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

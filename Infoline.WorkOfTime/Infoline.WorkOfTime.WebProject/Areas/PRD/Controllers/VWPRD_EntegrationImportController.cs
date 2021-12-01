@@ -8,23 +8,19 @@ using System.Web.Mvc;
 using Infoline.Framework.Database;
 using System.Collections.Generic;
 using System.Linq;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_EntegrationImportController : Controller
     {
-        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.Personel)]
+        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult ClaimReport()
         {
-
             return View();
-
         }
-        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.Personel)]
+        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public JsonResult ClaimReportDataSource(Guid companyId, int year, int month)
         {
             var db = new WorkOfTimeDatabase();
-
             var getCompany = db.GetCMP_CompanyById(companyId);
             if (getCompany == null)
             {
@@ -35,14 +31,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning("Böyle bir cari yoktur.")
                 }, JsonRequestBehavior.AllowGet);
             }
-
             //ChartBoundSeries.add ---- getCompanyBounty
             //    if leng. == 0 
             //    addrange.
-
             //        rangList == 0 return
-
-
             var bounty = new List<VWPRD_ProductBounty>();
             var getCompanyBounty = db.GetVWPRD_ProductBountyByPeriodAndCompanyId(month, year, companyId);
             if (getCompanyBounty.Length == 0)
@@ -69,9 +61,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 bounty.AddRange(getCompanyBounty);
             }
-
             //  bayilerin sattım diye bildirdikleri.
-            var getImports = db.GetPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
+            var getImports = db.GetVWPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
             if (getImports == null)
             {
                 return Json(new ResultStatusUI
@@ -81,52 +72,70 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning("Cariye ait her hangi bir veri yoktur.")
                 }, JsonRequestBehavior.AllowGet);
             }
+            var imeis = getImports.Where(x => x.imei != null).Select(x => x.imei).ToArray();
+            var getEntegrationProduct = db.GetPRD_EntegrationActionBySerialNumbersOrImeis(imeis).Where(x => x.ProductId != null);
 
-            var imeis = getImports.Select(x => x.imei).ToArray();
-            var getEntegrationProduct = db.GetPRD_EntegrationActionBySerialNumbersOrImeis(imeis);
             //  FTP aracılığıyla entegrasyondan gelenler. Distribütor bu cihazları bu bayilere verdim dediği bölüm.
-            var entegrationImeis = getEntegrationProduct.Select(x => x.Imei).ToList();
+            var entegrationImeis = getEntegrationProduct.Where(x => x.ProductId != null).Select(x => x.Imei).ToList();
             entegrationImeis.AddRange(getEntegrationProduct.Select(x => x.SerialNo));
             //  Cihazlar aktif olduğu anda bildirimlerin yapıldığı bölüm
-            var getActivatedDevice = db.GetPRD_TitanDeviceActivatedBySerialNoOrImei(imeis);
+            var getActivatedDevice = db.GetPRD_TitanDeviceActivatedBySerialNoOrImei(imeis).Where(x => x.ProductId != null);
             var getActivatedDeviceImeis = getActivatedDevice.Select(x => x.IMEI1).ToList();
             getActivatedDeviceImeis.AddRange(getActivatedDevice.Select(x => x.SerialNumber));
             getActivatedDeviceImeis.AddRange(getActivatedDevice.Select(x => x.IMEI2));
-
+            var getInventory = db.GetPRD_InventoryBySerialCodes(imeis).Select(x => x.serialcode);
             var grid = getImports.Select(x => new
             {
-                productName = x.productModel,
+                productName = x.productId_Title,
                 serialNo = x.imei,
                 distControl = entegrationImeis.Contains(x.imei),
                 activationControl = getActivatedDeviceImeis.Contains(x.imei),
-                inventoryControl = db.GetPRD_InventoryBySerialCodeOrImei(x.imei, x.imei) != null,
+                inventoryControl = getInventory.Contains(x.imei)
             });
-            var total = bounty.Select(x => new
+            var total = new List<object>();
+            foreach (var item in bounty.Where(x => !x.productId.In(getImports.Select(a => a.product_Id).ToArray())))
             {
-                bountyProduct = x.productId_Title,
-                bountyAmount = x.amount,
-                totalCount = getImports.Length,
-                totalAmount = x.amount * getImports.Length,
-                distCount = getImports.Select(a => entegrationImeis.Contains(a.imei)).Count(),
-                distAmount = getImports.Select(a => entegrationImeis.Contains(a.imei)).Count() * x.amount,
-                titanCount = getImports.Select(a => getActivatedDeviceImeis.Contains(a.imei)).Count(),
-                titanAmount = getImports.Select(a => getActivatedDeviceImeis.Contains(a.imei)).Count() * x.amount
-            });
+                var distIds = getEntegrationProduct.Where(x => x.ProductId == item.productId).Select(x => x.Imei).ToList();
+                distIds.AddRange(getEntegrationProduct.Where(x => x.ProductId == item.productId).Select(x => x.SerialNo));
+                var titanIds = getActivatedDevice.Where(x => x.ProductId == item.productId).Select(x => x.IMEI1).ToList();
+                titanIds.AddRange(getActivatedDevice.Where(x => x.ProductId == item.productId).Select(x => x.IMEI2).ToList());
+                titanIds.AddRange(getActivatedDevice.Where(x => x.ProductId == item.productId).Select(x => x.SerialNumber).ToList());
+                var distCount = getImports.Where(x => x.product_Id == item.productId).Where(x => distIds.Contains(x.imei)).Count();
+                var titanCount = getImports.Where(x => x.product_Id == item.productId).Where(x => titanIds.Contains(x.imei)).ToList().Count();
+                var obj = new
+                {
+                    bountyProduct = item.productId_Title,
+                    bountyAmount = item.amount,
+                    totalCount = getImports.Where(a => a.product_Id == item.productId).Count(),
+                    totalAmount = item.amount * getImports.Where(a => a.product_Id == item.productId).Count(),
+                    distCount = distCount,
+                    distAmount = distCount * item.amount,
+                    titanCount = titanCount,
+                    titanAmount = titanCount * item.amount
+                };
+                total.Add(obj);
+            }
+
+            var counts = new
+            {
+                total = grid.Count(),
+                titan = grid.Where(x => x.activationControl == true).Count(),
+                dist = grid.Where(x => x.distControl == true).Count(),
+                env = grid.Where(x => x.inventoryControl == true).Count()
+            };
 
 
             var returnObject = new
             {
-                bounty,
+                counts,
                 grid,
                 total
             };
             return Json(returnObject, JsonRequestBehavior.AllowGet);
-
         }
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
-
             var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
@@ -136,7 +145,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_EntegrationImportCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Entegrasyonda gelen dosya ekleme metodu", SHRoles.Personel)]
+        [PageInfo("Entegrasyonda gelen dosya ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(PRD_EntegrationImport item)
         {
@@ -151,10 +160,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 Result = dbresult.result,
                 FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
             };
-
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Dosyadan ekleme metodu ", SHRoles.Personel)]
+        [PageInfo("Dosyadan ekleme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         [HttpPost]
         public JsonResult Import(string model)
         {

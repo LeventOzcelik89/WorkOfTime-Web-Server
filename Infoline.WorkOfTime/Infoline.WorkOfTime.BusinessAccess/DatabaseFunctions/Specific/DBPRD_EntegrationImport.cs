@@ -15,11 +15,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 	partial class WorkOfTimeDatabase
 	{
 		
-		public PRD_EntegrationImport[] GetPRD_EntegrationImportByPeriodAndCompanyCode(int month, int year ,string companyCode, DbTransaction tran = null)
+		public VWPRD_EntegrationImport[] GetVWPRD_EntegrationImportByPeriodAndCompanyCode(int month, int year ,string companyCode, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
-				return db.Table<PRD_EntegrationImport>().Where(a => a.month == month && a.year == year&&a.customerCode==companyCode).Execute().ToArray();
+				return db.Table<VWPRD_EntegrationImport>().Where(a => a.month == month && a.year == year&&a.customerCode==companyCode).Execute().ToArray();
 			}
 		}
 
