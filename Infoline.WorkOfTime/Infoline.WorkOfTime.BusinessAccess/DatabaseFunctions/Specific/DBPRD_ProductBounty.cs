@@ -37,11 +37,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return db.Table<PRD_ProductBounty>().Where(a => a.month==month&& a.year==year&& a.productId==productId&& a.companyId==companyId).Execute().ToArray();
 			}
 		}
-		public PRD_ProductBounty[] GetPRD_ProductBountyByPeriodAndCompanyId (int month, int year,  Guid companyId, DbTransaction tran = null)
+		public VWPRD_ProductBounty[] GetVWPRD_ProductBountyByPeriodAndCompanyId (int month, int year,  Guid companyId, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
-				return db.Table<PRD_ProductBounty>().Where(a => a.month == month && a.year == year &&  a.companyId == companyId).Execute().ToArray();
+				return db.Table<VWPRD_ProductBounty>().Where(a => a.month == month && a.year == year &&  a.companyId == companyId).Execute().ToArray();
 			}
 		}
 

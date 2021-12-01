@@ -78,21 +78,29 @@
                 return;
             }
             GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: companyId.id, year: year.id, month: month.id }, function (data) {
+
                 if (data.Result != undefined && !data.Result) {
                     if (data.Object == "0") {
                         swal("Böyle bir cari yoktur", "", "warning");
+                        return;
                     }
-                    if (data.Object=="1") {
+                    if (data.Object == "1") {
                         swal("Cariye veya distribütöre atanmış bu aya ait prim tanımı yoktur.", "", "warning");
+                        return;
                     }
                     if (data.Object == "2") {
                         swal("Cariye ait her hangi bir veri yoktur.", "", "warning");
+                        return;
                     }
                 }
 
-
                 if (data.grid == null) {
+                    swal("Veri yok!", "", "warning");
                     return;
+                }
+                var grid = $("#reportGrid").data("kendoGrid");
+                if (grid != undefined) {
+                    grid.destroy();
                 }
                 var cols = [
                     { field: 'productName', title: 'Ürün Adı', width: 250 },
@@ -106,7 +114,7 @@
                         }
                     },
                     {
-                        field: 'activationControl', width:60, attributes: { class: "text-center" },  title: 'Cihaz Aktive Edilmiş Mi?', template: function (dataItem) {
+                        field: 'activationControl', width: 60, attributes: { class: "text-center" }, title: 'Cihaz Aktive Edilmiş Mi?', template: function (dataItem) {
                             if (dataItem.activationControl) {
                                 return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
                             }
@@ -114,7 +122,7 @@
                         }
                     },
                     {
-                        field: 'inventoryControl', width: 60, attributes: { class: "text-center" },  title: 'Envanterde Karşılığı Var mı?', template: function (dataItem) {
+                        field: 'inventoryControl', width: 60, attributes: { class: "text-center" }, title: 'Envanterde Karşılığı Var mı?', template: function (dataItem) {
                             if (dataItem.inventoryControl) {
                                 return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
                             }
@@ -122,6 +130,7 @@
                         }
                     },
                 ];
+
                 $("#reportGrid").kendoGrid({
                     toolbar: [{ name: "excel", text: "" }],
                     excel: {
@@ -132,7 +141,7 @@
                     height: 540,
                     sortable: true,
                     resizable: true,
-                    selectable:true,
+                    selectable: true,
                     pageable: {
                         refresh: true,
                         pageSizes: true,
