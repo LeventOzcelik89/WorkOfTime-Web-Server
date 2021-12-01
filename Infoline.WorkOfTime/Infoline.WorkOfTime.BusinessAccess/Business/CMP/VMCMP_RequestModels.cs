@@ -238,26 +238,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (this.taskId.HasValue)
 			{
 				dbresult &= InsertConfirmationTask(this.createdby.Value, this.taskId.Value);
+				EmailSend(_approvalPersons);
 			}
-
-			//Onaylayıcı bir kişi talepde bulunduysa otomatik onay yapacağımız için mail atmıyoruz
-			if (!_approvalPersons.Contains(this.createdby.Value) && _approvalPersons.Count() > 0)
-			{
-				var users = new List<VWSH_User>();
-
-				if (_approvalPersons.Count() > 0)
-				{
-					users = db.GetVWSH_UserByIds(_approvalPersons).ToList();
-				}
-				var requestUser = db.GetVWSH_UserById(this.createdby.Value);
-				foreach (var user in users)
-				{
-					var text = "<h3>Sayın " + user.FullName + "</h3>";
-					text += "<p>" + requestUser.FullName + " adlı personel tarafından " + this.rowNumber + " kodlu satın alma talebi onayınıza sunulmuştur.</p>";
-					text += "<p>Talep detayını görüntülemek ve işlem yapmak için <a href='" + _siteURL + "/CMP/VWCMP_Request/Detail?id=" + this.id + "'>tıklayınız.</a> </p>";
-					text += "<p>Bilgilerinize.</p>";
-					new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satın Alma Talep Yönetimi", text).Send((Int16)EmailSendTypes.SatinAlma, user.email, "Satın Alma Talebi Onaya Sunuldu ", true);
-				}
+			else if (!_approvalPersons.Contains(this.createdby.Value) && _approvalPersons.Count() > 0)
+			{ //Onaylayıcı bir kişi talepde bulunduysa otomatik onay yapacağımız için mail atmıyoruz
+				EmailSend(_approvalPersons);
 			}
 
 			dbresult &= db.InsertCMP_Invoice(new CMP_Invoice().B_EntityDataCopyForMaterial(this), this.trans);
@@ -704,7 +689,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						description = "Satın Alma Talebi İptal Edildi.",
 						dataId = this.id
 					};
@@ -718,7 +703,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						dataId = this.id,
 						description = "Satın Alma Talebi Onaylandı."
 					};
@@ -731,7 +716,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						dataId = this.id,
 						description = "Satın Alma Talebi Reddedildi."
 					};
@@ -745,5 +730,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				result = dbresult.result
 			};
 		}
+
+
+		public void EmailSend(Guid[] _approvalPersons)
+		{
+			var users = new List<VWSH_User>();
+
+			if (_approvalPersons.Count() > 0)
+			{
+				users = db.GetVWSH_UserByIds(_approvalPersons).ToList();
+			}
+			var requestUser = db.GetVWSH_UserById(this.createdby.Value);
+			foreach (var user in users)
+			{
+				var text = "<h3>Sayın " + user.FullName + "</h3>";
+				text += "<p>" + requestUser.FullName + " adlı personel tarafından " + this.rowNumber + " kodlu satın alma talebi onayınıza sunulmuştur.</p>";
+				text += "<p>Talep detayını görüntülemek ve işlem yapmak için <a href='" + _siteURL + "/CMP/VWCMP_Request/Detail?id=" + this.id + "'>tıklayınız.</a> </p>";
+				text += "<p>Bilgilerinize.</p>";
+				new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satın Alma Talep Yönetimi", text).Send((Int16)EmailSendTypes.SatinAlma, user.email, "Satın Alma Talebi Onaya Sunuldu ", true);
+			}
+
+
+		}
+
+
 	}
 }
