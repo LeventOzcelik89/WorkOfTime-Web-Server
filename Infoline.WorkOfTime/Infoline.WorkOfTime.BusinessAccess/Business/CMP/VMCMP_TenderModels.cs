@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var order = db.GetCMP_InvoiceActionByInvoiceId(this.id).Where(x => x.type == (Int16)EnumCMP_InvoiceActionType.TeklifSiparis).Count();
 			this.isTenderHaveOrder = order > 0 ? true : false;
 
-			
+
 
 			if (invoice != null)
 			{
@@ -111,7 +111,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					this.direction = invoice.direction;
 				}
 
-				
+
 			}
 
 			if (direction.HasValue)
@@ -363,7 +363,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 					dbresult &= db.InsertCMP_InvoiceTransform(transform, this.trans);
 					dbresult &= db.InsertCMP_InvoiceAction(invAction, this.trans);
-					//dbresult &= UpdateTenders(this.trans);
+
+
+					if (dbresult.result)
+					{
+						if (this.taskId.HasValue)
+						{
+							var task = db.GetVWFTM_TaskById(this.taskId.Value);
+							if (task != null && this.pid.HasValue)
+							{
+								var user = db.GetSH_UserById(task.createdby.Value);
+								var request = db.GetVWCMP_InvoiceById(this.pid.Value);
+								if (this.pid.HasValue && request != null)
+								{
+									var text = "<h3>Sayın " + user.firstname + " "+ user.lastname + "</h3>";
+									text += "<p>" + request.rowNumber + " kodlu Satın alma talebine teklif girilmiştir.</p>";
+									text += "<p>Talep detayını görüntülemek ve işlem yapmak için <a href='" + _siteURL + "/CMP/VWCMP_Request/Detail?id=" + request.id + "'>tıklayınız.</a> </p>";
+									text += "<p>Bilgilerinize.</p>";
+									new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Oluşturuldu", true);
+								}
+							}
+						}
+					}
 				}
 			}
 
@@ -575,6 +596,52 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						text += "<p>Teklif detayını görüntülemek ve teklifi yenilemek için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
 						text += "<p>Bilgilerinize.</p>";
 						new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Red", true);
+					}
+
+					if (this.taskId.HasValue)
+					{
+
+						if (type == (int)EnumCMP_TenderStatus.MusteriOnay)
+						{
+							var users = new List<Guid>();
+							users.AddRange(db.GetSH_UserByRoleId(new Guid(SHRoles.SatisPersoneli)).ToList());
+							users.AddRange(db.GetSH_UserByRoleId(new Guid(SHRoles.MuhasebeSatis)).ToList());
+
+							var persons = new List<VWSH_User>();
+							if (users.Count() > 0)
+							{
+								persons = db.GetVWSH_UserByIds(users.ToArray()).ToList();
+							}
+
+							foreach (var person in persons)
+							{
+								var text = "<h3>Sayın " + person.FullName + "</h3>";
+								text += "<p>" + this.rowNumber + " kodlu teklif satış onaylayıcısı tarafından onaylanmıştır. </p>";
+								text += "<p>Teklif detayını görüntülemek ve siparişe veya faturaya dönüştürmek için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
+								text += "<p>Bilgilerinize.</p>";
+								new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.SiparisTeklif, user.email, "Teklif Onay", true);
+
+							}
+						}
+
+						if (type == (int)EnumCMP_TenderStatus.TeklifSiparis)
+						{
+							var text = "<h3>Sayın " + user.FullName + "</h3>";
+							text += "<p>" + this.rowNumber + " kodlu teklif siparişe dönüştürülmüştür. </p>";
+							text += "<p>Teklif detayını görüntülemek ve müşteriye sunmak için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
+							text += "<p>Bilgilerinize.</p>";
+							new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.YeniSiparis, user.email, "Teklif Onay", true);
+
+						}
+
+						if (type == (int)EnumCMP_TenderStatus.TeklifFatura)
+						{
+							var text = "<h3>Sayın " + user.FullName + "</h3>";
+							text += "<p>" + this.rowNumber + " kodlu teklif faturaya dönüştürülmüştür. </p>";
+							text += "<p>Teklif detayını görüntülemek ve müşteriye sunmak için <a href='" + _siteURL + "/CMP/VWCMP_Tender/DetailSelling?id=" + this.id + "'>tıklayınız.</a> </p>";
+							text += "<p>Bilgilerinize.</p>";
+							new Email().Template("Template1", "satinalma.jpg", _tenantName + " | WorkOfTime | Satış Sipariş Yönetimi", text).Send((Int16)EmailSendTypes.Fatura, user.email, "Teklif Onay", true);
+						}
 					}
 				}
 			}
