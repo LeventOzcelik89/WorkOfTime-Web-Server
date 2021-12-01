@@ -23,8 +23,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public int? year { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
-        public Guid? companyId_Title { get; set;}
-        public Guid? inventoryId_Title { get; set;}
+        public Guid? company_Id { get; set;}
+        public Guid? inventory_Id { get; set;}
         public Guid? distributor_Title { get; set;}
+        public Guid? product_Id { get; set;}
+        public string productId_Title { get; set;}
+        public Guid? entegrationAction_id { get; set;}
+        public Guid? titanActivated_id { get; set;}
     }
 }

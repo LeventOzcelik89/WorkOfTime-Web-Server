@@ -35,14 +35,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning("Böyle bir cari yoktur.")
                 }, JsonRequestBehavior.AllowGet);
             }
-            var bounty = new List<PRD_ProductBounty>();
-            var getCompanyBounty = db.GetPRD_ProductBountyByPeriodAndCompanyId(month, year, companyId);
-            if (getCompanyBounty.Length==0)
+
+            //ChartBoundSeries.add ---- getCompanyBounty
+            //    if leng. == 0 
+            //    addrange.
+
+            //        rangList == 0 return
+
+
+            var bounty = new List<VWPRD_ProductBounty>();
+            var getCompanyBounty = db.GetVWPRD_ProductBountyByPeriodAndCompanyId(month, year, companyId);
+            if (getCompanyBounty.Length == 0)
             {
                 if (getCompany.pid.HasValue)
                 {
-                    var getDistBounty = db.GetPRD_ProductBountyByPeriodAndCompanyId(month, year, getCompany.pid.Value);
-                    if ( getCompanyBounty.Length > 0)
+                    var getDistBounty = db.GetVWPRD_ProductBountyByPeriodAndCompanyId(month, year, getCompany.pid.Value);
+                    if (getDistBounty.Length > 0)
                     {
                         bounty.AddRange(getDistBounty);
                     }
@@ -61,8 +69,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 bounty.AddRange(getCompanyBounty);
             }
-            var getImports = db.GetPRD_EntegrationImportByPeriodAndCompanyCode(month,year,getCompany.code);
-            if (getImports==null)
+
+            //  bayilerin sattım diye bildirdikleri.
+            var getImports = db.GetPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
+            if (getImports == null)
             {
                 return Json(new ResultStatusUI
                 {
@@ -71,40 +81,48 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning("Cariye ait her hangi bir veri yoktur.")
                 }, JsonRequestBehavior.AllowGet);
             }
+
             var imeis = getImports.Select(x => x.imei).ToArray();
             var getEntegrationProduct = db.GetPRD_EntegrationActionBySerialNumbersOrImeis(imeis);
+            //  FTP aracılığıyla entegrasyondan gelenler. Distribütor bu cihazları bu bayilere verdim dediği bölüm.
             var entegrationImeis = getEntegrationProduct.Select(x => x.Imei).ToList();
             entegrationImeis.AddRange(getEntegrationProduct.Select(x => x.SerialNo));
-         
+            //  Cihazlar aktif olduğu anda bildirimlerin yapıldığı bölüm
             var getActivatedDevice = db.GetPRD_TitanDeviceActivatedBySerialNoOrImei(imeis);
             var getActivatedDeviceImeis = getActivatedDevice.Select(x => x.IMEI1).ToList();
             getActivatedDeviceImeis.AddRange(getActivatedDevice.Select(x => x.SerialNumber));
             getActivatedDeviceImeis.AddRange(getActivatedDevice.Select(x => x.IMEI2));
 
-            var grid = getImports.Select(x => new { 
-                productName=x.productModel,
-                serialNo=x.imei,
-                distControl=entegrationImeis.Contains(x.imei),
-                activationControl=getActivatedDeviceImeis.Contains(x.imei),
-                inventoryControl=db.GetPRD_InventoryBySerialCodeOrImei(x.imei,x.imei)!=null,
+            var grid = getImports.Select(x => new
+            {
+                productName = x.productModel,
+                serialNo = x.imei,
+                distControl = entegrationImeis.Contains(x.imei),
+                activationControl = getActivatedDeviceImeis.Contains(x.imei),
+                inventoryControl = db.GetPRD_InventoryBySerialCodeOrImei(x.imei, x.imei) != null,
             });
-
-
+            var total = bounty.Select(x => new
+            {
+                bountyProduct = x.productId_Title,
+                bountyAmount = x.amount,
+                totalCount = getImports.Length,
+                totalAmount = x.amount * getImports.Length,
+                distCount = getImports.Select(a => entegrationImeis.Contains(a.imei)).Count(),
+                distAmount = getImports.Select(a => entegrationImeis.Contains(a.imei)).Count() * x.amount,
+                titanCount = getImports.Select(a => getActivatedDeviceImeis.Contains(a.imei)).Count(),
+                titanAmount = getImports.Select(a => getActivatedDeviceImeis.Contains(a.imei)).Count() * x.amount
+            });
 
 
             var returnObject = new
             {
                 bounty,
                 grid,
-
-
-
+                total
             };
             return Json(returnObject, JsonRequestBehavior.AllowGet);
 
         }
-
-
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
