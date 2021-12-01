@@ -64,16 +64,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             //  bayilerin sattım diye bildirdikleri.
             var getImports = db.GetVWPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
 
-            var bountyProducts = getImports.Where(x => !bounty.Select(a => a.productId).Contains(x.product_Id));
-            if (bountyProducts.Count()>0)
-            {
-                return Json(new ResultStatusUI
-                {
-                    Result = false,
-                    Object = "3",
-                    FeedBack = new FeedBack().Warning("Ürüne ait prim tanımı yoktur.")
-                }, JsonRequestBehavior.AllowGet);
-            }
+
 
             if (getImports == null)
             {
@@ -82,6 +73,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     Result = false,
                     Object = "2",
                     FeedBack = new FeedBack().Warning("Cariye ait her hangi bir veri yoktur.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+            var products = new List<string>();
+           // var bountyProducts = getImports.GroupBy(x => x.product_Id).Where(x => !bounty.Select(a => a.productId).Contains(x.Key)).Select(x => x.FirstOrDefault().productId_Title);
+            foreach (var getImport in getImports)
+            {
+                if (bounty.Where(a => a.productId == getImport.product_Id).Count() <=0)
+                {
+                    products.Add(getImport.productId_Title); 
+                }
+            }
+
+
+            if (products.Count() > 0)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = "3",
+                    FeedBack = new FeedBack().Warning($"{string.Join(",", products)}")
                 }, JsonRequestBehavior.AllowGet);
             }
             var imeis = getImports.Where(x => x.imei != null).Select(x => x.imei).ToArray();
