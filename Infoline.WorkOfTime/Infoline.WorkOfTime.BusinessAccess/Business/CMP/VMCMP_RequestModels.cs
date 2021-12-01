@@ -703,7 +703,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						dataId = this.id,
 						description = "Satın Alma Talebi Onaylandı."
 					};
@@ -716,7 +716,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskId = this.taskId,
 						created = DateTime.Now,
 						status = status,
-						createdby = this.createdby,
+						createdby = this.Task.createdby.Value,
 						dataId = this.id,
 						description = "Satın Alma Talebi Reddedildi."
 					};
