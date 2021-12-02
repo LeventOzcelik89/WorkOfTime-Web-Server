@@ -184,35 +184,36 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        if (indexName == "InvoiceNumber")
+                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "");
+                                        if (indexName == "invoicenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
-                                        if (indexName == "Dist")
+                                        if (indexName == "dist")
                                             item.DistributorName = rawFileCheckedData;
-                                        if (indexName == "CustomerOperatorCode")
+                                        if (indexName == "customeroperatorcode")
                                             item.CustomerOperatorCode = rawFileCheckedData;
-                                        if (indexName == "CustomerGenpaCode" || indexName == "CustomerKVKCode" || indexName == "CustomerMobitelCode")
+                                        if (indexName == "customergenpacode" || indexName == "customerkvkcode" || indexName == "customermobitelcode")
                                             item.CustomerOperatorCode = rawFileCheckedData; //TODO: Check
-                                        if (indexName == "CustomerName")
+                                        if (indexName == "customername")
                                             item.CustomerOperatorName = rawFileCheckedData;
-                                        if (indexName == "BranchCode")
+                                        if (indexName == "branchcode")
                                             item.BranchCode = rawFileCheckedData;
-                                        if (indexName == "BranchName")
+                                        if (indexName == "branchname")
                                             item.BranchName = rawFileCheckedData;
-                                        if (indexName == "TaxNumber")
+                                        if (indexName == "taxnumber")
                                             item.TaxNumber = rawFileCheckedData;
-                                        if (indexName == "ConsolidationCode")
+                                        if (indexName == "consolidationcode")
                                             item.ConsolidationCode = rawFileCheckedData;
-                                        if (indexName == "ConsolidationName")
+                                        if (indexName == "consolidationname")
                                             item.ConsolidationName = rawFileCheckedData;
-                                        if (indexName == "Imei")
+                                        if (indexName == "imei")
                                             item.Imei = rawFileCheckedData;
-                                        if (indexName == "SeriNo")
+                                        if (indexName == "seriNo")
                                             item.SerialNo = rawFileCheckedData;
-                                        if (indexName == "Quantity")
+                                        if (indexName == "quantity")
                                             item.Quantity = Convert.ToInt32(rawFileCheckedData);
-                                        if (indexName == "City")
+                                        if (indexName == "city")
                                             item.CustomerOperatorStorageCity = rawFileCheckedData;
-                                        if (indexName == "Town")
+                                        if (indexName == "town")
                                             item.CustomerOperatorStorageTown = rawFileCheckedData;
                                     }
                                 }

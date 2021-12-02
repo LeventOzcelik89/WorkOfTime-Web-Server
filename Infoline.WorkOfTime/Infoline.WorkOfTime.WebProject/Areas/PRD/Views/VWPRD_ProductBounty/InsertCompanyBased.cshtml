@@ -11,7 +11,7 @@
         var companyId = e.sender.dataItem().id;
         var companyElem = $('#Companies').data("kendoMultiSelect");
         companyElem.enable(true);
-        var filter = ("(pid~eq~'" + companyId + "'~and~(CMPTypes_Title~eq~'Bayi'))");
+        var filter = ("(pid~eq~'" + companyId + "')");
         var filterJSON = kendo.filterParser(filter);
         companyElem.dataSource.filter(filterJSON);
     }
@@ -59,16 +59,14 @@
                             "transport": { "read": { "url": "/General/GetMonths" } },
                             "pageSize": 100,
                             "page": 1,
-                            "total": 0,
-                            "serverPaging": true,
-                            "serverSorting": true,
-                            "serverFiltering": true,
+                            "total": 0
+                         
                         },
                         "dataTextField": "title",
                         "delay": 1000,
                         "filter": "contains",
                         "dataValueField": "id",
-                        "optionLabel": "Lütfen Ürün Seçiniz..",
+                        "optionLabel": "Lütfen Prim Tanımlanacak Ay Seçiniz..",
                     });
             company.find('[data-company="year"]')
                 .attr('name', 'Bounty[' + page.Counter + '].year')
@@ -81,16 +79,13 @@
                             "transport": { "read": { "url": "/General/GetYears" } },
                             "pageSize": 100,
                             "page": 1,
-                            "total": 0,
-                            "serverPaging": true,
-                            "serverSorting": true,
-                            "serverFiltering": true,
+                            "total": 0
                         },
                         "dataTextField": "title",
                         "delay": 1000,
                         "filter": "contains",
                         "dataValueField": "id",
-                        "optionLabel": "Lütfen Ürün Seçiniz..",
+                        "optionLabel": "Lütfen Prim Tanımlanacak Yıl Seçiniz..",
                     });
             company.find('[data-company="amount"]')
                 .attr('name', 'Bounty[' + page.Counter + '].amount')
@@ -291,6 +286,7 @@
                   .ItemTemplate("#=TemplateEngine('productTemplate',data)#")
                   .Sort(x => x.Add("name").Ascending())
                   .Validate(Validations.Required)
+                  .Filter<PRD_Product>(x=>x.stockType==(int)EnumPRD_ProductStockType.SeriNoluTakip)
                   .Execute()
                 )
         </div>
@@ -311,6 +307,7 @@
         .Events(e => { e.Change("onChangeCompany"); })
         .Sort(x => x.Add("fullName").Ascending())
         .Validate(Validations.Required)
+        
         .Execute()
             )
         </div>

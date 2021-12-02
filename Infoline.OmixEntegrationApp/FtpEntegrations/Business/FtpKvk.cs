@@ -180,33 +180,34 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        if (indexName.ToLower() == "invoicenumber"|| indexName.ToLower() == "ınvoıcenumber")
+                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "");
+                                        if (indexName == "invoicenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
-                                        if (indexName.ToLower() == "dist"|| indexName.ToLower() == "dıst")
+                                        if (indexName == "dist")
                                             item.DistributorName = rawFileCheckedData;
-                                        if (indexName.ToLower() == "customeroperatorcode")
+                                        if (indexName == "customeroperatorcode")
                                             item.CustomerOperatorCode = rawFileCheckedData;
-                                        if (indexName.ToLower() == "customername"|| indexName.ToLower() == "customer_name")
+                                        if (indexName == "customername")
                                             item.CustomerOperatorName = rawFileCheckedData;
-                                        if (indexName.ToLower() == "branchcode")
+                                        if (indexName == "branchcode")
                                             item.BranchCode = rawFileCheckedData;
-                                        if (indexName.ToLower() == "branchname")
+                                        if (indexName == "branchname")
                                             item.BranchName = rawFileCheckedData;
-                                        if (indexName.ToLower() == "taxnumber"|| indexName.ToLower() == "tax_number")
+                                        if (indexName == "taxnumber")
                                             item.TaxNumber = rawFileCheckedData;
-                                        if (indexName.ToLower() == "consolidationcode")
+                                        if (indexName == "consolidationcode")
                                             item.ConsolidationCode = rawFileCheckedData;
-                                        if (indexName.ToLower() == "consolidationname")
+                                        if (indexName == "consolidationname")
                                             item.ConsolidationName = rawFileCheckedData;
-                                        if (indexName.ToLower() == "imei"|| indexName.ToLower() == "ımei")
+                                        if (indexName == "imei")
                                             item.Imei = rawFileCheckedData;
-                                        if (indexName.ToLower() == "serino")
+                                        if (indexName == "seriNo")
                                             item.SerialNo = rawFileCheckedData;
-                                        if (indexName.ToLower() == "quantity")
+                                        if (indexName == "quantity")
                                             item.Quantity = Convert.ToInt32(rawFileCheckedData);
-                                        if (indexName.ToLower() == "city"||indexName.ToLower()=="cıty")
+                                        if (indexName == "city")
                                             item.CustomerOperatorStorageCity = rawFileCheckedData;
-                                        if (indexName.ToLower() == "town")
+                                        if (indexName == "town")
                                             item.CustomerOperatorStorageTown = rawFileCheckedData;
                                     }
                                 }

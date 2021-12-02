@@ -9,7 +9,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_TitanDeviceActivatedController : Controller
     {
-        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+        [PageInfo("Titan Cihaz Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator  )]
         public ActionResult Index()
         {
             ViewBag.data = new VMPRD_TitanDeviceActivated().GetIndexData();

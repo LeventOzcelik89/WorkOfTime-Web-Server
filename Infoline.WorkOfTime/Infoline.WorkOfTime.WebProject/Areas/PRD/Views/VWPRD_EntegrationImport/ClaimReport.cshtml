@@ -38,7 +38,7 @@
                 <label>Yıl Seçiniz</label>
                 @(
                Html.Akilli()
-             .DropDownList("year")
+                .DropDownList("year")
                .OptionLabel("Lütfen Yıl Seçiniz..")
                .DataValueField("id")
                .DataTextField("title")
@@ -60,7 +60,7 @@
     </div>
 </div>
 
-<div class="ibox" id="info"  >
+<div class="ibox" id="info">
     <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
         Bilgilendirme : <strong> Yukarıdan verileri seçerek sorgula butonuna basınız... </strong>
     </div>
@@ -101,7 +101,7 @@
                     <i class="fa fa-mobile-phone fa-5x"></i>
                 </div>
                 <div class="col-xs-8 text-right">
-                    <span> Distribütör Tarafından Onaylanmış Cihaz Sayısı </span><br>
+                    <span> Ftpden Gelen Toplam Cihaz Sayısı </span><br>
                     <h2 id="dist" class="font-bold">0</h2>
                 </div>
             </div>
@@ -125,19 +125,62 @@
 
 
 <div class="row">
-    <div class="col-sm-12 mb-10">
-        <div id="reportGrid"></div>
+    <div class="col-sm-12">
+        <div class="ibox" style="display:none" id="table">
+            <div class="ibox-content clearfix">
+                <div class="forum-item active">
+                    <div class="row">
+                        <div class="col-md-9 col-sm-9 col-lg-9 col-xs-9 ">
+                            <div class="forum-icon">
+                                <i class="fa fa-money"></i>
+                            </div>
+                            <a href="#" class="forum-item-title">Toplam Hakediş Karşılaştırması</a>
+                            <div class="forum-sub-title">Ftp, Aktivasyonlar ve Beyana Göre Hakediş Karşılaştırılması</div>
+                        </div>
+                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                            <span id="totalEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Beyan Edilen Toplam Tutar</small>
+                            </div>
+                        </div>
+                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                            <span id="fptEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Ftp Göre Toplam Tutar </small>
+                            </div>
+                        </div>
+                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                            <span id="titanEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Aktivasyonlara Göre Toplam Tutar</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-sm-12" style="margin-top:10px">
+
+    <div class="col-sm-12">
         <div id="totalGrid"></div>
     </div>
+    <div class="col-sm-12" style="margin-top:10px">
+        <div id="reportGrid"></div>
+    </div>
+
 </div>
 
 <script>
     var page = {
         qButton: $("queryButton"),
         load: function () {
-           
+
             var companyId = $("#companyId").data("kendoDropDownList").dataItem();
             var month = $("#month").data("kendoDropDownList").dataItem();
             var year = $("#year").data("kendoDropDownList").dataItem();
@@ -163,7 +206,7 @@
                     if (data.Object == "3") {
                         swal(" Ürüne ait prim tanımı yoktur", data.FeedBack.message, "warning");
                         return;
-                      
+
                     }
                 }
 
@@ -177,6 +220,7 @@
                 }
                 $("#info").hide();
                 $("#boxes").show();
+                $("#table").show();
                 var grid = $("#reportGrid").data("kendoGrid");
                 if (grid != undefined) {
                     grid.destroy();
@@ -189,7 +233,7 @@
                     { field: 'productName', title: 'Ürün Adı', width: 250 },
                     { field: 'serialNo', title: 'Seri Numarası ', width: 150, format: '{0:N0}' },
                     {
-                        field: 'distControl', width: 60, attributes: { class: "text-center" }, title: 'Distribütör Tarafından Eşleşiyor mu ?', template: function (dataItem) {
+                        field: 'distControl', width: 60, attributes: { class: "text-center" }, title: 'Ftpde Var Mı?', template: function (dataItem) {
                             if (dataItem.distControl) {
                                 return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
                             }
@@ -197,7 +241,7 @@
                         }
                     },
                     {
-                        field: 'activationControl', width: 60, attributes: { class: "text-center" }, title: 'Cihaz Aktive Edilmiş Mi?', template: function (dataItem) {
+                        field: 'activationControl', width: 60, attributes: { class: "text-center" }, title: 'Aktive Edilmiş Mi?', template: function (dataItem) {
                             if (dataItem.activationControl) {
                                 return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
                             }
@@ -216,7 +260,7 @@
                 var totalCols = [
                     { field: 'bountyProduct', title: 'Ürün Adı', width: 250 },
                     {
-                        field: 'bountyAmount', title: 'Prim Tutarı', width: 150, format: '{0:N0}', template: function (item) {
+                        field: 'bountyAmount', title: 'Prim Birim Bedel Tutarı', width: 150, format: '{0:N0}', template: function (item) {
                             return item.bountyAmount + " ₺";
                         }
                     },
@@ -230,15 +274,19 @@
                             return item.totalAmount + "₺";
                         }
                     },
-                    { field: 'distCount', title: 'Distribütör Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}' },
                     {
-                        field: 'distAmount', title: 'Distribütör Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                        field: 'distCount', title: 'Ftp Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}',template: function (item) {
+                            return item.distCount + " Adet";
+                        }
+                    },
+                    {
+                        field: 'distAmount', title: 'Ftp Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
                             return item.distAmount + "₺";
                         }
                     },
-                    { field: 'titanCount', title: 'Aktifleştirilmeye  Satış Miktarı', width: 150, format: '{0:N0}' },
+                    { field: 'titanCount', title: 'Aktivasyona Göre Satış Miktarı', width: 150, format: '{0:N0}' },
                     {
-                        field: 'titanAmount', title: 'Aktifleştirilmeye Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                        field: 'titanAmount', title: 'Aktivasyona Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
                             return item.titanAmount + "₺";
                         }
                     },
@@ -289,6 +337,9 @@
                 $("#titan").text(data.counts.titan);
                 $("#dist").text(data.counts.dist);
                 $("#env").text(data.counts.env);
+                $("#totalEarn").text($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x) + " ₺");
+                $("#fptEarn").text($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x) + " ₺");
+                $("#titanEarn").text($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x) + " ₺");
             });
         },
         inputValidate: function (companyId, month, year) {
