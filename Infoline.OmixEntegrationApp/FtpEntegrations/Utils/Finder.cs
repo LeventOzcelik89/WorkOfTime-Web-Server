@@ -20,35 +20,26 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Utils
         public static Guid? FindCompany(PRD_EntegrationAction item)
         {
             var db = new WorkOfTimeDatabase();
-            var getByCompany = db.GetVWCMP_CompanyByNameOrCode(item.CustomerOperatorName, item.CustomerOperatorCode, item.TaxNumber);
-            var getByStorage = db.GetVWCMP_StorageByNameOrCode(item.CustomerOperatorName, item.CustomerOperatorCode);
+            var getByCompany = db.GetVWCMP_CompanyByTaxNumberOrCode( item.CustomerOperatorCode, item.TaxNumber);
+            var getByStorage = db.GetVWCMP_StorageByCode( item.CustomerOperatorCode);
             if (getByCompany != null)
             {
                 return getByCompany.id;
             }
             if (getByStorage != null)
             {
-                return getByStorage.id;
+                var findCompanyByStorage = db.GetCMP_CompanyById(getByStorage.companyId.Value);
+                if (findCompanyByStorage!=null)
+                {
+                    return getByStorage.id;
+                }
+               
             }
-            return AddStorage(item);
+            //AddStorage(item)
+            return null;
+
         }
-        public static Guid AddStorage(PRD_EntegrationAction item)
-        {
-            var db = new WorkOfTimeDatabase();
-            var id = Guid.NewGuid();
-            db.InsertCMP_Company(new CMP_Company
-            {
-                id = id,
-                code = item.CustomerOperatorCode,
-                created = DateTime.Now,
-                createdby = Guid.Empty,
-                name = item.CustomerOperatorName,
-                description="Otomatik Oluşturulmuştur",
-                taxNumber=item.TaxNumber,
-                pid=item.DistributorId
-            }) ;
-            return id;
-        }
+       
         public static VWCMP_Storage FindStorage(string name, string code)
         {
             var db = new WorkOfTimeDatabase();

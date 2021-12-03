@@ -59,9 +59,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             }
             //  bayilerin sattım diye bildirdikleri.
             var getImports = db.GetVWPRD_EntegrationImportByPeriodAndCompanyCode(month, year, getCompany.code);
-
-
-
             if (getImports == null)
             {
                 return Json(new ResultStatusUI
@@ -72,7 +69,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 }, JsonRequestBehavior.AllowGet);
             }
             var products = new List<string>();
-
             foreach (var getImport in getImports)
             {
                 if (bounty.Where(a => a.productId == getImport.product_Id).Count() <= 0)
@@ -84,9 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                         {
                             products.Add(findProduct.name + " | " + findProduct.code);
                         }
-
                     }
-
                 }
             }
             if (products.Count() > 0)
@@ -98,33 +92,28 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning($"{string.Join("\n", products)}")
                 }, JsonRequestBehavior.AllowGet);
             }
-            var imeis = getImports.Where(x => x.imei != null).Select(x => x.imei).ToArray();
-            var getEntegrationProduct = db.GetPRD_EntegrationActionBySerialNumbersOrImeis(imeis).Where(x => x.ProductId != null);
             var grid = getImports.Select(x => new
             {
                 productName = x.productId_Title,
                 serialNo = x.imei,
-                distControl = x.distributor_id.HasValue,
-                activationControl = x.entegrationAction_id.HasValue,
+                distControl = x.entegrationAction_id.HasValue,
+                activationControl = x.titanActivated_id.HasValue,
                 inventoryControl = x.inventory_Id.HasValue
             });
-            var total = new List<object>();
-            foreach (var item in bounty.Where(x => !x.productId.In(getImports.Where(b => b.product_Id.HasValue).Select(a => a.product_Id).ToArray())))
-            {
-                var obj = new
-                {
-                    bountyProduct = item.productId_Title,
-                    bountyAmount = item.amount,
-                    totalCount = getImports.Where(a => a.product_Id == item.productId).Count(),
-                    totalAmount = item.amount * getImports.Where(a => a.product_Id == item.productId).Count(),
-                    distCount = getImports.Where(x => x.distributor_id.HasValue && x.product_Id == item.productId).Count(),
-                    distAmount = getImports.Where(x => x.distributor_id.HasValue && x.product_Id == item.productId).Count() * item.amount,
-                    titanCount = getImports.Where(x => x.entegrationAction_id.HasValue && x.product_Id == item.productId).Count(),
-                    titanAmount = getImports.Where(x => x.entegrationAction_id.HasValue && x.product_Id == item.productId).Count() * item.amount
-                };
-                total.Add(obj);
-            }
 
+            var total = bounty.Where(x => !x.productId.In(getImports.Where(b => b.product_Id.HasValue).Select(a => a.product_Id).ToArray())).Select(x=> new {
+
+                bountyProduct = x.productId_Title,
+                bountyAmount = x.amount,
+                totalCount = getImports.Where(a => a.product_Id == x.productId).Count(),
+                totalAmount = x.amount * getImports.Where(a => a.product_Id == x.productId).Count(),
+                distCount = getImports.Where(a => a.entegrationAction_id.HasValue && a.product_Id == x.productId).Count(),
+                distAmount = getImports.Where(a => a.entegrationAction_id.HasValue && a.product_Id == x.productId).Count() * x.amount,
+                titanCount = getImports.Where(a => a.titanActivated_id.HasValue && a.product_Id == x.productId).Count(),
+                titanAmount = getImports.Where(a=> a.titanActivated_id.HasValue && a.product_Id == x.productId).Count() * x.amount
+
+            });
+           
             var counts = new
             {
                 total = grid.Count(),
@@ -179,31 +168,64 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var trans = db.BeginTransaction();
             var result = new ResultStatus { result = true };
             var excel = Helper.Json.Deserialize<PRD_EntegrationImportExcel[]>(model);
-
             var existError = new List<ExcelResult>();
             var excelResult = new ExcelResult
             {
                 status = true,
                 rowNumber = 0
             };
-            
             foreach (var item in excel)
             {
+                var companyCode = item.customerCode;
                 excelResult.rowNumber++;
-                var isExist = db.GetCMP_CompanyByCode(item.customerCode);
-                if (isExist==null)
+                var isExistBefore = db.Get_PRDEntegrationImportByImei(item.imei);
+                if (isExistBefore != null)
                 {
-                    existError.Add(new ExcelResult {
-                    rowNumber= excelResult.rowNumber,
-                    status=false,
-                    message=$"{item.customerCode} kodlu cari yoktur!"
+                    existError.Add(new ExcelResult
+                    {
+                        rowNumber = excelResult.rowNumber,
+                        status = false,
+                        message = $"{item.imei}, sistem üzerine bu imei numarası ile daha önce kayıt yapılmıştır!"
                     });
+                    continue;
+                }
+                var isExist = db.GetCMP_CompanyByCode(item.customerCode);
+                if (isExist == null)
+                {
+                    var isExistStorage = db.GetCMP_StorageByCode(item.customerCode);
+                    if (isExistStorage == null)
+                    {
+                        existError.Add(new ExcelResult
+                        {
+                            rowNumber = excelResult.rowNumber,
+                            status = false,
+                            message = $"{item.customerCode} kodlu cari yoktur!"
+                        });
+                        continue;
+                    }
+                    else
+                    {
+                        var findCompany = db.GetCMP_CompanyById(isExistStorage.companyId.Value);
+                        if (findCompany != null)
+                        {
+                            companyCode = findCompany.code;
+                        }
+                        else
+                        {
+                            existError.Add(new ExcelResult
+                            {
+                                rowNumber = excelResult.rowNumber,
+                                status = false,
+                                message = $"{item.customerCode} kodlu cari yoktur!"
+                            });
+                            continue;
+                        }
+                    }
                 }
                 var contractStarDate = new DateTime(1999, 1, 1);
                 var distributorConfirmationDate = new DateTime(1999, 1, 1);
                 var contractDateParsed = DateTime.TryParse(item.contractStartDate, out contractStarDate);
                 var distributorConfirmationDateParsed = DateTime.TryParse(item.distributorConfirmationDate, out distributorConfirmationDate);
-                    
                 if (!contractDateParsed)
                 {
                     contractStarDate = new DateTime(1999, 1, 1);
@@ -214,18 +236,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 }
                 var items = new PRD_EntegrationImport().B_EntityDataCopyForMaterial(item);
                 items.contractStartDate = contractStarDate;
-                items.contractStartDate = contractStarDate;
+                items.year = contractStarDate.Year;
+                items.month = contractStarDate.Month;
                 items.created = DateTime.Now;
                 items.createdby = userStatus.user.id;
+                items.customerCode = companyCode;
                 items.distributorConfirmationDate = distributorConfirmationDate;
-                if (isExist!=null)
-                {
-      result &= db.InsertPRD_EntegrationImport(items);
-                }
-          
-              
+                result &= db.InsertPRD_EntegrationImport(items);
             }
-            if (existError.Count()>0)
+            if (existError.Count() > 0)
             {
                 return Json(new ResultStatusUI
                 {

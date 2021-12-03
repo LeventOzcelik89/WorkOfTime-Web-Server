@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Infoline.WorkOfTime.BusinessAccess;
+using Infoline.WorkOfTime.BusinessData;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
@@ -81,6 +83,23 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Utils
 
                 return DateTime.ParseExact(fileName, dateTimeFormat, CultureInfo.InvariantCulture);
             }
+        }
+        public static Guid AddStorage(PRD_EntegrationAction item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var id = Guid.NewGuid();
+            db.InsertCMP_Company(new CMP_Company
+            {
+                id = id,
+                code = item.CustomerOperatorCode,
+                created = DateTime.Now,
+                createdby = Guid.Empty,
+                name = item.CustomerOperatorName,
+                description = "Otomatik Oluşturulmuştur",
+                taxNumber = item.TaxNumber,
+                pid = item.DistributorId
+            });
+            return id;
         }
     }
 }

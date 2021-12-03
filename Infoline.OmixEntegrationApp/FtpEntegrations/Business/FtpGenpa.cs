@@ -207,8 +207,8 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
-                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
-                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
+                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
+                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
                         item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;

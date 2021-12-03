@@ -2,11 +2,41 @@
     ViewBag.Title = "Prim Hakediş Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
+<script>
+    function onChangeCompany(e) {
+        if (e.sender == undefined) {
+            return;
+        }
+        var companyId = e.sender.dataItem().id;
+        var companyElem = $('#companyId').data("kendoDropDownList");
+        companyElem.enable(true);
+        var filter = ("(pid~eq~'" + companyId + "')");
+        var filterJSON = kendo.filterParser(filter);
+        companyElem.dataSource.filter(filterJSON);
+    }
+</script>
 <div class="row">
     <div class="ibox">
         <div class="ibox-content clearfix">
-            <div class="col-sm-6">
-                <label>Cari Seçiniz</label>
+            <div class="col-sm-3">
+                <label class="req">Distribütör Seçiniz</label>
+                @(
+		Html.Akilli()
+		.DropDownList("distId")
+		.OptionLabel("Lütfen Distribütör seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+        .Events(x=>x.Change("onChangeCompany"))
+		.Execute()
+            )
+            </div>
+            <div class="col-sm-3">
+                <label class="req">Cari Seçiniz</label>
                 @(
 		Html.Akilli()
 		.DropDownList("companyId")
@@ -17,11 +47,12 @@
 		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
 		.Sort(x => x.Add("fullName").Ascending())
 		.Validate(Validations.Required)
+        .Enable(false)
 		.Execute()
             )
             </div>
             <div class="col-sm-2">
-                <label>Ay Seçiniz</label>
+                <label  class="req">Ay Seçiniz</label>
                 @(
                Html.Akilli()
              .DropDownList("month")
@@ -35,7 +66,7 @@
              )
             </div>
             <div class="col-sm-2">
-                <label>Yıl Seçiniz</label>
+                <label  class="req">Yıl Seçiniz</label>
                 @(
                Html.Akilli()
                 .DropDownList("year")
@@ -50,7 +81,7 @@
             </div>
             <div class="col-sm-2">
                 <button onclick="page.load()" id="queryButton" style="margin-bottom:10px;width:100%" class="btn btn-primary btn-large">Sorgula</button><br />
-                <a href="#" style="width:100%" data-task="Insert" data-import="Excel" data-modal="true" title="Excel'den İşletme Ekle" class="btn btn-info btn-block" data-gridRefresh="VWSH_User"
+                <a href="#" style="width:100%" data-task="Insert" data-import="Excel" title="Excel'den İşletme Ekle" class="btn btn-info btn-block"
                    data-properties="@ExcelHelper.GetSchema(typeof(PRD_EntegrationImportExcel))" data-post="@Url.Action("Import","VWPRD_EntegrationImport", new { area = "PRD" })">
                     <i class="fa fa-file-excel-o"></i> Excel'den Ham Veri Ekle
                 </a>
@@ -85,7 +116,7 @@
         <div class="widget style1 blue-bg">
             <div class="row">
                 <div class="col-xs-4">
-                    <i class="fa fa-mobile-phone fa-5x"></i>
+                    <i class="fa fa-check fa-5x"></i>
                 </div>
                 <div class="col-xs-8 text-right">
                     <span> Aktif Edilmiş Toplam Cihaz Sayısı</span><br>
@@ -98,7 +129,7 @@
         <div class="widget style1 navy-bg">
             <div class="row">
                 <div class="col-xs-4">
-                    <i class="fa fa-mobile-phone fa-5x"></i>
+                    <i class="fa fa-download fa-5x"></i>
                 </div>
                 <div class="col-xs-8 text-right">
                     <span> Ftpden Gelen Toplam Cihaz Sayısı </span><br>
@@ -111,7 +142,7 @@
         <div class="widget style1 red-bg">
             <div class="row">
                 <div class="col-xs-4">
-                    <i class="fa fa-mobile-phone fa-5x"></i>
+                    <i class="fa fa-cubes fa-5x"></i>
                 </div>
                 <div class="col-xs-8 text-right">
                     <span> Envanterde Karşılığı Olan Cihaz Sayısı</span><br>
@@ -182,9 +213,10 @@
         load: function () {
 
             var companyId = $("#companyId").data("kendoDropDownList").dataItem();
+            var distId = $("#distId").data("kendoDropDownList").dataItem();
             var month = $("#month").data("kendoDropDownList").dataItem();
             var year = $("#year").data("kendoDropDownList").dataItem();
-            var validate = page.inputValidate(companyId, month, year);
+            var validate = page.inputValidate(companyId, month, year,distId);
             if (validate.length > 0) {
                 return;
             }
@@ -195,7 +227,7 @@
                         return;
                     }
                     if (data.Object == "1") {
-                        swal("", "Cariye veya distribütöre atanmış seçilen ay ve yıla ait prim tanımı yoktur.", "warning");
+                        swal("Cariye veya distribütöre atanmış seçilen ay ve yıla ait prim tanımı yoktur.", "", "warning");
                         return;
                     }
                     if (data.Object == "2") {
@@ -204,12 +236,11 @@
                     }
                     debugger
                     if (data.Object == "3") {
-                        swal(" Ürüne ait prim tanımı yoktur", data.FeedBack.message, "warning");
+                        swal("Bu Ürün(ler)e ait prim tanımı yoktur", data.FeedBack.message, "warning");
                         return;
 
                     }
                 }
-
                 if (data.grid == null) {
                     swal("Veri yok!", "", "warning");
                     return;
@@ -295,7 +326,7 @@
                 $("#reportGrid").kendoGrid({
                     toolbar: [{ name: "excel", text: "" }],
                     excel: {
-                        fileName: "Kullanilan_Urunler.xlsx"
+                        fileName: "Hakediş_Raporu.xlsx"
                     },
                     dataSource: data.grid,
                     pageSize: 100,
@@ -315,7 +346,7 @@
                 $("#totalGrid").kendoGrid({
                     toolbar: [{ name: "excel", text: "" }],
                     excel: {
-                        fileName: "Kullanilan_Urunler.xlsx"
+                        fileName: "Hakediş_Raporu.xlsx"
                     },
                     dataSource: data.total,
                     pageSize: 100,
@@ -336,14 +367,17 @@
                 $("#total").text(data.counts.total);
                 $("#titan").text(data.counts.titan);
                 $("#dist").text(data.counts.dist);
-                $("#env").text(data.counts.env);
+                $("#env").text(data.counts.env);    
                 $("#totalEarn").text($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x) + " ₺");
                 $("#fptEarn").text($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x) + " ₺");
                 $("#titanEarn").text($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x) + " ₺");
             });
         },
-        inputValidate: function (companyId, month, year) {
+        inputValidate: function (companyId, month, year,distId) {
             var errorList = [];
+            if (distId == undefined || distId.id == '') {
+                errorList.push("Distribütör Boş Olamaz");
+            }
             if (companyId == undefined || companyId.id == '') {
                 errorList.push("Cari Boş Olamaz");
             }

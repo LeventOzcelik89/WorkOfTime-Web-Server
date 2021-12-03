@@ -366,10 +366,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Toplam Satis Adedi")]
         public int? sellingQuantity { get; set; }
 
-        [ColumnInfoAttribute("Ay",defaultValue: typeof(Date))]
-        public int month { get; set; }
-        [ColumnInfoAttribute("Yıl", defaultValue: typeof(Date))]
-        public int year { get; set; }
     }
 
 
