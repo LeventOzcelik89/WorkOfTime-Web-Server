@@ -1,58 +1,36 @@
 ﻿@{
     ViewBag.Title = "Prim Hakediş Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
-}
+    var userStatus = (PageSecurity)Session["userStatus"];
 
-<script>
-    function onChangeCompany(e) {
-        if (e.sender == undefined) {
-            return;
-        }
-        var companyId = e.sender.dataItem().id;
-        var companyElem = $('#companyId').data("kendoDropDownList");
-        companyElem.enable(true);
-        var filter = ("(pid~eq~'" + companyId + "')");
-        var filterJSON = kendo.filterParser(filter);
-        companyElem.dataSource.filter(filterJSON);
-    }
-</script>
+}
 <div class="row">
     <div class="ibox">
         <div class="ibox-content clearfix">
-            <div class="col-sm-3">
-                <label class="req">Distribütör Seçiniz</label>
-                @(
-		Html.Akilli()
-		.DropDownList("distId")
-		.OptionLabel("Lütfen Distribütör seçiniz..")
-		.DataValueField("id")
-		.DataTextField("fullName")
-		.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Validate(Validations.Required)
-        .Events(x=>x.Change("onChangeCompany"))
-		.Execute()
+            
+          
+                <div class="col-sm-6">
+                    <label class="req">Cari Seçiniz</label>
+                    @(
+        Html.Akilli()
+        .DropDownList("companyId")
+        .OptionLabel("Lütfen Firma Cari seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDownBayi", "VWCMP_Company", new { area = "CMP" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .Validate(Validations.Required)
+        .Value(userStatus.user.CompanyId.ToString())
+        .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+     
+        .Execute()
             )
-            </div>
-            <div class="col-sm-3">
-                <label class="req">Cari Seçiniz</label>
-                @(
-		Html.Akilli()
-		.DropDownList("companyId")
-		.OptionLabel("Lütfen Firma Cari seçiniz..")
-		.DataValueField("id")
-		.DataTextField("fullName")
-		.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Validate(Validations.Required)
-        .Enable(false)
-		.Execute()
-            )
-            </div>
+                </div>
+            
+
             <div class="col-sm-2">
-                <label  class="req">Ay Seçiniz</label>
+                <label class="req">Ay Seçiniz</label>
                 @(
                Html.Akilli()
              .DropDownList("month")
@@ -66,7 +44,7 @@
              )
             </div>
             <div class="col-sm-2">
-                <label  class="req">Yıl Seçiniz</label>
+                <label class="req">Yıl Seçiniz</label>
                 @(
                Html.Akilli()
                 .DropDownList("year")
@@ -209,18 +187,41 @@
 
 <script>
     var page = {
+        isBayi: function () {
+             @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+             {
+                 @Html.Raw("return false;")
+
+             }
+             else
+             {
+                   @Html.Raw("return true;")
+             }
+
+
+             },
         qButton: $("queryButton"),
         load: function () {
 
-            var companyId = $("#companyId").data("kendoDropDownList").dataItem();
-            var distId = $("#distId").data("kendoDropDownList").dataItem();
+            var companyId = null;
+            var company = null;
+            if (!page.isBayi()) {
+                $("#companyId").data("kendoDropDownList").dataItem();
+                company = companyId.id;
+            }
+
             var month = $("#month").data("kendoDropDownList").dataItem();
             var year = $("#year").data("kendoDropDownList").dataItem();
-            var validate = page.inputValidate(companyId, month, year,distId);
+            var validate = page.inputValidate(companyId, month, year);
             if (validate.length > 0) {
                 return;
             }
-            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: companyId.id, year: year.id, month: month.id }, function (data) {
+           
+
+             if (page.isBayi() == true) {
+                 company = '@Html.Raw(userStatus.user.CompanyId.ToString())';
+            }
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: company, year: year.id, month: month.id }, function (data) {
                 if (data.Result != undefined && !data.Result) {
                     if (data.Object == "0") {
                         swal("Böyle bir cari yoktur", "", "warning");
@@ -234,7 +235,6 @@
                         swal("Cariye ait her hangi bir veri yoktur.", "", "warning");
                         return;
                     }
-                    debugger
                     if (data.Object == "3") {
                         swal("Bu Ürün(ler)e ait prim tanımı yoktur", data.FeedBack.message, "warning");
                         return;
@@ -367,20 +367,21 @@
                 $("#total").text(data.counts.total);
                 $("#titan").text(data.counts.titan);
                 $("#dist").text(data.counts.dist);
-                $("#env").text(data.counts.env);    
+                $("#env").text(data.counts.env);
                 $("#totalEarn").text($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x) + " ₺");
                 $("#fptEarn").text($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x) + " ₺");
                 $("#titanEarn").text($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x) + " ₺");
             });
         },
-        inputValidate: function (companyId, month, year,distId) {
+        inputValidate: function (companyId, month, year) {
             var errorList = [];
-            if (distId == undefined || distId.id == '') {
-                errorList.push("Distribütör Boş Olamaz");
+
+            if (page.isBayi() == false) {
+                if (companyId == undefined || companyId.id == '') {
+                    errorList.push("Cari Boş Olamaz");
+                }
             }
-            if (companyId == undefined || companyId.id == '') {
-                errorList.push("Cari Boş Olamaz");
-            }
+           
             if (month == undefined || month.id == '') {
                 errorList.push("Ay Boş Olamaz");
             }
@@ -394,4 +395,10 @@
         }
 
     }
+    $(document).on("ready", document, function () {
+      
+
+
+
+    })
 </script>

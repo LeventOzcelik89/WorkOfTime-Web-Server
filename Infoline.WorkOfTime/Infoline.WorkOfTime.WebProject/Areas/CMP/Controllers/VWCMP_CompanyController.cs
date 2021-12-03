@@ -71,6 +71,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var data = db.GetVWCMP_Company(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
+		[PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli)]
+		public ContentResult DataSourceDropDownBayi([DataSourceRequest] DataSourceRequest request)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWCMP_Company(condition);
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		}
 
 		[PageInfo("Firma&Cari Listesi Bayi Personeli Dropdown Verileri", SHRoles.Personel, SHRoles.BayiPersoneli)]
 		public ContentResult DataSourceDropDownSpesific([DataSourceRequest] DataSourceRequest request)
