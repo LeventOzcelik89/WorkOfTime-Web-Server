@@ -315,7 +315,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 				if (requestControl != null)
 				{
-					rs &= new VMCMP_RequestModels { id = requestControl.invoiceIdFrom.Value }.Load(false, false).UpdateStatus((int)EnumCMP_RequestStatus.FaturasiAlindi, this.createdby.Value, _trans);
+					rs &= new VMCMP_RequestModels { id = requestControl.invoiceIdFrom.Value }.Load(false).UpdateStatus((int)EnumCMP_RequestStatus.FaturasiAlindi, this.createdby.Value, _trans);
 				}
 			}
 
