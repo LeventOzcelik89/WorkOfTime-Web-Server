@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public bool? IsTransform { get; set; }
 		public bool? IsCopy { get; set; }
 		public VWFTM_Task Task { get; set; }
-		public VWCMP_Tender Tender { get; set; }
+		public VWCMP_Invoice Tender { get; set; }
 		public Guid[] taskIds { get; set; }
 		public Guid? projectCompanyId { get; set; }
 		public IGeometry location { get; set; }
