@@ -472,7 +472,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Devam Edenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
                     isActive = true
                 });
@@ -488,7 +488,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Durdurulanlar",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
                     isActive = false
                 });
