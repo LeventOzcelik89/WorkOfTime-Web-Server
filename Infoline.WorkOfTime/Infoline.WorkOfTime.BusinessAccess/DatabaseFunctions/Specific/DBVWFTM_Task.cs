@@ -496,7 +496,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Çözüm Onayı Bekleyenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
                     isActive = false
                 });
