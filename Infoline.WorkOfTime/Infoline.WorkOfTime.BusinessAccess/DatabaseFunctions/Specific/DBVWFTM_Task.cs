@@ -392,7 +392,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Üstlenebileceğim Görevler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':null},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds.Contains(userId.ToString().ToUpper()) && a.isComplete == false).Count(),
                     isActive = true
                 });
@@ -410,7 +410,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     title = "Durdurulan Görevler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
@@ -418,7 +418,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     title = "Çözüm Bildirilen Görevler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
@@ -440,10 +440,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var headers = new SummaryHeadersTaskNew
                 {
                     AllTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds == null && a.isComplete == false).Count(),
-                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':null},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNull','Operand2':null},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
 
                     WaitingTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
-                    WaitingTaskFilter = "{'Filter':{'Operand1':{{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':null},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'30'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'26'},'Operator':'And'}},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    WaitingTaskFilter = "{'Filter':{'Operand1':{{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'30'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'26'},'Operator':'And'}},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
 
                     CompletedTask = db.Table<VWFTM_Task>().Where(a => a.isComplete == true).Count(),
                     CompletedTaskFilter = "{'Filter':{'Operand1':'isComplete','Operator':'Equal','Operand2':'1'}}",
@@ -456,15 +456,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Personel Ataması Bekleyenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':null},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNull','Operand2':null},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds == null && a.isComplete == false).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Üstlenilmeyi Bekleyenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':null},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNotNull','Operand2':null},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNotNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds != null && a.isComplete == false).Count(),
                     isActive = true
                 });
@@ -472,7 +472,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Devam Edenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':null},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
                     isActive = true
                 });
@@ -482,15 +482,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     title = "Planlanmayı Bekleyenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'planLater','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskPlanLater.Evet + "'}}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.planLater == (int)EnumFTM_TaskPlanLater.Evet).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Durdurulanlar",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':null},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'isNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
@@ -498,7 +498,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     title = "Çözüm Onayı Bekleyenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'" + EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
@@ -514,7 +514,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     title = "Benim Oluşturduklarım",
                     filter = "{'Filter':{'Operand1':'createdby','Operator':'Equal','Operand2':'" + userId.ToString() + "'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.createdby == userId).Count(),
-                    isActive = true
+                    isActive = false
                 });
 
                 return headers;
