@@ -1,8 +1,6 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.Helper;
 using Infoline.WorkOfTime.BusinessData;
 using System;
-using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Web;
@@ -14,8 +12,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public Guid[] personIds { get; set; }
-
         public Guid[] Companies { get; set; }
         public Guid[] Products { get; set; }
         public VWPRD_ProductBounty[] Bounty { get; set; }
@@ -40,12 +36,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var productBounty = db.GetVWPRD_ProductBountyById(this.id);
             var rs = new ResultStatus { result = true };
-
+            if (this.amount<=0)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Prim Miktarı 0 veya küçük olamaz!"
+                };
+            }
             if (productBounty == null)
             {
                 this.createdby = userId;
                 this.created = DateTime.Now;
-                rs = Insert(trans);
+                if (this.fromCompanyBased)
+                {
+                    rs = this.InsertMultiple(trans);
+                }
+                else
+                {
+                    rs = Insert(trans);
+                }
+
             }
             else
             {
@@ -62,95 +73,88 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
             var rs = new ResultStatus { result = true };
-            if (this.fromCompanyBased)
+            var productBounty = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value,this.companyId.Value);
+            if (productBounty.Count() > 0)
             {
+                return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisinde daha önceden prim tanımlaması yapılmıştır." };
+            }
+            rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty().B_EntityDataCopyForMaterial(this), transaction);
+            if (rs.result == true)
+            {
+                if (trans == null) transaction.Commit();
+                return new ResultStatus { result = true, message = "Ürün Prim Tanımlama İşlemi Başarılı." };
+            }
+            else
+            {
+                if (trans == null) transaction.Rollback();
+                return new ResultStatus { result = false, message = "Ürün Prim Tanımlama İşlemi başarısız." };
+            }
+        }
+        private ResultStatus InsertMultiple(DbTransaction trans = null)
+        {
 
-                if (this.Bounty.Length < 0)
-                {
-                    return new ResultStatus { result = false, message = "Dönem boş olmaz" };
-                }
-                if (this.Products.Length < 0)
-                {
-                    return new ResultStatus { result = false, message = "Ürünler boş olmaz" };
-                }
-                if (this.companyId == null)
-                {
-                    return new ResultStatus { result = false, message = "Firma/Cari Boş Olamaz" };
-                }
+            db = db ?? new WorkOfTimeDatabase();
+            var transaction = trans ?? db.BeginTransaction();
+            var rs = new ResultStatus { result = true };
+            if (this.Bounty.Length < 0)
+            {
+                return new ResultStatus { result = false, message = "Dönem boş olmaz" };
+            }
+            if (this.Products.Length < 0)
+            {
+                return new ResultStatus { result = false, message = "Ürünler boş olmaz" };
+            }
+            if (this.companyId == null)
+            {
+                return new ResultStatus { result = false, message = "Firma/Cari Boş Olamaz" };
+            }
 
-                foreach (var range in Bounty)
+            foreach (var range in Bounty)
+            {
+                foreach (var product in Products)
                 {
-                    foreach (var product in Products)
+                    if (Companies != null)
                     {
-                        if (Companies != null)
+                        foreach (var company in Companies)
                         {
-                            foreach (var company in Companies)
-                            {
-                                var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, company);
-                                if (isExist.Count() > 0)
-                                {
-                                    if (trans == null) transaction.Rollback();
-                                    return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de prim tanımlaması yapılmıştır" };
-                                }
-                                rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
-                                {
-                                    amount = range.amount,
-                                    month = range.month,
-                                    year = range.year,
-                                    companyId = company,
-                                    productId = product,
-                                    createdby = createdby,
-                                    created = created
-                                }, transaction);
-                            }
-                        }
-                        else
-                        {
-                            var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, companyId.Value);
+                            var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, company);
                             if (isExist.Count() > 0)
                             {
                                 if (trans == null) transaction.Rollback();
-                                return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                                return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de prim tanımlaması yapılmıştır" };
                             }
                             rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
                             {
                                 amount = range.amount,
                                 month = range.month,
                                 year = range.year,
-                                companyId = this.companyId,
+                                companyId = company,
                                 productId = product,
                                 createdby = createdby,
                                 created = created
                             }, transaction);
                         }
                     }
-                }
-
-
-            }
-            else
-            {
-                if (personIds != null)
-                {
-                    var productBounty = db.GetPRD_ProductBountyByPeriod(this.month.Value, this.year.Value, this.productId.Value);
-                    if (productBounty.Count() > 0)
+                    else
                     {
-                        return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de personel(lere) daha önceden prim tanımlaması yapılmıştır." };
+                        var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, companyId.Value);
+                        if (isExist.Count() > 0)
+                        {
+                            if (trans == null) transaction.Rollback();
+                            return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                        }
+                        rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
+                        {
+                            amount = range.amount,
+                            month = range.month,
+                            year = range.year,
+                            companyId = this.companyId,
+                            productId = product,
+                            createdby = createdby,
+                            created = created
+                        }, transaction);
                     }
-                    var productBountys = this.personIds.Select(a => new PRD_ProductBounty
-                    {
-                        amount = this.amount,
-
-                        productId = this.productId,
-                        companyId = this.companyId,
-                        month = this.month,
-                        year = this.year
-                    });
-
-                    rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);
                 }
-
-
             }
             if (rs.result == true)
             {

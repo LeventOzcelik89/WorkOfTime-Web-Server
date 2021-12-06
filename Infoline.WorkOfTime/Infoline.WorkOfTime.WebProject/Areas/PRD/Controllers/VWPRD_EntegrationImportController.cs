@@ -180,7 +180,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
         public ActionResult Update(VMPRD_EntegrationImport item, bool? isPost)
         {
-           
             return View(item.Load());
         }
         [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]

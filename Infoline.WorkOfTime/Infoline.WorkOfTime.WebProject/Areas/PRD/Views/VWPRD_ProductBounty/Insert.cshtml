@@ -4,15 +4,6 @@
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<script type="text/javascript" data-selector="modalContainer">
-
-	function onChangeCompany(e) {
-		var companyId = this.value();
-		var personElem = $('#personIds').data("kendoMultiSelect");
-		var basefilter = personElem.options.dataSource.filter;
-		personElem.dataSource.filter(kendo.filterAdd(basefilter, 'CompanyId', companyId, "eq"));
-	}
-</script>
 
 @using (Html.BeginForm("Insert", "VWPRD_ProductBounty", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
@@ -66,7 +57,6 @@
 		.DataTextField("fullName")
 		.Template("#=TemplateEngine('companyTemplate',data)#")
 		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.Events(e => { e.Change("onChangeCompany"); })
 		.Sort(x => x.Add("fullName").Ascending())
 		.Validate(Validations.Required)
 		.Execute()
@@ -123,7 +113,7 @@
                     Html.Akilli()
                     .NumericTextBoxFor(a => a.amount)
                     .Min(0)
-                    .Format("N2").Validate(Validations.Required)
+                    .Format("N2").Validate(Validations.NumberOnly(true,1,12))
                 )
 				<span class="input-group-addon" id="quantityTxt">₺</span>
 			</div>
