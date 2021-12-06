@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success("Prim Tanımlama İşlemi Başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }

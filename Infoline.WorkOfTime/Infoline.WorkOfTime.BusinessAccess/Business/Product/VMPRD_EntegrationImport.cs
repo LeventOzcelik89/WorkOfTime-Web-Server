@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Aynı imei numarası kullanılmıştır!"
+                    message = "Aynı imei ile daha önce hakediş bildirilmiştir!"
                 };
             }
             result &= db.UpdatePRD_EntegrationImport(new PRD_EntegrationImport().B_EntityDataCopyForMaterial(this));
@@ -91,7 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Aynı imei numarası kullanılmıştır!"
+                    message = "Aynı imei ile daha önce hakediş bildirilmiştir!"
                 };
             }
             result &= db.InsertPRD_EntegrationImport(new PRD_EntegrationImport().B_EntityDataCopyForMaterial(this));
