@@ -61,28 +61,28 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
-            var rs = new ResultStatus();
+            var rs = new ResultStatus { result = true };
             if (this.fromCompanyBased)
             {
 
-                if (this.Bounty.Length<0)
+                if (this.Bounty.Length < 0)
                 {
                     return new ResultStatus { result = false, message = "Dönem boş olmaz" };
                 }
-                if (this.Products.Length<0)
+                if (this.Products.Length < 0)
                 {
                     return new ResultStatus { result = false, message = "Ürünler boş olmaz" };
                 }
-                if (this.companyId==null)
+                if (this.companyId == null)
                 {
                     return new ResultStatus { result = false, message = "Firma/Cari Boş Olamaz" };
                 }
-             
-                foreach ( var range in Bounty)
+
+                foreach (var range in Bounty)
                 {
                     foreach (var product in Products)
                     {
-                        if (Companies!=null)
+                        if (Companies != null)
                         {
                             foreach (var company in Companies)
                             {
@@ -92,14 +92,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                     if (trans == null) transaction.Rollback();
                                     return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de prim tanımlaması yapılmıştır" };
                                 }
-                                rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty { 
-                                amount=range.amount,
-                                month=range.month,
-                                year=range.year,
-                                companyId= company,
-                                productId=product,
-                                createdby=createdby,
-                                created=created                              
+                                rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
+                                {
+                                    amount = range.amount,
+                                    month = range.month,
+                                    year = range.year,
+                                    companyId = company,
+                                    productId = product,
+                                    createdby = createdby,
+                                    created = created
                                 }, transaction);
                             }
                         }
@@ -139,17 +140,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var productBountys = this.personIds.Select(a => new PRD_ProductBounty
                     {
                         amount = this.amount,
-                      
+
                         productId = this.productId,
                         companyId = this.companyId,
-                        month=this.month,
-                        year=this.year
+                        month = this.month,
+                        year = this.year
                     });
 
-                     rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);
+                    rs = db.BulkInsertPRD_ProductBounty(productBountys, transaction);
                 }
 
-             
+
             }
             if (rs.result == true)
             {
