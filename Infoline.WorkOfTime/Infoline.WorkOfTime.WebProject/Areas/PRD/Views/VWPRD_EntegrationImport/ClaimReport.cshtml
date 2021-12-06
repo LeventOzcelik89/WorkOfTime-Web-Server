@@ -6,9 +6,10 @@
 }
 <div class="row">
     <div class="ibox">
-        <div class="ibox-content clearfix">
-            
-          
+        <div class="col-sm-12">
+            <div class="ibox-content clearfix">
+
+
                 <div class="col-sm-6">
                     <label class="req">Cari Seçiniz</label>
                     @(
@@ -23,15 +24,15 @@
         .Validate(Validations.Required)
         .Value(userStatus.user.CompanyId.ToString())
         .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
-     
+
         .Execute()
             )
                 </div>
-            
 
-            <div class="col-sm-2">
-                <label class="req">Ay Seçiniz</label>
-                @(
+
+                <div class="col-sm-2">
+                    <label class="req">Ay Seçiniz</label>
+                    @(
                Html.Akilli()
              .DropDownList("month")
                .OptionLabel("Ay Seçiniz..")
@@ -42,10 +43,10 @@
                .Value(DateTime.Now.Month.ToString())
                .Execute()
              )
-            </div>
-            <div class="col-sm-2">
-                <label class="req">Yıl Seçiniz</label>
-                @(
+                </div>
+                <div class="col-sm-2">
+                    <label class="req">Yıl Seçiniz</label>
+                    @(
                Html.Akilli()
                 .DropDownList("year")
                .OptionLabel("Lütfen Yıl Seçiniz..")
@@ -56,16 +57,13 @@
                .Value(DateTime.Now.Year.ToString())
                .Execute()
              )
-            </div>
-            <div class="col-sm-2">
-                <button onclick="page.load()" id="queryButton" style="margin-bottom:10px;width:100%" class="btn btn-primary btn-large">Sorgula</button><br />
-                <a href="#" style="width:100%" data-task="Insert" data-import="Excel" title="Excel'den İşletme Ekle" class="btn btn-info btn-block"
-                   data-properties="@ExcelHelper.GetSchema(typeof(PRD_EntegrationImportExcel))" data-post="@Url.Action("Import","VWPRD_EntegrationImport", new { area = "PRD" })">
-                    <i class="fa fa-file-excel-o"></i> Excel'den Ham Veri Ekle
-                </a>
-
+                </div>
+                <div class="col-sm-2">
+                    <button onclick="page.load()" id="queryButton" style="width:100%;margin-top:26px" class="btn btn-primary btn-large">Sorgula</button><br />
+                </div>
             </div>
         </div>
+
     </div>
 </div>
 
@@ -76,7 +74,7 @@
 </div>
 
 
-<div class="row" id="boxes" style="display:none">
+<div class="row mt-10 " id="boxes" style="display:none;margin-top:10px">
     <div class="col-sm-3">
         <div class="widget style1 yellow-bg">
             <div class="row">
@@ -139,14 +137,14 @@
             <div class="ibox-content clearfix">
                 <div class="forum-item active">
                     <div class="row">
-                        <div class="col-md-9 col-sm-9 col-lg-9 col-xs-9 ">
+                        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6">
                             <div class="forum-icon">
                                 <i class="fa fa-money"></i>
                             </div>
-                            <a href="#" class="forum-item-title">Toplam Hakediş Karşılaştırması</a>
-                            <div class="forum-sub-title">Ftp, Aktivasyonlar ve Beyana Göre Hakediş Karşılaştırılması</div>
+                            <a href="#" class="forum-item-title" style="cursor:default">Toplam Hakediş Karşılaştırması</a>
+                            <div class="forum-sub-title">Distribütör, Aktivasyonlar ve Beyana Göre Hakediş Karşılaştırılması</div>
                         </div>
-                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
                             <span id="totalEarn" class="views-number">
                                 0
                             </span>
@@ -154,15 +152,15 @@
                                 <small>Beyan Edilen Toplam Tutar</small>
                             </div>
                         </div>
-                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
                             <span id="fptEarn" class="views-number">
                                 0
                             </span>
                             <div>
-                                <small>Ftp Göre Toplam Tutar </small>
+                                <small>Distribütöre Göre Toplam Tutar </small>
                             </div>
                         </div>
-                        <div class="col-md-1 col-sm-1 col-lg-1 col-xs-1 forum-info">
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
                             <span id="titanEarn" class="views-number">
                                 0
                             </span>
@@ -206,7 +204,7 @@
             var companyId = null;
             var company = null;
             if (!page.isBayi()) {
-                $("#companyId").data("kendoDropDownList").dataItem();
+                companyId=$("#companyId").data("kendoDropDownList").dataItem();
                 company = companyId.id;
             }
 
@@ -240,14 +238,6 @@
                         return;
 
                     }
-                }
-                if (data.grid == null) {
-                    swal("Veri yok!", "", "warning");
-                    return;
-                }
-                if (data.total == null) {
-                    swal("Veri yok!", "", "warning");
-                    return;
                 }
                 $("#info").hide();
                 $("#boxes").show();
@@ -292,33 +282,44 @@
                     { field: 'bountyProduct', title: 'Ürün Adı', width: 250 },
                     {
                         field: 'bountyAmount', title: 'Prim Birim Bedel Tutarı', width: 150, format: '{0:N0}', template: function (item) {
-                            return item.bountyAmount + " ₺";
+                            return kendo.toString(item.bountyAmount,"N2") + " ₺";
                         }
                     },
                     {
                         field: 'totalCount', title: 'Beyan Edilen Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
-                            return item.totalCount + " Adet";
+                
+                            return kendo.toString(item.totalCount, "N0") + " Adet";
                         }
                     },
                     {
                         field: 'totalAmount', title: 'Beyana Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
-                            return item.totalAmount + "₺";
+                            
+                            return kendo.toString(item.totalAmount, "N2") + " ₺";
                         }
                     },
                     {
-                        field: 'distCount', title: 'Ftp Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}',template: function (item) {
-                            return item.distCount + " Adet";
+                        field: 'distCount', title: 'Distribütör Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.distCount, "N0") + " Adet";
                         }
                     },
                     {
-                        field: 'distAmount', title: 'Ftp Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
-                            return item.distAmount + "₺";
+                        field: 'distAmount', title: 'Distribütör Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            if (item.totalCount > item.distAmount) {
+                                return '<span class="text-danger">' + item.distAmount + ' ₺</span>'
+                            }
+                            return kendo.toString(item.distAmount, "N2") + " ₺";
                         }
                     },
-                    { field: 'titanCount', title: 'Aktivasyona Göre Satış Miktarı', width: 150, format: '{0:N0}' },
+                    {
+                        field: 'titanCount', title: 'Aktivasyona Göre Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.titanCount, "N0") + " Adet";
+                        }},
                     {
                         field: 'titanAmount', title: 'Aktivasyona Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
-                            return item.titanAmount + "₺";
+                            if (item.totalCount > item.titanAmount) {
+                                return '<span class="text-danger">' + item.titanAmount + ' ₺ </span>'
+                            }
+                            return kendo.toString(item.titanAmount, "N2") + " ₺";
                         }
                     },
 
@@ -364,13 +365,13 @@
                 var totalG = $("#totalGrid").data("kendoGrid");
                 totalG.dataSource.page(1);
 
-                $("#total").text(data.counts.total);
-                $("#titan").text(data.counts.titan);
-                $("#dist").text(data.counts.dist);
-                $("#env").text(data.counts.env);
-                $("#totalEarn").text($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x) + " ₺");
-                $("#fptEarn").text($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x) + " ₺");
-                $("#titanEarn").text($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x) + " ₺");
+                $("#total").text(kendo.toString(data.counts.total,"N0"));
+                $("#titan").text(kendo.toString(data.counts.titan,"N0"));
+                $("#dist").text(kendo.toString(data.counts.dist,"N0"));
+                $("#env").text(kendo.toString(data.counts.env,"N0"));
+                $("#totalEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x),"N2") + " ₺");
+                $("#fptEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x),"N2") + " ₺");
+                $("#titanEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x),"N2") + " ₺");
             });
         },
         inputValidate: function (companyId, month, year) {
@@ -395,10 +396,4 @@
         }
 
     }
-    $(document).on("ready", document, function () {
-      
-
-
-
-    })
 </script>

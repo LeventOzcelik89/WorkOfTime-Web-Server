@@ -14,19 +14,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
 	partial class WorkOfTimeDatabase
 	{
-		public PRD_ProductBounty[] GetPRD_ProductBountyByPersonIds(Guid[] personIds, Guid productId, DbTransaction tran = null)
-		{
-			using (var db = GetDB(tran))
-			{
-				return db.Table<PRD_ProductBounty>().Where(a => a.personId.In(personIds) && a.productId == productId).Execute().ToArray();
-			}
-		}
+		
 
-		public PRD_ProductBounty[] GetPRD_ProductBountyByPeriodAndPersonId(int month, int year, Guid productId, Guid[] personIds, DbTransaction tran = null)
+		public PRD_ProductBounty[] GetPRD_ProductBountyByPeriod(int month, int year, Guid productId, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
-				return db.Table<PRD_ProductBounty>().Where(a => a.month == month && a.year == year && a.productId == productId && a.personId.In(personIds)).Execute().ToArray();
+				return db.Table<PRD_ProductBounty>().Where(a => a.month == month && a.year == year && a.productId == productId ).Execute().ToArray();
 			}
 		}
 

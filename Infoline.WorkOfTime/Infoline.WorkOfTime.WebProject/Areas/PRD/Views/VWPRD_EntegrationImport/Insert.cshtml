@@ -1,10 +1,21 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_EntegrationImport
 @{
-    ViewBag.Title = "Kayıt Ekleme";
+    ViewBag.Title = "Hakediş Kaydı Ekleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<script data-selector="modalContainer">
 
-@using(Html.BeginForm("Insert", "VWPRD_EntegrationImport", FormMethod.Post, new Dictionary<string, object>() {  
+    function onChangeCompany(e) {
+        var companyId = this.value();
+        var companyElem = $('#company_Id').data("kendoDropDownList");
+        var basefilter = companyElem.options.dataSource.filter;
+        companyElem.enable(true);
+        companyElem.dataSource.filter(kendo.filterAdd(basefilter, 'pid', companyId, "eq"));
+    }
+
+
+</script>
+@using (Html.BeginForm("Insert", "VWPRD_EntegrationImport", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
@@ -15,348 +26,100 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
 
-
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="customerName">customerName</label>
+            <label class="control-label label-md req" for="companyId">Distribütör Seçiniz</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.customerName, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen customerName Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="customerCode">customerCode</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.customerCode, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen customerCode Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="productModel">productModel</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.productModel, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen productModel Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="distributorName">distributorName</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.distributorName, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen distributorName Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="distributorConfirmationDate">distributorConfirmationDate</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DatePickerFor(model => model.distributorConfirmationDate).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen distributorConfirmationDate Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.distributor_id)
+		.OptionLabel("Lütfen Distribütör seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Distribütör"))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+        .Events(x=>x.Change("onChangeCompany"))
+		.Execute()
             )
         </div>
     </div>
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="imei">imei</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.imei, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen imei Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="customerType">customerType</label>
+            <label class="control-label label-md req" for="companyId">Firma Cari</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.customerType, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen customerType Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="contractStartDate">contractStartDate</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DatePickerFor(model => model.contractStartDate).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen contractStartDate Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.company_Id)
+		.OptionLabel("Lütfen Firma Cari seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+        .Enable(false)
+		.Execute()
             )
         </div>
     </div>
 
-
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="contractEndDate">contractEndDate</label>
+            <label class="control-label label-md" for="imei">Imei/Seri Numarası</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DatePickerFor(model => model.contractEndDate).HtmlAttributes(new Dictionary<string, object>() 
+            @Html.TextBoxFor(model => model.imei, new Dictionary<string, object>()
             {
                 {"class", "form-control"},
-                {"placeholder", "Lütfen contractEndDate Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
-            )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="contractCode">contractCode</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.contractCode, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen contractCode Girin.."},
+                {"placeholder", "Lütfen Imei/Seri Numarası Girin.."},
             }).Validate(Validations.Required)
         </div>
     </div>
-
-
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="productGroup">productGroup</label>
+            <label class="control-label label-md req" for="month">Ay</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.productGroup, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen productGroup Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="sellingChannelType">sellingChannelType</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.sellingChannelType, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen sellingChannelType Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="distributorCode">distributorCode</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.distributorCode, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen distributorCode Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="sellingQuantity">sellingQuantity</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.sellingQuantity, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen sellingQuantity Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="month">month</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.month, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen month Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="year">year</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.year, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen year Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="companyId_Title">companyId_Title</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.companyId_Title).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen companyId_Title seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
+            @(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.month)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Ayı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Month.ToString())
+			   .Execute()
              )
         </div>
     </div>
 
-
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="inventoryId_Title">inventoryId_Title</label>
+            <label class="control-label label-md req" for="year">Yıl</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.inventoryId_Title).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen inventoryId_Title seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
+            @(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.year)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Yılı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Year.ToString())
+			   .Execute()
              )
         </div>
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="distributor_Title">distributor_Title</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.distributor_Title).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen distributor_Title seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
 
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>

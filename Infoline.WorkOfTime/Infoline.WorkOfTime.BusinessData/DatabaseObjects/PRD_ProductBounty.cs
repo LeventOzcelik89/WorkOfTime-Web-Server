@@ -7,7 +7,6 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public double? amount { get; set;}
         public Guid? companyId { get; set;}
-        public Guid? personId { get; set;}
         public Guid? productId { get; set;}
         public int? year { get; set;}
         public int? month { get; set;}
