@@ -266,6 +266,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                         }
                     }
                 }
+                var isExistDist = db.GetCMP_CompanyByCode(item.distributorCode);
+                if (isExistDist == null) {
+                    existError.Add(new ExcelResult
+                    {
+                        rowNumber = excelResult.rowNumber,
+                        status = false,
+                        message = $"{item.distributorCode} kodlu distribütör yoktur!"
+                    });
+                    continue;
+
+
+                }
                 var contractStarDate = new DateTime(1999, 1, 1);
                 var distributorConfirmationDate = new DateTime(1999, 1, 1);
                 var contractDateParsed = DateTime.TryParse(item.contractStartDate, out contractStarDate);
