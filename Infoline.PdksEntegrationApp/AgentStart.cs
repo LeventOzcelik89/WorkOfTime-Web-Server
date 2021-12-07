@@ -20,13 +20,13 @@ namespace Infoline.PdksEntegrationApp
         public void Run()
         {
 
-            var taskProcessZKTEcoSF300Entegration = new Task(() =>
+            var taskProcessPdksDevicesEntegration = new Task(() =>
             {
                 new PdksDevicesEntegration().Run();
             });
-            Tasks.Add(taskProcessZKTEcoSF300Entegration);
+            Tasks.Add(taskProcessPdksDevicesEntegration);
 
-            taskProcessZKTEcoSF300Entegration.Start();
+            taskProcessPdksDevicesEntegration.Start();
         }
 
         protected override void OnStart(string[] args)
