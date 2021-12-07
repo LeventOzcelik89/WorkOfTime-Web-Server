@@ -3,7 +3,6 @@ using Infoline.WorkOfTime.BusinessAccess;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
 namespace System.Web.Mvc
 {
     public class ColumnInfoAttribute : Attribute
@@ -24,7 +23,6 @@ namespace System.Web.Mvc
             Info = info;
         }
     }
-
     public static class ExcelHelper
     {
         public class ColumnInfo
@@ -38,21 +36,17 @@ namespace System.Web.Mvc
             public string Description { get; set; }
             public string Info { get; set; }
         }
-
         public static string GetSchema(Type excelClass, string tableName = "")
         {
             return Infoline.Helper.Json.Serialize(GetColumnInfo(excelClass, tableName));
         }
-
         public static ColumnInfo[] GetColumnInfo(Type excelClass, string tableName = "")
         {
-
             var list = new List<ColumnInfo>();
             foreach (var item in excelClass.GetProperties().OrderBy(a => a.MetadataToken))
             {
                 var column = new ColumnInfo();
                 column.Name = item.Name;
-
                 if (item.PropertyType.IsGenericType && item.PropertyType.GetGenericTypeDefinition() == typeof(Nullable<>))
                 {
                     column.Type = item.PropertyType.GetGenericArguments()[0].Name;
@@ -61,32 +55,25 @@ namespace System.Web.Mvc
                 {
                     column.Type = item.PropertyType.Name;
                 }
-
                 column.Alias = item.GetCustomAttribute<ColumnInfoAttribute>().Alias;
                 column.DefaultValue = item.GetCustomAttribute<ColumnInfoAttribute>().DefaultValue;
                 column.Required = item.GetCustomAttribute<ColumnInfoAttribute>().Required;
                 column.Unique = item.GetCustomAttribute<ColumnInfoAttribute>().IsUnique;
                 column.Info = item.GetCustomAttribute<ColumnInfoAttribute>().Info;
-
                 if (column.Type == "DateTime")
                 {
                     column.Description = " Örnek : (12.03.1996)";
                 }
-
                 if (column.Type == "Double")
                 {
                     column.Description = " Örnek : (1234.45)";
                 }
-
                 if (column.Type == "Boolean")
                 {
                     column.Description = " (1 veya 0)";
                 }
-
-
                 list.Add(column);
             }
-
             if (!string.IsNullOrEmpty(tableName) && TenantConfig.Tenant.Config.CustomProperty.ContainsKey(tableName))
             {
                 var props = TenantConfig.Tenant.Config.CustomProperty[tableName];
@@ -105,7 +92,6 @@ namespace System.Web.Mvc
             return list.ToArray();
         }
     }
-
     public class SH_UserExcel
     {
         [ColumnInfoAttribute("İsim")]
@@ -137,7 +123,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("İşe Giriş Tarihi")]
         public DateTime? startDate { get; set; }
     }
-
     public class SH_UserOtherExcel
     {
         [ColumnInfoAttribute("İsim")]
@@ -155,7 +140,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Yaşadığı İlçe")]
         public string town { get; set; }
     }
-
     public class CMP_CompanyExcel
     {
         [ColumnInfoAttribute("İşletme Kodu *", isUnique: true)]
@@ -187,10 +171,9 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Açık Adres")]
         public string openAddress { get; set; }
     }
-
     public class PRD_StockTaskPlanExcel
     {
-        [ColumnInfoAttribute("Abone Numarası *",isUnique:true)]
+        [ColumnInfoAttribute("Abone Numarası *", isUnique: true)]
         public string code { get; set; }
         [ColumnInfoAttribute("İşletme")]
         public string company { get; set; }
@@ -211,7 +194,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Adres")]
         public string address { get; set; }
     }
-
     public class CMP_OtherCompanyExcel
     {
         [ColumnInfoAttribute("İşletme Kodu *", isUnique: true)]
@@ -251,13 +233,11 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Yetkili 2 Telefon")]
         public string responsible2_Phone { get; set; }
     }
-
     public class PRD_BrandExcel
     {
         [ColumnInfoAttribute("Marka Adı", true, isUnique: true)]
         public string name { get; set; }
     }
-
     public class PRD_ProductExcel
     {
         [ColumnInfoAttribute("Kodu", isUnique: true)]
@@ -289,7 +269,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Para Birimi")]
         public string currency { get; set; }
     }
-
     public class CMP_StorageExcel
     {
         [ColumnInfoAttribute("Depo/Şube Kodu  *", isUnique: true)]
@@ -311,7 +290,6 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Adres")]
         public string address { get; set; }
     }
-
     public class PA_TransactionLedgerExcel
     {
         [ColumnInfoAttribute("İşletme Kodu")]
@@ -333,42 +311,39 @@ namespace System.Web.Mvc
         [ColumnInfoAttribute("Açıklama")]
         public string description { get; set; }
     }
-
     public class PRD_EntegrationImportExcel
     {
+        [ColumnInfoAttribute("Imei", true)]
+        public string imei { get; set; }
+        [ColumnInfoAttribute("Cihaz Modeli", true)]
+        public string productModel { get; set; }
+        [ColumnInfoAttribute("Bayi Kodu", true)]
+        public string customerCode { get; set; }
+        [ColumnInfoAttribute("Distributor Kodu")]
+        public string distributorCode { get; set; }
+        [ColumnInfoAttribute("Ay")]
+        public int? Month { get; set; }
+        [ColumnInfoAttribute("Yıl")]
+        public int? Year { get; set; }
         [ColumnInfoAttribute("Bayi Adi")]
         public string customerName { get; set; }
-        [ColumnInfoAttribute("Bayi Kodu")]
-        public string customerCode { get; set; }
-        [ColumnInfoAttribute("Cihaz Modeli")]
-        public string productModel { get; set; }
         [ColumnInfoAttribute("Distributor Adi")]
         public string distributorName { get; set; }
         [ColumnInfoAttribute("Distributor Onay Tarihi")]
         public string distributorConfirmationDate { get; set; }
-        [ColumnInfoAttribute("Imei")]
-        public string imei { get; set; }
-         [ColumnInfoAttribute("Müsteri Tipi")]
+        [ColumnInfoAttribute("Müsteri Tipi")]
         public string customerType { get; set; }
         [ColumnInfoAttribute("Sözlesme Baslangiç Tarihi")]
         public string contractStartDate { get; set; }
-
         [ColumnInfoAttribute("Sözlesme Numarasi")]
         public string contractCode { get; set; }
-
         [ColumnInfoAttribute("Ürün Grubu")]
         public string productGroup { get; set; }
-       
         [ColumnInfoAttribute("Satis Kanali Detayi")]
         public string sellingChannelType { get; set; }
-        [ColumnInfoAttribute("Distributor Kodu")]
-        public string distributorCode { get; set; }
         [ColumnInfoAttribute("Toplam Satis Adedi")]
         public int? sellingQuantity { get; set; }
-
     }
-
-
     public class ExcelResult
     {
         public bool status { get; set; }

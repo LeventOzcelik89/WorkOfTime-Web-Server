@@ -375,8 +375,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var headers = new SummaryHeadersTaskNew
                 {
-                    AllTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
-                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    AllTask = db.Table<VWFTM_Task>().Where(a => (a.assignUserId == null && a.assignableUserIds.Contains(userId.ToString().ToUpper())) || a.assignUserId == userId).Count(),
+                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operator':'Or'},'Operand2':{'Operand1':'searchField','Operator':'Like','Operand2':'%%'},'Operator':'And'}}",
 
                     WaitingTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds.Contains(userId.ToString().ToUpper()) && a.isComplete == false).Count(),
                     WaitingTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':null},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
@@ -391,17 +391,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
-                    title = "Üstlenebileceğim Görevler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
-                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds.Contains(userId.ToString().ToUpper()) && a.isComplete == false).Count(),
+                    title = "Üstlendiğim Görevler",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
                     isActive = true
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
-                    title = "Üstlendiğim Görevler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
-                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
+                    title = "Üstlenebileceğim Görevler",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds.Contains(userId.ToString().ToUpper()) && a.isComplete == false).Count(),
                     isActive = true
                 });
 
@@ -439,8 +439,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var headers = new SummaryHeadersTaskNew
                 {
-                    AllTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds == null && a.isComplete == false).Count(),
-                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    AllTask = db.Table<VWFTM_Task>().Count(),
+                    AllTaskFilter = "{'Filter':{'Operand1':'searchField','Operator':'Like','Operand2':'%%'}}",
 
                     WaitingTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
                     WaitingTaskFilter = "{'Filter':{'Operand1':{{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'30'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'26'},'Operator':'And'}},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
@@ -463,17 +463,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
-                    title = "Üstlenilmeyi Bekleyenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNotNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
-                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds != null && a.isComplete == false).Count(),
+                    title = "Devam Edenler",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
                     isActive = true
                 });
 
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
-                    title = "Devam Edenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNotNull','Operand2':'null'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.CozumBildirildi + "'},'Operator':'And'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'NotEqual','Operand2':'" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
-                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId != null && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu && a.isComplete == false).Count(),
+                    title = "Üstlenilmeyi Bekleyenler",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'IsNull','Operand2':'null'},'Operand2':{'Operand1':'assignableUserIds','Operator':'IsNotNull','Operand2':'null'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
+                    count = db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.assignableUserIds != null && a.isComplete == false).Count(),
                     isActive = true
                 });
 
@@ -528,7 +528,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var headers = new SummaryHeadersTaskNew
                 {
                     AllTask = db.Table<VWFTM_Task>().Where(a => a.customerId == companyId).Count(),
-                    AllTaskFilter = "{'Filter':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'}}",
+                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':'searchField','Operator':'Like','Operand2':'%%'},'Operand2':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'},'Operator':'And'}}",
 
                     WaitingTask = db.Table<VWFTM_Task>().Where(a => a.customerId == companyId && a.isComplete == false).Count(),
                     WaitingTaskFilter = "{'Filter':{'Operand1':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",
@@ -569,14 +569,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTaskNew GetVWPA_TaskYukleniciRequestsCountFilter(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTaskNew GetVWPA_TaskYukleniciRequestsCountFilter(Guid userId, Guid companyId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
                 var headers = new SummaryHeadersTaskNew
                 {
-                    //AllTask = db.Table<VWFTM_Task>().Where(a => a.customerId == companyId).Count(),
-                    //AllTaskFilter = "{'Filter':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'}}",
+                    AllTask = db.Table<VWFTM_Task>().Where(a => (a.customerId == companyId && a.assignableUserIds.Contains(userId.ToString().ToUpper())) || a.assignUserId == userId).Count(),
+                    AllTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'},'Operand2':{'Operand1':'assignableUserIds','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'Or'},'Operand2':{'Operand1':'assignUserId','Operator':'Like','Operand2':'%" + userId.ToString() + "%'},'Operator':'Or'},'Operand2':{'Operand1':'searchField','Operator':'Like','Operand2':'%%'},'Operator':'And'}}",
 
                     WaitingTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.lastOperationStatus == (int)EnumFTM_TaskOperationStatus.CozumBildirildi && a.isComplete == false).Count(),
                     WaitingTaskFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'lastOperationStatus','Operator':'Equal','Operand2':'30'},'Operator':'And'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'0'},'Operator':'And'}}",

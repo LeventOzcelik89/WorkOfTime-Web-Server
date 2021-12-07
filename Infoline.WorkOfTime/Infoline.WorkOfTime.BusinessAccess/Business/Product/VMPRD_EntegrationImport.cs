@@ -24,6 +24,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWPRD_EntegrationImportById(this.id);
+            var findDist = db.GetCMP_CompanyById(distributor_id.Value);
+            var findCompany = db.GetCMP_CompanyById(company_Id.Value);
+            var findProduct = db.GetPRD_ProductById(product_Id.Value);
+            distributorCode = findDist.code;
+            customerCode = findCompany.code;
+            productModel = findProduct.name;
             if (data == null)
             {
                 this.created = DateTime.Now;
@@ -51,15 +57,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         private ResultStatus Update()
         {
-            var result = new ResultStatus {result =true };
+            var result = new ResultStatus { result = true };
             db = db ?? new WorkOfTimeDatabase();
             var isExist = db.GetPRD_EntegrationImportByImei(this.imei);
-            if (isExist!=null&&isExist.id!=id)
+            if (isExist != null && isExist.id != id)
             {
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Aynı imei numarası kullanılmıştır!"
+                    message = "Aynı imei ile daha önce hakediş bildirilmiştir!"
                 };
             }
             result &= db.UpdatePRD_EntegrationImport(new PRD_EntegrationImport().B_EntityDataCopyForMaterial(this));
@@ -83,17 +89,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         private ResultStatus Insert()
         {
-            var result = new ResultStatus {result=true };
+            var result = new ResultStatus { result = true };
             db = db ?? new WorkOfTimeDatabase();
             var isExist = db.GetPRD_EntegrationImportByImei(this.imei);
-            if (isExist!=null)
+            if (isExist != null)
             {
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Aynı imei numarası kullanılmıştır!"
+                    message = "Aynı imei ile daha önce hakediş bildirilmiştir!"
                 };
             }
+          
             result &= db.InsertPRD_EntegrationImport(new PRD_EntegrationImport().B_EntityDataCopyForMaterial(this));
             if (!result.result)
             {
@@ -101,7 +108,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Dosya ekleme işlemi başarısız oldu."
+                    message = "Hakediş Bildirimi Ekleme İşlemi Başarısız Oldu."
                 };
             }
             else
@@ -109,25 +116,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Dosyadan ekleme işlemi başarılı oldu."
+                    message = "Hakediş Bildirimi Ekleme İşlemi Başarıyla Tamamlandı." 
                 };
             }
         }
-
-        public ResultStatus Delete(Guid id, DbTransaction transaction = null) {
+        public ResultStatus Delete(Guid id, DbTransaction transaction = null)
+        {
 
             var db = new WorkOfTimeDatabase();
             var trans = transaction ?? db.BeginTransaction();
             var result = new ResultStatus { result = true };
             var isExist = db.GetPRD_EntegrationImportById(id);
-            if (isExist==null)
+            if (isExist == null)
             {
                 return new ResultStatus { result = false, message = "Böyle bir kayıt yoktur" };
             }
-            result &= db.DeletePRD_EntegrationImport(isExist,trans);
+            result &= db.DeletePRD_EntegrationImport(isExist, trans);
             if (result.result)
             {
-                if (transaction==null)
+                if (transaction == null)
                 {
                     trans.Commit();
                 }

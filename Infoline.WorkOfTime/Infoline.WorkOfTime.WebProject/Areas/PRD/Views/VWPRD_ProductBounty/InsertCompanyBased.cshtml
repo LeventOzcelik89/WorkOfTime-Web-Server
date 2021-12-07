@@ -1,6 +1,6 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductBountyModel
 @{
-    ViewBag.Title = "Ürüne Prim Tanımla";
+    ViewBag.Title = "Toplu Prim Tanımla";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <script type="text/javascript" data-selector="modalContainer">
@@ -60,13 +60,14 @@
                             "pageSize": 100,
                             "page": 1,
                             "total": 0
-                         
+
                         },
                         "dataTextField": "title",
                         "delay": 1000,
                         "filter": "contains",
                         "dataValueField": "id",
                         "optionLabel": "Lütfen Prim Tanımlanacak Ay Seçiniz..",
+                            "value":@DateTime.Now.Month
                     });
             company.find('[data-company="year"]')
                 .attr('name', 'Bounty[' + page.Counter + '].year')
@@ -86,6 +87,7 @@
                         "filter": "contains",
                         "dataValueField": "id",
                         "optionLabel": "Lütfen Prim Tanımlanacak Yıl Seçiniz..",
+                        "value":@DateTime.Now.Year
                     });
             company.find('[data-company="amount"]')
                 .attr('name', 'Bounty[' + page.Counter + '].amount')
@@ -153,10 +155,11 @@
             </div>
         </td>
         <td>
-            <button class="btn btn-md btn-danger" onclick="page.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+            <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
         </td>
     </tr>
 </script>
+
 @using (Html.BeginForm("Insert", "VWPRD_ProductBounty", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
@@ -172,6 +175,10 @@
 
         .modal-lg {
             width: 95%;
+        }
+
+        .k-numerictextbox {
+            width: 100% !important;
         }
 
         table.table-custom {
@@ -263,20 +270,26 @@
             <div class="alert alert-info text-center">
                 <b>Bilgilendirme</b>
                 <br>
-                Sadece firma-cari seçerseniz, firma-cari'nin altında olan tüm bayilere prim tutarı uygulanacaktır. Eğer bağlı firma seçerseniz o firmaya yönelik özel prim kuralı
-                oluşturulucaktır.
+                • Seçilen Firma-Cari'nin altında olan tüm bayilere prim tutarı uygulanacaktır.<br />
+                <b>
+                    • Eğer bağlı firma seçerseniz o firmaya yönelik özel prim kuralı
+                    oluşturulacaktır.
+                </b>
+
             </div>
         </div>
     </div>
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.fromCompanyBased)
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="productId">Ürün</label>
-        </div>
-        <div class="col-md-8">
-            @(
+    <fieldset>
+        <legend>Prim Bilgileri</legend>
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="productId">Ürün</label>
+            </div>
+            <div class="col-md-8">
+                @(
                   Html.Akilli()
                   .MultiSelectFor(model => model.Products)
                   .Placeholder("Lütfen Ürün seçiniz..")
@@ -289,14 +302,14 @@
                   .Filter<PRD_Product>(x=>x.stockType==(int)EnumPRD_ProductStockType.SeriNoluTakip)
                   .Execute()
                 )
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md req" for="companyId">Firma Cari</label>
-        </div>
-        <div class="col-md-8">
-            @(
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md req" for="companyId">Firma Cari</label>
+            </div>
+            <div class="col-md-8">
+                @(
         Html.Akilli()
         .DropDownListFor(model => model.companyId)
         .OptionLabel("Lütfen Firma Cari seçiniz..")
@@ -307,17 +320,17 @@
         .Events(e => { e.Change("onChangeCompany"); })
         .Sort(x => x.Add("fullName").Ascending())
         .Validate(Validations.Required)
-        
+
         .Execute()
             )
+            </div>
         </div>
-    </div>
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="personIds">Bağlı Firmalar</label>
-        </div>
-        <div class="col-md-8">
-            @(
+        <div class="form-group">
+            <div class="col-md-4">
+                <label class="control-label label-md" for="personIds">Bağlı Firmalar</label>
+            </div>
+            <div class="col-md-8">
+                @(
 		 Html.Akilli()
 		.MultiSelectFor(a => a.Companies)
 		.Placeholder("Lütfen Bağlı Firma(ları) seçiniz..")
@@ -329,26 +342,28 @@
 		.Execute()
         .Enable(false)
             )
+            </div>
         </div>
-    </div>
+    </fieldset>
+
     <fieldset id="companyId">
-        <legend>Ay-Yıl Primleri</legend>
+        <legend>Dönem Bilgileri</legend>
         <div class="row">
             <div class="col-sm-12">
                 <div class="clearfix">
-                    <table class="table table-custom" cellpadding="1" cellspacing="0">
+                    <table class="table table-bordered" cellpadding="1" cellspacing="0">
                         <thead>
                             <tr>
                                 <th width="32%">Ay</th>
                                 <th width="32%">Yıl</th>
-                                <th width="32%">Prim Tutarı</th>
-                                <th width="4%"></th>
+                                <th width="32%">Prim Tutarı(Adet Başına)</th>
+                                <th width="4%">  <button data-original-title="Yeni Prim Dönemi Ekle" type="button" id="newProduct" class="btn btn-md btn-warning" onclick="page.addRow([])"><i class="fa fa-plus"></i> </button></th>
                             </tr>
                         </thead>
                         <tbody id="RowContainer_company">
                         </tbody>
                     </table>
-                    <button type="button" id="newProduct" class="btn btn-md btn-warning pull-right" onclick="page.addRow([])"><i class="fa fa-plus"></i> YENİ KAYIT EKLE </button>
+
                 </div>
             </div>
         </div>

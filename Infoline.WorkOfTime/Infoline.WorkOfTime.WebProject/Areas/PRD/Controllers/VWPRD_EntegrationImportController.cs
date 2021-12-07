@@ -8,11 +8,13 @@ using System.Web.Mvc;
 using Infoline.Framework.Database;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_EntegrationImportController : Controller
     {
-        [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         public ActionResult Index()
         {
             return View();
@@ -24,7 +26,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
         [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
         public JsonResult ClaimReportDataSource(Guid companyId, int year, int month)
-         {
+        {
             var db = new WorkOfTimeDatabase();
             var getCompany = db.GetCMP_CompanyById(companyId);
             if (getCompany == null)
@@ -119,7 +121,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 bountyProduct = x.productId_Title,
                 bountyAmount = x.amount,
                 totalCount = getImports.Where(a => a.product_Id == x.productId).Count(),
-                totalAmount =  getImports.Where(a => a.product_Id == x.productId).Count()* x.amount,
+                totalAmount = getImports.Where(a => a.product_Id == x.productId).Count() * x.amount,
                 distCount = getImports.Where(a => a.entegrationAction_id.HasValue && a.product_Id == x.productId).Count(),
                 distAmount = getImports.Where(a => a.entegrationAction_id.HasValue && a.product_Id == x.productId).Count() * x.amount,
                 titanCount = getImports.Where(a => a.titanActivated_id.HasValue && a.product_Id == x.productId).Count(),
@@ -140,7 +142,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(returnObject, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Hakediş Veri Kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+        [PageInfo("Hakediş Veri Kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -152,38 +154,35 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_EntegrationImportCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         public ActionResult Insert(VMPRD_EntegrationImport item, bool? isPost)
         {
             return View(item.Load());
         }
-        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMPRD_EntegrationImport item)
         {
             var db = new WorkOfTimeDatabase();
+            var serialNumberIsExist = db.GetPRD_InventoryBySerialCodeOrImei(item.imei, item.imei);
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-            var findDist = db.GetCMP_CompanyById(item.distributor_id.Value);
-            var findCompany= db.GetCMP_CompanyById(item.company_Id.Value);
-            item.distributorCode = findDist.code;
-            item.customerCode = findCompany.code;
             var dbresult = item.Save(userStatus.user.id);
+            var message = serialNumberIsExist == null ? "Bu IMEI numarasının sistemde karşılığı yoktur!" : "";
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Yeni hakediş bildirimi eklendi") : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success(dbresult.message + $"\n {message}") : feedback.Warning(dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         public ActionResult Update(VMPRD_EntegrationImport item, bool? isPost)
         {
-           
             return View(item.Load());
         }
-        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMPRD_EntegrationImport item)
         {
@@ -203,7 +202,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Dosyadan ekleme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+        [PageInfo("Dosyadan ekleme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
         [HttpPost]
         public JsonResult Import(string model)
         {
@@ -221,6 +220,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             foreach (var item in excel)
             {
+
+
                 var companyCode = item.customerCode;
                 excelResult.rowNumber++;
                 var isExistBefore = db.Get_PRDEntegrationImportByImei(item.imei);
@@ -234,8 +235,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     });
                     continue;
                 }
-                var isExist = db.GetCMP_CompanyByCode(item.customerCode);
-                if (isExist == null)
+                var isExistDist = db.GetCMP_CompanyByCode(item.distributorCode);
+                if (isExistDist == null)
+                {
+                    existError.Add(new ExcelResult
+                    {
+                        rowNumber = excelResult.rowNumber,
+                        status = false,
+                        message = $"{item.distributorCode} kodlu distribütör yoktur!"
+                    });
+                    continue;
+                }
+                var isExistCari = db.GetCMP_CompanyByCode(item.customerCode);
+                if (isExistCari == null)
                 {
                     var isExistStorage = db.GetCMP_StorageByCode(item.customerCode);
                     if (isExistStorage == null)
@@ -281,8 +293,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 }
                 var items = new PRD_EntegrationImport().B_EntityDataCopyForMaterial(item);
                 items.contractStartDate = contractStarDate;
-                items.year = contractStarDate.Year;
-                items.month = contractStarDate.Month;
+                items.year = item.Year > 0 ? item.Year : contractStarDate.Year;
+                items.month = item.Month > 0 ? item.Month : contractStarDate.Month;
                 items.created = DateTime.Now;
                 items.createdby = userStatus.user.id;
                 items.customerCode = companyCode;
@@ -305,16 +317,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result1, JsonRequestBehavior.AllowGet);
         }
-
-        [PageInfo("Hakediş Silme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
-        public JsonResult Delete(Guid[] id) {
+        [PageInfo("Hakediş Doğrulama metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        public JsonResult VerifyData(Guid distId, Guid companyId, Guid productId, string imei, int month, int year)
+        {
+            return Json("", JsonRequestBehavior.AllowGet);
+        }
+        [PageInfo("Hakediş Silme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        public JsonResult Delete(Guid[] id)
+        {
             var result = new ResultStatus { result = true };
             var db = new WorkOfTimeDatabase();
             var trans = db.BeginTransaction();
             var model = new VMPRD_EntegrationImport();
             foreach (var item in id)
             {
-                result= model.Delete(item, trans);
+                result = model.Delete(item, trans);
             }
             if (result.result)
             {
@@ -328,11 +345,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             else
             {
+                Log.Error(result.message);
                 trans.Rollback();
                 return Json(new ResultStatusUI
                 {
                     Result = false,
-                    FeedBack = new FeedBack().Warning(result.message)
+                    FeedBack = new FeedBack().Warning("Hakediş Bildirimi Silme İşlemi Başarısız Oldu!")
                 }, JsonRequestBehavior.AllowGet);
             }
 
