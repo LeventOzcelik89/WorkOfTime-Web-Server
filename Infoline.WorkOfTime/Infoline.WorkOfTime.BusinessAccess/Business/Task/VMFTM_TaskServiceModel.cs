@@ -523,7 +523,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 if (user.CompanyId == null)
                 {
-                    return null;
+                    return new SummaryHeadersTaskNew();
                 }
 
                 return _db.GetVWPA_TaskCustomerRequestsCountFilter(new Guid(user.CompanyId.ToString()));
@@ -532,7 +532,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.YukleniciPersoneli)).ToArray();
             if (userRoles.Count() > 0)
             {
-                return _db.GetVWPA_TaskYukleniciRequestsCountFilter(userId);
+                return _db.GetVWPA_TaskYukleniciRequestsCountFilter(userId, new Guid(user.CompanyId.ToString()));
             }
 
             return _db.GetVWPA_TaskMyRequestsCountFilter(userId);
