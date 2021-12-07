@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success("Prim Tanımlama İşlemi Başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -114,17 +114,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
         [HttpPost]
         [PageInfo("Ürün Tanımı Silme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
-        public JsonResult Delete(VMPRD_ProductBountyModel item)
+        public JsonResult Delete(Guid[] id)
         {
             var db = new WorkOfTimeDatabase();
+            var trans = db.BeginTransaction();
             var feedback = new FeedBack();
-            var dbresult = item.Delete();
-            var result = new ResultStatusUI
+            var result = new ResultStatus { result = true };
+            var model = new VMPRD_ProductBountyModel();
+            foreach (var i in id)
             {
-                Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                model.id = i;
+                result &= model.Delete(trans);
+            }
+            if (result.result)
+            {
+                trans.Commit();
+            }
+            else
+            {
+                trans.Rollback();
+            }
+            var result1 = new ResultStatusUI
+            {
+                Result = result.result,
+                FeedBack = result.result ? feedback.Success("Prim Tanımı Silme İşlemi Başarıyla Tamamlandı") : feedback.Warning(result.message)
             };
-            return Json(result, JsonRequestBehavior.AllowGet);
+
+            return Json(result1, JsonRequestBehavior.AllowGet);
         }
     }
 }
