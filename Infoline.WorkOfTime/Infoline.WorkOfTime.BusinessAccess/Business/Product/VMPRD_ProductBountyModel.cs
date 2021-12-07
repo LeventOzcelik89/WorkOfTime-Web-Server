@@ -82,7 +82,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
             var rs = new ResultStatus { result = true };
-            var productBounty = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value,this.companyId.Value);
+            var productBounty = db.GetPRD_ProductBountiesByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value,this.companyId.Value);
             if (productBounty.Count() > 0)
             {
                 return new ResultStatus { result = false, message = "Aynı cariye ve ürüne, belirtilen dönemde prim tanımlaması yapılmıştır!" };
