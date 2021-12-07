@@ -515,7 +515,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.MailingUsers = new string[] { "ipak@atlantisbilisim.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1147:
-                    this.MailingUsers = new string[] { "muhittinkaleli89@gmail.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
+                    this.MailingUsers = new string[] {"ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1148:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
