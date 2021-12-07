@@ -37,7 +37,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Sözlesme Baslangiç Tarihi
         /// </summary>
         public DateTime? contractStartDate { get; set;}
-        public DateTime? contractEndDate { get; set;}
         /// <summary>
         /// Sözlesme Numarasi
         /// </summary>
