@@ -575,6 +575,11 @@ namespace Infoline.WorkOfTime.Controllers
             return Content(Infoline.Helper.Json.Serialize(DateTime.Now), "application/json");
         }
 
+        public ContentResult GetIdCode()
+        {
+            return Content(Infoline.Helper.Json.Serialize(BusinessExtensions.B_GetIdCode()), "application/json");
+        }
+
         public ContentResult GetFiles()
         {
             var link = Server.MapPath("/");
