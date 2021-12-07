@@ -925,7 +925,7 @@ namespace Infoline.WorkOfTime.Controllers
 
         public ContentResult GetYears()
         {
-            var maxYear = DateTime.Now.Year;
+            var maxYear = DateTime.Now.Year+1;
             var minYear = DateTime.Now.Year - 30;
             var years = new List<object>();
             for (int i = maxYear; i >= minYear; i--)

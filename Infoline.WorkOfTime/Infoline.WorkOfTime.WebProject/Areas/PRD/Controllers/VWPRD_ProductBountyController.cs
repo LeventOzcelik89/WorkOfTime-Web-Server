@@ -1,30 +1,20 @@
-﻿using BotDetect;
+﻿using System.Linq;
 using Infoline.Framework.Database;
-using Infoline.Helper;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web.Mvc;
-using System.Web.UI.WebControls;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_ProductBountyController : Controller
     {
-
         [PageInfo("Ürün Prim Listeleme Sayfası", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public ViewResult Index()
         {
             return View();
-
-
         }
-
 
         [PageInfo("Ürün Prim Tanımları DataSource", SHRoles.Personel, SHRoles.BayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
@@ -55,15 +45,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = item.Load();
             return View(data);
         }
-
         [PageInfo("Ürün Prim Tanımı Ekleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public ActionResult Insert(VMPRD_ProductBountyModel item)
         {
             var data = item.Load();
             return View(data);
         }
-
-
         [PageInfo("Ürün Prim Tanımı Ekleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public ActionResult InsertCompanyBased(VMPRD_ProductBountyModel item)
         {
@@ -71,7 +58,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             item.fromCompanyBased = true;
             return View(data);
         }
-
         [HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Ürün Tanımı Ekleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli)]
         public JsonResult Insert(VMPRD_ProductBountyModel item, bool? isPost)
@@ -83,18 +69,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 Result = dbresult.result,
                 Object = item.id,
-                FeedBack = dbresult.result ? feedback.Success("Prim Tanımlama İşlemi Başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success("Prim Tanımlama İşlemi Başarılı") : feedback.Warning(dbresult.message)
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
         [PageInfo("Ürün Tanımı Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli)]
         public ActionResult Update(VMPRD_ProductBountyModel item)
         {
             var data = item.Load();
             return View(data);
         }
-
         [HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Ürün Tanımı Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaTalebi, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public JsonResult Update(VMPRD_ProductBountyModel item, bool? isPost)
@@ -108,10 +92,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                 Object = item.id,
                 FeedBack = dbresult.result ? feedback.Success(dbresult.message, false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning(dbresult.message)
             };
-
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
         [HttpPost]
         [PageInfo("Ürün Tanımı Silme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
         public JsonResult Delete(Guid[] id)
@@ -120,6 +102,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var trans = db.BeginTransaction();
             var feedback = new FeedBack();
             var result = new ResultStatus { result = true };
+            
             var model = new VMPRD_ProductBountyModel();
             foreach (var i in id)
             {
@@ -134,12 +117,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             {
                 trans.Rollback();
             }
+
             var result1 = new ResultStatusUI
             {
                 Result = result.result,
                 FeedBack = result.result ? feedback.Success("Prim Tanımı Silme İşlemi Başarıyla Tamamlandı") : feedback.Warning(result.message)
             };
-
             return Json(result1, JsonRequestBehavior.AllowGet);
         }
     }

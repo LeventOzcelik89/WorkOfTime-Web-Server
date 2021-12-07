@@ -4,7 +4,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <script data-selector="modalContainer">
-
     function onChangeCompany(e) {
         var companyId = this.value();
         var companyElem = $('#company_Id').data("kendoDropDownList");
@@ -12,8 +11,6 @@
         companyElem.enable(true);
         companyElem.dataSource.filter(kendo.filterAdd(basefilter, 'pid', companyId, "eq"));
     }
-
-
 </script>
 @using (Html.BeginForm("Insert", "VWPRD_EntegrationImport", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -25,10 +22,9 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md req" for="companyId">Distribütör Seçiniz</label>
+            <label class="control-label label-md req" for="distributor_id">Distribütör Seçiniz</label>
         </div>
         <div class="col-md-8">
             @(
@@ -67,7 +63,25 @@
             )
         </div>
     </div>
-
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="product_Id">Ürün</label>
+        </div>
+        <div class="col-md-8">
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.product_Id)
+		.OptionLabel("Lütfen Ürün Seçinizi seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('productTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+		.Execute()
+            )
+        </div>
+    </div>
     <div class="form-group">
         <div class="col-md-4">
             <label class="control-label label-md" for="imei">Imei/Seri Numarası</label>
@@ -98,7 +112,6 @@
              )
         </div>
     </div>
-
     <div class="form-group">
         <div class="col-md-4">
             <label class="control-label label-md req" for="year">Yıl</label>
@@ -117,10 +130,11 @@
              )
         </div>
     </div>
-
     <div class="buttons">
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
+        <button class="btn btn-md btn-success pull-right"  style="margin-left:10px" type="submit">Kaydet</button>
 
+
+    </div>
 }
+
