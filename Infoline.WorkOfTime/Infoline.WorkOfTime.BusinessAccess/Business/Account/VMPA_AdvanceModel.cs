@@ -479,7 +479,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (rulesUserStages.Count() > 0)
             {
                 var lastValidator = rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).ToArray();
-                var companyPersonDepart = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
+                var companyPersonDepart = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
                 foreach (var rulesStage in rulesUserStages)
                 {
                     if (rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).Count() > 0 && lastValidator.Count() > 0)
@@ -545,7 +545,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             {
                                 if (companyPersonDepart.Where(x => x.Manager6.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager6;
+                                    var manager = companyPersonDepart.Where(a => a.Manager6.HasValue).FirstOrDefault().Manager6;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
@@ -556,7 +560,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 else if (companyPersonDepart.Where(x => x.Manager5.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager5;
+                                    var manager = companyPersonDepart.Where(a => a.Manager5.HasValue).FirstOrDefault().Manager5;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
@@ -567,7 +575,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 else if (companyPersonDepart.Where(x => x.Manager4.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager4;
+                                    var manager = companyPersonDepart.Where(a => a.Manager4.HasValue).FirstOrDefault().Manager4;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
@@ -578,7 +590,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 else if (companyPersonDepart.Where(x => x.Manager3.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager3;
+                                    var manager = companyPersonDepart.Where(a => a.Manager3.HasValue).FirstOrDefault().Manager3;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
@@ -589,7 +605,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 else if (companyPersonDepart.Where(x => x.Manager2.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager2;
+                                    var manager = companyPersonDepart.Where(a => a.Manager2.HasValue).FirstOrDefault().Manager2;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)
@@ -600,7 +620,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 }
                                 else if (companyPersonDepart.Where(x => x.Manager1.HasValue).Count() > 0)
                                 {
-                                    var manager = companyPersonDepart.FirstOrDefault().Manager1;
+                                    var manager = companyPersonDepart.Where(a => a.Manager1.HasValue).FirstOrDefault().Manager1;
+                                    if (manager == null)
+                                    {
+                                        continue;
+                                    }
                                     var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
                                     var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
                                     if (getCompanyPerson == null)

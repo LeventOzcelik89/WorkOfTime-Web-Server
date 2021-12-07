@@ -30,6 +30,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWINV_CompanyPersonDepartments[] GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(Guid IdUser, int type, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWINV_CompanyPersonDepartments>().Where(a => (a.IdUser == IdUser && a.OrganizationType == type && a.IsBasePosition == true) &&
+                    ((a.StartDate <= DateTime.Now && a.EndDate >= DateTime.Now) || (a.StartDate <= DateTime.Now && a.EndDate == null))).OrderByDesc(x => x.created).Execute().ToArray();
+            }
+        }
+
 
         public INV_CompanyPersonDepartments[] GetINV_CompanyPersonDepartmentsInDepartmentId(Guid[] departmentId)
         {
