@@ -480,7 +480,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 headers.headerFilters.Filters.Add(new HeadersTaskItem
                 {
                     title = "Planlanmayı Bekleyenler",
-                    filter = "{'Filter':{'Operand1':{'Operand1':'planLater','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskPlanLater.Evet + "'}}}",
+                    filter = "{'Filter':{'Operand1':'planLater','Operator':'Equal','Operand2':'" + (int)EnumFTM_TaskPlanLater.Evet + "'}}",
                     count = db.Table<VWFTM_Task>().Where(a => a.planLater == (int)EnumFTM_TaskPlanLater.Evet).Count(),
                     isActive = false
                 });
