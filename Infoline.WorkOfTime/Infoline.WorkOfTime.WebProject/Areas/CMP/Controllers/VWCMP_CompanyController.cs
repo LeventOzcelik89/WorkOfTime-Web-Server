@@ -775,10 +775,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			{
 				var db = new WorkOfTimeDatabase();
 				var data = db.GetVWCMP_CompanyById(pid.Value);
-				if (data.pid.HasValue)
-				{
-					text += BreadCrumps(false, data.pid, data.pid_Title);
+                if (data!=null)
+                {
+					if (data.pid.HasValue)
+					{
+						text += BreadCrumps(false, data.pid, data.pid_Title);
+					}
 				}
+				
 			}
 			return text;
 		}

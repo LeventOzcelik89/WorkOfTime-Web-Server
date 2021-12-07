@@ -1,49 +1,61 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Web;
-
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMPRD_ProductBountyModel : VWPRD_ProductBounty
     {
-
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public Guid[] Companies { get; set; }
         public Guid[] Products { get; set; }
         public VWPRD_ProductBounty[] Bounty { get; set; }
         public bool fromCompanyBased { get; set; }
-
         public VMPRD_ProductBountyModel Load()
         {
-
             db = db ?? new WorkOfTimeDatabase();
             var productBounty = db.GetVWPRD_ProductBountyById(this.id);
-
             if (productBounty != null)
             {
                 this.B_EntityDataCopyForMaterial(productBounty, true);
             }
-
             return this;
         }
-        public ResultStatus Save(Guid? userId, HttpRequestBase request = null, DbTransaction trans = null)
-        {
 
-            db = db ?? new WorkOfTimeDatabase();
-            var productBounty = db.GetVWPRD_ProductBountyById(this.id);
-            var rs = new ResultStatus { result = true };
+        private ResultStatus Validator()
+        {
+            var errors = new List<string>();
             if (this.amount <= 0)
+            {
+                errors.Add("Prim Miktarı 0 veya küçük olamaz!");
+            }
+
+            if (errors.Count() > 0)
             {
                 return new ResultStatus
                 {
-                    result = false,
-                    message = "Prim Miktarı 0 veya küçük olamaz!"
+                    message = string.Join("\n", errors),
+                    result = false
                 };
             }
+            return new ResultStatus { result = true };
+        }
+
+        public ResultStatus Save(Guid? userId, HttpRequestBase request = null, DbTransaction trans = null)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var productBounty = db.GetVWPRD_ProductBountyById(this.id);
+            var rs = new ResultStatus { result = true };
+            var validate = Validator();
+            if (!validate.result)
+            {
+                return validate;
+            }
+
             if (productBounty == null)
             {
                 this.createdby = userId;
@@ -56,7 +68,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     rs = Insert(trans);
                 }
-
             }
             else
             {
@@ -64,21 +75,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.changed = DateTime.Now;
                 rs = Update(trans);
             }
-
             return rs;
         }
-
         private ResultStatus Insert(DbTransaction trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
             var rs = new ResultStatus { result = true };
-            var productBounty = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value, this.companyId.Value);
+            var productBounty = db.GetPRD_ProductBountiesByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value,this.companyId.Value);
             if (productBounty.Count() > 0)
             {
-                return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisinde daha önceden prim tanımlaması yapılmıştır." };
+                return new ResultStatus { result = false, message = "Aynı cariye ve ürüne, belirtilen dönemde prim tanımlaması yapılmıştır!" };
             }
-            rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty().B_EntityDataCopyForMaterial(this), transaction);
+            rs = db.InsertPRD_ProductBounty(this.B_ConvertType<PRD_ProductBounty>(), transaction);
             if (rs.result == true)
             {
                 if (trans == null) transaction.Commit();
@@ -86,6 +95,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
+                Log.Error(rs.message);
                 if (trans == null) transaction.Rollback();
                 Log.Error(rs.message);
                 return new ResultStatus { result = false, message = "Ürün Prim Tanımlama İşlemi başarısız." };
@@ -93,7 +103,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         private ResultStatus InsertMultiple(DbTransaction trans = null)
         {
-
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
             var rs = new ResultStatus { result = true };
@@ -109,7 +118,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return new ResultStatus { result = false, message = "Firma/Cari Boş Olamaz" };
             }
-
             foreach (var range in Bounty)
             {
                 foreach (var product in Products)
@@ -118,13 +126,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     {
                         foreach (var company in Companies)
                         {
-                            var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, company);
+                            var isExist = db.GetPRD_ProductBountiesByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, company);
                             if (isExist.Count() > 0)
                             {
                                 if (trans == null) transaction.Rollback();
                                 return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de prim tanımlaması yapılmıştır" };
                             }
-                            rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
+                            rs &= db.InsertPRD_ProductBounty(new PRD_ProductBounty
                             {
                                 amount = range.amount,
                                 month = range.month,
@@ -138,13 +146,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                     else
                     {
-                        var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, companyId.Value);
+                        var isExist = db.GetPRD_ProductBountiesByPeriodAndProductAndCompanyId(range.month.Value, range.year.Value, product, companyId.Value);
                         if (isExist.Count() > 0)
                         {
                             if (trans == null) transaction.Rollback();
-                            return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisin de seçilen müşteriye ait prim tanımlaması yapılmıştır" };
+                            return new ResultStatus { result = false, message = "Aynı cariye ve ürüne, belirtilen dönemde prim tanımlaması yapılmıştır!" };
                         }
-                        rs = db.InsertPRD_ProductBounty(new PRD_ProductBounty
+                        rs &= db.InsertPRD_ProductBounty(new PRD_ProductBounty
                         {
                             amount = range.amount,
                             month = range.month,
@@ -164,6 +172,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
+                Log.Error(rs.message);
                 if (trans == null) transaction.Rollback();
                 Log.Error(rs.message);
                 return new ResultStatus { result = false, message = "Ürün Prim Tanımlama İşlemi başarısız." };
@@ -173,10 +182,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
+            var isExist = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value, this.companyId.Value);
+            if (isExist != null && isExist.id != id)
+            {
+                return new ResultStatus { result = false, message = "Aynı cariye ve ürüne, belirtilen dönemde prim tanımlaması yapılmıştır!" };
+            }
             var productBounty = new PRD_ProductBounty().B_EntityDataCopyForMaterial(this, true);
-
-            var rs = db.UpdatePRD_ProductBounty(productBounty, true, transaction);
-
+            var rs = db.UpdatePRD_ProductBounty(productBounty, false, transaction);
             if (rs.result == true)
             {
                 if (trans == null) transaction.Commit();
@@ -184,6 +196,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
+                Log.Error(rs.message);
                 if (trans == null) transaction.Rollback();
                 return new ResultStatus { result = false, message = "Ürün Prim Güncelleme işlemi başarısız." };
             }
@@ -192,15 +205,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
-            var _productBounty = db.GetPRD_ProductBountyById(this.id);
-            if (_productBounty == null)
+            var productBounty = db.GetPRD_ProductBountyById(this.id);
+            if (productBounty == null)
             {
                 return new ResultStatus { result = false, message = "Ürün prim tanımı silinmiş." };
             }
-
             var dbres = new ResultStatus { result = true };
-            dbres &= db.DeletePRD_ProductBounty(_productBounty);
-
+            dbres &= db.DeletePRD_ProductBounty(productBounty);
             if (dbres.result == true)
             {
                 if (trans == null) transaction.Commit();
@@ -212,6 +223,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
+                Log.Error(dbres.message);
                 if (trans == null) transaction.Rollback();
                 return new ResultStatus
                 {
