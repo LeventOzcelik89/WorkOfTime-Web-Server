@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var productBounty = db.GetVWPRD_ProductBountyById(this.id);
             var rs = new ResultStatus { result = true };
-            if (this.amount<=0)
+            if (this.amount <= 0)
             {
                 return new ResultStatus
                 {
@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var transaction = trans ?? db.BeginTransaction();
             var rs = new ResultStatus { result = true };
-            var productBounty = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value,this.companyId.Value);
+            var productBounty = db.GetPRD_ProductBountyByPeriodAndProductAndCompanyId(this.month.Value, this.year.Value, this.productId.Value, this.companyId.Value);
             if (productBounty.Count() > 0)
             {
                 return new ResultStatus { result = false, message = "Belirtilmiş olan dönem içerisinde daha önceden prim tanımlaması yapılmıştır." };
@@ -87,6 +87,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else
             {
                 if (trans == null) transaction.Rollback();
+                Log.Error(rs.message);
                 return new ResultStatus { result = false, message = "Ürün Prim Tanımlama İşlemi başarısız." };
             }
         }
@@ -164,6 +165,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else
             {
                 if (trans == null) transaction.Rollback();
+                Log.Error(rs.message);
                 return new ResultStatus { result = false, message = "Ürün Prim Tanımlama İşlemi başarısız." };
             }
         }
