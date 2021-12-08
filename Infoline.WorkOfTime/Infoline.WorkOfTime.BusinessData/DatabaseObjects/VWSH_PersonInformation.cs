@@ -42,6 +42,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string IDBornTownLocation { get; set;}
         public string InsuranceIdentityNumber { get; set;}
         public string IdentificationNumber { get; set;}
+        public bool? hasAgi { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string IDCity_Title { get; set;}
