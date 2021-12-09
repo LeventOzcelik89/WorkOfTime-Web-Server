@@ -142,6 +142,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
+                        created = lastLogTime,
                         userId = ShiftTrackingDeviceUser.userId.Value,
                         shiftTrackingDeviceId = this.id,
                         passType = log.logType == "Parmak İzi" ? 1 : 2,
@@ -155,6 +156,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
+                        created = lastLogTime,
                         shiftTrackingDeviceId = this.id,
                         passType = log.logType == "Parmak İzi" ? 1 : 2,
                         deviceUserId = log.UserDeviceId.ToString(),
