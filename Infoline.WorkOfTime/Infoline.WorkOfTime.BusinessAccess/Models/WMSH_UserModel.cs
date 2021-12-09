@@ -413,12 +413,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
                         <p><strong>Yeni Şifreniz : <strong><span style='color: #ed5565;'>{0}</span></p>
                         <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
-                        <p>Mobil uygulamayı indirmek için <a href = 'https://play.google.com/store/apps/details?id=com.infoline.intranet&hl=en_US&gl=US'>tıklayınız<a></p>
-                        <p>QR Kod için lütfen <a href='~/Content/Kendo/js/kendo.all.min.js'>Buraya tıklayınız!</a></p>", password, url, tenantName);
+                        <p> Müşteri Kodu: {3}</p>
+                        <p><img src='{1}/Content/Themes/QRView.html'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
+                        
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), true);
+
 
                 }
                 else
