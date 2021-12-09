@@ -153,5 +153,9 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Kimlik Numarası
         /// </summary>
         public string IdentificationNumber { get; set;}
+        /// <summary>
+        /// Agi Verisi
+        /// </summary>
+        public bool? hasAgi { get; set;}
     }
 }

@@ -13,7 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string imei { get; set;}
         public string customerType { get; set;}
         public DateTime? contractStartDate { get; set;}
-        public DateTime? contractEndDate { get; set;}
         public string contractCode { get; set;}
         public string productGroup { get; set;}
         public string sellingChannelType { get; set;}
@@ -25,7 +24,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public Guid? company_Id { get; set;}
         public string company_Name { get; set;}
-        public Guid? storage_Id { get; set;}
         public Guid? inventory_Id { get; set;}
         public Guid? distributor_id { get; set;}
         public string distributor_Title { get; set;}
