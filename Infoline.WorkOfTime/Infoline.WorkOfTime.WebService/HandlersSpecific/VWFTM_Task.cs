@@ -16,23 +16,6 @@ namespace Infoline.WorkOfTime.WebService.Handler
 
         }
 
-        [HandleFunction("VWFTM_Task/GetAll")]
-        public void VWFTM_TaskGetAll(HttpContext context)
-        {
-            try
-            {
-                var c = ParseRequest<Condition>(context);
-                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
-                var db = new WorkOfTimeDatabase();
-                var data = db.GetVWFTM_Task(cond);
-                RenderResponse(context, data);
-            }
-            catch (Exception ex)
-            {
-                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            }
-        }
-
         [HandleFunction("VWFTM_Task/GetPageInfo")]
         public void VWPA_TransactionGetPageInfo(HttpContext context)
         {

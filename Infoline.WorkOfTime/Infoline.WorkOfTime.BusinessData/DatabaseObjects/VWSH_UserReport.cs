@@ -3,7 +3,7 @@ using GeoAPI.Geometries;
 
 namespace Infoline.WorkOfTime.BusinessData
 {
-    public partial class VWSH_Employee : InfolineTable
+    public partial class VWSH_UserReport : InfolineTable
     {
         public bool? status { get; set;}
         public int? type { get; set;}
@@ -43,25 +43,36 @@ namespace Infoline.WorkOfTime.BusinessData
         public string personLanguages { get; set;}
         public string personCertificates { get; set;}
         public string personGroups { get; set;}
-        public string companyName { get; set;}
+        public string currentCompanyName { get; set;}
         public string deparmanTitle { get; set;}
         public DateTime? jobStartDate { get; set;}
-        public string PersonWorking { get; set;}
         public DateTime? jobEndDate { get; set;}
+        public string PersonWorking { get; set;}
         public string jobLeavingDescription { get; set;}
         public Guid? manager1 { get; set;}
+        public string manager1_Title { get; set;}
         public Guid? manager2 { get; set;}
+        public string manager2_Title { get; set;}
         public Guid? manager3 { get; set;}
+        public string manager3_Title { get; set;}
         public Guid? manager4 { get; set;}
+        public string manager4_Title { get; set;}
         public Guid? manager5 { get; set;}
+        public string manager5_Title { get; set;}
         public Guid? manager6 { get; set;}
+        public string manager6_Title { get; set;}
         public double? salary { get; set;}
         public string workExperiences { get; set;}
         public string gratutedSchooles { get; set;}
         public string lastGratutedSchool { get; set;}
-        public DateTime? lastGratutedDate { get; set;}
         public string primarySchool { get; set;}
+        public string midSchool { get; set;}
         public string highSchool { get; set;}
-        public string university { get; set;}
+        public string twoYearDegree { get; set;}
+        public string Degree { get; set;}
+        public string MasterDegree { get; set;}
+        public string Phd { get; set;}
+        public string docent { get; set;}
+        public string Prof { get; set;}
     }
 }

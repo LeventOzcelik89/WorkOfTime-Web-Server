@@ -16,8 +16,9 @@ using Infoline.PdksEntegrationApp.Devices;
 
 namespace Infoline.PdksEntegrationApp.Devices.Models
 {
-    public class ZKTecoTK100_C : PdksDevice, IDisposable
+    public class ZKTecoK70 : PdksDevice, IDisposable
     {
+
         public override short specifyLogStatus(LogInfo log)
         {
             switch (log.inOutMode)
@@ -33,6 +34,9 @@ namespace Infoline.PdksEntegrationApp.Devices.Models
             }
             return (short)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi;
         }
-      
+
+
+
+
     }
 }

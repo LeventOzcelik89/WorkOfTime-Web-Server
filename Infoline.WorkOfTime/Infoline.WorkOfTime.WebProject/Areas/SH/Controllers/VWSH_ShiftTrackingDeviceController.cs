@@ -13,13 +13,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_ShiftTrackingDeviceController : Controller
 	{
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Listesi", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Listesi Veri Methodu", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Listesi Veri Methodu", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,7 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Detayı", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,7 +52,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Ekleme", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ActionResult Insert()
 		{
 		    var data = new VWSH_ShiftTrackingDevice { id = Guid.NewGuid() };
@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Ekleme", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(SH_ShiftTrackingDevice item)
@@ -80,7 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Güncelleme", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -88,7 +88,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Güncelleme", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(SH_ShiftTrackingDevice item)
 		{
@@ -110,7 +110,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
+		[PageInfo("PDKS Cihaz Silme", SHRoles.SistemYonetici, SHRoles.IKYonetici)]
 		[HttpPost]
 		public JsonResult Delete(string[] id)
 		{
