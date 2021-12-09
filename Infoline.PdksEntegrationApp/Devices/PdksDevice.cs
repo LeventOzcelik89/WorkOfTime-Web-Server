@@ -127,10 +127,6 @@ namespace Infoline.PdksEntegrationApp.Devices
             var lastInsertedData = db.GetSH_ShiftTrackingLastRecordByDeviceId(this.id);
             var lastLogTime = DateTime.Now;
 
-            if (lastInsertedData == null)
-            {
-                return false;
-            }
 
             var logs = (lastInsertedData == null || !lastInsertedData.created.HasValue) ? this.GetLogData() : this.GetLogDataBetweenDates(lastInsertedData.created.Value, lastLogTime);
             foreach (var log in logs)
@@ -142,6 +138,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
+                        created = lastLogTime,
                         userId = ShiftTrackingDeviceUser.userId.Value,
                         shiftTrackingDeviceId = this.id,
                         passType = log.logType == "Parmak İzi" ? 1 : 2,
@@ -155,6 +152,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     rs &= db.InsertSH_ShiftTracking(new SH_ShiftTracking
                     {
                         id = Guid.NewGuid(),
+                        created = lastLogTime,
                         shiftTrackingDeviceId = this.id,
                         passType = log.logType == "Parmak İzi" ? 1 : 2,
                         deviceUserId = log.UserDeviceId.ToString(),
@@ -393,6 +391,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                 objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                 objInfo.UserDeviceId = int.Parse(dwUserId);
                 objInfo.DateTimeRecord = new DateTime(dwYear, dwMonth, dwDay, dwHour, dwMinute, dwSecond);
+                objInfo.inOutMode = dwInOutMode;
 
                 lstEnrollData.Add(objInfo);
             }
@@ -428,6 +427,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
+                    objInfo.inOutMode = dwInOutMode;
 
                     lstEnrollData.Add(objInfo);
                 }
@@ -466,6 +466,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     objInfo.logType = dwVerifyMode == (int)LogType.Parmakİzi ? "Parmak İzi" : "Şifre";
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
+                    objInfo.inOutMode = dwInOutMode;
 
                     lstEnrollData.Add(objInfo);
                 }
@@ -501,6 +502,7 @@ namespace Infoline.PdksEntegrationApp.Devices
                     objInfo.MachineNumber = this.MachineNumber.Value;
                     objInfo.UserDeviceId = int.Parse(dwUserId);
                     objInfo.DateTimeRecord = date;
+                    objInfo.inOutMode = dwInOutMode;
 
                     lstEnrollData.Add(objInfo);
                 }
