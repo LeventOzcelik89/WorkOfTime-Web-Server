@@ -901,6 +901,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             new TimeInterval { Start = new TimeSpan(0, 0, 0), End = new TimeSpan(0, 0, 0) }
                         },isWorking = false }},
                     };
+                   // this.AllowModules.Remove(Enum_Modules.MODULE_SHIFT);
                     break;
                 case 1194:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "kerem.un@infoline-tr.com", "cihat.kapucu@infoline-tr.com" };
