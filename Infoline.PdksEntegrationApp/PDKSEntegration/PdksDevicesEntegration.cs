@@ -34,11 +34,14 @@ namespace Infoline.PdksEntegrationApp.PDKSEntegration
                 }else if(device.DeviceBrand.ToLower() == "zkteco" && device.DeviceModel.ToLower() == "tk100-c")
                 {
                     this.devices.Add(new ZKTecoTK100_C().B_EntityDataCopyForMaterial(device));
+                }else if(device.DeviceBrand.ToLower() == "zkteco" && device.DeviceModel.ToLower() == "k70")
+                {
+                    this.devices.Add(new ZKTecoK70().B_EntityDataCopyForMaterial(device));
                 }
             }
 
             Log.Info(devices.Count() + " Cihaz Bulundu");
-            Log.Info("ProcessTitanEntegration is Start");
+            Log.Info("ProcessPDKSEntegration is Start");
         }
 
         public void Run()

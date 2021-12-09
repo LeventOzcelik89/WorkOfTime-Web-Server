@@ -17,7 +17,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Inventory>().Where(x => x.code == code).Execute().FirstOrDefault();
             }
         }
+        public VWPRD_Inventory GetVMPRD_InventoryById(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
+            {
+                return db.Table<VWPRD_Inventory>().Where(a => a.id == id).Execute().FirstOrDefault();
+            }
+        }
 
 
         public VWPRD_Inventory[] GetVWPRD_InventoryByCompanyId(Guid companyId, DbTransaction tran = null)
@@ -64,7 +71,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_Inventory>().Where(x => x.productId==productid && x.serialcode.In(serialCodes)).Execute().ToArray();
+                return db.Table<VWPRD_Inventory>().Where(x => x.productId == productid && x.serialcode.In(serialCodes)).Execute().ToArray();
             }
         }
 
@@ -76,10 +83,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
-
-
-
-
+        public VWPRD_Inventory GetVWPRD_InventoryBySerialOrCode(string barcode, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_Inventory>().Where(x => x.serialcode == barcode || x.code == barcode).Execute().FirstOrDefault();
+            }
+        }
     }
 }

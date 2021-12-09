@@ -1,0 +1,140 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWPRD_EntegrationImport
+@{
+    ViewBag.Title = "Hakediş Bildir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script data-selector="modalContainer">
+    function onChangeCompany(e) {
+        var companyId = this.value();
+        var companyElem = $('#company_Id').data("kendoDropDownList");
+        var basefilter = companyElem.options.dataSource.filter;
+        companyElem.enable(true);
+        companyElem.dataSource.filter(kendo.filterAdd(basefilter, 'pid', companyId, "eq"));
+    }
+</script>
+@using (Html.BeginForm("Insert", "VWPRD_EntegrationImport", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="distributor_id">Distribütör Seçiniz</label>
+        </div>
+        <div class="col-md-8">
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.distributor_id)
+		.OptionLabel("Lütfen Distribütör seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Distribütör"))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+        .Events(x=>x.Change("onChangeCompany"))
+		.Execute()
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="companyId">Firma Cari</label>
+        </div>
+        <div class="col-md-8">
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.company_Id)
+		.OptionLabel("Lütfen Firma Cari seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+        .Enable(false)
+		.Execute()
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="product_Id">Ürün</label>
+        </div>
+        <div class="col-md-8">
+            @(
+		Html.Akilli()
+		.DropDownListFor(model => model.product_Id)
+		.OptionLabel("Lütfen Ürün Seçinizi seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('productTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+		.Execute()
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="imei">Imei/Seri Numarası</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.imei, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Imei/Seri Numarası Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="month">Ay</label>
+        </div>
+        <div class="col-md-8">
+            @(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.month)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Ayı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Month.ToString())
+			   .Execute()
+             )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="year">Yıl</label>
+        </div>
+        <div class="col-md-8">
+            @(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.year)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Yılı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Year.ToString())
+			   .Execute()
+             )
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right"  style="margin-left:10px" type="submit">Kaydet</button>
+
+
+    </div>
+}
+

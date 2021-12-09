@@ -178,7 +178,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var c = ParseRequest<Condition>(context);
                 var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
                 BEXP filter = null;
-                 filter |= new BEXP
+                filter |= new BEXP
                 {
                     Operand1 = (COL)"companyId",
                     Operator = BinaryOperator.In,
@@ -186,7 +186,39 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 };
                 cond.Filter &= filter;
                 var model = db.GetVWSH_UserOtherPersonWithCond(cond);
-                RenderResponse(context, new ResultStatus() { result = true, objects = model});
+                RenderResponse(context, new ResultStatus() { result = true, objects = model });
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+        [HandleFunction("VWSH_User/GetTaskPersonals")]
+        public void VWSH_GetTaskPersonals(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var c = ParseRequest<Condition>(context);
+                var cond = c != null ? CondtionToQuery.Convert(c) : new SimpleQuery();
+                cond.Take = 10000;
+                var users = db.GetVWSH_User(cond);
+
+                if (users == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = true, message = "Personel Bulunamadı" });
+                }
+
+                var cc = users.Where((x => x.RoleIds != null && (x.RoleIds.Contains(SHRoles.SahaGorevYonetici) ||
+               x.RoleIds.Contains(SHRoles.SahaGorevOperator) || x.RoleIds.Contains(SHRoles.SahaGorevPersonel))));
+                foreach (var user in users)
+                {
+                    user.loginname = "******";
+                    user.password = "******";
+                }
+                // users.Where(x => x.RoleIds.IndexOf(roles.sahaGorev) )
+                RenderResponse(context, new ResultStatus { result = true, objects = cc });
             }
             catch (Exception ex)
             {

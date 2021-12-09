@@ -575,6 +575,11 @@ namespace Infoline.WorkOfTime.Controllers
             return Content(Infoline.Helper.Json.Serialize(DateTime.Now), "application/json");
         }
 
+        public ContentResult GetIdCode()
+        {
+            return Content(Infoline.Helper.Json.Serialize(BusinessExtensions.B_GetIdCode()), "application/json");
+        }
+
         public ContentResult GetFiles()
         {
             var link = Server.MapPath("/");
@@ -925,7 +930,7 @@ namespace Infoline.WorkOfTime.Controllers
 
         public ContentResult GetYears()
         {
-            var maxYear = DateTime.Now.Year;
+            var maxYear = DateTime.Now.Year+1;
             var minYear = DateTime.Now.Year - 30;
             var years = new List<object>();
             for (int i = maxYear; i >= minYear; i--)

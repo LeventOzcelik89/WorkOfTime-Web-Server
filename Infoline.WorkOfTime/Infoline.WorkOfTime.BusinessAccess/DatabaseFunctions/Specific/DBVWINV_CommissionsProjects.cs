@@ -56,17 +56,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWINV_CommissionsPersons[] GetVWINV_CommissionsPersonsByIdAll(Guid id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
-
             {
-                return db.Table<VWINV_CommissionsPersons>().Where(a => a.id == id).Execute<VWINV_CommissionsPersons>().Where(x => x.IdUser.HasValue).Select(x => new VWINV_CommissionsPersons
-                {
-                    id = x.id,
-                    Person_Title = x.Person_Title,
-                    IsOwner = x.IsOwner,
-                    CommissionsPersonsId = x.CommissionsPersonsId,
-                    IdUser = x.IdUser.Value,
-                    Files = x.Files
-                }).ToArray();
+                return db.Table<VWINV_CommissionsPersons>().Where(a => a.id == id).Execute<VWINV_CommissionsPersons>().Where(x => x.IdUser.HasValue).ToArray();
             }
         }
 

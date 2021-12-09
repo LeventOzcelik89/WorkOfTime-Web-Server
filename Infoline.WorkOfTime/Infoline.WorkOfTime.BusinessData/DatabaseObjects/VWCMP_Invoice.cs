@@ -40,6 +40,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string customerTaxOffice { get; set;}
         public string customerAdress { get; set;}
         public string customerTitle { get; set;}
+        public Guid? taskId { get; set;}
+        public Guid? pid { get; set;}
         public string supplierTaxNumber { get; set;}
         public string supplierTaxOffice { get; set;}
         public string supplierAdress { get; set;}

@@ -22,6 +22,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_TitanDeviceActivated>().Where(a => a.ProductId == id).Execute().ToArray();
             }
         }
+        public PRD_TitanDeviceActivated[] GetPRD_TitanDeviceActivatedBySerialNoOrImei(string[] serialNo, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_TitanDeviceActivated>().Where(a => a.SerialNumber.In(serialNo)||a.IMEI1.In(serialNo)||a.IMEI2.In(serialNo)).Execute().ToArray();
+            }
+        }
         public PRD_TitanDeviceActivated GetPRD_TitanDeviceActivatedByInventoryId(Guid id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

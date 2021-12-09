@@ -37,5 +37,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public double? battery { get; set;}
         public short? subject { get; set;}
+        public Guid? dataId { get; set;}
     }
 }

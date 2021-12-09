@@ -155,6 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             ViewBag.returnUrl = Request.QueryString["returnUrl"];
             return View(user);
         }
+        
 
         [PageInfo("Kullanıcı Girişi"), AllowEveryone]
         [HttpPost, CaptchaValidation("CaptchaCode", "UserControlCaptcha", "Hatalı Giriş")]

@@ -13,7 +13,14 @@ using System.ComponentModel;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
 
-
+    [EnumInfo(typeof(CMP_Storage), "locationType")]
+    public enum EnumCMP_StorageLocationType
+    {
+        [Description("Depo"), Generic("order", "1")]
+        Depo = 0,
+        [Description("Alan"), Generic("order", "2")]
+        Alan = 1
+    }
     partial class WorkOfTimeDatabase
     {
         public CMP_Storage[] GetCMP_StroageByCompanyId(Guid companyId, DbTransaction tran = null)
@@ -68,7 +75,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_Storage>().Where(a => a.id.In(ids)).OrderBy(x => x.created).Execute().ToArray();
             }
         }
+        public CMP_Storage[] GetCMP_StorageFromPidById(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
-       
+            {
+                return db.Table<CMP_Storage>().Where(a => a.pid == id).OrderBy(x => x.created).Execute().ToArray();
+            }
+        }
+
+
     }
 }

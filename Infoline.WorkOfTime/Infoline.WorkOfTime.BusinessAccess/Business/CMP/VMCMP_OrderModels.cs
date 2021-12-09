@@ -220,7 +220,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 if (tenderView != null)
                 {
-                    new VMCMP_TenderModels { id = this.oldInvoice.id }.Load(false, this.direction).UpdateStatus((int)EnumCMP_TenderStatus.TeklifSiparis, this.createdby.Value, this.trans);
+                    new VMCMP_TenderModels { id = this.oldInvoice.id }.Load(false, this.direction).UpdateStatus((int)EnumCMP_TenderStatus.TeklifSiparis, this.createdby.Value, false,this.trans);
 
                     if (tenderView.presentationId.HasValue)
                     {

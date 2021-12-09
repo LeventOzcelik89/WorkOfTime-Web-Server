@@ -8,7 +8,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_StorageController : Controller
@@ -18,13 +17,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		{
 			return View();
 		}
-
 		[PageInfo("Şirket Şube/Depo/Kısımları", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.IKYonetici)]
 		public ActionResult IndexMy()
 		{
 			return View();
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısımları Grid Verileri", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
@@ -38,7 +35,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			data.Total = db.GetVWCMP_StorageCount(condition.Filter);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısımları Dropdown Verileri", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
@@ -49,12 +45,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var data = db.GetVWCMP_Storage(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısımları Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi)]
 		public ActionResult Detail(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
 			var model = new VMCMP_StorageCompany().B_EntityDataCopyForMaterial(db.GetVWCMP_StorageById(id));
+			model.GetAllChildsIds(model.id);
+			model.PidIds.Add(model.id);
 			if (model.companyId.HasValue)
 			{
 				model.CMPCompany = db.GetVWCMP_CompanyById(model.companyId.Value);
@@ -63,22 +60,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			{
 				model.CMPCompany = new VWCMP_Company();
 			}
-
 			var crump = "<ol class=\"breadcrumb\">";
 			var crum = BreadCrumps(true, id, model.name).Substring(1).Split('#').Reverse();
 			model.breadCrumps = crump + string.Join("", crum) + "<ol>";
-
 			return View(model);
 		}
-
-		[PageInfo("İşletme Şube/Depo/Kısım Ekleme", SHRoles.StokYoneticisi)]
+		[PageInfo("İşletme Şube/Depo/Kısım Ekleme", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
 		public ActionResult Insert(VWCMP_Storage data)
 		{
 			if (string.IsNullOrEmpty(data.code))
 			{
 				data.code = BusinessExtensions.B_GetIdCode();
 			}
-
+			data.locationType = (int)EnumCMP_StorageLocationType.Depo;
 			if (data.pid.HasValue)
 			{
 				var db = new WorkOfTimeDatabase();
@@ -92,12 +86,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					data.locationId = pidStorage.locationId;
 				}
 			}
-
 			return View(data);
 		}
-
-		[PageInfo("İşletme Şube/Depo/Kısımları Ekleme İşlemi", SHRoles.StokYoneticisi)]
-		[HttpPost, ValidateAntiForgeryToken]
+		[PageInfo("İşletme Şube/Depo/Kısımları Ekleme İşlemi", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
+		[HttpPost]
 		public JsonResult Insert(CMP_Storage item)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -105,8 +97,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var feedback = new FeedBack();
 			item.created = DateTime.Now;
 			item.createdby = userStatus.user.id;
-
 			var trans = db.BeginTransaction();
+			if (string.IsNullOrEmpty(item.code))
+			{
+				item.code = BusinessExtensions.B_GetIdCode();
+			}
 			var dbresult = db.InsertCMP_Storage(item, trans);
 			if (item.supervisorId.HasValue)
 			{
@@ -123,20 +118,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					dbresult &= db.InsertSH_UserRole(userRole, trans);
 				}
 			}
-
 			if (!dbresult.result)
 			{
 				trans.Rollback();
-
 				return Json(new ResultStatusUI
 				{
 					Result = dbresult.result,
 					Object = item.id,
 					FeedBack = feedback.Warning("Şube/Depo/Kısım kaydetme işlemi başarısız oldu.")
 				}, JsonRequestBehavior.AllowGet);
-
 			}
-
 			trans.Commit();
 			return Json(new ResultStatusUI
 			{
@@ -145,7 +136,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				FeedBack = feedback.Success("Şube/Depo/Kısım kaydetme işlemi başarılı bir şekilde gerçekleştirildi.")
 			}, JsonRequestBehavior.AllowGet);
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısım Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu)]
 		public ActionResult Update(Guid id)
 		{
@@ -153,7 +143,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var data = db.GetVWCMP_StorageById(id);
 			return View(data);
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısım Güncelleme İşlemi", SHRoles.StokYoneticisi)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(CMP_Storage item)
@@ -161,13 +150,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-
 			item.changed = DateTime.Now;
 			item.changedby = userStatus.user.id;
-
 			var trans = db.BeginTransaction();
-			var dbresult = db.UpdateCMP_Storage(item, false, trans);
-
+			var dbresult = db.UpdateCMP_Storage(item, true, trans);
 			if (item.supervisorId.HasValue)
 			{
 				var hasRole = db.GetSH_UserRoleByUserIdRoleId(item.supervisorId.Value, Guid.Parse(SHRoles.DepoSorumlusu));
@@ -183,20 +169,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					dbresult &= db.InsertSH_UserRole(userRole, trans);
 				}
 			}
-
 			if (!dbresult.result)
 			{
 				trans.Rollback();
-
 				return Json(new ResultStatusUI
 				{
 					Result = dbresult.result,
 					Object = item.id,
 					FeedBack = feedback.Warning("Şube/Depo/Kısım güncelleme işlemi başarısız oldu.")
 				}, JsonRequestBehavior.AllowGet);
-
 			}
-
 			trans.Commit();
 			return Json(new ResultStatusUI
 			{
@@ -204,9 +186,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				Object = item.id,
 				FeedBack = feedback.Success("Şube/Depo/Kısım güncelleme işlemi başarılı oldu.")
 			}, JsonRequestBehavior.AllowGet);
-
 		}
-
 		[PageInfo("İşletme Şube/Depo/Kısım Silme İşlemi", SHRoles.StokYoneticisi)]
 		[HttpPost]
 		public JsonResult Delete(Guid[] id)
@@ -219,30 +199,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			{
 				var action = db.GetPRD_InventoryActionByDataId(storage.id);
 				var transaction = db.GetPRD_TransactionByDataId(storage.id);
-
+				var isHasChild = db.GetVWCMP_StorageByPid(storage.id);
+				if (isHasChild)
+				{
+					errolist.Add("Bu Depo/Şube/Kısımlarının Alt Depo/Şube/Kısımları olduğundan silinemez");
+				}
 				if (transaction.Count() > 0 || action.Count() > 0)
 				{
 					errolist.Add(storage.code + " " + storage.name + " deposu içerisinde envanterler bulunduğundan silinemez.");
 				}
-
-				var dbresult = db.DeleteCMP_Storage(storage);
-				if (dbresult.result == false)
+				if (errolist.Count<=0)
 				{
-					errolist.Add(storage.code + " " + storage.name + " deposu silinirken sorunlar oluştu.");
+					var dbresult = db.DeleteCMP_Storage(storage);
+					if (dbresult.result == false)
+					{
+						errolist.Add(storage.code + " " + storage.name + " deposu silinirken sorunlar oluştu.");
+					}
 				}
 			}
-
 			var errormesage = string.Join("", errolist.Select(a => "<p>" + a + "<p/>"));
-
 			var result = new ResultStatusUI
 			{
 				Result = errolist.Count() == 0,
 				FeedBack = errolist.Count() == 0 ? feedback.Success("Silme işlemi başarılı şekilde gerçekleştirildi.") : feedback.Warning(errormesage)
 			};
-
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
 		[PageInfo("Excelden Şube/Depo/Kısım Ekleme İşlemi", SHRoles.StokYoneticisi)]
 		[HttpPost]
 		public JsonResult Import(string model)
@@ -251,20 +233,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
 			var culture = new System.Globalization.CultureInfo("tr-TR", false);
-
 			var storagesDB = db.GetCMP_Storage().ToList();
 			var companies = db.GetCMP_Company().ToArray();
 			var locations = db.GetUT_LocationCityAndTownInTR();
 			var excelStorages = Helper.Json.Deserialize<CMP_StorageExcel[]>(model);
 			var uniqueColumn = ExcelHelper.GetColumnInfo(typeof(CMP_StorageExcel)).Where(a => a.Unique == true).Select(a => a.Name).FirstOrDefault();
-
 			var existError = new List<ExcelResult>();
 			var excelResult = new ExcelResult
 			{
 				status = true,
 				rowNumber = 0
 			};
-
 			foreach (var excelStorage in excelStorages)
 			{
 				excelResult.rowNumber++;
@@ -273,23 +252,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					excelResult.status = false;
 					excelResult.message += " Şube/Depo/Kısım Adı alanı zorunludur";
 				}
-
 				if (String.IsNullOrEmpty(excelStorage.companyCode))
 				{
 					excelResult.status = false;
 					excelResult.message += " İşletme Kodu alanı zorunludur";
 				}
-
 				if (excelResult.status)
 				{
 					var trans = db.BeginTransaction();
 					var res = new ResultStatus { result = true };
-
 					var uniqueColumnText = string.Format("{0}", excelStorage.GetPropertyValue(uniqueColumn)).Trim().ToLower(culture);
 					var storage = storagesDB.Where(a => string.Format("{0}", a.GetPropertyValue(uniqueColumn)).Trim().ToLower(culture) == uniqueColumnText).FirstOrDefault();
-
 					var company = companies.Where(a => !string.IsNullOrEmpty(a.code) && a.code.Trim().ToLower(culture) == excelStorage.companyCode.Trim().ToLower(culture)).FirstOrDefault();
-
 					if (company != null)
 					{
 						if (storage != null)
@@ -304,10 +278,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 								created = DateTime.Now,
 								createdby = userStatus.user.id,
 							};
-
 							storagesDB.Add(storage);
 						}
-
 						storage.phone = excelStorage.phone;
 						storage.name = excelStorage.name;
 						storage.fax = excelStorage.fax;
@@ -317,25 +289,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 						if (!String.IsNullOrEmpty(excelStorage.supervisor))
 						{
 							var companyPerson = db.GetVWSH_UserByCompanyId(company.id).Where(a => a.FullName.Trim().ToLower(culture) == excelStorage.supervisor.Trim().ToLower(culture)).FirstOrDefault();
-
 							if (companyPerson != null)
 							{
 								storage.supervisorId = companyPerson.id;
 							}
 						}
-
 						if (!String.IsNullOrEmpty(excelStorage.city))
 						{
 							var city = locations.Where(x => x.type == (int)EnumUT_LocationType.Sehir && !String.IsNullOrEmpty(x.name) && x.name.ToLower() == excelStorage.city.ToLower()).FirstOrDefault();
-
 							if (city != null)
 							{
 								storage.locationId = city.id;
-
 								if (!String.IsNullOrEmpty(excelStorage.town))
 								{
 									var town = locations.Where(x => x.type == (int)EnumUT_LocationType.İlce && !String.IsNullOrEmpty(x.name) && x.name.ToLower() == excelStorage.town.ToLower()).ToArray();
-
 									if (town.Count() > 0)
 									{
 										storage.locationId = town.Where(a => a.pid == city.id).Select(a => a.id).FirstOrDefault();
@@ -343,7 +310,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 								}
 							}
 						}
-
 						if (storage.changed.HasValue)
 						{
 							res &= db.UpdateCMP_Storage(storage, false, trans);
@@ -358,7 +324,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 						excelResult.status = false;
 						excelResult.message += " İşletme koduna sahip işletme bulunamadı.";
 					}
-
 					if (res.result)
 					{
 						trans.Commit();
@@ -370,7 +335,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 						excelResult.message += " Bir sorun oluştu";
 					}
 				}
-
 				existError.Add(excelResult);
 				excelResult = new ExcelResult
 				{
@@ -378,7 +342,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					rowNumber = excelResult.rowNumber
 				};
 			}
-
 			if (existError.Where(a => a.status == false).Count() == excelStorages.Length)
 			{
 				return Json(new ResultStatusUI
@@ -398,7 +361,32 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				}, JsonRequestBehavior.AllowGet);
 			}
 		}
+		[PageInfo("Depoların Ağaç Şeklinde Listelendiği Safa", SHRoles.Personel, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.SistemYonetici, SHRoles.SahaGorevOperator)]
+		public ActionResult GetTreeView(Guid customerId)
+		{
+			return View(customerId);
+		}
+		[PageInfo("Depoların Ağaç Şeklinde Listelendiği Metod", SHRoles.Personel, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.SistemYonetici, SHRoles.SahaGorevOperator)]
+		public JsonResult GetTreeViewData(Guid customerId, Guid? id)
+		{
+			var db = new WorkOfTimeDatabase();
 
+			var storages = db.GetVWCMP_StorageByCompanyId(customerId);
+			if (storages.Count() == 0)
+			{
+				return Json("", JsonRequestBehavior.AllowGet);
+			}
+			return Json(storages.Where(e => id.HasValue ? e.pid == id : e.pid == null).Select(a =>
+				   new VWCMP_Storage
+				   {
+					   id = a.id,
+					   companyId_Image = a.companyId_Image,
+					   companyId_Title = a.companyId_Title,
+					   name=a.fullName,
+					   code=a.code,
+					   hasChildren = a.hasChildren
+				   }), JsonRequestBehavior.AllowGet);
+		}
 		[PageInfo("Depoların QR Kodlarının Yazdırılması", SHRoles.Personel)]
 		public ActionResult PrintQrCodes([DataSourceRequest] DataSourceRequest request, int? type = 4, int? isLogo = 1)
 		{
@@ -414,8 +402,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				ViewBag.logo = isLogo;
 			}
 			catch { }
-
-
 			if (TenantConfig.Tenant.TenantCode == 1137)
 			{
 				if (type == 9)
@@ -429,14 +415,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				return PartialView("~/Areas/CMP/Views/VWCMP_Storage/Print/Default/PrintQrCodes.cshtml", model);
 			}
 		}
-
-
 		[PageInfo("Depoların QR Kodlarının Yazdırılması Logo ve Boyutlu", SHRoles.Personel)]
 		public ActionResult PrintQrCodesSizes([DataSourceRequest] DataSourceRequest request, int? height = 30, int? width = 50)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			VWCMP_Storage[] model = new VWCMP_Storage[0];
-
 			try
 			{
 				var db = new WorkOfTimeDatabase();
@@ -446,8 +429,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				model = db.GetVWCMP_Storage(condition);
 			}
 			catch { }
-
-
 			var data = new QrClass
 			{
 				height = height,
@@ -461,7 +442,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					productId_Title = x.fullName
 				}).OrderBy(c => c.serialcode).ToArray(),
 			};
-
 			if (userStatus != null && userStatus.user.CompanyId.HasValue)
 			{
 				var db = new WorkOfTimeDatabase();
@@ -480,15 +460,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 					{
 						data.weburl = "vaven.com.tr/";
 					}
-
 					if (TenantConfig.Tenant.TenantCode == 1137)
 					{
 						data.weburl = "www.erkantarim.com";
 					}
 				}
 			}
-
-
 			if (TenantConfig.Tenant.TenantCode == 1137)
 			{
 				return PartialView("~/Areas/CMP/Views/VWCMP_Storage/Print/1137/PrintQrCodesSizes.cshtml", data);
@@ -498,15 +475,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				return PartialView("~/Areas/CMP/Views/VWCMP_Storage/Print/Default/PrintQrCodesSizes.cshtml", data);
 			}
 		}
-
-
-
 		[PageInfo("Şube/Depo/Kısım Haritası", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu)]
 		public ActionResult Map()
 		{
 			return View();
 		}
-
 		[PageInfo("Potansiyel/Fırsat Haritası Verileri", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu)]
 		public ContentResult GetMapData()
 		{
@@ -521,10 +494,59 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				companyId = x.companyId,
 				name = x.name,
 				companyId_Title = x.companyId_Title,
-				myStorage = x.myStorage
+				myStorage = x.myStorage,
+				locationType = x.locationType
 			}).ToArray();
 			return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
 		}
+
+		[PageInfo("Şube/Depo/Kısım Detay Haritası", SHRoles.Personel)]
+		public ContentResult GetMapDataByCompanyId(Guid companyId)
+		{
+			var db = new WorkOfTimeDatabase();
+			var storages = db.GetVW_CMP_StorageByCompanyId(companyId).Select(x => new
+			{
+				id = x.id,
+				code = x.code,
+				phone = x.phone,
+				address = x.address,
+				location = x.location,
+				companyId = x.companyId,
+				name = x.name,
+				companyId_Title = x.companyId_Title,
+				myStorage = x.myStorage,
+				locationType = x.locationType
+			}).ToArray();
+			return Content(Infoline.Helper.Json.Serialize(storages), "application/json");
+		}
+
+		[PageInfo("Tree View için veriler", SHRoles.Personel)]
+		public JsonResult TreeDataSource([DataSourceRequest] DataSourceRequest request, Guid? id)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var page = request.Page;
+			request.Filters = new FilterDescriptor[0];
+			request.Sorts = new SortDescriptor[0];
+			request.Page = 1;
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWCMP_Storage(condition).RemoveGeographies().ToTreeDataSourceResult(request);
+			return Json(data, JsonRequestBehavior.AllowGet);
+		}
+		[PageInfo("Tree View için veriler", SHRoles.Personel)]
+		public ActionResult HierarchyDataSource(Guid? id, [DataSourceRequest] DataSourceRequest request)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var page = request.Page;
+			request.Filters = new FilterDescriptor[0];
+			request.Sorts = new SortDescriptor[0];
+			request.Page = 1;
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWCMP_Storage().RemoveGeographies()
+					.Where(x => x.pid == id)
+				.ToDataSourceResult(request);
+			return Json(data, JsonRequestBehavior.AllowGet);
+		}
+
 
 		public string BreadCrumps(bool first = false, Guid? pid = null, string name = "")
 		{
@@ -535,9 +557,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			{
 				var db = new WorkOfTimeDatabase();
 				var data = db.GetVWCMP_StorageById(pid.Value);
-				if (data.pid.HasValue)
+				if (data!=null)
 				{
-					text += BreadCrumps(false, data.pid, data.pid_Title);
+					if (data.pid.HasValue)
+					{
+						text += BreadCrumps(false, data.pid, data.pid_Title);
+					}
 				}
 			}
 			return text;

@@ -131,5 +131,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public DateTime? validityDate { get; set;}
         public double? discountPercent { get; set;}
         public Guid? invoiceDocumentTemplateId { get; set;}
+        public Guid? taskId { get; set;}
+        public Guid? pid { get; set;}
     }
 }

@@ -118,7 +118,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var _company = GetVWCMP_CompanyMyCompanies().Select(c => c.id).ToArray();
 
-                return db.Table<VWSH_User>().Where(a => a.IsWorking == true && a.CompanyId.In(_company) && a.birthday >= start && a.birthday <= end).OrderByDesc(a => a.created).Execute().ToArray();
+                return db.Table<VWSH_User>().Where(a => a.IsWorking == true && a.CompanyId.In(_company)).OrderByDesc(a => a.created).Execute().ToArray();
             }
         }
 

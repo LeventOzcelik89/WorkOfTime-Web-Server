@@ -218,7 +218,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.YardimMasaPersonel,
             SHRoles.YardimMasaTalep,
             SHRoles.YardimMasaYonetim,
-            SHRoles.YardimMasaMusteri
+            SHRoles.YardimMasaMusteri,
+            SHRoles.SatinAlmaOnaylayiciGorev
         };
         public IysInformation IysInformations { get; set; }
         public ICallCenterService CallCenterService { get; set; }
@@ -500,7 +501,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.MailingUsers = new string[] { "erhan.yuksel@gilangroup.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1144:
-                    this.MailingUsers = new string[] { "melek.ergunsel@sentezfilo.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
+                    this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1145:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
@@ -514,7 +515,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.MailingUsers = new string[] { "ipak@atlantisbilisim.com.tr", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1147:
-                    this.MailingUsers = new string[] { "muhittinkaleli89@gmail.com", "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
+                    this.MailingUsers = new string[] {"ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     break;
                 case 1148:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "bilal.dursun@infoline-tr.com", "senol.elik@infoline-tr.com" };

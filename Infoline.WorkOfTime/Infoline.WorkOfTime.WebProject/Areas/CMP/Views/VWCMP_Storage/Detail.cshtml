@@ -1,8 +1,8 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_StorageCompany
 @{
-    ViewBag.Path = Model.breadCrumps;
-    ViewBag.Title = Model.fullName;
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Path = Model.breadCrumps;
+	ViewBag.Title = Model.fullName;
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <script type="text/javascript">
@@ -87,7 +87,10 @@
 			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
 		})
 
-    $(document)
+	$(document)
+		.on("ready", function () {
+			haritalar['LocationCompany'].feature.panTo('DrawFeature');
+		})
         .on("click", '#locationArrow', function (e) {
             setTimeout(function (e) {
                 haritalar['LocationCompany'].map.updateSize();
@@ -291,188 +294,188 @@
 </script>
 <script type="text/javascript">
 
-    function taskPriorityResult(data) {
+	function taskPriorityResult(data) {
 
-        if (data.priority == 0) {
+		if (data.priority == 0) {
 
-            return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
-        }
-        else if (data.priority == 1) {
-            return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
-        }
-        else if (data.priority == 2) {
-            return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
-        }
+			return '<i style="color:#EF5352" class="fa fa-circle"></i>  Yüksek';
+		}
+		else if (data.priority == 1) {
+			return '<i style="color:#F8AC59" class="fa fa-circle"></i>  Orta';
+		}
+		else if (data.priority == 2) {
+			return '<i style="color:#1ab394" class="fa fa-circle"></i>  Düşük';
+		}
 
-    }
+	}
 
-    var gridBase = {
-        items: {
-            DropDown1: null,
-            DropDown2: null
-        }
-    };
+	var gridBase = {
+		items: {
+			DropDown1: null,
+			DropDown2: null
+		}
+	};
 
-    function filterMenuInit(e) {
-        if (e.field == "created") {
-            var $container = e.container;
+	function filterMenuInit(e) {
+		if (e.field == "created") {
+			var $container = e.container;
 
-            e.container.find('[type="reset"]').hide();
-            e.container.find(".k-filter-help-text").remove();
-            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
-            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
 
-            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
-            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
-            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
 
-            var logicDropDown = e.container.find("select:eq(1)");
-            logicDropDown.data("kendoDropDownList").value("and");
-            logicDropDown.data("kendoDropDownList").trigger("change");
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
 
-            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
-            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
-            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
 
-            //  firstValueDropDown.parents('.k-dropdown').hide();
-            logicDropDown.parents('.k-dropdown').hide();
-            //  secondValueDropDown.parents('.k-dropdown').hide();
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
 
-            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
-            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
 
-            $($('.k-header')[14]).html("Başlangıç Tarihi");
-            $($('.k-header')[17]).html("Bitiş Tarihi");
+			$($('.k-header')[14]).html("Başlangıç Tarihi");
+			$($('.k-header')[17]).html("Bitiş Tarihi");
 
-            $container.find('[data-role="datepicker"]').on('change', function (e) {
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
 
-                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
-                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
 
-                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
-                    dt2.data('kendoDatePicker').value().addHours(23);
-                    dt2.data('kendoDatePicker').value().addMinutes(59);
-                    dt2.data('kendoDatePicker').value().addSeconds(59);
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
 
-                    $container.find('[type="submit"]').removeAttr('disabled');
+					$container.find('[type="submit"]').removeAttr('disabled');
 
-                }
+				}
 
-            });
+			});
 
-            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
 
-                $container.find('[data-role="datepicker"]').trigger('change');
+				$container.find('[data-role="datepicker"]').trigger('change');
 
-            });
+			});
 
-        }
-        else if (e.field == "dueDate") {
-            var $container = e.container;
+		}
+		else if (e.field == "dueDate") {
+			var $container = e.container;
 
-            e.container.find('[type="reset"]').hide();
-            e.container.find(".k-filter-help-text").remove();
-            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
-            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
 
-            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
-            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
-            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
 
-            var logicDropDown = e.container.find("select:eq(1)");
-            logicDropDown.data("kendoDropDownList").value("and");
-            logicDropDown.data("kendoDropDownList").trigger("change");
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
 
-            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
-            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
-            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
 
-            //  firstValueDropDown.parents('.k-dropdown').hide();
-            logicDropDown.parents('.k-dropdown').hide();
-            //  secondValueDropDown.parents('.k-dropdown').hide();
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
 
-            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
-            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
 
-            $($('.k-header')[20]).html("Başlangıç Tarihi");
-            $($('.k-header')[23]).html("Bitiş Tarihi");
+			$($('.k-header')[20]).html("Başlangıç Tarihi");
+			$($('.k-header')[23]).html("Bitiş Tarihi");
 
-            $container.find('[data-role="datepicker"]').on('change', function (e) {
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
 
-                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
-                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
 
-                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
-                    dt2.data('kendoDatePicker').value().addHours(23);
-                    dt2.data('kendoDatePicker').value().addMinutes(59);
-                    dt2.data('kendoDatePicker').value().addSeconds(59);
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
 
-                    $container.find('[type="submit"]').removeAttr('disabled');
+					$container.find('[type="submit"]').removeAttr('disabled');
 
-                }
+				}
 
-            });
+			});
 
-            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
 
-                $container.find('[data-role="datepicker"]').trigger('change');
+				$container.find('[data-role="datepicker"]').trigger('change');
 
-            });
-        }
-        else if (e.field == "lastOperationDate") {
-            var $container = e.container;
+			});
+		}
+		else if (e.field == "lastOperationDate") {
+			var $container = e.container;
 
 
-            e.container.find('[type="reset"]').hide();
-            e.container.find(".k-filter-help-text").remove();
-            e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
-            e.container.find('[data-role="datetpicker"]').attr('required', 'required');
+			e.container.find('[type="reset"]').hide();
+			e.container.find(".k-filter-help-text").remove();
+			e.container.find('[type="submit"]').addClass('filterSubmitBtn').attr('disabled', 'disabled');
+			e.container.find('[data-role="datetpicker"]').attr('required', 'required');
 
-            gridBase.items.DropDown1 = e.container.find("select:eq(0)");
-            gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
-            gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown1 = e.container.find("select:eq(0)");
+			gridBase.items.DropDown1.data("kendoDropDownList").value("gte");
+			gridBase.items.DropDown1.data("kendoDropDownList").trigger("change");
 
-            var logicDropDown = e.container.find("select:eq(1)");
-            logicDropDown.data("kendoDropDownList").value("and");
-            logicDropDown.data("kendoDropDownList").trigger("change");
+			var logicDropDown = e.container.find("select:eq(1)");
+			logicDropDown.data("kendoDropDownList").value("and");
+			logicDropDown.data("kendoDropDownList").trigger("change");
 
-            gridBase.items.DropDown2 = e.container.find("select:eq(2)");
-            gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
-            gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
+			gridBase.items.DropDown2 = e.container.find("select:eq(2)");
+			gridBase.items.DropDown2.data("kendoDropDownList").value("lte");
+			gridBase.items.DropDown2.data("kendoDropDownList").trigger("change");
 
-            //  firstValueDropDown.parents('.k-dropdown').hide();
-            logicDropDown.parents('.k-dropdown').hide();
-            //  secondValueDropDown.parents('.k-dropdown').hide();
+			//  firstValueDropDown.parents('.k-dropdown').hide();
+			logicDropDown.parents('.k-dropdown').hide();
+			//  secondValueDropDown.parents('.k-dropdown').hide();
 
-            gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
-            gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown1.data('kendoDropDownList').readonly(true);
+			gridBase.items.DropDown2.data('kendoDropDownList').readonly(true);
 
-            $($('.k-header')[25]).html("Başlangıç Tarihi");
-            $($('.k-header')[28]).html("Bitiş Tarihi");
+			$($('.k-header')[25]).html("Başlangıç Tarihi");
+			$($('.k-header')[28]).html("Bitiş Tarihi");
 
-            $container.find('[data-role="datepicker"]').on('change', function (e) {
+			$container.find('[data-role="datepicker"]').on('change', function (e) {
 
-                var dt1 = $container.find('[data-role="datepicker"]').eq(0);
-                var dt2 = $container.find('[data-role="datepicker"]').eq(1);
+				var dt1 = $container.find('[data-role="datepicker"]').eq(0);
+				var dt2 = $container.find('[data-role="datepicker"]').eq(1);
 
-                if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
-                    dt2.data('kendoDatePicker').value().addHours(23);
-                    dt2.data('kendoDatePicker').value().addMinutes(59);
-                    dt2.data('kendoDatePicker').value().addSeconds(59);
+				if (dt1.data('kendoDatePicker').value() != null && dt2.data('kendoDatePicker').value() != null) {
+					dt2.data('kendoDatePicker').value().addHours(23);
+					dt2.data('kendoDatePicker').value().addMinutes(59);
+					dt2.data('kendoDatePicker').value().addSeconds(59);
 
-                    $container.find('[type="submit"]').removeAttr('disabled');
+					$container.find('[type="submit"]').removeAttr('disabled');
 
-                }
+				}
 
-            });
+			});
 
-            $('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
+			$('[role="columnheader"][data-field="ReadTime"] .k-grid-filter').on('click', function (a) {
 
-                $container.find('[data-role="datepicker"]').trigger('change');
+				$container.find('[data-role="datepicker"]').trigger('change');
 
-            });
-        }
-    }
+			});
+		}
+	}
 
 </script>
 <script type="text/x-kendo-template" id="inventoryTemplate" data-selector="modalContainer">
@@ -492,15 +495,15 @@
     </div>
 </script>
 <script type="text/x-kendo-template" id="taskDescription" data-selector="modalContainer">
-    #if(description!=null){#
-    #if(description.length >= 25){#
-    <div style="font-size:13px;">#=description.substring(0,50)#...</div>
-    #}
-    else
-    {#
-    <div style="font-size:13px;">#=description#</div>
-    #}#
-    #}#
+	#if(description!=null){#
+	#if(description.length >= 25){#
+	<div style="font-size:13px;">#=description.substring(0,50)#...</div>
+	#}
+	else
+	{#
+	<div style="font-size:13px;">#=description#</div>
+	#}#
+	#}#
 </script>
 <script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
 	#var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
@@ -615,165 +618,175 @@
 	#}#
 </script>
 <style type="text/css">
-    .list-group.clear-list .list-group-item {
-        padding: 5px 0px !important;
-    }
+	.list-group.clear-list .list-group-item {
+		padding: 5px 0px !important;
+	}
 
-    .table {
-        border-top: 0px #ddd solid;
-    }
+	.table {
+		border-top: 0px #ddd solid;
+	}
 
-    .mywidget {
-        border-radius: 10px !important;
-        padding: 10px 15px !important;
-        margin-bottom: 10px !important;
-        margin-top: 0px !important;
-        min-height: 70px !important;
-    }
+	.mywidget {
+		border-radius: 10px !important;
+		padding: 10px 15px !important;
+		margin-bottom: 10px !important;
+		margin-top: 0px !important;
+		min-height: 70px !important;
+	}
 
-    .dl-horizontal dt {
-        text-align: left !important;
-    }
+	.dl-horizontal dt {
+		text-align: left !important;
+	}
 
-    #VWCMP_StorageSections {
-        height: 630px;
-    }
+	#VWCMP_StorageSections {
+		height: 630px;
+	}
 
-    .breadcrumb {
-        padding: 0px 0px !important;
-        margin-bottom: 0px !important;
-        border-radius: 4px !important;
-    }
+	.breadcrumb {
+		padding: 0px 0px !important;
+		margin-bottom: 0px !important;
+		border-radius: 4px !important;
+	}
 </style>
 <div class="row">
-    <div class="col-lg-3">
-        <div class="ibox ">
-            <div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
-                <div class="m-b-md">
-                    <h2 class="font-bold no-margins">
-                        @Model.name
-                    </h2>
-                    <small> <i class="fa fa-location-arrow"></i> @(Model.locationId_Title != null ? Model.locationId_Title : "Lokasyon bulunamadı")</small>
-                </div>
-                <img src="@(Model.companyId_Image != null ? Model.companyId_Image : "/Content/Custom/img/company.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px;margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
-                <div style="margin-top: 15px;">
+	<div class="col-lg-3">
+		<div class="ibox ">
+			<div class="p-md text-center myCompanyBg" style="background:url('/Content/Custom/img/Company-Background.png');color: #ffffff;padding-bottom:10px !important;">
+				<div class="m-b-md">
+					<h2 class="font-bold no-margins">
+						@Model.name
+					</h2>
+					<small> <i class="fa fa-location-arrow"></i> @(Model.locationId_Title != null ? Model.locationId_Title : "Lokasyon bulunamadı")</small>
+				</div>
+				<img src="@(Model.companyId_Image != null ? Model.companyId_Image : "/Content/Custom/img/company.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 103px;margin: auto; border: 2px solid #fff;" onerror="ImageError(this,'/Content/Custom/img/company.png')">
+				<div style="margin-top: 15px;">
 
-                    <a href="#" data-task="Insert" data-modal="true" title="Bilgileri Düzenle" style="line-height: 14px;" data-href="@Url.Action("Update", "VWCMP_Storage", new {area = "CMP" , id = Model.id })" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Bilgileri Düzenle</a>
-                    <a class="btn btn-xs btn-primary" href="tel:@Model.phone"> <i class="fa fa-phone"></i> Ara </a>
-                </div>
-            </div>
-            <div class="widget-text-box">
-                <ul class="list-group clear-list" style="margin-bottom: 0 !important;">
-                    <li class="list-group-item fist-item">
-                        <i class="fa fa-building"></i> <strong> İşletme : </strong> <a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" data-toggle="tooltip" target="_blank" title="İşletme Detayına Git">  @Model.companyId_Title </a>
-                    </li>
-                    <li class="list-group-item fist-item">
-                        <i class="ii-ambarmevcudu"></i> <strong> Şube/Depo/Kısım Kodu : </strong> @Model.code
-                    </li>
-                    <li class="list-group-item fist-item">
-                        <i class="fa fa-user"></i><strong> Şube/Depo/Kısım Sorumlusu : </strong> @(Model.supervisorId_Title != null ? Model.supervisorId_Title : "Atama yapılmamış")
-                    </li>
-                    <li class="list-group-item fist-item">
-                        <i class="fa fa-phone"></i><strong> Telefon : </strong>  <a href="tel:@Model.phone"> @Model.phone </a>
-                    </li>
-                    <li class="list-group-item fist-item">
-                        <i class="fa fa-phone"></i><strong> Email : </strong>  @Model.email
-                    </li>
-                </ul>
-            </div>
-        </div>
+					<a href="#" data-task="Insert" data-modal="true" title="Bilgileri Düzenle" style="line-height: 14px;" data-href="@Url.Action("Update", "VWCMP_Storage", new {area = "CMP" , id = Model.id })" class="btn btn-xs btn-primary"><i class="fa fa-edit"></i> Bilgileri Düzenle</a>
+					<a class="btn btn-xs btn-primary" href="tel:@Model.phone"> <i class="fa fa-phone"></i> Ara </a>
+				</div>
+			</div>
+			<div class="widget-text-box">
+				<ul class="list-group clear-list" style="margin-bottom: 0 !important;">
+					<li class="list-group-item fist-item">
+						<i class="fa fa-building"></i> <strong> İşletme : </strong> <a href="/CMP/VWCMP_Company/Detail?id=@Model.companyId" data-toggle="tooltip" target="_blank" title="İşletme Detayına Git">  @Model.companyId_Title </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-info-circle"></i> <strong> Şube/Depo/Kısım Tipi : </strong> @Model.locationType_Title
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="ii-ambarmevcudu"></i> <strong> Şube/Depo/Kısım Kodu : </strong> @Model.code
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-user"></i><strong> Şube/Depo/Kısım Sorumlusu : </strong> @(Model.supervisorId_Title != null ? Model.supervisorId_Title : "Atama yapılmamış")
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-phone"></i><strong> Telefon : </strong>  <a href="tel:@Model.phone"> @Model.phone </a>
+					</li>
+					<li class="list-group-item fist-item">
+						<i class="fa fa-phone"></i><strong> Email : </strong>  @Model.email
+					</li>
+				</ul>
+			</div>
+		</div>
 
-        <div class="ibox  ">
-            <div class="ibox-title">
-                <h5><i class="fa fa-location-arrow text-success"></i> KONUM BİLGİSİ</h5>
-                <div class="ibox-tools">
-                    <a class="collapse-link" id="locationArrow">
-                        <i class="fa fa-chevron-up"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="ibox-content p-sm clearfix">
-                @Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker-my-storage.png").ZoomLevel(12).Navigation(false).Height(300)
-            </div>
-        </div>
+		<div class="ibox  ">
+			<div class="ibox-title">
+				<h5><i class="fa fa-location-arrow text-success"></i> KONUM BİLGİSİ</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link" id="locationArrow">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content p-sm clearfix">
+				@if (Model.locationType == (int)EnumCMP_StorageLocationType.Depo)
+				{
+					@Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).Image("/Content/Custom/img/marker-my-storage.png").ZoomLevel(12).Navigation(false).Height(300)
+				}
+				else
+				{
+					@Html.Akilli().MapInputFor(a => a.location).OnlyMap().Searchable(false).HtmlAttributes(new Dictionary<string, object>() { { "id", "LocationCompany" } }).ZoomLevel(7).Navigation(false).Height(300)
+				}
+			</div>
+		</div>
 
 
 
-        <div class="ibox  collapsed">
-            <div class="ibox-title">
-                <h5><i class="fa fa-qrcode text-success"></i> QR KOD</h5>
-                <div class="ibox-tools">
-                    <a class="collapse-link">
-                        <i class="fa fa-chevron-up"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="ibox-content clearfix">
-                <div class="qrCodeWrapper" style="width:170px;">
-                    @(  Html.Kendo().QRCode()
+		<div class="ibox  collapsed">
+			<div class="ibox-title">
+				<h5><i class="fa fa-qrcode text-success"></i> QR KOD</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content clearfix">
+				<div class="qrCodeWrapper" style="width:170px;">
+					@(  Html.Kendo().QRCode()
                          .Name("QRCode")
                          .Value(Model.code)
                          .Size(140)
                     )
-                    <span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
-                    <div style="text-align:center;">
-                        <a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
-                        <a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
-                    </div>
-                </div>
-            </div>
-        </div>
+					<span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+					<div style="text-align:center;">
+						<a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+						<a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+					</div>
+				</div>
+			</div>
+		</div>
 
 
 
 
-    </div>
-    <div class="col-lg-9">
-        <section style="margin-bottom: 20px;">
-            <div class="tabs-container">
-                <ul class="nav nav-tabs">
+	</div>
+	<div class="col-lg-9">
+		<section style="margin-bottom: 20px;">
+			<div class="tabs-container">
+				<ul class="nav nav-tabs">
 
-                    @if (Model.myStorage == true)
-                    {
-                        <li class="active" data-href="@Url.Action("DataSource","VWPRD_StockSummary", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Özeti">
-                            <a data-toggle="tab" href="#VWPRD_StockSummarys" aria-expanded="false"><i class="icon-cubes text-success fa-2x" aria-hidden="true"></i></a>
-                        </li>
-                    }
+					@if (Model.myStorage == true)
+					{
+						<li class="active" data-href="@Url.Action("DataSource","VWPRD_StockSummary", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Özeti">
+							<a data-toggle="tab" href="#VWPRD_StockSummarys" aria-expanded="false"><i class="icon-cubes text-success fa-2x" aria-hidden="true"></i></a>
+						</li>
+					}
 
-                    <li data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Envanter Listesi">
-                        <a data-toggle="tab" href="#VWPRD_Inventories" aria-expanded="false"><i class="icon-buffer text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
+					<li data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Envanter Listesi">
+						<a data-toggle="tab" href="#VWPRD_Inventories" aria-expanded="false"><i class="icon-buffer text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
 
-                    <li data-href="@Url.Action("DataSource","VWPRD_StockAction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Hareketleri">
-                        <a data-toggle="tab" href="#VWPRD_StockActions" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
-
-
-                    <li data-href="@Url.Action("DataSource","VWPRD_Transaction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok İşlemleri">
-                        <a data-toggle="tab" href="#VWPRD_Transactions" aria-expanded="false"><i class="icon-th-list text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
-
-                    <li data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Görev Form Tanımları">
-                        <a data-toggle="tab" href="#VWFTM_TaskFormRelation" aria-expanded="false"><i class="icon-doc-text-inv-1 text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
-
-                    <li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Alt Şube/Depo/Kısımlar">
-                        <a data-toggle="tab" href="#VWCMP_Storages" aria-expanded="false"><i class="ii-ambarmevcudu text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
-                    <li data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Arıza/Bakım/Keşif işlemleri">
-                        <a data-toggle="tab" href="#VWFTM_Tasks" aria-expanded="false"><i class="icon-wrench text-success fa-2x" aria-hidden="true"></i></a>
-                    </li>
+					<li data-href="@Url.Action("DataSource","VWPRD_StockAction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok Hareketleri">
+						<a data-toggle="tab" href="#VWPRD_StockActions" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
 
 
-                </ul>
-                <div class="tab-content">
+					<li data-href="@Url.Action("DataSource","VWPRD_Transaction", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Stok İşlemleri">
+						<a data-toggle="tab" href="#VWPRD_Transactions" aria-expanded="false"><i class="icon-th-list text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Görev Form Tanımları">
+						<a data-toggle="tab" href="#VWFTM_TaskFormRelation" aria-expanded="false"><i class="icon-doc-text-inv-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" data-toggle="tooltip" data-placement="top" title="Alt Şube/Depo/Kısımlar">
+						<a data-toggle="tab" href="#VWCMP_Storages" aria-expanded="false"><i class="ii-ambarmevcudu text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
+					<li data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Arıza/Bakım/Keşif işlemleri">
+						<a data-toggle="tab" href="#VWFTM_Tasks" aria-expanded="false"><i class="icon-wrench text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
 
 
-                    @if (Model.myStorage == true)
-                    {
-                        <div class="tab-pane active" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummarys">
-                            <h4><i class="text-success  icon-cubes"></i> STOK ÖZETİ</h4>
-                            @(Html.Akilli()
+				</ul>
+				<div class="tab-content">
+
+
+					@if (Model.myStorage == true)
+					{
+						<div class="tab-pane active" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummarys">
+							<h4><i class="text-success  icon-cubes"></i> STOK ÖZETİ</h4>
+							@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.id).PageSize(25)).Scrollable(a => a.Height(500))
                             .Columns(x =>
@@ -790,12 +803,12 @@
                                 x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-storage", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
                                 x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
                             }))
-                        </div>
-                    }
+						</div>
+					}
 
-                    <div class="tab-pane @(Model.myStorage == false ? "active" : "")" data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" id="VWPRD_Inventories">
-                        <h4><i class="icon-buffer text-success"></i> Envanter Listesi </h4>
-                        @(Html.Akilli()
+					<div class="tab-pane @(Model.myStorage == false ? "active" : "")" data-href="@Url.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })" id="VWPRD_Inventories">
+						<h4><i class="icon-buffer text-success"></i> Envanter Listesi </h4>
+						@(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Inventory>("VWPRD_Inventory")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Inventory", new { area = "PRD" })).Filter(a => a.lastActionDataId == Model.id).PageSize(25))
                         //.Filterable(t => t.Mode(GridFilterMode.Row))
@@ -817,12 +830,12 @@
                             x.Custom().Text("<i data-original-title='Envanter Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "false" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Inventory", new { area = "PRD" }));
                             // x.Custom().Text("<i title='Hareket Detayı' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Inventory", new { area = "PRD" }));
                         }))
-                    </div>
+					</div>
 
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_StockActions">
-                        <h4><i class="icon-exchange-1 text-success "></i> STOK HAREKETLERİ </h4>
-                        @(Html.Akilli()
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_StockActions">
+						<h4><i class="icon-exchange-1 text-success "></i> STOK HAREKETLERİ </h4>
+						@(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockAction>("VWPRD_StockAction")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_StockAction", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.stockId == Model.id).PageSize(25))
                         .Groupable(a => a.Enabled(true))
@@ -846,12 +859,12 @@
                         })
                         .Events(a => a.ExcelExport("Kendo_CustomExport"))
                         .Selectable(x => x.Mode(GridSelectionMode.Single)))
-                    </div>
+					</div>
 
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_Transactions">
-                        <h4><i class="icon-th-list text-success "></i> STOK İŞLEMLERİ </h4>
-                        @(Html.Akilli()
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockAction", new { area = "CMP" })" id="VWPRD_Transactions">
+						<h4><i class="icon-th-list text-success "></i> STOK İŞLEMLERİ </h4>
+						@(Html.Akilli()
                          .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_Transaction>("VWPRD_Transaction")
                          .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_Transaction", new { area = "PRD" })).Filter(a => a.inputId == Model.id || a.outputId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
                          .Scrollable(a => a.Height(490))
@@ -885,12 +898,12 @@
                              x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
                              x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
                          }))
-                    </div>
+					</div>
 
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" id="VWFTM_TaskFormRelation">
-                        <h4><i class="icon-doc-text-inv-1 text-success"></i> GÖREV FORM TANIMLARI </h4>
-                        @(Html.Akilli()
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })" id="VWFTM_TaskFormRelation">
+						<h4><i class="icon-doc-text-inv-1 text-success"></i> GÖREV FORM TANIMLARI </h4>
+						@(Html.Akilli()
 						 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_TaskFormRelation>("VWFTM_TaskFormRelations")
 						 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_TaskFormRelation", new { area = "FTM" })).PageSize(25).Filter(a => a.companyStorageId == Model.id))
 						 .Columns(x =>
@@ -906,11 +919,11 @@
 						 {
 							 x.Custom().Text("<i data-original-title='Form Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-blank", "" }, { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" }, {"id","taskFormDetail" } }).Url(Url.Action("Detail", "VWFTM_TaskForm", new { area = "FTM" }));
 						 }))
-                    </div>
+					</div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
-                        <h4><i class="text-success  ii-ambarmevcudu"></i> ALT ŞUBE/DEPO/KISIMLAR</h4>
-                        @(Html.Akilli()
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })" id="VWCMP_Storages">
+						<h4><i class="text-success  ii-ambarmevcudu"></i> ALT ŞUBE/DEPO/KISIMLAR</h4>
+						@(Html.Akilli()
                         .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Storage>("VWCMP_Storage")
                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).Filter(a => a.pid == Model.id).PageSize(25))
                         .Scrollable(a => a.Height(500))
@@ -931,71 +944,71 @@
                             x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Şube/Depo/Kısım Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
                             x.Custom().Text("<i class='fa fa-trash' data-original-title='Şube/Depo/Kısım Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
                         }))
-                    </div>
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" id="VWFTM_Tasks">
-                        <h4><i class="icon-wrench text-success"></i> GEÇMİŞ ARIZA/BAKIM/KEŞİF KAYITLARI </h4>
-                        @(Html.Akilli()
-						 .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_TaskContinuing")
-						 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25).Filter(a => a.customerStorageId == Model.id))
-						 .Columns(x =>
-						 {
-							 x.Bound(y => y.type_Title).Title("Görev Tipi").Width(150).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
-							 x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(240).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
-							 x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(200).ClientTemplate("#=taskPriorityResult(data)#");
-							 x.Bound(y => y.code).Title("Görev Kodu").Width(180);
-							 x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
-							 x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
-							 x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
-							 x.Bound(y => y.lastOperationDate).Title("Son İşlem Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
-							 x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
-							 {
-								 b.Clear();
-								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
-								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
-							 }
+					</div>
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWFTM_Task", new { area = "FTM" })" id="VWFTM_Tasks">
+						<h4><i class="icon-wrench text-success"></i> GEÇMİŞ ARIZA/BAKIM/KEŞİF KAYITLARI </h4>
+						@(Html.Akilli()
+                         .Grid<Infoline.WorkOfTime.BusinessData.VWFTM_Task>("VWFTM_TaskContinuing")
+                         .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWFTM_Task", new { area = "FTM" })).PageSize(25).Filter(a =>Model.PidIds.Contains(a.customerStorageId)))
+                         .Columns(x =>
+                         {
+                             x.Bound(y => y.type_Title).Title("Görev Tipi").Width(150).Filterable(filterable => filterable.UI("FilterMenuTaskType")).ClientTemplate("#=TemplateEngine('taskTypeTemplate',data)#");
+                             x.Bound(y => y.lastOperationStatus_Title).Title("Son İşlem").Width(240).Filterable(filterable => filterable.UI("FilterMenuTaskStatus")).ClientTemplate("#=TemplateEngine('taskStatusTemplate',data)#");
+                             x.Bound(y => y.priority_Title).Title("Görev Önceliği").Filterable(filterable => filterable.UI("FilterMenuTaskPriority")).Width(200).ClientTemplate("#=taskPriorityResult(data)#");
+                             x.Bound(y => y.code).Title("Görev Kodu").Width(180);
+                             x.Bound(y => y.description).Title("Görev Açıklaması").ClientTemplate("#=TemplateEngine('taskDescription',data)#").Width(180);
+                             x.Bound(y => y.customer_Title).Title("Müşteri İşletme").Width(180);
+                             x.Bound(y => y.customerStorage_Title).Title("Şube/Depo/Kısım").Width(180);
+                             x.Bound(y => y.lastOperationDate).Title("Son İşlem Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+                             x.Bound(y => y.dueDate).Title("Planlanan Bitiş Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+                             {
+                                 b.Clear();
+                                 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                                 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+                             }
 
-							 ))).Width(180).Format(Extensions.DateFormatFull(true));
-							 x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
-							 x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
-							 x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
-							 {
+                             ))).Width(180).Format(Extensions.DateFormatFull(true));
+                             x.Bound(y => y.fixture_Title).Title("Görevlendirilen Envanter").Width(230);
+                             x.Bound(y => y.createdby_Title).Title("Oluşturan Personel").Width(180).Hidden(false);
+                             x.Bound(y => y.created).Title("Oluşturulma Tarihi").Filterable(filterable => filterable.Operators(a => a.ForDate(b =>
+                             {
 
-								 b.Clear();
-								 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
-								 b.IsLessThanOrEqualTo("Bitiş Tarihi");
-							 }
+                                 b.Clear();
+                                 b.IsGreaterThanOrEqualTo("Başlangıç Tarihi");
+                                 b.IsLessThanOrEqualTo("Bitiş Tarihi");
+                             }
 
-							 ))).Width(180).Format(Extensions.DateFormatFull(true));
-						 })
-								.Events(ev => ev.FilterMenuInit("filterMenuInit"))
-						 .Selectable(x => x.Mode(GridSelectionMode.Single))
-						 .ToolBar(x =>
-						 {
-							 x.Custom().Text("<i data-original-title='Görev Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", customerId = Model.id }));
-							 x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
-						 }))
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
+                             ))).Width(180).Format(Extensions.DateFormatFull(true));
+                         })
+                                .Events(ev => ev.FilterMenuInit("filterMenuInit"))
+                         .Selectable(x => x.Mode(GridSelectionMode.Single))
+                         .ToolBar(x =>
+                         {
+                             x.Custom().Text("<i data-original-title='Görev Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWFTM_Task", new { area = "FTM", customerId = Model.companyId, customerStorageId=Model.id }));
+                             x.Custom().Text("<i data-original-title='Görev Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWFTM_Task", new { area = "FTM" }));
+                         }))
+					</div>
+				</div>
+			</div>
+		</section>
+	</div>
 </div>
 
 
 
 
 <script type="text/javascript">
-    $(document)
-        .on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
-            var detail = $('[data-storage="detail"]');
-            var dataProduct = $('[data-productStorage="detail"]');
-            $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
-            if (res.stockType == 2 && res.quantity != 0) {
-                $(dataProduct).show();
-                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
-            }
-            else {
-                $(dataProduct).hide();
-            }
-        });
+	$(document)
+		.on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
+			var detail = $('[data-storage="detail"]');
+			var dataProduct = $('[data-productStorage="detail"]');
+			$(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+			if (res.stockType == 2 && res.quantity != 0) {
+				$(dataProduct).show();
+				$(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+			}
+			else {
+				$(dataProduct).hide();
+			}
+		});
 </script>

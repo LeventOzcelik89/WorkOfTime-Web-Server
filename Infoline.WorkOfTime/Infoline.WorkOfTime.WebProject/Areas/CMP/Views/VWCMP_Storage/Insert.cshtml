@@ -46,8 +46,6 @@
 {
 	@Html.AntiForgeryToken()
 	@Html.HiddenFor(model => model.id)
-	@Html.HiddenFor(model => model.pid)
-
 	<div class="form-group @(Model.companyId.HasValue ? "hide" : "")">
 		<div class="col-md-4">
 			<label class="control-label label-md req" for="İşletme">İşletme</label>
@@ -87,6 +85,29 @@
 			}
 		</div>
 	</div>
+
+
+	if (Model.companyId.HasValue)
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="code">Bağlı Depo/Şube/Kısım</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.pid)
+                    .OptionLabel("Lütfen Depo/Şube/Kısım Seçiniz")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Filter<CMP_Storage>(a => a.companyId== Model.companyId)
+                    .Sort(x => x.Add("name").Ascending())
+                    .Execute()
+                )
+			</div>
+		</div>
+	}
 
 	<div class="form-group">
 		<div class="col-md-4">
@@ -177,24 +198,67 @@
 		</div>
 	</div>
 
-	<div class="form-group">
+	<div class="form-group" style="margin-bottom: 1px;">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="type">Depo Tipi <i class="icon-info-4" data-toggle="tooltip" data-placement="top" title="Depo bir alan içerisinde mi yoksa tek bir bina içerisin de mi bulunmakta bilgisi. ."></i></label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumCMP_StorageLocationType>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.locationType, item.Key, new Dictionary<string, object> { { "id", "locationType" + item.Key } }))
+						<label for="locationType@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group" data-cascade="[type='radio'][name='locationType']" data-show="0">
 		<div class="col-md-4">
 			<label class="control-label req label-md" for="location">Lokasyon</label>
 		</div>
 		<div class="col-md-8">
 			@(
-                Html.Akilli().MapInputFor(a => a.location).
-                HelpText("Lütfen Lokasyon seçiniz.").
-                HtmlAttributes(new Dictionary<string, object>()
-                {
-                    {"class", "form-control"},
-                    {"placeholder", "Lütfen Lokasyon Seçiniz.."}
-                }).
-                Validate(Validations.Required).
-                Opened(true).
-                ZoomLevel(5).
-                Navigation(false).
-                Searchable(true)
+				Html.Akilli().MapInputFor(a => a.location).
+				HelpText("Lütfen Lokasyon seçiniz.").
+				HtmlAttributes(new Dictionary<string, object>()
+				{
+					{"id","type0Location" },
+					{"class", "form-control"},
+					{"placeholder", "Lütfen Lokasyon Seçiniz.."}
+				}).
+				Validate(Validations.Required).
+				DrawMode(MapInput.DrawMode.Point).
+				ZoomLevel(5).
+				Navigation(false).
+				Searchable(true)
+            )
+		</div>
+	</div>
+
+	<div class="form-group" data-cascade="[type='radio'][name='locationType']" data-show="1">
+		<div class="col-md-4">
+			<label class="control-label req label-md" for="location">Alan</label>
+		</div>
+		<div class="col-md-8">
+			@(
+				Html.Akilli().MapInputFor(a => a.location).
+				HelpText("Lütfen Lokasyon seçiniz.").
+				HtmlAttributes(new Dictionary<string, object>()
+				{
+					{"id","type1Location" },
+					{"class", "form-control"},
+					{"placeholder", "Lütfen Lokasyon Seçiniz.."}
+				}).
+				Validate(Validations.Required).
+				DrawMode(MapInput.DrawMode.Polygon).
+				ZoomLevel(5).
+				Navigation(false).
+				Searchable(true)
             )
 		</div>
 	</div>

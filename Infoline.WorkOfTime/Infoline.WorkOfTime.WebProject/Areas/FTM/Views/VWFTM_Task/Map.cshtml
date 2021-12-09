@@ -86,14 +86,19 @@
                 updateLocations: function () {
                     var layerSource = page.dfn.harita.layer.get("Tasks")["Tasks"].getProperties().source;
                     var features = layerSource.getFeatures();
-
-                    var groupedByLocation = $.Enumerable.From(page.dfn.mapData).Where(a=>a.location != null).GroupBy(a=>a.location).ToArray();
-
+                    debugger;
+                    var groupedByLocation = $.Enumerable.From(page.dfn.mapData).Where(a => a.location != null).GroupBy(a => a.location).ToArray();
                     groupedByLocation.forEach(function(data){
                         if(data.source.length > 1){
                             data.source.forEach(function(operation){
-                                var feature = $.Enumerable.From(features).Where(a=>a.getId() == operation.id).FirstOrDefault();
-                                var coords = feature.getGeometry().getCoordinates();
+                                var feature = $.Enumerable.From(features).Where(a => a.getId() == operation.id).FirstOrDefault();
+                                var coords = null;
+                                if (feature.locationType != '@((int)EnumCMP_StorageLocationType.Alan)') {
+									coords = feature.getGeometry().getCoordinates();
+                                }
+								else {
+									coords = feature.getGeometry().getCoordinates()[0][0];
+								}
                                 coords[0] += Math.floor(Math.random() * 200);
                                 coords[1] += Math.floor(Math.random() * 200);
                                 feature.getGeometry().setCoordinates(coords);
@@ -182,9 +187,11 @@
                         var feature = page.dfn.harita.feature.add("Tasks", task.id, task.location);
                         if (feature) {
                             feature.set("properties", task);
-                            feature.set("style", styleId);
-                            feature.set("styleHover", styleId);
-                            feature.set("styleSelected", "selected_" + task.type);
+							if (task.locationType != '@((int)EnumCMP_StorageLocationType.Alan)') {
+								feature.set("style", styleId);
+								feature.set("styleHover", styleId);
+								feature.set("styleSelected", "selected_" + task.type);
+							}
                         }
                     })
 
@@ -412,6 +419,7 @@
                     return text;
                 },
                 applyFilter: function () {
+                    debugger;
                     var createdQuery = $('[data-selector="created"].filterButtonActive').data("query");
 
                      var priorityQuery = [];
@@ -507,6 +515,7 @@
 
                     GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSource', { filter: dataQuery, page: 1, pageSize: 9999 }, function (resp) {
 
+                        debugger;
                         page.dfn.harita.layer.get("Tasks")["Tasks"].getSource().clear();
                         page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
 
@@ -634,6 +643,8 @@
                             tooltiplocation = "bottom-right";
                         else
                             tooltiplocation = "center-right";
+
+                        debugger;
 
                         page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
                         page.dfn.harita.map.updateSize();

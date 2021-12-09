@@ -452,7 +452,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }), this.trans);
                 foreach (var tender in tenders)
                 {
-                    DBResult &= new VMCMP_TenderModels { id = tender }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifIrsaliye, this.createdby.Value, this.trans);
+                    DBResult &= new VMCMP_TenderModels { id = tender }.Load(false, (int)EnumCMP_InvoiceDirectionType.Alis).UpdateStatus((int)EnumCMP_TenderStatus.TeklifIrsaliye, this.createdby.Value, false,this.trans);
                 }
             }
             if (DBResult.result == true)

@@ -64,6 +64,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWCMP_Invoice GetVWCMP_InvoiceByPid(Guid pid, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Invoice>().Where(a => a.pid == pid).Execute().FirstOrDefault();
+            }
+        }
+
     }
 
     public class CompanyInvoiceMonthly

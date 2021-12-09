@@ -11,6 +11,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? type { get; set;}
         public string description { get; set;}
         public string serialNumber { get; set;}
+        public Guid? pid { get; set;}
         public string rowNumber { get; set;}
         public Guid? supplierId { get; set;}
         public Guid? customerId { get; set;}
@@ -37,6 +38,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string supplierAdress { get; set;}
         public Guid? invoiceDocumentTemplateId { get; set;}
         public string supplierTitle { get; set;}
+        public Guid? taskId { get; set;}
         public string type_Title { get; set;}
         public string discountType_Title { get; set;}
         public string paymentType_Title { get; set;}

@@ -1,208 +1,208 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMCMP_TenderModels
 @{
-    ViewBag.Title = Model.Supplier_Title + " İşletmesinden Gelen Teklif Detayı";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = Model.Supplier_Title + " İşletmesinden Gelen Teklif Detayı";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 
-    var userStatus = (PageSecurity)Session["userStatus"];
+	var userStatus = (PageSecurity)Session["userStatus"];
 
-    var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
+	var EnumProperties = ((IEnumerable<Item>)ViewBag.EnumProperties).ToArray();
 
-    var createdTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TalepTeklifEklendi || a.type == (int)EnumCMP_InvoiceActionType.YeniTeklif).FirstOrDefault();
-    var approveTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifYoneticiOnay).FirstOrDefault();
-    var rejectTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifRed).FirstOrDefault();
-    var invoiceTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifFatura).FirstOrDefault();
+	var createdTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TalepTeklifEklendi || a.type == (int)EnumCMP_InvoiceActionType.YeniTeklif).FirstOrDefault();
+	var approveTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifYoneticiOnay).FirstOrDefault();
+	var rejectTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifRed).FirstOrDefault();
+	var invoiceTender = Model.InvoiceActions.Where(a => a.type == (int)EnumCMP_InvoiceActionType.TeklifFatura).FirstOrDefault();
 }
 
 <style type="text/css" data-selector="modalContainer">
-    #VWCMP_InvoiceItem .k-grid-toolbar {
-        display: none;
-    }
+	#VWCMP_InvoiceItem .k-grid-toolbar {
+		display: none;
+	}
 
-    #calendar .party {
-        color: #ff4081;
-        font-weight: bold;
-    }
+	#calendar .party {
+		color: #ff4081;
+		font-weight: bold;
+	}
 
-    #VWCMP_InvoiceItem .fileupload-container {
-        background: #fff !important;
-    }
+	#VWCMP_InvoiceItem .fileupload-container {
+		background: #fff !important;
+	}
 
-    #detailInvoice .list-group {
-        margin-bottom: 0px !important;
-    }
+	#detailInvoice .list-group {
+		margin-bottom: 0px !important;
+	}
 
-    .photoWidth img {
-        width: 100%;
-        height: auto;
-    }
+	.photoWidth img {
+		width: 100%;
+		height: auto;
+	}
 
-    .heightMin {
-        min-height: 42px !important;
-    }
-
-
-
-    #timeline-wrap {
-        margin: 10% 10%;
-        position: relative;
-    }
-
-    #timeline {
-        height: 1px;
-        width: 100%;
-        background-color: #aabbc4;
-        position: relative;
-    }
-
-    .marker {
-        color: #fff;
-        width: 50px;
-        height: 50px;
-        line-height: 50px;
-        font-size: 1.4em;
-        text-align: center;
-        position: absolute;
-        margin-left: -25px;
-        background-color: #999999;
-        border-radius: 50%;
-    }
-
-        .marker:hover {
-            -moz-transform: scale(1.2);
-            -webkit-transform: scale(1.2);
-            -o-transform: scale(1.2);
-            -ms-transform: scale(1.2);
-            transform: scale(1.2);
-            -webkit-transition: all 300ms ease;
-            -moz-transition: all 300ms ease;
-            -ms-transition: all 300ms ease;
-            -o-transition: all 300ms ease;
-            transition: all 300ms ease;
-        }
-
-    .mfirst {
-        top: -25px;
-    }
-
-    .m2 {
-        top: -25px;
-        left: 32.5%
-    }
-
-    .m3 {
-        top: -25px;
-        left: 66%
-    }
+	.heightMin {
+		min-height: 42px !important;
+	}
 
 
-    .mlast {
-        top: -25px;
-        left: 100%
-    }
 
-    .timeline-panel {
-        margin-top: 20%;
-        width: 500px;
-        height: 200px;
-        background-color: #cbd0df;
-        border-radius: 2px;
-        position: relative;
-        text-align: left;
-        padding: 10px;
-        font-size: 20px;
-        font-weight: bold;
-        line-height: 20px;
-        float: left;
-    }
+	#timeline-wrap {
+		margin: 10% 10%;
+		position: relative;
+	}
 
-        .timeline-panel:after {
-            content: '';
-            position: absolute;
-            margin-top: -12%;
-            left: 10%;
-            width: 0;
-            height: 0;
-            border: 12px solid transparent;
-            border-bottom: 15px solid #cbd0df;
-        }
+	#timeline {
+		height: 1px;
+		width: 100%;
+		background-color: #aabbc4;
+		position: relative;
+	}
 
-    .pulseicon {
-        display: inline-block;
-        -moz-animation: pulse 2s infinite linear;
-        -o-animation: pulse 2s infinite linear;
-        -webkit-animation: pulse 2s infinite linear;
-        animation: pulse 2s infinite linear;
-    }
+	.marker {
+		color: #fff;
+		width: 50px;
+		height: 50px;
+		line-height: 50px;
+		font-size: 1.4em;
+		text-align: center;
+		position: absolute;
+		margin-left: -25px;
+		background-color: #999999;
+		border-radius: 50%;
+	}
 
-    @@-webkit-keyframes pulse {
-        0% {
-            opacity: 1;
-        }
+		.marker:hover {
+			-moz-transform: scale(1.2);
+			-webkit-transform: scale(1.2);
+			-o-transform: scale(1.2);
+			-ms-transform: scale(1.2);
+			transform: scale(1.2);
+			-webkit-transition: all 300ms ease;
+			-moz-transition: all 300ms ease;
+			-ms-transition: all 300ms ease;
+			-o-transition: all 300ms ease;
+			transition: all 300ms ease;
+		}
 
-        50% {
-            opacity: 0;
-        }
+	.mfirst {
+		top: -25px;
+	}
 
-        100% {
-            opacity: 1;
-        }
-    }
+	.m2 {
+		top: -25px;
+		left: 32.5%
+	}
 
-    @@-moz-keyframes pulse {
-        0% {
-            opacity: 1;
-        }
+	.m3 {
+		top: -25px;
+		left: 66%
+	}
 
-        50% {
-            opacity: 0;
-        }
 
-        100% {
-            opacity: 1;
-        }
-    }
+	.mlast {
+		top: -25px;
+		left: 100%
+	}
 
-    @@-o-keyframes pulse {
-        0% {
-            opacity: 1;
-        }
+	.timeline-panel {
+		margin-top: 20%;
+		width: 500px;
+		height: 200px;
+		background-color: #cbd0df;
+		border-radius: 2px;
+		position: relative;
+		text-align: left;
+		padding: 10px;
+		font-size: 20px;
+		font-weight: bold;
+		line-height: 20px;
+		float: left;
+	}
 
-        50% {
-            opacity: 0;
-        }
+		.timeline-panel:after {
+			content: '';
+			position: absolute;
+			margin-top: -12%;
+			left: 10%;
+			width: 0;
+			height: 0;
+			border: 12px solid transparent;
+			border-bottom: 15px solid #cbd0df;
+		}
 
-        100% {
-            opacity: 1;
-        }
-    }
+	.pulseicon {
+		display: inline-block;
+		-moz-animation: pulse 2s infinite linear;
+		-o-animation: pulse 2s infinite linear;
+		-webkit-animation: pulse 2s infinite linear;
+		animation: pulse 2s infinite linear;
+	}
 
-    @@-ms-keyframes pulse {
-        0% {
-            opacity: 1;
-        }
+	@@-webkit-keyframes pulse {
+		0% {
+			opacity: 1;
+		}
 
-        50% {
-            opacity: 0;
-        }
+		50% {
+			opacity: 0;
+		}
 
-        100% {
-            opacity: 1;
-        }
-    }
+		100% {
+			opacity: 1;
+		}
+	}
 
-    @@keyframes pulse {
-        0% {
-            opacity: 1;
-        }
+	@@-moz-keyframes pulse {
+		0% {
+			opacity: 1;
+		}
 
-        50% {
-            opacity: 0;
-        }
+		50% {
+			opacity: 0;
+		}
 
-        100% {
-            opacity: 1;
-        }
-    }
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@@-o-keyframes pulse {
+		0% {
+			opacity: 1;
+		}
+
+		50% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@@-ms-keyframes pulse {
+		0% {
+			opacity: 1;
+		}
+
+		50% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
+
+	@@keyframes pulse {
+		0% {
+			opacity: 1;
+		}
+
+		50% {
+			opacity: 0;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
 </style>
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -241,12 +241,13 @@
             },
             updateStatus: function (_this) {
                 _this.type = "button";
-                var type = $(_this).attr("data-type");
+				var type = $(_this).attr("data-type");
+				var isTaskRule = $(_this).attr("data-isTaskRule");
 
                 $.ajax({
                     type: "POST",
                     url: '/CMP/VWCMP_Tender/UpdateStatus',
-                    data: { tenderId: tenderDetail.dfn.model.id, type: type },
+					data: { tenderId: tenderDetail.dfn.model.id, type: type, isTaskRule: isTaskRule },
                     success: function (response) {
                         if (response.Result) {
                             location.reload();
@@ -357,128 +358,146 @@
 </script>
 
 <div class="row" id="detailInvoice">
-    <div class="col-lg-12">
-        <div class="wrapper wrapper-content">
-            <div class="col-lg-9">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="ibox ">
-                            <div class="ibox-title">
-                                <h5> <i class="fa fa-hand-o-right"></i> Teklifin Geldiği İşletmem </h5>
-                                <div class="ibox-tools">
-                                    <span class=""> @(Model.customerTitle) </span>
-                                    <span>
-                                        <a href="/CMP/VWCMP_Company/Detail?id=@(Model.customerId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="ibox ">
-                            <div class="ibox-title ">
-                                <h5> <i class="fa fa-hand-o-right"></i> Tedarikçi </h5>
-                                <div class="ibox-tools">
-                                    <span class=""> @(Model.supplierTitle) </span>
-                                    <span>
-                                        <a href="/CMP/VWCMP_Company/Detail?id=@(Model.supplierId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="ibox ">
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-code"></i> Teklif Kodu </h5>
-                                <div class="ibox-tools">
-                                    @(Model.rowNumber != null ? Model.rowNumber : "")
-                                </div>
-                            </div>
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-user"></i> Düzenleyen </h5>
-                                <div class="ibox-tools">
-                                    @(Model.createdby_Title)
-                                </div>
-                            </div>
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-calendar"></i> Düzenlenme Tarihi </h5>
-                                <div class="ibox-tools">
-                                    @String.Format("{0:dd.MM.yyyy HH:mm}", Model.issueDate)
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="ibox ">
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-check-square-o"></i> Teklif Geçerlilik Tarihi </h5>
-                                <div class="ibox-tools">
-                                    @String.Format("{0:dd.MM.yyyy}", Model.validityDate)
-                                </div>
-                            </div>
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-credit-card"></i> Ödeme Tipi </h5>
-                                <div class="ibox-tools">
-                                    <strong>
-                                        @Model.paymentType_Title @(Model.paymentType == (int)EnumCMP_InvoicePaymentType.Taksitli ? "(" + Model.installmentCount.ToString() + " Taksit)" :
-Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Format("{0:dd.MM.yyyy}", Model.expiryDate) + ")" : "")
-                                    </strong>
-                                </div>
-                            </div>
-                            <div class="ibox-title heightMin">
-                                <h5> <i class="fa fa-warning"></i> Teklif Durumu </h5>
-                                <div class="ibox-tools">
+	<div class="col-lg-12">
+		<div class="wrapper wrapper-content">
+			<div class="col-lg-9">
+				<div class="row">
+					<div class="col-lg-6">
+						<div class="ibox ">
+							<div class="ibox-title">
+								<h5> <i class="fa fa-hand-o-right"></i> Teklifin Geldiği İşletmem </h5>
+								<div class="ibox-tools">
+									<span class=""> @(Model.customerTitle) </span>
+									<span>
+										<a href="/CMP/VWCMP_Company/Detail?id=@(Model.customerId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="ibox ">
+							<div class="ibox-title ">
+								<h5> <i class="fa fa-hand-o-right"></i> Tedarikçi </h5>
+								<div class="ibox-tools">
+									<span class=""> @(Model.supplierTitle) </span>
+									<span>
+										<a href="/CMP/VWCMP_Company/Detail?id=@(Model.supplierId)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+									</span>
+								</div>
+							</div>
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="ibox ">
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-code"></i> Teklif Kodu </h5>
+								<div class="ibox-tools">
+									@(Model.rowNumber != null ? Model.rowNumber : "")
+								</div>
+							</div>
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-user"></i> Düzenleyen </h5>
+								<div class="ibox-tools">
+									@(Model.createdby_Title)
+								</div>
+							</div>
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-calendar"></i> Düzenlenme Tarihi </h5>
+								<div class="ibox-tools">
+									@String.Format("{0:dd.MM.yyyy HH:mm}", Model.issueDate)
+								</div>
+							</div>
 
-                                    @if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor)
-                                    {
-                                        <strong class="text-warning">
-                                            <i class="fa fa-spinner"></i> @(Model.status_Title)
-                                        </strong>
-                                    }
-                                    else if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay)
-                                    {
-                                        <strong class="text-warning">
-                                            <i class="fa fa-hand-o-right"></i> @(Model.status_Title)
-                                        </strong>
-                                    }
-                                    else if (Model.status == (int)EnumCMP_TenderStatus.TeklifFatura)
-                                    {
-                                        <strong class="text-primary">
-                                            <i class="fa fa-check-square-o"></i> @(Model.status_Title)
-                                        </strong>
-                                    }
-                                    else if (Model.status == (int)EnumCMP_TenderStatus.TeklifIrsaliye)
-                                    {
-                                        <strong class="text-info">
-                                            <i class="fa fa-send"></i> @(Model.status_Title)
-                                        </strong>
-                                    }
-                                    else
-                                    {
-                                        <strong class="text-danger">
-                                            <i class="fa fa-times-circle"></i> @(Model.status_Title)
-                                        </strong>
-                                    }
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-puzzle-piece"></i> Teklife Eklenen Ürün Kalemleri</h5>
-                        <div class="ibox-tools">
-                            <a class="btn btn-xs btn-success hide" style="color:white;" data-button="stock" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/PRD/VWPRD_StockSummary/StockDetailProducts">
-                                <i class="fa fa-align-justify"></i> Ürün Stok Özeti
-                            </a>
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content no-padding">
-                        @(Html.Akilli()
+
+							@*@if (Model.Tender != null && Model.Tender.pid.HasValue)
+							{
+								<div class="ibox-title heightMin">
+									<h5> <i class="fa fa-info-circle"></i> Satın Alma Teklif Detayı </h5>
+									<div class="ibox-tools">
+										@Model.Tender.rowNumber <a href="/CMP/VWCMP_Tender/DetailBuying?id=@(Model.Tender.id)" target="_blank" class="text-navy"> <i class="fa fa-link"></i> </a>
+									</div>
+								</div>
+							}*@
+
+						</div>
+					</div>
+					<div class="col-lg-6">
+						<div class="ibox ">
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-check-square-o"></i> Teklif Geçerlilik Tarihi </h5>
+								<div class="ibox-tools">
+									@String.Format("{0:dd.MM.yyyy}", Model.validityDate)
+								</div>
+							</div>
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-credit-card"></i> Ödeme Tipi </h5>
+								<div class="ibox-tools">
+									<strong>
+										@Model.paymentType_Title @(Model.paymentType == (int)EnumCMP_InvoicePaymentType.Taksitli ? "(" + Model.installmentCount.ToString() + " Taksit)" :
+Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Format("{0:dd.MM.yyyy}", Model.expiryDate) + ")" : "")
+									</strong>
+								</div>
+							</div>
+							<div class="ibox-title heightMin">
+								<h5> <i class="fa fa-warning"></i> Teklif Durumu </h5>
+								<div class="ibox-tools">
+
+									@if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor)
+									{
+										<strong class="text-warning">
+											<i class="fa fa-spinner"></i> @(Model.status_Title)
+										</strong>
+									}
+									else if (Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay)
+									{
+										<strong class="text-warning">
+											<i class="fa fa-hand-o-right"></i> @(Model.status_Title)
+										</strong>
+									}
+									else if (Model.status == (int)EnumCMP_TenderStatus.TeklifFatura)
+									{
+										<strong class="text-primary">
+											<i class="fa fa-check-square-o"></i> @(Model.status_Title)
+										</strong>
+									}
+									else if (Model.status == (int)EnumCMP_TenderStatus.MusteriOnay)
+									{
+										<strong class="text-primary">
+											<i class="fa fa-check-square-o"></i> @(Model.status_Title)
+										</strong>
+									}
+									else if (Model.status == (int)EnumCMP_TenderStatus.TeklifIrsaliye)
+									{
+										<strong class="text-info">
+											<i class="fa fa-send"></i> @(Model.status_Title)
+										</strong>
+									}
+									else
+									{
+										<strong class="text-danger">
+											<i class="fa fa-times-circle"></i> @(Model.status_Title)
+										</strong>
+									}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class="ibox ">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-puzzle-piece"></i> Teklife Eklenen Ürün Kalemleri</h5>
+						<div class="ibox-tools">
+							<a class="btn btn-xs btn-success hide" style="color:white;" data-button="stock" data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/PRD/VWPRD_StockSummary/StockDetailProducts">
+								<i class="fa fa-align-justify"></i> Ürün Stok Özeti
+							</a>
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content no-padding">
+						@(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItem>("VWCMP_InvoiceItem")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_InvoiceItem", new { area = "CMP" })).Sort(s => s.Add(a => a.itemOrder).Descending())
                             .Filter(a => a.invoiceId == Model.id).PageSize(999))
@@ -516,19 +535,19 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                             .Selectable(x => x.Mode(GridSelectionMode.Single))
                             .Scrollable(s => s.Height(250))
                         )
-                    </div>
-                </div>
-                <div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-line-chart"></i> Ürün Kalemleri Raporu</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content no-padding">
-                        @(Html.Akilli()
+					</div>
+				</div>
+				<div class="ibox " data-href="@Url.Action("DataSourceReport","VWCMP_InvoiceItem", new { area = "CMP" })">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-line-chart"></i> Ürün Kalemleri Raporu</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content no-padding">
+						@(Html.Akilli()
                            .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_InvoiceItemReport>("VWCMP_InvoiceItemReport")
                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceReport", "VWCMP_InvoiceItem", new { area = "CMP" }))
                            .Filter(a => a.invoiceId == Model.id).PageSize(999))
@@ -572,21 +591,21 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                            .Selectable(x => x.Mode(GridSelectionMode.Single))
                            .Scrollable(s => s.Height(200))
                         )
-                    </div>
-                </div>
+					</div>
+				</div>
 
 
-                <div class="ibox " data-href="@Url.Action("DataSource","VWCMP_TenderTransaction", new { area = "CMP" })">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-send"></i> İrsaliyeleri</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content no-padding">
-                        @(Html.Akilli()
+				<div class="ibox " data-href="@Url.Action("DataSource","VWCMP_TenderTransaction", new { area = "CMP" })">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-send"></i> İrsaliyeleri</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content no-padding">
+						@(Html.Akilli()
                     .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_TenderTransaction>("VWCMP_TenderTransaction").HtmlAttributes(new Dictionary<string, object>() { { "data-selection", "transactionId" } })
                     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_TenderTransaction", new { area = "CMP" })).Filter(t => t.tenderId == Model.id).Sort(a => a.Add("created").Descending()).PageSize(25))
                     .Scrollable(a => a.Height(650))
@@ -610,327 +629,327 @@ Model.paymentType == (int)EnumCMP_InvoicePaymentType.Vadeli ? "(" + String.Forma
                         x.Custom().Text("<i class='fa fa-upload' data-original-title='Dosya Yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" }, {"data-visible","" } }).Url(Url.Action("UploadForm", "VWPRD_Transaction", new { area = "PRD" }));
                         x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
                     }))
-                    </div>
-                </div>
+					</div>
+				</div>
 
 
 
 
-                <div class="ibox  collapsed">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-folder-open"></i> Teklif Dosyası</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content photoWidth">
-                        @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_Invoice", FileGroup = "Teklif Dosyası" })
-                    </div>
-                </div>
-                <div class="ibox  collapsed">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-file-text"></i> Teklif Koşulları</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content photoWidth">
-                        <span>@Html.Raw(Model.tenderConditions)</span>
-                    </div>
-                </div>
-                <div class="ibox  collapsed">
-                    <div class="ibox-title">
-                        <h5> <i class="fa fa-comments"></i> Teklif Açıklaması</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content photoWidth">
-                        <span>@Html.Raw(Model.description)</span>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-3">
+				<div class="ibox  collapsed">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-folder-open"></i> Teklif Dosyası</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content photoWidth">
+						@Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "CMP_Invoice", FileGroup = "Teklif Dosyası" })
+					</div>
+				</div>
+				<div class="ibox  collapsed">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-file-text"></i> Teklif Koşulları</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content photoWidth">
+						<span>@Html.Raw(Model.tenderConditions)</span>
+					</div>
+				</div>
+				<div class="ibox  collapsed">
+					<div class="ibox-title">
+						<h5> <i class="fa fa-comments"></i> Teklif Açıklaması</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content photoWidth">
+						<span>@Html.Raw(Model.description)</span>
+					</div>
+				</div>
+			</div>
+			<div class="col-lg-3">
 
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <div style="font-size: 18px;" class="text-center @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "text-warning" :
+				<div class="ibox ">
+					<div class="ibox-title">
+						<div style="font-size: 18px;" class="text-center @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "text-warning" :
                                                                            Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "text-navy" :
                                                                            Model.status == (int)EnumCMP_TenderStatus.Red ? "text-danger" :
                                                                            Model.status == (int)EnumCMP_TenderStatus.TeklifFatura ? "text-navy" : "")">
 
-                            <i class="fa pulseicon @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "fa-spinner text-warning" :
+							<i class="fa pulseicon @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "fa-spinner text-warning" :
                                                      Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "fa-thumbs-up text-navy" :
                                                      Model.status == (int)EnumCMP_TenderStatus.Red ? "fa-times-circle text-danger" :
                                                      Model.status == (int)EnumCMP_TenderStatus.TeklifFatura ? "fa-check-circle text-navy" : "")">
 
-                                @(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "Teklifin onaylanması bekleniyor." :
+								@(Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor ? "Teklifin onaylanması bekleniyor." :
                                   Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay ? "Teklifin faturasının kesilmesi bekleniyor." :
                                   Model.status == (int)EnumCMP_TenderStatus.Red ? "Teklif Reddedildi." :
                                   Model.status == (int)EnumCMP_TenderStatus.TeklifFatura ? "Teklif süreci tamamlandı." : "")
-                            </i>
-                        </div>
-                        <div id="timeline-wrap">
-                            <div id="timeline"></div>
-                            <div class="marker mfirst" data-html="true" data-original-title="@(createdTender != null ? string.Format("Teklif oluşturuldu.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", createdTender.createdby_Title, createdTender.created) : "İşlem yapılmadı.")" style="background-color:#1ab394;">
-                                <i class="fa fa-pencil"></i>
-                            </div>
+							</i>
+						</div>
+						<div id="timeline-wrap">
+							<div id="timeline"></div>
+							<div class="marker mfirst" data-html="true" data-original-title="@(createdTender != null ? string.Format("Teklif oluşturuldu.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", createdTender.createdby_Title, createdTender.created) : "İşlem yapılmadı.")" style="background-color:#1ab394;">
+								<i class="fa fa-pencil"></i>
+							</div>
 
-                            @if (rejectTender != null)
-                            {
-                                <div class="marker m2" style="background-color:#ed5565;" data-html="true"
-                                     data-original-title="@(string.Format("Teklif reddedildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", rejectTender.createdby_Title, rejectTender.created))">
-                                    <i class="fa fa-thumbs-up"></i>
-                                </div>
-                            }
-                            else
-                            {
-                                <div class="marker m2" style="background-color:@(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "" : "#1ab394");" data-html="true"
-                                     data-original-title="@(approveTender != null ? string.Format("Teklif onaylandı.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", approveTender.createdby_Title, approveTender.created) : "Teklifin onaylanması bekleniyor.")">
-                                    <i class="fa fa-thumbs-up"></i>
-                                </div>
-                            }
+							@if (rejectTender != null)
+							{
+								<div class="marker m2" style="background-color:#ed5565;" data-html="true"
+									 data-original-title="@(string.Format("Teklif reddedildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", rejectTender.createdby_Title, rejectTender.created))">
+									<i class="fa fa-thumbs-up"></i>
+								</div>
+							}
+							else
+							{
+								<div class="marker m2" style="background-color:@(Model.status == (int)EnumCMP_OrderStatus.CevapBekleniyor ? "" : "#1ab394");" data-html="true"
+									 data-original-title="@(approveTender != null ? string.Format("Teklif onaylandı.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", approveTender.createdby_Title, approveTender.created) : "Teklifin onaylanması bekleniyor.")">
+									<i class="fa fa-thumbs-up"></i>
+								</div>
+							}
 
-                            <div class="marker m3" style="background-color:@(invoiceTender != null ? "#1ab394" : "");" data-html="true"
-                                 data-original-title="@(invoiceTender != null ? string.Format("Teklifin faturası kesildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", invoiceTender.createdby_Title, invoiceTender.created) : "Teklifin faturasının kesilmesi bekleniyor.")">
-                                <i class="fa fa-file-text"></i>
-                            </div>
-                            <div class="marker mlast" style="background-color:@(invoiceTender != null ? "#1ab394" : "");" data-html="true"
-                                 data-original-title="@(invoiceTender != null ? "Teklifin faturası kesildi, süreç tamamlandı." : "Teklif sürecinin tamamlanması bekleniyor.")">
-                                <i class="fa fa-check"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+							<div class="marker m3" style="background-color:@(invoiceTender != null ? "#1ab394" : "");" data-html="true"
+								 data-original-title="@(invoiceTender != null ? string.Format("Teklifin faturası kesildi.  <br/> İşlem Yapan : {0}   <br/>  {1:dd.MM.yyyy HH:mm}", invoiceTender.createdby_Title, invoiceTender.created) : "Teklifin faturasının kesilmesi bekleniyor.")">
+								<i class="fa fa-file-text"></i>
+							</div>
+							<div class="marker mlast" style="background-color:@(invoiceTender != null ? "#1ab394" : "");" data-html="true"
+								 data-original-title="@(invoiceTender != null ? "Teklifin faturası kesildi, süreç tamamlandı." : "Teklif sürecinin tamamlanması bekleniyor.")">
+								<i class="fa fa-check"></i>
+							</div>
+						</div>
+					</div>
+				</div>
 
-                <div class="ibox ">
-                    <div class="ibox-title" style="text-align:center;">
-                        <a style="color: #ffffff;" class="btn btn-md btn-warning" data-task="Insert" data-blank="true" data-method="GET" data-modal="false" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying?&id=@Model.id&IsCopy=true">
-                            <i class="fa fa-copy"></i> Kopyala
-                        </a>
-                    </div>
-                </div>
+				<div class="ibox ">
+					<div class="ibox-title" style="text-align:center;">
+						<a style="color: #ffffff;" class="btn btn-md btn-warning" data-task="Insert" data-blank="true" data-method="GET" data-modal="false" data-show="single" data-href="/CMP/VWCMP_Tender/InsertBuying?&id=@Model.id&IsCopy=true">
+							<i class="fa fa-copy"></i> Kopyala
+						</a>
+					</div>
+				</div>
 
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h5>Özet</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content no-padding clearfix">
-                        <table class="table" style="margin-bottom: 0px !important;">
-                            <tbody>
-                                @if (Model.discount > 0)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="col-md-6"><h4>Ara Toplam İndirimi</h4></div>
-                                            <div class="col-md-6">
-                                                <h3 class="font-bold text-right">
-                                                    @(string.Format("{0:N2}", Model.discount))   @(Model.discountType_Title)
-                                                </h3>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+				<div class="ibox ">
+					<div class="ibox-title">
+						<h5>Özet</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content no-padding clearfix">
+						<table class="table" style="margin-bottom: 0px !important;">
+							<tbody>
+								@if (Model.discount > 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>Ara Toplam İndirimi</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N2}", Model.discount))   @(Model.discountType_Title)
+												</h3>
+											</div>
+										</td>
+									</tr>
+								}
 
-                                <tr>
-                                    <td>
-                                        <div class="col-md-6"><h4>Brüt Toplam</h4></div>
-                                        <div class="col-md-6">
-                                            <h3 class="font-bold text-right">
-                                                @(string.Format("{0:N2}", Model.totalSubAmount))   @(Model.Currency_Symbol)
-                                            </h3>
-                                        </div>
-                                    </td>
-                                </tr>
-                                @if (Model.stopaj > 0)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="col-md-6"><h4>Stopaj</h4></div>
-                                            <div class="col-md-6">
-                                                <h3 class="font-bold text-right">
-                                                    @(string.Format("{0:N0}", Model.stopaj))   %
-                                                </h3>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+								<tr>
+									<td>
+										<div class="col-md-6"><h4>Brüt Toplam</h4></div>
+										<div class="col-md-6">
+											<h3 class="font-bold text-right">
+												@(string.Format("{0:N2}", Model.totalSubAmount))   @(Model.Currency_Symbol)
+											</h3>
+										</div>
+									</td>
+								</tr>
+								@if (Model.stopaj > 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>Stopaj</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N0}", Model.stopaj))   %
+												</h3>
+											</div>
+										</td>
+									</tr>
+								}
 
-                                <tr>
-                                    <td>
-                                        <div id="totalOTVDiv">
-                                            <div class="col-md-6"><h4>Toplam Vergi</h4></div>
-                                            <div class="col-md-6">
-                                                <h3 class="font-bold text-right">
-                                                    @(string.Format("{0:N2}", Model.totalTax))   @(Model.Currency_Symbol)
-                                                </h3>
-                                            </div>
-                                        </div>
-                                    </td>
-                                </tr>
+								<tr>
+									<td>
+										<div id="totalOTVDiv">
+											<div class="col-md-6"><h4>Toplam Vergi</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N2}", Model.totalTax))   @(Model.Currency_Symbol)
+												</h3>
+											</div>
+										</div>
+									</td>
+								</tr>
 
-                                @if (Model.tevkifat > 0)
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="col-md-6"><h4>KDV Tevkifat</h4></div>
-                                            <div class="col-md-6">
-                                                <h3 class="font-bold text-right">
-                                                    @(string.Format("{0:N0}", Model.tevkifat)) / 10
-                                                </h3>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+								@if (Model.tevkifat > 0)
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>KDV Tevkifat</h4></div>
+											<div class="col-md-6">
+												<h3 class="font-bold text-right">
+													@(string.Format("{0:N0}", Model.tevkifat)) / 10
+												</h3>
+											</div>
+										</td>
+									</tr>
+								}
 
-                                <tr>
-                                    <td>
-                                        <div class="col-md-6"><h4>Genel Toplam</h4></div>
-                                        <div class="col-md-6">
-                                            <h2 class="font-bold text-right" style="color:#ff6a00;">
-                                                @(string.Format("{0:N2}", Model.totalAmount))   @(Model.Currency_Symbol)
-                                            </h2>
-                                        </div>
-                                    </td>
-                                </tr>
+								<tr>
+									<td>
+										<div class="col-md-6"><h4>Genel Toplam</h4></div>
+										<div class="col-md-6">
+											<h2 class="font-bold text-right" style="color:#ff6a00;">
+												@(string.Format("{0:N2}", Model.totalAmount))   @(Model.Currency_Symbol)
+											</h2>
+										</div>
+									</td>
+								</tr>
 
-                                @if (Model.Currency_Symbol != "₺")
-                                {
-                                    <tr>
-                                        <td>
-                                            <div class="col-md-6"><h4>TL Karşılığı <span id="contentTooltip"></span></h4></div>
-                                            <div class="col-md-6" data-result="TLequality">
-                                                <h3 class="font-bold text-right" style="color:#ff6a00;">@(string.Format("{0:N2}", Model.totalAmountAsTL) + " ₺")</h3>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+								@if (Model.Currency_Symbol != "₺")
+								{
+									<tr>
+										<td>
+											<div class="col-md-6"><h4>TL Karşılığı <span id="contentTooltip"></span></h4></div>
+											<div class="col-md-6" data-result="TLequality">
+												<h3 class="font-bold text-right" style="color:#ff6a00;">@(string.Format("{0:N2}", Model.totalAmountAsTL) + " ₺")</h3>
+											</div>
+										</td>
+									</tr>
+								}
 
-                                @if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)))
-                                {
-                                    <tr>
-                                        <td style="padding-top: 20px;">
-                                            <div class="col-md-6" style="text-align:center;">
-                                                <button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" class="btn btn-md btn-primary">
-                                                    <i class="fa fa-check"></i> Onayla
-                                                </button>
-                                            </div>
-                                            <div class="col-md-6" style="text-align:center;">
-                                                <button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" class="btn btn-md btn-danger">
-                                                    <i class="fa fa-times"></i> Reddet
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
+								@if (Model.status == (int)EnumCMP_TenderStatus.CevapBekleniyor && userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SatinAlmaOnaylayici)))
+								{
+									<tr>
+										<td style="padding-top: 20px;">
+											<div class="col-md-6" style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.YoneticiOnay)" data-isTaskRule="false" class="btn btn-md btn-primary">
+													<i class="fa fa-check"></i> Onayla
+												</button>
+											</div>
+											<div class="col-md-6" style="text-align:center;">
+												<button onclick="tenderDetail.events.updateStatus(this)" data-type="@((int)EnumCMP_TenderStatus.Red)" data-isTaskRule="false" class="btn btn-md btn-danger">
+													<i class="fa fa-times"></i> Reddet
+												</button>
+											</div>
+										</td>
+									</tr>
+								}
 
-                                @if ((Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay || Model.status == (int)EnumCMP_TenderStatus.TeklifIrsaliye) && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeAlis))))
-                                {
-                                    <tr>
-                                        <td style="text-align:center;">
-                                            <a data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Invoice/InsertBuying?id=@Model.id&transform=true&prdtransaction=true" class="btn btn-md btn-success">
-                                                <i class="fa fa-refresh"></i> Faturaya Dönüştür
-                                            </a>
-                                        </td>
-                                    </tr>
+								@if ((Model.status == (int)EnumCMP_TenderStatus.YoneticiOnay || Model.status == (int)EnumCMP_TenderStatus.TeklifIrsaliye) && (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.MuhasebeAlis))))
+								{
+									<tr>
+										<td style="text-align:center;">
+											<a data-modal="true" data-task="Insert" data-method="GET" data-show="single" data-href="/CMP/VWCMP_Invoice/InsertBuying?id=@Model.id&transform=true&prdtransaction=true" class="btn btn-md btn-success">
+												<i class="fa fa-refresh"></i> Faturaya Dönüştür
+											</a>
+										</td>
+									</tr>
 
-                                }
+								}
 
 
-                                @if (Model.TransformFrom != null && Model.TransformFrom.typeFrom == (int)EnumCMP_InvoiceType.Talep)
-                                {
-                                    <tr>
-                                        <td style="text-align:center;">
-                                            <a href="/CMP/VWCMP_Request/Detail?id=@Model.TransformFrom.invoiceIdFrom&transform=true" target="_blank" class="btn btn-md btn-success">
-                                                <i class="fa fa-arrow-right"></i> İlgili Satın Alma Talebine Git
-                                            </a>
-                                        </td>
-                                    </tr>
-                                }
+								@if (Model.TransformFrom != null && Model.TransformFrom.typeFrom == (int)EnumCMP_InvoiceType.Talep)
+								{
+									<tr>
+										<td style="text-align:center;">
+											<a href="/CMP/VWCMP_Request/Detail?id=@Model.TransformFrom.invoiceIdFrom&transform=true" target="_blank" class="btn btn-md btn-success">
+												<i class="fa fa-arrow-right"></i> İlgili Satın Alma Talebine Git
+											</a>
+										</td>
+									</tr>
+								}
 
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+							</tbody>
+						</table>
+					</div>
+				</div>
 
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h5>Not Ekleme</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content clearfix">
-                        <div class="form-group">
-                            <input type="text" id="note" class="form-control" />
-                        </div>
-                        <button type="button" onclick="tenderDetail.events.addNote(this)" class="btn btn-md btn-primary pull-right">Ekle</button>
-                    </div>
-                </div>
+				<div class="ibox ">
+					<div class="ibox-title">
+						<h5>Not Ekleme</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content clearfix">
+						<div class="form-group">
+							<input type="text" id="note" class="form-control" />
+						</div>
+						<button type="button" onclick="tenderDetail.events.addNote(this)" class="btn btn-md btn-primary pull-right">Ekle</button>
+					</div>
+				</div>
 
-                <div class="ibox ">
-                    <div class="ibox-title">
-                        <h5>Teklif Geçmişi</h5>
-                        <div class="ibox-tools">
-                            <a class="collapse-link">
-                                <i class="fa fa-chevron-up"></i>
-                            </a>
-                        </div>
-                    </div>
-                    <div class="ibox-content">
-                        <div id="vertical-timeline" class="vertical-container dark-timeline">
-                            @foreach (var item in Model.InvoiceActions.Where(a => a.type != null).OrderByDescending(a => a.created))
-                            {
-                                var statusProps = EnumProperties.Where(a => Convert.ToInt32(a.Key) == item.type.Value).FirstOrDefault();
+				<div class="ibox ">
+					<div class="ibox-title">
+						<h5>Teklif Geçmişi</h5>
+						<div class="ibox-tools">
+							<a class="collapse-link">
+								<i class="fa fa-chevron-up"></i>
+							</a>
+						</div>
+					</div>
+					<div class="ibox-content">
+						<div id="vertical-timeline" class="vertical-container dark-timeline">
+							@foreach (var item in Model.InvoiceActions.Where(a => a.type != null).OrderByDescending(a => a.created))
+							{
+								var statusProps = EnumProperties.Where(a => Convert.ToInt32(a.Key) == item.type.Value).FirstOrDefault();
 
-                                <div class="vertical-timeline-block">
-                                    <div class="vertical-timeline-icon gray-bg">
-                                        <i class="fa fa-bolt"></i>
-                                    </div>
-                                    <div class="vertical-timeline-content" style="background-color: @statusProps.Generic["color"];">
-                                        <p style="margin:0 !important;word-break: break-word;">
-                                            @(item.description)
-                                        </p>
-                                        <span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span>  <br />
-                                        <span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
+								<div class="vertical-timeline-block">
+									<div class="vertical-timeline-icon gray-bg">
+										<i class="fa fa-bolt"></i>
+									</div>
+									<div class="vertical-timeline-content" style="background-color: @statusProps.Generic["color"];">
+										<p style="margin:0 !important;word-break: break-word;">
+											@(item.description)
+										</p>
+										<span class="vertical-date small text-muted"> @String.Format("{0:dd.MM.yyyy HH:mm}", item.created) </span>  <br />
+										<span class="vertical-date small text-muted"> İşlem Yapan : @String.Format("{0:dd.MM.yyyy HH:mm}", item.createdby_Title) </span>
 
-                                        @if (item.transformInvoiceId != null)
-                                        {
+										@if (item.transformInvoiceId != null)
+										{
 
-                                            if (item.type == (int)EnumCMP_InvoiceActionType.TeklifFatura)
-                                            {
-                                                <a href="/CMP/VWCMP_Invoice/DetailBuying?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Faturaya Git">
-                                                    <i class="fa fa-arrow-right"></i>
-                                                </a>
-                                            }
+											if (item.type == (int)EnumCMP_InvoiceActionType.TeklifFatura)
+											{
+												<a href="/CMP/VWCMP_Invoice/DetailBuying?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Faturaya Git">
+													<i class="fa fa-arrow-right"></i>
+												</a>
+											}
 
-                                            if (item.type == (int)EnumCMP_InvoiceActionType.TeklifSiparis)
-                                            {
-                                                <a href="/CMP/VWCMP_Order/DetailBuying?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Siparişe Git">
-                                                    <i class="fa fa-arrow-right"></i>
-                                                </a>
-                                            }
-                                        }
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+											if (item.type == (int)EnumCMP_InvoiceActionType.TeklifSiparis)
+											{
+												<a href="/CMP/VWCMP_Order/DetailBuying?id=@item.transformInvoiceId" target="_blank" style="background-color: #1c84c6;color: #ffffff;" class="btn btn-xs" data-original-title="Siparişe Git">
+													<i class="fa fa-arrow-right"></i>
+												</a>
+											}
+										}
+									</div>
+								</div>
+							}
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 </div>

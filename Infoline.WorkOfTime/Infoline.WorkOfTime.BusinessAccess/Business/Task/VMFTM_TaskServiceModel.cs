@@ -42,7 +42,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VMFTM_TaskUserInfo assignUserInfo { get; set; }
         public VMFTM_TaskUserInfo[] assignableUsersInfo { get; set; }
         public VMFTM_TaskUserInfo[] helperUsersInfo { get; set; }
-        public List<VWFTM_TaskOperation> taskOperation { get; set; }
+        public List<VWFTM_TaskOperationOperation> taskOperation { get; set; }
+        public CMP_Storage TaskStorage { get; set; }
         public VWPRD_Inventory fixtureModel { get; set; }
         public List<VWFTM_TaskSubjectModel> FTM_TaskSubjects { get; set; }
         public Guid[] FTM_TaskSubjectTypeIds { get; set; }
@@ -52,6 +53,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string companyDescription { get; set; }
         public Guid companyCarStorageId { get; set; }
         public string companyCarStorage_Title { get; set; }
+        public string project_Title { get; set; }
+        public bool isTaskRule { get; set; }
+        public VWCMP_Request Request { get; set; }
+        public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
+
+    }
+
+
+    public class VWFTM_TaskOperationOperation : VWFTM_TaskOperation
+    {
+        public List<VWCMP_InvoiceItemReport> invoiceItems { get; set; }
     }
 
     public class VMFTM_TaskUserInfo
@@ -78,6 +90,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private FTM_Task _task { get; set; }
         private List<FTM_TaskOperation> _taskOperation { get; set; } = new List<FTM_TaskOperation>();
         private List<FTM_TaskFormResult> _taskFormResult { get; set; } = new List<FTM_TaskFormResult>();
+        public PRJ_Project project { get; set; }
 
         public VMFTM_TaskServiceModel()
         {
@@ -99,10 +112,51 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 car = _db.GetVWCMP_CompanyCarsById(data.companyCarId.Value);
             }
+
+            var invoiceItems = _db.GetVWCMP_InvoiceItemReportByInvoiceIds(operations.Where(a => a.dataId.HasValue).Select(a => a.dataId.Value).ToArray());
+
             var model = new VMFTM_Task
             {
-                taskOperation = operations.Where(a => a.status != null).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList(),
             }.B_EntityDataCopyForMaterial(data);
+
+
+            model.taskOperation = operations.Select(a => new VWFTM_TaskOperationOperation
+            {
+                invoiceItems = invoiceItems.Where(b => b.invoiceId == a.dataId).ToList(),
+                dataId = a.dataId,
+                battery = a.battery,
+                changed = a.changed,
+                changedby = a.changedby,
+                changedby_Title = a.changedby_Title,
+                created = a.created,
+                createdby = a.createdby,
+                createdby_Title = a.createdby_Title,
+                description = a.description,
+                distance = a.distance,
+                fixtureId = a.fixtureId,
+                fixture_Title = a.fixture_Title,
+                formId = a.formId,
+                formResultId = a.formResultId,
+                id = a.id,
+                user_Title = a.user_Title,
+                jsonResult = a.jsonResult,
+                location = a.location,
+                passingTime = a.passingTime,
+                status = a.status,
+                status_Title = a.status_Title,
+                subject = a.subject,
+                subject_Title = a.subject_Title,
+                taskId = a.taskId,
+                task_Name = a.task_Name,
+                userId = a.userId
+            }).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList();
+
+            if (model.customerStorageId.HasValue)
+            {
+                var storage = _db.GetCMP_StorageById(model.customerStorageId.Value);
+
+                model.TaskStorage = storage;
+            }
 
             model.FTM_TaskSubjectTypeIds = _db.GetFTM_TaskSubjectTypeByTaskIdTypesIds(taskId);
 
@@ -159,6 +213,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 model.helperUsersInfo = new VMFTM_TaskUserInfo[0];
             }
+
+            if (model.companyId.HasValue)
+            {
+                var project = _db.GetPRJ_ProjectByCompanyIdIsActive(model.companyId.Value);
+
+                if (project != null)
+                {
+                    model.projectId = project.id;
+                    model.project_Title = project.ProjectName;
+                }
+            }
+
+
+            model.Request = _db.GetVWCMP_RequestByTaskId(model.id);
+            model.CMP_InvoiceItemReports = _db.GetVWCMP_InvoiceItemReportByTaskId(model.id);
+
+            if (model.assignUserId.HasValue)
+            {
+                var rulesUser = _db.GetVWUT_RulesUserByUserIdAndType(model.assignUserId.Value, (Int16)EnumUT_RulesType.Task);
+
+                if (rulesUser != null && model.lastOperationStatus >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi)
+                {
+                    model.isTaskRule = true;
+                }
+            }
+
 
             if (model.fixtureId.HasValue)
             {
@@ -419,6 +499,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return data;
         }
 
+        public SummaryHeadersTaskNew GetTaskSummary(Guid userId)
+        {
+
+            var roles = _db.GetSH_UserRoleByUserId(userId);
+
+            var userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.BayiGorevPersoneli)).ToArray();
+            if (userRoles.Count() > 0)
+            {
+                return _db.GetVWPA_TaskMyRequestsCountFilter(userId);
+            }
+
+
+            userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevOperator) || a.roleid == new Guid(SHRoles.SahaGorevYonetici) || a.roleid == new Guid(SHRoles.SistemYonetici)).ToArray();
+            if (userRoles.Count() > 0)
+            {
+                return _db.GetVWPA_TaskAllRequestsCountFilter(userId);
+            }
+
+            var user = _db.GetVWSH_UserById(userId);
+            userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevMusteri)).ToArray();
+            if (userRoles.Count() > 0)
+            {
+                if (user.CompanyId == null)
+                {
+                    return new SummaryHeadersTaskNew();
+                }
+
+                return _db.GetVWPA_TaskCustomerRequestsCountFilter(new Guid(user.CompanyId.ToString()));
+            }
+
+            userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.YukleniciPersoneli)).ToArray();
+            if (userRoles.Count() > 0)
+            {
+                return _db.GetVWPA_TaskYukleniciRequestsCountFilter(userId, new Guid(user.CompanyId.ToString()));
+            }
+
+            return _db.GetVWPA_TaskMyRequestsCountFilter(userId);
+        }
     }
 
     public class VMFTM_TaskAndCompanyInfo : VWFTM_Task

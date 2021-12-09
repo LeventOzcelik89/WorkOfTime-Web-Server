@@ -20,6 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                 AdvanceSummaries = new AdvanceSummary { },
                 OrderSummaries = new OrderSummary { },
                 TaskSummaries = new VMFTM_TaskModel().GetTaskSummary(userId),
+                TaskSummariesNew = new VMFTM_TaskServiceModel().GetTaskSummary(userId),
                 SummaryWaitingTransactions = new SummaryWaitingTransactions { },
                 SummaryWaitingAdvances = new SummaryWaitingAdvances { },
                 SummaryWaitingTickets = new SummaryWaitingTickets { },
@@ -335,8 +336,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
         public SummaryWaitingAdvances SummaryWaitingAdvances { get; set; }
         public SummaryWaitingTickets SummaryWaitingTickets { get; set; }
         public SummaryWaitingManagerTickets SummaryWaitingManagerTickets { get; set; }
-
-
+        public SummaryHeadersTaskNew TaskSummariesNew { get; set; }
 
     }
     public class PermitSummaries

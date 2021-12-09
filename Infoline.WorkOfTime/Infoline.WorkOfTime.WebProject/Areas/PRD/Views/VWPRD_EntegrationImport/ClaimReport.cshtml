@@ -1,0 +1,399 @@
+﻿@{
+    ViewBag.Title = "Prim Hakediş Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+
+}
+<div class="row">
+    <div class="ibox">
+        <div class="col-sm-12">
+            <div class="ibox-content clearfix">
+
+
+                <div class="col-sm-6">
+                    <label class="req">Cari Seçiniz</label>
+                    @(
+        Html.Akilli()
+        .DropDownList("companyId")
+        .OptionLabel("Lütfen Firma Cari seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDownBayi", "VWCMP_Company", new { area = "CMP" }))
+        .Sort(x => x.Add("fullName").Ascending())
+        .Validate(Validations.Required)
+        .Value(userStatus.user.CompanyId.ToString())
+        .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+
+        .Execute()
+            )
+                </div>
+
+
+                <div class="col-sm-2">
+                    <label class="req">Ay Seçiniz</label>
+                    @(
+               Html.Akilli()
+             .DropDownList("month")
+               .OptionLabel("Ay Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Month.ToString())
+               .Execute()
+             )
+                </div>
+                <div class="col-sm-2">
+                    <label class="req">Yıl Seçiniz</label>
+                    @(
+               Html.Akilli()
+                .DropDownList("year")
+               .OptionLabel("Lütfen Yıl Seçiniz..")
+               .DataValueField("id")
+               .DataTextField("title")
+               .Action(b => b.Action("GetYears", "General", new { area = "" }))
+               .Validate(Validations.Required)
+               .Value(DateTime.Now.Year.ToString())
+               .Execute()
+             )
+                </div>
+                <div class="col-sm-2">
+                    <button onclick="page.load()" id="queryButton" style="width:100%;margin-top:26px" class="btn btn-primary btn-large">Sorgula</button><br />
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="ibox" id="info">
+    <div class="alert alert-warning text-center m-t-sm m-b-sm" style="text-align: center;padding:10px;">
+        Bilgilendirme : <strong> Yukarıdan verileri seçerek sorgula butonuna basınız... </strong>
+    </div>
+</div>
+
+
+<div class="row mt-10 " id="boxes" style="display:none;margin-top:10px">
+    <div class="col-sm-3">
+        <div class="widget style1 yellow-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Beyan Edilen Toplam Cihaz Sayısı </span><br>
+                    <h2 id="total" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 blue-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-check fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Aktif Edilmiş Toplam Cihaz Sayısı</span><br>
+                    <h2 id="titan" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 navy-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-download fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Ftpden Gelen Toplam Cihaz Sayısı </span><br>
+                    <h2 id="dist" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 red-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-cubes fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span> Envanterde Karşılığı Olan Cihaz Sayısı</span><br>
+                    <h2 id="env" class="font-bold">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+<div class="row">
+    <div class="col-sm-12">
+        <div class="ibox" style="display:none" id="table">
+            <div class="ibox-content clearfix">
+                <div class="forum-item active">
+                    <div class="row">
+                        <div class="col-md-6 col-sm-6 col-lg-6 col-xs-6">
+                            <div class="forum-icon">
+                                <i class="fa fa-money"></i>
+                            </div>
+                            <a href="#" class="forum-item-title" style="cursor:default">Toplam Hakediş Karşılaştırması</a>
+                            <div class="forum-sub-title">Distribütör, Aktivasyonlar ve Beyana Göre Hakediş Karşılaştırılması</div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="totalEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Beyan Edilen Toplam Tutar</small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="fptEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Distribütöre Göre Toplam Tutar </small>
+                            </div>
+                        </div>
+                        <div class="col-md-2 col-sm-2 col-lg-2 col-xs-2 forum-info">
+                            <span id="titanEarn" class="views-number">
+                                0
+                            </span>
+                            <div>
+                                <small>Aktivasyonlara Göre Toplam Tutar</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-12">
+        <div id="totalGrid"></div>
+    </div>
+    <div class="col-sm-12" style="margin-top:10px">
+        <div id="reportGrid"></div>
+    </div>
+
+</div>
+
+<script>
+    var page = {
+        isBayi: function () {
+             @if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+             {
+                 @Html.Raw("return false;")
+
+             }
+             else
+             {
+                   @Html.Raw("return true;")
+             }
+
+
+             },
+        qButton: $("queryButton"),
+        load: function () {
+
+            var companyId = null;
+            var company = null;
+            if (!page.isBayi()) {
+                companyId=$("#companyId").data("kendoDropDownList").dataItem();
+                company = companyId.id;
+            }
+
+            var month = $("#month").data("kendoDropDownList").dataItem();
+            var year = $("#year").data("kendoDropDownList").dataItem();
+            var validate = page.inputValidate(companyId, month, year);
+            if (validate.length > 0) {
+                return;
+            }
+           
+
+             if (page.isBayi() == true) {
+                 company = '@Html.Raw(userStatus.user.CompanyId.ToString())';
+            }
+            GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/ClaimReportDataSource", { companyId: company, year: year.id, month: month.id }, function (data) {
+                if (data.Result != undefined && !data.Result) {
+                    if (data.Object == "0") {
+                        swal("Böyle bir cari yoktur", "", "warning");
+                        return;
+                    }
+                    if (data.Object == "1") {
+                        swal("Cariye veya distribütöre atanmış seçilen ay ve yıla ait prim tanımı yoktur.", "", "warning");
+                        return;
+                    }
+                    if (data.Object == "2") {
+                        swal("Cariye ait her hangi bir veri yoktur.", "", "warning");
+                        return;
+                    }
+                    if (data.Object == "3") {
+                        swal("Bu Ürün(ler)e ait prim tanımı yoktur", data.FeedBack.message, "warning");
+                        return;
+
+                    }
+                }
+                $("#info").hide();
+                $("#boxes").show();
+                $("#table").show();
+                var grid = $("#reportGrid").data("kendoGrid");
+                if (grid != undefined) {
+                    grid.destroy();
+                }
+                var gridTotal = $("#reportGridTotal").data("kendoGrid");
+                if (gridTotal != undefined) {
+                    gridTotal.destroy();
+                }
+                var cols = [
+                    { field: 'productName', title: 'Ürün Adı', width: 250 },
+                    { field: 'serialNo', title: 'Seri Numarası ', width: 150, format: '{0:N0}' },
+                    {
+                        field: 'distControl', width: 60, attributes: { class: "text-center" }, title: 'Ftpde Var Mı?', template: function (dataItem) {
+                            if (dataItem.distControl) {
+                                return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+                            }
+                            return '<span class="text-center"><i class="fa fa-times text-danger fa-2x" ><i/></span>';
+                        }
+                    },
+                    {
+                        field: 'activationControl', width: 60, attributes: { class: "text-center" }, title: 'Aktive Edilmiş Mi?', template: function (dataItem) {
+                            if (dataItem.activationControl) {
+                                return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+                            }
+                            return '<span class="text-center"><i class="fa fa-times text-danger fa-2x" ><i/></span>';
+                        }
+                    },
+                    {
+                        field: 'inventoryControl', width: 60, attributes: { class: "text-center" }, title: 'Envanterde Karşılığı Var mı?', template: function (dataItem) {
+                            if (dataItem.inventoryControl) {
+                                return '<span class="text-center"><i class="fa fa-check fa-2x text-primary" ><i/></span>';
+                            }
+                            return '<span class="text-center"><i class="fa fa-times fa-2x text-danger" ><i/></span>';
+                        }
+                    },
+                ];
+                var totalCols = [
+                    { field: 'bountyProduct', title: 'Ürün Adı', width: 250 },
+                    {
+                        field: 'bountyAmount', title: 'Prim Birim Bedel Tutarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.bountyAmount,"N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'totalCount', title: 'Beyan Edilen Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+                
+                            return kendo.toString(item.totalCount, "N0") + " Adet";
+                        }
+                    },
+                    {
+                        field: 'totalAmount', title: 'Beyana Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            
+                            return kendo.toString(item.totalAmount, "N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'distCount', title: 'Distribütör Tarafından Onaylanan Miktar', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.distCount, "N0") + " Adet";
+                        }
+                    },
+                    {
+                        field: 'distAmount', title: 'Distribütör Tarafından Onaylanan Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            if (item.totalCount > item.distAmount) {
+                                return '<span class="text-danger">' + item.distAmount + ' ₺</span>'
+                            }
+                            return kendo.toString(item.distAmount, "N2") + " ₺";
+                        }
+                    },
+                    {
+                        field: 'titanCount', title: 'Aktivasyona Göre Satış Miktarı', width: 150, format: '{0:N0}', template: function (item) {
+                            return kendo.toString(item.titanCount, "N0") + " Adet";
+                        }},
+                    {
+                        field: 'titanAmount', title: 'Aktivasyona Göre Toplam Tutar', width: 150, format: '{0:N0}', template: function (item) {
+                            if (item.totalCount > item.titanAmount) {
+                                return '<span class="text-danger">' + item.titanAmount + ' ₺ </span>'
+                            }
+                            return kendo.toString(item.titanAmount, "N2") + " ₺";
+                        }
+                    },
+
+                ];
+                $("#reportGrid").kendoGrid({
+                    toolbar: [{ name: "excel", text: "" }],
+                    excel: {
+                        fileName: "Hakediş_Raporu.xlsx"
+                    },
+                    dataSource: data.grid,
+                    pageSize: 100,
+                    height: 540,
+                    sortable: true,
+                    resizable: true,
+                    selectable: true,
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: cols
+                });
+                var grid = $("#reportGrid").data("kendoGrid");
+                grid.dataSource.page(1);
+                $("#totalGrid").kendoGrid({
+                    toolbar: [{ name: "excel", text: "" }],
+                    excel: {
+                        fileName: "Hakediş_Raporu.xlsx"
+                    },
+                    dataSource: data.total,
+                    pageSize: 100,
+                    height: 540,
+                    sortable: true,
+                    resizable: true,
+                    selectable: true,
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: totalCols
+                });
+                var totalG = $("#totalGrid").data("kendoGrid");
+                totalG.dataSource.page(1);
+
+                $("#total").text(kendo.toString(data.counts.total,"N0"));
+                $("#titan").text(kendo.toString(data.counts.titan,"N0"));
+                $("#dist").text(kendo.toString(data.counts.dist,"N0"));
+                $("#env").text(kendo.toString(data.counts.env,"N0"));
+                $("#totalEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.totalAmount).Sum(x => x),"N2") + " ₺");
+                $("#fptEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.distAmount).Sum(x => x),"N2") + " ₺");
+                $("#titanEarn").text(kendo.toString($.Enumerable.From(data.total).Select(x => x.titanAmount).Sum(x => x),"N2") + " ₺");
+            });
+        },
+        inputValidate: function (companyId, month, year) {
+            var errorList = [];
+
+            if (page.isBayi() == false) {
+                if (companyId == undefined || companyId.id == '') {
+                    errorList.push("Cari Boş Olamaz");
+                }
+            }
+           
+            if (month == undefined || month.id == '') {
+                errorList.push("Ay Boş Olamaz");
+            }
+            if (year == undefined || year.id == '') {
+                errorList.push("Yıl Boş Olamaz");
+            }
+            if (errorList.length > 0) {
+                swal("Boş Alanlar Var", errorList.join("\n"), "warning");
+            }
+            return errorList;
+        }
+
+    }
+</script>

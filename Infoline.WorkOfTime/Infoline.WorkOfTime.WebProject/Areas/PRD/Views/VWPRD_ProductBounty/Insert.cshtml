@@ -1,0 +1,129 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductBountyModel
+@{
+	ViewBag.Title = "Ürüne Prim Tanımla";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@using (Html.BeginForm("Insert", "VWPRD_ProductBounty", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+
+
+	if (Model.productId.HasValue)
+	{
+		@Html.HiddenFor(model => model.productId)
+	}
+	else
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="productId">Ürün</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.productId)
+                  .OptionLabel("Lütfen Ürün seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                  .Template("#=TemplateEngine('productTemplate',data)#")
+                  .Sort(x => x.Add("name").Ascending())
+                    .Filter<PRD_Product>(x => x.stockType == (int)EnumPRD_ProductStockType.SeriNoluTakip)
+                  .Validate(Validations.Required)
+                  .Execute()
+                )
+			</div>
+		</div>
+	}
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="companyId">Firma Cari</label>
+		</div>
+		<div class="col-md-8">
+			@(
+		Html.Akilli()
+		.DropDownListFor(model => model.companyId)
+		.OptionLabel("Lütfen Firma Cari seçiniz..")
+		.DataValueField("id")
+		.DataTextField("fullName")
+		.Template("#=TemplateEngine('companyTemplate',data)#")
+		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+		.Sort(x => x.Add("fullName").Ascending())
+		.Validate(Validations.Required)
+		.Execute()
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="month">Ay</label>
+		</div>
+		<div class="col-md-8">
+			@(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.month)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Ayı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetMonths", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Month.ToString())
+			   .Execute()
+             )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="year">Yıl</label>
+		</div>
+		<div class="col-md-8">
+			@(
+			   Html.Akilli()
+			   .DropDownListFor(a=>a.year)
+			   .OptionLabel("Lütfen Prim Tanımlayacağınız Yılı Seçiniz..")
+			   .DataValueField("id")
+			   .DataTextField("title")
+			   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+			   .Validate(Validations.Required)
+			   .Value(DateTime.Now.Year.ToString())
+			   .Execute()
+             )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="quantity">Tutar</label>
+		</div>
+		<div class="col-md-8">
+			<div class="input-group">
+				@(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.amount)
+                    .Min(0)
+                    .Format("N2").Validate(Validations.NumberOnly(true,1,12))
+                )
+				<span class="input-group-addon" id="quantityTxt">₺</span>
+			</div>
+		</div>
+	</div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

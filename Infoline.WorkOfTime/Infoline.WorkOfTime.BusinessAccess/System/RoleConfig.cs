@@ -49,6 +49,9 @@ namespace System
         public const string SatinAlmaPersonel = "00000000-0000-0000-0000-310000000000";
         [PropInfo("Satın Alma Onay Rolü", "Satın alma taleplerini onaylayıp reddedebilir.")]
         public const string SatinAlmaOnaylayici = "00000000-0000-0000-0000-330000000000";
+        [PropInfo("Satın Alma Görev Onay Rolü", "Görev içerisinde açılmış olan satın alma taleplerini onaylayıp reddedebilir.")]
+        public const string SatinAlmaOnaylayiciGorev = "00000000-0000-0000-0000-340000000000";
+
         //Satın Alma
 
         //Satış
