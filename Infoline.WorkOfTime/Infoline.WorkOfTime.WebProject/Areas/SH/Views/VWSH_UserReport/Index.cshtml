@@ -1,105 +1,654 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Detaylı Kullanıcı Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-
-<div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
-    </div>
-</div>
-
-
-@(Html.Akilli()
+<script type="text/template" id="GroupListItem">
+    #=DisplayName#
+    <div class="group">#=GroupName#</div>
+</script>
+<script >
+    function SetFix() {
+        $('#VWSH_UserReport .k-grid-content').attr('style', 'height:' + ($(window).height() - 380) + 'px');
+        var w = $('#gridArea').width();
+        var h = $('#gridArea').height();
+        $('#filterArea').attr('style', ('width: ' + (w + -35) + 'px !important; height: ' + (h) + 'px !important'));
+    }
+    var page = {
+        model: null,
+        timer: null,
+        filters: {
+            items: [
+                { field: "status", element: "#workingStatusId" },
+                { field: "type", element: "#workingTypeId" },
+                { field: "companyId", element: "#companyFilterId" },
+                { field: "departmanId", element: "#departmanId" },
+                { field: "gender", element: "#genderFilter" },
+                { field: "MaritalStatus", element: "#martialStatusFilter" },
+                { field: "bloodGroup", element: "#bloodGroupFilter" },
+                { field: "Military", element: "#militaryStatusFilter" },
+            ],
+            load: function () {
+                var el = $('#reportId').data('handler');
+                var hrf = $('.fixedStart [data-task="Insert"]').attr('data-rawhref');
+                if (el.value() == '' || el.value() == null) {
+                    $('.fixedStart [data-task="Insert"]').attr('data-href', hrf);
+                    return;
+                }
+                $('.fixedStart [data-task="Insert"]').attr('data-href', (hrf + '?id=' + el.value()));
+                var res = JSON.parse(el.dataItem().schema);
+                page.filters.items = res.Filters;
+                if (res.Fields != null && res.Fields.length > 0) {
+                    var elFields = $('#FieldsFilterId').data('handler');
+                    if (elFields != undefined) {
+                        elFields.value(res.Fields);
+                        elFields.trigger('change');
+                    }
+                }
+                page.filters.setFilter();
+            },
+            init: function () {
+                //if (page.model.PropertyBag == null) {
+                //    return;
+                //}
+                //  $('.fixedStart > [type="checkbox"]').prop('checked', true);
+                //$('#reportId').data('handler').value(page.model.PropertyBag.id);
+                //$('#reportId').data('handler').trigger('change');
+                page.filters.apply();
+            },
+            getFilter: function () {
+                $.each(page.filters.items, function (i, item) {
+                    var val = $(item.element).data('handler').value();
+                    if (val == '' || val == null || val.length<=0) {
+                        item.value = null;
+                    } else {
+                        item.value = val;
+                    }
+                });
+                return page.filters.items;
+            },
+            getKendoFilter: function () {
+                var filterArr = new Array();
+                if ($("#jobStartDateStartFilter").val() != "") {
+                    var startJobStart = kendo.toString($("#jobStartDateStartFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(jobStartDate~gte~datetime'" + startJobStart + "')");
+                }
+                if ($("#jobStartDateEndFilter").val() != "") {
+                    var startJobEnd = kendo.toString($("#jobStartDateEndFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(jobStartDate~lte~datetime'" + startJobEnd + "')");
+                }
+                if ($("#dismissalDateStartFilter").val() != "") {
+                    var endJobStart = kendo.toString($("#dismissalDateStartFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(jobEndDate~gte~datetime'" + endJobStart + "')");
+                }
+                if ($("#dismissalDateEndFilter").val() != "") {
+                    var endJobEnd = kendo.toString($("#dismissalDateEndFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(jobEndDate~lte~datetime'" + endJobEnd + "')");
+                }
+                if ($("#dateOfBirthIdStartFilter").val() != "") {
+                    var birthStart = kendo.toString($("#dateOfBirthIdStartFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(birthday~gte~datetime'" + birthStart + "')");
+                }
+                if ($("#dateOfBirthIdEndFilter").val() != "") {
+                    var birthEnd = kendo.toString($("#dateOfBirthIdEndFilter").data("handler").value(), "yyyy-MM-ddT00-00-00");
+                    filterArr.push("(birthday~lte~datetime'" + birthEnd + "')");
+                }
+                var Filter = "(" + page.filters.getFilter().filter(a => a.value != null).map(function (c) {
+                    return "(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")";
+                }).join("~and~") + ")";
+                Filter += "(" + filterArr.map(function (a) { return a }).join("~and~") + ")";
+                return kendo.filterParser(Filter);
+            },
+            setFilter: function () {
+                $.each(page.filters.items, function (i, item) {
+                    debugger
+                    var el = $(item.element).data('handler');
+                    if (el) {
+                        el.value(item.value);
+                    }
+                });
+            },
+            apply: function () {
+                $('body').loadingModal();
+                setTimeout(function () {
+                    page.fields.apply();
+                    $('.fixedStart > [type="checkbox"]').prop('checked', false);
+                    $("#VWSH_UserReport").data("handler").dataSource.filter(page.filters.getKendoFilter());
+                    $('body').loadingModal('destroy')
+                }, 300);
+            }
+        },
+        fields: {
+            items: null,
+            setitems: function () {
+                debugger
+                var elFields = $('#FieldsFilterId').data('handler');
+                if (elFields != undefined) {
+                    page.fields.items = elFields.value();
+                }
+            },
+            setAll: {
+                loaded: false,
+                set: function () {
+                    //debugger
+                    //if (this.loaded == true || (page.model.PropertyBag != null && page.model.PropertyBag.schema != null)) {
+                    //    return;
+                    //}
+                    $('#FieldsFilterId').data('handler').value($('#FieldsFilterId').data('handler').dataSource.data().map(a => { return a.Field }));
+                    $('#FieldsFilterId').data('handler').trigger('change');
+                    this.loaded = true;
+                }
+            },
+            apply: function () {
+                debugger
+                var grid = $("#VWSH_UserReport").data('handler');
+                $.each(grid.columns, function (i, item) {
+                    if (item.field == 'id') { return; }
+                    if (page.fields.items.indexOf(item.field) > -1) {
+                        grid.showColumn(item.field);
+                    } else {
+                        grid.hideColumn(item.field);
+                    }
+                });
+            }
+        },
+        beforeSubmit: function () {
+            var elFields = $('#FieldsFilterId').data('handler');
+            $('#VWSH_EmployeeUpsertReport #schema').val(JSON.stringify({
+                Filters: page.filters.getFilter(),
+                Fields: elFields != undefined ? $('#FieldsFilterId').data('handler').value() : []
+            }));
+        },
+    }
+    $(document)
+        .on('ready', function () {
+            //if (page.model.PropertyBag != null) {
+            //    page.model.PropertyBag.schema = JSON.parse(page.model.PropertyBag.schema);
+            //}
+            setTimeout(function () {
+                var kendoGrid = $('#VWSH_UserReport').data('handler');
+                if (kendoGrid) {
+                    kendoGrid.one('dataBound', function (e) {
+                        debugger
+                        page.filters.apply();
+                    })
+                }
+            }, 800);
+            //  SetFix();
+        })
+        .on('selected:grid', '#VWSH_UserReport', function (e, item) {
+            if (!item) return;
+            var status = item.status;
+            var fullName = item.fullName;
+            $('[data-status]').each(function (e) {
+                $(this).hide();
+                var ask = $(this).attr("data-asktemplate");
+                if (ask) {
+                    $(this).attr("data-ask", ask.split("{fullName}").join(fullName));
+                }
+                var count = $(this).attr("data-status").split(",").filter(function (e) {
+                    return status == e;
+                }).length;
+                if (count > 0) {
+                    $(this).show();
+                }
+            });
+        })
+        .on('click', '#reportFields input[id^="sa_"]', function () {
+            $(this).parents('fieldset').find('input[id^="rf_"]').prop('checked', $(this).prop('checked'));
+        })
+        .on('shown:modal', '#VWSH_EmployeeUpsertReportModal', function (i, item) {
+            page.beforeSubmit();
+        })
+        .on('success', '#VWSH_EmployeeUpsertReport', function (evnt, data) {
+            $('#reportId').data('handler').dataSource.read();
+        })
+        .on('load:grid', '#VWSH_UserReport', function (evnt) {
+            SetFix();
+        })
+        ;
+    $(window)
+        .on('resize', function () {
+            clearTimeout(page.timer);
+            page.timer = setTimeout(function () {
+                SetFix();
+            }, 200);
+        })
+        ;
+</script>
+<div class="widget-content widget-content-area" id="gridArea">
+    @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserReport>("VWSH_UserReport")
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_UserReport", new { area = "SH" })).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.status).Title("status").Width(180);
-        x.Bound(y => y.type).Title("type").Width(180);
-        x.Bound(y => y.code).Title("code").Width(180);
-        x.Bound(y => y.loginname).Title("loginname").Width(180);
-        x.Bound(y => y.firstname).Title("firstname").Width(180);
-        x.Bound(y => y.lastname).Title("lastname").Width(180);
-        x.Bound(y => y.birthday).Title("birthday").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.password).Title("password").Width(180);
-        x.Bound(y => y.title).Title("title").Width(180);
-        x.Bound(y => y.email).Title("email").Width(180);
-        x.Bound(y => y.phone).Title("phone").Width(180);
-        x.Bound(y => y.cellphone).Title("cellphone").Width(180);
-        x.Bound(y => y.address).Title("address").Width(180);
-        x.Bound(y => y.companyCellPhone).Title("companyCellPhone").Width(180);
-        x.Bound(y => y.companyCellPhoneCode).Title("companyCellPhoneCode").Width(180);
-        x.Bound(y => y.companyOfficePhone).Title("companyOfficePhone").Width(180);
-        x.Bound(y => y.companyOfficePhoneCode).Title("companyOfficePhoneCode").Width(180);
-        x.Bound(y => y.fullName).Title("fullName").Width(180);
-        x.Bound(y => y.nationality).Title("nationality").Width(180);
-        x.Bound(y => y.City_Title).Title("City_Title").Width(180);
-        x.Bound(y => y.Town_Title).Title("Town_Title").Width(180);
-        x.Bound(y => y.BornLocation_Title).Title("BornLocation_Title").Width(180);
-        x.Bound(y => y.FatherName).Title("FatherName").Width(180);
-        x.Bound(y => y.MotherName).Title("MotherName").Width(180);
-        x.Bound(y => y.IdentificationNumber).Title("IdentificationNumber").Width(180);
-        x.Bound(y => y.EmergencyPerson).Title("EmergencyPerson").Width(180);
-        x.Bound(y => y.EmergencyPhone).Title("EmergencyPhone").Width(180);
-        x.Bound(y => y.Gender_Title).Title("Gender_Title").Width(180);
-        x.Bound(y => y.MaritalStatus_Title).Title("MaritalStatus_Title").Width(180);
-        x.Bound(y => y.Military_Title).Title("Military_Title").Width(180);
-        x.Bound(y => y.Military_DoneDate).Title("Military_DoneDate").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.Probation_Date).Title("Probation_Date").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.ProbationDetail).Title("ProbationDetail").Width(180);
-        x.Bound(y => y.IDBloodGroup_Title).Title("IDBloodGroup_Title").Width(180);
-        x.Bound(y => y.personLanguages).Title("personLanguages").Width(180);
-        x.Bound(y => y.personCertificates).Title("personCertificates").Width(180);
-        x.Bound(y => y.personGroups).Title("personGroups").Width(180);
-        x.Bound(y => y.currentCompanyName).Title("currentCompanyName").Width(180);
-        x.Bound(y => y.deparmanTitle).Title("deparmanTitle").Width(180);
-        x.Bound(y => y.jobStartDate).Title("jobStartDate").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.jobEndDate).Title("jobEndDate").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.PersonWorking).Title("PersonWorking").Width(180);
-        x.Bound(y => y.jobLeavingDescription).Title("jobLeavingDescription").Width(180);
-        x.Bound(y => y.manager1).Title("manager1").Width(180);
-        x.Bound(y => y.manager1_Title).Title("manager1_Title").Width(180);
-        x.Bound(y => y.manager2).Title("manager2").Width(180);
-        x.Bound(y => y.manager2_Title).Title("manager2_Title").Width(180);
-        x.Bound(y => y.manager3).Title("manager3").Width(180);
-        x.Bound(y => y.manager3_Title).Title("manager3_Title").Width(180);
-        x.Bound(y => y.manager4).Title("manager4").Width(180);
-        x.Bound(y => y.manager4_Title).Title("manager4_Title").Width(180);
-        x.Bound(y => y.manager5).Title("manager5").Width(180);
-        x.Bound(y => y.manager5_Title).Title("manager5_Title").Width(180);
-        x.Bound(y => y.manager6).Title("manager6").Width(180);
-        x.Bound(y => y.manager6_Title).Title("manager6_Title").Width(180);
-        x.Bound(y => y.salary).Title("salary").Width(180);
-        x.Bound(y => y.workExperiences).Title("workExperiences").Width(180);
-        x.Bound(y => y.gratutedSchooles).Title("gratutedSchooles").Width(180);
-        x.Bound(y => y.lastGratutedSchool).Title("lastGratutedSchool").Width(180);
-        x.Bound(y => y.primarySchool).Title("primarySchool").Width(180);
-        x.Bound(y => y.midSchool).Title("midSchool").Width(180);
-        x.Bound(y => y.highSchool).Title("highSchool").Width(180);
-        x.Bound(y => y.twoYearDegree).Title("twoYearDegree").Width(180);
-        x.Bound(y => y.Degree).Title("Degree").Width(180);
-        x.Bound(y => y.MasterDegree).Title("MasterDegree").Width(180);
-        x.Bound(y => y.Phd).Title("Phd").Width(180);
-        x.Bound(y => y.docent).Title("docent").Width(180);
-        x.Bound(y => y.Prof).Title("Prof").Width(180);
+        x.Bound(a => a.currentCompanyName).Title("Şirket").Width(180);
+        x.Bound(a => a.IdentificationNumber).Title("Kimlik Numarası").Width(180);
+        x.Bound(a => a.fullName).Title("Ad Soyad").Width(180);
+        x.Bound(a => a.deparmanTitle).Title("Departman").Width(180);
+        x.Bound(a => a.loginname).Title("Kullanıcı Adı/Kodu").Width(180);
+        x.Bound(a => a.companyCellPhone).Title("Telefon (Kurumsal").Width(180);
+        x.Bound(a => a.cellphone).Title("Telefon (Kişisel)").Width(180);
+        x.Bound(a => a.phone).Title("Kurumsal Sabit Telefon").Width(180);
+        x.Bound(a => a.companyCellPhone).Title("Cep Telefonu (Kurumsal)").Width(180);
+        x.Bound(a => a.personalEmail).Title("Eposta (Kişisel)").Width(180);
+        x.Bound(a => a.email).Title("Kurumsal Eposta").Width(180);
+        x.Bound(a => a.companyOfficePhoneCode).Title("Dahili Kod").Width(180);
+        x.Bound(a => a.workExperiences).Title("İş Deneyimleri").Width(180);
+        x.Bound(a => a.lastGratutedSchool).Title("Son Mezun Olduğu Okul").Width(180);
+        x.Bound(a => a.primarySchool).Title("İlkokul").Width(180);
+        x.Bound(a => a.midSchool).Title("Ortaokul").Width(180);
+        x.Bound(a => a.highSchool).Title("Lise").Width(180);
+        x.Bound(a => a.twoYearDegree).Title("Ön Lisans").Width(180);
+        x.Bound(a => a.Degree).Title("Lisans").Width(180);
+        x.Bound(a => a.MasterDegree).Title("Yüksek Lisans").Width(180);
+        x.Bound(a => a.Phd).Title("Doktora").Width(180);
+        x.Bound(a => a.docent).Title("Doçent").Width(180);
+        x.Bound(a => a.Prof).Title("Profesör").Width(180);
+        x.Bound(a => a.nationality).Title("Uyruk").Width(180);
+        x.Bound(a => a.MaritalStatus_Title).Title("Medeni Hal").Width(180);
+        x.Bound(a => a.birthday).Title("Doğum Tarihi").Format(Extensions.DateFormatShort(true)).Width(180);
+        x.Bound(a => a.BornLocation_Title).Title("Doğum Yeri").Width(180);
+        x.Bound(a => a.Gender_Title).Title("Cinsiyet").Width(180);
+        x.Bound(a => a.FatherName).Title("Baba Adı").Width(180);
+        x.Bound(a => a.MotherName).Title("Anne Adı").Width(180);
+        x.Bound(a => a.EmergencyPerson).Title("Acil Durum Kişisi").Width(180);
+        x.Bound(a => a.EmergencyPhone).Title("Acil Durum Telefonu").Width(180);
+        x.Bound(a => a.IDBloodGroup_Title).Title("Kan Grubu").Width(180);
+        x.Bound(a => a.jobStartDate).Title("İş Başlangıç Tarihi").Format(Extensions.DateFormatShort(true)).Width(180);
+        x.Bound(a => a.salary).Title("Maaş").ClientTemplate("#:salary==null?'0':salary # ₺").Width(180);
+        x.Bound(a => a.jobEndDate).Title("İşten Ayrılış Tarihi").Format(Extensions.DateFormatShort(true)).Width(180);
+        x.Bound(a => a.jobLeavingDescription).Title("İşten Ayrılış Sebebi").Width(180);
+        x.Bound(a => a.manager1_Title).Title("1. Yönetici").Width(180);
+        x.Bound(a => a.manager2_Title).Title("2. Yönetici").Width(180);
+        x.Bound(a => a.manager3_Title).Title("3. Yönetici").Width(180);
+        x.Bound(a => a.manager4_Title).Title("4. Yönetici").Width(180);
+        x.Bound(a => a.manager5_Title).Title("5. Yönetici").Width(180);
+        x.Bound(a => a.manager6_Title).Title("6. Yönetici").Width(180);
+        x.Bound(a => a.PersonWorking).Title("Çalışma Gün Sayısı").Width(180);
+        x.Bound(a => a.City_Title).Title("İl").Width(180);
+        x.Bound(a => a.Town_Title).Title("İlçe").Width(180);
+        x.Bound(a => a.Military_Title).Title("Askerlik Durumu").Width(180);
+        x.Bound(a => a.Military_DoneDate).Title("Askerlik Terhis Tarihi").Width(180);
+        x.Bound(a => a.Probation_Date).Title("Askerlik Tecil Tarihi").Width(180);
+        x.Bound(a => a.ProbationDetail).Title("Askerlik Tecil Açıklaması").Width(180);
+        x.Bound(a => a.Type_Title).Title("Çalışan Tipi").Width(180);
+        x.Bound(a => a.personLanguages).Title("Yabancı Diller").Width(180);
+        x.Bound(a => a.personCertificates).Title("Sertifikalar").Width(180);
+        x.Bound(a => a.personGroups).Title("Gruplar").Width(180);
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(x=>x.Height(650))
+    .Resizable(r => r.Columns(true))
     .ToolBar(x =>
     {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_UserReport", new { area = "SH" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_UserReport", new { area = "SH" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_UserReport", new { area = "SH" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_UserReport", new { area = "SH" }));
     }))
+</div>
+
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed">
+        <i class="icon-filter">
+            <i class="icon-grid"></i>
+        </i>
+    </label>
+    <div class="fix-buttons form-horizontal" >
+        <div class="statbox widget box box-shadow">
+            <div class="filterArea" id="filterArea">
+                @*<div class="">
+                        <label class="">Kayıtlı Rapor</label>
+                        @(Html.Akilli()
+                        .DropDownList("reportId")
+                        .OptionLabel("Rapor seçiniz..")
+                        .DataTextField("title")
+                        .DataValueField("id")
+                        .Action(b => b.Action("DataSourceDropDown", "VWSH_Report", new { area = "SH" }))
+                        .Filter<SH_Report>(a => a.type == (int)EnumSH_Reporttype.employeeDetailReport && a.createdby == userStatus.user.id)
+                        .Sort(x => x.Add("title").Ascending())
+                        .Validate(Validations.Required)
+                        .Events(a =>
+                            a.Change("page.filters.load").DataBound("page.filters.init")
+                        )
+                        //  .HtmlAttributes(new Dictionary<string, object> { { "style", "width: 100%" }, { "class", "form-control" } })
+                        .Execute())
+                    </div>*@
+                <fieldset>
+                    <legend>FİLTRELER</legend>
+                    <div class="row">
+                        <div>
+                            <div class=" col-md-3 clearfix">
+                                <label class="">Çalışan Durumu</label>
+                                @(Html.Akilli().
+                                    MultiSelect("workingStatusId").
+                                    Placeholder("Çalışan Durumu seçiniz..").
+                                    DataTextField("enumDescription").
+                                    DataValueField("Id").
+                                    Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                                    Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_User" && a.fieldName == "status").
+                                    Sort(x => x.Add("enumKey").Ascending()).
+                                    TagMode(TagMode.Single).
+                                    Value((int)EnumSH_UserStatus.Onaylanmis).
+                                    Execute("enumKey"))
+                            </div>
+                            <div class=" col-md-3 clearfix">
+                                <label class="">Çalışan Tipi</label>
+                                @(Html.Akilli().
+                                MultiSelect("workingTypeId").
+                                Placeholder("Çalışan tipi seçiniz..").
+                                DataTextField("enumDescription").
+                                DataValueField("Id").
+                                Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+                                Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_User" && a.fieldName == "type").
+                                Sort(x => x.Add("enumKey").Ascending()).
+                                Execute())
+                            </div>
+                            <div class=" col-md-3 clearfix" style="margin-bottom:15px">
+                                <label class="">Şirket</label>
+                                @(Html.Akilli()
+                              .MultiSelect("companyFilterId")
+                              .Placeholder("Şirket seçiniz..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                                .ItemTemplate("#=TemplateEngine('companyTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .Execute("id"))
+                            </div>
+                            <div class=" col-md-3 clearfix" style="margin-bottom:15px">
+                                <label class="">Departman</label>
+                                @(Html.Akilli()
+                                .MultiSelect("departmanId")
+                                .Placeholder("Departman seçiniz..")
+                                .DataTextField("Name")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
+                                .Sort(x => x.Add("Name").Ascending())
+                                .Filter<VWINV_CompanyDepartments>(x=>x.Type==(int)EnumINV_CompanyDepartmentsType.Organization)
+                                .Execute())
+                            </div>
+                        </div>
+                        <div class=" col-md-3 clearfix">
+                            <label class="">Cinsiyet</label>
+                            @(Html.Akilli().
+			                        MultiSelect("genderFilter").
+			                        Placeholder("Cinsiyet seçiniz..").
+			                        DataTextField("enumDescription").
+			                        DataValueField("enumKey").
+			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			                        Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "Gender").
+			                        Sort(x => x.Add("enumKey").Ascending()).
+			                        Execute("enumKey"))
+                        </div>
+                        <div class=" col-md-3 clearfix">
+                            <label class="">Medeni hal</label>
+                            @(Html.Akilli().
+			                        MultiSelect("martialStatusFilter").
+			                        Placeholder("Medeni hal seçiniz..").
+			                        DataTextField("enumDescription").
+			                        DataValueField("Id").
+			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			                        Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "MaritalStatus").
+			                        Sort(x => x.Add("enumKey").Ascending()).
+			                        Execute("enumKey"))
+                        </div>
+                        <div class=" col-md-3 clearfix">
+                            <label class="">Kan grubu</label>
+                            @(Html.Akilli().
+			                        MultiSelect("bloodGroupFilter").
+			                        Placeholder("Kan grubu seçiniz..").
+			                        DataTextField("enumDescription").
+			                        DataValueField("Id").
+			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			                        Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonInformation" && a.fieldName == "IDBloodGroup").
+			                        Sort(x => x.Add("enumKey").Ascending()).
+			                        Execute("enumKey"))
+                        </div>
+                        <div class=" col-md-3 clearfix">
+                            <label class="">Askerlik durumu</label>
+                            @(Html.Akilli().
+			                        MultiSelect("militaryStatusFilter").
+			                        Placeholder("Askerlik durumu seçiniz..").
+			                        DataTextField("enumDescription").
+			                        DataValueField("Id").
+			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			                        Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonInformation" && a.fieldName == "Military").
+			                        Sort(x => x.Add("enumKey").Ascending()).
+			                        Execute("enumKey"))
+                        </div>
+                        <div class="col-md-4 clearfix mt-10" style="margin-top:10px">
+                            <fieldset>
+                                <legend>İş Başlangıç Tarihi</legend>
+                                <div class="">
+                                    <label class="">Başlangıç Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("jobStartDateStartFilter").
+                                Placeholder("Başlangıç Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                                <div class="">
+                                    <label class="">Bitiş Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("jobStartDateEndFilter").
+                                Placeholder("Bitiş Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-4 clearfix" style="margin-top:10px">
+                            <fieldset>
+                                <legend>İşten Ayrılış Tarihi Tarihi</legend>
+                                <div class="">
+                                    <label class="">Başlangıç Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("dismissalDateStartFilter").
+                                Placeholder("Başlangıç Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                                <div class="">
+                                    <label class="">Bitiş Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("dismissalDateEndFilter").
+                                Placeholder("Bitiş Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                            </fieldset>
+                        </div>
+                        <div class="col-md-4 clearfix" style="margin-top:10px">
+                            <fieldset>
+                                <legend>Doğum Tarihi</legend>
+                                <div class="">
+                                    <label class="">Başlangıç Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("dateOfBirthIdStartFilter").
+                                Placeholder("Başlangıç Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                                <div class="">
+                                    <label class="">Bitiş Tarihi</label>
+                                    @(Html.Akilli().
+                                DatePicker("dateOfBirthIdEndFilter").
+                                Placeholder("Bitiş Tarihi seçiniz").
+                                Format(Extensions.DateFormatShort()))
+                                </div>
+                            </fieldset>
+                        </div>
+                    </div>
+                </fieldset>
+                <div class="">
+                    <label class="">Gösterilecek Alanlar</label>
+                    @(Html.Akilli()
+                                                       .MultiSelect("FieldsFilterId")
+                                                       .Placeholder("Gösterimi sağlanacak alanları seçiniz..")
+                                                       .DataTextField("DisplayName")
+                                                       .DataValueField("Field")
+                                                       .TagMode(TagMode.Multiple)
+                                                       .ItemTemplateId("GroupListItem")
+                                                       .DataSource(s =>
+                                                            s.Custom()
+                                                            .Transport(t =>
+                                                                t.Read(r =>
+                                                                    r.Url("/SH/VWSH_UserReport/GetFilter")
+                                                                )
+                                                            )
+                                                       )
+                                                       .Events(a => a.Change("page.fields.setitems").DataBound("page.fields.setAll.set"))
+                                                       .Sort(x => x.Add("DisplayName").Ascending())
+                                                       .Execute())
+                </div>
+            </div>
+            <div class="row col-md-12">
+                <div class="col-md-8"></div>
+                <div class="col-md-2">
+                    @*<button data-href="/SH/VWSH_Report/Insert"
+                            data-rawhref="/SH/VWSH_Report/Insert"
+                            data-task="Insert"
+                            data-modalid="VWSH_EmployeeUpsertReportModal"
+                            class="btn btn-md btn-block btn-success"
+                            type="submit">
+                        <i class="icon-floppy"></i> Kaydet
+                    </button>*@
+                </div>
+                <div class="col-md-2">
+                    <button class="btn btn-md btn-block btn-primary" onclick="page.filters.apply()" type="button"><i class="icon-search"></i> Sorgula</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style type="text/css">
+    .fix-buttons {
+        bottom: 27px !important;
+        right: 15px !important;
+    }
+
+    .fixedStart .nav-link {
+        width: auto !important;
+        background-color: unset !important;
+        color: unset !important;
+        margin-top: -20px;
+    }
+
+        .fixedStart .nav-link.active {
+            border-bottom: 1px solid #5c1ac3 !important;
+        }
+
+    .fixedStart .tab-content {
+        max-height: 602px !important;
+        overflow-x: hidden;
+        overflow-y: scroll;
+    }
+
+    #reportFields fieldset {
+        position: relative;
+    }
+
+    #reportFields .selectAll {
+        position: absolute;
+        top: -20px;
+        right: 10px;
+    }
+
+        #reportFields .selectAll label {
+            color: #1b55e2;
+        }
+
+    .fixedStart #fixed i {
+        padding: 14px 14px 14px 10px;
+        line-height: 47px;
+    }
+
+        .fixedStart #fixed i > .icon-grid {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 0px;
+            width: auto;
+            font-size: 16px;
+        }
+
+    .fixedStart fieldset legend {
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-top: 10px !important;
+    }
+
+    .fixedStart .statbox {
+        overflow: hidden;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 0px !important;
+        border: 2px black solid;
+    }
+
+    .fixedStart .statbox {
+        margin-bottom: 5% !important;
+    }
+
+    .fixedStart input ~ #fixed ~ .fix-buttons {
+        display: none;
+    }
+
+    .fixedStart input:checked ~ #fixed ~ .fix-buttons {
+        transition: visibility 0s, opacity 0.5s linear;
+        display: inline-block !important;
+    }
+
+    #filterArea {
+        overflow-y: scroll;
+        padding-right: 5px;
+    }
+
+    .fixedStart .form-horizontal {
+        width: unset;
+    }
+
+    .k-popup .k-list .k-item > .group {
+        padding: 0 .5em;
+        font-size: 10px;
+        line-height: 14px;
+        text-transform: uppercase;
+        position: relative;
+        top: 0;
+        right: 0;
+        top: 1px;
+        color: #fff;
+        background: #1b55e2;
+    }
+
+    li.k-item.k-first.k-state-hover {
+        border-width: 0px 0px 0px 0px !important;
+        padding: 1px 4px 1px 5px !important;
+    }
+
+    .k-popup .k-list .k-item > .group::before {
+        border-color: #1b55e2 #1b55e2 transparent transparent;
+    }
+
+    .k-popup .k-list .k-item > .group::before {
+        content: "";
+        width: 14px;
+        height: 14px;
+        border-width: 7px;
+        border-style: solid;
+        box-sizing: border-box;
+        display: block;
+        position: absolute;
+        left: -14px;
+        bottom: 0;
+    }
+
+    .k-popup .k-list .k-item {
+        position: relative;
+    }
+
+    .k-group-header + div > .k-list > .k-item.k-first::before {
+        content: " ";
+        display: block;
+        border-top: 1px solid #1b55e2;
+        position: absolute;
+        left: 0px;
+        right: 0px;
+        top: 0px;
+    }
+</style>

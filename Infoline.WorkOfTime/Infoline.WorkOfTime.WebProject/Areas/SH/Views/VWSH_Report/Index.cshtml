@@ -1,0 +1,36 @@
+﻿@{
+    ViewBag.Title = "Kayıtlı Raporlar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+
+
+<div class="row">
+    <div class="col-sm-12">
+        @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_Report>("VWSH_Report")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_Report", new { area = "SH" })).Filter(Model.GridFilter)
+                .PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.created).Filterable(true).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatFull(true)).Width(300);
+
+                    if (Model.Name == "Management") {
+                        x.Bound(a => a.createdby_Title).Title("Sahibi").Width(200);
+                    }
+
+                    x.Bound(y => y.title).Filterable(true).Title("Rapor Adı");
+
+                })
+                .Scrollable(x => x.Height(600))
+                .ToolBar(x =>
+                {
+
+                    x.Custom().Text("<i data-original-title='Rapora Git' class='icon-info-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Run", "VWSH_Report", new { area = "SH" }));
+
+                    x.Custom().Text("<i data-original-title='" + Model.Title + " Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "Kayıtlı Rapor silinecektir. Bu işlemi yapmak istediğinizden emin misiniz?" } }).Url(Url.Action("Delete", "VWSH_Report", new { area = "SH" }));
+
+                }))
+    </div>
+</div>
