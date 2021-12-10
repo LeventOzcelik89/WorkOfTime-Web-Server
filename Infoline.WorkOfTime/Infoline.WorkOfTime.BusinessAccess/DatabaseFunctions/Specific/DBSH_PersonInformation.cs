@@ -29,6 +29,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Evli")]
         Evli = 1
     }
+    [EnumInfo(typeof(SH_PersonInformation), "hasAgi")]
+    public enum EnumSH_PersonInformationHasAgi
+    {
+        [Description("Evet")]
+        Evet = 0,
+        [Description("Hayır")]
+        Hayir = 1
+    }
 
     [EnumInfo(typeof(SH_PersonInformation), "Military")]
     public enum EnumSH_PersonInformationMilitary

@@ -4,6 +4,7 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Drawing;
 using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
@@ -180,6 +181,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 UserId = this.id,
                 IdentificationNumber = this.loginname,
                 Gender = this.VWSH_PersonInformation?.Gender,
+                hasAgi = this.VWSH_PersonInformation?.hasAgi,
                 PersonalMail = this.VWSH_PersonInformation?.PersonalMail
             };
 
@@ -292,6 +294,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     information.Gender = this.VWSH_PersonInformation.Gender;
                     information.PersonalMail = this.VWSH_PersonInformation.PersonalMail;
+                    information.hasAgi = this.VWSH_PersonInformation.hasAgi;
                     rs &= db.UpdateSH_PersonInformation(information, false, this.trans);
                 }
             }
@@ -399,6 +402,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var tenantName = TenantConfig.Tenant.TenantName;
             var tenantCode = TenantConfig.Tenant.TenantCode;
 
+
             var rs = db.UpdateSH_User(user, true);
             if (rs.result == true)
             {
@@ -408,11 +412,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime Sistemi üzerinde IK Yöneticiniz şifrenizi Sıfırladı.Aşağıdaki bilgilerle oturum açabilirsiniz</p>
                         <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
                         <p><strong>Yeni Şifreniz : <strong><span style='color: #ed5565;'>{0}</span></p>
-                        <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>", password, url, tenantName);
+                        <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
+                        <p> Müşteri Kodu: {3}</p>
+                        <p><img src='{1}/Content/Themes/QRView.html'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
+                        
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), true);
+
 
                 }
                 else
@@ -439,6 +447,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
             }
         }
+
+     
 
         public ResultStatus Dismissal()
         {
