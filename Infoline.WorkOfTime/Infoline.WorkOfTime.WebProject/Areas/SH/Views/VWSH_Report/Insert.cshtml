@@ -3,8 +3,7 @@
     ViewBag.Title = "Kayıt Ekleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
-@using(Html.BeginForm("Insert", "VWSH_Report", FormMethod.Post, new Dictionary<string, object>() {  
+@using (Html.BeginForm("Insert", "VWSH_Report", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
@@ -14,95 +13,28 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="title">title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
+    @Html.Hidden("type", (int)EnumSH_ReportType.userDetailReport, new Dictionary<string, object> { { "id", "Report_type" } })
+    @Html.Hidden("schema")
+    <div class="form-group col-md-12">
+        <label class="control-label req">Rapor Adı</label>
+        @(
+                                                       Html.TextBoxFor(a => a.title, "", new Dictionary<string, object> {
+                                                           { "class", "form-control" },
+                                                           { "placeholder", "Rapor Adını giriniz." }
+                                                       }).Validate(Validations.Required)
+                                                    )
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="type">type</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.type, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen type Girin.."},
-            }).Validate(Validations.Required)
-        </div>
+    <div class="buttons mt-4 clearfix">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit" style="margin-left: 10px;" onclick="newId()">Kaydet</button>
+        @if (Model.created != null)
+        {
+            <button class="btn btn-md btn-primary pull-right" type="submit">Güncelle</button>
+        }
     </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="schema">schema</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.schema, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen schema Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="type_Title">type_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.type_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen type_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
-
 }
+<script type="text/javascript" data-selector="modalContainer">
+    function newId() {
+        $('#VWSH_EmployeeUpsertReport #id').val(kendo.guid());
+    }
+</script>
