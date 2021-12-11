@@ -25,6 +25,19 @@
 			return "";
 		}
 	}
+
+
+	$(document)
+		.on("selected:grid", "#VWCMP_Storage", function (e, res) {
+			var updateButton = $('[data-id="updateStorage"]');
+			debugger;
+			if (res.locationType == '@((int)EnumCMP_StorageLocationType.Alan)') {
+				$(updateButton).attr("data-href", "/CMP/VWCMP_Storage/UpdateArea?id=" + res.id);
+			} else {
+				$(updateButton).attr("data-href", "/CMP/VWCMP_Storage/Update?id=" + res.id);
+			}
+
+		})
 </script>
 
 
@@ -57,8 +70,9 @@
 					.Selectable(x => x.Mode(GridSelectionMode.Single))
 					.ToolBar(x =>
 					{
-						x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Şube/Depo/Kısım Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP" }));
-						x.Custom().Text("<i class='fa fa-edit' data-original-title='Şube/Depo/Kısım Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
+						x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Şube/Depo/Kısım Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", locationType = (int)EnumCMP_StorageLocationType.Depo }));
+						x.Custom().Text("<i class='icon-map' data-original-title='Şube/Depo/Kısım Alan Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertArea", "VWCMP_Storage", new { area = "CMP", locationType = (int)EnumCMP_StorageLocationType.Alan }));
+						x.Custom().Text("<i class='fa fa-edit' data-original-title='Şube/Depo/Kısım Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, {"data-id","updateStorage" },{ "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Storage", new { area = "CMP" }));
 						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Şube/Depo/Kısım Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "true" } }).Url(Url.Action("Detail", "VWCMP_Storage", new { area = "CMP" }));
 						x.Custom().Text("<i class='fa fa-trash' data-original-title='Şube/Depo/Kısım Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWCMP_Storage", new { area = "CMP" }));
 					}))
