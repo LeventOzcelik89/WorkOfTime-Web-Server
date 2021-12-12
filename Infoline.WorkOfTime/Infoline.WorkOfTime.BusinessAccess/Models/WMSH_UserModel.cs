@@ -411,10 +411,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime Sistemi üzerinde IK Yöneticiniz şifrenizi Sıfırladı.Aşağıdaki bilgilerle oturum açabilirsiniz</p>
                         <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
-                        <p><strong>Yeni Şifreniz : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>Yeni Şifreniz : </strong><span style='color: #ed5565;'>{0}</span></p>
                         <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
-                        <p> Müşteri Kodu: {3}</p>
-                        <p><img src='{1}/Content/Themes/QRView.html'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
+                        <p>Mobil uygulamayı indirmek için <a href = 'http://developer.workoftime.com/Files/AppDownload'>Tıklayınız</a></p>
+                        <p> <strong>Müşteri Kodunuz:</strong> {3}</p>
+                        <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
+                        <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
                         
 
 
@@ -447,9 +449,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
             }
         }
-
+        
      
-
+       
         public ResultStatus Dismissal()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -656,6 +658,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
     }
+    
 
     public class VMSHUserAndFileResume : VWSH_User
     {
