@@ -1,20 +1,115 @@
-﻿@{
+﻿@model Infoline.WorkOfTime.BusinessData.PageModel<VWSH_User, VWSH_Report>
+@{
     ViewBag.Title = "Detaylı Kullanıcı Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
-<script type="text/template" id="GroupListItem">
-    #=DisplayName#
-    <div class="group">#=GroupName#</div>
-</script>
-<script >
+<style type="text/css">
+    .fix-buttons {
+        bottom: 22px !important;
+        right: 15px !important;
+    }
+
+    .fixedStart .nav-link {
+        width: auto !important;
+        background-color: unset !important;
+        color: unset !important;
+        margin-top: -20px;
+    }
+
+        .fixedStart .nav-link.active {
+            border-bottom: 1px solid #5c1ac3 !important;
+        }
+
+    .fixedStart .tab-content {
+        max-height: 602px !important;
+        overflow: hidden;
+        overflow-y: scroll;
+    }
+
+    .fixedStart .underline-content .nav-tabs {
+    }
+
+    #reportFields fieldset {
+        position: relative;
+    }
+
+    #reportFields .selectAll {
+        position: absolute;
+        top: -20px;
+        right: 10px;
+    }
+
+        #reportFields .selectAll label {
+            color: #1b55e2;
+        }
+
+    #VWEMP_Employee .k-grid-content-locked {
+        /*height: auto !important;*/
+    }
+
+    .fixedStart #fixed i {
+        padding: 14px 14px 14px 10px;
+        line-height: 47px;
+    }
+
+        .fixedStart #fixed i > .icon-grid {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            padding: 0px;
+            width: auto;
+            font-size: 16px;
+        }
+
+    .fixedStart #fixed ~ .fix-buttons {
+        cursor: default;
+    }
+
+    .fixedStart fieldset legend {
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .fixedStart .statbox {
+        margin-bottom: 0px !important;
+        overflow: hidden;
+        background-color: #fff;
+        padding: 15px;
+        border-radius: 0px !important;
+    }
+
+    .fixedStart input ~ #fixed ~ .fix-buttons {
+        display: none;
+    }
+
+    .fixedStart input:checked ~ #fixed ~ .fix-buttons {
+        display: inline-block !important;
+    }
+
+    #filterArea {
+        overflow-y: scroll;
+        padding-right: 15px;
+    }
+
+    .fixedStart .form-horizontal {
+        width: unset;
+    }
+
+    .filterArea::-webkit-scrollbar {
+        width: 5px;
+    }
+</style>
+
+<script>
     function SetFix() {
-        $('#VWSH_UserReport .k-grid-content').attr('style', 'height:' + ($(window).height() - 380) + 'px');
+        $('#VWSH_UserReport .k-grid-content').attr('style', 'height:' + ($(window).height() - 205) + 'px');
         var w = $('#gridArea').width();
         var h = $('#gridArea').height();
-        $('#filterArea').attr('style', ('width: ' + (w + -35) + 'px !important; height: ' + (h) + 'px !important'));
+        $('#filterArea').attr('style', ('overflow-y:scroll;width: ' + (w + -30) + 'px !important; height: ' + (h-80) + 'px !important'));
     }
     var page = {
-        model: null,
+        model:@Html.Raw(Json.Encode(Model)) ,
         timer: null,
         filters: {
             items: [
@@ -47,21 +142,21 @@
                 page.filters.setFilter();
             },
             init: function () {
-                //if (page.model.PropertyBag == null) {
-                //    return;
-                //}
-                //  $('.fixedStart > [type="checkbox"]').prop('checked', true);
-                //$('#reportId').data('handler').value(page.model.PropertyBag.id);
-                //$('#reportId').data('handler').trigger('change');
+                if (page.model.PropertyBag == null) {
+                    return;
+                }
+                $('.fixedStart > [type="checkbox"]').prop('checked', true);
+                $('#reportId').data('handler').value(page.model.PropertyBag.id);
+                $('#reportId').data('handler').trigger('change');
                 page.filters.apply();
             },
             getFilter: function () {
                 $.each(page.filters.items, function (i, item) {
                     var val = $(item.element).data('handler').value();
-                    if (val == '' || val == null || val.length<=0) {
-                        item.value = null;
-                    } else {
+                    if (val != '' && val != null ) {
                         item.value = val;
+                    } else {
+                        item.value = null;
                     }
                 });
                 return page.filters.items;
@@ -100,7 +195,6 @@
             },
             setFilter: function () {
                 $.each(page.filters.items, function (i, item) {
-                    debugger
                     var el = $(item.element).data('handler');
                     if (el) {
                         el.value(item.value);
@@ -120,7 +214,6 @@
         fields: {
             items: null,
             setitems: function () {
-                debugger
                 var elFields = $('#FieldsFilterId').data('handler');
                 if (elFields != undefined) {
                     page.fields.items = elFields.value();
@@ -129,17 +222,15 @@
             setAll: {
                 loaded: false,
                 set: function () {
-                    //debugger
-                    //if (this.loaded == true || (page.model.PropertyBag != null && page.model.PropertyBag.schema != null)) {
-                    //    return;
-                    //}
+                    if (this.loaded == true || (page.model.PropertyBag != null && page.model.PropertyBag.schema != null)) {
+                        return;
+                    }
                     $('#FieldsFilterId').data('handler').value($('#FieldsFilterId').data('handler').dataSource.data().map(a => { return a.Field }));
                     $('#FieldsFilterId').data('handler').trigger('change');
                     this.loaded = true;
                 }
             },
             apply: function () {
-                debugger
                 var grid = $("#VWSH_UserReport").data('handler');
                 $.each(grid.columns, function (i, item) {
                     if (item.field == 'id') { return; }
@@ -153,7 +244,8 @@
         },
         beforeSubmit: function () {
             var elFields = $('#FieldsFilterId').data('handler');
-            $('#VWSH_EmployeeUpsertReport #schema').val(JSON.stringify({
+            debugger
+            $('#InsertReport #schema').val(JSON.stringify({
                 Filters: page.filters.getFilter(),
                 Fields: elFields != undefined ? $('#FieldsFilterId').data('handler').value() : []
             }));
@@ -161,18 +253,17 @@
     }
     $(document)
         .on('ready', function () {
-            //if (page.model.PropertyBag != null) {
-            //    page.model.PropertyBag.schema = JSON.parse(page.model.PropertyBag.schema);
-            //}
+            if (page.model.PropertyBag != null) {
+                page.model.PropertyBag.schema = JSON.parse(page.model.PropertyBag.schema);
+            }
             setTimeout(function () {
                 var kendoGrid = $('#VWSH_UserReport').data('handler');
                 if (kendoGrid) {
                     kendoGrid.one('dataBound', function (e) {
-                        debugger
                         page.filters.apply();
                     })
                 }
-            }, 800);
+            }, 1600);
             //  SetFix();
         })
         .on('selected:grid', '#VWSH_UserReport', function (e, item) {
@@ -196,10 +287,10 @@
         .on('click', '#reportFields input[id^="sa_"]', function () {
             $(this).parents('fieldset').find('input[id^="rf_"]').prop('checked', $(this).prop('checked'));
         })
-        .on('shown:modal', '#VWSH_EmployeeUpsertReportModal', function (i, item) {
+        .on('shown:modal', document, function (i, item) {
             page.beforeSubmit();
         })
-        .on('success', '#VWSH_EmployeeUpsertReport', function (evnt, data) {
+        .on('success', '#InsertReport', function (evnt, data) {
             $('#reportId').data('handler').dataSource.read();
         })
         .on('load:grid', '#VWSH_UserReport', function (evnt) {
@@ -217,7 +308,7 @@
 </script>
 <div class="widget-content widget-content-area" id="gridArea">
     @(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserReport>("VWSH_UserReport")
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_UserReport>("VWSH_UserReport", new KendoGridOptions { Excel_ExportHiddenColumns = false, Excel_ExportWithTemplate = false })
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_UserReport", new { area = "SH" })).PageSize(25))
     .Columns(x =>
     {
@@ -229,9 +320,9 @@
         x.Bound(a => a.companyCellPhone).Title("Telefon (Kurumsal").Width(180);
         x.Bound(a => a.cellphone).Title("Telefon (Kişisel)").Width(180);
         x.Bound(a => a.phone).Title("Kurumsal Sabit Telefon").Width(180);
-        x.Bound(a => a.companyCellPhone).Title("Cep Telefonu (Kurumsal)").Width(180);
         x.Bound(a => a.personalEmail).Title("Eposta (Kişisel)").Width(180);
         x.Bound(a => a.email).Title("Kurumsal Eposta").Width(180);
+        x.Bound(a => a.Status_Title).Title("Çalışma Durumu").Width(180);
         x.Bound(a => a.companyOfficePhoneCode).Title("Dahili Kod").Width(180);
         x.Bound(a => a.workExperiences).Title("İş Deneyimleri").Width(180);
         x.Bound(a => a.lastGratutedSchool).Title("Son Mezun Olduğu Okul").Width(180);
@@ -277,13 +368,11 @@
         x.Bound(a => a.personGroups).Title("Gruplar").Width(180);
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .Scrollable(x=>x.Height(650))
     .Resizable(r => r.Columns(true))
     .ToolBar(x =>
     {
     }))
 </div>
-
 <div class="fixedStart">
     <input type="checkbox" id="fixed">
     <label title="" for="fixed" id="fixed">
@@ -291,18 +380,20 @@
             <i class="icon-grid"></i>
         </i>
     </label>
-    <div class="fix-buttons form-horizontal" >
+    <div class="fix-buttons form-horizontal">
         <div class="statbox widget box box-shadow">
             <div class="filterArea" id="filterArea">
-                @*<div class="">
-                        <label class="">Kayıtlı Rapor</label>
-                        @(Html.Akilli()
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group">
+                            <label>Kayıtlı Rapor</label>
+                            @(Html.Akilli()
                         .DropDownList("reportId")
                         .OptionLabel("Rapor seçiniz..")
                         .DataTextField("title")
                         .DataValueField("id")
                         .Action(b => b.Action("DataSourceDropDown", "VWSH_Report", new { area = "SH" }))
-                        .Filter<SH_Report>(a => a.type == (int)EnumSH_Reporttype.employeeDetailReport && a.createdby == userStatus.user.id)
+                        .Filter<SH_Report>(a => a.type == (int)EnumSH_ReportType.userDetailReport&& a.createdby == userStatus.user.id)
                         .Sort(x => x.Add("title").Ascending())
                         .Validate(Validations.Required)
                         .Events(a =>
@@ -310,13 +401,16 @@
                         )
                         //  .HtmlAttributes(new Dictionary<string, object> { { "style", "width: 100%" }, { "class", "form-control" } })
                         .Execute())
-                    </div>*@
+                        </div>
+                    </div>
+                </div>
+
                 <fieldset>
                     <legend>FİLTRELER</legend>
                     <div class="row">
-                        <div>
-                            <div class=" col-md-3 clearfix">
-                                <label class="">Çalışan Durumu</label>
+                        <div class=" col-md-3 ">
+                            <div class="form-group">
+                                <label>Çalışan Durumu</label>
                                 @(Html.Akilli().
                                     MultiSelect("workingStatusId").
                                     Placeholder("Çalışan Durumu seçiniz..").
@@ -329,9 +423,11 @@
                                     Value((int)EnumSH_UserStatus.Onaylanmis).
                                     Execute("enumKey"))
                             </div>
-                            <div class=" col-md-3 clearfix">
-                                <label class="">Çalışan Tipi</label>
-                                @(Html.Akilli().
+
+                        </div>
+                        <div class=" col-md-3 form-group">
+                            <label>Çalışan Tipi</label>
+                            @(Html.Akilli().
                                 MultiSelect("workingTypeId").
                                 Placeholder("Çalışan tipi seçiniz..").
                                 DataTextField("enumDescription").
@@ -340,10 +436,10 @@
                                 Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_User" && a.fieldName == "type").
                                 Sort(x => x.Add("enumKey").Ascending()).
                                 Execute())
-                            </div>
-                            <div class=" col-md-3 clearfix" style="margin-bottom:15px">
-                                <label class="">Şirket</label>
-                                @(Html.Akilli()
+                        </div>
+                        <div class=" col-md-3 form-group">
+                            <label>Şirket</label>
+                            @(Html.Akilli()
                               .MultiSelect("companyFilterId")
                               .Placeholder("Şirket seçiniz..")
                               .DataTextField("fullName")
@@ -352,11 +448,11 @@
                               .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                               .Sort(x => x.Add("name").Ascending())
                               .Execute("id"))
-                            </div>
-                            <div class=" col-md-3 clearfix" style="margin-bottom:15px">
-                                <label class="">Departman</label>
-                                @(Html.Akilli()
-                                .MultiSelect("departmanId")
+                        </div>
+                        <div class=" col-md-3 form-group">
+                            <label>Departman</label>
+                            @(Html.Akilli()
+                                .MultiSelect("departmanId").Readonly(false).Enable(true)
                                 .Placeholder("Departman seçiniz..")
                                 .DataTextField("Name")
                                 .DataValueField("id")
@@ -365,10 +461,10 @@
                                 .Sort(x => x.Add("Name").Ascending())
                                 .Filter<VWINV_CompanyDepartments>(x=>x.Type==(int)EnumINV_CompanyDepartmentsType.Organization)
                                 .Execute())
-                            </div>
                         </div>
-                        <div class=" col-md-3 clearfix">
-                            <label class="">Cinsiyet</label>
+
+                        <div class=" col-md-3 form-group">
+                            <label>Cinsiyet</label>
                             @(Html.Akilli().
 			                        MultiSelect("genderFilter").
 			                        Placeholder("Cinsiyet seçiniz..").
@@ -379,8 +475,8 @@
 			                        Sort(x => x.Add("enumKey").Ascending()).
 			                        Execute("enumKey"))
                         </div>
-                        <div class=" col-md-3 clearfix">
-                            <label class="">Medeni hal</label>
+                        <div class=" col-md-3 form-group">
+                            <label>Medeni hal</label>
                             @(Html.Akilli().
 			                        MultiSelect("martialStatusFilter").
 			                        Placeholder("Medeni hal seçiniz..").
@@ -391,8 +487,9 @@
 			                        Sort(x => x.Add("enumKey").Ascending()).
 			                        Execute("enumKey"))
                         </div>
-                        <div class=" col-md-3 clearfix">
-                            <label class="">Kan grubu</label>
+                        <div class=" col-md-3 form-group">
+
+                            <label>Kan grubu</label>
                             @(Html.Akilli().
 			                        MultiSelect("bloodGroupFilter").
 			                        Placeholder("Kan grubu seçiniz..").
@@ -403,8 +500,8 @@
 			                        Sort(x => x.Add("enumKey").Ascending()).
 			                        Execute("enumKey"))
                         </div>
-                        <div class=" col-md-3 clearfix">
-                            <label class="">Askerlik durumu</label>
+                        <div class=" col-md-3 form-group">
+                            <label class="form-group">Askerlik durumu</label>
                             @(Html.Akilli().
 			                        MultiSelect("militaryStatusFilter").
 			                        Placeholder("Askerlik durumu seçiniz..").
@@ -415,18 +512,18 @@
 			                        Sort(x => x.Add("enumKey").Ascending()).
 			                        Execute("enumKey"))
                         </div>
-                        <div class="col-md-4 clearfix mt-10" style="margin-top:10px">
+                        <div class="col-md-4 ">
                             <fieldset>
                                 <legend>İş Başlangıç Tarihi</legend>
-                                <div class="">
-                                    <label class="">Başlangıç Tarihi</label>
+                                <div class="form-group">
+                                    <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("jobStartDateStartFilter").
                                 Placeholder("Başlangıç Tarihi seçiniz").
                                 Format(Extensions.DateFormatShort()))
                                 </div>
-                                <div class="">
-                                    <label class="">Bitiş Tarihi</label>
+                                <div class="form-group">
+                                    <label>Bitiş Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("jobStartDateEndFilter").
                                 Placeholder("Bitiş Tarihi seçiniz").
@@ -434,18 +531,18 @@
                                 </div>
                             </fieldset>
                         </div>
-                        <div class="col-md-4 clearfix" style="margin-top:10px">
+                        <div class="col-md-4 ">
                             <fieldset>
                                 <legend>İşten Ayrılış Tarihi Tarihi</legend>
-                                <div class="">
-                                    <label class="">Başlangıç Tarihi</label>
+                                <div class="form-group">
+                                    <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("dismissalDateStartFilter").
                                 Placeholder("Başlangıç Tarihi seçiniz").
                                 Format(Extensions.DateFormatShort()))
                                 </div>
-                                <div class="">
-                                    <label class="">Bitiş Tarihi</label>
+                                <div class="form-group">
+                                    <label>Bitiş Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("dismissalDateEndFilter").
                                 Placeholder("Bitiş Tarihi seçiniz").
@@ -453,18 +550,18 @@
                                 </div>
                             </fieldset>
                         </div>
-                        <div class="col-md-4 clearfix" style="margin-top:10px">
+                        <div class="col-md-4 ">
                             <fieldset>
                                 <legend>Doğum Tarihi</legend>
-                                <div class="">
-                                    <label class="">Başlangıç Tarihi</label>
+                                <div class="form-group">
+                                    <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("dateOfBirthIdStartFilter").
                                 Placeholder("Başlangıç Tarihi seçiniz").
                                 Format(Extensions.DateFormatShort()))
                                 </div>
-                                <div class="">
-                                    <label class="">Bitiş Tarihi</label>
+                                <div class="form-group">
+                                    <label>Bitiş Tarihi</label>
                                     @(Html.Akilli().
                                 DatePicker("dateOfBirthIdEndFilter").
                                 Placeholder("Bitiş Tarihi seçiniz").
@@ -474,9 +571,11 @@
                         </div>
                     </div>
                 </fieldset>
-                <div class="">
-                    <label class="">Gösterilecek Alanlar</label>
-                    @(Html.Akilli()
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="form-group" style="margin-bottom:15px">
+                            <label>Gösterilecek Alanlar</label>
+                            @(Html.Akilli()
                                                        .MultiSelect("FieldsFilterId")
                                                        .Placeholder("Gösterimi sağlanacak alanları seçiniz..")
                                                        .DataTextField("DisplayName")
@@ -494,126 +593,74 @@
                                                        .Events(a => a.Change("page.fields.setitems").DataBound("page.fields.setAll.set"))
                                                        .Sort(x => x.Add("DisplayName").Ascending())
                                                        .Execute())
+                        </div>
+                    </div>
                 </div>
+
+
             </div>
-            <div class="row col-md-12">
-                <div class="col-md-8"></div>
-                <div class="col-md-2">
-                    @*<button data-href="/SH/VWSH_Report/Insert"
+            <div class="row ">
+                <div class="col-md-7"></div>
+                <div class="col-md-2 ">
+                    <button data-href="/SH/VWSH_Report/Insert"
                             data-rawhref="/SH/VWSH_Report/Insert"
                             data-task="Insert"
-                            data-modalid="VWSH_EmployeeUpsertReportModal"
                             class="btn btn-md btn-block btn-success"
                             type="submit">
                         <i class="icon-floppy"></i> Kaydet
-                    </button>*@
+                    </button>
                 </div>
                 <div class="col-md-2">
                     <button class="btn btn-md btn-block btn-primary" onclick="page.filters.apply()" type="button"><i class="icon-search"></i> Sorgula</button>
                 </div>
+                <div class="col-md-1"></div>
             </div>
         </div>
     </div>
 </div>
+<script type="text/template" id="reportFieldTemplate">
+    <div class="form-group">
+        <input type="checkbox" class="k-checkbox" checked id="{{Field}}" />
+        <label class="k-checkbox-label" for="{{Field}}">{{DisplayName}}</label>
+    </div>
+</script>
+
+<script type="text/template" id="reportGroupTemplate">
+
+    <fieldset>
+        <legend>
+            <input type="checkbox" class="k-checkbox" id="{{sa_id}}" />
+            <label class="k-checkbox-label" for="{{sa_id}}">{{DisplayName}}</label>
+        </legend>
+
+    </fieldset>
+
+</script>
+
+
+<script type="text/template" id="GroupListItem">
+    #=DisplayName#
+    <div class="group lowerCase">#=GroupName#</div>
+</script>
 
 <style type="text/css">
-    .fix-buttons {
-        bottom: 27px !important;
-        right: 15px !important;
-    }
-
-    .fixedStart .nav-link {
-        width: auto !important;
-        background-color: unset !important;
-        color: unset !important;
-        margin-top: -20px;
-    }
-
-        .fixedStart .nav-link.active {
-            border-bottom: 1px solid #5c1ac3 !important;
-        }
-
-    .fixedStart .tab-content {
-        max-height: 602px !important;
-        overflow-x: hidden;
-        overflow-y: scroll;
-    }
-
-    #reportFields fieldset {
-        position: relative;
-    }
-
-    #reportFields .selectAll {
-        position: absolute;
-        top: -20px;
-        right: 10px;
-    }
-
-        #reportFields .selectAll label {
-            color: #1b55e2;
-        }
-
-    .fixedStart #fixed i {
-        padding: 14px 14px 14px 10px;
-        line-height: 47px;
-    }
-
-        .fixedStart #fixed i > .icon-grid {
-            position: absolute;
-            top: 8px;
-            right: 8px;
-            padding: 0px;
-            width: auto;
-            font-size: 16px;
-        }
-
-    .fixedStart fieldset legend {
-        font-weight: bold;
-        text-transform: uppercase;
-        margin-top: 10px !important;
-    }
-
-    .fixedStart .statbox {
-        overflow: hidden;
-        background-color: #fff;
-        padding: 15px;
-        border-radius: 0px !important;
-        border: 2px black solid;
-    }
-
-    .fixedStart .statbox {
-        margin-bottom: 5% !important;
-    }
-
-    .fixedStart input ~ #fixed ~ .fix-buttons {
-        display: none;
-    }
-
-    .fixedStart input:checked ~ #fixed ~ .fix-buttons {
-        transition: visibility 0s, opacity 0.5s linear;
-        display: inline-block !important;
-    }
-
-    #filterArea {
-        overflow-y: scroll;
-        padding-right: 5px;
-    }
-
-    .fixedStart .form-horizontal {
-        width: unset;
+    .k-button > span {
+        text-transform: capitalize !important;
     }
 
     .k-popup .k-list .k-item > .group {
         padding: 0 .5em;
         font-size: 10px;
         line-height: 14px;
-        text-transform: uppercase;
-        position: relative;
+        position: absolute;
         top: 0;
         right: 0;
         top: 1px;
         color: #fff;
         background: #1b55e2;
+    }
+
+    .k-popup .k-list .k-item > .lowerCase {
     }
 
     li.k-item.k-first.k-state-hover {
@@ -650,5 +697,10 @@
         left: 0px;
         right: 0px;
         top: 0px;
+    }
+
+    .form-group {
+        margin-right: 0px !important;
+        margin-left: 0px !important;
     }
 </style>

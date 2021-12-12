@@ -1,5 +1,6 @@
 ﻿using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessAccess.Tools.Mapper.Maps;
+using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -10,9 +11,28 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
     public class VWSH_UserReportController : Controller
     {
         [PageInfo("Detaylı Kullanıcı Raporu Listeleme Sayfası", SHRoles.IKYonetici)]
-        public ActionResult Index()
+        public ActionResult Index(Guid? id)
         {
-            return View();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            if (id.HasValue)
+            {
+                var db = new WorkOfTimeDatabase();
+                var model = new PageModel<VWSH_User,VWSH_Report> { Name = "Report",Title= "Detaylı Kullanıcı Raporu" };
+                var report = db.GetVWSH_ReportById(id.Value);
+                if (report != null && report.title != null)
+                {
+                    model.Title = report.title;
+                }
+                model.PropertyBag = report;
+                return View(model);
+            }
+            else
+            {
+                var model = new PageModel<VWSH_User, VWSH_Report> { Name = "Report", Title = "Detaylı Kullanıcı Raporu" };
+
+                model.PropertyBag = new VWSH_Report();
+                return View(model);
+            }
         }
         [PageInfo("Detaylı Kullanıcı Raporu Listeleme Metodu", SHRoles.IKYonetici)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
