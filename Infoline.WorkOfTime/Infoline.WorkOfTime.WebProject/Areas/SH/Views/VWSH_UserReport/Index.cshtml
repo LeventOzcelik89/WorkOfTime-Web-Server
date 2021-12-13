@@ -4,6 +4,7 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
+<link href="~/Content/Custom/css/FixedButtons2.css" rel="stylesheet" />
 <style type="text/css">
     .fix-buttons {
         bottom: 22px !important;
@@ -17,9 +18,13 @@
         margin-top: -20px;
     }
 
-        .fixedStart .nav-link.active {
-            border-bottom: 1px solid #5c1ac3 !important;
-        }
+    .fixedStart input#fixed {
+        display: normal !important;
+    }
+
+    .fixedStart .nav-link.active {
+        border-bottom: 1px solid #5c1ac3 !important;
+    }
 
     .fixedStart .tab-content {
         max-height: 602px !important;
@@ -90,6 +95,7 @@
     #filterArea {
         overflow-y: scroll;
         padding-right: 15px;
+        transition: all .2s linear;
     }
 
     .fixedStart .form-horizontal {
@@ -100,7 +106,6 @@
         width: 5px;
     }
 </style>
-
 <script>
     function SetFix() {
         $('#VWSH_UserReport .k-grid-content').attr('style', 'height:' + ($(window).height() - 205) + 'px');
@@ -244,7 +249,6 @@
         },
         beforeSubmit: function () {
             var elFields = $('#FieldsFilterId').data('handler');
-
             $('#InsertReport #schema').val(JSON.stringify({
                 Filters: page.filters.getFilter(),
                 Fields: elFields != undefined ? $('#FieldsFilterId').data('handler').value() : []
@@ -284,6 +288,11 @@
                 }
             });
         })
+        .on('click', '#minimilize', function () {
+             setTimeout(function () {
+                SetFix();
+            }, 450);
+        })
         .on('click', '#reportFields input[id^="sa_"]', function () {
             $(this).parents('fieldset').find('input[id^="rf_"]').prop('checked', $(this).prop('checked'));
         })
@@ -295,8 +304,13 @@
         })
         .on('load:grid', '#VWSH_UserReport', function (evnt) {
             SetFix();
+        }).on("click", '[data-event="clear"]', function () {
+            page.fields.setitems();
         })
-        ;
+        .on("click", $("#FieldsFilterId_taglist").siblings(".k-i-all"), function () {
+
+            page.fields.setitems();
+        })
     $(window)
         .on('resize', function () {
             clearTimeout(page.timer);
@@ -404,7 +418,6 @@
                         </div>
                     </div>
                 </div>
-
                 <fieldset>
                     <legend>FİLTRELER</legend>
                     <div class="row">
@@ -423,7 +436,6 @@
                                     Value((int)EnumSH_UserStatus.Onaylanmis).
                                     Execute("enumKey"))
                             </div>
-
                         </div>
                         <div class=" col-md-3 form-group">
                             <label>Çalışan Tipi</label>
@@ -462,7 +474,6 @@
                                 .Filter<VWINV_CompanyDepartments>(x=>x.Type==(int)EnumINV_CompanyDepartmentsType.Organization)
                                 .Execute())
                         </div>
-
                         <div class=" col-md-3 form-group">
                             <label>Cinsiyet</label>
                             @(Html.Akilli().
@@ -488,7 +499,6 @@
 			                        Execute("enumKey"))
                         </div>
                         <div class=" col-md-3 form-group">
-
                             <label>Kan grubu</label>
                             @(Html.Akilli().
 			                        MultiSelect("bloodGroupFilter").
@@ -514,7 +524,7 @@
                         </div>
                         <div class="col-md-4 ">
                             <fieldset>
-                                <legend>İş Başlangıç Tarihi</legend>
+                                <legend>İŞ BAŞLANGIÇ TARİHİ</legend>
                                 <div class="form-group">
                                     <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
@@ -523,7 +533,7 @@
                                 Format(Extensions.DateFormatShort()))
                                 </div>
                                 <div class="form-group">
-                                    <label>Bitiş Tarihi</label>
+                                    <label>BİTİŞ TARİHİ</label>
                                     @(Html.Akilli().
                                 DatePicker("jobStartDateEndFilter").
                                 Placeholder("Bitiş Tarihi seçiniz").
@@ -533,7 +543,7 @@
                         </div>
                         <div class="col-md-4 ">
                             <fieldset>
-                                <legend>İşten Ayrılış Tarihi Tarihi</legend>
+                                <legend>İŞTEN AYRILIŞ TARİHİ</legend>
                                 <div class="form-group">
                                     <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
@@ -552,7 +562,7 @@
                         </div>
                         <div class="col-md-4 ">
                             <fieldset>
-                                <legend>Doğum Tarihi</legend>
+                                <legend>DOĞUM TARİHİ</legend>
                                 <div class="form-group">
                                     <label>Başlangıç Tarihi</label>
                                     @(Html.Akilli().
@@ -596,12 +606,10 @@
                         </div>
                     </div>
                 </div>
-
-
             </div>
-            <div class="row ">
-                <div class="col-md-7"></div>
-                <div class="col-md-2 ">
+            <div class="row " style="margin-right:45px">
+                <div class="col-md-8"></div>
+                <div class="col-md-2">
                     <button data-href="/SH/VWSH_Report/Insert"
                             data-rawhref="/SH/VWSH_Report/Insert"
                             data-task="Insert"
@@ -613,7 +621,6 @@
                 <div class="col-md-2">
                     <button class="btn btn-md btn-block btn-primary" onclick="page.filters.apply()" type="button"><i class="icon-search"></i> Sorgula</button>
                 </div>
-                <div class="col-md-1"></div>
             </div>
         </div>
     </div>
@@ -624,25 +631,18 @@
         <label class="k-checkbox-label" for="{{Field}}">{{DisplayName}}</label>
     </div>
 </script>
-
 <script type="text/template" id="reportGroupTemplate">
-
     <fieldset>
         <legend>
             <input type="checkbox" class="k-checkbox" id="{{sa_id}}" />
             <label class="k-checkbox-label" for="{{sa_id}}">{{DisplayName}}</label>
         </legend>
-
     </fieldset>
-
 </script>
-
-
 <script type="text/template" id="GroupListItem">
     #=DisplayName#
     <div class="group lowerCase">#=GroupName#</div>
 </script>
-
 <style type="text/css">
     .k-button > span {
         text-transform: capitalize !important;
