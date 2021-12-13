@@ -23,9 +23,14 @@ namespace Infoline.WorkOfTime.BusinessData
         public string companyCellPhoneCode { get; set;}
         public string companyOfficePhone { get; set;}
         public string companyOfficePhoneCode { get; set;}
+        public string locationId_Title { get; set;}
+        public string Type_Title { get; set;}
+        public string Status_Title { get; set;}
         public string fullName { get; set;}
         public string nationality { get; set;}
         public string City_Title { get; set;}
+        public Guid? city_id { get; set;}
+        public Guid? town_id { get; set;}
         public string Town_Title { get; set;}
         public string BornLocation_Title { get; set;}
         public string FatherName { get; set;}
@@ -33,20 +38,30 @@ namespace Infoline.WorkOfTime.BusinessData
         public string IdentificationNumber { get; set;}
         public string EmergencyPerson { get; set;}
         public string EmergencyPhone { get; set;}
+        public string personalEmail { get; set;}
         public string Gender_Title { get; set;}
+        public int? gender { get; set;}
         public string MaritalStatus_Title { get; set;}
+        public int? MaritalStatus { get; set;}
         public string Military_Title { get; set;}
+        public int? Military { get; set;}
         public DateTime? Military_DoneDate { get; set;}
         public DateTime? Probation_Date { get; set;}
         public string ProbationDetail { get; set;}
         public string IDBloodGroup_Title { get; set;}
+        public int? bloodGroup { get; set;}
         public string personLanguages { get; set;}
         public string personCertificates { get; set;}
         public string personGroups { get; set;}
         public string currentCompanyName { get; set;}
+        public Guid? companyId { get; set;}
         public string deparmanTitle { get; set;}
+        public Guid? departmanId { get; set;}
         public DateTime? jobStartDate { get; set;}
         public DateTime? jobEndDate { get; set;}
+        public int? companyPerson_Level { get; set;}
+        public int? jobLeaving { get; set;}
+        public bool? IsWorking { get; set;}
         public string PersonWorking { get; set;}
         public string jobLeavingDescription { get; set;}
         public Guid? manager1 { get; set;}

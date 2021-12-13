@@ -8,7 +8,6 @@ using Infoline.Framework.Database;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
 
-
     [EnumInfo(typeof(SH_User), "type")]
     public enum EnumSH_UserType
     {

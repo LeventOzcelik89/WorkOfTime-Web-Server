@@ -411,14 +411,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime Sistemi üzerinde IK Yöneticiniz şifrenizi Sıfırladı.Aşağıdaki bilgilerle oturum açabilirsiniz</p>
                         <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
-                        <p><strong>Yeni Şifreniz : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>Yeni Şifreniz : </strong><span style='color: #ed5565;'>{0}</span></p>
                         <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
-                        <p>Mobil uygulamayı indirmek için <a href = 'https://play.google.com/store/apps/details?id=com.infoline.intranet&hl=en_US&gl=US'>tıklayınız<a></p>
-                        <p>QR Kod için lütfen <a href='~/Content/Kendo/js/kendo.all.min.js'>Buraya tıklayınız!</a></p>", password, url, tenantName);
+                        <p>Mobil uygulamayı indirmek için <a href = 'http://developer.workoftime.com/Files/AppDownload'>Tıklayınız</a></p>
+                        <p> <strong>Müşteri Kodunuz:</strong> {3}</p>
+                        <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
+                        <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
+                        
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), true);
+
 
                 }
                 else
@@ -445,9 +449,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
             }
         }
-
+        
      
-
+       
         public ResultStatus Dismissal()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -654,6 +658,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
     }
+    
 
     public class VMSHUserAndFileResume : VWSH_User
     {

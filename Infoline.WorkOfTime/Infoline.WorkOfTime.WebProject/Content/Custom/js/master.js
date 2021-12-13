@@ -790,11 +790,118 @@ function dataURLtoBlob(dataurl) {
 
 
 
+function Kendo_ExcelExportTemplate(e) {
+    e.preventDefault();
+    var groupCount = e.sender.dataSource.group().length;
+
+    var _cols = [];
+    $.each(e.sender.columns, function (i, item) {
+        if (item.columns == null) {
+            _cols.push(item);
+        } else {
+            _cols = $.merge(_cols, item.columns);
+        }
+    });
+    var idFieldCount = $.Enumerable.From(_cols).Where(a => { return a.field == 'id'; }).Count();
+
+    var GetRowData = function (row) {
+
+        var res = {};
+
+        var _cols = [];
+        $.each(e.sender.columns, function (i, item) {
+            if (item.columns == null) {
+                _cols.push(item);
+            } else {
+                _cols = $.merge(_cols, item.columns);
+            }
+        });
+
+        $.each(_cols, function (i, item) {
+            if (idFieldCount > 0) {
+                if (i != 0) {
+                    res[item.field] = row[i + groupCount - 1] != undefined ? row[i + groupCount - 1]['value'] : ''
+                }
+            }
+            else {
+                res[item.field] = row[i + groupCount] != undefined ? row[i + groupCount]['value'] : '';
+            }
+
+        });
+
+        return res;
+
+    };
+
+    $.each(e.workbook.sheets, function (i, b) {
+
+        if (idFieldCount > 0) {
+
+            b.rows[0].cells.forEach(function (h, hi) {
+                if (h.value == "id") {
+                    b.columns.splice(hi, 1);
+                    b.rows.forEach(function (r, ir) {
+                        r.cells.splice(hi, 1);
+                    });
+                }
+            });
+
+        }
+
+        b.rows.forEach(function (r, ir) {
+
+            $.each(r.cells, function (ci, citem) {
+
+                if (ci < groupCount) {
+                    return;
+                }
+
+                if (r.type == 'data' && _cols[ci + idFieldCount - groupCount].hasOwnProperty('template')) {
+
+                    var temp = kendo.template(_cols[ci + idFieldCount - groupCount].template);
+                    try {
+
+                        var elem = $(temp(GetRowData(r.cells)));
+
+                        if (elem.length != 0) {
+                            citem.value = elem.text();
+                        } else {
+                            citem.value = temp(GetRowData(r.cells));
+                        }
+
+                    } catch (e) {
+
+                        try {
+                            citem.value = temp(GetRowData(r.cells));
+                        } catch (e) { }
+
+                    }
+
+                }
+
+            });
+
+        });
+
+    });
+
+    var c = new kendo.ooxml.Workbook(e.workbook);
+    var blob = dataURLtoBlob(c.toDataURL());
+    saveAs(blob, e.sender.options.excel.fileName != undefined ? e.sender.options.excel.fileName : $(document).find("title").text() + new Date().toLocaleString("tr-TR") + ".xlsx");
+
+    $('body').loadingModal('destroy');
+
+}
 function Kendo_ExcelExport(e) {
 
     e.preventDefault();
 
-    var columns = e.sender.columns.filter(a => a.field != "id" && a.field != 'searchField' && a.field != 'fullName');
+    var columns = e.sender.columns.filter(a => a.field != "id" && a.field != 'searchField');
+
+    var exportHiddens = e.sender.element.attr('data-exporthiddens');
+    if (exportHiddens == 'False') {
+        columns = columns.filter(a => a.hidden != true)
+    }
     var data = e.data;
 
     if (e.sender.dataSource.group().length > 0) {

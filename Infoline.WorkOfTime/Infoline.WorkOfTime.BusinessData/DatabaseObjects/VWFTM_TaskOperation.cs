@@ -21,6 +21,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string user_Title { get; set;}
         public string fixture_Title { get; set;}
         public string passingTime { get; set;}
+        public string createdPhoto { get; set;}
         public double? distance { get; set;}
         public string task_Name { get; set;}
         public Guid? formResultId { get; set;}

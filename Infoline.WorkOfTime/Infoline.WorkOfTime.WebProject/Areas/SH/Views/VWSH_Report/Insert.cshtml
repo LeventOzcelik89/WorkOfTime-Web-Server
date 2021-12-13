@@ -1,0 +1,41 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_Report
+@{
+    ViewBag.Title = "Kullanıcı Raporu Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (Html.BeginForm("Insert", "VWSH_Report", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id","InsertReport"}
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.Hidden("type", (int)EnumSH_ReportType.userDetailReport, new Dictionary<string, object> { { "id", "Report_type" } })
+    @Html.Hidden("schema")
+    <div class="form-group col-md-12">
+        <label class="control-label req">Rapor Adı</label>
+        @(
+                                                       Html.TextBoxFor(a => a.title, "", new Dictionary<string, object> {
+                                                           { "class", "form-control" },
+                                                           { "placeholder", "Rapor Adını giriniz." }
+                                                       }).Validate(Validations.Required)
+                                                    )
+    </div>
+    <div class="buttons mt-4 clearfix">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Vazgeç</button>
+        <button class="btn btn-md btn-success pull-right" type="submit" style="margin-left: 10px;" onclick="newId()">Kaydet</button>
+        @if (Model.created != null)
+        {
+            <button class="btn btn-md btn-primary pull-right" type="submit">Güncelle</button>
+        }
+    </div>
+}
+<script type="text/javascript" data-selector="modalContainer">
+    function newId() {
+        $('#VWSH_EmployeeUpsertReport #id').val(kendo.guid());
+    }
+</script>

@@ -148,7 +148,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 subject_Title = a.subject_Title,
                 taskId = a.taskId,
                 task_Name = a.task_Name,
-                userId = a.userId
+                userId = a.userId,
+                createdPhoto= a.createdPhoto
             }).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList();
 
             if (model.customerStorageId.HasValue)

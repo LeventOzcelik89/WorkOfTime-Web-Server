@@ -232,53 +232,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [AllowEveryone]
-        public ContentResult TEST()
-        {
-
-            using (var watermarkImage = QRCodeCreate("QRCodeEncoder", 0))
-            {
-
-                using (var ms = new MemoryStream())
-                {
-                    
-                    watermarkImage.Save(ms, ImageFormat.Bmp);
-                    
-
-                    Response.Clear();
-                    Response.ContentType = "image/png";
-                    Response.AddHeader("content-disposition", "attachment; qr.png");
-                    Response.BinaryWrite(ms.ToArray());
-                    Response.End();
-                    
-                   
-
-                }
-               
-            }
-
-            return Content("");
-
-        }
-        public static System.Drawing.Image QRCodeCreate(string txt, int kkDuzey)
-        {
-            var _code = new QRCodeEncoder();
-            _code.QRCodeEncodeMode = QRCodeEncoder.ENCODE_MODE.BYTE;
-            _code.QRCodeErrorCorrect = QRCodeEncoder.ERROR_CORRECTION.L;
-            _code.QRCodeVersion = kkDuzey;
-            var bm = _code.Encode(txt);
-            var newWidth = 100;
-            var newHeight = 100;
-            var resizedImage = new Bitmap(newWidth, newHeight);
-            using (var gr = Graphics.FromImage(resizedImage))
-            {
-                gr.SmoothingMode = SmoothingMode.HighQuality;
-                gr.InterpolationMode = InterpolationMode.HighQualityBicubic;
-                gr.PixelOffsetMode = PixelOffsetMode.HighQuality;
-                gr.DrawImage(bm, new System.Drawing.Rectangle(0, 0, newWidth, newHeight));
-            }
-            return resizedImage;
-        }
         [PageInfo("Personel Profil Resmi"), AllowEveryone]
         public JsonResult ImageUrl(Guid id)
         {
