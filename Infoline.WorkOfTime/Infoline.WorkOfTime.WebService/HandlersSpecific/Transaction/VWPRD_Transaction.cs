@@ -109,7 +109,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
 
         [HandleFunction("VWPRD_Transaction/GetPageInfo")]
         public void VWPRD_TransactionGetPageInfo(HttpContext context)
-        {s
+        {
             try
             {
                 var now = DateTime.Now;

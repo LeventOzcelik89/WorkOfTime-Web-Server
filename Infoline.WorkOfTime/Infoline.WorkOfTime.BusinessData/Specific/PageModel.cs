@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string SearchProperty { get; set; }
         [JsonIgnore]
         public Expression<Func<T, bool>> GridFilter { get; set; }
-
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
         public void SetGridFilter(Expression<Func<T, bool>> filter = null)
         {
             GridFilter = filter;
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.BusinessData
         [JsonIgnore]
         public Expression<Func<T, bool>> GridFilter { get; set; }
         public W PropertyBag { get; set; }
-
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
         public void SetGridFilter(Expression<Func<T, bool>> filter = null)
         {
             GridFilter = filter;
