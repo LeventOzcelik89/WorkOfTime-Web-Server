@@ -16,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public double? Salary { get; set; }
 
         public VWSH_PersonInformation VWSH_PersonInformation { get; set; }
+        public bool? hasAgi { get; set; }
         public VWINV_CompanyPersonAvailability[] VWINV_CompanyPersonAvailabilities { get; set; }
         public VWPA_Account[] VWPA_Accounts { get; set; }
         public WorkOfTimeDatabase db { get; set; }
@@ -412,9 +413,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime Sistemi üzerinde IK Yöneticiniz şifrenizi Sıfırladı.Aşağıdaki bilgilerle oturum açabilirsiniz</p>
                         <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
                         <p><strong>Yeni Şifreniz : </strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p> <strong>Müşteri Kodunuz:</strong> {3}</p>
                         <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
                         <p>Mobil uygulamayı indirmek için <a href = 'http://developer.workoftime.com/Files/AppDownload'>Tıklayınız</a></p>
-                        <p> <strong>Müşteri Kodunuz:</strong> {3}</p>
                         <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
                         <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
                         
