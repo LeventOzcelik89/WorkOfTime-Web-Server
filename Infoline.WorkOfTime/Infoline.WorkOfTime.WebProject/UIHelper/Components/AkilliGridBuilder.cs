@@ -41,8 +41,8 @@ namespace System.Web.Mvc
                 .Sortable(a => a.SortMode(GridSortMode.MultipleColumn))
                 .Resizable(a => a.Columns(true))
                 .Scrollable(x => x.Height(450))
-                .NoRecords(a => a.Template("Görüntülenecek bir kayıt bulunamadı."))
-                .Pageable(x => x.PageSizes(new[] { 10, 100 }).Refresh(true).Messages(m =>
+                //.NoRecords(a => a.Template("Görüntülenecek bir kayıt bulunamadı."))
+                .Pageable(x => x.PageSizes(new[] { 10,25, 100 }).Refresh(true).Messages(m =>
                 {
                     m.Refresh("Yenile")
                      .AllPages("Tümünü getir")
