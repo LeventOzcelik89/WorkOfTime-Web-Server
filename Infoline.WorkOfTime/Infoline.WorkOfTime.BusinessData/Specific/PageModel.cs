@@ -15,6 +15,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public List<PageFilterGroup> FilterGroups { get; set; } = new List<PageFilterGroup>();
         public List<PageOrder> Orders { get; set; } = new List<PageOrder>();
         public string SearchProperty { get; set; }
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
         public void AddOrder(string title, string column)
         {
 
