@@ -77,6 +77,8 @@ namespace Infoline.WorkOfTime.WebProject
         void Application_Error(object sender, EventArgs e)
         {
 
+            Log.Error(Server.GetLastError().StackTrace);
+
 #if !DEBUG
             
             if (Session["AppError"] != null)
