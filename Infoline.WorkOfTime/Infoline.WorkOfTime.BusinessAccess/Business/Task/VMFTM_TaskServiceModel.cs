@@ -365,6 +365,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 {
                                     task.customerId = storage.companyId;
                                     task.customerStorageId = storage.id;
+                                    task.customerStorage_Title = storage.fullName;
                                     task.customer_Title = storage.companyId_Title;
                                 }
                             }
@@ -404,6 +405,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         task.customerId = storage.companyId;
                         task.customer_Title = storage.companyId_Title;
                         task.customerStorageId = storage.id;
+                        task.customerStorage_Title = storage.fullName;
                         task.adress = storage.address;
                         task.phone = storage.phone;
                         otherTasks = _db.GetVWFTM_TaskByCustomerStorageId(storage.id, userId).ToList();
