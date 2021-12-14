@@ -24,6 +24,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Customer_Title { get; set;}
         public string CustomerStorage_Title { get; set;}
         public Guid? projectId { get; set;}
+        public double? total { get; set;}
         public string projectId_Title { get; set;}
     }
 }

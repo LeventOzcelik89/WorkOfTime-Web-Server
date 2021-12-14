@@ -43,7 +43,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("İş Avansı"), Generic("icon", "fa fa-briefcase")]
         IsAvansi = 0,
-        [Description("Maaş Avansı"), Generic("icon", "fa fa-google-wallet")]
+        [Description("Maaş Avansı"), Generic("icon", "fa icon-wallet button-icon")]
         MaasAvansi = 1,
        
     }

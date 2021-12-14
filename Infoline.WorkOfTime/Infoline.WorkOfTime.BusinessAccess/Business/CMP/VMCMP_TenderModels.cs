@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private string _siteURL { get; set; } = TenantConfig.Tenant.GetWebUrl();
 		private string _tenantName { get; set; } = TenantConfig.Tenant.TenantName;
 		public List<VWCMP_InvoiceAction> InvoiceActions { get; set; }
-		public List<SpecInvoiceItem> InvoiceItems { get; set; }
+		public List<SpecInvoiceItem> InvoiceItems { get; set; } = new List<SpecInvoiceItem>();
 		public VWCMP_InvoiceTransform TransformFrom { get; set; }
 		public VWCMP_InvoiceTransform[] TransformTo { get; set; }
 		public CMP_Invoice Request { get; set; }
