@@ -6,7 +6,7 @@ using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Infoline.WorkOfTime.BusinessData.Specific
+namespace Infoline.WorkOfTime.BusinessData
 {
     public class PageModel
     {
@@ -15,6 +15,7 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public List<PageFilterGroup> FilterGroups { get; set; } = new List<PageFilterGroup>();
         public List<PageOrder> Orders { get; set; } = new List<PageOrder>();
         public string SearchProperty { get; set; }
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
         public void AddOrder(string title, string column)
         {
 
@@ -34,7 +35,7 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
         public string SearchProperty { get; set; }
         [JsonIgnore]
         public Expression<Func<T, bool>> GridFilter { get; set; }
-
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
         public void SetGridFilter(Expression<Func<T, bool>> filter = null)
         {
             GridFilter = filter;
@@ -54,7 +55,36 @@ namespace Infoline.WorkOfTime.BusinessData.Specific
             });
         }
     }
+    public class PageModel<T, W>
+    {
+        public string Name { get; set; }
+        public string Title { get; set; }
+        public List<PageFilterGroup> FilterGroups { get; set; } = new List<PageFilterGroup>();
+        public List<PageOrder> Orders { get; set; } = new List<PageOrder>();
+        public string SearchProperty { get; set; }
+        [JsonIgnore]
+        public Expression<Func<T, bool>> GridFilter { get; set; }
+        public W PropertyBag { get; set; }
+        public List<PageFilter> Filters { get; set; } = new List<PageFilter>();
+        public void SetGridFilter(Expression<Func<T, bool>> filter = null)
+        {
+            GridFilter = filter;
+        }
 
+        public PageModel(string pageName = null, string pageTitle = null)
+        {
+            Name = pageName;
+        }
+        public void AddOrder(string title, string column)
+        {
+
+            this.Orders.Add(new PageOrder()
+            {
+                Column = column,
+                Title = title
+            });
+        }
+    }
     public class PageFilter
     {
 

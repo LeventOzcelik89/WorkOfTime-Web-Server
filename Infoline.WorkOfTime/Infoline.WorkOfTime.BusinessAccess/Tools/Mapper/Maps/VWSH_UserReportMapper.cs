@@ -10,6 +10,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Tools.Mapper.Maps
             Map(a => a.fullName, "Ad Soyad", "Kişisel Bilgiler");
             Map(a => a.Gender_Title, "Cinsiyet", "Kişisel Bilgiler");
             Map(a => a.loginname, "Kullanıcı Adı/Kodu", "Kişisel Bilgiler");
+
             Map(a => a.email, "Kurumsal Eposta", "Kişisel Bilgiler");
             Map(a => a.companyOfficePhone, "Kurumsal Sabit Telefon", "Kişisel Bilgiler");
             Map(a => a.companyOfficePhoneCode, "Dahili Kod", "Kişisel Bilgiler");
@@ -78,9 +79,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Tools.Mapper.Maps
            
           
             Map(a => a.title, "Ünvan", "Çalışan Bilgileri");
-      
-     
-    
+
+
+            Map(a => a.Status_Title, "Çalışma Durumu", "Çalışan Bilgiler");
             Map(a => a.manager1_Title, "1. Yönetici", "Çalışan Bilgileri");
             Map(a => a.manager2_Title, "2. Yönetici", "Çalışan Bilgileri");
             Map(a => a.manager3_Title, "3. Yönetici", "Çalışan Bilgileri");

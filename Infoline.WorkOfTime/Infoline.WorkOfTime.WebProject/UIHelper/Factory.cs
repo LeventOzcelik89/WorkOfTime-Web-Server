@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-
 namespace System.Web.Mvc
 {
     public class Factory : IHideMembers
@@ -101,9 +100,9 @@ namespace System.Web.Mvc
 
         }
 
-        public virtual GridBuilder<T> Grid<T>(string name) where T : class
+        public virtual GridBuilder<T> Grid<T>(string name, KendoGridOptions opts = null) where T : class
         {
-            return AkilliGridBuilder.AkilliGrid<T>(this.HtmlHelper, name);
+            return AkilliGridBuilder.AkilliGrid<T>(this.HtmlHelper, name, opts);
         }
 
         public virtual DropDownListBuilder DropDownListFor(Expression<Func<TModel, object>> expression)

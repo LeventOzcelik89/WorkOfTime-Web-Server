@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			model.breadCrumps = crump + string.Join("", crum) + "<ol>";
 			return View(model);
 		}
-		[PageInfo("İşletme Şube/Depo/Kısım Ekleme", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
+		[PageInfo("İşletme Şube/Depo/Kısım (Depo) Ekleme", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
 		public ActionResult Insert(VWCMP_Storage data)
 		{
 			if (string.IsNullOrEmpty(data.code))
@@ -88,6 +88,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			}
 			return View(data);
 		}
+
+		[PageInfo("İşletme Şube/Depo/Kısım (Alan) Ekleme", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
+		public ActionResult InsertArea(VWCMP_Storage data)
+		{
+			if (string.IsNullOrEmpty(data.code))
+			{
+				data.code = BusinessExtensions.B_GetIdCode();
+			}
+			data.locationType = (int)EnumCMP_StorageLocationType.Depo;
+			if (data.pid.HasValue)
+			{
+				var db = new WorkOfTimeDatabase();
+				var pidStorage = db.GetCMP_StorageById(data.pid.Value);
+				if (pidStorage != null)
+				{
+					data.location = pidStorage.location;
+					data.companyId = pidStorage.companyId;
+					data.phone = pidStorage.phone;
+					data.address = pidStorage.address;
+					data.locationId = pidStorage.locationId;
+				}
+			}
+			return View(data);
+		}
+
+
+
 		[PageInfo("İşletme Şube/Depo/Kısımları Ekleme İşlemi", SHRoles.StokYoneticisi, SHRoles.SahaGorevMusteri, SHRoles.DepoSorumlusu)]
 		[HttpPost]
 		public JsonResult Insert(CMP_Storage item)
@@ -136,14 +163,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 				FeedBack = feedback.Success("Şube/Depo/Kısım kaydetme işlemi başarılı bir şekilde gerçekleştirildi.")
 			}, JsonRequestBehavior.AllowGet);
 		}
-		[PageInfo("İşletme Şube/Depo/Kısım Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu)]
+		[PageInfo("İşletme Şube/Depo/Kısım (Depo) Güncelleme", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu)]
 		public ActionResult Update(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
 			var data = db.GetVWCMP_StorageById(id);
 			return View(data);
 		}
+
+		[PageInfo("İşletme Şube/Depo/Kısım (Alan) Güncelleme İşlemi", SHRoles.StokYoneticisi)]
+		public ActionResult UpdateArea(Guid id)
+		{
+			var db = new WorkOfTimeDatabase();
+			var data = db.GetVWCMP_StorageById(id);
+			return View(data);
+		}
 		[PageInfo("İşletme Şube/Depo/Kısım Güncelleme İşlemi", SHRoles.StokYoneticisi)]
+
+
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(CMP_Storage item)
 		{

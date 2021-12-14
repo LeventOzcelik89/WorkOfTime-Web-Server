@@ -23,6 +23,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string PresentationStageId_Title { get; set;}
+        public string PresentationStageId_Color { get; set;}
         public string ContactType_Title { get; set;}
         public string ContactStatus_Title { get; set;}
         public int? TotalContactPerson { get; set;}
