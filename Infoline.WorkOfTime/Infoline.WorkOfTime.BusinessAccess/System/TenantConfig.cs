@@ -100,7 +100,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public string GetConnectionString()
         {
-            var conn = "Data Source=" + this.DBIp + ";Initial Catalog=" + this.DBCatalog + ";User ID=" + this.DBUser + ";Password=" + this.DBPassword + ";Max Pool Size=10000;";
+            var conn = "Data Source=" + this.DBIp + "," + this.DBPort + ";Initial Catalog=" + this.DBCatalog + ";User ID=" + this.DBUser + ";Password=" + this.DBPassword + ";Max Pool Size=10000;";
             return conn;
         }
 
