@@ -10,7 +10,10 @@ namespace Infoline.WorkOfTime.BusinessData
         public string shiftEnd { get; set;}
         public int? dataSendingCount { get; set;}
         public string workDays { get; set;}
+        public DateTime? startDate { get; set;}
+        public DateTime? endDate { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public string workDays_Title { get; set;}
     }
 }
