@@ -118,50 +118,10 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
         public void VWPRD_InventoryGetPageInfo(HttpContext context)
         {
             var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
+            var db = new WorkOfTimeDatabase();
 
-            var headers = new SummaryHeadersAdvance();
-            headers.headerFilters = new HeadersAdvance();
-            headers.headerFilters.title = "Durumuna Göre";
-            headers.headerFilters.Filters = new List<HeadersAdvanceItem>();
-            foreach (var item in items)
-            {
-                headers.headerFilters.Filters.Add(new HeadersAdvanceItem
-                {
-                    title = item.EnumKey.ToString(),
-                    filter = "{'Filter':{'Operand1':'lastActionType','Operator':'Equal','Operand2':'" + item.Key.ToString() + "'},'Operator':'And'}",
-                    isActive = true
-                });
-            }
-
+            var headers = db.GetDBVWPRD_InventorySummaries(items);
             RenderResponse(context, headers);
-
-            //try
-            //{
-            //    var items = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_InventoryActionType>().Where(a => Convert.ToInt32(a.Key) >= 0 && Convert.ToInt32(a.Key) < 20);
-            //    var model = new PageModel { SearchProperty = "searchField" };
-
-
-            //    model.Filters.Add(new PageFilter
-            //    {
-            //        Title = "Son Durumuna Göre",
-            //    });
-
-            //    foreach (var item in items)
-            //    {
-            //        model.Filters[0].Items.Add(new PageFilterItem
-            //        {
-            //            Title = item.EnumKey.ToString(),
-            //            Filter = new BEXP { Operand1 = (COL)"lastActionType", Operator = BinaryOperator.Equal, Operand2 = (VAL)item.Key.ToString() }.GetSerializeObject(),
-            //        });
-            //    }
-
-            //    RenderResponse(context, model);
-            //}
-            //catch (Exception ex)
-            //{
-            //    RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
-            //}
         }
-
     }
 }
