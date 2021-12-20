@@ -82,7 +82,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTender GetDBVWCMP_GetMyTenderSummary(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTender GetDBVWCMP_GetMyTenderSummary(Guid userId, Guid? presentationId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -94,7 +94,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Tüm Teklifler",
                     filter = "{'Filter':{'Operand1':'direction','Operator':'Equal','Operand2':1}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1).Count(),
                     isActive = true
                 });
 
@@ -102,7 +104,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Yönetici Onayı Beklenenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'0'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1).Count(),
                     isActive = true
                 });
 
@@ -110,7 +114,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Müşteri Onayı Beklenenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'1'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1).Count(),
                     isActive = false
                 });
 
@@ -118,7 +124,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Müşterinin Onayladığı Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'2'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1).Count(),
                     isActive = true
                 });
 
@@ -126,7 +134,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Siparişi Girilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'4'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1).Count(),
                     isActive = false
                 });
 
@@ -134,7 +144,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Faturası Kesilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'5'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1).Count(),
                     isActive = false
                 });
 
@@ -142,7 +154,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Reddedilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'3'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1).Count(),
                     isActive = false
                 });
 
@@ -150,7 +164,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTender GetDBVWCMP_GetMyTenderAccountingSummary(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTender GetDBVWCMP_GetMyTenderAccountingSummary(Guid userId, Guid? presentationId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -162,7 +176,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "İşlem Yapılacaklar",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'1'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.status == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.status == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.status == 1).Count(),
                     isActive = true
                 });
 
@@ -170,14 +186,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Faturası Alınanlar",
                     filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'5'},'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1 && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1).Count(),
                     isActive = true
                 });
                 return headers;
             }
         }
 
-        public SummaryHeadersTender GetDBVWCMP_GetMyTenderApproveSummary(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTender GetDBVWCMP_GetMyTenderApproveSummary(Guid userId, Guid? presentationId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -189,7 +207,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Tüm Tekliflerim",
                     filter = "{'Filter':{'Operand1':{'Operand1':'createdby','Operator': 'Equal','Operand2':'" + userId.ToString() + "' },'Operand2':{'Operand1':'direction','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.direction == 1 && a.createdby == userId).Count(),
                     isActive = true
                 });
 
@@ -197,7 +217,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Yönetici Onayı Beklenenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'0','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 0 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = true
                 });
 
@@ -205,7 +227,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Müşteri Onayı Beklenenler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'1','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 1 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = false
                 });
 
@@ -213,7 +237,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Müşterinin Onayladıkları",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'2','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 2 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = true
                 });
 
@@ -221,7 +247,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Siparişi Girilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'4','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 4 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = false
                 });
 
@@ -229,7 +257,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Faturası Kesilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'5','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 5 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = false
                 });
 
@@ -237,7 +267,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     title = "Reddedilen Teklifler",
                     filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'createdby','Operand2':'" + userId.ToString() + "','Operator':'Equal'},'Operand2':{'Operand1':'status','Operand2':'3','Operator':'Equal'},'Operator':'And'},'Operand2':{'Operand1':'direction','Operand2':'1','Operator':'Equal'},'Operator':'And'}}",
-                    count = db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1 && a.createdby == userId).Count(),
+                    count = presentationId.HasValue ?
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1 && a.createdby == userId && a.presentationId == presentationId).Count() :
+                            db.Table<VWCMP_Tender>().Where(a => a.status == 3 && a.direction == 1 && a.createdby == userId).Count(),
                     isActive = false
                 });
 
