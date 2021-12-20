@@ -3,6 +3,7 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Web;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
@@ -105,6 +106,39 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Yeni Servis Kaydı Güncelleme İşlemi Başarısız Oldu"
                 };
             }
+        }
+        public ResultStatus DeviceInformation(Guid inventoryId)
+        {
+            var db = new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var findInventory = db.GetVWPRD_InventoryById(inventoryId);
+            if (findInventory == null)
+            {
+                return new ResultStatus
+                {
+                    message = "Böyle bir cihaz yoktur!",
+                    result = false
+                };
+            }
+            var findTitan = db.GetPRD_TitanDeviceActivatedByInventoryId(inventoryId);
+            var findDist = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode);
+            var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId);
+            var findSelling = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode);
+            findManiDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).ToArray();
+
+            findTitan = findTitan ?? new PRD_TitanDeviceActivated();
+            object titan = new
+                {
+                    warranty = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString() : "Cihaz Aktif Edilmemiştir",
+                    activation = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.ToShortDateString() : "Cihaz Aktif Edilmemiştir",
+                    deviceName = findInventory.fullNameProduct,
+                    dist = findDist != null ? findDist.DistributorName : "",
+                    company = findDist != null ? findDist.CustomerOperatorName : "",
+                    manifacturDate = findManiDate.Length > 0 ? findManiDate.FirstOrDefault().created.Value.ToShortDateString() : "",
+                    sellingDate=findSelling!=null?findSelling.contractStartDate.HasValue?findSelling.contractStartDate.Value.ToShortDateString():"":""   
+                };
+           
+            return new ResultStatus { result = true, objects = titan };
         }
     }
 }

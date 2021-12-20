@@ -5,16 +5,16 @@ using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
-	public class VWSV_ServiceController : Controller
+	public class VWSV_ProblemController : Controller
 	{
 
 		[AllowEveryone]
-		[PageInfo("Garnati-Teknik Servis Listeleme Sayfası",SHRoles.UretimYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
@@ -30,10 +30,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    request.Sorts = new SortDescriptor[0];
 		    request.Page = 1;
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_Service(condition).RemoveGeographies().ToDataSourceResult(request);
-		    data.Total = db.GetVWSV_ServiceCount(condition.Filter);
+		    var data = db.GetVWSV_Problem(condition).RemoveGeographies().ToDataSourceResult(request);
+		    data.Total = db.GetVWSV_ProblemCount(condition.Filter);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
+
 
 		[AllowEveryone]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
@@ -41,36 +42,38 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    var condition = KendoToExpression.Convert(request);
 
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_Service(condition);
+		    var data = db.GetVWSV_Problem(condition);
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
+
 
 		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_ServiceById(id);
+		    var data = db.GetVWSV_ProblemById(id);
 		    return View(data);
 		}
+
 
 		[AllowEveryone]
 		public ActionResult Insert()
 		{
-		    var data = new VMSV_ServiceModel { id = Guid.NewGuid() };
-			data.code = BusinessExtensions.B_GetIdCode();
+		    var data = new VWSV_Problem { id = Guid.NewGuid() };
 		    return View(data);
 		}
 
+
 		[AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(SV_Service item)
+		public JsonResult Insert(SV_Problem item)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
 		    item.created = DateTime.Now;
 		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertSV_Service(item);
+		    var dbresult = db.InsertSV_Problem(item);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
@@ -80,17 +83,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+
 		[AllowEveryone]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_ServiceById(id);
+		    var data = db.GetVWSV_ProblemById(id);
 		    return View(data);
 		}
 
+
 		[AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(SV_Service item)
+		public JsonResult Update(SV_Problem item)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
@@ -99,7 +104,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    item.changed = DateTime.Now;
 		    item.changedby = userStatus.user.id;
 		
-		    var dbresult = db.UpdateSV_Service(item);
+		    var dbresult = db.UpdateSV_Problem(item);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
@@ -109,6 +114,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
+
 		[AllowEveryone]
 		[HttpPost]
 		public JsonResult Delete(string[] id)
@@ -116,9 +122,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    var db = new WorkOfTimeDatabase();
 		    var feedback = new FeedBack();
 		
-		    var item = id.Select(a => new SV_Service { id = new Guid(a) });
+		    var item = id.Select(a => new SV_Problem { id = new Guid(a) });
 		
-		    var dbresult = db.BulkDeleteSV_Service(item);
+		    var dbresult = db.BulkDeleteSV_Problem(item);
 		
 		    var result = new ResultStatusUI
 		    {
@@ -128,16 +134,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
-
-		[AllowEveryone]
-		public JsonResult DeviceInformation(Guid inventoryId) {
-			return Json( new VMSV_ServiceModel().DeviceInformation(inventoryId),JsonRequestBehavior.AllowGet);
-		
-		
-		
-		}
-
 
 
 
