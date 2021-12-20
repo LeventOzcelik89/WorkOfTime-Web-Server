@@ -1,0 +1,121 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfig
+@{
+    ViewBag.Title = "Yapılandırma Güncelleştirme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+    $(document)
+        .on('before:submit', '#locationUpdateForm', function () {
+
+            var res = "";
+
+            for (var i = 1; i <= 7; i++) {
+
+                var element = $('#day' + i);
+                if (element.prop('checked') == true) {
+                    res += "1";
+                }
+                else {
+                    res += "0";
+                }
+            }
+
+            $('#workDays').val(res);
+
+        })
+        ;
+</script>
+
+<style type="text/css" data-selector="modalContainer">
+    .radio .k-checkbox-label {
+        margin-right: 5px;
+    }
+</style>
+
+@using (Html.BeginForm("Update", "VWUT_LocationConfig", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    {"id","locationUpdateForm" }
+
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(a => a.workDays)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="configName">Yapılandırma Adı</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.configName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Yapılandırma Adı Girin.."},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="shiftStart">Mesai Başlangıç / Bitiş Saati</label>
+        </div>
+        <div class="col-md-4">
+
+            @(Html.Akilli().TimePickerFor(a=> a.shiftStart)
+          .HtmlAttributes(new Dictionary<string, object> { { "style", "width: 100%;" } })
+          .MaxTimeElement("shiftEnd")
+    )
+
+        </div>
+        <div class="col-md-4">
+
+            @(Html.Akilli().TimePickerFor(a=> a.shiftEnd)
+          .HtmlAttributes(new Dictionary<string, object> { { "style", "width: 100%;" } })
+    )
+
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="dataSendingCount">Kaç Dakikada Veri Alınsın</label>
+        </div>
+        <div class="col-md-8">
+
+            @Html.Akilli().NumericTextBoxFor(model => model.dataSendingCount).Format("0").Min(1).Max(60).Value(Model.dataSendingCount).Placeholder("Lütfen Kaç Dakikada Veri Alınsını Girin..").HtmlAttributes(new Dictionary<string, object>
+       {
+       }).Validate(Validations.Required)
+
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="workDays">Çalışma Günü</label>
+        </div>
+        <div class="col-md-8 radio" style="margin-top:8px;">        
+            @(Html.Kendo().CheckBox().Name("day1").Checked(Model.workDays != null && Model.workDays.Length > 0 && Model.workDays[0] == '1').Label("Pazartesi"))
+            @(Html.Kendo().CheckBox().Name("day2").Checked(Model.workDays != null && Model.workDays.Length > 1 && Model.workDays[1] == '1').Label("Salı"))
+            @(Html.Kendo().CheckBox().Name("day3").Checked(Model.workDays != null && Model.workDays.Length > 2 && Model.workDays[2] == '1').Label("Çarşamba"))
+            @(Html.Kendo().CheckBox().Name("day4").Checked(Model.workDays != null && Model.workDays.Length > 3 && Model.workDays[3] == '1').Label("Perşembe"))
+            @(Html.Kendo().CheckBox().Name("day5").Checked(Model.workDays != null && Model.workDays.Length > 4 && Model.workDays[4] == '1').Label("Cuma"))
+            @(Html.Kendo().CheckBox().Name("day6").Checked(Model.workDays != null && Model.workDays.Length > 5 && Model.workDays[5] == '1').Label("Cumartesi"))
+            @(Html.Kendo().CheckBox().Name("day7").Checked(Model.workDays != null && Model.workDays.Length > 6 && Model.workDays[6] == '1').Label("Pazar"))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Güncelle</button>
+    </div>
+
+}

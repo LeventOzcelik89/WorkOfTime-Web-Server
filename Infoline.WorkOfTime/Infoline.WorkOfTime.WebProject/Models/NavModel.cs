@@ -404,6 +404,8 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(new Menu("Email Logları", "/SYS/VWSYS_Email"));
             sistemYonetim.AddChild(new Menu("Dış Bağlantı Yönetimi", "/SYS/VWSYS_ExternalLinks/Index"));
             sistemYonetim.AddChild(new Menu("Kullanıcı Oturum Raporu", "/SH/SH_Ticket/Dashboard"));
+            sistemYonetim.AddChild(new Menu("Harita Yapılandırması", "/UT/VWUT_LocationConfig/Index"));
+
             return sistemYonetim;
         }
 

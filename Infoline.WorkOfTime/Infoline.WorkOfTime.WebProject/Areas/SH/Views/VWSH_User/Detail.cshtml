@@ -498,6 +498,10 @@ else
                             <a data-toggle="tab" href="#VWVWSH_ShiftTrackingTab" aria-expanded="false"><i class="glyphicon glyphicon-calendar text-success fa-2x" aria-hidden="true"></i></a>
                         </li>
 
+                        <li data-href="@Url.Action("DataSource", "VWUT_LocationConfigUser", new { area = "UT" })" data-toggle="tooltip" data-placement="top" title="Personel Konum Takip">
+                            <a data-toggle="tab" href="#VWUT_LocationConfigUser" aria-expanded="false"><i class="fa fa-map-marker text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
+
 
                     </ul>
                     <div class="tab-content">
@@ -849,7 +853,8 @@ else
 
 
                         <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPA_Account", new { area = "PA" })" id="VWPA_Accounts">
-                            <div><h4><i class="fa fa-bank"></i> BANKA VE KASA HESAP İŞLEMLERİ </h4>
+                            <div>
+                                <h4><i class="fa fa-bank"></i> BANKA VE KASA HESAP İŞLEMLERİ </h4>
                                 @(Html.Akilli()
                                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Account>("VWPA_Account")
                                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Account", new { area = "PA" }))
@@ -1089,12 +1094,36 @@ else
                            {
                                x.Custom().Text("<i data-original-title='Avans Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("Detail", "VWPA_Advance", new { area = "PA" }));
                            }))
-                            
+
+                        </div>
+                        <div class="tab-pane" id="VWUT_LocationConfigUser" data-href="@Url.Action("DataSource", "VWUT_LocationConfigUser", new { area = "UT" })">
+                            <h4><i class="fa text-building fa-history"></i> Konum Takip Haritası </h4>
+                            @(Html.Akilli()
+                        .Grid<Infoline.WorkOfTime.BusinessData.VWPA_Advance>("VWUT_LocationConfigUser")
+                        .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_LocationConfigUser", new { area = "UT" }))
+                        .Filter(a => a.createdby == Model.id)
+                        .PageSize(25))
+                        .Columns(x =>
+                        {
+                            x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox).ClientTemplate("#=TemplateEngine('VWUT_LocationConfigUser',data)#");
+                            x.Bound(y => y.type_Title).Title("İşlem Tipi").Hidden(true).Width(130);
+                            x.Bound(y => y.amount).Title("Miktar").Hidden(true).Width(130);
+                            x.Bound(y => y.currencyId_Title).Title("Para Birimi").Hidden(true).Width(130);
+                            x.Bound(y => y.progressDate).Title("Talep Tarihi").Hidden(true).Width(130).Format(Extensions.DateFormatShort(true));
+                            x.Bound(y => y.description).Title("Açıklama").Hidden(true).Width(130);
+                        })
+                        .Selectable(x => x.Mode(GridSelectionMode.Single))
+                        .Scrollable(s => s.Height(650))
+                           .ToolBar(x =>
+                           {
+                               x.Custom().Text("<i data-original-title='Konum Takip Ekle' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-id", "detail" } }).Url(Url.Action("Detail", "VWUT_LocationConfigUser", new { area = "UT" }));
+                           }))
+
                         </div>
 
 
+                        </div>
                     </div>
-                </div>
             </section>
 
 

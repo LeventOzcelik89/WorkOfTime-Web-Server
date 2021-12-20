@@ -144,5 +144,48 @@ namespace Kendo.Mvc.UI
             builder.HtmlAttributes(htmlAttribute);
             return builder;
         }
+
+
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="DataPickerId">Minimum alınacak datetimepicker id'si</param>
+        /// <returns></returns>
+        public static TimePickerBuilder MinTimeElement(this TimePickerBuilder builder, string DataPickerId)
+        {
+            var temlHtml = new Dictionary<string, object>() {
+                { "data-cascadefrom", DataPickerId },
+                { "data-cascadetype", "min" }
+            };
+            var htmlAttribute = temlHtml.Union(builder.ToComponent().HtmlAttributes).ToDictionary(k => k.Key, v => v.Value);
+            builder.HtmlAttributes(htmlAttribute);
+            return builder;
+        }
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <param name="DataPickerId">Maksimum alınacak datetimepicker id'si</param>
+        /// <returns></returns>
+        public static TimePickerBuilder MaxTimeElement(this TimePickerBuilder builder, string DataPickerId)
+        {
+            var temlHtml = new Dictionary<string, object>() {
+                { "data-cascadefrom", DataPickerId },
+                { "data-cascadetype", "max" }
+            };
+            var htmlAttribute = temlHtml.Union(builder.ToComponent().HtmlAttributes).ToDictionary(k => k.Key, v => v.Value);
+            builder.HtmlAttributes(htmlAttribute);
+            return builder;
+        }
+        public static TimePickerBuilder Id(this TimePickerBuilder builder, string Id)
+        {
+            var temlHtml = new Dictionary<string, object>() { { "id", Id } };
+            var htmlAttribute = temlHtml.Union(builder.ToComponent().HtmlAttributes).ToDictionary(k => k.Key, v => v.Value);
+            builder.HtmlAttributes(htmlAttribute);
+            return builder;
+        }
+
     }
 }
