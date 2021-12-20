@@ -133,14 +133,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					var invoiceItemList = new List<SpecInvoiceItem>();
 					foreach (var product in products)
 					{
-						foreach (var invoiceItem in this.InvoiceItems)
-						{
-							invoiceItem.productId = product.id;
-							invoiceItem.invoiceId = this.id;
-							invoiceItem.unitId = product.unitId;
-							invoiceItem.quantity = presentationProducts.Where(a => a.ProductId == product.id).Select(a => a.Amount).FirstOrDefault();
-							invoiceItemList.Add(invoiceItem);
+                        if (this.InvoiceItems!=null)
+                        {
+							foreach (var invoiceItem in this.InvoiceItems)
+							{
+								invoiceItem.productId = product.id;
+								invoiceItem.invoiceId = this.id;
+								invoiceItem.unitId = product.unitId;
+								invoiceItem.quantity = presentationProducts.Where(a => a.ProductId == product.id).Select(a => a.Amount).FirstOrDefault();
+								invoiceItemList.Add(invoiceItem);
+							}
 						}
+					
 					}
 
 					this.InvoiceItems = new List<SpecInvoiceItem>();

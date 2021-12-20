@@ -273,10 +273,10 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
                     createdby = userId,
-                    Description = model.SchoolName + " ile potansiyel fırsat",
+                    Description = model.SchoolName + " ile web sitesinden gelen potansiyel fırsat",
                     StartDate = model.StartDate,
                     EndDate = model.EndDate,
-                    Title = model.SchoolName + " ile potansiyel fırsat",
+                    Title = model.SchoolName + " ile web sitesinden gelen potansiyel fırsat",
                     Type = (Int32)EnumINV_CompanyPersonCalendarType.Hatirlatma,
                 };
                 var calenderUser = new INV_CompanyPersonCalendarPersons
@@ -296,12 +296,14 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 }
                 else
                 {
+                    Log.Error(result.message);
                     trans.Rollback();
                     RenderResponse(context, new ResultStatus() { result = true, message = result.message });
                 }
             }
             catch (Exception ex)
             {
+                Log.Error(ex.Message);
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
