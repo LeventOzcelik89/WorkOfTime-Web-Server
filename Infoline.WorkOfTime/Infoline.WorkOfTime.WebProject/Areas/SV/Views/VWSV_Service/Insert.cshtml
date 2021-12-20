@@ -1,0 +1,197 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
+@{
+    ViewBag.Title = "Yeni Servis Kaydı Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script data-selector="modalContainer">
+    var page = {
+        inputs: {
+            showCargo: function () {
+                $("#cargoHide").show();
+                $("#cargoNoHide").show();
+            },
+            hideCargo: function () {
+                $("#cargoHide").hide();
+                $("#cargoNoHide").hide();
+
+                $("#cargoId").data("handler").value(null);
+                $("#DeliveryTpeActual").data("handler").value(null);
+                $("#cargoNo").val(null);
+            },
+            deliveryType: function (e) {
+                debugger
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            },
+            deliveryActual: function (e) {
+                debugger
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            }
+
+        }
+    }
+</script>
+@using (Html.BeginForm("Insert", "VWSV_Service", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal width90" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group">
+                <div class="col-md-3">
+                    <label class="control-label req label-md" for="name">Servis Kodu</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+               {
+                   {"class", "form-control"},
+                   {"placeholder", "Lütfen Servis Kodu Girin.."}
+               }).Validate(Validations.Required)
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <fieldset>
+                <legend>Teslim Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                        @(Html.Akilli()
+                            .DropDownListFor(model => model.deliveryType)
+                            .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumKey").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
+                            .Events(x=>x.Change("page.inputs.deliveryType"))
+                            .Execute("enumKey")
+                            )
+                    </div>
+                </div>
+                <div class="form-group" data-cascade="#deliveryType" data-show="0">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Bayi Seçiniz</label>
+                        @(Html.Akilli()
+                              .DropDownListFor(x=>x.companyId)
+                              .OptionLabel("Bayi Seçiniz..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('companyTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .Execute("id"))
+                    </div>
+                </div>
+                <div class="form-group" data-cascade="#deliveryType" data-show="@Html.Raw((int)EnumSV_ServiceDeliveryType.CompanyPerson)">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Bayi Teslim Tipi</label>
+                        @(Html.Akilli()
+                            .DropDownListFor(model => model.DeliveryTpeActual)
+                            .OptionLabel("Lütfen  Bayi Teslim Tipini Seçiniz Seçiniz..")
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumKey").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a =>( a.tableName == "SV_Service" && a.fieldName == "DeliveryType")&&a.enumKey!=(int) EnumSV_ServiceDeliveryType.CompanyPerson)
+                            .Execute("enumKey")
+                             .Events(x => x.Change("page.inputs.deliveryActual"))
+                            )
+                    </div>
+                </div>
+                <div class="form-group" id="cargoHide" style="display:none;">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Kargo Firması Seçiniz</label>
+                        @(Html.Akilli()
+                              .DropDownListFor(x=>x.cargoId)
+                              .OptionLabel("Kargo Firması Seçiniz..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('companyTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .Execute("id"))
+                    </div>
+                </div>
+                <div class="form-group" id="cargoNoHide" style="display:none;">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Kargo Takip Kodu</label>
+                        @Html.TextBoxFor(model => model.cargoNo, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
+                        })
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Müşteri Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="name">Ad</label>
+                    </div>
+                    <div class="col-sm-12">
+                        @Html.TextBoxFor(model => model.Customer.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Ad Girin.."},
+            }).Validate(Validations.Required)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="name">Soyad</label>
+                    </div>
+                    <div class="col-sm-12">
+                        @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Soyad Girin.."},
+            }).Validate(Validations.Required)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="name">Telefon Numarası</label>
+                    </div>
+                    <div class="col-sm-12">
+                        @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Soyad Girin.."},
+            }).Validate(Validations.TelefonNo(true))
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}
