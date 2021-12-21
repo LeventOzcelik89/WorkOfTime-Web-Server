@@ -90,5 +90,37 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Inventory>().Where(x => x.serialcode == barcode || x.code == barcode).Execute().FirstOrDefault();
             }
         }
+
+        public SummaryHeadersAdvance GetDBVWPRD_InventorySummaries(IEnumerable<Item> items, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                var headers = new SummaryHeadersAdvance();
+                headers.headerFilters = new HeadersAdvance();
+                headers.headerFilters.title = "Durumuna Göre";
+                headers.headerFilters.Filters = new List<HeadersAdvanceItem>();
+                foreach (var item in items)
+                {
+                    headers.headerFilters.Filters.Add(new HeadersAdvanceItem
+                    {
+                        title = item.EnumKey.ToString(),
+                        filter = "{'Filter':{'Operand1':'lastActionType','Operator':'Equal','Operand2':'" + item.Key.ToString() + "'},'Operator':'And'}",
+                        count = db.Table<VWPRD_Inventory>().Where(a => a.lastActionType == short.Parse(item.Key)).Count(),
+                        isActive = true
+                    }); ;
+                }
+
+                //headers.headerFilters.Filters.Add(new HeadersTicketItem
+                //{
+                //    title = "Vazgeçildi",
+                //    filter = "{'Filter':{'Operand1':{'Operand1':'status','Operator':'Equal','Operand2':'6'},'Operand2':{'Operand1':'requesterId','Operator':'Equal','Operand2':'" + userId + "'},'Operator':'And'}}",
+                //    count = db.Table<VWHDM_Ticket>().Where(a => a.status == 6 && a.requesterId == userId).Count(),
+                //    isActive = false
+                //});
+
+                return headers;
+            }
+        }
+
     }
 }

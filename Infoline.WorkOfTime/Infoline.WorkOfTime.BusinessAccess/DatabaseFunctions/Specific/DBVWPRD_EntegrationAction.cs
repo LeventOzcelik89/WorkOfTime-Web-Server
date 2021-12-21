@@ -20,5 +20,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PRD_EntegrationAction>().Where(a => a.SerialNo.In(imeis) ||a.Imei.In(imeis)).Execute().ToArray();
             }
         }
+        public PRD_EntegrationAction GetPRD_EntegrationActionBySerialNumbersOrImei(string imei, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<PRD_EntegrationAction>().Where(a => a.SerialNo==imei || a.Imei==imei).Execute().FirstOrDefault();
+            }
+        }
     }
 }

@@ -158,6 +158,7 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Giriş-Çıkış Raporları", "/SH/VWSH_ShiftTracking/Index"));
             personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/TotalStaffWorkingStatus"));
             personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
+            personel.AddChild(new Menu("Detaylı Personel Raporları", "/SH/VWSH_UserReport"));
             if (userStatus.user.id == Guid.Empty)
             {
                 personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));

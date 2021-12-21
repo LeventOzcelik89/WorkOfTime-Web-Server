@@ -22,6 +22,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return db.Table<VWPRD_EntegrationImport>().Where(a => a.month == month && a.year == year&&a.customerCode==companyCode).Execute().ToArray();
 			}
 		}
-
+		public VWPRD_EntegrationImport GetVWPRD_EntegrationImportBySerialCode(string serialCode, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				return db.Table<VWPRD_EntegrationImport>().Where(a => a.imei ==serialCode).Execute().FirstOrDefault();
+			}
+		}
 	}
 }

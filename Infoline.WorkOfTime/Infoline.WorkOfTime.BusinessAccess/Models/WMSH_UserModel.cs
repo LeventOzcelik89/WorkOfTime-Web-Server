@@ -424,7 +424,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
-                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), false, null, null, new string[] { "http://developer.workoftime.com/QR/QRCodeCreative" }, true);
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), false, null, null, new string[] { "http://developer.workoftime.com/QR/QRCodeCreative" }, false);
 
 
                 }
