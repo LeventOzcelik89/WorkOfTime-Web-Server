@@ -12,7 +12,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public int DeliveryTpeActual { get; set; }
-        public VWSV_Customer Customer { get; set; }
+        public VMSV_CustomerModel Customer { get; set; }
+        public List<VMSV_DeviceProblemModel> Problems { get; set; }
+        public List<VMSV_DeviceCameWithModel> CameWith { get; set; }
         public VMSV_ServiceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -43,6 +45,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             if (res.result)
             {
+                if (request != null)
+                {
+                    new FileUploadSave(request, this.id, "SV_Service").SaveAs();
+                }
                 if (transaction == null) trans.Commit();
             }
             else
@@ -67,6 +73,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
+            result &= Customer.Save(this.createdby, null, this.trans);
+            result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, code = BusinessExtensions.B_GetIdCode(), type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
+            if (Problems != null)
+            {
+                foreach (var problem in Problems)
+                {
+                    problem.serviceId = this.id;
+                    result &= problem.Save(this.createdby, null, this.trans);
+                }
+            }
+            if (CameWith != null)
+            {
+                foreach (var Coming in CameWith)
+                {
+                    Coming.serviceId = this.id;
+                    result &= Coming.Save(this.createdby, null, this.trans);
+                }
+            }
+            result &= new VMSV_ServiceOperationModel
+            {
+                created = this.created,
+                createdby = this.createdby,
+                description = "Servis Kaydı Oluşturuldu",
+                serviceId = this.id,
+                status = (int)EnumSV_ServiceOperation.Started,
+                userId = this.createdby
+            }.Save(this.createdby, null, this.trans);
             if (result.result)
             {
                 return new ResultStatus
@@ -125,20 +158,44 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId);
             var findSelling = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode);
             findManiDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).ToArray();
-
             findTitan = findTitan ?? new PRD_TitanDeviceActivated();
             object titan = new
-                {
-                    warranty = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString() : "Cihaz Aktif Edilmemiştir",
-                    activation = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.ToShortDateString() : "Cihaz Aktif Edilmemiştir",
-                    deviceName = findInventory.fullNameProduct,
-                    dist = findDist != null ? findDist.DistributorName : "",
-                    company = findDist != null ? findDist.CustomerOperatorName : "",
-                    manifacturDate = findManiDate.Length > 0 ? findManiDate.FirstOrDefault().created.Value.ToShortDateString() : "",
-                    sellingDate=findSelling!=null?findSelling.contractStartDate.HasValue?findSelling.contractStartDate.Value.ToShortDateString():"":""   
-                };
-           
+            {
+                warranty = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString() : "Cihaz Aktif Edilmemiştir",
+                activation = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.ToShortDateString() : "Cihaz Aktif Edilmemiştir",
+                deviceName = findInventory.fullNameProduct,
+                dist = findDist != null ? findDist.DistributorName : "",
+                company = findDist != null ? findDist.CustomerOperatorName : "",
+                manifacturDate = findManiDate.Length > 0 ? findManiDate.FirstOrDefault().created.Value.ToShortDateString() : "",
+                sellingDate = findSelling != null ? findSelling.contractStartDate.HasValue ? findSelling.contractStartDate.Value.ToShortDateString() : "" : ""
+            };
             return new ResultStatus { result = true, objects = titan };
+        }
+        public ResultStatus Delete(DbTransaction transaction = null)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = transaction ?? db.BeginTransaction();
+            //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
+            var dbresult = db.DeleteSV_Service(this.id, trans);
+            if (!dbresult.result)
+            {
+                Log.Error(dbresult.message);
+                if (transaction == null) trans.Rollback();
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Servis Kaydı silme işlemi başarısız oldu."
+                };
+            }
+            else
+            {
+                if (transaction == null) trans.Commit();
+                return new ResultStatus
+                {
+                    result = true,
+                    message = "Servis Kaydı silme işlemi başarılı şekilde gerçekleştirildi."
+                };
+            }
         }
     }
 }

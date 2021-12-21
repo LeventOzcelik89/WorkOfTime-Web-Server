@@ -1,6 +1,5 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -54,27 +53,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 		[AllowEveryone]
-		public ActionResult Insert()
+		public ActionResult Insert(VMSV_ServiceModel model)
 		{
-		    var data = new VMSV_ServiceModel { id = Guid.NewGuid() };
-			data.code = BusinessExtensions.B_GetIdCode();
-		    return View(data);
+			model.code = BusinessExtensions.B_GetIdCode();
+		    return View(model);
 		}
 
 		[AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(SV_Service item)
+		public JsonResult Insert(VMSV_ServiceModel model,bool?isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
+		  
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertSV_Service(item);
+
+		    var dbresult =model.Save(userStatus.user.id,HttpContext.Request);
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+		        FeedBack = dbresult.result ? feedback.Success("Servis Kaydı Başarıyla Oluşturuldu") : feedback.Warning("Servis Kaydı Oluşturma İşlemi Başarısız")
 		    };
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);

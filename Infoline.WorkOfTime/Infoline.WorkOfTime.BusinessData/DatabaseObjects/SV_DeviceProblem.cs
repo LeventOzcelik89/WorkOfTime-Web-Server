@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// prd_product alanı karşılığı
         /// </summary>
         public Guid? productId { get; set;}
+        public string serialNo { get; set;}
         /// <summary>
         /// prd_inventory alanı karşılığı
         /// </summary>

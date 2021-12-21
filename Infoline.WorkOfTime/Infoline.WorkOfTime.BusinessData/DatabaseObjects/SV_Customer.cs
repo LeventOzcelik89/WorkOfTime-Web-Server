@@ -8,11 +8,11 @@ namespace Infoline.WorkOfTime.BusinessData
         /// <summary>
         /// Müşteri Adı
         /// </summary>
-        public Guid? name { get; set;}
+        public string name { get; set;}
         /// <summary>
         /// Müşteri Soyadı
         /// </summary>
-        public Guid? lastName { get; set;}
+        public string lastName { get; set;}
         /// <summary>
         /// Müşteri Telefon Numarası
         /// </summary>
