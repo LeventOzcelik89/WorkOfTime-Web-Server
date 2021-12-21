@@ -1,0 +1,518 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
+@{
+    ViewBag.Title = "Yeni Servis Kaydı Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script data-selector="modalContainer">
+    var page = {
+        inputs: {
+            showCargo: function () {
+                $("#cargoHide").show();
+                $("#cargoNoHide").show();
+            },
+            hideCargo: function () {
+                $("#cargoHide").hide();
+                $("#cargoNoHide").hide();
+
+                $("#cargoId").data("handler").value(null);
+                $("#DeliveryTpeActual").data("handler").value(null);
+                $("#cargoNo").val(null);
+            },
+            deliveryType: function (e) {
+                debugger
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            },
+            deliveryActual: function (e) {
+                debugger
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            }
+
+        },
+        methods: {
+            getDeviceInformation: function (e) {
+                var data = e.sender.dataItem();
+                if (data.id == null) {
+                    return;
+                }
+
+                GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: data.id }, function (resp) {
+                    debugger;
+                    if (resp == null) {
+                        return;
+                    }
+                    if (resp.result == false) {
+                        swal("Seri Numarasına Ait Ürün Yoktur", "Bu seri numarasına ait envanterde kayıtlı cihaz yoktur!", "warning");
+                        return;
+                    }
+                    if (resp.objects == null) {
+                        return;
+                    }
+                    $("#warranty").val(resp.objects.warranty);
+                    $("#activation").val(resp.objects.activation);
+                    $("#deviceName").val(resp.objects.deviceName);
+                    $("#dist").val(resp.objects.dist);
+                    $("#company").val(resp.objects.company);
+                    $("#dateofMani").val(resp.objects.manifacturDate);
+                    $("#dateofSell").val(resp.objects.sellingDate);
+                });
+            }
+        },
+        productProblem: {
+            RowDelete: function (_this) {
+                var length = $("#productProblem tr").length
+                if (length <= 1) {
+                    MesajWarning("Kayıt İşleminde en az bir kayıt olmalıdır.", "Silme İşlemi Başarısız");
+                    return false;
+                }
+                var row = $(_this).parents("tr");
+                $(row).remove();
+            },
+
+
+        }
+    }
+    $(document)
+        .on('change', '#location', function () {
+            var location = $('#location').val()
+            if (location != "") {
+                GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
+                    if (resp) {
+                        DropDownSetValue($("#openLocationId").data("kendoDropDownList"), resp.id);
+                        $('#Customer_Address').val(resp.pid_Title);
+                    }
+                })
+            }
+        });
+</script>
+<script type="text/template" data-selector="modalContainer" id="rowForProductProblem">
+    <tr>
+        <td hidden>
+            <div class="input-group">
+                <input data-problem="id" class="k-input form-control" />
+
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-problem="problemType" class="k-input form-control" />
+
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-problem="productId" class="k-input form-control" />
+
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-problem="description" class="k-input form-control" />
+
+            </div>
+        </td>
+        <td>
+            <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.productProblem.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+        </td>
+    </tr>
+</script>
+@using (Html.BeginForm("Insert", "VWSV_Service", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal width90" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+}))
+{
+    <style>
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal-lg {
+            width: 95%;
+        }
+
+        .k-numerictextbox {
+            width: 100% !important;
+        }
+
+        table.table-custom {
+            table-layout: fixed;
+        }
+
+            table.table-custom thead {
+                background-color: #d6d5d4;
+                font-size: 11px;
+            }
+
+            table.table-custom tr {
+                border-bottom: 1px #d6d5d4 solid;
+            }
+
+            table.table-custom tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            table.table-custom tbody td {
+                padding: 6px !important;
+            }
+
+                table.table-custom tbody td > input {
+                    width: 100%;
+                    height: 100%;
+                    padding: 10px 5px !important;
+                }
+
+            table.table-custom .k-widget.k-numerictextbox {
+                width: 100% !important;
+            }
+
+                table.table-custom .k-widget.k-numerictextbox.k-input {
+                    padding: 0px !important;
+                }
+
+            table.table-custom .k-numeric-wrap {
+                border: 0px !important;
+            }
+
+                table.table-custom .k-numeric-wrap.k-state-focused, table.table-custom .k-numeric-wrap.k-state-hover {
+                    box-shadow: none !important;
+                }
+
+                    table.table-custom .k-numeric-wrap.k-state-focused > input, table.table-custom .k-numeric-wrap.k-state-hover > input {
+                        border-color: #1ab394 !important;
+                    }
+
+            table.table-custom .k-item {
+                font-weight: 400 !important;
+            }
+
+            table.table-custom input:read-only {
+                background: #f3f1f0 !important;
+            }
+
+            table.table-custom .input-group-addon {
+                padding: 0 5px !important;
+                font-size: 11px;
+            }
+
+            table.table-custom .form-control.k-widget {
+                padding: 0px !important;
+            }
+
+            table.table-custom .k-multiselect.k-state-disabled .k-multiselect-wrap {
+                background: #fcfcfc !important;
+            }
+
+            table.table-custom tbody tr td {
+                vertical-align: middle !important;
+            }
+
+        .input-group .k-widget {
+            margin-top: 1px !important;
+        }
+
+        .k-autocomplete.k-state-disabled, .k-picker-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled .k-input, .k-numeric-wrap.k-state-disabled .k-select, .k-dropdown-wrap.k-state-disabled, .k-multiselect.k-header.k-state-disabled {
+            background-color: #f3f3f3;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+    </style>
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="form-group">
+                <div class="col-md-3">
+                    <label class="control-label req label-md" for="name">Servis Kodu</label>
+                </div>
+                <div class="col-md-9">
+                    @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+               {
+                   {"class", "form-control"},
+                   {"placeholder", "Lütfen Servis Kodu Girin.."}
+               }).Validate(Validations.Required)
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <fieldset>
+                <legend>Teslim Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                        @(Html.Akilli()
+                            .DropDownListFor(model => model.deliveryType)
+                            .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumKey").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
+                            .Events(x=>x.Change("page.inputs.deliveryType"))
+                            .Execute("enumKey")
+                            )
+                    </div>
+                </div>
+                <div class="form-group" data-cascade="#deliveryType" data-show="0">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Bayi Seçiniz</label>
+                        @(Html.Akilli()
+                              .DropDownListFor(x=>x.companyId)
+                              .OptionLabel("Bayi Seçiniz..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('companyTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .Execute("id"))
+                    </div>
+                </div>
+                <div class="form-group" data-cascade="#deliveryType" data-show="@Html.Raw((int)EnumSV_ServiceDeliveryType.CompanyPerson)">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Bayi Teslim Tipi</label>
+                        @(Html.Akilli()
+                            .DropDownListFor(model => model.DeliveryTpeActual)
+                            .OptionLabel("Lütfen  Bayi Teslim Tipini Seçiniz Seçiniz..")
+                            .DataValueField("Id")
+                            .DataTextField("enumDescription")
+                            .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+                            .Sort(x => x.Add("enumKey").Ascending())
+                            .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a =>( a.tableName == "SV_Service" && a.fieldName == "DeliveryType")&&a.enumKey!=(int) EnumSV_ServiceDeliveryType.CompanyPerson)
+                            .Execute("enumKey")
+                             .Events(x => x.Change("page.inputs.deliveryActual"))
+                            )
+                    </div>
+                </div>
+                <div class="form-group" id="cargoHide" style="display:none;">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Kargo Firması Seçiniz</label>
+                        @(Html.Akilli()
+                              .DropDownListFor(x=>x.cargoId)
+                              .OptionLabel("Kargo Firması Seçiniz..")
+                              .DataTextField("fullName")
+                              .DataValueField("id")
+                              .Template("#=TemplateEngine('companyTemplate',data)#")
+                              .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                              .Sort(x => x.Add("name").Ascending())
+                              .Execute("id"))
+                    </div>
+                </div>
+                <div class="form-group" id="cargoNoHide" style="display:none;">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="">Kargo Takip Kodu</label>
+                        @Html.TextBoxFor(model => model.cargoNo, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control"},
+                            {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
+                        })
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Müşteri Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="name">Ad</label>
+                    </div>
+                    <div class="col-sm-12">
+                        @Html.TextBoxFor(model => model.Customer.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Ad Girin.."},
+            }).Validate(Validations.Required)
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="lastName">Soyad</label>
+                    </div>
+                    <div class="col-sm-12">
+                        @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Soyad Girin.."},
+            }).Validate(Validations.Required)
+                    </div>
+                </div>
+                <div class="form-group">
+
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="phoneNumber">Telefon Numarası</label>
+                        @Html.TextBoxFor(model => model.Customer.phoneNumber, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşterinin Telefonunu Girin.."},
+            }).Validate(Validations.TelefonNo(true))
+                    </div>
+                </div>
+                <div class="form-group">
+
+
+
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="lastName">Telefon Numarası</label>
+                        @Html.TextBoxFor(model => model.Customer.otherPhoneNumber, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşterinin Diğer Telefonunu Girin.."},
+            }).Validate(Validations.TelefonNo(true))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label req label-md" for="location">Lokasyon</label>
+                        @(
+				Html.Akilli().MapInput().Name("location").
+				HelpText("Lütfen Lokasyon seçiniz.").
+				HtmlAttributes(new Dictionary<string, object>()
+				{
+					{"class", "form-control"},
+					{"placeholder", "Lütfen Lokasyon Seçiniz.."}
+				}).
+
+				DrawMode(MapInput.DrawMode.Point).
+				ZoomLevel(5).
+				Navigation(true).
+                Opened(true).
+				Searchable(true)
+
+            )
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
+                        @(
+                Html.Akilli()
+                .DropDownListFor(model => model.Customer.openLocationId)
+                .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+                .DataTextField("pid_Title")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+                .Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+                .Sort(x => x.Add("pid_Title").Ascending())
+                .Execute()
+            )
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md " for="address">Adres</label>
+                        @Html.TextAreaFor(model => model.Customer.Address, new Dictionary<string, object>()
+                         {
+                             {"class", "form-control"},
+                             {"placeholder", "Lütfen Adres giriniz.."}
+                         }).Validate(Validations.TextEverywhere(false, 0, 1000))
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-sm-8">
+            <fieldset>
+                <legend>Cihaz Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <label class="control-label label-md " for="inventoryId">IMEI/Seri No Giriniz</label>
+                        @(Html.Akilli()
+                              .DropDownListFor(x=>x.inventoryId)
+                              .OptionLabel("Cihaz Seçiniz..")
+                              .DataTextField("serialcode")
+                              .DataValueField("id")
+                              .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+                              .Sort(x => x.Add("serialcode").Ascending())
+                              .Filter<VWPRD_Inventory>(x=>x.lastActionType==(int)EnumPRD_InventoryActionType.CikisYapildi)
+                              .Events(x=>x.Change("page.methods.getDeviceInformation"))
+                              .Execute("id"))
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" style="margin-top:42px" class="btn btn-primary">Cihaz Geçmişi</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Garanti Bitiş Tarihi</label>
+                        <input type="text" id="warranty" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Aktivasyon Tarihi</label>
+                        <input type="text" id="activation" readonly class="form-control" />
+                    </div>
+
+                    <div class="col-sm-12">
+                        <label class="control-label label-md " for="address">Tam Cihaz Adı</label>
+                        <input type="text" id="deviceName" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Distribütör</label>
+                        <input type="text" id="dist" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Bayi</label>
+                        <input type="text" id="company" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Satın Alınma Tarihi</label>
+                        <input type="text" id="dateofSell" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Üretim Tarihi</label>
+                        <input type="text" id="dateofMani" readonly class="form-control" />
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Cihaz Sorunları</legend>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="clearfix" id="productProblem">
+                            <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th hidden> Id</th>
+                                        <th>Sorun Tipi</th>
+                                        <th>Ürün</th>
+                                        <th>Açıklama</th>
+                                        <th hidden></th>
+                                        <th hidden></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="RowContainer_Stages">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

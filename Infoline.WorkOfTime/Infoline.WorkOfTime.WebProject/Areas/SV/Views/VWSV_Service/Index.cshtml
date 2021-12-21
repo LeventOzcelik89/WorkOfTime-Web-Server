@@ -1,0 +1,37 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    .modal-lg {
+        width: 90% !important;
+    }
+</style>
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSV_Service>("VWSV_Service")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_Service", new { area = "SV" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.code).Title("code").Width(180);
+        x.Bound(y => y.description).Title("description").Width(180);
+        x.Bound(y => y.realStatus).Title("realStatus").Width(180);
+        x.Bound(y => y.deliveryType).Title("deliveryType").Width(180);
+        x.Bound(y => y.deliveryDescription).Title("deliveryDescription").Width(180);
+        x.Bound(y => y.cargoNo).Title("cargoNo").Width(180);
+        x.Bound(y => y.didComeFromCompany).Title("didComeFromCompany").Width(180);
+        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
+        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
+        x.Bound(y => y.inventoryCode_Title).Title("inventoryCode_Title").Width(180);
+        x.Bound(y => y.cargoId_Title).Title("cargoId_Title").Width(180);
+        x.Bound(y => y.companyId_Title).Title("companyId_Title").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSV_Service", new { area = "SV" }));
+    }))
