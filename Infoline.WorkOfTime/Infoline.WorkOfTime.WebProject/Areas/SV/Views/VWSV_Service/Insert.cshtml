@@ -213,15 +213,45 @@
                     }
                 })
             }
-        }).on("keypress", "#Customer_phoneNumber", function () {
+        }).on("change", "#Customer_phoneNumber", function () {
             var val = $(this).val();
-            if (val.length>11) {
-                GetJsonDataFromUrl()
-            }
-    
+            GetJsonDataFromUrl("/SV/VWSV_Customer/GetByPhoneNumber", { phoneNumber: val }, function (data) {
+                if (data.objects != null) {
+                    swal({
+                        title: "Bu Telefon Numarasına Bağlı Müşteri Bulundu",
+                        text: "Sistemde kayıtlı telefon numarası bulundu.\nMüşteri bilgiler doldurulsun mu?",
+                        type: "warning",
+                        content: "input",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Evet",
+                        cancelButtonText: "Hayır",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            debugger
+                            $("#Customer_name").val(data.objects.name??"");
+                            $("#Customer_lastName").val(data.objects.lastName??"");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber??"");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber??"");
+                            $("#openLocationId").data("handler").value(data.objects.openLocationId??"");
+                            $("#Customer_Address").val(data.objects.Address ?? "");
+                            $("#Customer_id").val(data.objects.id??"");
+
+                            swal.close();
 
 
+                            
+                        } else { }
+                        swal.close();
+                    });
+                } else {
+                    $('#sendData').attr('type', 'submit');
+                    $('#sendData').trigger('click');
+                }
 
+            });
         });
     $("#ServiceForm").submit(function (e) {
 
@@ -294,6 +324,7 @@
             margin-right: 0px !important;
             margin-left: 0px !important;
         }
+
         #productCameWith .form-group {
             margin-right: 0px !important;
             margin-left: 0px !important;
@@ -315,7 +346,7 @@
             table-layout: fixed;
         }
 
-       table.table-custom thead {
+            table.table-custom thead {
                 background-color: #d6d5d4;
                 font-size: 11px;
             }
@@ -398,6 +429,7 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model=>model.Customer.id)
     <div class="row">
         <div class="col-sm-12">
             <div class="form-group">

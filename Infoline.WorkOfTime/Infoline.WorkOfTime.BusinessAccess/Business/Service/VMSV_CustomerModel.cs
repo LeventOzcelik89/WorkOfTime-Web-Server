@@ -133,5 +133,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public ResultStatus GetByPhone(string phoneNumber)
+        {
+            var db = new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var data = db.GetVWSV_CustomerByPhoneNumber(phoneNumber);
+            result.objects = data;
+            return result;
+        }
     }
 }

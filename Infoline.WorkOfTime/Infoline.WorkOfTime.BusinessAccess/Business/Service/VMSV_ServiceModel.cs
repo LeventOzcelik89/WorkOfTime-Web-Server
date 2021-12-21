@@ -11,7 +11,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public int DeliveryTpeActual { get; set; }
+        public int? DeliveryTpeActual { get; set; }
         public VMSV_CustomerModel Customer { get; set; }
         public List<VMSV_DeviceProblemModel> Problems { get; set; }
         public List<VMSV_DeviceCameWithModel> CameWith { get; set; }
@@ -31,6 +31,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWSV_ServiceById(this.id);
+            if (DeliveryTpeActual.HasValue)
+            {
+                this.deliveryType = (short?)DeliveryTpeActual;
+            }
             if (data == null)
             {
                 this.created = DateTime.Now;

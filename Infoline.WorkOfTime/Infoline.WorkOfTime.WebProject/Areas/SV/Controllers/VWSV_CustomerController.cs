@@ -125,6 +125,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
+		[AllowEveryone]
+		public JsonResult GetByPhoneNumber(string phoneNumber)
+		{
+			return Json(new VMSV_CustomerModel().GetByPhone(phoneNumber), JsonRequestBehavior.AllowGet);
+		
+		}
 
 
 
