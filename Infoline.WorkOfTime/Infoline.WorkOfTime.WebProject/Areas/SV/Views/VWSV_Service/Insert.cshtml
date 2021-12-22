@@ -81,7 +81,6 @@
                 $(row).remove();
             },
             AddRow: function () {
-
                 var problems = $($('#rowForProductProblem').html());
                 $('#RowContainer_Problem').append(problems);
                 problems.find('[data-problem="id"]')
@@ -128,8 +127,6 @@
                     if (updateInput != null) {
                         updateInput.update();
                     }
-
-
                 }, 250)
             }
         },
@@ -167,17 +164,12 @@
                 cameWith.find('[data-cameWith="description"]')
                     .attr('name', 'CameWith[' + page.cameWith.counter + '].description')
                 page.cameWith.counter++;
-
                 setTimeout(function () {
                     var updateInput = $('#ServiceForm').data('bs.validator');
                     if (updateInput != null) {
                         updateInput.update();
                     }
-
-
                 }, 250)
-
-
             }
         },
         validators: {
@@ -194,7 +186,6 @@
                             if (head != "Ürün") {
                                 errorList.push(tableName + " tablosunun " + rowIndex + " satırında " + head + " alanı boş olamaz!");
                             }
-
                         }
                     });
                 });
@@ -231,18 +222,14 @@
                     }, function (isConfirm) {
                         if (isConfirm) {
                             debugger
-                            $("#Customer_name").val(data.objects.name??"");
-                            $("#Customer_lastName").val(data.objects.lastName??"");
-                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber??"");
-                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber??"");
-                            $("#openLocationId").data("handler").value(data.objects.openLocationId??"");
+                            $("#Customer_name").val(data.objects.name ?? "");
+                            $("#Customer_lastName").val(data.objects.lastName ?? "");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
+                            $("#openLocationId").data("handler").value(data.objects.openLocationId ?? "");
                             $("#Customer_Address").val(data.objects.Address ?? "");
-                            $("#Customer_id").val(data.objects.id??"");
-
+                            $("#Customer_id").val(data.objects.id ?? "");
                             swal.close();
-
-
-                            
                         } else { }
                         swal.close();
                     });
@@ -250,11 +237,9 @@
                     $('#sendData').attr('type', 'submit');
                     $('#sendData').trigger('click');
                 }
-
             });
         });
     $("#ServiceForm").submit(function (e) {
-
     })
     page.cameWith.AddRow();
     page.productProblem.AddRow();
@@ -262,27 +247,19 @@
 <script type="text/template" data-selector="modalContainer" id="rowForProductProblem">
     <tr>
         <td>
-
             <div class="form-group">
                 <input data-problem="problemTypeId" required class="k-input form-control" />
             </div>
-
-
         </td>
         <td>
-
             <div class="form-group">
                 <input data-problem="productId" class="k-input form-control" />
             </div>
-
         </td>
         <td>
-
             <div class="form-group">
                 <input data-problem="description" required class="k-input form-control" placeholder="Açıklama Giriniz" />
             </div>
-
-
         </td>
         <td>
             <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.productProblem.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
@@ -320,6 +297,14 @@
 }))
 {
     <style>
+        .ibox-content {
+            padding-bottom: 9px !important;
+        }
+
+        form {
+            background: none !important
+        }
+
         #productProblem .form-group {
             margin-right: 0px !important;
             margin-left: 0px !important;
@@ -425,33 +410,75 @@
         .input-group {
             width: 100%;
         }
+
+        .width100 {
+            width: 100% !important;
+        }
     </style>
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model=>model.Customer.id)
+    @Html.HiddenFor(model => model.Customer.id)
     <div class="row">
         <div class="col-sm-12">
-            <div class="form-group">
-                <div class="col-md-3">
-                    <label class="control-label req label-md" for="name">Servis Kodu</label>
-                </div>
-                <div class="col-md-9">
-                    @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
-               {
-                   {"class", "form-control"},
-                   {"placeholder", "Lütfen Servis Kodu Girin.."}
-               }).Validate(Validations.Required)
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label req label-md" for="name">Servis Kodu</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                       {
+                           {"class", "form-control"},
+                           {"placeholder", "Lütfen Servis Kodu Girin.."}
+                       }).Validate(Validations.Required)
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
         <div class="col-sm-4">
-            <fieldset>
-                <legend>Teslim Bilgileri</legend>
-                <div class="form-group">
-                    <div class="col-sm-12">
-                        <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
-                        @(Html.Akilli()
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <fieldset>
+                        <legend>Teslim Eden Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="deliveryType">Teslim Eden Tipi</label>
+                                @(Html.Akilli()
+        .DropDownListFor(model => model.customerType)
+        .OptionLabel("Lütfen Teslim Eden Tipini Seçiniz Seçiniz..")
+        .DataValueField("Id")
+        .DataTextField("enumDescription")
+        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+        .Sort(x => x.Add("enumKey").Ascending())
+        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "CustomerType")
+        .Execute("enumKey")
+          .Validate(Validations.Required)
+                            )
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md " for="deliveryTypeDescription">Teslim Açıklaması</label>
+                                @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
+                               { "class","from-control width100"},
+                               {"placeholder","Teslim Açıklaması Girin.." }
+                               })
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="ibox" data-cascade="">
+                <div class="ibox-content clearfix">
+                    <fieldset>
+                        <legend>Teslim Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                                @(Html.Akilli()
         .DropDownListFor(model => model.deliveryType)
         .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
         .DataValueField("Id")
@@ -459,67 +486,24 @@
         .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
         .Sort(x => x.Add("enumKey").Ascending())
         .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
-        .Events(x => x.Change("page.inputs.deliveryType"))
         .Execute("enumKey")
           .Validate(Validations.Required)
                             )
-                    </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md " for="deliveryTypeDescription">Teslim Açıklaması</label>
+                                @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
+                               { "class","from-control width100"},
+                               {"placeholder","Teslim Açıklaması Girin.." }
+                               })
+                            </div>
+                        </div>
+                    </fieldset>
                 </div>
-                <div class="form-group" data-cascade="#deliveryType" data-show="0">
-                    <div class="col-sm-12">
-                        <label class="control-label label-md" for="">Bayi Seçiniz</label>
-                        @(Html.Akilli()
-          .DropDownListFor(x => x.companyId)
-          .OptionLabel("Bayi Seçiniz..")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('companyTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-          .Sort(x => x.Add("name").Ascending())
-          .Execute("id"))
-                    </div>
-                </div>
-                <div class="form-group" data-cascade="#deliveryType" data-show="@Html.Raw((int)EnumSV_ServiceDeliveryType.CompanyPerson)">
-                    <div class="col-sm-12">
-                        <label class="control-label label-md" for="">Bayi Teslim Tipi</label>
-                        @(Html.Akilli()
-        .DropDownListFor(model => model.DeliveryTpeActual)
-        .OptionLabel("Lütfen  Bayi Teslim Tipini Seçiniz Seçiniz..")
-        .DataValueField("Id")
-        .DataTextField("enumDescription")
-        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
-        .Sort(x => x.Add("enumKey").Ascending())
-        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => (a.tableName == "SV_Service" && a.fieldName == "DeliveryType") && a.enumKey != (int)EnumSV_ServiceDeliveryType.CompanyPerson)
-        .Execute("enumKey")
-         .Events(x => x.Change("page.inputs.deliveryActual"))
-                            )
-                    </div>
-                </div>
-                <div class="form-group" id="cargoHide" style="display:none;">
-                    <div class="col-sm-12">
-                        <label class="control-label label-md" for="">Kargo Firması Seçiniz</label>
-                        @(Html.Akilli()
-          .DropDownListFor(x => x.cargoId)
-          .OptionLabel("Kargo Firması Seçiniz..")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('companyTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-          .Sort(x => x.Add("name").Ascending())
-          .Execute("id"))
-                    </div>
-                </div>
-                <div class="form-group" id="cargoNoHide" style="display:none;">
-                    <div class="col-sm-12">
-                        <label class="control-label label-md" for="">Kargo Takip Kodu</label>
-                        @Html.TextBoxFor(model => model.cargoNo, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                            {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
-                        })
-                    </div>
-                </div>
-            </fieldset>
+            </div>
+
             <fieldset>
                 <legend>Müşteri Bilgileri</legend>
                 <div class="form-group">
@@ -552,7 +536,6 @@
             }).Validate(Validations.TextName(true, 2, 50))
                     </div>
                 </div>
-
                 <div class="form-group">
                     <div class="col-sm-12">
                         <label class="control-label label-md " for="lastName">Diğer Telefon Numarası</label>
@@ -619,7 +602,7 @@ Html.Akilli()
                         @(Html.Akilli()
           .DropDownListFor(x => x.inventoryId)
           .OptionLabel("Cihaz Seçiniz..")
-          .DataTextField("serialcode")
+          .DataTextField("fullNameProduct")
           .DataValueField("id")
           .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
           .Sort(x => x.Add("serialcode").Ascending())

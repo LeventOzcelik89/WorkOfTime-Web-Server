@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         [AllowEveryone]
         public ActionResult Insert(VMSV_ProblemModel model)
         {
-            model.code = Extensions.NewCode;
+            model.code = Extensions.VersionCode;
             return View(model);
         }
 
