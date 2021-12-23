@@ -6,7 +6,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Web;
 
-namespace Infoline.WorkOfTime.WebService.Handler
+namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
     public partial class SH_UserFireBaseTokenHandler : BaseSmartHandler

@@ -8,7 +8,7 @@ using System.Web;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Infoline.WorkOfTime.WebService.Handler
+namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
     public partial class SH_UserHandler : BaseSmartHandler

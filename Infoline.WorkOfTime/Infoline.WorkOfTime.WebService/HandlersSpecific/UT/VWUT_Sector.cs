@@ -4,7 +4,7 @@ using Infoline.WorkOfTime.BusinessAccess;using Infoline.WorkOfTime.BusinessData;
 using System.ComponentModel.Composition;
 using System.Web;
 
-namespace Infoline.WorkOfTime.WebService.HandlersSpecific
+namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
     public partial class VWUT_SectorHandler : BaseSmartHandler
