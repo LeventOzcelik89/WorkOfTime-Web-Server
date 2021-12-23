@@ -66,6 +66,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+
+        public VWINV_CompanyPersonDepartments[] GetVWINV_CompanyPersonDepartmentsUserManagerAndOrganization(Guid userId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWINV_CompanyPersonDepartments>().Where(a => (a.IdUser == userId || a.Manager1 == userId || a.Manager2 == userId) && a.OrganizationType == (Int16)EnumINV_CompanyDepartmentsType.Organization).OrderBy(x => x.created).Execute().ToArray();
+            }
+        }
+
+
         public VWINV_CompanyPersonDepartments[] GetVWINV_CompanyPersonDepartmentsActiveBasePositions(Guid idUser)
         {
             using (var db = GetDB())
