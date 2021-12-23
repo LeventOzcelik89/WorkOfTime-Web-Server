@@ -1,38 +1,63 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.FTM_TaskSubject
 @{
-    ViewBag.Title = "Görev Konusu Ekle";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Görev Konusu Ekle";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-@using(Html.BeginForm("Insert", "FTM_TaskSubject", FormMethod.Post, new Dictionary<string, object>() {  
-    { "class", "form-horizontal" },
-    { "role", "form" },
-    { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+@using (Html.BeginForm("Insert", "FTM_TaskSubject", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
 }))
 {
-    @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
-    @Html.HiddenFor(model => model.id)
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true)
+	@Html.HiddenFor(model => model.id)
 
 
-    <div class="form-group">
-        <div class="col-md-4">
+	if (!Model.pid.HasValue && !String.IsNullOrEmpty(Model.name))
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md" for="pid">Üst Kategori </label>
+			</div>
+			<div class="col-md-8">
+				@(Html.Akilli()
+                  .DropDownListFor(model => model.pid)
+                  .OptionLabel("Lütfen Görev Konusu Seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "FTM_TaskSubject", new { area = "FTM" }))
+                  .Sort(x => x.Add("name").Ascending())
+                  .Execute("id")
+                )
+			</div>
+		</div>
+	}
+
+	else
+	{
+		@Html.HiddenFor(model => model.pid)
+	}
+
+	<div class="form-group">
+		<div class="col-md-4">
 			<label class="control-label label-md" for="Name">Görev Konu Adı</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen Görev Konu Adı Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
+		</div>
+		<div class="col-md-8">
+			@Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+			{
+				{"class", "form-control"},
+				{"placeholder", "Lütfen Görev Konu Adı Girin.."},
+			}).Validate(Validations.Required)
+		</div>
+	</div>
 
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
 
 }
