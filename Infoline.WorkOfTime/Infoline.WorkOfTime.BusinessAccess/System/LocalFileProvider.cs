@@ -607,6 +607,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
+                    new FileBase("Cihaz Fotoğrafları", "jpg,.jpeg,.png",  20,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
                }
             },
         };

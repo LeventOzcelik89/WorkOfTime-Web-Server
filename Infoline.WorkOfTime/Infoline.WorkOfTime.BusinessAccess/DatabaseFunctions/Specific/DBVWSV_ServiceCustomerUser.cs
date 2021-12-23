@@ -1,5 +1,9 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
+using System;
 using System.ComponentModel;
+using System.Data.Common;
+using System.Linq;
+
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     [EnumInfo(typeof(SV_CustomerUser), "customerType")]
@@ -14,5 +18,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
     }
     partial class WorkOfTimeDatabase
     {
+
+        public VWSV_CustomerUser GetVWSV_CustomerUserByServiceId(Guid serviceId, DbTransaction transaction = null)
+        {
+            using (var db = GetDB(transaction))
+            {
+                return db.Table<VWSV_CustomerUser>().Where(x => x.serviceId == serviceId).Execute().FirstOrDefault();
+            }
+        }
+
     }
 }

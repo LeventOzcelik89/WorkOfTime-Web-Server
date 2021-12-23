@@ -13,5 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}
         public string serviceId_Title { get; set;}
+        public string problemTypeId_Title { get; set;}
     }
 }

@@ -6,5 +6,6 @@ namespace Infoline.WorkOfTime.BusinessData
     public partial class FTM_TaskSubject : InfolineTable
     {
         public string name { get; set;}
+        public Guid? pid { get; set;}
     }
 }

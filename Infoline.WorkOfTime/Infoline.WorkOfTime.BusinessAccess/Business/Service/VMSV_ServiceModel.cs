@@ -15,6 +15,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VMSV_CustomerModel Customer { get; set; }
         public List<VMSV_DeviceProblemModel> Problems { get; set; }
         public List<VMSV_DeviceCameWithModel> CameWith { get; set; }
+        public string WarrantyStatus { get; set; } = "Garanti Dışı";
+        public string WarrantyStart { get; set; } = "Cihaz Aktif Edilmemiştir";
+        public string WarrantyEnd { get; set; } = "Cihaz Aktif Edilmemiştir";
+        public string Url { get; set; }
+        public string Logo { get; set; }
+        public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();   
+        public Guid ProductId { get; set; }
         public VMSV_ServiceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -22,6 +29,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
+                var customerService = db.GetVWSV_CustomerUserByServiceId(this.id);
+                var customer = db.GetVWSV_CustomerById(customerService.customerId.Value);
+                var findTitan = db.GetPRD_TitanDeviceActivatedByInventoryId(this.inventoryId.Value);
+                if (findTitan != null)
+                {
+                    if (findTitan.CreatedOfTitan.HasValue)
+                    {
+                        if (findTitan.CreatedOfTitan.Value.AddYears(2) <= DateTime.Now)
+                        {
+                            WarrantyStatus = "Garantili";
+                        }
+                        WarrantyStart = findTitan.CreatedOfTitan.Value.ToShortDateString();
+                        WarrantyEnd = findTitan.CreatedOfTitan.Value.AddDays(2).ToShortDateString();
+                    }
+                }
+                this.Customer = new VMSV_CustomerModel().B_EntityDataCopyForMaterial(customer);
+                var getProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
+                Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
+                var getCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id).Select(x => new VMSV_DeviceCameWithModel().B_EntityDataCopyForMaterial(x));
+                this.CameWith = getCameWith.ToList();
             }
             return this;
         }
@@ -78,7 +105,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
-            result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, code = BusinessExtensions.B_GetIdCode(), type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
+            result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
             if (Problems != null)
             {
                 foreach (var problem in Problems)
@@ -166,8 +193,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             object titan = new
             {
                 warranty = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString() : "Cihaz Aktif Edilmemiştir",
+                warrantyStatus = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2) <= DateTime.Now ? "Garantili" : "Garanti Dışı" : "Garanti Dışı",
                 activation = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.ToShortDateString() : "Cihaz Aktif Edilmemiştir",
                 deviceName = findInventory.fullNameProduct,
+                deviceId = findInventory.productId.HasValue ? findInventory.productId.ToString() : "",
                 dist = findDist != null ? findDist.DistributorName : "",
                 company = findDist != null ? findDist.CustomerOperatorName : "",
                 manifacturDate = findManiDate.Length > 0 ? findManiDate.FirstOrDefault().created.Value.ToShortDateString() : "",
@@ -200,6 +229,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Servis Kaydı silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
+        }
+        public VMSV_ServiceModel GetVWPRD_ProductMateriels(Guid productId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var findProduct = db.GetVWPRD_ProductById(productId);
+            if (findProduct != null)
+            {
+                var findMetarials = db.GetVWPRD_ProductMaterialByProductId(productId);
+                if (findMetarials.Length > 0)
+                {
+                    this.GetProductMetarials.AddRange(findMetarials);
+                    foreach (var item in findMetarials)
+                    {
+                        this.GetVWPRD_ProductMateriels(item.productId.Value);
+                    }
+                }
+            }
+            return this;
         }
     }
 }

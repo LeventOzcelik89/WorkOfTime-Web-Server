@@ -7,11 +7,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
     partial class WorkOfTimeDatabase
     {
-        public VWSV_Customer GetVWSV_CustomerByPhoneNumber(string phoneNumber, DbTransaction transaction = null)
+        public VWSV_DeviceCameWith[] GetVWSV_DeviceCameWithByServiceId(Guid serviceId, DbTransaction transaction = null)
         {
             using (var db = GetDB(transaction))
             {
-                return db.Table<VWSV_Customer>().Where(x => x.phoneNumber == phoneNumber).Execute().FirstOrDefault();
+                return db.Table<VWSV_DeviceCameWith>().Where(x => x.serviceId == serviceId).Execute().ToArray();
             }
         }
         
