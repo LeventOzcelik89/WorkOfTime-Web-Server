@@ -26,6 +26,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string delivery_Title { get; set;}
         public string customerType_Title { get; set;}
         public string serialCode { get; set;}
+        public string product_Title { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }
