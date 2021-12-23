@@ -7,7 +7,7 @@ using System.ComponentModel.Composition;
 using System.Web;
 using System.Linq;
 
-namespace Infoline.WorkOfTime.WebService
+namespace Infoline.WorkOfTime.WebService.Handler
 {
     [Export(typeof(ISmartHandler))]
     public partial class SH_ShiftTrackingHandler : BaseSmartHandler

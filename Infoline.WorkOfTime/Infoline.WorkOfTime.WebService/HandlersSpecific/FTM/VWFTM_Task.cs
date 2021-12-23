@@ -5,7 +5,7 @@ using System;
 using System.ComponentModel.Composition;
 using System.Web;
 
-namespace Infoline.WorkOfTime.WebService
+namespace Infoline.WorkOfTime.WebService.Handler
 {
     [Export(typeof(ISmartHandler))]
     public partial class VWFTM_TaskHandler : BaseSmartHandler

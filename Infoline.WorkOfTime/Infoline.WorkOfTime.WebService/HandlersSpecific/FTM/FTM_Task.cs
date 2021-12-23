@@ -9,7 +9,7 @@ using System.Linq;
 using System.Web;
 using static Infoline.WorkOfTime.BusinessAccess.VMFTM_TaskModel;
 
-namespace Infoline.WorkOfTime.WebService
+namespace Infoline.WorkOfTime.WebService.Handler
 {
     [Export(typeof(ISmartHandler))]
     public partial class FTM_TaskHandler : BaseSmartHandler

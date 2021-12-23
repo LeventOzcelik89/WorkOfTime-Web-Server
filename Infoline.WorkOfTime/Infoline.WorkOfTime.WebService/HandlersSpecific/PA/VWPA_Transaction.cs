@@ -9,7 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Web;
 
-namespace Infoline.WorkOfTime.WebService
+namespace Infoline.WorkOfTime.WebService.Handler
 {
     [Export(typeof(ISmartHandler))]
     public partial class VWPA_TransactionHandler : BaseSmartHandler
