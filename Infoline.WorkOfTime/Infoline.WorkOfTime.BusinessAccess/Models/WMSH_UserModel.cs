@@ -16,6 +16,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public double? Salary { get; set; }
 
         public VWSH_PersonInformation VWSH_PersonInformation { get; set; }
+        public bool? hasAgi { get; set; }
         public VWINV_CompanyPersonAvailability[] VWINV_CompanyPersonAvailabilities { get; set; }
         public VWPA_Account[] VWPA_Accounts { get; set; }
         public WorkOfTimeDatabase db { get; set; }
@@ -409,19 +410,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 if (user.type == (int)EnumSH_UserType.MyPerson)
                 {
-                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime Sistemi üzerinde IK Yöneticiniz şifrenizi Sıfırladı.Aşağıdaki bilgilerle oturum açabilirsiniz</p>
-                        <p>Sisteme <u> Kimlik Numaranız</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde IK Yöneticiniz şifrenizi sıfırladı. Aşağıdaki bilgilerle oturum açabilirsiniz</p>
+                        <p>Sisteme <u> Kimlik Numarası, Kullanıcı Adı, Email</u> ve <u>Şifreniz</u> ile giriş sağlayabilirsiniz.</p>
                         <p><strong>Yeni Şifreniz : </strong><span style='color: #ed5565;'>{0}</span></p>
-                        <p> Giriş yapmak için lütfen <a href = '{1}/Account/SignIn' > Buraya tıklayınız! </a></p>
-                        <p>Mobil uygulamayı indirmek için <a href = 'http://developer.workoftime.com/Files/AppDownload'>Tıklayınız</a></p>
                         <p> <strong>Müşteri Kodunuz:</strong> {3}</p>
+                        <p> Web üzerinden giriş yapabilmek için lütfen <a href = '{1}/Account/SignIn' > buraya tıklayınız! </a></p>
+                        <p>Mobil uygulamayı indirmek için;</p>
+                        <p><a href='https://apps.apple.com/tr/app/workoftime/id1500012649?l=tr'><img src= 'http://developer.workoftime.com/Content/Takip/img/appStore.jpg' /></a>
+                        <a href='http://developer.workoftime.com/Apk/Android/app-debug.apk'><img src= 'http://developer.workoftime.com/Content/Takip/img/googlePlay.jpg' /></a></p>
                         <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
                         <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
                         
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
-                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), true);
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), false, null, null, new string[] { "http://developer.workoftime.com/QR/QRCodeCreative" }, false);
 
 
                 }

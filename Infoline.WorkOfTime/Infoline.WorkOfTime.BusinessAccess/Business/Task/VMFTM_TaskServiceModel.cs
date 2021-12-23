@@ -57,6 +57,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool isTaskRule { get; set; }
         public VWCMP_Request Request { get; set; }
         public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
+        public VMFTM_TaskUserInfo[] taskFollowUpUsers { get; set; }
 
     }
 
@@ -149,7 +150,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 taskId = a.taskId,
                 task_Name = a.task_Name,
                 userId = a.userId,
-                createdPhoto= a.createdPhoto
+                createdPhoto = a.createdPhoto
             }).OrderByDescending(a => a.created).ThenByDescending(a => a.status).ToList();
 
             if (model.customerStorageId.HasValue)
@@ -258,6 +259,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             }
 
+            var followUpUsers = _db.GetVWFTM_TaskFollowUpUserByTaskId(taskId);
+            model.taskFollowUpUsers = followUpUsers.Select(x => new VMFTM_TaskUserInfo
+            {
+                id = x.userId.Value,
+                name = x.userId_Title
+            }).ToArray();
+
             return model;
         }
         public INV_Product[] GetProducts()
@@ -365,6 +373,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 {
                                     task.customerId = storage.companyId;
                                     task.customerStorageId = storage.id;
+                                    task.customerStorage_Title = storage.fullName;
                                     task.customer_Title = storage.companyId_Title;
                                 }
                             }
@@ -404,6 +413,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         task.customerId = storage.companyId;
                         task.customer_Title = storage.companyId_Title;
                         task.customerStorageId = storage.id;
+                        task.customerStorage_Title = storage.fullName;
                         task.adress = storage.address;
                         task.phone = storage.phone;
                         otherTasks = _db.GetVWFTM_TaskByCustomerStorageId(storage.id, userId).ToList();

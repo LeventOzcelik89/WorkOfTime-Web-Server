@@ -1,6 +1,6 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.PageModel<VWSH_User, VWSH_Report>
 @{
-    ViewBag.Title = "Detaylı Kullanıcı Raporu";
+    ViewBag.Title = "Detaylı Personel Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
@@ -111,7 +111,7 @@
         $('#VWSH_UserReport .k-grid-content').attr('style', 'height:' + ($(window).height() - 205) + 'px');
         var w = $('#gridArea').width();
         var h = $('#gridArea').height();
-        $('#filterArea').attr('style', ('overflow-y:scroll;width: ' + (w + -30) + 'px !important; height: ' + (h-80) + 'px !important'));
+        $('#filterArea').attr('style', ('overflow-y:scroll;width: ' + (w + -15) + 'px !important; height: ' + (h-80) + 'px !important'));
     }
     var page = {
         model:@Html.Raw(Json.Encode(Model)) ,
@@ -311,6 +311,16 @@
 
             page.fields.setitems();
         })
+        .on("click", "#fixed", function () {
+            var val = $(this).prop("checked");
+            if (val == true) {
+                $("body").css("overflow", "hidden")
+            }
+            else {
+                $("body").css("overflow", "");
+            }
+
+        })
     $(window)
         .on('resize', function () {
             clearTimeout(page.timer);
@@ -459,6 +469,7 @@
                                 .ItemTemplate("#=TemplateEngine('companyTemplate',data)#")
                               .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                               .Sort(x => x.Add("name").Ascending())
+                              .Value(userStatus.user.CompanyId)
                               .Execute("id"))
                         </div>
                         <div class=" col-md-3 form-group">
@@ -480,7 +491,7 @@
 			                        MultiSelect("genderFilter").
 			                        Placeholder("Cinsiyet seçiniz..").
 			                        DataTextField("enumDescription").
-			                        DataValueField("enumKey").
+			                        DataValueField("Id").
 			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
 			                        Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "HR_Person" && a.fieldName == "Gender").
 			                        Sort(x => x.Add("enumKey").Ascending()).

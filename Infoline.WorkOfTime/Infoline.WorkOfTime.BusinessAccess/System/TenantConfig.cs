@@ -1,6 +1,4 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.WorkOfTime.BusinessAccess.Integrations.CallCenter;
-using Infoline.WorkOfTime.BusinessAccess.Integrations.CallCenter.AloTech;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -100,7 +98,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public string GetConnectionString()
         {
-            var conn = "Data Source=" + this.DBIp + ";Initial Catalog=" + this.DBCatalog + ";User ID=" + this.DBUser + ";Password=" + this.DBPassword + ";Max Pool Size=10000;";
+            var conn = "Data Source=" + this.DBIp + "," + this.DBPort + ";Initial Catalog=" + this.DBCatalog + ";User ID=" + this.DBUser + ";Password=" + this.DBPassword + ";Max Pool Size=10000;";
             return conn;
         }
 
@@ -222,7 +220,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.SatinAlmaOnaylayiciGorev
         };
         public IysInformation IysInformations { get; set; }
-        public ICallCenterService CallCenterService { get; set; }
 
         public Dictionary<DayOfWeek, WorkingTime> WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
         {

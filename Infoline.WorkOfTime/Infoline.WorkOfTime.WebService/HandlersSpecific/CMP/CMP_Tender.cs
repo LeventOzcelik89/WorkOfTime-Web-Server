@@ -57,11 +57,11 @@ namespace Infoline.WorkOfTime.WebService
             try
             {
                 var id = context.Request["id"];
-                var type= context.Request["type"];
+                var type = context.Request["type"];
                 var db = new WorkOfTimeDatabase();
-                var model = new VMCMP_TenderModels() { id=Guid.Parse(id)}.Load(false,null);
+                var model = new VMCMP_TenderModels() { id = Guid.Parse(id) }.Load(false, null);
                 var userId = CallContext.Current.UserId;
-                var rs = model.UpdateStatus(int.Parse(type),userId,false);
+                var rs = model.UpdateStatus(int.Parse(type), userId, false);
                 RenderResponse(context, new ResultStatus() { result = true, message = "Teklif başarılı bir şekilde güncellendi.", objects = null });
             }
             catch (Exception ex)
@@ -122,7 +122,18 @@ namespace Infoline.WorkOfTime.WebService
             try
             {
                 var userId = CallContext.Current.UserId;
-                var data = new VMCMP_TenderModels().GetMyTenderPageInfo(userId);
+                var presentationId = context.Request["presentationId"];
+                var data = new SummaryHeadersTender();
+
+                if (presentationId != null)
+                {
+                    data = new VMCMP_TenderModels().GetMyTenderPageInfo(userId, new Guid(presentationId));
+                }
+                else
+                {
+                    data = new VMCMP_TenderModels().GetMyTenderPageInfo(userId);
+                }
+
                 RenderResponse(context, data);
             }
             catch (Exception ex)

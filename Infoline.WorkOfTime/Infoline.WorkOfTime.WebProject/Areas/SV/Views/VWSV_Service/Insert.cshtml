@@ -1,0 +1,704 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
+@{
+    ViewBag.Title = "Yeni Servis Kaydı Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script data-selector="modalContainer">
+    var page = {
+        inputs: {
+            showCargo: function () {
+                $("#cargoHide").show();
+                $("#cargoNoHide").show();
+            },
+            hideCargo: function () {
+                $("#cargoHide").hide();
+                $("#cargoNoHide").hide();
+                $("#cargoId").data("handler").value(null);
+                $("#cargoNo").val(null);
+            },
+            deliveryType: function (e) {
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    $("#DeliveryTpeActual").data("handler").value(null);
+                    page.inputs.hideCargo();
+                }
+            },
+            deliveryActual: function (e) {
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            }
+        },
+        methods: {
+            getDeviceInformation: function (e) {
+                var data = e.sender.dataItem();
+                if (data.id == null) {
+                    return;
+                }
+                GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: data.id }, function (resp) {
+                    if (resp == null) {
+                        return;
+                    }
+                    if (resp.result == false) {
+                        swal("Seri Numarasına Ait Ürün Yoktur", "Bu seri numarasına ait envanterde kayıtlı cihaz yoktur!", "warning");
+                        return;
+                    }
+                    if (resp.objects == null) {
+                        return;
+                    }
+                    $("#warranty").val(resp.objects.warranty);
+                    $("#activation").val(resp.objects.activation);
+                    $("#deviceName").val(resp.objects.deviceName);
+                    $("#dist").val(resp.objects.dist);
+                    $("#company").val(resp.objects.company);
+                    $("#dateofMani").val(resp.objects.manifacturDate);
+                    $("#dateofSell").val(resp.objects.sellingDate);
+                });
+            }
+        },
+        productProblem: {
+            counter: 0,
+            RowDelete: function (_this) {
+                var length = $("#RowContainer_Problem tr").length
+                if (length <= 1) {
+                    MesajWarning("En az bir cihaz sorunu olmalıdır.", "Silme İşlemi Başarısız");
+                    return false;
+                }
+                var row = $(_this).parents("tr");
+                $(row).remove();
+            },
+            AddRow: function () {
+                var problems = $($('#rowForProductProblem').html());
+                $('#RowContainer_Problem').append(problems);
+                problems.find('[data-problem="id"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].id')
+                problems.find('[data-problem="problemTypeId"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].problemTypeId')
+                    .kendoDropDownList(
+                        {
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+                                "transport": { "read": { "url": "/SV/VWSV_Problem/DataSourceDropDown" } },
+                                "pageSize": 100,
+                                "page": 1,
+                                "total": 0
+                            },
+                            "dataTextField": "fullName",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "dataValueField": "id",
+                            "optionLabel": "Lütfen Problem Tipini Seçiniz..",
+                        });
+                problems.find('[data-problem="productId"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].productId')
+                    .kendoDropDownList(
+                        {
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
+                                "pageSize": 100,
+                                "page": 1,
+                                "total": 0
+                            },
+                            "dataTextField": "fullName",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "dataValueField": "id",
+                            "optionLabel": "Lütfen Ürün Seçiniz Seçiniz..",
+                        });
+                problems.find('[data-problem="description"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].description')
+                page.productProblem.counter++;
+                setTimeout(function () {
+                    var updateInput = $('#ServiceForm').data('bs.validator');
+                    if (updateInput != null) {
+                        updateInput.update();
+                    }
+                }, 250)
+            }
+        },
+        cameWith: {
+            counter: 0,
+            RowDelete: function (_this) {
+                var row = $(_this).parents("tr");
+                $(row).remove();
+            },
+            AddRow: function () {
+                var cameWith = $($('#rowForProductCameWith').html());
+                $('#RowContainer_CameWith').append(cameWith);
+                cameWith.find('[data-cameWith="id"]')
+                    .attr('name', 'CameWith[' + page.cameWith.counter + '].id')
+                cameWith.find('[data-cameWith="productId"]')
+                    .attr('name', 'CameWith[' + page.cameWith.counter + '].productId')
+                    .kendoDropDownList(
+                        {
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
+                                "pageSize": 100,
+                                "page": 1,
+                                "total": 0
+                            },
+                            "dataTextField": "fullName",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "dataValueField": "id",
+                            "optionLabel": "Lütfen Ürün Seçiniz Seçiniz..",
+                        });
+                cameWith.find('[data-cameWith="amount"]')
+                    .attr('name', 'CameWith[' + page.cameWith.counter + '].amount')
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false });
+                cameWith.find('[data-cameWith="description"]')
+                    .attr('name', 'CameWith[' + page.cameWith.counter + '].description')
+                page.cameWith.counter++;
+                setTimeout(function () {
+                    var updateInput = $('#ServiceForm').data('bs.validator');
+                    if (updateInput != null) {
+                        updateInput.update();
+                    }
+                }, 250)
+            }
+        },
+        validators: {
+            nullChecker: function () {
+                var errorList = [];
+                $("table tr").each(function (i, item) {
+                    $(item).find("input").each(function (a, input) {
+                        var val = $(input).val();
+                        if (val == '' || val == null) {
+                            var index = $(input).parents("td:first")[0].cellIndex;
+                            var head = $($(input).parents("table:first").find("th")[index]).text();
+                            var tableName = $($(input).parents("fieldset").find("legend")).text();
+                            var rowIndex = $(input).parents("tr:first")[0].rowIndex
+                            if (head != "Ürün") {
+                                errorList.push(tableName + " tablosunun " + rowIndex + " satırında " + head + " alanı boş olamaz!");
+                            }
+                        }
+                    });
+                });
+                return errorList;
+            }
+        }
+    }
+    $(document)
+        .on('change', '#location', function () {
+            var location = $('#location').val()
+            if (location != "") {
+                GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
+                    if (resp) {
+                        DropDownSetValue($("#openLocationId").data("kendoDropDownList"), resp.id);
+                        $('#Customer_Address').val(resp.pid_Title);
+                    }
+                })
+            }
+        }).on("change", "#Customer_phoneNumber", function () {
+            var val = $(this).val();
+            GetJsonDataFromUrl("/SV/VWSV_Customer/GetByPhoneNumber", { phoneNumber: val }, function (data) {
+                if (data.objects != null) {
+                    swal({
+                        title: "Bu Telefon Numarasına Bağlı Müşteri Bulundu",
+                        text: "Sistemde kayıtlı telefon numarası bulundu.\nMüşteri bilgiler doldurulsun mu?",
+                        type: "warning",
+                        content: "input",
+                        showCancelButton: true,
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "Evet",
+                        cancelButtonText: "Hayır",
+                        closeOnConfirm: false,
+                        closeOnCancel: false
+                    }, function (isConfirm) {
+                        if (isConfirm) {
+                            debugger
+                            $("#Customer_name").val(data.objects.name ?? "");
+                            $("#Customer_lastName").val(data.objects.lastName ?? "");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
+                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
+                            $("#openLocationId").data("handler").value(data.objects.openLocationId ?? "");
+                            $("#Customer_Address").val(data.objects.Address ?? "");
+                            $("#Customer_id").val(data.objects.id ?? "");
+                            swal.close();
+                        } else { }
+                        swal.close();
+                    });
+                } else {
+                    $('#sendData').attr('type', 'submit');
+                    $('#sendData').trigger('click');
+                }
+            });
+        });
+    $("#ServiceForm").submit(function (e) {
+    })
+    page.cameWith.AddRow();
+    page.productProblem.AddRow();
+</script>
+<script type="text/template" data-selector="modalContainer" id="rowForProductProblem">
+    <tr>
+        <td>
+            <div class="form-group">
+                <input data-problem="problemTypeId" required class="k-input form-control" />
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <input data-problem="productId" class="k-input form-control" />
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <input data-problem="description" required class="k-input form-control" placeholder="Açıklama Giriniz" />
+            </div>
+        </td>
+        <td>
+            <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.productProblem.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+        </td>
+    </tr>
+</script>
+<script type="text/template" data-selector="modalContainer" id="rowForProductCameWith">
+    <tr>
+        <td>
+            <div class="form-group">
+                <input data-cameWith="productId" class="k-input form-control" />
+            </div>
+        </td>
+        <td>
+            <div class="input-group">
+                <input data-cameWith="amount" class="k-input form-control" />
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <input data-cameWith="description" required class="k-input form-control" placeholder="Açıklama Giriniz" />
+            </div>
+        </td>
+        <td>
+            <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.cameWith.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+        </td>
+    </tr>
+</script>
+@using (Html.BeginForm("Insert", "VWSV_Service", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal width90" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    {"id","ServiceForm" }
+}))
+{
+    <style>
+        .ibox-content {
+            padding-bottom: 9px !important;
+        }
+
+        form {
+            background: none !important
+        }
+
+        #productProblem .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
+
+        #productCameWith .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal-lg {
+            width: 95%;
+        }
+
+        .k-numerictextbox {
+            width: 100% !important;
+        }
+
+        table.table-custom {
+            table-layout: fixed;
+        }
+
+            table.table-custom thead {
+                background-color: #d6d5d4;
+                font-size: 11px;
+            }
+
+            table.table-custom tr {
+                border-bottom: 1px #d6d5d4 solid;
+            }
+
+            table.table-custom tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            table.table-custom tbody td {
+                padding: 6px !important;
+            }
+
+                table.table-custom tbody td > input {
+                    width: 100%;
+                    height: 100%;
+                    padding: 10px 5px !important;
+                }
+
+            table.table-custom .k-widget.k-numerictextbox {
+                width: 100% !important;
+            }
+
+                table.table-custom .k-widget.k-numerictextbox.k-input {
+                    padding: 0px !important;
+                }
+
+            table.table-custom .k-numeric-wrap {
+                border: 0px !important;
+            }
+
+                table.table-custom .k-numeric-wrap.k-state-focused, table.table-custom .k-numeric-wrap.k-state-hover {
+                    box-shadow: none !important;
+                }
+
+                    table.table-custom .k-numeric-wrap.k-state-focused > input, table.table-custom .k-numeric-wrap.k-state-hover > input {
+                        border-color: #1ab394 !important;
+                    }
+
+            table.table-custom .k-item {
+                font-weight: 400 !important;
+            }
+
+            table.table-custom input:read-only {
+                background: #f3f1f0 !important;
+            }
+
+            table.table-custom .input-group-addon {
+                padding: 0 5px !important;
+                font-size: 11px;
+            }
+
+            table.table-custom .form-control.k-widget {
+                padding: 0px !important;
+            }
+
+            table.table-custom .k-multiselect.k-state-disabled .k-multiselect-wrap {
+                background: #fcfcfc !important;
+            }
+
+            table.table-custom tbody tr td {
+                vertical-align: middle !important;
+            }
+
+        .input-group .k-widget {
+            margin-top: 1px !important;
+        }
+
+        .k-autocomplete.k-state-disabled, .k-picker-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled .k-input, .k-numeric-wrap.k-state-disabled .k-select, .k-dropdown-wrap.k-state-disabled, .k-multiselect.k-header.k-state-disabled {
+            background-color: #f3f3f3;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .width100 {
+            width: 100% !important;
+        }
+    </style>
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.Customer.id)
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <div class="form-group">
+                        <div class="col-md-3">
+                            <label class="control-label req label-md" for="name">Servis Kodu</label>
+                        </div>
+                        <div class="col-md-9">
+                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                       {
+                           {"class", "form-control"},
+                           {"placeholder", "Lütfen Servis Kodu Girin.."}
+                       }).Validate(Validations.Required)
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <fieldset>
+                        <legend>Teslim Eden Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="deliveryType">Teslim Eden Tipi</label>
+                                @(Html.Akilli()
+        .DropDownListFor(model => model.customerType)
+        .OptionLabel("Lütfen Teslim Eden Tipini Seçiniz Seçiniz..")
+        .DataValueField("Id")
+        .DataTextField("enumDescription")
+        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+        .Sort(x => x.Add("enumKey").Ascending())
+        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "CustomerType")
+        .Execute("enumKey")
+          .Validate(Validations.Required)
+                            )
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md " for="deliveryTypeDescription">Teslim Açıklaması</label>
+                                @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
+                               { "class","from-control width100"},
+                               {"placeholder","Teslim Açıklaması Girin.." }
+                               })
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="ibox" data-cascade="">
+                <div class="ibox-content clearfix">
+                    <fieldset>
+                        <legend>Teslim Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                                @(Html.Akilli()
+        .DropDownListFor(model => model.deliveryType)
+        .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
+        .DataValueField("Id")
+        .DataTextField("enumDescription")
+        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+        .Sort(x => x.Add("enumKey").Ascending())
+        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
+        .Execute("enumKey")
+          .Validate(Validations.Required)
+                            )
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md " for="deliveryTypeDescription">Teslim Açıklaması</label>
+                                @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
+                               { "class","from-control width100"},
+                               {"placeholder","Teslim Açıklaması Girin.." }
+                               })
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+
+            <fieldset>
+                <legend>Müşteri Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="phoneNumber">Telefon Numarası</label>
+                        @Html.TextBoxFor(model => model.Customer.phoneNumber, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşterinin Telefonunu Girin.."},
+            }).Validate(Validations.TelefonNo(true))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="name">Ad</label>
+                        @Html.TextBoxFor(model => model.Customer.name, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Ad Girin.."},
+            }).Validate(Validations.TextName(true, 2, 50))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="Customer_lastName">Soyad</label>
+                        @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşteri Soyad Girin.."},
+            }).Validate(Validations.TextName(true, 2, 50))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md " for="lastName">Diğer Telefon Numarası</label>
+                        @Html.TextBoxFor(model => model.Customer.otherPhoneNumber, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Müşterinin Diğer Telefonunu Girin.."},
+            }).Validate(Validations.TelefonNo(false))
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label req label-md" for="location">Lokasyon</label>
+                        @(
+Html.Akilli().MapInput().Name("location").
+HelpText("Lütfen Lokasyon seçiniz.").
+HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Lokasyon Seçiniz.."}
+                }).
+DrawMode(MapInput.DrawMode.Point).
+ZoomLevel(5).
+Navigation(true).
+Opened(true).
+Searchable(true)
+            )
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
+                        @(
+Html.Akilli()
+.DropDownListFor(model => model.Customer.openLocationId)
+.OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
+.DataTextField("pid_Title")
+.DataValueField("id")
+.Action(b => b.Action("DataSourceDropDown", "VWUT_Location", new { area = "UT" }))
+.Filter<VWUT_Location>(a => (a.code == "TR" && (a.type == (int)EnumUT_LocationType.İlce)) || (a.code != "TR" && a.type == (int)EnumUT_LocationType.Sehir))
+.Sort(x => x.Add("pid_Title").Ascending())
+.Execute()
+            )
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md " for="address">Adres</label>
+                        @Html.TextAreaFor(model => model.Customer.Address, new Dictionary<string, object>()
+                         {
+                             {"class", "form-control"},
+                             {"placeholder", "Lütfen Adres giriniz.."}
+                         }).Validate(Validations.TextEverywhere(false, 0, 1000))
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+        <div class="col-sm-8">
+            <fieldset>
+                <legend>Cihaz Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-md-10">
+                        <label class="control-label label-md req " for="inventoryId">IMEI/Seri No Giriniz</label>
+                        @(Html.Akilli()
+          .DropDownListFor(x => x.inventoryId)
+          .OptionLabel("Cihaz Seçiniz..")
+          .DataTextField("fullNameProduct")
+          .DataValueField("id")
+          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+          .Sort(x => x.Add("serialcode").Ascending())
+          .Filter<VWPRD_Inventory>(x => x.lastActionType == (int)EnumPRD_InventoryActionType.CikisYapildi)
+          .Events(x => x.Change("page.methods.getDeviceInformation"))
+          .Validate(Validations.Required)
+          .Execute("id"))
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" style="margin-top:42px" class="btn btn-primary">Cihaz Geçmişi</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Garanti Bitiş Tarihi</label>
+                        <input type="text" id="warranty" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Aktivasyon Tarihi</label>
+                        <input type="text" id="activation" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-12">
+                        <label class="control-label label-md " for="address">Tam Cihaz Adı</label>
+                        <input type="text" id="deviceName" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Distribütör</label>
+                        <input type="text" id="dist" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Bayi</label>
+                        <input type="text" id="company" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Satın Alınma Tarihi</label>
+                        <input type="text" id="dateofSell" readonly class="form-control" />
+                    </div>
+                    <div class="col-sm-6">
+                        <label class="control-label label-md " for="address">Üretim Tarihi</label>
+                        <input type="text" id="dateofMani" readonly class="form-control" />
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Cihaz Sorunları</legend>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="clearfix" id="productProblem">
+                            <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th width="33%">Sorun Tipi</th>
+                                        <th width="33%">Ürün</th>
+                                        <th width="30%">Açıklama</th>
+                                        <th width="4%">  <button data-original-title="Yeni Cihaz Problemi Ekle" type="button" id="newProduct" class="btn btn-md btn-primary" onclick="page.productProblem.AddRow()"><i class="fa fa-plus"></i> </button></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="RowContainer_Problem">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Cihazın Yanında Gelenler</legend>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="clearfix" id="productCameWith">
+                            <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th width="40%">Ürün</th>
+                                        <th width="15%">Adet</th>
+                                        <th width="40%">Açıklama</th>
+                                        <th width="5%">  <button data-original-title="Cihazın Yanıda Gelen Ürün Ekle" type="button" class="btn btn-md btn-primary" onclick="page.cameWith.AddRow()"><i class="fa fa-plus"></i> </button></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="RowContainer_CameWith">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+            <fieldset>
+                <legend>Dosyalar</legend>
+                @(Html.Akilli().FileUpload()
+                                      .DataTable("SV_Service")
+                                      .DataId(Model.id)
+                                      .DataKey(x => x.fileGroup == "Servis Dosyası").AutoSend(false))
+            </fieldset>
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+}

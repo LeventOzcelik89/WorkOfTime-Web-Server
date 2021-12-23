@@ -45,7 +45,7 @@
     }).responseJSON,
     ExchangeRates: $.ajax({
         url: '/General/GetExchangeRatesByDate',
-        data: { date: new Date().toLocaleString() },
+        data: { date: kendo.toString(new Date(), "dd/MM/yyyy HH:mm") },
         type: "POST",
         dataType: "JSON",
         async: false
