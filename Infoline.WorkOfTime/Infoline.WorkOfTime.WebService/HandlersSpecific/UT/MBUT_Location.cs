@@ -9,7 +9,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Web;
 
-namespace Infoline.WorkOfTime.WebService.Handler
+namespace Infoline.WorkOfTime.WebService
 {
     [Export(typeof(ISmartHandler))]
     public partial class MBUT_LocationHandler : BaseSmartHandler
