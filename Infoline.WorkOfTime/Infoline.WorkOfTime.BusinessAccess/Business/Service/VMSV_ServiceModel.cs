@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string WarrantyEnd { get; set; } = "Cihaz Aktif Edilmemiştir";
         public string Url { get; set; }
         public string Logo { get; set; }
-        public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();   
+        public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
         public Guid ProductId { get; set; }
         public VMSV_ServiceModel Load()
         {
@@ -230,6 +230,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
+
         public VMSV_ServiceModel GetVWPRD_ProductMateriels(Guid productId)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -248,5 +249,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
+
+        public List<VWPRD_ProductMateriel> GetProducts(Guid productId)
+        {
+
+            db = db ?? new WorkOfTimeDatabase();
+
+            var prodMaterials = db.GetPRD_ProductMaterielByMaterialId(productId);
+            foreach (var mat in prodMaterials)
+            {
+
+            }
+
+            return
+ new List<VWPRD_ProductMateriel>();
+        }
+
+
     }
 }

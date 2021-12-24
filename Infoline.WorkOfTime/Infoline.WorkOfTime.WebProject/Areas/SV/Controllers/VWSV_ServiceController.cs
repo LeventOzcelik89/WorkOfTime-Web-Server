@@ -101,21 +101,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
         [AllowEveryone]
         public JsonResult DeviceInformation(Guid inventoryId)
         {
             return Json(new VMSV_ServiceModel().DeviceInformation(inventoryId), JsonRequestBehavior.AllowGet);
         }
+
         [AllowEveryone]
         public ActionResult Print(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
+
         [AllowEveryone]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
             var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToDataSourceResult(request); 
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }
+
     }
 }
