@@ -115,9 +115,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
         [AllowEveryone]
-        public ContentResult ProductMaterielDataSource(Guid productId) {
-            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials; 
-            return Content(Infoline.Helper.JsonHelper.JsonSerializer(data),  "application / json");
+        public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
+            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToDataSourceResult(request); 
+            return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }
 

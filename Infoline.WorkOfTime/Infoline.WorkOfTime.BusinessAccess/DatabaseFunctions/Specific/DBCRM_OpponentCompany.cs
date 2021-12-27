@@ -28,5 +28,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CRM_OpponentCompany>().Where(a => a.id != id && a.CompanyName == name).Execute().FirstOrDefault();
             }
         }
+
+        public int GetCRM_OpponentCompanyByCompanyNameCount(String CompanyName, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<CRM_OpponentCompany>().Where(a => a.CompanyName == CompanyName).Execute().Count();
+            }
+        }
     }
 }

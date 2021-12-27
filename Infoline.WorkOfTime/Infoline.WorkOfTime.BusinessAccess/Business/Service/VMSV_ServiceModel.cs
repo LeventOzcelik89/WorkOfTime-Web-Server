@@ -243,7 +243,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.GetProductMetarials.AddRange(findMetarials);
                     foreach (var item in findMetarials)
                     {
-                        this.GetVWPRD_ProductMateriels(item.productId.Value);
+                        this.GetVWPRD_ProductMateriels(item.materialId.Value);
                     }
                 }
             }
