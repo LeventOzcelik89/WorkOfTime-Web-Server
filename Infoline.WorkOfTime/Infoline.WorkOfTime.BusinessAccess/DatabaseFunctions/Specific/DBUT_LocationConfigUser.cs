@@ -6,7 +6,15 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-   
+    [EnumInfo(typeof(UT_LocationConfigUser), "isTrackingActive")]
+    public enum EnumUT_LocationConfigUserisTrackingActive
+    {
+        [Description("Evet")]
+        Evet = 0,
+        [Description("Hayır")]
+        Hayir = 1
+    }
+
     partial class WorkOfTimeDatabase
     {
         public UT_LocationConfigUser[] GetUT_LocationConfigUserByUserIdGetConfigIds(Guid userId, DbTransaction tran = null)
@@ -23,6 +31,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 return db.Table<UT_LocationConfigUser>().Where(x => x.userId == userId && x.locationConfigId == locationConfigId).Execute().FirstOrDefault();
+            }
+        }
+
+        public VWUT_LocationConfigUser GetVWUT_LocationConfigUserByUserId(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWUT_LocationConfigUser>().Where(x => x.userId == userId).Execute().OrderByDescending(x => x.created).FirstOrDefault();
             }
         }
     }

@@ -1,244 +1,27 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
+@using Infoline.WorkOfTime.BusinessAccess
 @{
-    ViewBag.Title = "Kayıt Güncelleme";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Personel Bilgileri Düzenleme";
 }
 
-@using (Html.BeginForm("Update", "VWUT_LocationConfigUser", FormMethod.Post, new Dictionary<string, object>() {
-    { "class", "form-horizontal" },
-    { "role", "form" },
-    { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
-}))
-{
+<form action="@Url.Action("Update", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding:15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+      data-selector="modalContainer" data-formType="Ajax">
+
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
-    @Html.HiddenFor(model => model.id)
 
-
-    <script type="text/javascript">
-        $(document)
-            .on("change", '[name="NationalityRadio"]', function () {
-                var text = $(this).val();
-                if ($(this).val() == "True") {
-                    $('#Nationality').val('T.C.');
-                    $('#Nationality').attr('readonly', 'readonly');
-                } else {
-                    $('#Nationality').val('');
-                    $('#Nationality').removeAttr('readonly');
-
-                }
-
-            });
-
-        function onMilitarySelect(e) {
-            var dataItem = this.dataItem(e.item).Id;
-
-            if (dataItem == 0) { // Yapıldı
-                $("#MilitaryDoneDate").kendoDatePicker({
-                    max: new Date()
-                });
-
-            }
-            else if (dataItem == 4) { // Tecilli
-                $("#MilitaryProbationDate").kendoDatePicker({
-                    min: new Date()
-                });
-            }
-            $('[data-hiddendurum]').addClass('hide');
-            $('[data-hiddendurum="' + dataItem + '"]').removeClass('hide');
-        }
-    </script>
-
-    <style type="text/css">
-        .title-style {
-            color: #ff6a6a;
-            font-weight: bold;
-            font-size: 12px;
-            text-decoration: underline;
-        }
-    </style>
-
-
-    <fieldset>
-        <legend>1. Kişisel Bilgiler</legend>
-        <div class="row">
-            <div class="col-md-6">
-
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md">Cinsiyet</label>
-                    </div>
-                    <div class="col-md-8 radio">
-                        <div class="row">
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.Gender).Value((Int32)EnumSH_PersonInformationGender.Erkek)
-                                @EnumSH_PersonInformationGender.Erkek.ToDescription()
-                            </label>
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.Gender).Value((Int32)EnumSH_PersonInformationGender.Kadin)
-                                @EnumSH_PersonInformationGender.Kadin.ToDescription()
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md">Medeni Durumu</label>
-                    </div>
-                    <div class="col-md-8 radio">
-                        <div class="row">
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.MaritalStatus).Value((Int32)EnumSH_PersonInformationMarital.Evli)
-                                @EnumSH_PersonInformationMarital.Evli.ToDescription()
-                            </label>
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.MaritalStatus).Value((Int32)EnumSH_PersonInformationMarital.Bekar)
-                                @EnumSH_PersonInformationMarital.Bekar.ToDescription()
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="InsuranceIdentityNumber">Sicil No </label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextBoxFor(model => model.InsuranceIdentityNumber, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                         {"placeholder", "Lütfen 13 haneli sicil numarası giriniz."},
-                        }).Validate(Validations.Number(false, 13, 13))
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="PersonalMail">Kişisel Mail</label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextBoxFor(model => model.PersonalMail, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                            {"placeholder", "Lütfen mail adresi giriniz.."},
-                        }).Validate(Validations.EMail(false))
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md">Agiye Dahil Mi?</label>
-                    </div>
-                    <div class="col-md-8 radio">
-                        <div class="row">
-                            @*@Html.Akilli().RadioButtonGroupFor(model => model.hasAgi).Value(EnumSH_PersonInformationHasAgi.Hayir)*@
-
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.hasAgi).Value(false)
-                                Evet
-                            </label>
-
-                            <label>
-                                @Html.Kendo().RadioButtonFor(a => a.hasAgi).Value(true)
-                                Hayır
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-
-                <div class="form-group">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="Military">Askerlik Durumu</label>
-                    </div>
-                    <div class="col-md-8">
-                        @(Html.Akilli()
-                        .DropDownListFor(model => model.Military)
-                        .OptionLabel("Lütfen Askerlik Durumu Seçiniz")
-                        .MinLength(2)
-                        .DataValueField("Id").DataTextField("enumDescription")
-                        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
-                        .Sort(x => x.Add("enumDescription").Ascending())
-                        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SH_PersonInformation" && a.fieldName == "Military")
-                        .Events(x => x.Select("onMilitarySelect").DataBound("onMilitarySelect"))
-                        .Execute("enumKey")
-                        )
-                    </div>
-                </div>
-                <div class="form-group clearfix hide" data-hiddendurum="@((Int32)EnumSH_PersonInformationMilitary.Yapildi)">
-                    <div class="col-md-4">
-                        <label class="control-label label-md " for="MilitaryDoneDuration">Askerlik Süresi</label>
-                    </div>
-                    <div class="col-md-8">
-                        <div class="input-group">
-                            @Html.Kendo().NumericTextBoxFor(model => model.MilitaryDoneDuration).Max(18).Format("n0").HtmlAttributes(new Dictionary<string, object>()
-                            {
-                                {"style", "width:100%"},
-                                {"class", "text-right form-control"},
-                            }).Step(1).Spinners(false)
-                            <span class="input-group-addon" id="MilitaryDoneDuration">Ay</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-group hide" data-hiddendurum="@((Int32)EnumSH_PersonInformationMilitary.Yapildi)">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="MilitaryDoneDate">Askerlik Terhis Tarihi</label>
-                    </div>
-                    <div class="col-md-8">
-                        @(
-                            Html.Akilli()
-                            .DatePickerFor(model => model.MilitaryDoneDate)
-                        )
-                    </div>
-                </div>
-
-                <div class="form-group hide" data-hiddendurum="@((Int32)EnumSH_PersonInformationMilitary.Tecilli)">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="MilitaryProbationDate">Tecil Olduğu Tarih</label>
-                    </div>
-                    <div class="col-md-8">
-                        @(
-                             Html.Akilli()
-                            .DatePickerFor(model => model.MilitaryProbationDate)
-                        )
-                    </div>
-                </div>
-                <div class="form-group hide" id="MilitaryStatus" data-hiddendurum="@((Int32)EnumSH_PersonInformationMilitary.Muaf)">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="MilitaryExemptDetail">Askerlik Muaf Açıklaması</label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextAreaFor(model => model.MilitaryExemptDetail, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                            {"placeholder", "Lütfen Askerlik Muaf Açıklaması Giriniz.."},
-                        }).Validate(Validations.Detail(false, 0, 500))
-                    </div>
-                </div>
-                <div class="form-group hide" data-hiddendurum="@((Int32)EnumSH_PersonInformationMilitary.Tecilli)">
-                    <div class="col-md-4">
-                        <label class="control-label label-md" for="MilitaryProbationDetail">Askerlik Tecil Sebebi</label>
-                    </div>
-                    <div class="col-md-8">
-                        @Html.TextAreaFor(model => model.MilitaryProbationDetail, new Dictionary<string, object>()
-                        {
-                            {"class", "form-control"},
-                            {"placeholder", "Lütfen Askerlik Tecil Sebebi Giriniz.."},
-                        }).Validate(Validations.Detail(false, 0, 500))
-                    </div>
-                </div>
-            </div>
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="isTrackingActive">Personel Konum Takip</label>
         </div>
-    </fieldset>
 
-    <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
+        <div class="col-md-8" style="width: 157px ">
+            @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
 
-}
+        </div>
+        </div>
+        <div class="buttons">
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+        </div>
+
+</form>

@@ -1,94 +1,58 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
+@using Infoline.WorkOfTime.BusinessAccess
 @{
-    ViewBag.Title = "Kayıt Detay";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Personel Bilgileri Detayı";
+
 }
 
-
 <script type="text/javascript">
-    $(document)
-    .on("change", '[name="NationalityRadio"]', function () {
-        var text = $(this).val();
-        if ($(this).val() == "True") {
-            $('#Nationality').val('T.C.');
-            $('#Nationality').attr('readonly', 'readonly');
-        } else {
-            $('#Nationality').val('');
-            $('#Nationality').removeAttr('readonly');
-
-        }
-        $('#Religous').val('İslam');
-
-    })
-
-    function onMilitarySelect(e) {
-        var dataItem = this.dataItem(e.item).Id;
-        $('[data-hiddendurum]').addClass('hide');
-        $('[data-hiddendurum="' + dataItem + '"]').removeClass('hide');
+    function onChangeTracking(e) {
+        //Eğer evet seçili ise haritayı luştur
     }
 </script>
 
-<fieldset>
-    <legend>Kişisel Bilgiler</legend>
-    <div class="row">
-        <div class="col-md-6">
-            <div class="form-group clearfix">
-        <div class="col-md-6">
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Askerlik Durumu :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight: bold;">@Html.Label("-", Model.Military_Title)</font>
-                </div>
-            </div>
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Askerlik Terhis Tarihi :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight:bold;">@Html.Raw(Model.MilitaryDoneDate != null ? Model.MilitaryDoneDate.ToString() : "-")</font>
-                </div>
-            </div>
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Askerlik Süresi :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight:bold;">@Html.Raw(Model.MilitaryDoneDuration != null ? Model.MilitaryDoneDuration.ToString() : "-")</font>
-                </div>
-            </div>
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Tecil Olduğu Tarih :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight:bold;">@Html.Raw(Model.MilitaryProbationDate != null ? Model.MilitaryProbationDate.Value.ToShortDateString() : "-")</font>
-                </div>
-            </div>
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Askerlik Muaf Açıklaması :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight: bold;">@Html.Label("-", Model.MilitaryExemptDetail)</font>
-                </div>
-            </div>
-            <div class="form-group clearfix">
-                <div class="col-md-4">
-                    <font size="2" color="#000000"><label>Askerlik Muaf Sebebi :</label></font>
-                </div>
-                <div class="col-md-8">
-                    <font size="2" style="font-weight: bold;">@Html.Label("-", Model.MilitaryProbationDetail)</font>
-                </div>
-            </div>
+
+<form action="@Url.Action("UpdateTracking", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px; width: 570px; " data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+      data-selector="modalContainer" data-formType="Ajax">
+
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.userId)
+
+
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="isTrackingActive">Personel Konum Takip</label>
+        </div>
+
+        <div class="col-md-8" style="width: 157px ">
+            @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
+
         </div>
     </div>
-</fieldset>
 
+    <div class="form-group clearfix">
+        <div class="col-md-4">
+            <label class="control-label label-md " for="isTrackingActive">Personel Konum Takip</label>
+        </div>
 
-<div class="buttons">
-    <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-</div>
+        <div class="col-md-8" style="width: 157px ">
+            @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.locationConfigId)
+                            .OptionLabel("Lütfen Ayar seçiniz..")
+                            .DataTextField("configName")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationConfig", new { area = "UT" }))
+                            .Sort(x => x.Add("configName").Ascending())
+                            .Execute()
+                        )
+        </div>
+    </div>
 
-</div>
+    <div class="buttons">
+        <button class="btn btn-md btn-success pull-right" style="margin-top: -85px !important;" type="submit">Kaydet</button>
+    </div>
+
+</form>
