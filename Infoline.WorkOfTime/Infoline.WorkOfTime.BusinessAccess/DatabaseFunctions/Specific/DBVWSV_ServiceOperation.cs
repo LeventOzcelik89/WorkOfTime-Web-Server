@@ -29,7 +29,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         TransferEnded = 103,
         [Description("Not Eklendi"), Generic("icon", "fa fa-note", "color", "dd1312", "description", "Not Eklendi")]
         NoteAdded = 104,
+        [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "dd1312", "description", "Not Eklendi")]
+        Updated = 105,
     }
+  
     partial class WorkOfTimeDatabase
     {
     }

@@ -106,6 +106,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
             result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
+            this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
             if (Problems != null)
             {
                 foreach (var problem in Problems)
@@ -153,6 +154,36 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>(), true, this.trans);
+            result &= Customer.Save(this.createdby, null, this.trans);
+            var getAllProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
+            var getAllCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id);
+            result &= db.BulkDeleteSV_DeviceProblem(getAllProblems.Select(x=>new SV_DeviceProblem { id=x.id}),trans);
+            result &= db.BulkDeleteSV_DeviceCameWith(getAllCameWith.Select(x => new SV_DeviceCameWith { id = x.id }), trans);
+            if (Problems != null)
+            {
+                foreach (var problem in Problems)
+                {
+                    problem.serviceId = this.id;
+                    result &= problem.Save(this.createdby, null, this.trans);
+                }
+            }
+            if (CameWith != null)
+            {
+                foreach (var Coming in CameWith)
+                {
+                    Coming.serviceId = this.id;
+                    result &= Coming.Save(this.createdby, null, this.trans);
+                }
+            }
+            result &= new VMSV_ServiceOperationModel
+            {
+                created = this.created,
+                createdby = this.createdby,
+                description = "Servis Kaydı Güncellendi",
+                serviceId = this.id,
+                status = (int)EnumSV_ServiceOperation.Updated,
+                userId = this.createdby
+            }.Save(this.createdby, null, this.trans);
             if (result.result)
             {
                 return new ResultStatus
@@ -243,28 +274,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     this.GetProductMetarials.AddRange(findMetarials);
                     foreach (var item in findMetarials)
                     {
-                        this.GetVWPRD_ProductMateriels(item.materialId.Value);
+                        GetVWPRD_ProductMateriels(item.materialId.Value);
                     }
                 }
             }
             return this;
         }
-
-        public List<VWPRD_ProductMateriel> GetProducts(Guid productId)
-        {
-
-            db = db ?? new WorkOfTimeDatabase();
-
-            var prodMaterials = db.GetPRD_ProductMaterielByMaterialId(productId);
-            foreach (var mat in prodMaterials)
-            {
-
-            }
-
-            return
- new List<VWPRD_ProductMateriel>();
+        public void SendMail() {
+        
+        
+        
         }
-
-
     }
 }

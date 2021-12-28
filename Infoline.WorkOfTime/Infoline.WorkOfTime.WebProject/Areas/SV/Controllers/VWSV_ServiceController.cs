@@ -71,18 +71,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [AllowEveryone]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Update(SV_Service item)
+        public JsonResult Update(VMSV_ServiceModel model,bool? ispost)
         {
-            var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-            item.changed = DateTime.Now;
-            item.changedby = userStatus.user.id;
-            var dbresult = db.UpdateSV_Service(item);
+            var dbresult = model.Save(userStatus.user.id, HttpContext.Request);
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
+                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı",true, Url.Action("Index")) : feedback.Warning("Güncelleme işlemi başarısız")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -116,7 +113,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
         [AllowEveryone]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
-            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToDataSourceResult(request); 
+            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToArray(); 
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }

@@ -1,10 +1,11 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
 @{
-    ViewBag.Title = "Yeni Servis Kaydı Düzenle";
+    ViewBag.Title = "Servis Kaydı Güncelle";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <script>
     var page = {
+        model:@Html.Raw(Infoline.Helper.Json.Serialize(Model)),
         inputs: {
             deliveryType: function (e) {
                 var data = e.sender.dataItem();
@@ -30,15 +31,55 @@
                 else {
                     page.inputs.hideCargo();
                 }
+            },
+            metarial: function (isOld=false) {
+                if (isOld == true) {
+                    return;
+                }
+                var productId = $("#inventoryId").data("kendoDropDownList").dataItem().productId;
+                if (productId == null) {
+                    return;
+                }
+                $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
+                    $(item).removeAttr("disabled");
+                    var kendo = $(item).data("kendoDropDownList");
+                    if (kendo != undefined) {
+                        kendo.destroy();
+                    }
+                    $(item).kendoDropDownList({
+                        optionLabel: "Cihaz Parçası Seçiniz...",
+                        dataTextField: "materialId_Title",
+                        dataValueField: "materialId",
+                        dataSource: {
+                            transport: {
+                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=" + productId,
+                            }
+                        }
+                    }).data("kendoDropDownList");
+                });
+            },
+            cargoId: function () {
+                $("#cargoNo").removeAttr("disabled");
             }
         },
         methods: {
             getDeviceInformation: function (e) {
-                $("#deviceInfo").hide("fast");
-                var data = e.sender.dataItem();
-                if (data.id == null) {
-                    return;
+                var data = null;
+                $("#deviceInfo").slideUp("fast");
+                if (e == null) {
+                    var inventoryId = $("#inventoryId").data("kendoDropDownList").dataItem();
+                    if (inventoryId == null) {
+                        return;
+                    }
+                    data = inventoryId;
                 }
+                else {
+                    data = e.sender.dataItem();
+                    if (data.id == null) {
+                        return;
+                    }
+                }
+               
                 GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: data.id }, function (resp) {
                     if (resp == null) {
                         return;
@@ -48,8 +89,7 @@
                         return;
                     }
                     $("#inventoryLink").attr("href", "/PRD/VWPRD_Inventory/Detail?id=" + data.id);
-
-
+                    page.inputs.metarial(e);
                     if (resp.objects == null) {
                         return;
                     }
@@ -60,8 +100,19 @@
                     $("#company").text(resp.objects.company);
                     $("#dateofMani").text(resp.objects.manifacturDate);
                     $("#dateofSell").text(resp.objects.sellingDate);
-                    $("#deviceInfo").show("fast");
+                    $("#warrantyStatus").text(resp.objects.warrantyStatus);
+                    $("#deviceInfo").slideDown("fast");
                     $("#deviceId").attr("href", "/PRD/VWPRD_Product/Detail?id=" + resp.objects.deviceId ?? "");
+                });
+            },
+            load: function () {
+                page.model.Problems.forEach(function (item, i) {
+                    page.productProblem.AddRow(item);
+                });
+                page.model.CameWith.forEach(function (item, i) {
+
+                    page.cameWith.AddRow(item);
+
                 });
             }
         },
@@ -76,11 +127,13 @@
                 var row = $(_this).parents("tr");
                 $(row).remove();
             },
-            AddRow: function () {
+            AddRow: function (data) {
+                debugger
                 var problems = $($('#rowForProductProblem').html());
                 $('#RowContainer_Problem').append(problems);
                 problems.find('[data-problem="id"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].id')
+                    .attr('value',data!=null?data.id:null)
                 problems.find('[data-problem="problemTypeId"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].problemTypeId')
                     .kendoDropDownList(
@@ -97,33 +150,47 @@
                             "filter": "contains",
                             "dataValueField": "id",
                             "optionLabel": "Lütfen Problem Tipini Seçiniz..",
+                            "value": data != null ? data.problemTypeId : null
                         });
+                if (data != null) {
+                    if (data.productId != null) {
+                        problems.find('[data-problem="productId"]').removeAttr("disabled")
+                    }
+                }
                 problems.find('[data-problem="productId"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].productId')
                     .kendoDropDownList(
                         {
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
-                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
+                                "transport": {
+                                    "read": {
+                                        "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.inventoryId"
+                                    }
+                                },
                                 "pageSize": 100,
                                 "page": 1,
                                 "total": 0
                             },
-                            "dataTextField": "fullName",
+                            "dataTextField": "metarialId_Title",
                             "delay": 1000,
                             "filter": "contains",
-                            "dataValueField": "id",
-                            "optionLabel": "Lütfen Ürün Seçiniz Seçiniz..",
+                            "dataValueField": "metarialId",
+                            "optionLabel": "Cihaz Parçası Seçiniz..",
+                            "value": data != null ? data.productId : null
                         });
                 problems.find('[data-problem="description"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].description')
+                    .attr('value',data.description)
                 page.productProblem.counter++;
+                page.inputs.metarial(true);
                 setTimeout(function () {
                     var updateInput = $('#ServiceForm').data('bs.validator');
                     if (updateInput != null) {
                         updateInput.update();
                     }
                 }, 250)
+                
             }
         },
         cameWith: {
@@ -132,11 +199,12 @@
                 var row = $(_this).parents("tr");
                 $(row).remove();
             },
-            AddRow: function () {
+            AddRow: function (data) {
                 var cameWith = $($('#rowForProductCameWith').html());
                 $('#RowContainer_CameWith').append(cameWith);
                 cameWith.find('[data-cameWith="id"]')
                     .attr('name', 'CameWith[' + page.cameWith.counter + '].id')
+                    .attr('value',data!=null?data.id:newGuid())
                 cameWith.find('[data-cameWith="productId"]')
                     .attr('name', 'CameWith[' + page.cameWith.counter + '].productId')
                     .kendoDropDownList(
@@ -153,12 +221,14 @@
                             "filter": "contains",
                             "dataValueField": "id",
                             "optionLabel": "Lütfen Ürün Seçiniz Seçiniz..",
+                            "value":data!=null?data.productId:null
                         });
                 cameWith.find('[data-cameWith="amount"]')
                     .attr('name', 'CameWith[' + page.cameWith.counter + '].amount')
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false });
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": data != null ? data.amount : 1});
                 cameWith.find('[data-cameWith="description"]')
                     .attr('name', 'CameWith[' + page.cameWith.counter + '].description')
+                    .attr('value', data != null ? data.description : null)
                 page.cameWith.counter++;
                 setTimeout(function () {
                     var updateInput = $('#ServiceForm').data('bs.validator');
@@ -217,7 +287,6 @@
                         closeOnCancel: false
                     }, function (isConfirm) {
                         if (isConfirm) {
-                            debugger
                             $("#Customer_name").val(data.objects.name ?? "");
                             $("#Customer_lastName").val(data.objects.lastName ?? "");
                             $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
@@ -235,22 +304,16 @@
                 }
             });
         }).on("ready", function () {
-            page.cameWith.AddRow();
-            page.productProblem.AddRow();
-
-
+            page.methods.load();
+           
         }).on("change", "form", function () {
             setTimeout(function () {
-            var updateInput = $('#ServiceForm').data('bs.validator');
-            if (updateInput != null) {
-                updateInput.update();
-            }
-        }, 100)
-
+                var updateInput = $('#ServiceForm').data('bs.validator');
+                if (updateInput != null) {
+                    updateInput.update();
+                }
+            }, 100)
         })
-    $("#ServiceForm").submit(function (e) {
-    })
-
 </script>
 <script type="text/template" id="rowForProductProblem">
     <tr>
@@ -261,7 +324,7 @@
         </td>
         <td>
             <div class="form-group">
-                <input data-problem="productId" class="k-input form-control" />
+                <input data-problem="productId"  class="k-input form-control" />
             </div>
         </td>
         <td>
@@ -304,6 +367,17 @@
 }))
 {
     <style>
+        .col-8 {
+            flex-grow: 1;
+            transition: all 400ms ease;
+        }
+
+        .col-4 {
+            width: 0;
+            flex-shrink: 1;
+            transition: all 400ms ease;
+        }
+
         .ibox-content {
             padding-bottom: 9px !important;
         }
@@ -427,26 +501,10 @@
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.Customer.id)
+    @Html.HiddenFor(model => model.code)
+    @Html.HiddenFor(model => model.stage)
     <div class="row">
-        <div class="col-sm-12">
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <div class="form-group">
-                        <div class="col-md-3">
-                            <label class="control-label req label-md" for="name">Servis Kodu</label>
-                        </div>
-                        <div class="col-md-9">
-                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
-                       {
-                           {"class", "form-control"},
-                           {"placeholder", "Lütfen Servis Kodu Girin.."}
-                       }).Validate(Validations.Required)
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-sm-4">
+        <div class="col-sm-4" id="col4">
             <div class="ibox">
                 <div class="ibox-content clearfix">
                     <fieldset>
@@ -479,7 +537,6 @@
           .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
           .Sort(x => x.Add("name").Ascending())
           .Execute("id"))
-
                             </div>
                         </div>
                         <div class="form-group">
@@ -488,7 +545,6 @@
                                 @Html.TextAreaFor(x => x.customerTypeDescription, new Dictionary<string, object>() {
                                { "class","from-control width100"},
                                {"placeholder","Teslim Açıklaması Girin.." },
-
                                })
                             </div>
                         </div>
@@ -515,7 +571,6 @@
                             )
                             </div>
                         </div>
-
                         <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
                             <div class="col-sm-12">
                                 <label class="control-label label-md" for="cargoId">Kargo Firması</label>
@@ -527,11 +582,10 @@
           .Template("#=TemplateEngine('companyTemplate',data)#")
           .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
           .Sort(x => x.Add("name").Ascending())
+          .Events(x=>x.Change("page.inputs.cargoId"))
           .Execute("id"))
-
                             </div>
                         </div>
-
                         <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
                             <div class="col-sm-12">
                                 <label class="control-label label-md req" for="cargoNo">Kargo Takip Numarası</label>
@@ -539,11 +593,9 @@
                                  {
                                      {"class", "form-control"},
                                      {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
-
                                  }).Validate(Validations.Required)
                             </div>
                         </div>
-
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label class="control-label label-md" for="deliveryTypeDescription">Teslim Açıklaması</label>
@@ -553,9 +605,6 @@
                                })
                             </div>
                         </div>
-
-
-
                     </fieldset>
                 </div>
             </div>
@@ -601,6 +650,16 @@
                         {"class", "form-control"},
                         {"placeholder", "Lütfen Müşterinin Diğer Telefonunu Girin.."},
                     }).Validate(Validations.TelefonNo(false))
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md " for="Customer_email">E-Posta Adresi</label>
+                                @Html.TextBoxFor(model => model.Customer.email, new Dictionary<string, object>()
+                    {
+                        {"class", "form-control"},
+                        {"placeholder", "Lütfen Müşterinin E-Posta Adresini Girin.."},
+                    }).Validate(Validations.EMail(false))
                             </div>
                         </div>
                         <div class="form-group">
@@ -653,10 +712,8 @@ Html.Akilli()
             </div>
         </div>
         <div class="col-sm-8">
-
             <div class="ibox">
                 <div class="ibox-content clearfix">
-
                     <fieldset>
                         <legend>Cihaz Bilgileri</legend>
                         <div class="form-group">
@@ -671,126 +728,66 @@ Html.Akilli()
           .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
           .Sort(x => x.Add("serialcode").Ascending())
           .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
-          .Events(x => x.Change("page.methods.getDeviceInformation"))
+          .Events(x => x.DataBound("page.methods.load").DataBound("page.methods.getDeviceInformation").Change("page.methods.getDeviceInformation"))
           .Validate(Validations.Required)
           .Execute("id"))
                                     <span class="input-group-addon">
-
                                         <a href="" id="inventoryLink" target="_blank"><i class="fa fa-link text-white"></i></a>
-
                                     </span>
-
                                 </div>
-
-
                                 <div class=""></div>
                             </div>
-
                         </div>
-
                         <div id="deviceInfo" style="display:none">
                             <div class="col-lg-4">
+                                <dl class="dl-horizontal">
+                                    <dt>Form No</dt>
+                                    <dd>@Model.code</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Garanti Durumu</dt>
+                                    <dd id="warrantyStatus"></dd>
+                                </dl>
                                 <dl class="dl-horizontal">
                                     <dt>Garanti Bitiş Tarihi: </dt>
                                     <dd id="warranty">  </dd>
                                 </dl>
-
                                 <dl class="dl-horizontal">
                                     <dt>Aktivasyon Tarihi: </dt>
                                     <dd id="activation">  </dd>
                                 </dl>
-
                                 <dl class="dl-horizontal">
                                     <dt>Üretim Tarihi: </dt>
                                     <dd id="dateofMani">  </dd>
                                 </dl>
-
-                                <dl class="dl-horizontal">
-                                    <dt>Satın Alınma Tarihi:</dt>
-                                    <dd id="dateofSell"></dd>
-                                </dl>
+                              
                             </div>
-
                             <div class="col-lg-8">
                                 <dl class="dl-horizontal">
                                     <dt>Tam Cihaz Adı: </dt>
                                     <dd>
                                         <span style="white-space: pre-wrap;word-break: break-all;"><strong><u id="deviceName"></u></strong></span>
-
                                         <a href="/PRD/VWPRD_Product/Detail?id=" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
-
-
                                     </dd>
                                 </dl>
-
                                 <dl class="dl-horizontal">
                                     <dt>Distribütör: </dt>
                                     <dd id="dist">
-
-
-
-
-
                                     </dd>
                                 </dl>
-
                                 <dl class="dl-horizontal">
                                     <dt>Bayi: </dt>
                                     <dd id="company">  </dd>
                                 </dl>
-
                                 <dl class="dl-horizontal">
                                     <dt>Satın Alınma Tarihi:</dt>
                                     <dd id="dateofSell"></dd>
                                 </dl>
                             </div>
                         </div>
-
-
-
-
-                        @*<div class="form-group">
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Garanti Bitiş Tarihi</label>
-                                    <input type="text" id="warranty" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Aktivasyon Tarihi</label>
-                                    <input type="text" id="activation" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-12">
-                                    <label class="control-label label-md " for="address">Tam Cihaz Adı</label>
-                                    <input type="text" id="deviceName" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Distribütör</label>
-                                    <input type="text" id="dist" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Bayi</label>
-                                    <input type="text" id="company" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Satın Alınma Tarihi</label>
-                                    <input type="text" id="dateofSell" readonly class="form-control" />
-                                </div>
-                                <div class="col-sm-6">
-                                    <label class="control-label label-md " for="address">Üretim Tarihi</label>
-                                    <input type="text" id="dateofMani" readonly class="form-control" />
-                                </div>
-                            </div>*@
                     </fieldset>
-
-
-
-
-
-
-
                 </div>
             </div>
-
-
             <div class="ibox">
                 <div class="ibox-content clearfix">
                     <fieldset>
@@ -863,7 +860,6 @@ Html.Akilli()
                     </fieldset>
                 </div>
             </div>
-
         </div>
     </div>
     <div class="buttons">
