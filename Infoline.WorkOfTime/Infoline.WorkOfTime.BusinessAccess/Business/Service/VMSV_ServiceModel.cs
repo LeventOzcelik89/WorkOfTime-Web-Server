@@ -102,11 +102,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         private ResultStatus Insert()
         {
-            this.db = this.db ?? new WorkOfTimeDatabase();
+            this.db = this.db ?? new WorkOfTimeDatabase();  
+            this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
             result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
-            this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
+
             if (Problems != null)
             {
                 foreach (var problem in Problems)
@@ -157,7 +158,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             result &= Customer.Save(this.createdby, null, this.trans);
             var getAllProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
             var getAllCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id);
-            result &= db.BulkDeleteSV_DeviceProblem(getAllProblems.Select(x=>new SV_DeviceProblem { id=x.id}),trans);
+            result &= db.BulkDeleteSV_DeviceProblem(getAllProblems.Select(x => new SV_DeviceProblem { id = x.id }), trans);
             result &= db.BulkDeleteSV_DeviceCameWith(getAllCameWith.Select(x => new SV_DeviceCameWith { id = x.id }), trans);
             if (Problems != null)
             {
@@ -239,8 +240,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
+            var dbresult = new ResultStatus { result = true };
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeleteSV_Service(this.id, trans);
+            var getAllProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
+            var getAllCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id);
+            var getAllServiceUser = db.GetVWSV_CustomerUserByServiceId(this.id);
+            var getlAllActions = db.GetVWSV_ServiceOperationsByIdServiceId(this.id);
+            dbresult = db.BulkDeleteSV_DeviceProblem(getAllProblems.Select(x => new SV_DeviceProblem { id = x.id }), trans);
+            dbresult &= db.BulkDeleteSV_DeviceCameWith(getAllCameWith.Select(x => new SV_DeviceCameWith { id = x.id }), trans);
+            dbresult &= db.DeleteSV_CustomerUser(getAllServiceUser.id, trans);
+            dbresult &= db.BulkDeleteSV_ServiceOperation(getlAllActions.Select(x => new SV_ServiceOperation { id = x.id }), trans);
+            dbresult &= db.DeleteSV_Service(this.id, trans);
+
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -280,10 +291,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-        public void SendMail() {
-        
-        
-        
+        public void SendMail()
+        {
+
+
+
         }
     }
 }

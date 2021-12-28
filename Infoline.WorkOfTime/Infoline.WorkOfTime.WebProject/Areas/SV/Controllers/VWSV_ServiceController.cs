@@ -85,16 +85,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [AllowEveryone]
         [HttpPost]
-        public JsonResult Delete(string[] id)
+        public JsonResult Delete(VMSV_ServiceModel model)
         {
-            var db = new WorkOfTimeDatabase();
+          
             var feedback = new FeedBack();
-            var item = id.Select(a => new SV_Service { id = new Guid(a) });
-            var dbresult = db.BulkDeleteSV_Service(item);
+            var dbresult = model.Delete();
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success("Teknik Servis Kaydı Silme işlemi başarılı") : feedback.Warning(" Teknik Servis KaydıSilme işlemi başarısız")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
