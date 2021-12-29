@@ -135,6 +135,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }.Save(this.createdby, null, this.trans);
             if (result.result)
             {
+                SendMail();
                 return new ResultStatus
                 {
                     result = true,
@@ -293,6 +294,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         public void SendMail()
         {
+            db = db ?? new WorkOfTimeDatabase();
+            var data= this.Load();
+            var imei = db.GetPRD_InventoryById(data.inventoryId.Value);
+            if (data.Customer.email!=null)
+            {
+                var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
+                text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                text += "<p>Bilgilerinize.</p>";
+                new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName+ " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
+            }
+               
+          
 
 
 

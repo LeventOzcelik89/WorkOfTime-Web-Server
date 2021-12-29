@@ -40,14 +40,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         [AllowEveryone]
         public ActionResult Detail(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSV_ServiceById(id);
-            return View(data);
+
+            return View(new VMSV_ServiceModel { id = id }.Load());
         }
         [AllowEveryone]
         public ActionResult Insert(VMSV_ServiceModel model)
         {
             model.code = BusinessExtensions.B_GetIdCode();
+            
             return View(model);
         }
         [AllowEveryone]
