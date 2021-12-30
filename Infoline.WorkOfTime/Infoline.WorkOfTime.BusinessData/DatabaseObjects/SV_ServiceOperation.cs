@@ -17,9 +17,5 @@ namespace Infoline.WorkOfTime.BusinessData
         /// açıklama
         /// </summary>
         public string description { get; set;}
-        /// <summary>
-        /// operasyon yapan
-        /// </summary>
-        public Guid? userId { get; set;}
     }
 }

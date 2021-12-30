@@ -1,37 +1,79 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Teknik Servis Kayıtları";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var now = DateTime.Now;
 }
 
-<style>
-    .modal-lg {
-        width: 90% !important;
-    }
-</style>
+
+
+
+
 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWSV_Service>("VWSV_Service")
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_Service", new { area = "SV" })).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.code).Title("code").Width(180);
-        x.Bound(y => y.description).Title("description").Width(180);
-        x.Bound(y => y.realStatus).Title("realStatus").Width(180);
-        x.Bound(y => y.deliveryType).Title("deliveryType").Width(180);
-        x.Bound(y => y.deliveryDescription).Title("deliveryDescription").Width(180);
-        x.Bound(y => y.cargoNo).Title("cargoNo").Width(180);
-        x.Bound(y => y.didComeFromCompany).Title("didComeFromCompany").Width(180);
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.inventoryCode_Title).Title("inventoryCode_Title").Width(180);
-        x.Bound(y => y.cargoId_Title).Title("cargoId_Title").Width(180);
-        x.Bound(y => y.companyId_Title).Title("companyId_Title").Width(180);
+        x.Bound(y => y.id).Title("").ClientTemplate("#=TemplateEngine('serviceTemplate',data)#").Width(180).Sortable(false).Filterable(false);
+        x.Bound(y => y.serialCode).Title("IMEI/Seri Numarası").Width(110);
+        x.Bound(y => y.inventoryCode_Title).Title("Envanter Kodu").Width(100);
+        x.Bound(y => y.lastOperationStatus_Title).Title("Son Durum").Width(120);
+        x.Bound(y => y.customerType_Title).Title("Teslim Eden Müşteri Tipi").Width(120);
+        x.Bound(y => y.delivery_Title).Title("Teslim Edilme Tipi").Width(120);
+        x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(100).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(100);
+
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
     {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSV_Service", new { area = "SV" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSV_Service", new { area = "SV" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_Service", new { area = "SV" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("<i data-original-title='Yeni Teknik Servis Kaydı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } ,{ "data-modal","false"},{ "data-blank",""} }).Url(Url.Action("Insert", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("<i data-original-title='Teknik Servis Kaydı Teslim Formu' class='fa fa-print'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Print", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("<i data-original-title='Teknik Servis Kaydı Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Update", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("<i data-original-title='Teknik Servis Detayları' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" },{ "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("<i data-original-title='Teknik Servis Kaydını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSV_Service", new { area = "SV" }));
     }))
+<div class="theme-config">
+    <div class="theme-config-box">
+        <div class="spin-icon">
+            <i class="fa fa-filter"></i>
+        </div>
+        <div class="skin-setttings">
+            <div class="title">FİLTRELEME</div>
+            <div class="file-manager">
+                <h5> ÜRETİM DURUMU </h5>
+                <ul class="folder-list" style="padding: 0">
+
+                    @foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumSV_ServiceOperation>())
+                    {
+                        <li class="clearfix">
+                            <a class="pull-left" href="#" data-grid="VWSV_Service" data-switch="radio" data-category="0" data-query="(lastOperationStatus~eq~@item.Key')">
+                                <i style="color:#@item.Generic["color"]" class="@item.Generic["icon"]"></i>  @item.Value
+                            </a>
+                        </li>
+                    }
+                </ul>
+              
+               
+                <div class="space-25"></div>
+                <h5> OLUŞTURULMA TARİHİ </h5>
+                <ul class="category-list" style="padding: 0">
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWSV_Service" data-switch="radio" data-category="3" data-query="(created~lt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Geçmiş </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWSV_Service" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.ToString("yyyy-MM-ddT00-00-00")'~and~created~lt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")')"> <i class="fa fa-calendar"></i> Bugün </a>
+                    </li>
+                    <li class="clearfix">
+                        <a href="#" class="pull-left" data-grid="VWSV_Service" data-switch="radio" data-category="3" data-query="(created~gt~datetime'@now.AddDays(1).ToString("yyyy-MM-ddT00-00-00")'')"> <i class="fa fa-calendar"></i> Yarın ve Sonra</a>
+                    </li>
+                </ul>
+
+
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<link href="~/Content/Custom/css/filter.css" rel="stylesheet" />
+<script src="~/Content/Custom/js/filter.js"></script>

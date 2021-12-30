@@ -11,41 +11,36 @@ namespace Infoline.WorkOfTime.CLI
     {
         static void Main(string[] args)
         {
-
-            var path = @"D:\GIT\Infoline-Bilgi-Teknolojileri\SIM-Web-Server-Cyprus";
-            var newPath = @"D:\GIT\Infoline-Bilgi-Teknolojileri\SIM-Web-Server-CyprusNew";
-            var key = "Infoline.CevreSis";
-            var replacer = "Infoline.SISCyprus";
+            var sourceProjectPath = @"C:\Github\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server";
+            var destinationProjectPath = @"C:\Github\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server-Datacenter";
+            var sourceProjectName = "Infoline.WorkOfTime";
+            var destinationProjectName = "Infoline.DataCenter";
             var ext = new string[] { ".sln", ".csproj", ".cs", ".config", ".cshtml", ".asax" };
-            var directories = Directory.GetDirectories(path, "*", System.IO.SearchOption.AllDirectories).ToList();
-            directories.Add(path);
+            var directories = Directory.GetDirectories(sourceProjectPath, "*", System.IO.SearchOption.AllDirectories).ToList();
+            directories.Add(sourceProjectPath);
             foreach (var directory in directories.OrderBy(a => a))
             {
                 var directoryInfo = new DirectoryInfo(directory);
-                var newDirectory = directory.Replace(path, newPath).Replace(key, replacer);
+                var newDirectory = directory.Replace(sourceProjectPath, destinationProjectPath).Replace(sourceProjectName, destinationProjectName);
                 Directory.CreateDirectory(newDirectory);
 
                 Console.WriteLine(directory + " => " + newDirectory);
                 var files = directoryInfo.GetFiles();
                 foreach (var fileInfo in files)
                 {
-                    var newFilePath = Path.Combine(newDirectory, fileInfo.Name.Replace(key, replacer));
+                    var newFilePath = Path.Combine(newDirectory, fileInfo.Name.Replace(sourceProjectName, destinationProjectName));
                     Console.WriteLine(fileInfo.FullName + " => " + newFilePath);
                     fileInfo.CopyTo(newFilePath);
                     if (ext.Contains(fileInfo.Extension))
                     {
                         string text = File.ReadAllText(newFilePath, System.Text.Encoding.UTF8);
-                        text = text.Replace(key, replacer);
+                        text = text.Replace(sourceProjectName, destinationProjectName);
                         File.WriteAllText(newFilePath, text, System.Text.Encoding.UTF8);
                     }
                 }
             }
             Console.WriteLine("Bitti");
             Console.ReadLine();
-
-
-
-
         }
     }
 }

@@ -26,7 +26,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			var db = new WorkOfTimeDatabase();
 			var list = new List<CalendarModel>();
-			var personIds = db.GetVWINV_CompanyPersonDepartments().Where(a => (a.IdUser == userId || a.Manager1 == userId || a.Manager2 == userId) && a.OrganizationType == (Int16)EnumINV_CompanyDepartmentsType.Organization).Select(a => a.IdUser).Distinct();
+			var personIds = db.GetVWINV_CompanyPersonDepartmentsUserManagerAndOrganization(userId).Select(a => a.IdUser).Distinct();
 			if (userId != Guid.Empty)
 			{
 				personIds = personIds.Where(x => x.Value != Guid.Empty).Distinct();

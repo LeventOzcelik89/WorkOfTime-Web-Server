@@ -235,6 +235,7 @@
                 .ItemTemplate("#=TemplateEngine('companyTemplate',data)#")
                 .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                 .BasicInsert(Url.Action("Insert", "VWCMP_Company", new { area = "CMP" }), "name",true)
+                .Filter<VWCMP_Company>(x => x.isActive == (int)EnumCMP_CompanyIsActive.Aktif)
                 .Sort(x => x.Add("fullName").Ascending())
                 .Validate(Validations.Required)
                 .Execute()
@@ -342,7 +343,7 @@
         <div class="col-md-8">
             @(Html.Akilli()
      .MultiSelect("FTM_TaskSubjectTypeIds")
-     .Placeholder("Lütfen Görev Alt Tipi Seçiniz..")
+     .Placeholder("Lütfen Görev Konusu Seçiniz..")
      .DataTextField("name")
      .DataValueField("id")
      .Action(b => b.Action("DataSourceDropDown", "FTM_TaskSubject", new { area = "FTM" }))

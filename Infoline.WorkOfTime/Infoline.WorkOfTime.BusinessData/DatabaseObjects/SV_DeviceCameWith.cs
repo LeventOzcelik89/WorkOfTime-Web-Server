@@ -10,10 +10,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public Guid? productId { get; set;}
         /// <summary>
-        /// Envanter Alanı
-        /// </summary>
-        public Guid? inventoryId { get; set;}
-        /// <summary>
         /// Açıklama
         /// </summary>
         public string description { get; set;}
