@@ -21,6 +21,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string ProducedDate { get; set; } = "Cihaz Aktif Edilmemiştir";
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
         public Guid ProductId { get; set; }
+        public List<VWSV_ServiceOperation> ServiceOperations { get; set; } = new List<VWSV_ServiceOperation>();
         public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
         public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
@@ -34,6 +35,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var data = db.GetVWSV_ServiceById(this.id);
             if (data != null)
             {   
+
                 this.B_EntityDataCopyForMaterial(data, true);
                 var findInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
                 var customerService = db.GetVWSV_CustomerUserByServiceId(this.id);
@@ -63,6 +65,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var getCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id).Select(x => new VMSV_DeviceCameWithModel().B_EntityDataCopyForMaterial(x));
                 this.CameWith = getCameWith.ToList();
                 this.SetButtonPermission();
+                this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>(); 
             }
             return this;
         }
@@ -145,7 +148,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 description = "Servis Kaydı Oluşturuldu",
                 serviceId = this.id,
                 status = (int)EnumSV_ServiceOperation.Started,
-                userId = this.createdby
             }.Save(this.createdby, null, this.trans);
             if (result.result)
             {
@@ -198,7 +200,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 description = "Servis Kaydı Güncellendi",
                 serviceId = this.id,
                 status = (int)EnumSV_ServiceOperation.Updated,
-                userId = this.createdby
             }.Save(this.createdby, null, this.trans);
             if (result.result)
             {
@@ -329,17 +330,146 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return;
             }
-            if (stage!=(int)EnumSV_ServiceStages.Delivery)
+            if (lastOperationStatus==(int)EnumSV_ServiceOperation.BeginTransfer)
             {
-                if (lastOperationStatus==(int)EnumSV_ServiceActions.TransferStart)
-                {
-                    ButtonPermission.Add(EnumSV_ServiceActions.TransferEnds);
-                }
-                else
-                {
-                    ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                }
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferEnds);
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
             }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Canceled)
+            {
+
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Waiting)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.ReStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Restart)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.TransferEnded)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.AsamaBildirimi)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.FireBildirimiYapildi)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.HarcamaBildirildi)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Updated)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
+            {
+               
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else if (lastOperationStatus == (int)EnumSV_ServiceOperation.PartChanged)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+            else
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                SetStageButton();
+            }
+
+        }
+        private void SetStageButton() {
+            if (stage == (int)EnumSV_ServiceStages.DeviceHanded)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+            }
+            else if (stage == (int)EnumSV_ServiceStages.Detection)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.ChancingPart);
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+            }
+            else if (stage==(int)EnumSV_ServiceStages.UserPermission)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+
+            }
+            else if (stage == (int)EnumSV_ServiceStages.Fixing)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Fire);
+                ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
+                ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+
+            }
+            else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+
+            }
+            else  
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Done);
+            }
+        }
+        public ResultStatus NextStage(Guid userId,DbTransaction trans=null) {
+
+            var result = new ResultStatus { result = true };
+            this.Load();
+            if (this.stage==(int)EnumSV_ServiceStages.Delivery)
+            {
+                return new ResultStatus { result = false, message = "Cihaz Teslim Edilmiştir" };
+            }
+            this.stage++;
+            this.Save(userId,null, trans);
+            return result;
+        
+        
+        
         }
     }
 }
