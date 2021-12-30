@@ -18,22 +18,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string WarrantyStatus { get; set; } = "Garanti Dışı";
         public string WarrantyStart { get; set; } = "Cihaz Aktif Edilmemiştir";
         public string WarrantyEnd { get; set; } = "Cihaz Aktif Edilmemiştir";
-        public string Url { get; set; }
-        public string Logo { get; set; }
+        public string ProducedDate { get; set; } = "Cihaz Aktif Edilmemiştir";
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
         public Guid ProductId { get; set; }
+        public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
+        public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
+        public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
+        public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
+
+        public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
+
         public VMSV_ServiceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceById(this.id);
             if (data != null)
-            {
+            {   
                 this.B_EntityDataCopyForMaterial(data, true);
+                var findInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
                 var customerService = db.GetVWSV_CustomerUserByServiceId(this.id);
                 var customer = db.GetVWSV_CustomerById(customerService.customerId.Value);
                 var findTitan = db.GetPRD_TitanDeviceActivatedByInventoryId(this.inventoryId.Value);
                 if (findTitan != null)
                 {
+                    PRD_TitanDeviceActivated = findTitan;
                     if (findTitan.CreatedOfTitan.HasValue)
                     {
                         if (findTitan.CreatedOfTitan.Value.AddYears(2) <= DateTime.Now)
@@ -44,11 +52,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         WarrantyEnd = findTitan.CreatedOfTitan.Value.AddDays(2).ToShortDateString();
                     }
                 }
+                this.EntegrationImport = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode) ?? new VWPRD_EntegrationImport();
+                this.EntegrationAction = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode) ?? new PRD_EntegrationAction(); ;
+                this.VWPRD_Inventory = findInventory;
+                var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId.Value);
+                ProducedDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).FirstOrDefault().created.Value.ToShortDateString();
                 this.Customer = new VMSV_CustomerModel().B_EntityDataCopyForMaterial(customer);
                 var getProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
                 Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
                 var getCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id).Select(x => new VMSV_DeviceCameWithModel().B_EntityDataCopyForMaterial(x));
                 this.CameWith = getCameWith.ToList();
+                this.SetButtonPermission();
             }
             return this;
         }
@@ -102,7 +116,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         private ResultStatus Insert()
         {
-            this.db = this.db ?? new WorkOfTimeDatabase();  
+            this.db = this.db ?? new WorkOfTimeDatabase();
             this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
@@ -295,20 +309,37 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public void SendMail()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var data= this.Load();
+            var data = this.Load();
             var imei = db.GetPRD_InventoryById(data.inventoryId.Value);
-            if (data.Customer.email!=null)
+            if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
                 text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
                 text += "<p>Bilgilerinize.</p>";
-                new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName+ " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
+                new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
             }
-               
-          
 
 
 
+
+
+        }
+        public void SetButtonPermission() {
+            if (stage==null)
+            {
+                return;
+            }
+            if (stage!=(int)EnumSV_ServiceStages.Delivery)
+            {
+                if (lastOperationStatus==(int)EnumSV_ServiceActions.TransferStart)
+                {
+                    ButtonPermission.Add(EnumSV_ServiceActions.TransferEnds);
+                }
+                else
+                {
+                    ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                }
+            }
         }
     }
 }

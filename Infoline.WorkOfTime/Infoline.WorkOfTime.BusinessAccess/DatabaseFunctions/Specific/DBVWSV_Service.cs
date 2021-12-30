@@ -38,12 +38,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Müşteriye Teslim"), Generic("icon", "fa fa-truck", "description", "Kalite Kontrol Başarılı, Cihaz Müşteriye Telsim Ediliyor")]
         Delivery = 4,
     }
-    [EnumInfo(typeof(SV_Service), "Operations")]
-    public enum EnumSV_ServiceOperations
+    [EnumInfo(typeof(SV_Service), "Actions")]
+    public enum EnumSV_ServiceActions
     {
-        [Description("Transfer Süreci Başlat"), Generic("icon", "fa fa-truck", "color", "00ff00", "description", "Transfer Süreci Başlat")]
+        [Description("Transfer Süreci Başlat"), Generic("icon", "fa fa-truck", "color", "00ff00", "description", "Transfer Süreci Başlat","attr", "data-model=true id=transferstart data-href=/SV/VWSV_Service/Transfer? data-task=Insert data-method=GET ")]
         TransferStart = 0,
-        [Description("İptal Süreci Başlat"), Generic("icon", "fa fa-cogs", "color", "ff0000", "description", "İptal Süreci Başlat")]
+        [Description("Süreci İptal Et"), Generic("icon", "fa fa-cogs", "color", "ff0000", "description", "Süreci İptal Et")]
         Cancel = 1,
         [Description("Süreci Durdur"), Generic("icon", "fa fa-times", "color", "FFBF00", "description", "Süreci Durdur")]
         Stop = 2,
@@ -56,7 +56,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Harcama Bildirimi Yap"), Generic("icon", "fa fa-cubes", "color", "dc1212", "description", "Harcama Bildirimi Yap")]
         Harcama = 101,
         [Description("Yeni Imei Ata"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Yeni Imei Ata")]
-        NewImei = 101,
+        NewImei = 102,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Kalite Kontrol Başarısız")]
         QualityControllNot= 200,
         [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "dc1212", "description", "Süreci Tamamla")]

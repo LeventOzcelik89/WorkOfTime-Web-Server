@@ -1,9 +1,12 @@
-﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
+﻿@model VMSV_ServiceModel
 @{
     ViewBag.Title = Model.code + " Kodlu Servis Detayları";
     Layout = "~/Views/Shared/_Layout.cshtml";
     var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
+    var buttons = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceActions>();
 }
+<link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
+
 <style type="text/css">
     li {
         list-style: none;
@@ -14,26 +17,185 @@
         overflow: hidden;
         text-overflow: ellipsis;
     }
+
+    #detailProduction .main-timeline2 .timeline2 {
+        width: 20% !important;
+    }
 </style>
-<link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
-<link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
-<script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
-<div>
-    <div class="clearfix animated slideInRight" style="padding: 25px 30px 5px 30px;border: 1px solid rgba(202, 201, 201, 0.4);background: #fff;margin-bottom: 10px;">
-        <div class="main-timeline2">
-            @foreach (var stage in stages)
-            {
-                <div class="timeline2 @Html.Raw(Model.stage==Convert.ToInt32(stage.Key)?"green2":"")">
-                    <a href="#" style="cursor:none" class="timeline-content2" data-toggle="tooltip" data-html="true" data-placement="top" data-original-title="@stage.Generic["description"]">
-                        <div class=" timeline-year2">
-                            <span class="fa @stage.Generic["icon"] fa-2x"></span>
-                        </div>
-                        <div class="inner-content2">
-                            <h3 class="title2"> @stage.Value</h3>
-                        </div>
-                    </a>
-                </div>
-            }
+<div class="animated slideInRight">
+    <div id="detailProduction">
+        <div class="clearfix " style="padding: 25px 30px 5px 30px;border: 1px solid rgba(202, 201, 201, 0.4);background: #fff;margin-bottom: 10px;">
+            <div class="main-timeline2">
+                @foreach (var stage in stages)
+                {
+                    <div class="timeline2 @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"green2":"")">
+                        <a href="#" style="cursor:default" class="timeline-content2" data-toggle="tooltip" data-html="true" data-placement="top" data-original-title="@stage.Generic["description"]">
+                            <div class=" @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"timeline-yeargreen":"timeline-year2")">
+                                <span class="fa @stage.Generic["icon"] fa-2x"></span>
+                            </div>
+                            <div class="inner-content2">
+                                <h3 class="title2"> @stage.Value</h3>
+                            </div>
+                        </a>
+                    </div>
+                }
+            </div>
         </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>
+                        <i class="fa text-success fa fa-list-alt"></i> Cihaz Bilgileri
+                    </h5>
+                </div>
+                <div class="ibox-content clearfix">
+                    <div id="deviceInfo" >
+                        <div class="col-lg-4">
+                            <dl class="dl-horizontal">
+                                <dt>Form No</dt>
+                                <dd>@Model.code</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Garanti Durumu</dt>
+                                <dd>@Model.WarrantyStatus</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Garanti Bitiş Tarihi: </dt>
+                                <dd>@Model.WarrantyEnd  </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Aktivasyon Tarihi: </dt>
+                                <dd> @Model.WarrantyStart </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Üretim Tarihi: </dt>
+                                <dd> @Model.ProducedDate </dd>
+                            </dl>
+
+                        </div>
+                        <div class="col-lg-8">
+                            <dl class="dl-horizontal">
+                                <dt>Tam Cihaz Adı: </dt>
+                                <dd>
+                                    <span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@Model.product_Title</u></strong></span>
+                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.ProductId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Distribütör: </dt>
+                                <dd>
+                                    @Model.EntegrationAction.DistributorName
+                                </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Bayi: </dt>
+                                <dd>   @Model.EntegrationImport.company_Name</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Satın Alınma Tarihi:</dt>
+                                <dd >@(Model.EntegrationImport.contractStartDate.HasValue?Model.EntegrationImport.contractStartDate.Value.ToShortDateString():"")</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>IMEI/Seri Numarası</dt>
+                                <dd>
+                                    <b>@Model.VWPRD_Inventory.serialcode</b>
+                                    <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
+                                </dd>
+                              
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                    <div class="tabs-container">
+                        <ul class="nav nav-tabs">
+                            <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri">
+                                <a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                            </li>
+
+                            <li data-toggle="tooltip" data-placement="top" title="Üretim Bildirimleri">
+                                <a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="fa fa-inbox text-success" aria-hidden="true"></i></a>
+                            </li>
+
+                            <li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
+                                <a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-trash-1 text-success" aria-hidden="true"></i></a>
+                            </li>
+                        </ul>
+
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="kullanilanUrunler">
+                                <div class="ibox">
+                                    <div class="ibox-title">
+                                        <h5>Üretim Harcamaları </h5>
+                                    </div>
+                                    <div class="ibox-content clearfix">
+                                        <div id="productProductsGrid"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane" id="uretimBildirimleri">
+                                <div class="ibox">
+                                    <div class="ibox-title">
+                                        <h5>Üretim Bildirimleri</h5>
+                                    </div>
+                                    <div class="ibox-content clearfix">
+                                        <div id="producedProducts"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="tab-pane" id="fireBildirimleri">
+                                <div class="ibox">
+                                    <div class="ibox-title">
+                                        <h5>Fire Bildirimleri</h5>
+                                    </div>
+                                    <div class="ibox-content clearfix" style="height:600px">
+                                        <div id="wastageProductsGrid"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+
+
+        </div>
+        <div class="col-md-4"></div>
+
+    </div>
+
+
 </div>
+<div class="fixedStart">
+    <input type="checkbox" checked id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+    <div class="fix-buttons" id="buttons">
+        @foreach (var button in buttons)
+        {
+            if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+            {
+                <a  data-original-title="@button.Generic["description"]" style="" data-show="single" @button.Generic["attr"]>
+                    <i class="@button.Generic["icon"]"></i>
+                </a>
+            }
+
+
+        }
+
+    </div>
+</div>
+<script type="text/javascript">
+    $("#buttons [data-href]").each(function (i, item) {
+        $(item).attr("data-href", $(item).attr("data-href") + "serviceId=@Model.id")
+
+
+    });
+</script>

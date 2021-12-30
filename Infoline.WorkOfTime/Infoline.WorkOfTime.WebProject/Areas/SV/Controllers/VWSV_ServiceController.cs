@@ -116,6 +116,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }
+        [AllowEveryone]
+        public ActionResult Transfer(Guid serviceId)
+        {
+            return View();
+        }
 
     }
 }
