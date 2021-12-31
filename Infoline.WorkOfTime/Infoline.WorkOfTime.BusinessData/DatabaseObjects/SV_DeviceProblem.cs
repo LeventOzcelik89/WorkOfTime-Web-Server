@@ -20,5 +20,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string description { get; set;}
         public short? type { get; set;}
         public bool? warranty { get; set;}
+        public double? price { get; set;}
     }
 }

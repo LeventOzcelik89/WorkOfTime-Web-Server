@@ -55,19 +55,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
         TransferEnds = 4,
         [Description("Diğer Aşamaya Geç"), Generic("icon", "fa fa-arrow-right", "color", "97CC04", "description", "Diğer Aşamaya Geç","attr", "data-model=false data-enum=0 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=5 data-task=Insert data-method=POST ")]
         NextStage = 5,
-        [Description("Fire Bildirimi Yap"), Generic("icon", "fa fa-trash", "color", "dc1212", "description", "Fire Bildirimi Yap","attr","")]
+        [Description("Fire Bildirimi Yap"), Generic("icon", "fa fa-trash", "color", "8F2D56", "description", "Fire Bildirimi Yap","attr", "data-model=true data-enum=100 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/Upsert?serviceId={{}} data-task=Insert data-method=GET ")]
         Fire= 100,
-        [Description("Harcama Bildirimi Yap"), Generic("icon", "fa fa-cubes", "color", "dc1212", "description", "Harcama Bildirimi Yap", "attr", "")]
+        [Description("Harcama Bildirimi Yap"), Generic("icon", "fa fa-cubes", "color", "111D4A", "description", "Harcama Bildirimi Yap", "attr", "data-model=true data-enum=100 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/Upsert?serviceId={{}}?Type=14& data-task=Insert data-method=GET ")]
         Harcama = 101,
-        [Description("Yeni Imei Ata"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Yeni Imei Ata", "attr", "")]
+        [Description("Yeni Imei Ata"), Generic("icon", "fa fa-barcode", "color", "0496FF", "description", "Yeni Imei Ata", "attr", "data-model=true data-enum=102 id=transferstart data-ask data-href=/SV/VWSV_ChangedDevice/Insert?serviceId={{}}& data-task=Insert data-method=GET ")]
         NewImei = 102,
-        [Description("Değişecek Parça Belirle"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Değişecek Parça Belirle", "attr", "")]
+        [Description("Değişecek Parça Belirle"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Değişecek Parça Belirle", "attr", "data-model=true data-enum=108 id=transferstart  data-href=/SV/VWSV_DeviceProblem/AddMultipleDeviceProblem?serviceId={{}}&productId={}&inventoryId=[] data-task=Insert data-method=GET ")]
         ChancingPart = 108,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Kalite Kontrol Başarısız", "attr", "")]
         QualityControllNot= 200,
         [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "dc1212", "description", "Süreci Tamamla", "attr", "")]
         Done = 300,
-        [Description("Müşterinin Onayına Sun"), Generic("icon", "fa fa-check", "color", "dc1212", "description", "Müşterinin Onayına Sun", "attr", "")]
+        [Description("Müşterinin Onayına Sun"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşterinin Onayına Sun", "attr", "data-model=true data-enum=400 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
         AskCustomer = 400,
     }
     partial class WorkOfTimeDatabase

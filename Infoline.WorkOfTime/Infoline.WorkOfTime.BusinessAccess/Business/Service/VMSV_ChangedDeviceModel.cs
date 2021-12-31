@@ -7,14 +7,14 @@ using System.Linq;
 using System.Web;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    public class VMSV_ProblemModel : VWSV_Problem
+    public class VMSV_ChangedDeviceModel : VWSV_ChangedDevice
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMSV_ProblemModel Load()
+        public VMSV_ChangedDeviceModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetVWSV_ProblemById(this.id);
+            var data = db.GetVWSV_ChangedDeviceById(this.id);
             if (data!=null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -25,7 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            var data = db.GetVWSV_ProblemById(this.id);
+            var data = db.GetVWSV_ChangedDeviceById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
             if (validation.result == false)
@@ -66,18 +66,52 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
-            if (code==null)
+            var dbresult = db.InsertSV_ChangedDevice(this.B_ConvertType<SV_ChangedDevice>(), this.trans);
+            var inventories = db.GetVWPRD_InventoryByIds(new[] { oldInventoryId.Value,newInventoryId.Value});
+            var listOfTransItems = new List<VMPRD_TransactionItems>();
+            foreach (var item in inventories)
             {
-                code = BusinessExtensions.B_GetIdCode();
+                
+              
+                    var findProduct = db.GetVWPRD_ProductById(item.productId.Value);
+                    if (findProduct != null)
+                    {
+                        listOfTransItems.Add(new VMPRD_TransactionItems
+                        {
+                            productId = item.productId,
+                            quantity = 1,
+                            serialCodes = item.serialcode ?? "",
+                            unitPrice = findProduct.currentSellingPrice??0,
+                        });
+                    }
+               
+               
             }
-            var dbresult = db.InsertSV_Problem(this.B_ConvertType<SV_Problem>(), this.trans);
+            var transModelForExpens = new VMPRD_TransactionModel
+            {
+                inputId = null,
+                inputTable = null,
+                outputId = this.id,
+                outputTable = "SV_ChangedDevice",
+                created = this.created,
+                createdby = this.createdby,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = listOfTransItems,
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = (short)EnumPRD_TransactionType.CihazDegisimi,
+                id = Guid.NewGuid()
+            };
+
+
+            dbresult &= transModelForExpens.Save(this.createdby, trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Yeni Problem oluşturma işlemi başarısız oldu."
+                    message = "Yeni Cihaz Değiştirme işlemi başarısız oldu."
                 };
             }
             else
@@ -85,21 +119,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Yeni Problem oluşturma işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Yeni Cihaz Değiştirme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdateSV_Problem(this.B_ConvertType<SV_Problem>(), false, this.trans);
+            dbresult &= db.UpdateSV_ChangedDevice(this.B_ConvertType<SV_ChangedDevice>(), false, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Problem güncelleme işlemi başarısız oldu."
+                    message = "Cihaz Değiştirme güncelleme işlemi başarısız oldu."
                 };
             }
             else
@@ -107,7 +141,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Problem güncelleme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Cihaz Değiştirme güncelleme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
@@ -116,7 +150,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeleteSV_Problem(this.id, trans);
+            var dbresult = db.DeleteSV_ChangedDevice(this.id, trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -124,7 +158,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Problem silme işlemi başarısız oldu."
+                    message = "Cihaz Değiştirme silme işlemi başarısız oldu."
                 };
             }
             else
@@ -133,7 +167,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Problem silme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Cihaz Değiştirme silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
