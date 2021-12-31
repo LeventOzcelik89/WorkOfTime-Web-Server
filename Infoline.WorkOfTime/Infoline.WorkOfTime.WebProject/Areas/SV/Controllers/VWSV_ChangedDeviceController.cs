@@ -13,12 +13,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
 	public class VWSV_ChangedDeviceController : Controller
 	{
+		[AllowEveryone]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-
+		[AllowEveryone]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -33,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
+		[AllowEveryone]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -43,84 +44,75 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
+		[AllowEveryone]
 		public ActionResult Detail(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_ChangedDeviceById(id);
-		    return View(data);
+			var data = new VMSV_ChangedDeviceModel {id=id }.Load();
+
+			return View(data);
 		}
 
-
-		public ActionResult Insert()
+		[AllowEveryone]
+		public ActionResult Insert(VMSV_ChangedDeviceModel model)
 		{
-		    var data = new VWSV_ChangedDevice { id = Guid.NewGuid() };
-		    return View(data);
+		   
+		    return View(model);
 		}
 
-
+		[AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(SV_ChangedDevice item)
+		public JsonResult Insert(VMSV_ChangedDeviceModel model, bool? isPost)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertSV_ChangedDevice(item);
-		    var result = new ResultStatusUI
+			var dbresult = model.Save(userStatus.user.id);
+
+			var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+		        FeedBack = dbresult.result ? feedback.Success("Cihaz Başarıyla Değiştirildi") : feedback.Warning("Cihaz Başarıyla Değiştirilme İşlemi Başarısız Oldu")
 		    };
-		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
-
-
-		public ActionResult Update(Guid id)
+		[AllowEveryone]
+		public ActionResult Update(VMSV_ChangedDeviceModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSV_ChangedDeviceById(id);
-		    return View(data);
+			var data = new VMSV_ChangedDeviceModel().Load();
+			return View(data);
 		}
 
-
+		[AllowEveryone]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(SV_ChangedDevice item)
+		public JsonResult Update(VMSV_ChangedDeviceModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdateSV_ChangedDevice(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var db = new WorkOfTimeDatabase();
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = model.Save(userStatus.user.id);
+
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Cihaz Başarıyla Değiştirilme Kaydı Güncellendi") : feedback.Warning("Cihaz Başarıyla Değiştirilme Kaydı Güncelleme işlemi başarısız oldu!")
+			};
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-
+		[AllowEveryone]
 		[HttpPost]
-		public JsonResult Delete(string[] id)
+		public JsonResult Delete(VMSV_ChangedDeviceModel model)
 		{
 		    var db = new WorkOfTimeDatabase();
 		    var feedback = new FeedBack();
-		
-		    var item = id.Select(a => new SV_ChangedDevice { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeleteSV_ChangedDevice(item);
+
+
+			var dbresult = model.Delete();
 		
 		    var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+		        FeedBack = dbresult.result ? feedback.Success("Cihaz Başarıyla Değiştirilme Kaydı Silindi") : feedback.Warning("Cihaz Başarıyla Değiştirilme Kaydı Silme İşlemi Başarısız Oldu!")
 		    };
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);

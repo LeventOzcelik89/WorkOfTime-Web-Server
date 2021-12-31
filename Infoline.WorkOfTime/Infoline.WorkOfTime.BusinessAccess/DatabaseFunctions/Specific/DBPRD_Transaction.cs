@@ -61,6 +61,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         HarcamaBildirimi = 100,
         [Description("Uretim Bildirimi"), Generic("icon", "ii-isletme-envanteri")]
         UretimBildirimi = 101,
+        [Description("Cihaz Değişimi"), Generic("icon", "ii-isletme-envanteri")]
+        CihazDegisimi = 102,
 
     }
 

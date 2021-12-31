@@ -408,44 +408,35 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             if (stage == (int)EnumSV_ServiceStages.DeviceHanded)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
             }
             else if (stage == (int)EnumSV_ServiceStages.Detection)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.ChancingPart);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
             }
             else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
             else if (stage == (int)EnumSV_ServiceStages.Fixing)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Fire);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
-                //ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
+                ButtonPermission.Add(EnumSV_ServiceActions.Fire);
+                ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
+                ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
             else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 

@@ -783,6 +783,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Harcandi;
                 case EnumPRD_TransactionType.UretimBildirimi:
                     return EnumPRD_InventoryActionType.Uretildi;
+                case EnumPRD_TransactionType.CihazDegisimi:
+                    return EnumPRD_InventoryActionType.CihazDegisimi;
                 default:
                     return null;
             }
@@ -821,6 +823,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Harcandi;
                 case EnumPRD_TransactionType.UretimBildirimi:
                     return EnumPRD_InventoryActionType.Uretildi;
+                case EnumPRD_TransactionType.CihazDegisimi:
+                    return EnumPRD_InventoryActionType.CihazDegisimi;
                 default:
                     return null;
             }
