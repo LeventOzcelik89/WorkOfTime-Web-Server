@@ -23,7 +23,7 @@ namespace Infoline.WorkOfTime.WebService
         [HandleFunction("MBUT_LocationTracking/Insert")]
         public void MBUT_LocationTrackingInsert(HttpContext context)
         {
-            Log.Warning("Ömer servise geldi.");
+            //Log.Warning("Ömer servise geldi.");
             var db = new WorkOfTimeDatabase();
             var locations = ParseRequest<VMUT_LocationTrackings[]>(context);
             var id = context.Request["userId"];

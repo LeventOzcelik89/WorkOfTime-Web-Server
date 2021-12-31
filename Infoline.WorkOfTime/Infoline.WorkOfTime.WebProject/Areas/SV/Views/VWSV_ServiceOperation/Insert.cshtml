@@ -1,0 +1,59 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSV_ServiceOperation
+@{
+    var text = "Yeni Aksiyon Ekle";
+    if (Model.status==(int)EnumSV_ServiceActions.Cancel)
+    {
+        text = "Teknik Servis Sürecini İptal Et";
+    }
+    if (Model.status == (int)EnumSV_ServiceActions.ReStart)
+    {
+        text = "Teknik Servis Sürecini Yeniden Başlat";
+
+    }
+     if (Model.status == (int)EnumSV_ServiceActions.AskCustomer)
+    {
+        text = "Müşteri Onayına Sun";
+
+    }
+    if (Model.status == (int)EnumSV_ServiceActions.Stop)
+    {
+        text = "Teknik Servis Sürecini Durdur";
+    }
+
+    ViewBag.Title = text;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<style>
+    .w100 {
+        width:100%!important;
+    }
+</style>
+@using(Html.BeginForm("Insert", "VWSV_ServiceOperation", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model=>model.status)
+    @Html.HiddenFor(model=>model.serviceId)
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="description">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>() 
+            {
+                {"class", "form-control w100"},
+            }).Validate(Validations.Required)
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

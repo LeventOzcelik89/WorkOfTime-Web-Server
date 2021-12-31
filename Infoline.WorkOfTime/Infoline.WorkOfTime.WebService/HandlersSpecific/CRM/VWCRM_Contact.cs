@@ -81,7 +81,9 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
 
 
                 var trans = db.BeginTransaction();
-                var dbresult = db.InsertCRM_Contact(new CRM_Contact().B_EntityDataCopyForMaterial(model, true), trans);
+                var data = db.GetCRM_ContactById(model.id);
+                var tempCopy = new CRM_Contact().B_EntityDataCopyForMaterial(model, true);
+                var dbresult = data == null ? db.InsertCRM_Contact(tempCopy, trans) : db.UpdateCRM_Contact(tempCopy);
 
                 if (model.PresentationId.HasValue)
                 {
@@ -89,12 +91,14 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     {
                         created = DateTime.Now,
                         createdby = CallContext.Current.UserId,
-                        description = "Yeni aktivite/randevu eklendi.",
+                        description = data == null ? "Yeni aktivite/randevu eklendi." : "Aktivite/randevu güncellendi.",
                         presentationId = model.PresentationId.Value,
-                        type = (short)EnumCRM_PresentationActionType.YeniAktivite,
+                        type = data == null ? (short)EnumCRM_PresentationActionType.YeniAktivite : (short)EnumCRM_PresentationActionType.AktiviteDüzenle,
                         contactId = model.id,
                     }, trans);
                 }
+                var conctactUsers = db.GetCRM_ContactUserByContactId(model.id);
+                dbresult &= db.BulkDeleteCRM_ContactUser(conctactUsers);
                 dbresult &= db.BulkInsertCRM_ContactUser(model.Users.Select(a => new CRM_ContactUser
                 {
                     id = Guid.NewGuid(),
@@ -348,7 +352,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
             try
             {
                 var model = new PageModel { SearchProperty = "searchField" };
-                
+
                 model.Filters.Add(new PageFilter
                 {
                     Title = "Aktivite/Randevu Tipine Göre",
