@@ -143,6 +143,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-
+		[AllowEveryone]
+		public ActionResult Upsert(VMSV_ServiceOperationModel model)
+		{
+			model.Transaction = new VWPRD_Transaction();
+			model.Transaction.type = model.Type;
+			return View(model);
+		}
 	}
 }

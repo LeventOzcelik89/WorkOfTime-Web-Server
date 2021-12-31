@@ -66,6 +66,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
+            if (code==null)
+            {
+                code = BusinessExtensions.B_GetIdCode();
+            }
             var dbresult = db.InsertSV_Problem(this.B_ConvertType<SV_Problem>(), this.trans);
             if (!dbresult.result)
             {

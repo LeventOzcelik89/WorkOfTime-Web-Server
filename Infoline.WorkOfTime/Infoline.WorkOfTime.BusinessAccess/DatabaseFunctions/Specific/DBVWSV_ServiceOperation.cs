@@ -33,8 +33,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Started = 107,
         [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
         PartChanged = 108,
+        [Description("Değiştirilecek Parçalar Belirlendi"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
+        PartDefinied = 108,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Kalite Kontrol Başarısız")]
         QualityControllNot = 200,
+        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Kalite Kontrol Başarısız")]
+        AskCustomer = 400,
     }
   
     partial class WorkOfTimeDatabase

@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceById(this.id);
             if (data != null)
-            {   
+            {
 
                 this.B_EntityDataCopyForMaterial(data, true);
                 var findInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var getCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id).Select(x => new VMSV_DeviceCameWithModel().B_EntityDataCopyForMaterial(x));
                 this.CameWith = getCameWith.ToList();
                 this.SetButtonPermission();
-                this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>(); 
+                this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>();
             }
             return this;
         }
@@ -325,12 +325,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
         }
-        public void SetButtonPermission() {
-            if (stage==null)
+        public void SetButtonPermission()
+        {
+            if (stage == null)
             {
                 return;
             }
-            if (lastOperationStatus==(int)EnumSV_ServiceOperation.BeginTransfer)
+            if (lastOperationStatus == (int)EnumSV_ServiceOperation.BeginTransfer)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferEnds);
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
@@ -381,7 +382,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
             {
-               
+
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
             {
@@ -403,7 +404,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
 
         }
-        private void SetStageButton() {
+        private void SetStageButton()
+        {
             if (stage == (int)EnumSV_ServiceStages.DeviceHanded)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
@@ -419,7 +421,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ButtonPermission.Add(EnumSV_ServiceActions.ChancingPart);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
             }
-            else if (stage==(int)EnumSV_ServiceStages.UserPermission)
+            else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
@@ -433,9 +435,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.Stop);
-                ButtonPermission.Add(EnumSV_ServiceActions.Fire);
-                ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
-                ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Fire);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
+                //ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
@@ -448,7 +450,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
-            else  
+            else
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
@@ -456,20 +458,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
             }
         }
-        public ResultStatus NextStage(Guid userId,DbTransaction trans=null) {
+        public ResultStatus NextStage(Guid userId, DbTransaction trans = null)
+        {
 
             var result = new ResultStatus { result = true };
             this.Load();
-            if (this.stage==(int)EnumSV_ServiceStages.Delivery)
+            if (this.stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 return new ResultStatus { result = false, message = "Cihaz Teslim Edilmiştir" };
             }
             this.stage++;
-            this.Save(userId,null, trans);
+            this.Save(userId, null, trans);
             return result;
-        
-        
-        
+
+
+
         }
     }
 }

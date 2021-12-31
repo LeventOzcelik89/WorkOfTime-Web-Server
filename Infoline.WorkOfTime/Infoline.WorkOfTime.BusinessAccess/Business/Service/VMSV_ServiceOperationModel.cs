@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Web;
 namespace Infoline.WorkOfTime.BusinessAccess
@@ -10,6 +11,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         public  Guid? companyId { get; set; }
+        public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public VWPRD_Transaction Transaction { get; set; }
+        public short Type { get; set; }
         public VMSV_ServiceOperationModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
