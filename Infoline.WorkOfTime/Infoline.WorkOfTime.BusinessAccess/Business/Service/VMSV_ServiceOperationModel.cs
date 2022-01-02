@@ -13,11 +13,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public  Guid? companyId { get; set; }
         public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public VWPRD_Transaction Transaction { get; set; }
+        public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
         public short Type { get; set; }
+        public Guid? storageId { get; set; }
+
         public VMSV_ServiceOperationModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceOperationById(this.id);
+            if (serviceId!=null)
+            {
+                var findService = db.GetVWSV_ServiceById(serviceId.Value);
+                if (findService!=null)
+                {
+                    var serviceModel = new VMSV_ServiceModel();
+                    serviceModel.GetVWPRD_ProductMateriels(findService.productId.HasValue?findService.productId.Value:new Guid());
+                    TreeProduct=serviceModel.GetProductMetarials;
+
+
+                }
+            }
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -142,6 +157,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Servis Operasyonu silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
+        }
+        public ResultStatus GetStockByProductAndStorageId(Guid[] productId,Guid storageId ) { 
+            var result = new ResultStatus{ result=true };
+            db = db ?? new WorkOfTimeDatabase();
+            result.objects= db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId,storageId);
+            return result;
         }
     }
 }

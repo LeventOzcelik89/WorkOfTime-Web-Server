@@ -148,7 +148,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		{
 			model.Transaction = new VWPRD_Transaction();
 			model.Transaction.type = model.Type;
-			return View(model);
+			return View(model.Load());
 		}
 	}
 }

@@ -1,6 +1,6 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWSV_ChangedDevice
 @{
-    ViewBag.Title = "Kayıt Güncelleme";
+    ViewBag.Title = "Cihaz Değiştirme İşlemini Güncelle";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -14,197 +14,44 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
-
+    @Html.HiddenFor(model=>model.serviceId)
+    
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="oldInventoryId">oldInventoryId</label>
+            <label class="control-label label-md" for="oldInventoryId">Eski Cihaz</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.oldInventoryId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen oldInventoryId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @(Html.Akilli()
+          .DropDownListFor(x => x.oldInventoryId)
+          .OptionLabel("Cihaz Seçiniz..")
+          .DataTextField("fullNameProduct")
+          .DataValueField("id")
+          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+          .Sort(x => x.Add("serialcode").Ascending())
+          .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
+          .Validate(Validations.Required)
+          .Readonly(Model.oldInventoryId.HasValue)
+          .Execute("id"))
         </div>
     </div>
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="newInventoryId">newInventoryId</label>
+            <label class="control-label label-md" for="newInventoryId">Yeni Cihaz</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.newInventoryId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen newInventoryId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="serviceId">serviceId</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.serviceId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen serviceId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="createdby_Title">createdby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.createdby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen createdby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="changedby_Title">changedby_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.changedby_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen changedby_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="oldInventoryCode_Title">oldInventoryCode_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.oldInventoryCode_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen oldInventoryCode_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="newInventoryCode_Title">newInventoryCode_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.newInventoryCode_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen newInventoryCode_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="serialCode">serialCode</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.serialCode, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen serialCode Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="oldproduct_Title">oldproduct_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.oldproduct_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen oldproduct_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="newproduct_Title">newproduct_Title</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.newproduct_Title, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen newproduct_Title Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="serviceCode">serviceCode</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.serviceCode, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen serviceCode Girin.."},
-            }).Validate(Validations.Required)
+            @(Html.Akilli()
+          .DropDownListFor(x => x.newInventoryId)
+          .OptionLabel("Yeni Cihaz Seçiniz..")
+          .DataTextField("fullNameProduct")
+          .DataValueField("id")
+          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+          .Sort(x => x.Add("serialcode").Ascending())
+          .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
+          .Validate(Validations.Required)
+          .Execute("id"))
         </div>
     </div>
 

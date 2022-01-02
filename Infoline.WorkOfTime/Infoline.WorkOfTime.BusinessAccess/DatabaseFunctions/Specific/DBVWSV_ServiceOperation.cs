@@ -23,7 +23,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         FireBildirimiYapildi = 100,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "73A580", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 101,
-        [Description("Yeni Imei Ata"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Yeni Imei Ata")]
+        [Description("Yeni Imei Atandı"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Yeni Imei Atandı")]
         NewImei = 102,
         [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "6D213C", "description", "Servis Kaydı Güncellendi")]
         Updated = 105,
