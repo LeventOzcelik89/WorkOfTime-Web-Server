@@ -164,5 +164,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             result.objects= db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId,storageId);
             return result;
         }
+        public ResultStatus QualiltyCheck(Guid serviceId, bool status,Guid userId) {
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId);
+
+
+            return result;
+            
+        
+        
+        }
     }
 }

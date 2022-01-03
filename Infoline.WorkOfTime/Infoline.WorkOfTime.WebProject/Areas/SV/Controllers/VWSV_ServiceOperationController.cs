@@ -150,5 +150,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			model.Transaction.type = model.Type;
 			return View(model.Load());
 		}
+		public JsonResult QualityCheck(Guid serviceId,bool status) {
+            if (status==true)
+            {
+				
+            }
+			
+		}
 	}
 }

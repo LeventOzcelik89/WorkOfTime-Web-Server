@@ -1,10 +1,8 @@
-﻿using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.WorkOfTime.BusinessAccess;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Linq;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
