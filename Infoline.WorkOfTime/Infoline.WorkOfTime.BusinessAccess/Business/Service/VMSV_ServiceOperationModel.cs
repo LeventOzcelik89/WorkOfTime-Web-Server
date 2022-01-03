@@ -82,16 +82,41 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-       
+            var dbresult = db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
             if (this.companyId.HasValue)
             {
+                var getService = db.GetVWSV_ServiceById(this.serviceId.Value);
+                var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
+                var transItem = new VMPRD_TransactionItems
+                {
+                    productId = getInventory.productId,
+                    quantity = 1,
+                    serialCodes = getInventory.serialcode ?? "",
+                    unitPrice = 0,
+                };
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = companyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                    id = Guid.NewGuid(),
+                };
+                dbresult &= transModelCompanyId.Save(this.createdby, trans);
                 var getCompany = db.GetVWCMP_CompanyById(this.companyId.Value);
                 if (getCompany!=null)
                 {
                     description = $"Transfer Edilen Şube: {getCompany.fullName} </br>" + description;
                 }
             } 
-            var dbresult = db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);

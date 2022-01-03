@@ -17,5 +17,8 @@ namespace Infoline.WorkOfTime.BusinessData
         /// açıklama
         /// </summary>
         public string description { get; set;}
+        public Guid? CargoId { get; set;}
+        public Guid? CompanyId { get; set;}
+        public Guid? CargoNo { get; set;}
     }
 }

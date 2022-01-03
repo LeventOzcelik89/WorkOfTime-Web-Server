@@ -58,6 +58,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         BakimEnvanteri = 101,
         [Description("Cihaz Değişti"), Generic("icon", "icon-phone")]
         CihazDegisimi = 102,
+        [Description("Teknik Servise Geldi"), Generic("icon", "icon-cogs")]
+        TeknikServiceGeldi = 103,
     }
 
 

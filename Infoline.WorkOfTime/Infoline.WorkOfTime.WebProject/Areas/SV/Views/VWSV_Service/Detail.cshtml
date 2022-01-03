@@ -5,6 +5,7 @@
     var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
     var buttons = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceActions>();
     var operationEnums = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumSV_ServiceOperation>().ToArray();
+    var activeStage = "";
 }
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
 <link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
@@ -21,7 +22,7 @@
     }
 
     #detailProduction .main-timeline2 .timeline2 {
-        width: 16.66% !important;
+        width: 20% !important;
     }
 
     .tab-pane {
@@ -34,6 +35,10 @@
             <div class="main-timeline2">
                 @foreach (var stage in stages)
                 {
+                    if (Model.stage+1== Convert.ToInt32(stage.Key))
+                    {
+                        activeStage = stage.Value;
+                    }
                     <div class="timeline2 @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"green2":"")">
                         <a href="#" style="cursor:default" class="timeline-content2" data-toggle="tooltip" data-html="true" data-placement="top" data-original-title="@stage.Generic["description"]">
                             <div class=" @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"timeline-yeargreen":"timeline-year2")">
@@ -85,7 +90,7 @@
                                 <dt>Tam Cihaz Adı: </dt>
                                 <dd>
                                     <span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@Model.product_Title</u></strong></span>
-                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.ProductId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.productId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
                                 </dd>
                             </dl>
                             <dl class="dl-horizontal">
@@ -260,12 +265,17 @@
                 $("#buttons [data-href]").each(function (i, item) {
                     var href = $(item).attr("data-href").replace("{{}}", "@Model.id");
                     $(item).attr("data-href", href);
-                    var dataEnum = $(item).attr("data-enum");
+                    var dataEnum = parseInt($(item).attr("data-enum"));
                     if (dataEnum==4) {
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
+                    else if (dataEnum == 5) {
+                        debugger
+                        var stage = $(item).attr("data-original-title").replace("{{stage}}", "@activeStage Aşamasına Geç");
+                        $(item).attr("data-original-title", stage);
+                    }
                     else if (dataEnum == 108) {
-                        var productId = $(item).attr("data-href").replace("{}", "@Model.ProductId");
+                        var productId = $(item).attr("data-href").replace("{}", "@Model.productId");
                         $(item).attr("data-href", productId);
                         var inventoryId = $(item).attr("data-href").replace("[]", "@Model.inventoryId");
                         $(item).attr("data-href", inventoryId);

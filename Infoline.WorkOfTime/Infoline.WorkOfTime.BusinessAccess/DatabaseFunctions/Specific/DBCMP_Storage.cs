@@ -30,8 +30,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_Storage>().Where(a => a.companyId == companyId).Execute().ToArray();
             }
         }
-
-
         public CMP_Storage GetCMP_StorageByCompanyIdFirst(Guid companyId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
@@ -40,7 +38,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_Storage>().Where(a => a.companyId == companyId).OrderBy(x => x.created).Execute().FirstOrDefault();
             }
         }
-
         public CMP_Storage[] GetCMP_StorageByCompanyId(Guid companyId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

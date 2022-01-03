@@ -38,7 +38,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         //[Description("Kalite Kontrol"), Generic("icon", "fa fa-check", "description", "Kalite Kontrol Süreci Başladı")]
         //Qualitycontrol = 4,
         [Description("Müşteriye Teslim"), Generic("icon", "fa fa-truck", "description", "Kalite Kontrol Başarılı, Cihaz Müşteriye Telsim Ediliyor")]
-        Delivery = 5,
+        Delivery = 4,
     }
     [EnumInfo(typeof(SV_Service), "Actions")]
     public enum EnumSV_ServiceActions
@@ -53,7 +53,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         ReStart = 3,
         [Description("Transfer Sürecini Bitir"), Generic("icon", "fa fa-truck", "color", "F45D01", "description", "Transfer Sürecini Bitir", "attr", " data-enum=4 data-model=true id=transferend data-href=/SV/VWSV_ServiceOperation/Transfer?serviceId={{}}&status=4  data-task=Insert data-method=GET  ")]
         TransferEnds = 4,
-        [Description("Diğer Aşamaya Geç"), Generic("icon", "fa fa-arrow-right", "color", "97CC04", "description", "{{stage}}","attr", "data-model=false data-enum=0 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=5 data-task=Insert data-method=POST ")]
+        [Description("Diğer Aşamaya Geç"), Generic("icon", "fa fa-arrow-right", "color", "97CC04", "description", "{{stage}}","attr", "data-model=false data-enum=5 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=5 data-task=Insert data-method=POST ")]
         NextStage = 5,
         [Description("Fire Bildirimi Yap"), Generic("icon", "fa fa-trash", "color", "8F2D56", "description", "Fire Bildirimi Yap","attr", "data-model=true data-enum=100 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Upsert?serviceId={{}}&Type=14 data-task=Insert data-method=GET ")]
         Fire= 100,

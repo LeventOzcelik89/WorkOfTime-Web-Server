@@ -20,7 +20,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string WarrantyEnd { get; set; } = "Cihaz Aktif Edilmemiştir";
         public string ProducedDate { get; set; } = "Cihaz Aktif Edilmemiştir";
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
-        public Guid ProductId { get; set; }
         public List<VWSV_ServiceOperation> ServiceOperations { get; set; } = new List<VWSV_ServiceOperation>();
         public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
         public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
@@ -123,8 +122,53 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
+            var getInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
             result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
-
+            var user = db.GetVWSH_UserById(this.createdby.Value);
+            var transItem = new VMPRD_TransactionItems
+            {
+                productId = getInventory.productId,
+                quantity = 1,
+                serialCodes = getInventory.serialcode ?? "",
+                unitPrice = 0,
+            };
+            if (companyId.HasValue)
+            {
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = companyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId =getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                    id = Guid.NewGuid(),
+                };
+                result &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            var transModel = new VMPRD_TransactionModel
+            {
+                inputId = db.GetCMP_StorageByCompanyIdFirst(user.CompanyId.Value)?.id,
+                inputTable = "CMP_Storage",
+                inputCompanyId = user.CompanyId,
+                outputCompanyId = getInventory.lastActionDataCompanyId,
+                outputId = getInventory.lastActionDataId,
+                created = this.created,
+                createdby = this.createdby,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = new List<VMPRD_TransactionItems> { transItem },
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                id = Guid.NewGuid(),
+            };
+            result &= transModel.Save(this.createdby, trans);
             if (Problems != null)
             {
                 foreach (var problem in Problems)
@@ -149,6 +193,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 serviceId = this.id,
                 status = (int)EnumSV_ServiceOperation.Started,
             }.Save(this.createdby, null, this.trans);
+
             if (result.result)
             {
                 SendMail();
