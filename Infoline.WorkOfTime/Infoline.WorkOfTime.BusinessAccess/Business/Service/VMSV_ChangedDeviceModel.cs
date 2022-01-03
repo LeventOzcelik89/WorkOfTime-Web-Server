@@ -67,27 +67,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
             var dbresult = db.InsertSV_ChangedDevice(this.B_ConvertType<SV_ChangedDevice>(), this.trans);
-            var inventories = db.GetVWPRD_InventoryByIds(new[] { oldInventoryId.Value,newInventoryId.Value});
-            var listOfTransItems = new List<VMPRD_TransactionItems>();
-            foreach (var item in inventories)
+            var getOldInventory = db.GetVWPRD_InventoryById(oldInventoryId.Value);
+            var getNewInventory= db.GetVWPRD_InventoryById(newInventoryId.Value);
+            var oldTransItem = new VMPRD_TransactionItems
             {
-                
-              
-                    var findProduct = db.GetVWPRD_ProductById(item.productId.Value);
-                    if (findProduct != null)
-                    {
-                        listOfTransItems.Add(new VMPRD_TransactionItems
-                        {
-                            productId = item.productId,
-                            quantity = 1,
-                            serialCodes = item.serialcode ?? "",
-                            unitPrice = findProduct.currentSellingPrice??0,
-                        });
-                    }
-               
-               
-            }
-            var transModelForExpens = new VMPRD_TransactionModel
+                productId = getOldInventory.productId,
+                quantity = 1,
+                serialCodes = getOldInventory.serialcode?? "",
+                unitPrice = 0,
+
+
+            };
+            var newTransItem = new VMPRD_TransactionItems
+            {
+                productId = getNewInventory.productId,
+                quantity = 1,
+                serialCodes = getNewInventory.serialcode ?? "",
+                unitPrice = 0,
+            };
+        
+           
+            var transModelForOld = new VMPRD_TransactionModel
             {
                 inputId = null,
                 inputTable = null,
@@ -96,15 +96,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 created = this.created,
                 createdby = this.createdby,
                 status = (int)EnumPRD_TransactionStatus.islendi,
-                items = listOfTransItems,
+                items = new List<VMPRD_TransactionItems> { oldTransItem },
                 date = DateTime.Now,
                 code = BusinessExtensions.B_GetIdCode(),
                 type = (short)EnumPRD_TransactionType.CihazDegisimi,
-                id = Guid.NewGuid()
+                id = Guid.NewGuid(),
+                description=$"Yeni Seri Numarası: {newTransItem.serialCodes}"
             };
-
-
-            dbresult &= transModelForExpens.Save(this.createdby, trans);
+            var transModelForNew = new VMPRD_TransactionModel
+            {
+                inputId = null,
+                inputTable = null,
+                outputId = this.id,
+                outputTable = "SV_ChangedDevice",
+                created = this.created,
+                createdby = this.createdby,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = new List<VMPRD_TransactionItems> { newTransItem },
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = (short)EnumPRD_TransactionType.CihazDegisimi,
+                id = Guid.NewGuid(),
+                description = $"Eski Seri Numarası: {oldTransItem.serialCodes}"
+            };
+            if (serviceId!=null)
+            {
+                dbresult &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = this.createdby,
+                    description = "Yeni Cihaz Ataması Yapıldı",
+                    serviceId = this.serviceId,
+                    status = (int)EnumSV_ServiceOperation.NewImei,
+                }.Save(this.createdby, null, this.trans);
+            }
+            dbresult &= transModelForNew.Save(this.createdby, trans);
+            dbresult &= transModelForOld.Save(this.createdby, trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);

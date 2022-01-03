@@ -115,8 +115,11 @@
             </div>
             <div class="tabs-container">
                 <ul class="nav nav-tabs">
-                    <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri">
-                        <a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Müşteri Beyanı)">
+                        <a data-toggle="tab" href="#musteri" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                    </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Teknik Servis Bulguları)">
+                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihazın Yanında Gelenler">
                         <a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="fa fa-inbox text-success" aria-hidden="true"></i></a>
@@ -126,20 +129,42 @@
                     </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane active" id="kullanilanUrunler">
+                    <div class="tab-pane active" id="musteri">
                         <div class="ibox">
                             <div class="ibox-title">
-                                <h5>Cihaz Problemleri </h5>
+                                <h5>Cihaz Problemleri(Müşteri Beyanı) </h5>
                             </div>
                             <div class="ibox-content clearfix">
                                 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceProblem>("VWSV_DeviceProblem")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id))
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id && b.type==(int)EnumSV_DeviceProblemType.Customer))
     .Columns(x =>
     {
         x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
         x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
-        x.Bound(y => y.description).Title("description").Width(180);
+        x.Bound(y => y.description).Title("Açıklama").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+    }))
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="tab-pane" id="tecnic">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Cihaz Problemleri(Teknik Servis Bulguları) </h5>
+                            </div>
+                            <div class="ibox-content clearfix">
+                                @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceProblem>("VWSV_DeviceProblemTecnical")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id && b.type==(int)EnumSV_DeviceProblemType.Service))
+    .Columns(x =>
+    {
+        x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
+        x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
+        x.Bound(y => y.description).Title("Açıklama").Width(180);
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .ToolBar(x =>
@@ -177,7 +202,7 @@
                                 <h5>Fire Bildirimleri</h5>
                             </div>
                             <div class="ibox-content clearfix" style="height:600px">
-                                <div id="wastageProductsGrid"></div>
+
                             </div>
                         </div>
                     </div>
@@ -244,6 +269,10 @@
                         $(item).attr("data-href", productId);
                         var inventoryId = $(item).attr("data-href").replace("[]", "@Model.inventoryId");
                         $(item).attr("data-href", inventoryId);
+                    }
+                    else if (dataEnum == 102) {
+                        var inventoryId = $(item).attr("data-href").replace("%%", "@Model.inventoryId");
+                        $(item).attr("data-href", inventoryId)
                     }
                   });
             }

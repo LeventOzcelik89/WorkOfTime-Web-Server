@@ -148,7 +148,20 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		{
 			model.Transaction = new VWPRD_Transaction();
 			model.Transaction.type = model.Type;
-			return View(model);
+			return View(model.Load());
+		}
+		[AllowEveryone]
+		public JsonResult QualityCheck(Guid serviceId,bool status) {
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = new VMSV_ServiceOperationModel().QualiltyCheck(serviceId,status,userStatus.user.id);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Aşama Güncellendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+			};
+			return Json(result,JsonRequestBehavior.AllowGet);
+
 		}
 	}
 }
