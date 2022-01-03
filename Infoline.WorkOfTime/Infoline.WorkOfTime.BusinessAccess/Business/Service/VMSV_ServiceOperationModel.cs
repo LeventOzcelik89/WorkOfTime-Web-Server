@@ -166,14 +166,36 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
         public ResultStatus QualiltyCheck(Guid serviceId, bool status,Guid userId) {
             var result = new ResultStatus { result = true };
-            db = db ?? new WorkOfTimeDatabase();
-            result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId);
-
-
-            return result;
             
-        
-        
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            if (status==true)
+            {
+                result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarılı",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControl,
+                }.Save(userId, null, this.trans);
+            }
+            else
+            {
+                var service = new VMSV_ServiceModel {id=serviceId }.Load();
+                service.stage=(int)EnumSV_ServiceStages.Fixing;
+                result &=service.Save(userId, null, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarısız",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControlNot,
+                }.Save(userId, null, this.trans);
+            }
+            return result;
         }
     }
 }
