@@ -174,6 +174,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var problem in Problems)
                 {
                     problem.serviceId = this.id;
+                    problem.type = (int)EnumSV_DeviceProblemType.Customer;
                     result &= problem.Save(this.createdby, null, this.trans);
                 }
             }
@@ -393,7 +394,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Restart)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.TransferEnded)
@@ -404,25 +405,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.AsamaBildirimi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.FireBildirimiYapildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.HarcamaBildirildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Updated)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
@@ -432,19 +433,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.PartChanged)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
 
@@ -486,12 +487,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             //    ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             //}
-            else
+            else if(stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
+            }
+            else
+            {
+
             }
         }
         public ResultStatus NextStage(Guid userId, DbTransaction trans = null)

@@ -28,7 +28,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "6D213C", "description", "Servis Kaydı Güncellendi")]
         Updated = 105,
         [Description("Servis Süreci Bitti"), Generic("icon", "fa fa-check-circle", "color", "2AF913", "description", "Servis Süreci Bitti")]
-        Done = 106,
+        Done = 300,
         [Description("Süreç Başladı"), Generic("icon", "fa fa-check", "color", "70E4EF", "description", "Süreç Başladı")]
         Started = 107,
         [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]

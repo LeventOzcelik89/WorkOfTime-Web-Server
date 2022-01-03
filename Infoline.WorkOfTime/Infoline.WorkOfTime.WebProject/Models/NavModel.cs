@@ -265,7 +265,7 @@ namespace System.Web.Mvc
             var service= new Menu("Teknik Servis Yönetimi", "#", "fa icon-tools");
             service.AddChild(new Menu("Teknik Servis Kayıtları", "/SV/VWSV_Service"));
             service.AddChild(new Menu("Cihaz Problemleri", "/SV/VWSV_Problem"));
-            service.AddChild(new Menu("Değişen Cihazlar", "/SV/VWSV_ChangedDevice"));
+            //service.AddChild(new Menu("Değişen Cihazlar", "/SV/VWSV_ChangedDevice"));
 
             return service;
         }

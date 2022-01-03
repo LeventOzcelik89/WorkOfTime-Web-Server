@@ -55,7 +55,7 @@
     </div>
     <div class="row">
         <div class="col-md-8">
-            <div class="ibox">
+            <div class="ibox"  >
                 <div class="ibox-title">
                     <h5>
                         <i class="fa text-success fa fa-list-alt"></i> Cihaz Bilgileri
@@ -167,6 +167,7 @@
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id && b.type==(int)EnumSV_DeviceProblemType.Service))
     .Columns(x =>
     {
+        x.Bound(y => y.warrantyTitle).Title("Garantiye Dahil Mi?").Width(180);
         x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
         x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
         x.Bound(y => y.description).Title("Açıklama").Width(180);
@@ -214,7 +215,31 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4" >
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Müşteri Bilgileri</h5>
+                </div>
+                <div class="ibox-content clearfix" style="min-height:180px">
+                    <dl class="dl-horizontal">
+                        <dt>Müşteri Adı Soyadı</dt>
+                        <dd>@Model.Customer.fullName</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Telefon Numarası</dt>
+                        <dd>@Model.Customer.phoneNumber</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Telefon Numarası (Diğer)</dt>
+                        <dd>@Model.Customer.otherPhoneNumber</dd>
+                    </dl>  
+                    <dl class="dl-horizontal">
+                        <dt>E-Posta Adresi</dt>
+                        <dd>@Model.Customer.email</dd>
+                    </dl>
+                </div>
+            </div>
+           
             <div class="ibox-content">
                 <div class="tab-content" style="max-height: 700px;overflow: scroll;">
                     <div class="client-detail">
@@ -260,6 +285,7 @@
 </div>
 <script type="text/javascript">
     var page = {
+        stage:'@Html.Raw(activeStage)',
         methods: {
             setButtonServiceId: function() {
                 $("#buttons [data-href]").each(function (i, item) {
@@ -270,8 +296,7 @@
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
                     else if (dataEnum == 5) {
-                        debugger
-                        var stage = $(item).attr("data-original-title").replace("{{stage}}", "@activeStage Aşamasına Geç");
+                        var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
                         $(item).attr("data-original-title", stage);
                     }
                     else if (dataEnum == 108) {

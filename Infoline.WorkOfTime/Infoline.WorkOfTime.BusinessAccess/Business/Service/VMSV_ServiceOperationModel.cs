@@ -4,33 +4,30 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Web;
+using System.Linq;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMSV_ServiceOperationModel : VWSV_ServiceOperation
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public  Guid? companyId { get; set; }
-        public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public List<VWPRD_ProductionProduct> expens { get; set; }
         public VWPRD_Transaction Transaction { get; set; }
         public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
         public short Type { get; set; }
         public Guid? storageId { get; set; }
-
         public VMSV_ServiceOperationModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceOperationById(this.id);
-            if (serviceId!=null)
+            if (serviceId != null)
             {
                 var findService = db.GetVWSV_ServiceById(serviceId.Value);
-                if (findService!=null)
+                if (findService != null)
                 {
                     var serviceModel = new VMSV_ServiceModel();
-                    serviceModel.GetVWPRD_ProductMateriels(findService.productId.HasValue?findService.productId.Value:new Guid());
-                    TreeProduct=serviceModel.GetProductMetarials;
-
-
+                    serviceModel.GetVWPRD_ProductMateriels(findService.productId.HasValue ? findService.productId.Value : new Guid());
+                    TreeProduct = serviceModel.GetProductMetarials;
                 }
             }
             if (data != null)
@@ -82,10 +79,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-            var dbresult = db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
-            if (this.companyId.HasValue)
+            
+         
+            if (this.CompanyId.HasValue)
             {
-                var getService = db.GetVWSV_ServiceById(this.serviceId.Value);
+                var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+                if (getCompany != null)
+                {
+
+                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br></br>" + description;
+                }
+                
+                var getService = db.GetSV_ServiceById(this.serviceId.Value);
+                res &= db.UpdateSV_Service(getService, false, trans);
                 var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
                 var transItem = new VMPRD_TransactionItems
                 {
@@ -96,9 +102,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
                 var transModelCompanyId = new VMPRD_TransactionModel
                 {
-                    inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(CompanyId.Value)?.id,
                     inputTable = "CMP_Storage",
-                    inputCompanyId = companyId,
+                    inputCompanyId = CompanyId,
                     outputCompanyId = getInventory.lastActionDataCompanyId,
                     outputId = getInventory.lastActionDataId,
                     created = this.created,
@@ -110,16 +116,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
                     id = Guid.NewGuid(),
                 };
-                dbresult &= transModelCompanyId.Save(this.createdby, trans);
-                var getCompany = db.GetVWCMP_CompanyById(this.companyId.Value);
-                if (getCompany!=null)
-                {
-                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br>" + description;
-                }
-            } 
-            if (!dbresult.result)
+                res &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            res &= db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
+            if (!res.result)
             {
-                Log.Error(dbresult.message);
+                Log.Error(res.message);
                 return new ResultStatus
                 {
                     result = false,
@@ -135,6 +137,53 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
+
+        public ResultStatus Upsert(Guid userId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            var user = db.GetVWSH_UserById(userId);
+            var result = new ResultStatus { result = true };
+            var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+            {
+                productId = x.productId,
+                quantity = x.quantity,
+                serialCodes = x.serialCodes ?? "",
+                unitPrice = 0,
+            }).ToList();
+            var transModel = new VMPRD_TransactionModel
+            {
+                outputCompanyId = user.CompanyId,
+                outputId = this.storageId,
+                created = DateTime.Now,
+                createdby = userId,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = expensItem,
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = this.Transaction.type,
+                id = Guid.NewGuid(),
+            };
+            result &= transModel.Save(userId, trans);
+            result &= new VMSV_ServiceOperationModel
+            {
+                created = DateTime.Now,
+                createdby = userId,
+                description = this.description,
+                serviceId = this.serviceId,
+                status = this.Transaction.type==(short)EnumPRD_TransactionType.HarcamaBildirimi?(short)EnumSV_ServiceOperation.HarcamaBildirildi: (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
+            }.Save(userId, null, this.trans);
+            if (result.result)
+            {
+                 trans.Commit();
+            }
+            else
+            {
+                 trans.Rollback();
+            }
+            return result;
+        }
+
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
@@ -183,18 +232,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
-        public ResultStatus GetStockByProductAndStorageId(Guid[] productId,Guid storageId ) { 
-            var result = new ResultStatus{ result=true };
+        public ResultStatus GetStockByProductAndStorageId(Guid[] productId, Guid storageId)
+        {
+            var result = new ResultStatus { result = true };
             db = db ?? new WorkOfTimeDatabase();
-            result.objects= db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId,storageId);
+            result.objects = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId, storageId);
             return result;
         }
-        public ResultStatus QualiltyCheck(Guid serviceId, bool status,Guid userId) {
+        public ResultStatus QualiltyCheck(Guid serviceId, bool status, Guid userId)
+        {
             var result = new ResultStatus { result = true };
-            
             db = db ?? new WorkOfTimeDatabase();
             trans = trans ?? db.BeginTransaction();
-            if (status==true)
+            if (status == true)
             {
                 result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId, trans);
                 result &= new VMSV_ServiceOperationModel
@@ -208,9 +258,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                var service = new VMSV_ServiceModel {id=serviceId }.Load();
-                service.stage=(int)EnumSV_ServiceStages.Fixing;
-                result &=service.Save(userId, null, trans);
+                var service = new VMSV_ServiceModel { id = serviceId }.Load();
+                service.stage = (int)EnumSV_ServiceStages.Fixing;
+                result &= service.Save(userId, null, trans);
                 result &= new VMSV_ServiceOperationModel
                 {
                     created = this.created,
