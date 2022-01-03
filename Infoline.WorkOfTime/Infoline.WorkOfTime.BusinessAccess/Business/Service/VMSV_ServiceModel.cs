@@ -438,6 +438,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
+                ButtonPermission.Add(EnumSV_ServiceActions.QualityControl);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
