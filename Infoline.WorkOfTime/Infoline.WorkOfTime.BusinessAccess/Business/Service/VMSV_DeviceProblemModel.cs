@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Web;
 
@@ -10,6 +11,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        public List<VMSV_DeviceProblemModel> Problems { get; set; }
+        public Guid? inventoryId { get; set; }
         public VMSV_DeviceProblemModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();

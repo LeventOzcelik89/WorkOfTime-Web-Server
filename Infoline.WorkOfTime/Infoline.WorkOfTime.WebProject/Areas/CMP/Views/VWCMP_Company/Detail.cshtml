@@ -668,7 +668,7 @@
 	.DataSource(dataSource => dataSource
 	.Ajax()
 	.PageSize(20)
-	.Read(read => read.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.companyId == Model.id&&a.pid==System.UIHelper.Guid.Null))
+	.Read(read => read.Action("DataSource", "VWCMP_Storage", new { area = "CMP" })).Filter(a => a.companyId == Model.id&&a.pid==System.UIHelper.Guid.Null).PageSize(150))
 					.ToolBar(x =>
 					{
 						x.Custom().Text("<i data-original-title='Şube/Depo/Kısım Depo Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "id", "storage-add" }, { "data-method", "GET" }, { "data-href", "/CMP/VWCMP_Storage/Insert?companyId="+Model.id+"&locationType="+(int)EnumCMP_StorageLocationType.Depo } }).Url(Url.Action("Insert", "VWCMP_Storage", new { area = "CMP", companyId = Model.id, locationType = (int)EnumCMP_StorageLocationType.Depo }));
@@ -697,6 +697,7 @@
                 .Ajax()
                 .PageSize(25)
                .Read(read => read.Action("HierarchyDataSource", "VWCMP_Storage", new { area = "CMP" ,id="#=id#" }))
+               .PageSize(250)
             )
             .Events(x=>x.DataBinding("hideHeader").DataBound("dataBound"))
             .Sortable()
@@ -1708,14 +1709,19 @@
                 haritalar['LocationCompany'].feature.panTo('@Model.id');
                 haritalar['LocationCompany'].map.getView().setZoom(16);
             }, 250)
+        })
+		.on("selected:grid", "#VWCMP_Storage", function (e, res) {
+			var detail = $("#taskFormDetail");
+			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
         });
+
     $("#VWCMP_Storage").on("dblclick", "tr.k-state-selected", function () {
         var dataUid = $(this).attr("data-uid");
         var tableId = $(this).parents(".k-grid").first().attr("id");
         var grid = $("#" + tableId).data("kendoGrid");
         var dataSource = grid.dataSource.getByUid(dataUid);
 
-        window.open("/CMP/VWCMP_Storage/Detail/" + dataSource.id)
+        window.open("/CMP/VWCMP_Storage/Detail?id=" + dataSource.id)
     });
     $("#VWCMP_Storage").on("click", "tr.k-state-selected", function () {
         $("tr.k-state-selected").removeClass("k-state-selected");
@@ -1725,12 +1731,17 @@
         var grid = $("#" + tableId).data("kendoGrid");
         var dataSource = grid.dataSource.getByUid(dataUid);
 
+        if (dataSource.pid != null && dataSource.pid != undefined) {
+			$("#detail").attr("data-href", "/CMP/VWCMP_Storage/Detail?id=" + dataSource.id);
+        }
+        else {
+			$("#detail").attr("data-href", "/CMP/VWCMP_Storage/Detail");
+		}
       
         $("#detail").removeClass("hide");
         $("#storage-add").removeClass("hide");
         $("#storage-delete").removeClass("hide");
         $("#storage-update").removeClass("hide");
-        $("#detail").attr("data-href", "/CMP/VWCMP_Storage/Detail/" + dataSource.id);
         $("#storage-add").attr("data-href", "/CMP/VWCMP_Storage/Insert?pid=" + dataSource.id + "&companyId=@Model.id");
         $("#storage-delete").attr("data-href", "/CMP/VWCMP_Storage/Delete?id=" + dataSource.id);
 
@@ -1911,7 +1922,6 @@
 
         },
         LoadTaskAreas: function () {
-
             var areas_panel = _ta.harita.panel.get('TaskAreaList')['TaskAreaList'];
             areas_panel.content.find('ul').html(null);
 
@@ -1938,6 +1948,8 @@
                             })
                          .appendTo(areas_panel.content.find('ul'));
                     }
+					_ta.harita.feature.panTo(item.id);
+
                 });
                 console.log(res);
             });

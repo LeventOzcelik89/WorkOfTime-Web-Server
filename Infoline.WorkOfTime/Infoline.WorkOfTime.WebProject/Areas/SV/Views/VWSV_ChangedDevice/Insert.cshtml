@@ -1,0 +1,64 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSV_ChangedDevice
+@{
+    ViewBag.Title = "Cihaz Değiştir";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using(Html.BeginForm("Insert", "VWSV_ChangedDevice", FormMethod.Post, new Dictionary<string, object>() {  
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model=>model.serviceId)
+    
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="oldInventoryId">Eski Cihaz</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+          .DropDownListFor(x => x.oldInventoryId)
+          .OptionLabel("Cihaz Seçiniz..")
+          .DataTextField("fullNameProduct")
+          .DataValueField("id")
+          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+          .Sort(x => x.Add("serialcode").Ascending())
+          .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
+          .Validate(Validations.Required)
+          .Readonly(Model.oldInventoryId.HasValue)
+          .Execute("id"))
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="newInventoryId">Yeni Cihaz</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+          .DropDownListFor(x => x.newInventoryId)
+          .OptionLabel("Yeni Cihaz Seçiniz..")
+          .DataTextField("fullNameProduct")
+          .DataValueField("id")
+          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
+          .Sort(x => x.Add("serialcode").Ascending())
+          .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
+          .Validate(Validations.Required)
+          .Execute("id"))
+        </div>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

@@ -783,6 +783,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Harcandi;
                 case EnumPRD_TransactionType.UretimBildirimi:
                     return EnumPRD_InventoryActionType.Uretildi;
+                case EnumPRD_TransactionType.CihazDegisimi:
+                    return EnumPRD_InventoryActionType.CihazDegisimi;
+                case EnumPRD_TransactionType.TeknikServisTransferi:
+                    return EnumPRD_InventoryActionType.TeknikServiceGeldi;
                 default:
                     return null;
             }
@@ -821,6 +825,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.Harcandi;
                 case EnumPRD_TransactionType.UretimBildirimi:
                     return EnumPRD_InventoryActionType.Uretildi;
+                case EnumPRD_TransactionType.CihazDegisimi:
+                    return EnumPRD_InventoryActionType.CihazDegisimi;
+                case EnumPRD_TransactionType.TeknikServisTransferi:
+                    return EnumPRD_InventoryActionType.TeknikServiceGeldi;
+                
                 default:
                     return null;
             }
@@ -833,6 +842,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 switch (dataTable)
                 {
                     case "CMP_Storage":
+                    case "SV_Service":
                         var storage = db.GetVWCMP_StorageById(dataId.Value);
                         result = new OwnerInfo
                         {
@@ -845,6 +855,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             DataTable = dataTable,
                         };
                         break;
+
                     case "SH_User":
                         var user = db.GetVWSH_UserById(dataId.Value);
                         var company = db.GetVWCMP_CompanyById(user.CompanyId ?? Guid.NewGuid());

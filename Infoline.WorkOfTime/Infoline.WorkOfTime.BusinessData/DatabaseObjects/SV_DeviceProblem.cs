@@ -18,5 +18,8 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public Guid? productId { get; set;}
         public string description { get; set;}
+        public short? type { get; set;}
+        public bool? warranty { get; set;}
+        public double? price { get; set;}
     }
 }

@@ -8,10 +8,13 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? serviceId { get; set;}
         public short? status { get; set;}
         public string description { get; set;}
-        public Guid? userId { get; set;}
+        public Guid? CargoId { get; set;}
+        public Guid? CompanyId { get; set;}
+        public Guid? CargoNo { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
-        public string userId_Title { get; set;}
         public string serviceId_Title { get; set;}
+        public string cargoId_Title { get; set;}
+        public string companyId_Title { get; set;}
     }
 }

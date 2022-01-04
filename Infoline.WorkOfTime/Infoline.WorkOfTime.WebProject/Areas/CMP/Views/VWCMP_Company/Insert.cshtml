@@ -66,37 +66,52 @@
                 </h4>
             </div>
             <div id="generalInfo" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="headingOne">
-				<div class="panel-body">
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md req" for="code">Kodu</label>
-						</div>
-						<div class="col-md-8">
-							@Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
-							 {
-								 {"class", "form-control"},
-								 {"placeholder", "Lütfen İşletme Kodunu Giriniz.."}
-							 }).Validate(Validations.TextEverywhere(true))
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md req" for="name">İsmi</label>
-						</div>
-						<div class="col-md-8">
-							@Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
-							 {
-								 {"class", "form-control"},
-								 {"placeholder", "Lütfen İşletme İsmini Giriniz.."}
-							 }).Validate(Validations.TextEverywhere(true, 0, 150))
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md" for="sector">Sektör Bilgisi</label>
-						</div>
-						<div class="col-md-8">
-							@(
+                <div class="panel-body">
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="code">Kodu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen İşletme Kodunu Giriniz.."}
+                             }).Validate(Validations.TextEverywhere(true))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md req" for="name">İsmi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @Html.TextBoxFor(model => model.name, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen İşletme İsmini Giriniz.."}
+                             }).Validate(Validations.TextEverywhere(true, 0, 150))
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="sector">Sektör Bilgisi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @if (TenantConfig.Tenant.TenantCode == 1174)
+                            {
+                                @(
+                                Html.Akilli().
+                                MultiSelect("sector").
+                                Placeholder("Lütfen Sektör Seçiniz..").
+                                DataTextField("fullname").
+                                DataValueField("id").
+                                BasicInsert(Url.Action("Insert", "VWUT_Sector", new { area = "UT"}), "name", true).
+                                Action(b => b.Action("DataSourceDropDown", "VWUT_Sector", new { area = "UT" })).
+                                Execute("id")
+                            )
+                            }
+                            else
+                            {
+                                @(
                                 Html.Akilli().
                                 MultiSelect("sector").
                                 Placeholder("Lütfen Sektör Seçiniz..").
@@ -107,14 +122,16 @@
                                 Filter<VWUT_Sector>(a => a.generation > 1).
                                 Execute("id")
                             )
-						</div>
-					</div>
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md" for="location">Konum</label>
-						</div>
-						<div class="col-md-8">
-							@(
+                            }
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="location">Konum</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
                                 Html.Akilli().MapInputFor(a => a.location).
                                 HelpText("Lütfen Lokasyon Seçiniz.").
                                 HtmlAttributes(new Dictionary<string, object>()
@@ -127,24 +144,24 @@
                                 Navigation(false).
                                 Searchable(true)
                             )
-						</div>
-					</div>
+                        </div>
+                    </div>
 
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md" for="İşletme Türü">Cari Durumu</label>
-						</div>
-						<div class="col-md-8">
-							@(Html.Akilli().RadioButtonGroupFor(a => a.isActive).Value(EnumCMP_CompanyIsActive.Aktif))
-						</div>
-					</div>
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="İşletme Türü">Cari Durumu</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli().RadioButtonGroupFor(a => a.isActive).Value(EnumCMP_CompanyIsActive.Aktif))
+                        </div>
+                    </div>
 
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md" for="CMP_Types">Cari Tipi</label>
-						</div>
-						<div class="col-md-8">
-							@(Html.Akilli()
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md" for="CMP_Types">Cari Tipi</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(Html.Akilli()
                                          .MultiSelect("CMP_TypeIds")
                                          .Placeholder("Lütfen Cari Tipi Seçiniz..")
                                          .DataTextField("typeName")
@@ -154,42 +171,42 @@
                                          .BasicInsert(Url.Action("Insert", "CMP_Types", new { area = "CMP" }), "typeName")
                                          .Execute("id")
                                     )
-						</div>
-					</div>
+                        </div>
+                    </div>
 
 
-					<div class="form-group">
-						<div class="col-md-4">
-							<label class="control-label label-md">Logo</label>
-						</div>
-						<div class="col-md-8">
-							@(
+                    <div class="form-group">
+                        <div class="col-md-4">
+                            <label class="control-label label-md">Logo</label>
+                        </div>
+                        <div class="col-md-8">
+                            @(
                                 Html.Akilli().FileUpload()
                                 .DataTable("CMP_Company")
                                 .DataId(Model.id)
                                 .DataKey(x => x.fileGroup == "İşletme Logosu").PreviewMode(false)
                             )
-						</div>
-					</div>
+                        </div>
+                    </div>
 
                     @if (TenantConfig.Tenant.TenantCode == 1133)
-	                {
-				<div class="form-group">
-					<div class="col-md-4">
-						<label class="control-label label-md" for="description">Açıklama</label>
-					</div>
-					<div class="col-md-8">
-						@Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
-						{
-							{"class", "form-control"},
-							{"placeholder", "Lütfen Açıklama Giriniz." }
-						}).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
-					</div>
-				</div>
-	                }
+                    {
+                        <div class="form-group">
+                            <div class="col-md-4">
+                                <label class="control-label label-md" for="description">Açıklama</label>
+                            </div>
+                            <div class="col-md-8">
+                                @Html.TextAreaFor(a => a.description, new Dictionary<string, object>()
+                                {
+                                    {"class", "form-control"},
+                                    {"placeholder", "Lütfen Açıklama Giriniz." }
+                                }).Validate(Validations.TextTurkceSpace09(false, 0, 1000))
+                            </div>
+                        </div>
+                    }
 
 
-				</div>
+                </div>
             </div>
         </div>
         <div class="panel panel-default">

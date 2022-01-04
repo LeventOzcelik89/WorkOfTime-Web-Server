@@ -47,6 +47,7 @@ namespace System.Web.Mvc
                     _root.Add(GetSatinAlma());
                     _root.Add(GetStokSevkiyat());
                     _root.Add(GetProduction());
+                    _root.Add(GetService());
                     _root.Add(GetProje());
                     if (!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevMusteri)))
                     {
@@ -259,6 +260,15 @@ namespace System.Web.Mvc
             return muhasebe;
         }
 
+        private Menu GetService()
+        {
+            var service= new Menu("Teknik Servis Yönetimi", "#", "fa icon-tools");
+            service.AddChild(new Menu("Teknik Servis Kayıtları", "/SV/VWSV_Service"));
+            service.AddChild(new Menu("Cihaz Problemleri", "/SV/VWSV_Problem"));
+            //service.AddChild(new Menu("Değişen Cihazlar", "/SV/VWSV_ChangedDevice"));
+
+            return service;
+        }
         private Menu GetProje()
         {
             var projeyonetimi = new Menu("Proje Yönetimi", "#", "icon-briefcase");

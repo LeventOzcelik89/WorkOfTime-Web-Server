@@ -1,0 +1,83 @@
+﻿@model VMSV_ServiceOperationModel
+@{
+    ViewBag.Title = "Yeni Transfer";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+@using (Html.BeginForm("Insert", "VWSV_ServiceOperation", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.status)
+    @Html.HiddenFor(model => model.serviceId)
+    <style>
+        .w100 {
+            width: 100% !important;
+        }
+    </style>
+    if (Model.status != 4)
+    {
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="control-label label-md req" for="cargoId">Transfer Edilecek Bayi</label>
+                @(Html.Akilli()
+          .DropDownListFor(x => x.CompanyId)
+          .OptionLabel("Transfer Edilecek Bayi Seçiniz..")
+          .DataTextField("fullName")
+          .DataValueField("id")
+          .Template("#=TemplateEngine('companyTemplate',data)#")
+          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+          .Sort(x => x.Add("name").Ascending())
+          .Validate(Validations.Required)
+          .Execute("id"))
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="control-label label-md " for="cargoId">Kargo Firması Seçiniz</label>
+                @(Html.Akilli()
+          .DropDownListFor(x => x.CargoId)
+          .OptionLabel("Kargo Firması Seçiniz..")
+          .DataTextField("fullName")
+          .DataValueField("id")
+          .Template("#=TemplateEngine('companyTemplate',data)#")
+          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+          .Sort(x => x.Add("name").Ascending())
+
+          .Execute("id"))
+            </div>
+        </div>
+
+        <div class="form-group">
+            <div class="col-sm-12">
+                <label class="control-label label-md " for="description">Kargo Takip Numarası</label>
+                @Html.TextBoxFor(model => model.CargoNo, new Dictionary<string, object>()
+                                                {
+                                                    {"placeholder","Kargo Takip Numarası Giriniz" },
+                                                    {"class", "form-control w100"},
+                                                }).Validate(Validations.Required)
+            </div>
+        </div>
+    }
+
+    <div class="form-group">
+
+        <div class="col-sm-12">
+            <label class="control-label label-md req" for="description">Açıklama</label>
+            @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                                            {
+                                                {"class", "form-control w100"},
+                                            }).Validate(Validations.Required)
+        </div>
+    </div>
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

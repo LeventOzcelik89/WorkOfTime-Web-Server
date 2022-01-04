@@ -1,18 +1,35 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Web;
+using System.Linq;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMSV_ServiceOperationModel : VWSV_ServiceOperation
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        public List<VWPRD_ProductionProduct> expens { get; set; }
+        public VWPRD_Transaction Transaction { get; set; }
+        public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
+        public short Type { get; set; }
+        public Guid? storageId { get; set; }
         public VMSV_ServiceOperationModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceOperationById(this.id);
+            if (serviceId != null)
+            {
+                var findService = db.GetVWSV_ServiceById(serviceId.Value);
+                if (findService != null)
+                {
+                    var serviceModel = new VMSV_ServiceModel();
+                    serviceModel.GetVWPRD_ProductMateriels(findService.productId.HasValue ? findService.productId.Value : new Guid());
+                    TreeProduct = serviceModel.GetProductMetarials;
+                }
+            }
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -62,11 +79,49 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-            //Validasyonlarını yap
-            var dbresult = db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
-            if (!dbresult.result)
+            
+         
+            if (this.CompanyId.HasValue)
             {
-                Log.Error(dbresult.message);
+                var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+                if (getCompany != null)
+                {
+
+                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br></br>" + description;
+                }
+                
+                var getService = db.GetSV_ServiceById(this.serviceId.Value);
+                res &= db.UpdateSV_Service(getService, false, trans);
+                var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
+                var transItem = new VMPRD_TransactionItems
+                {
+                    productId = getInventory.productId,
+                    quantity = 1,
+                    serialCodes = getInventory.serialcode ?? "",
+                    unitPrice = 0,
+                };
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(CompanyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = CompanyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                    id = Guid.NewGuid(),
+                };
+                res &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            res &= db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
+            if (!res.result)
+            {
+                Log.Error(res.message);
                 return new ResultStatus
                 {
                     result = false,
@@ -82,6 +137,53 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
+
+        public ResultStatus Upsert(Guid userId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            var user = db.GetVWSH_UserById(userId);
+            var result = new ResultStatus { result = true };
+            var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+            {
+                productId = x.productId,
+                quantity = x.quantity,
+                serialCodes = x.serialCodes ?? "",
+                unitPrice = 0,
+            }).ToList();
+            var transModel = new VMPRD_TransactionModel
+            {
+                outputCompanyId = user.CompanyId,
+                outputId = this.storageId,
+                created = DateTime.Now,
+                createdby = userId,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = expensItem,
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = this.Transaction.type,
+                id = Guid.NewGuid(),
+            };
+            result &= transModel.Save(userId, trans);
+            result &= new VMSV_ServiceOperationModel
+            {
+                created = DateTime.Now,
+                createdby = userId,
+                description = this.description,
+                serviceId = this.serviceId,
+                status = this.Transaction.type==(short)EnumPRD_TransactionType.HarcamaBildirimi?(short)EnumSV_ServiceOperation.HarcamaBildirildi: (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
+            }.Save(userId, null, this.trans);
+            if (result.result)
+            {
+                 trans.Commit();
+            }
+            else
+            {
+                 trans.Rollback();
+            }
+            return result;
+        }
+
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
@@ -129,6 +231,46 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Servis Operasyonu silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
+        }
+        public ResultStatus GetStockByProductAndStorageId(Guid[] productId, Guid storageId)
+        {
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            result.objects = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId, storageId);
+            return result;
+        }
+        public ResultStatus QualiltyCheck(Guid serviceId, bool status, Guid userId)
+        {
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            if (status == true)
+            {
+                result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarılı",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControl,
+                }.Save(userId, null, this.trans);
+            }
+            else
+            {
+                var service = new VMSV_ServiceModel { id = serviceId }.Load();
+                service.stage = (int)EnumSV_ServiceStages.Fixing;
+                result &= service.Save(userId, null, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarısız",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControlNot,
+                }.Save(userId, null, this.trans);
+            }
+            return result;
         }
     }
 }

@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [PageInfo("Envanter Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.IKYonetici, SHRoles.UretimPersonel, SHRoles.UretimYonetici)]
+        [PageInfo("Envanter Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.IKYonetici, SHRoles.UretimPersonel, SHRoles.UretimYonetici, SHRoles.Personel)]
         public ActionResult Detail(VMPRD_TransactionModel model)
         {
             var data = model.Load();

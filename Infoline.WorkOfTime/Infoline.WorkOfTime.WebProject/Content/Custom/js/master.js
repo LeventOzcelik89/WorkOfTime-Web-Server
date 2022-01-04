@@ -71,7 +71,7 @@ Date.prototype.GetMonday = function () {
     var day = d.getDay();
     var diff = d.getDate() - day + (day == 0 ? -6 : 1);
     var nd = new Date(d.getFullYear(), d.getMonth(), diff);
-    
+
     return nd;
 
 }
@@ -1452,8 +1452,8 @@ function TemplateEngine(templateId, data) {
     }
 
     try {
-    var template = kendo.template(templateContent);
-    return template(data);
+        var template = kendo.template(templateContent);
+        return template(data);
     } catch (e) {
         console.warn(e);
         return '<div>Template Bulunamadı.</div>'
@@ -1837,20 +1837,39 @@ $(document)
             handler.dataSource.bind("requestEnd", function (args) {
                 var value = handler._prev;
                 if (value != "") {
-                    if (args.response.filter(a => a[dataTextField].toLowerCase() == value.toLowerCase()).length == 0) {
-                        var obj = {};
-                        obj[dataValueField] = newGuid();
-                        obj[dataTextField] = value;
-                        obj[field] = value;
-                        obj["newData"] = true;
-                        if (cascadeForm && cascadeFromField && $("#" + cascadeForm).length > 0) {
-                            obj[cascadeFromField] = $("#" + cascadeForm).val();
+                    if (args.response == undefined) {
+                        if (args.sender.data().filter(x => x[dataTextField].toLowerCase() == value.toLowerCase()).length == 0) {
+                            var obj = {};
+                            obj[dataValueField] = newGuid();
+                            obj[dataTextField] = value;
+                            obj[field] = value;
+                            obj["newData"] = true;
+                            if (cascadeForm && cascadeFromField && $("#" + cascadeForm).length > 0) {
+                                obj[cascadeFromField] = $("#" + cascadeForm).val();
+                            }
+                            args.sender.data().push(obj);
+                            window.setTimeout(function () {
+                                handler.listView.element.find("li:last-child").empty().prepend('<span class="badge badge-primary m-r-sm">Yeni Ekle</span> ' + value);
+                            }, 10);
                         }
-                        args.response.push(obj);
-                        window.setTimeout(function () {
-                            handler.listView.element.find("li:last-child").empty().prepend('<span class="badge badge-primary m-r-sm">Yeni Ekle</span> ' + value);
-                        }, 10);
-                    };
+                    }
+                    else {
+                        if (args.response.filter(a => a[dataTextField].toLowerCase() == value.toLowerCase()).length == 0) {
+                            var obj = {};
+                            obj[dataValueField] = newGuid();
+                            obj[dataTextField] = value;
+                            obj[field] = value;
+                            obj["newData"] = true;
+                            if (cascadeForm && cascadeFromField && $("#" + cascadeForm).length > 0) {
+                                obj[cascadeFromField] = $("#" + cascadeForm).val();
+                            }
+                            args.response.push(obj);
+                            window.setTimeout(function () {
+                                handler.listView.element.find("li:last-child").empty().prepend('<span class="badge badge-primary m-r-sm">Yeni Ekle</span> ' + value);
+                            }, 10);
+                        };
+                    }
+
                 } else {
 
                 }
@@ -1956,20 +1975,20 @@ $(document)
             function toggle(elem) {
                 var value = elem.attr('type') != 'radio' ? elem.val() : $('[name="' + elem.attr('name') + '"]:checked').val();
                 if (values.indexOf(value) > -1) {
-                        
+
 
 
                     $this.slideDown();
-                    
+
                     $this.find('input[data-required], textarea[data-required], select[data-required]').attr('required', 'required');
                     $this.find('input:not([data-disabled]), textarea:not([data-disabled]), select:not([data-disabled])').removeAttr('disabled');
                 }
                 else {
                     $this.slideUp();
-                      
-                    
-                  
-                  
+
+
+
+
                     $this.find('input[data-required], textarea[data-required]').removeAttr('required');
                     $this.find('input:not([data-disabled]), textarea:not([data-disabled]), select:not([data-disabled])').attr('disabled', 'disabled');
                 }
@@ -3462,19 +3481,19 @@ function GridRender(userOptions, element) {
                 }
             },
             columns: options.Column,
-        //    excelExport: function (e) {
+            //    excelExport: function (e) {
 
-        //        var sheet = e.workbook.sheets[0];
+            //        var sheet = e.workbook.sheets[0];
 
-        //        for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
-        //            if (TypeOf(sheet.rows[rowIndex].cells[0].value) == 'date') {
-        //                sheet.rows[rowIndex].cells[0].format = "dd.MM.yyyy HH:mm:ss";
-        //            }
-        //        }
+            //        for (var rowIndex = 1; rowIndex < sheet.rows.length; rowIndex++) {
+            //            if (TypeOf(sheet.rows[rowIndex].cells[0].value) == 'date') {
+            //                sheet.rows[rowIndex].cells[0].format = "dd.MM.yyyy HH:mm:ss";
+            //            }
+            //        }
 
-        //        Kendo_ExcelExport(e);
+            //        Kendo_ExcelExport(e);
 
-        //    }
+            //    }
         });
 
     element.parent().show();

@@ -1,10 +1,8 @@
-﻿using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.WorkOfTime.BusinessAccess;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Linq;
 using System.Web.Mvc;
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
@@ -40,14 +38,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         [AllowEveryone]
         public ActionResult Detail(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSV_ServiceById(id);
-            return View(data);
+
+            return View(new VMSV_ServiceModel { id = id }.Load());
         }
         [AllowEveryone]
         public ActionResult Insert(VMSV_ServiceModel model)
         {
             model.code = BusinessExtensions.B_GetIdCode();
+            
             return View(model);
         }
         [AllowEveryone]
@@ -71,33 +69,29 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [AllowEveryone]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Update(SV_Service item)
+        public JsonResult Update(VMSV_ServiceModel model,bool? ispost)
         {
-            var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-            item.changed = DateTime.Now;
-            item.changedby = userStatus.user.id;
-            var dbresult = db.UpdateSV_Service(item);
+            var dbresult = model.Save(userStatus.user.id, HttpContext.Request);
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
+                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı",true, Url.Action("Index")) : feedback.Warning("Güncelleme işlemi başarısız")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [AllowEveryone]
         [HttpPost]
-        public JsonResult Delete(string[] id)
+        public JsonResult Delete(VMSV_ServiceModel model)
         {
-            var db = new WorkOfTimeDatabase();
+          
             var feedback = new FeedBack();
-            var item = id.Select(a => new SV_Service { id = new Guid(a) });
-            var dbresult = db.BulkDeleteSV_Service(item);
+            var dbresult = model.Delete();
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success("Teknik Servis Kaydı Silme işlemi başarılı") : feedback.Warning(" Teknik Servis KaydıSilme işlemi başarısız")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -116,9 +110,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
         [AllowEveryone]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
-            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToDataSourceResult(request); 
+            var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToArray(); 
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
+        }
+        [AllowEveryone]
+        public ActionResult Transfer(Guid serviceId)
+        {
+            return View();
         }
 
     }

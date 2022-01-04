@@ -122,17 +122,18 @@
         </div>
         <div class="col-md-8">
             @(
-				Html.Akilli()
-				.DropDownListFor(model => model.customerId)
-				.OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
-				.DataValueField("id")
-				.DataTextField("fullName")
-				.Template("#=TemplateEngine('companyTemplate',data)#")
-				.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-				.Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
-				.Sort(x => x.Add("fullName").Ascending())
-				.Validate(Validations.Required)
-				.Execute()
+                Html.Akilli()
+                .DropDownListFor(model => model.customerId)
+                .OptionLabel("Lütfen Müşteri İşletmeyı Seçiniz..")
+                .DataValueField("id")
+                .DataTextField("fullName")
+                .Template("#=TemplateEngine('companyTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                .Events(a => { a.Change("onChangeCustomer"); a.DataBound("onChangeCustomer"); })
+                .Filter<VWCMP_Company>(x => x.isActive == (int)EnumCMP_CompanyIsActive.Aktif)
+                .Sort(x => x.Add("fullName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
             )
         </div>
     </div>

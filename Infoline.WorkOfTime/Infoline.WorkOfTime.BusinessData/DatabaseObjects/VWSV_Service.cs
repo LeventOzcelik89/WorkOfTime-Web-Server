@@ -8,7 +8,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string code { get; set;}
         public Guid? inventoryId { get; set;}
         public string description { get; set;}
-        public short? realStatus { get; set;}
+        public short? stage { get; set;}
         public short? deliveryType { get; set;}
         public string deliveryTypeDescription { get; set;}
         public Guid? cargoId { get; set;}
@@ -25,8 +25,10 @@ namespace Infoline.WorkOfTime.BusinessData
         public string lastOperationStatus_Title { get; set;}
         public string delivery_Title { get; set;}
         public string customerType_Title { get; set;}
+        public string stage_Title { get; set;}
         public string serialCode { get; set;}
         public string product_Title { get; set;}
+        public Guid? productId { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }

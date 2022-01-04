@@ -1,0 +1,436 @@
+﻿@model VMSV_DeviceProblemModel
+@{
+    ViewBag.Title = "Cihaz Problemi Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<script type="text/javascript" data-selector="modalContainer">
+    var page = {
+        productProblem: {
+            counter: 0,
+            RowDelete: function (_this) {
+                var length = $("#RowContainer_Problem tr").length
+                if (length <= 1) {
+                    MesajWarning("En az bir cihaz sorunu olmalıdır.", "Silme İşlemi Başarısız");
+                    return false;
+                }
+                var row = $(_this).parents("tr");
+                $(row).remove();
+                var updateInput = $('#ServiceForm').data('bs.validator');
+                if (updateInput != null) {
+                    updateInput.update();
+                }
+                setTimeout(function () {
+                    var updateInput = $('#InsertMultiple').data('bs.validator');
+                    if (updateInput != null) {
+                        updateInput.update();
+                    }
+                }, 250)
+            },
+            AddRow: function () {
+                var problems = $($('#rowForProductProblem').html());
+                $('#RowContainer_Problem').append(problems);
+                problems.find('[data-problem="id"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].id')
+                problems.find('[data-problem="problemTypeId"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].problemTypeId')
+                    .attr('data-insertUrl', '/SV/VWSV_Problem/Insert')
+                    .attr('data-insertField', 'name')
+                    .attr('data-modal', 'false')
+                    .attr('data-refresh', 'true')
+
+                    .kendoDropDownList(
+                        {
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+                                "transport": { "read": { "url": "/SV/VWSV_Problem/DataSourceDropDown" } },
+                                "pageSize": 100,
+                                "page": 1,
+                                "total": 0
+                            },
+                            "dataTextField": "fullName",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "dataValueField": "id",
+                            "optionLabel": "Lütfen Problem Tipini Seçiniz..",
+                        });
+                problems.find('[data-problem="productId"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].productId')
+                problems.find('[data-problem="description"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].description')
+                problems.find('[data-problem="warranty"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].warranty')
+                problems.find('[data-first]')
+                    .attr('id', "warranty_" + page.productProblem.counter + 1)
+                problems.find('[data-second]')
+                    .attr('id', "warranty_" + page.productProblem.counter);
+                problems.find('[data-firstlabel]')
+                    .attr('for', "warranty_" + page.productProblem.counter + 1)
+                problems.find('[data-secondlabel]')
+                    .attr('for', "warranty_" + page.productProblem.counter )
+                problems.find('[data-problem="price"]')
+                    .attr('name', 'Problems[' + page.productProblem.counter + '].warranty')
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false });
+                page.productProblem.counter++;
+                setTimeout(function () {
+                    var updateInput = $('#InsertMultiple').data('bs.validator');
+                    if (updateInput != null) {
+                        updateInput.update();
+                    }
+                }, 250)
+                page.inputs.metarial();
+            }
+        },
+        methods: {
+            getDeviceInformation: function () {
+                page.productProblem.AddRow();
+                GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: '@Model.inventoryId' }, function (resp) {
+                    if (resp == null) {
+                        return;
+                    }
+                    if (resp.result == false) {
+                        swal("Seri Numarasına Ait Ürün Yoktur", "Bu seri numarasına ait envanterde kayıtlı cihaz yoktur!", "warning");
+                        return;
+                    }
+                    $("#inventoryLink").attr("href", "/PRD/VWPRD_Inventory/Detail?id=@Model.inventoryId");
+                    page.inputs.metarial();
+                    if (resp.objects == null) {
+                        return;
+                    }
+                    $("#warranty").text(resp.objects.warranty);
+                    $("#activation").text(resp.objects.activation);
+                    $("#deviceName").val(resp.objects.deviceName);
+                    $("#dist").text(resp.objects.dist);
+                    $("#company").text(resp.objects.company);
+                    $("#dateofMani").text(resp.objects.manifacturDate);
+                    $("#dateofSell").text(resp.objects.sellingDate);
+                    $("#warrantyStatus").text(resp.objects.warrantyStatus);
+                    $("#deviceId").attr("href", "/PRD/VWPRD_Product/Detail?id=" + resp.objects.deviceId ?? "");
+                });
+            }
+        },
+        inputs: {
+            deliveryType: function (e) {
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    $("#DeliveryTpeActual").data("handler").value(null);
+                    page.inputs.hideCargo();
+                }
+            },
+            deliveryActual: function (e) {
+                var data = e.sender.dataItem();
+                if (data.Id == null) {
+                    return;
+                }
+                if (data.Id == 2) {
+                    page.inputs.showCargo();
+                }
+                else {
+                    page.inputs.hideCargo();
+                }
+            },
+            metarial: function () {
+                $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
+                    $(item).removeAttr("disabled");
+                    var kendo = $(item).data("kendoDropDownList");
+                    if (kendo != undefined) {
+                        kendo.destroy();
+                    }
+                    $(item).kendoDropDownList({
+                        optionLabel: "Cihaz Parçası Seçiniz...",
+                        dataTextField: "materialId_Title",
+                        dataValueField: "materialId",
+                        dataSource: {
+                            transport: {
+                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId",
+                            }
+                        }
+                    }).data("kendoDropDownList");
+                });
+            },
+            cargoId: function () {
+                $("#cargoNo").removeAttr("disabled");
+            }
+        },
+
+    }
+    page.methods.getDeviceInformation();
+
+</script>
+
+<script type="text/template" id="rowForProductProblem" data-selector="modalContainer">
+    <tr>
+        <td>
+            <div style="margin-left:10px" class="radio akilliRadioGrup clearfix">
+                <input type="radio"  data-problem="warranty" data-first  id="warranty_0" checked="" value="1" autocomplete="off">
+                <label tabindex="0" data-firstlabel class="radio-label" for="warranty_0">
+                    Garantiye Dahil
+                </label>
+                <input type="radio"  data-problem="warranty" data-second id="warranty_1" value="0" autocomplete="off">
+                <label tabindex="0"  data-secondlabel class="radio-label" for="warranty_1">
+                    Garanti Dışı
+                </label>
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <input data-problem="problemTypeId" required class="k-input form-control" />
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <input data-problem="productId" disabled class="k-input form-control" />
+            </div>
+        </td>
+        @*<td>
+                <div class="form-group">
+                    <input data-problem="price"  class="k-input form-control" />
+                </div>
+            </td>*@
+        <td>
+            <div class="form-group">
+                <input data-problem="description" required class="k-input form-control" placeholder="Açıklama Giriniz" />
+            </div>
+        </td>
+
+        <td>
+            <button class="btn btn-md btn-danger" data-original-title="Kaldır" onclick="page.productProblem.RowDelete(this)" type="button"><i class="fa fa-times"></i></button>
+        </td>
+    </tr>
+</script>
+@using (Html.BeginForm("InsertMultiple", "VWSV_DeviceProblem", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    { "id","InsertMultiple"}
+}))
+{
+    <style>
+
+
+        .ibox-content {
+            padding-bottom: 9px !important;
+        }
+
+        form {
+            background: none !important;
+            padding: 5px !important;
+        }
+
+        #productProblem .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
+
+        #productCameWith .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
+
+        .form-group {
+            margin-bottom: 10px;
+        }
+
+        .modal-lg {
+            width: 95%;
+        }
+
+        .k-numerictextbox {
+            width: 100% !important;
+        }
+
+        table.table-custom {
+            table-layout: fixed;
+        }
+
+            table.table-custom thead {
+                background-color: #d6d5d4;
+                font-size: 11px;
+            }
+
+            table.table-custom tr {
+                border-bottom: 1px #d6d5d4 solid;
+            }
+
+            table.table-custom tbody tr:last-child {
+                border-bottom: none;
+            }
+
+            table.table-custom tbody td {
+                padding: 6px !important;
+            }
+
+                table.table-custom tbody td > input {
+                    width: 100%;
+                    height: 100%;
+                    padding: 10px 5px !important;
+                }
+
+            table.table-custom .k-widget.k-numerictextbox {
+                width: 100% !important;
+            }
+
+                table.table-custom .k-widget.k-numerictextbox.k-input {
+                    padding: 0px !important;
+                }
+
+            table.table-custom .k-numeric-wrap {
+                border: 0px !important;
+            }
+
+                table.table-custom .k-numeric-wrap.k-state-focused, table.table-custom .k-numeric-wrap.k-state-hover {
+                    box-shadow: none !important;
+                }
+
+                    table.table-custom .k-numeric-wrap.k-state-focused > input, table.table-custom .k-numeric-wrap.k-state-hover > input {
+                        border-color: #1ab394 !important;
+                    }
+
+            table.table-custom .k-item {
+                font-weight: 400 !important;
+            }
+
+            table.table-custom input:read-only {
+                background: #f3f1f0 !important;
+            }
+
+            table.table-custom .input-group-addon {
+                padding: 0 5px !important;
+                font-size: 11px;
+            }
+
+            table.table-custom .form-control.k-widget {
+                padding: 0px !important;
+            }
+
+            table.table-custom .k-multiselect.k-state-disabled .k-multiselect-wrap {
+                background: #fcfcfc !important;
+            }
+
+            table.table-custom tbody tr td {
+                vertical-align: middle !important;
+            }
+
+        .input-group .k-widget {
+            margin-top: 1px !important;
+        }
+
+        .k-autocomplete.k-state-disabled, .k-picker-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled, .k-numeric-wrap.k-state-disabled .k-input, .k-numeric-wrap.k-state-disabled .k-select, .k-dropdown-wrap.k-state-disabled, .k-multiselect.k-header.k-state-disabled {
+            background-color: #f3f3f3;
+        }
+
+        .input-group {
+            width: 100%;
+        }
+
+        .width100 {
+            width: 100% !important;
+        }
+    </style>
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.type)
+    @Html.HiddenFor(model => model.serviceId)
+
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <fieldset>
+                        <legend>Cihaz Bilgileri</legend>
+                        <div class="form-group">
+                            <div class="col-md-12">
+                                <label class="control-label label-md req " for="inventoryId">IMEI/Seri No Giriniz</label>
+                                <div class="input-group">
+                                    <input type="text" disabled  class="form-control" id="deviceName" value=""/>
+
+                                    <span class="input-group-addon">
+                                        <a href="" id="inventoryLink" target="_blank"><i class="fa fa-link text-white"></i></a>
+                                    </span>
+                                </div>
+                                <div class=""></div>
+                            </div>
+                        </div>
+                        <div id="deviceInfo">
+                            <div class="col-lg-4">
+                                <dl class="dl-horizontal">
+                                    <dt>Garanti Durumu</dt>
+                                    <dd id="warrantyStatus"></dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Garanti Bitiş Tarihi: </dt>
+                                    <dd id="warranty">  </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Aktivasyon Tarihi: </dt>
+                                    <dd id="activation">  </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Üretim Tarihi: </dt>
+                                    <dd id="dateofMani">  </dd>
+                                </dl>
+
+                            </div>
+                            <div class="col-lg-8">
+                                <dl class="dl-horizontal">
+                                    <dt>Distribütör: </dt>
+                                    <dd id="dist">
+                                    </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Bayi: </dt>
+                                    <dd id="company">  </dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Satın Alınma Tarihi:</dt>
+                                    <dd id="dateofSell"></dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-12">
+            <fieldset>
+                <legend>Cihaz Sorunları</legend>
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div class="clearfix" id="productProblem">
+                            <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                <thead>
+                                    <tr>
+                                        <th width="15%">Garantiye Dahil Mi?</th>
+                                        <th width="25">Sorun Tipi</th>
+                                        <th width="25%">Ürün</th>
+                                        <th width="31%">Açıklama</th>
+                                       
+                                        <th width="6%">  <button data-original-title="Yeni Cihaz Problemi Ekle" type="button" id="newProduct" class="btn btn-md btn-primary" onclick="page.productProblem.AddRow()"><i class="fa fa-plus"></i> </button></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="RowContainer_Problem">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
