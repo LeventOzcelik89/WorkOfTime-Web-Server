@@ -15,6 +15,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public CRM_Contact LastContact { get; set; }
         public CMP_Company CustomerCompany { get; set; }
         public List<Guid> OpponentCompanies { get; set; } = new List<Guid> { };
+        public OpponentCompanyTitles[] OpponentCompanies_Titles { get; set; } = new OpponentCompanyTitles[] { };
         public List<Guid> SalesPersons { get; set; } = new List<Guid> { };
         public string ProductsJson { get; set; }
         public string customerEmail { get; set; }
@@ -30,12 +31,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.B_EntityDataCopyForMaterial(presentation, true);
                 var companies = db.GetCRM_PresentationOpponentCompanyByPresentationId(this.id);
                 this.OpponentCompanies = companies.Where(a => a.OpponentCompanyId.HasValue).Select(a => a.OpponentCompanyId.Value).ToList();
+                this.OpponentCompanies_Titles = db.GetVWCRM_PresentationOpponentCompanyByPresentationIdWithIdAndName(this.id);
                 this.Products = db.GetVWCRM_PresentationProductsByPresentationId(this.id);
                 this.LastContact = db.GetCRM_ContactLastContact(this.id);
                 if (this.CustomerCompanyId.HasValue)
                 {
                     var customer = db.GetCMP_CompanyById(this.CustomerCompanyId.Value);
-                    if(customer != null)
+                    if (customer != null)
                     {
                         this.customerEmail = customer.email;
                         this.customerPhone = customer.phone;
@@ -771,5 +773,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWCRM_ContactUser[] Contacts { get; set; }
         public VWCRM_PresentationProducts[] Products { get; set; }
         public Guid[] CompletedStages { get; set; }
+    }
+
+    public class OpponentCompanyTitles
+    {
+        public Guid? id { get; set; }
+        public string name { get; set; }
     }
 }

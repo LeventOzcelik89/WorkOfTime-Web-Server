@@ -1945,7 +1945,6 @@ $(document)
             var $this = $(this);
             var cascadeElem = $($this.attr('data-cascade'));
             var values = ($this.attr('data-show') || "").split(",");
-
             if (cascadeElem.length == 0) {
                 return;
             }
@@ -1957,12 +1956,20 @@ $(document)
             function toggle(elem) {
                 var value = elem.attr('type') != 'radio' ? elem.val() : $('[name="' + elem.attr('name') + '"]:checked').val();
                 if (values.indexOf(value) > -1) {
-                    $this.show();
+                        
+
+
+                    $this.slideDown();
+                    
                     $this.find('input[data-required], textarea[data-required], select[data-required]').attr('required', 'required');
                     $this.find('input:not([data-disabled]), textarea:not([data-disabled]), select:not([data-disabled])').removeAttr('disabled');
                 }
                 else {
-                    $this.hide();
+                    $this.slideUp();
+                      
+                    
+                  
+                  
                     $this.find('input[data-required], textarea[data-required]').removeAttr('required');
                     $this.find('input:not([data-disabled]), textarea:not([data-disabled]), select:not([data-disabled])').attr('disabled', 'disabled');
                 }

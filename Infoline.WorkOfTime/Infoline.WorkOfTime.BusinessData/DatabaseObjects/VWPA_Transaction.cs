@@ -38,6 +38,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string type_Title { get; set;}
         public string currencyId_Title { get; set;}
         public string Currency_Code { get; set;}
+        public string ProfilePhoto { get; set;}
         public string statusInfoMessage { get; set;}
         public string accountDataTable { get; set;}
         public Guid? accountDataId { get; set;}

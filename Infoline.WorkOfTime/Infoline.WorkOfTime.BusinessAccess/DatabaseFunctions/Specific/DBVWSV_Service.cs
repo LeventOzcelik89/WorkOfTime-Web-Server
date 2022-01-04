@@ -8,14 +8,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
     [EnumInfo(typeof(SV_Service), "DeliveryType")]
     public enum EnumSV_ServiceDeliveryType
     {
-        [Description("Bayi")]
-        CompanyPerson = 0,
         [Description("Elden Teslim")]
         HandedOver = 1,
         [Description("Kargo")]
         Cargo = 2,
         [Description("Diğer")]
         Other = 3,
+    }
+    [EnumInfo(typeof(SV_Service), "CustomerType")]
+    public enum EnumSV_ServiceCustomerType
+    {
+        [Description("Bayi")]
+        Company = 1,
+        [Description("Müşteri")]
+        Customer = 2,
+
     }
     partial class WorkOfTimeDatabase
     {

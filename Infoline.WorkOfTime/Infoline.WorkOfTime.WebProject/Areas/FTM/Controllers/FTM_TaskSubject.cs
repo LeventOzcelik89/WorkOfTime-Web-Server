@@ -11,9 +11,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 	public class FTM_TaskSubjectController : Controller
 	{
 		[PageInfo("Görev Konusu Tanımları", SHRoles.Personel)]
-		public ActionResult Index()
+		public ActionResult Index(Guid? id)
 		{
-			return View();
+			var db = new WorkOfTimeDatabase();
+			var model = id.HasValue ? db.GetVWFTM_TaskSubjectById(id.Value) : new VWFTM_TaskSubject
+			{
+				id = System.UIHelper.Guid.Null,
+				name = "Ana Konular",
+			};
+
+			return View(model);
 		}
 
 		[PageInfo("Görev Konuları Methodu", SHRoles.Personel)]
@@ -26,8 +33,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			request.Sorts = new SortDescriptor[0];
 			request.Page = 1;
 			var db = new WorkOfTimeDatabase();
-			var data = db.GetFTM_TaskSubject(condition).RemoveGeographies().ToDataSourceResult(request);
-			data.Total = db.GetFTM_TaskSubjectCount(condition.Filter);
+			var data = db.GetVWFTM_TaskSubject(condition).RemoveGeographies().ToDataSourceResult(request);
+			data.Total = db.GetVWFTM_TaskSubjectCount(condition.Filter);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
@@ -53,7 +60,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var condition = KendoToExpression.Convert(request);
 
 			var db = new WorkOfTimeDatabase();
-			var data = db.GetFTM_TaskSubject(condition);
+			var data = db.GetVWFTM_TaskSubject(condition);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
@@ -66,15 +73,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Görev Konusu Ekleme", SHRoles.Personel)]
-		public ActionResult Insert()
+		public ActionResult Insert(FTM_TaskSubject data)
 		{
-			var data = new FTM_TaskSubject { id = Guid.NewGuid() };
 			return View(data);
 		}
 
 		[PageInfo("Görev Konusu Ekleme Methodu", SHRoles.Personel)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(FTM_TaskSubject item)
+		public JsonResult Insert(FTM_TaskSubject item, bool? isPost)
 		{
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -134,6 +140,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			if (isItUsed != null)
 			{
 				return Json(new ResultStatusUI { Result = false, FeedBack = feedback.Warning("Bu Görev Konu Tipi Kullanılmaktadır. Kullanılan Görev Konu Tipi Silinemez.") }, JsonRequestBehavior.AllowGet);
+			}
+
+			var isPid = db.GetVWFTM_TaskSubjectByPid(id);
+
+			if (isPid != null)
+			{
+				return Json(new ResultStatusUI { Result = false, FeedBack = feedback.Warning("Bu Görev Konusunun alt konuları bulunmaktadır. Alt konularını sildikten sonra ana konuyu silebilirsiniz.") }, JsonRequestBehavior.AllowGet);
 			}
 
 			var dbresult = db.DeleteFTM_TaskSubject(id);

@@ -5,7 +5,6 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWSV_CustomerUser : InfolineTable
     {
-        public string code { get; set;}
         public Guid? name { get; set;}
         public Guid? serviceId { get; set;}
         public Guid? customerId { get; set;}

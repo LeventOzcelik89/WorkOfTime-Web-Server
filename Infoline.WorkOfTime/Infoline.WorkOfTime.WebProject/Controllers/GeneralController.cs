@@ -893,19 +893,7 @@ namespace Infoline.WorkOfTime.Controllers
             var cryp = new CryptographyHelper().Encrypt(remoteValue);
             return cryp;
         }
-        public JsonResult GetCampaigns()
-        {
-            try
-            {
-                var res = TenantConfig.Tenant.Config.CallCenterService.GetCampaigns().Select(a => new { Id = a.CampaingId, Name = a.CampaignName });
-                return Json(res, JsonRequestBehavior.AllowGet);
-            }
-            catch (Exception)
-            {
-                var result = new List<object>();
-                return Json(result, JsonRequestBehavior.AllowGet);
-            }
-        }
+
         public JsonResult GetGroupUsers(Guid id)
         {
             var db = new WorkOfTimeDatabase();

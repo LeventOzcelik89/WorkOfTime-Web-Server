@@ -595,13 +595,16 @@
                     <li data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" data-toggle="tooltip" data-placement="top" title="Eski Görev Dosyaları">
                         <a data-toggle="tab" href="#oldFiles" aria-expanded="false"><i class="fa fa-file-text text-success fa-2x" aria-hidden="true"></i></a>
                     </li>
-                    @if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
+                    <li data-href="@Url.Action("DataSource","VWSV_Service", new { area = "SV" })" data-toggle="tooltip" data-placement="top" title="Geçmiş Teknik Servis Kayıtları">
+                        <a data-toggle="tab" href="#oldServiceRecords" aria-expanded="false"><i class="fa icon-tools text-success fa-2x" aria-hidden="true"></i></a>
+                    </li>
+                    @if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
                     {
-                <li data-href="@Url.Action("Detail","PRD_TitanDeviceActivated", new { area = "FTM"})" data-toggle="tooltip" data-placement="top" title="Cihaz Bilgileri">
-                    <a data-toggle="tab" href="#devices" aria-expanded="false"><i class="fa fa fa-mobile-phone text-success fa-2x" aria-hidden="true"></i></a>
-                </li>
+                        <li data-href="@Url.Action("Detail","PRD_TitanDeviceActivated", new { area = "FTM"})" data-toggle="tooltip" data-placement="top" title="Cihaz Bilgileri">
+                            <a data-toggle="tab" href="#devices" aria-expanded="false"><i class="fa fa fa-mobile-phone text-success fa-2x" aria-hidden="true"></i></a>
+                        </li>
                     }
-                    
+
                 </ul>
                 <div class="tab-content">
                     <div class="tab-pane active" id="Location">
@@ -680,7 +683,34 @@
                                 //x.Custom().Text("<i title='Ürün Bakım Periyodunu Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_InventoryTask", new { area = "PRD" }));
                             }))
                     </div>
+                    <div  class="tab-pane" data-href="@Url.Action("DataSource","VWSV_Service",new { area="sv"})" id="oldServiceRecords">
+                        <h4><i class="fa icon-tools text-success"></i> GEÇMİŞ TEKNİK SERVİS KAYITLARI</h4>
 
+                        @(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWSV_Service>("VWSV_Service")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_Service", new { area = "SV" })).Filter(l=>l.inventoryId==Model.id).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).Title("").ClientTemplate("#=TemplateEngine('serviceTemplate',data)#").Width(180).Sortable(false).Filterable(false);
+        x.Bound(y => y.serialCode).Title("IMEI/Seri Numarası").Width(110);
+        x.Bound(y => y.inventoryCode_Title).Title("Envanter Kodu").Width(100);
+        x.Bound(y => y.lastOperationStatus_Title).Title("Son Durum").Width(120);
+        x.Bound(y => y.customerType_Title).Title("Teslim Eden Müşteri Tipi").Width(120);
+        x.Bound(y => y.delivery_Title).Title("Teslim Edilme Tipi").Width(120);
+        x.Bound(y => y.created).Title("Oluşturulma Tarihi").Width(100).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(100);
+
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Single))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } ,{ "data-modal","false"},{ "data-blank",""} }).Url(Url.Action("Insert", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_Service", new { area = "SV" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSV_Service", new { area = "SV" }));
+    }))
+
+                    </div>
                     <div class="tab-pane" data-href="@Url.Action("DataSource","VWFTM_TaskFormRelation", new { area = "FTM" })" id="TaskForms">
                         <h4><i class="fa fa-list-alt text-success"></i> ENVANTER GÖREV FORM LİSTESİ</h4>
                         @(Html.Akilli()

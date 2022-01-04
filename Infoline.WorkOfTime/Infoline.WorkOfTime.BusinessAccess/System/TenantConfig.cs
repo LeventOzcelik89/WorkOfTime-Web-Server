@@ -1,6 +1,4 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.WorkOfTime.BusinessAccess.Integrations.CallCenter;
-using Infoline.WorkOfTime.BusinessAccess.Integrations.CallCenter.AloTech;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -222,7 +220,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.SatinAlmaOnaylayiciGorev
         };
         public IysInformation IysInformations { get; set; }
-        public ICallCenterService CallCenterService { get; set; }
 
         public Dictionary<DayOfWeek, WorkingTime> WorkingTimes = new Dictionary<DayOfWeek, WorkingTime>
         {
