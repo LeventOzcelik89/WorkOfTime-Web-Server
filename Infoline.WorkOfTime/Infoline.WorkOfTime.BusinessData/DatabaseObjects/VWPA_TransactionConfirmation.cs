@@ -18,6 +18,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string changedby_Title { get; set;}
         public string Person_Title { get; set;}
         public string ruleUserId_Title { get; set;}
+        public string confirmationUserPhoto { get; set;}
         public string ruleType_Title { get; set;}
         public string confirmationUserIds { get; set;}
         public string confirmationUserIds_Titles { get; set;}
