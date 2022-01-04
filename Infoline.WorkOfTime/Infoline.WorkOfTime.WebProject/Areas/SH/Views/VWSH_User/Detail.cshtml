@@ -38,40 +38,40 @@ else
         <script src="~/Content/Custom/js/wordexport.js"></script>
         <script type="text/javascript">
 
-        var userDetail = {
-            dfn: {
-                ledgerTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
-            },
-            fnc: {
-                cvSavePersonDetail: function () {
-                    $.ajax({
-                        type: "GET",
-                        url: '@Url.Action("CreateResume", "VWSH_User", new { area = "SH" })',
-                        data: { id: '@Model.id' },
-                        success: function (response) {
-                            $($(response).find("#page-content").prevObject[7]).wordExport('@Model.firstname' + " " + '@Model.lastname');
-                        }
-                    });
-                }
-            },
-            templates: {
-                totalAmountTemp: function (data, amountTotals) {
-                    var textColor = data.direction == -1 ? "text-danger" : "text-primary";
-                    if (amountTotals != 0) {
-                        return '<span class="' + textColor + ' pull-right" style="font-size:20px; color:#116b06;">' + kendo.toString(amountTotals, "n2") + " " + data.Currency_Symbol + '</span>';
+            var userDetail = {
+                dfn: {
+                    ledgerTypes: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumPA_LedgerType>())),
+                },
+                fnc: {
+                    cvSavePersonDetail: function () {
+                        $.ajax({
+                            type: "GET",
+                            url: '@Url.Action("CreateResume", "VWSH_User", new { area = "SH" })',
+                            data: { id: '@Model.id' },
+                            success: function (response) {
+                                $($(response).find("#page-content").prevObject[7]).wordExport('@Model.firstname' + " " + '@Model.lastname');
+                            }
+                        });
                     }
-
-                    return "";
                 },
-                ledgerTypeTemp: function (data) {
-                    var type = $.Enumerable.From(userDetail.dfn.ledgerTypes).Where(a => a.Key == data.type).FirstOrDefault();
-                    var color = data.direction == -1 ? "#b30909" : "#116b06";
-                    return '<i style="color:'+color+'" class="fa-2x '+ type.Generic.icon +'">';
-                },
-            }
-        }
+                templates: {
+                    totalAmountTemp: function (data, amountTotals) {
+                        var textColor = data.direction == -1 ? "text-danger" : "text-primary";
+                        if (amountTotals != 0) {
+                            return '<span class="' + textColor + ' pull-right" style="font-size:20px; color:#116b06;">' + kendo.toString(amountTotals, "n2") + " " + data.Currency_Symbol + '</span>';
+                        }
 
-        $(document)
+                        return "";
+                    },
+                    ledgerTypeTemp: function (data) {
+                        var type = $.Enumerable.From(userDetail.dfn.ledgerTypes).Where(a => a.Key == data.type).FirstOrDefault();
+                        var color = data.direction == -1 ? "#b30909" : "#116b06";
+                        return '<i style="color:' + color + '" class="fa-2x ' + type.Generic.icon + '">';
+                    },
+                }
+            };
+
+            $(document)
             .on("load:grid", "#VWPA_Account", function (e) {
                 $('[data-toggle="toggle"]').bootstrapToggle({
                     width: 90,
@@ -1098,7 +1098,8 @@ else
                         </div>
                         <div class="tab-pane" id="VWUT_LocationConfigUsers">
                            
-                            @(Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/Detail.cshtml", Model.configUser ?? new Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser { userId = Model.id  }))
+                            @(Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/Detail.cshtml", Model.configUser ?? new VMUT_LocationConfigUserModel { userId = Model.id  }))
+
                         </div>
 
 

@@ -19,7 +19,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public bool? hasAgi { get; set; }
         public VWINV_CompanyPersonAvailability[] VWINV_CompanyPersonAvailabilities { get; set; }
         public VWPA_Account[] VWPA_Accounts { get; set; }
-        public VWUT_LocationConfigUser configUser { get; set; }
+        public VMUT_LocationConfigUserModel configUser { get; set; }
         public WorkOfTimeDatabase db { get; set; }
         public DbTransaction trans { get; set; }
         public List<SYS_BlockMail> blockMailList { get; set; }
@@ -612,7 +612,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.blockMailList = db.GetSYS_BlockMailByUserId(this.id).ToList();
             this.VWSH_PersonInformation = db.GetVWSH_PersonInformationByUserId(this.id) ?? new VWSH_PersonInformation { UserId = this.id, IdentificationNumber = this.loginname };
             this.VWINV_CompanyPersonAvailabilities = new INV_CompanyPersonAvailabilityModel(this.id, new VWINV_CompanyPersonAvailability[] { }).GetDailySchemaByPerson();
-            this.configUser = db.GetVWUT_LocationConfigUserByUserId(this.id);
+            this.configUser = db.GetVWUT_LocationConfigUserByUserId(this.id).B_ConvertType<VMUT_LocationConfigUserModel>();
             this.Roles = rolesDB.Where(x => x.roleid.HasValue).Select(a => a.roleid.Value).ToList();
             return this;
         }
