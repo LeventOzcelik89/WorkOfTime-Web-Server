@@ -79,8 +79,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-            
-         
+            var getService = new VMSV_ServiceModel { id = serviceId.Value }.Load();
+            if (this.status==(short)EnumSV_ServiceOperation.AskCustomer)
+            {
+                getService.SendMail(1);
+            }
             if (this.CompanyId.HasValue)
             {
                 var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
@@ -89,9 +92,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                     description = $"Transfer Edilen Şube: {getCompany.fullName} </br></br>" + description;
                 }
-                
-                var getService = db.GetSV_ServiceById(this.serviceId.Value);
-                res &= db.UpdateSV_Service(getService, false, trans);
+
+                getService.stage = (short)EnumSV_ServiceStages.DeviceHanded;//süreç başa döner
+                res &= db.UpdateSV_Service(getService.B_ConvertType<SV_Service>(), false, trans);
                 var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
                 var transItem = new VMPRD_TransactionItems
                 {
@@ -149,10 +152,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 productId = x.productId,
                 quantity = x.quantity,
                 serialCodes = x.serialCodes ?? "",
-                unitPrice = 0,
+                unitPrice = 0
             }).ToList();
+            var transId = Guid.NewGuid();
             var transModel = new VMPRD_TransactionModel
             {
+                outputTable="SV_Service",
                 outputCompanyId = user.CompanyId,
                 outputId = this.storageId,
                 created = DateTime.Now,
@@ -162,13 +167,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 date = DateTime.Now,
                 code = BusinessExtensions.B_GetIdCode(),
                 type = this.Transaction.type,
-                id = Guid.NewGuid(),
+                id = transId,
+                
             };
             result &= transModel.Save(userId, trans);
             result &= new VMSV_ServiceOperationModel
             {
                 created = DateTime.Now,
                 createdby = userId,
+                dataId=transId,
+                dataTable= "PRD_Transaction",
                 description = this.description,
                 serviceId = this.serviceId,
                 status = this.Transaction.type==(short)EnumPRD_TransactionType.HarcamaBildirimi?(short)EnumSV_ServiceOperation.HarcamaBildirildi: (short)EnumSV_ServiceOperation.FireBildirimiYapildi,

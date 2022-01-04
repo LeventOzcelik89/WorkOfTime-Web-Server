@@ -121,16 +121,19 @@
             <div class="tabs-container">
                 <ul class="nav nav-tabs">
                     <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Müşteri Beyanı)">
-                        <a data-toggle="tab" href="#musteri" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                        <a data-toggle="tab" href="#musteri" aria-expanded="true"><i class="fa fa-sliders text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Teknik Servis Bulguları)">
-                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="  fa fa-code-fork text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihazın Yanında Gelenler">
                         <a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="fa fa-inbox text-success" aria-hidden="true"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
                         <a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-trash-1 text-success" aria-hidden="true"></i></a>
+                    </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Harcama Bildirimi Yapılmış Ürünler">
+                        <a data-toggle="tab" href="#harcanaBildirimleri" aria-expanded="false"><i class="icon-box-1 text-success" aria-hidden="true"></i></a>
                     </li>
                 </ul>
                 <div class="tab-content">
@@ -155,7 +158,7 @@
     }))
                             </div>
                         </div>
-                    </div> 
+                    </div>
                     <div class="tab-pane" id="tecnic">
                         <div class="ibox">
                             <div class="ibox-title">
@@ -208,7 +211,17 @@
                                 <h5>Fire Bildirimleri</h5>
                             </div>
                             <div class="ibox-content clearfix" style="height:600px">
-
+                                <div id="fire"></div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div class="tab-pane" id="harcanaBildirimleri">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Harcama Bildirimleri</h5>
+                            </div>
+                            <div class="ibox-content clearfix" style="height:600px">
+                                <div id="spend"></div>
                             </div>
                         </div>
                     </div>
@@ -314,4 +327,96 @@
         }
     }
     page.methods.setButtonServiceId();
+    $(document)
+        .on("ready", function () {
+            GetJsonDataFromUrl('/SV/VWSV_Service/GetWastedProducts', { serviceId: '@Model.id' }, function (res) {
+                var cols = [
+                    { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#:kendo.toString(productId_Title)#" },
+                    { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+                    { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
+                    { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                    { field: 'unitId_Title', title: 'Birim', width: 70 },
+                    {
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
+                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
+                    },
+                ];
+
+                $("#fire").kendoGrid({
+                    toolbar: [
+                       
+                    ], excel: {
+                        fileName: "Fire_Bildirimleri.xlsx"
+                    },
+                    dataSource: res.objects,
+                    pageSize: 100,
+                    height: 600,
+                    sortable: true,
+                    resizable: true,
+                    selectable: 'Single, Row',
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: cols
+                });
+            });
+            GetJsonDataFromUrl('/SV/VWSV_Service/GetSpendedProducts', { serviceId: '@Model.id' }, function (res) {
+                var cols = [
+                    { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#:kendo.toString(productId_Title)#" },
+                    { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
+                    { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
+                    { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
+                    { field: 'unitId_Title', title: 'Birim', width: 70 },
+                    {
+                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
+                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
+                    },
+                ];
+
+                $("#spend").kendoGrid({
+                    toolbar: [
+                     
+                    ], excel: {
+                        fileName: "Harcanan-Urunler.xlsx"
+                    },
+                    dataSource: res.objects,
+                    pageSize: 100,
+                    height: 650,
+                    sortable: true,
+                    resizable: true,
+                    selectable: 'Single, Row',
+                    pageable: {
+                        refresh: true,
+                        pageSizes: true,
+                        buttonCount: 5
+                    },
+                    columns: cols
+                });
+            });
+        }).on("click", '#serialCodesModalButton', function () {
+
+            var findSerialCodes = $(this).attr("data-serialcodes").split(",");
+            BootstrapDialog.show({
+                size: 'size-wide',
+                type: 'type-info',
+                title: "Seri Numaraları",
+                message: function (dialog) {
+
+                    var text = "<style>.margin-right{margin:10px;font-size:15px;padding: 10px 12px;} </style>";
+
+                    $.each(findSerialCodes, function (i, item) {
+
+                        text += "<div class='badge margin-right' >" + item + "</div>"
+                    })
+                    return text;
+                },
+                closable: true,
+                closeByBackdrop: true,
+                closeByKeyboard: true,
+
+            });
+        });
+
 </script>

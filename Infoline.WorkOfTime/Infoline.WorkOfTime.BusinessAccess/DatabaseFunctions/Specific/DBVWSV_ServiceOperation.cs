@@ -39,10 +39,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControlNot = 200,
         [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-exclamation-triangle", "color", "FF934F", "description", "Kalite Kontrol Başarılı")]
         QualityControl = 201,
-        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Kalite Kontrol Başarısız")]
+        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu")]
         AskCustomer = 400,
     }
-  
     partial class WorkOfTimeDatabase
     {
         public VWSV_ServiceOperation[] GetVWSV_ServiceOperationsByIdServiceId(Guid serviceId) {

@@ -25,6 +25,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
+        public List<VWPRD_TransactionItem> WastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
 
         public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
 
@@ -353,7 +355,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-        public void SendMail()
+        public void SendMail(int type=0)
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = this.Load();
@@ -361,7 +363,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
-                text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                if (type==1)
+                {
+
+                    text += "<p>Müşterinin Onayına Sun</p>";
+                  
+                }
+                else
+                {
+
+                    text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                 
+                }
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
             }
@@ -513,6 +526,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
 
 
+
+        }
+        public ResultStatus GetWastedProducts(Guid serviceId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var getAllServiceAction = db.GetVWSV_ServiceOperationsByIdServiceId(serviceId).Where(x=>x.status==(short)EnumSV_ServiceOperation.FireBildirimiYapildi).ToList();
+            if (getAllServiceAction!=null)
+            {
+                var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x=>x.dataId.Value).ToArray());
+                if (allItems.Length<=0)
+                {
+                    return new ResultStatus { result = false };
+                }
+                this.WastageProducts = allItems.ToList();
+                
+            }
+            return new ResultStatus { result=true,objects= this.WastageProducts };
+
+        }
+        public ResultStatus GetSpendedProducts(Guid serviceId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var getAllServiceAction = db.GetVWSV_ServiceOperationsByIdServiceId(serviceId).Where(x => x.status == (short)EnumSV_ServiceOperation.HarcamaBildirildi).ToList();
+            if (getAllServiceAction != null)
+            {
+                var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x => x.dataId.Value).ToArray());
+                if (allItems.Length <= 0)
+                {
+                    return new ResultStatus { result = false };
+                }
+                this.SpendedProducts = allItems.ToList();
+
+            }
+            return new ResultStatus { result = true, objects = this.SpendedProducts };
 
         }
     }

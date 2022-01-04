@@ -842,7 +842,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 switch (dataTable)
                 {
                     case "CMP_Storage":
-                    case "SV_Service":
+                   
                         var storage = db.GetVWCMP_StorageById(dataId.Value);
                         result = new OwnerInfo
                         {
@@ -855,6 +855,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             DataTable = dataTable,
                         };
                         break;
+
 
                     case "SH_User":
                         var user = db.GetVWSH_UserById(dataId.Value);

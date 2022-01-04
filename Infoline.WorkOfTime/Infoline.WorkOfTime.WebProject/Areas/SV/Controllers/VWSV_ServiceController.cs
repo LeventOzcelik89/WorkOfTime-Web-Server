@@ -119,6 +119,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         {
             return View();
         }
+        [AllowEveryone]
+        public JsonResult GetWastedProducts(Guid serviceId) {
 
+            var data = new VMSV_ServiceModel().GetWastedProducts(serviceId);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public JsonResult GetSpendedProducts(Guid serviceId)
+        {
+
+            var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
     }
 }

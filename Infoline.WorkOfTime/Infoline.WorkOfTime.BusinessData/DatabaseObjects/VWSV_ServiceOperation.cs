@@ -11,6 +11,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? CargoId { get; set;}
         public Guid? CompanyId { get; set;}
         public Guid? CargoNo { get; set;}
+        public Guid? dataId { get; set;}
+        public string dataTable { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string serviceId_Title { get; set;}
