@@ -48,8 +48,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         TeklifFatura = 14,
         [Description("Teklif İrsaliye Dönüştürüldü"), Generic("color", "#23c6c8")]
         TeklifIrsaliye = 15,
-        [Description("Teklif Süreci Tamamlandı"), Generic("color", "#c7edff")]
-        TeklifSurecTamamlandi = 16,
 
         [Description("Sipariş Oluşturuldu"), Generic("color", "#f5f5f5")]
         YeniSiparis = 16,
