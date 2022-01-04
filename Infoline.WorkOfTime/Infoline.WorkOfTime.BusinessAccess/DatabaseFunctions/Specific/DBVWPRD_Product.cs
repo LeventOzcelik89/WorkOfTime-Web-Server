@@ -29,6 +29,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_Product>().Where(a => a.id.In(ids)).Execute().ToArray();
             }
         }
+        public VWPRD_Product[] GetVWPRD_ProductByType(EnumPRD_ProductType type)
+        {
+
+            using (var db = GetDB())
+            {
+                return db.Table<VWPRD_Product>().Where(a => a.type==(short)type).Execute().ToArray();
+            }
+        }
 
 
 

@@ -11,6 +11,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public int balance { get; set;}
         public string searchField { get; set;}
         public string confirmationUser_Title { get; set;}
+        public string confirmationUserPhoto { get; set;}
         public Guid? accountById { get; set;}
         public string accountData_Title { get; set;}
         public DateTime? progressDate { get; set;}
@@ -39,6 +40,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string type_Title { get; set;}
         public string currencyId_Title { get; set;}
         public string Currency_Code { get; set;}
+        public string ProfilePhoto { get; set;}
         public string accountDataTable { get; set;}
         public Guid? accountDataId { get; set;}
         public decimal? debt { get; set;}

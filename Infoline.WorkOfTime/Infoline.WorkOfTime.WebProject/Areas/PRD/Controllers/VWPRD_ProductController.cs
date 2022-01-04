@@ -64,6 +64,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
+		[PageInfo("Ürün Tanımları Hizmetle Birlikte Çeken Dropdown Metodu", SHRoles.Personel)]
+		public ContentResult DataSourceDropDownForInventoryWithHizmet([DataSourceRequest] DataSourceRequest request)
+		{
+			var condition = KendoToExpression.Convert(request);
+			var db = new WorkOfTimeDatabase();
+			var data = new List<VWPRD_Product>();
+			var stockSummary = db.GetVWPRD_StockSummary(condition);
+			if (stockSummary != null)
+			{
+				var productIds = stockSummary.Where(a => a.productId.HasValue && a.quantity > 0).Select(a => a.productId.Value).ToArray();
+				var products = db.GetVWPRD_ProductByIds(productIds);
+				
+				if (products.Count() > 0)
+				{
+					data.AddRange(db.GetVWPRD_ProductByType(EnumPRD_ProductType.Hizmet));
+					data.AddRange(products.ToList());
+				}
+			}
+			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+		}
 		[PageInfo("Ürün Tanımları Adet Metodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
 		public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
 		{

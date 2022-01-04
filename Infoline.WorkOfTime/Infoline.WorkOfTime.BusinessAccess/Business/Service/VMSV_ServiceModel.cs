@@ -480,7 +480,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+                //ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
@@ -520,6 +520,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (this.stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 return new ResultStatus { result = false, message = "Cihaz Teslim Edilmiştir" };
+            }
+            if (this.stage==(int)EnumSV_ServiceStages.Detection&&!this.Problems.Any(x=>x.type==(short)EnumSV_DeviceProblemType.Service&&x.warranty==false))
+            {
+                this.stage++;
             }
             this.stage++;
             this.Save(userId, null, trans);

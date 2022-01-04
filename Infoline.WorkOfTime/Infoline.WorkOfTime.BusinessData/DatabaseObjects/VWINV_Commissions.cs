@@ -27,6 +27,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public double? VehicleKilometer { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public string createdPhoto { get; set;}
         public string Information_Title { get; set;}
         public string TravelInformation_Title { get; set;}
         public string ApproveStatus_Title { get; set;}
