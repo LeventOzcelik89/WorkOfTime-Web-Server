@@ -1,0 +1,140 @@
+﻿@model VWUT_LocationConfigUser
+@{
+    Layout = null;
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+
+
+
+<form action="@Url.Action("GetMapData", "VWUT_LocationConfigUser", new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Konum Verileri Alınıyor..."
+      data-selector="modalContainer" data-formType="Ajax">
+    @Html.HiddenFor(x => x.userId)
+    <div class="btn-bar" style="width:100%;top:6%;">
+        <div style="display: inherit;margin: 0 auto;">
+            <div class="col-lg-12" style="margin-top: 10px; left: -15px">
+                <div class="row">
+                    <div class="col-md-3 datetimeTemp">
+                        @(Html.Akilli().DateTimePicker("StartDateTime")
+                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+                            }).MaxDateElement("EndDateTime"))
+
+
+                    </div>
+                    <div class="col-md-3 datetimeTemp">
+                        @(Html.Akilli().DateTimePicker("EndDateTime")
+                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
+                                    }).MinDateElement("StartDateTime"))
+                    </div>
+                    <div class="col-md-1 buttons" style="margin-top:-23px;">
+                        <button class="btn btn-md btn-success pull-right" onclick="pageLocation.onChangeDate()" type="submit">Sorgula</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+    </form>
+    <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;margin-top:60px;">
+
+    </div>
+
+
+    <script type="text/template" id="selectedPerson">
+        <div class="pan-content">
+            <div class="pan-head clearfix" style="margin-left: 15px;">
+                <div style="padding-top: 7px;">
+                    <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
+                        <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div class="clearfix">
+
+                </div>
+                <div class="cardPerson" style="padding-bottom: 10px;">
+                    <div class="col-md-2">
+                        <a href="#">
+                            <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
+                        </a>
+                    </div>
+                    <div class="col-md-10">
+                        <nav class="nav">
+                            <ul>
+                                <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
+                                <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="pan-bodyCustom">
+                    <div class="col-md-12">
+                        <div class="panContentPresentation">
+                            <div class="card col-md-12">
+                                <header class="header">
+                                    <div class="card-details">
+                                        <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
+                                    </div>
+                                </header>
+                                <nav class="nav">
+                                    <ul>
+                                        <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                        <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                        <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                        <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                        <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                    </ul>
+                                </nav>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
+
+    
+        <style type="text/css" data-selector="modalContainer">
+            
+            #slider-station .item {
+                background: #212c36 !important;
+                height: 220px;
+                width: 350px;
+                box-shadow: 0px 5px 15px 0px rgba(0,0,0,0.3);
+                padding: 5px 20px;
+                border-radius: 15px;
+            }
+
+                #slider-station .item .head .col-xs-12 {
+                    padding-top: 10px;
+                    color: #fff;
+                    font-size: 16px;
+                    text-transform: uppercase;
+                }
+
+                #slider-station .item .head .col-xs-2 img {
+                    width: 70%;
+                    margin: 0 15%;
+                }
+
+                #slider-station .item .head .presentationHead {
+                    color: #babbc0;
+                }
+
+            #slider-station .list-group-item {
+                color: #babbc0;
+            }
+
+            #slider-station .listGroupValue {
+                color: #d9d9d3;
+            }
+
+        </style>
+    

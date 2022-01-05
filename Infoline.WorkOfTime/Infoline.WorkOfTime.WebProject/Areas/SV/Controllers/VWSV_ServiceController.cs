@@ -1,11 +1,10 @@
-﻿using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.WorkOfTime.BusinessAccess;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Linq;
 using System.Web.Mvc;
+using System.Linq;
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
     public class VWSV_ServiceController : Controller
@@ -120,6 +119,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         public ActionResult Transfer(Guid serviceId)
         {
             return View();
+        }
+        [AllowEveryone]
+        public ContentResult GetWastedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId) {
+
+            var data = new VMSV_ServiceModel().GetWastedProducts(serviceId).ToDataSourceResult(request);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
+        [AllowEveryone]
+        public ContentResult GetSpendedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId)
+        {
+            var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId).ToDataSourceResult(request);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
     }

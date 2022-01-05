@@ -23,6 +23,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public DateTime? endDate { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
+        public string createdPhoto { get; set;}
         public string status_Title { get; set;}
         public string type_Title { get; set;}
         public string invoiceId_Title { get; set;}

@@ -5,10 +5,9 @@
     var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
     var buttons = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceActions>();
     var operationEnums = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumSV_ServiceOperation>().ToArray();
+    var activeStage = "";
 }
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
-<link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
-<script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
 <style type="text/css">
     li {
         list-style: none;
@@ -21,7 +20,7 @@
     }
 
     #detailProduction .main-timeline2 .timeline2 {
-        width: 16.66% !important;
+        width: 20% !important;
     }
 
     .tab-pane {
@@ -34,9 +33,13 @@
             <div class="main-timeline2">
                 @foreach (var stage in stages)
                 {
-                    <div class="timeline2 @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"green2":"")">
+                    if (Model.stage + 1 == Convert.ToInt32(stage.Key))
+                    {
+                        activeStage = stage.Value;
+                    }
+                    <div class="timeline2 @Html.Raw(Model.stage >= Convert.ToInt32(stage.Key) ? "green2" : "")">
                         <a href="#" style="cursor:default" class="timeline-content2" data-toggle="tooltip" data-html="true" data-placement="top" data-original-title="@stage.Generic["description"]">
-                            <div class=" @Html.Raw(Model.stage>=Convert.ToInt32(stage.Key)?"timeline-yeargreen":"timeline-year2")">
+                            <div class=" @Html.Raw(Model.stage >= Convert.ToInt32(stage.Key) ? "timeline-yeargreen" : "timeline-year2")">
                                 <span class="fa @stage.Generic["icon"] fa-2x"></span>
                             </div>
                             <div class="inner-content2">
@@ -53,7 +56,7 @@
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>
-                        <i class="fa text-success fa fa-list-alt"></i> Cihaz Bilgileri
+                        <i class="fa text-success fa fa-list-alt"></i> Servis Bilgileri
                     </h5>
                 </div>
                 <div class="ibox-content clearfix">
@@ -79,13 +82,26 @@
                                 <dt>Üretim Tarihi: </dt>
                                 <dd> @Model.ProducedDate </dd>
                             </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Fire Tutarı</dt>
+                                <dd>@Model.TotalWasted.ToString("N2") ₺</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Başlama Tarihi</dt>
+                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Tamamlanma Tarihi</dt>
+                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                            </dl>
+
                         </div>
                         <div class="col-lg-8">
                             <dl class="dl-horizontal">
                                 <dt>Tam Cihaz Adı: </dt>
                                 <dd>
                                     <span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@Model.product_Title</u></strong></span>
-                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.ProductId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.productId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
                                 </dd>
                             </dl>
                             <dl class="dl-horizontal">
@@ -100,7 +116,7 @@
                             </dl>
                             <dl class="dl-horizontal">
                                 <dt>Satın Alınma Tarihi:</dt>
-                                <dd>@(Model.EntegrationImport.contractStartDate.HasValue?Model.EntegrationImport.contractStartDate.Value.ToShortDateString():"")</dd>
+                                <dd>@(Model.EntegrationImport.contractStartDate.HasValue ? Model.EntegrationImport.contractStartDate.Value.ToShortDateString() : "")</dd>
                             </dl>
                             <dl class="dl-horizontal">
                                 <dt>IMEI/Seri Numarası</dt>
@@ -109,14 +125,25 @@
                                     <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
                                 </dd>
                             </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Hizmet Tutarı</dt>
+                                <dd>   @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>Convert.ToDouble(x.description)).ToString("N2")) ₺</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Harcama Tutarı</dt>
+                                <dd>@Model.TotalSpended.ToString("N2") ₺</dd>
+                            </dl>
                         </div>
                     </div>
                 </div>
             </div>
             <div class="tabs-container">
                 <ul class="nav nav-tabs">
-                    <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri">
-                        <a data-toggle="tab" href="#kullanilanUrunler" aria-expanded="true"><i class="icon-box-1 text-success"></i></a>
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Müşteri Beyanı)">
+                        <a data-toggle="tab" href="#musteri" aria-expanded="true"><i class="fa fa-sliders text-success"></i></a>
+                    </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Teknik Servis Bulguları)">
+                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="  fa fa-code-fork text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihazın Yanında Gelenler">
                         <a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="fa fa-inbox text-success" aria-hidden="true"></i></a>
@@ -124,27 +151,53 @@
                     <li data-toggle="tooltip" data-placement="top" title="Fire Bildirimi Yapılmış Ürünler">
                         <a data-toggle="tab" href="#fireBildirimleri" aria-expanded="false"><i class="icon-trash-1 text-success" aria-hidden="true"></i></a>
                     </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Harcama Bildirimi Yapılmış Ürünler">
+                        <a data-toggle="tab" href="#harcanaBildirimleri" aria-expanded="false"><i class="icon-box-1 text-success" aria-hidden="true"></i></a>
+                    </li>
                 </ul>
                 <div class="tab-content">
-                    <div class="tab-pane active" id="kullanilanUrunler">
+                    <div class="tab-pane active" id="musteri">
                         <div class="ibox">
                             <div class="ibox-title">
-                                <h5>Cihaz Problemleri </h5>
+                                <h5>Cihaz Problemleri(Müşteri Beyanı) </h5>
                             </div>
                             <div class="ibox-content clearfix">
                                 @(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceProblem>("VWSV_DeviceProblem")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id))
-    .Columns(x =>
-    {
-        x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
-        x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
-        x.Bound(y => y.description).Title("description").Width(180);
-    })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .ToolBar(x =>
-    {
-    }))
+.Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceProblem>("VWSV_DeviceProblem")
+.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b => b.serviceId == Model.id && b.type == (int)EnumSV_DeviceProblemType.Customer))
+.Columns(x =>
+{
+    x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
+    x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
+    x.Bound(y => y.description).Title("Açıklama").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+.ToolBar(x =>
+{
+}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="tecnic">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Cihaz Problemleri(Teknik Servis Bulguları) </h5>
+                            </div>
+                            <div class="ibox-content clearfix">
+                                @(Html.Akilli()
+.Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceProblem>("VWSV_DeviceProblemTecnical")
+.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceProblem", new { area = "SV" })).PageSize(25).Filter(b => b.serviceId == Model.id && b.type == (int)EnumSV_DeviceProblemType.Service))
+.Columns(x =>
+{
+    x.Bound(y => y.warrantyTitle).Title("Garantiye Dahil Mi?").Width(180);
+    x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
+    x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
+    x.Bound(y => y.description).Title("Açıklama").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+.ToolBar(x =>
+{
+}))
                             </div>
                         </div>
                     </div>
@@ -155,19 +208,19 @@
                             </div>
                             <div class="ibox-content clearfix">
                                 @(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceCameWith>("VWSV_DeviceCameWith")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceCameWith", new { area = "SV" })).PageSize(25).Filter(b=>b.serviceId==Model.id))
-    .Columns(x =>
-    {
-        x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
-        x.Bound(y => y.amount).Title("Miktar").Width(180);
-        x.Bound(y => y.description).Title("Açıklama").Width(180);
-    })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .ToolBar(x =>
-    {
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_DeviceCameWith", new { area = "SV" }));
-    }))
+.Grid<Infoline.WorkOfTime.BusinessData.VWSV_DeviceCameWith>("VWSV_DeviceCameWith")
+.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_DeviceCameWith", new { area = "SV" })).PageSize(25).Filter(b => b.serviceId == Model.id))
+.Columns(x =>
+{
+    x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+    x.Bound(y => y.amount).Title("Miktar").Width(180);
+    x.Bound(y => y.description).Title("Açıklama").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+.ToolBar(x =>
+{
+    x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_DeviceCameWith", new { area = "SV" }));
+}))
                             </div>
                         </div>
                     </div>
@@ -177,7 +230,45 @@
                                 <h5>Fire Bildirimleri</h5>
                             </div>
                             <div class="ibox-content clearfix" style="height:600px">
-                                <div id="wastageProductsGrid"></div>
+                                @(Html.Akilli()
+.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TransactionItem>("Wasted")
+.DataSource(x => x.Ajax().Read(r => r.Action("GetWastedProducts", "VWSV_Service", new { area = "SV",serviceId = Model.id })).PageSize(25))
+.Columns(x =>
+{
+    x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+    x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("#:kendo.toString(quantity,'n2') #").Width(180);
+    x.Bound(y => y.unitId_Title).Title("Birim").Width(180);
+    x.Bound(y => y.createdby_Title).Title("İşlemi Yapan").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Single))
+.ToolBar(x =>
+{
+    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+}))
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="harcanaBildirimleri">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Harcama Bildirimleri</h5>
+                            </div>
+                            <div class="ibox-content clearfix" style="height:600px">
+                                @(Html.Akilli()
+.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TransactionItem>("spended")
+.DataSource(x => x.Ajax().Read(r => r.Action("GetSpendedProducts", "VWSV_Service", new { area = "SV",serviceId=Model.id })).PageSize(25))
+.Columns(x =>
+{
+    x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+    x.Bound(y => y.quantity).Title("Miktar").Width(180).ClientTemplate("#:kendo.toString(quantity,'n2') #").Width(180);
+    x.Bound(y => y.unitId_Title).Title("Birim").Width(180);
+    x.Bound(y => y.createdby_Title).Title("İşlemi Yapan").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Single))
+.ToolBar(x =>
+{
+    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+}))
                             </div>
                         </div>
                     </div>
@@ -185,6 +276,34 @@
             </div>
         </div>
         <div class="col-md-4">
+            <div class="ibox">
+                <div class="ibox-title">
+                    <h5>Müşteri Bilgileri</h5>
+                </div>
+                <div class="ibox-content clearfix" style="min-height:180px">
+                    <dl class="dl-horizontal">
+                        <dt>Müşteri Adı Soyadı</dt>
+                        <dd>@Model.Customer.fullName</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Telefon Numarası</dt>
+                        <dd>@Model.Customer.phoneNumber</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Telefon Numarası (Diğer)</dt>
+                        <dd>@Model.Customer.otherPhoneNumber</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>E-Posta Adresi</dt>
+                        <dd>@Model.Customer.email</dd>
+                    </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Adres</dt>
+                        <dd>@Model.Customer.Address</dd>
+                    </dl>
+                </div>
+            </div>
+
             <div class="ibox-content">
                 <div class="tab-content" style="max-height: 700px;overflow: scroll;">
                     <div class="client-detail">
@@ -192,19 +311,22 @@
                             @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
                             {
                                 var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
-                                <div class="vertical-timeline-block" data-select="@operation.status">
-                                    <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
-                                        <i class="@OpsEnum.Generic["icon"]"></i>
+                                if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
+                                {
+                                    <div class="vertical-timeline-block" data-select="@operation.status">
+                                        <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
+                                            <i class="@OpsEnum.Generic["icon"]"></i>
+                                        </div>
+                                        <div class="vertical-timeline-content">
+                                            <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
+                                            <p class="clearfix ">
+                                                @Html.Raw(operation.description)
+                                                <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
+                                            </p>
+                                            <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
+                                        </div>
                                     </div>
-                                    <div class="vertical-timeline-content">
-                                        <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
-                                        <p class="clearfix ">
-                                            @Html.Raw(operation.description)
-                                            <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
-                                        </p>
-                                        <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
-                                    </div>
-                                </div>
+                                }
                             }
                         </div>
                     </div>
@@ -213,37 +335,58 @@
         </div>
     </div>
 </div>
-<div class="fixedStart">
-    <input type="checkbox" checked id="fixed">
-    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-    <div class="fix-buttons" id="buttons">
-        @foreach (var button in buttons)
-        {
-            if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+@if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Done || Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
+{
+
+}
+else
+{
+    <div class="fixedStart">
+        <input type="checkbox" checked id="fixed">
+        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+        <div class="fix-buttons" id="buttons">
+            @foreach (var button in buttons)
             {
-        <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
-            <i class="@button.Generic["icon"]"></i>
-        </a>
+                if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+                {
+                    <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
+                        <i class="@button.Generic["icon"]"></i>
+                    </a>
+                }
             }
-        }
+        </div>
     </div>
-</div>
+}
+
 <script type="text/javascript">
     var page = {
+        stage:'@Html.Raw(activeStage)',
         methods: {
             setButtonServiceId: function() {
                 $("#buttons [data-href]").each(function (i, item) {
                     var href = $(item).attr("data-href").replace("{{}}", "@Model.id");
                     $(item).attr("data-href", href);
-                    var dataEnum = $(item).attr("data-enum");
+                    var dataEnum = parseInt($(item).attr("data-enum"));
                     if (dataEnum==4) {
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
+                    else if (dataEnum == 5) {
+                        var ss = '@(Model.Problems.Any(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == true))';
+                        if (ss=="True") {
+                            $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
+                        }
+                            var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
+                        $(item).attr("data-original-title", stage);
+                    }
                     else if (dataEnum == 108) {
-                        var productId = $(item).attr("data-href").replace("{}", "@Model.ProductId");
+                        var productId = $(item).attr("data-href").replace("{}", "@Model.productId");
                         $(item).attr("data-href", productId);
                         var inventoryId = $(item).attr("data-href").replace("[]", "@Model.inventoryId");
                         $(item).attr("data-href", inventoryId);
+                    }
+                    else if (dataEnum == 102) {
+                        var inventoryId = $(item).attr("data-href").replace("%%", "@Model.inventoryId");
+                        $(item).attr("data-href", inventoryId)
                     }
                   });
             }

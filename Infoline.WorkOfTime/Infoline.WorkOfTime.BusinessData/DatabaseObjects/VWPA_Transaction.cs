@@ -46,6 +46,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Currency_Symbol { get; set;}
         public string confirmationUserIds { get; set;}
         public string confirmationUser_Title { get; set;}
+        public string confirmationUserPhoto { get; set;}
         public short? confirmationStatus { get; set;}
         public string confirmUserIds { get; set;}
         public string confirmUser_Titles { get; set;}

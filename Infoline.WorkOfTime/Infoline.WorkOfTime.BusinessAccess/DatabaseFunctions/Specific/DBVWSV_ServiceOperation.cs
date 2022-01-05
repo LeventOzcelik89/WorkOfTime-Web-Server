@@ -23,24 +23,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
         FireBildirimiYapildi = 100,
         [Description("Harcama Bildirildi"), Generic("icon", "fa fa-cubes", "color", "73A580", "description", "Harcama Bildirimi Yapıldı")]
         HarcamaBildirildi = 101,
-        [Description("Yeni Imei Ata"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Yeni Imei Ata")]
+        [Description("Yeni Imei Atandı"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Yeni Imei Atandı")]
         NewImei = 102,
         [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "6D213C", "description", "Servis Kaydı Güncellendi")]
         Updated = 105,
         [Description("Servis Süreci Bitti"), Generic("icon", "fa fa-check-circle", "color", "2AF913", "description", "Servis Süreci Bitti")]
-        Done = 106,
+        Done = 300,
         [Description("Süreç Başladı"), Generic("icon", "fa fa-check", "color", "70E4EF", "description", "Süreç Başladı")]
         Started = 107,
         [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
         PartChanged = 108,
         [Description("Değiştirilecek Parçalar Belirlendi"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
-        PartDefinied = 108,
-        [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-serialcode", "color", "dc1212", "description", "Kalite Kontrol Başarısız")]
-        QualityControllNot = 200,
-        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Kalite Kontrol Başarısız")]
+        PartDefinied = 109,
+        [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız")]
+        QualityControlNot = 200,
+        [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-exclamation-triangle", "color", "FF934F", "description", "Kalite Kontrol Başarılı")]
+        QualityControl = 201,
+        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu")]
         AskCustomer = 400,
+        [Description("Hizmet Ücreti Eklendi"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Hizmet Eklendi")]
+        ServicePriceAdded = 500,
     }
-  
     partial class WorkOfTimeDatabase
     {
         public VWSV_ServiceOperation[] GetVWSV_ServiceOperationsByIdServiceId(Guid serviceId) {

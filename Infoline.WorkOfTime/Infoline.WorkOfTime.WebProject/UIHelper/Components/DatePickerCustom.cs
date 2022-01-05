@@ -33,5 +33,20 @@ namespace System.Web.Mvc
                 }).Format(Extensions.DateFormatFull());
             return kendo;
         }
+
+
+        public static TimePickerBuilder TimePicker(HtmlHelper helper)
+        {
+
+            var kendo = helper.Kendo()
+                .TimePicker()
+                .ParseFormats(new string[] { "HH:mm" })
+                .HtmlAttributes(new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                }).Format("HH:mm");
+            return kendo;
+        }
+
     }
 }

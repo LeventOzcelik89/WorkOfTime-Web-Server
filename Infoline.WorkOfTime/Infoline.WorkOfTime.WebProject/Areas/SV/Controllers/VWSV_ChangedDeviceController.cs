@@ -71,7 +71,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var result = new ResultStatusUI
 		    {
 		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Cihaz Başarıyla Değiştirildi") : feedback.Warning("Cihaz Başarıyla Değiştirilme İşlemi Başarısız Oldu")
+		        FeedBack = dbresult.result ? feedback.Success("Cihaz Başarıyla Değiştirildi",true,Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Cihaz Başarıyla Değiştirilme İşlemi Başarısız Oldu")
 		    };
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}

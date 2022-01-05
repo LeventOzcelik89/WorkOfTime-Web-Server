@@ -151,7 +151,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
                 }
                 dbresult &= new VMSV_ServiceOperationModel
                 {
-                    description = "Servis Kaydı Oluşturuldu",
+                    description = "Değişmesi Gereken Parçalar Belirlendi",
                     serviceId = model.serviceId,
                     status = (int)EnumSV_ServiceOperation.PartDefinied,
                 }.Save(userStatus.user.id, null, trans);

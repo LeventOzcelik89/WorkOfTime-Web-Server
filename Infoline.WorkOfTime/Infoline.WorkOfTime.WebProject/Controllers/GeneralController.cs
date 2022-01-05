@@ -946,5 +946,77 @@ namespace Infoline.WorkOfTime.Controllers
 
             return Content(Infoline.Helper.Json.Serialize(months), "application/json");
         }
+
+
+        public ContentResult GetTimes()
+        {
+            var months = new List<object>();
+            months.Add(new { id = "00.00", title = "00.00" });
+            months.Add(new { id = "00.30", title = "00.30" });
+            months.Add(new { id = "01.00", title = "01.00" });
+            months.Add(new { id = "01.30", title = "01.30" });
+            months.Add(new { id = "02.00", title = "02.00" });
+            months.Add(new { id = "02.30", title = "02.30" });
+            months.Add(new { id = "03.00", title = "03.00" });
+            months.Add(new { id = "03.30", title = "03.30" });
+            months.Add(new { id = "04.00", title = "04.00" });
+            months.Add(new { id = "04.30", title = "04.30" });
+            months.Add(new { id = "05.00", title = "05.00" });
+            months.Add(new { id = "05.30", title = "05.30" });
+            months.Add(new { id = "06.00", title = "06.00" });
+            months.Add(new { id = "06.30", title = "06.30" });
+            months.Add(new { id = "07.00", title = "07.00" });
+            months.Add(new { id = "07.30", title = "07.30" });
+            months.Add(new { id = "08.00", title = "08.00" });
+            months.Add(new { id = "08.30", title = "08.30" });
+            months.Add(new { id = "09.00", title = "09.00" });
+            months.Add(new { id = "09.30", title = "09.30" });
+            months.Add(new { id = "10.00", title = "10.00" });
+            months.Add(new { id = "10.30", title = "10.30" });
+            months.Add(new { id = "11.00", title = "11.00" });
+            months.Add(new { id = "11.30", title = "11.30" });
+            months.Add(new { id = "12.00", title = "12.00" });
+            months.Add(new { id = "12.30", title = "12.30" });
+            months.Add(new { id = "13.00", title = "13.00" });
+            months.Add(new { id = "13.30", title = "13.30" });
+            months.Add(new { id = "14.00", title = "14.00" });
+            months.Add(new { id = "14.30", title = "14.30" });
+            months.Add(new { id = "15.00", title = "15.00" });
+            months.Add(new { id = "15.30", title = "15.30" });
+            months.Add(new { id = "16.00", title = "16.00" });
+            months.Add(new { id = "16.30", title = "16.30" });
+            months.Add(new { id = "17.00", title = "17.00" });
+            months.Add(new { id = "17.30", title = "17.30" });
+            months.Add(new { id = "18.00", title = "18.00" });
+            months.Add(new { id = "18.30", title = "18.30" });
+            months.Add(new { id = "19.00", title = "19.00" });
+            months.Add(new { id = "19.30", title = "19.30" });
+            months.Add(new { id = "20.00", title = "20.00" });
+            months.Add(new { id = "20.30", title = "20.30" });
+            months.Add(new { id = "21.00", title = "21.00" });
+            months.Add(new { id = "21.30", title = "21.30" });
+            months.Add(new { id = "22.00", title = "22.00" });
+            months.Add(new { id = "22.30", title = "22.30" });
+            months.Add(new { id = "23.00", title = "23.00" });
+            months.Add(new { id = "23.30", title = "23.30" });
+
+
+
+            return Content(Infoline.Helper.Json.Serialize(months), "application/json");
+        }
+
+        public ContentResult GetDays()
+        {
+            var months = new List<object>();
+            months.Add(new { id = 1, title = "Pazartesi" });
+            months.Add(new { id = 2, title = "Salı" });
+            months.Add(new { id = 3, title = "Çarşamba" });
+            months.Add(new { id = 4, title = "Perşembe" });
+            months.Add(new { id = 5, title = "Cuma" });
+            months.Add(new { id = 6, title = "Cumartesi" });
+            months.Add(new { id = 7, title = "Pazar" });
+            
+            return Content(Infoline.Helper.Json.Serialize(months), "application/json");
+        }
     }
 }

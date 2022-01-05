@@ -2065,19 +2065,19 @@ $(document)
             var role = element.attr("data-role");
             var from = element.attr("data-cascadefrom");
 
-
             switch (role) {
                 case "datepicker":
                 case "datetimepicker":
+                case "timepicker":
 
-                    var elementData = element.data("kendoDateTimePicker") || element.data("kendoDatePicker");
+                    var elementData = element.data("kendoDateTimePicker") || element.data("kendoDatePicker") || element.data('kendoTimePicker');
 
                     if (!elementData) {
-                        return;
+                        return; 
                     }
 
                     var cascadeElement = $("#" + from);
-                    var cascadeElementData = cascadeElement.data("kendoDateTimePicker") || cascadeElement.data("kendoDatePicker");
+                    var cascadeElementData = cascadeElement.data("kendoDateTimePicker") || cascadeElement.data("kendoDatePicker") || cascadeElement.data('kendoTimePicker');
 
                     if (!cascadeElementData) {
                         return;
@@ -2087,7 +2087,6 @@ $(document)
                         var type = elementData.element.attr("data-cascadetype");
                         if (e.sender.value()) {
                             elementData[type](new Date(e.sender.value()));
-
                             switch (type) {
                                 case "max":
                                     if (elementData.value() > new Date(e.sender.value())) {

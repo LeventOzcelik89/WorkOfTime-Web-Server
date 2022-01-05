@@ -73,6 +73,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Description("0 Rh-")]
         SifirEksi = 7
     }
+    
+
     partial class WorkOfTimeDatabase
     {
 

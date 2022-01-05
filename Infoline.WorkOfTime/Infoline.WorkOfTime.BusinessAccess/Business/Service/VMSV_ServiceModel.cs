@@ -20,13 +20,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string WarrantyEnd { get; set; } = "Cihaz Aktif Edilmemiştir";
         public string ProducedDate { get; set; } = "Cihaz Aktif Edilmemiştir";
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
-        public Guid ProductId { get; set; }
         public List<VWSV_ServiceOperation> ServiceOperations { get; set; } = new List<VWSV_ServiceOperation>();
         public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
         public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
-
+        public List<VWPRD_TransactionItem> WastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public double TotalWasted { get; set; } = 0;
+        public double TotalSpended { get; set; } = 0;
         public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
 
         public VMSV_ServiceModel Load()
@@ -66,6 +68,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.CameWith = getCameWith.ToList();
                 this.SetButtonPermission();
                 this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>();
+                if (ServiceOperations.Count>0)
+                {
+                    var spend =  GetSpendedProducts(id);
+                    var wasted =GetWastedProducts(id);
+                    TotalSpended= spend.Sum(x => x.unitPrice * x.quantity) ?? 0;
+                    TotalWasted = wasted.Sum(x => x.unitPrice * x.quantity) ?? 0;
+                    
+                }
             }
             return this;
         }
@@ -123,13 +133,59 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.stage = (int)EnumSV_ServiceStages.DeviceHanded;
             var result = db.InsertSV_Service(this.B_ConvertType<SV_Service>(), this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
+            var getInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
             result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
-
+            var user = db.GetVWSH_UserById(this.createdby.Value);
+            var transItem = new VMPRD_TransactionItems
+            {
+                productId = getInventory.productId,
+                quantity = 1,
+                serialCodes = getInventory.serialcode ?? "",
+                unitPrice = 0,
+            };
+            if (companyId.HasValue)
+            {
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = companyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId =getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                    id = Guid.NewGuid(),
+                };
+                result &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            var transModel = new VMPRD_TransactionModel
+            {
+                inputId = db.GetCMP_StorageByCompanyIdFirst(user.CompanyId.Value)?.id,
+                inputTable = "CMP_Storage",
+                inputCompanyId = user.CompanyId,
+                outputCompanyId = getInventory.lastActionDataCompanyId,
+                outputId = getInventory.lastActionDataId,
+                created = this.created,
+                createdby = this.createdby,
+                status = (int)EnumPRD_TransactionStatus.islendi,
+                items = new List<VMPRD_TransactionItems> { transItem },
+                date = DateTime.Now,
+                code = BusinessExtensions.B_GetIdCode(),
+                type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                id = Guid.NewGuid(),
+            };
+            result &= transModel.Save(this.createdby, trans);
             if (Problems != null)
             {
                 foreach (var problem in Problems)
                 {
                     problem.serviceId = this.id;
+                    problem.type = (int)EnumSV_DeviceProblemType.Customer;
                     result &= problem.Save(this.createdby, null, this.trans);
                 }
             }
@@ -149,6 +205,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 serviceId = this.id,
                 status = (int)EnumSV_ServiceOperation.Started,
             }.Save(this.createdby, null, this.trans);
+
             if (result.result)
             {
                 SendMail();
@@ -307,7 +364,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-        public void SendMail()
+        public void SendMail(int type=0)
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = this.Load();
@@ -315,7 +372,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
-                text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                if (type==1)
+                {
+
+                    text += "<p>Müşterinin Onayına Sun</p>";
+                  
+                }
+                else
+                {
+
+                    text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                 
+                }
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
             }
@@ -348,7 +416,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Restart)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.TransferEnded)
@@ -359,25 +427,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.AsamaBildirimi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.FireBildirimiYapildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.HarcamaBildirildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Updated)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
@@ -387,19 +455,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.PartChanged)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
 
@@ -421,7 +489,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+                //ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
@@ -434,19 +502,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
-            else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
-            {
-                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
-                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+            //else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
+            //{
+            //    ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+            //    ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
+            //    ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
-            }
-            else
+            //}
+            else if(stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
+            }
+            else
+            {
+
             }
         }
         public ResultStatus NextStage(Guid userId, DbTransaction trans = null)
@@ -458,11 +530,51 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return new ResultStatus { result = false, message = "Cihaz Teslim Edilmiştir" };
             }
+            if (this.stage==(int)EnumSV_ServiceStages.Detection&&!this.Problems.Any(x=>x.type==(short)EnumSV_DeviceProblemType.Service&&x.warranty==false))
+            {
+                this.stage++;
+            }
             this.stage++;
             this.Save(userId, null, trans);
             return result;
 
 
+
+        }
+        public List<VWPRD_TransactionItem> GetWastedProducts(Guid serviceId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var getAllServiceAction = db.GetVWSV_ServiceOperationsByIdServiceId(serviceId).Where(x=>x.status==(short)EnumSV_ServiceOperation.FireBildirimiYapildi).ToList();
+            if (getAllServiceAction!=null)
+            {
+                var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x=>x.dataId.Value).ToArray());
+                if (allItems.Length<=0)
+                {
+                    return new List<VWPRD_TransactionItem>();
+                }
+                this.WastageProducts = allItems.Select(x=> { x.id = x.transactionId.Value; return x; }).ToList();
+                
+            }
+            return WastageProducts;
+
+        }
+        public List<VWPRD_TransactionItem> GetSpendedProducts(Guid serviceId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var getAllServiceAction = db.GetVWSV_ServiceOperationsByIdServiceId(serviceId).Where(x => x.status == (short)EnumSV_ServiceOperation.HarcamaBildirildi).ToList();
+            if (getAllServiceAction != null)
+            {
+                var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x => x.dataId.Value).ToArray());
+                if (allItems.Length <= 0)
+                {
+                    return new List<VWPRD_TransactionItem>();
+                }
+                this.SpendedProducts = allItems.Select(x => { x.id = x.transactionId.Value; return x; }).ToList();
+
+            }
+            return SpendedProducts;
 
         }
     }

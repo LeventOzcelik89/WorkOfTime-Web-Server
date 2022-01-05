@@ -241,6 +241,22 @@ namespace System.Web.Mvc
 
             return datePicker;
         }
+
+        public virtual TimePickerBuilder TimePickerFor(Expression<Func<TModel, object>> expression)
+        {
+            var datePicker = DatePickerCustom.TimePicker(this.HtmlHelper);
+            var memberInfo = ParseExpression(expression);
+            datePicker.Name(memberInfo.Key);
+
+            if (memberInfo.Value != null && memberInfo.Value.Equals(default(DateTime)) == false)
+            {
+                var dt = DateTime.Now;
+                datePicker.ToComponent().Value = DateTime.Parse(dt.Year + "-" + dt.Month + "-" + dt.Day + " " + memberInfo.Value + ":00");
+            }
+
+            return datePicker;
+        }
+
         public virtual DateTimePickerBuilder DateTimePicker(string Name)
         {
             var control = DatePickerCustom.DateTimePicker(this.HtmlHelper);

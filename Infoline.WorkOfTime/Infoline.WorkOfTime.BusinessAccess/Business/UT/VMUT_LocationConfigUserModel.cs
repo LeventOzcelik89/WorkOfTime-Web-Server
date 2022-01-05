@@ -1,20 +1,21 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
+using System.Linq;
 using System.Web;
-
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    public class VMSV_CustomerModel : VWSV_Customer
+    public class VMUT_LocationConfigUserModel : VWUT_LocationConfigUser
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public VMSV_CustomerModel Load()
+        public VMUT_LocationConfigUserModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var data = db.GetVWSV_CustomerById(this.id);
-            if (data != null)
+            var data = db.GetVWUT_LocationConfigUserById(this.id);
+            if (data!=null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
             }
@@ -24,7 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
-            var data = db.GetVWSV_CustomerById(this.id);
+            var data = db.GetVWUT_LocationConfigUserById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
             if (validation.result == false)
@@ -45,7 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             if (res.result)
             {
-
+               
                 if (transaction == null) trans.Commit();
             }
             else
@@ -65,15 +66,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
-            this.code = BusinessExtensions.B_GetIdCode();
-            var dbresult = db.InsertSV_Customer(this.B_ConvertType<SV_Customer>(), this.trans);
+            var dbresult = db.InsertUT_LocationConfigUser(this.B_ConvertType<UT_LocationConfigUser>(), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Yeni Müşteri oluşturma işlemi başarısız oldu."
+                    message = "Yeni Problem oluşturma işlemi başarısız oldu."
                 };
             }
             else
@@ -81,21 +81,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Yeni Müşteri oluşturma işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Yeni Problem oluşturma işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdateSV_Customer(this.B_ConvertType<SV_Customer>(), true, this.trans);
+            dbresult &= db.UpdateUT_LocationConfigUser(this.B_ConvertType<UT_LocationConfigUser>(), false, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Müşteri güncelleme işlemi başarısız oldu."
+                    message = "Problem güncelleme işlemi başarısız oldu."
                 };
             }
             else
@@ -103,7 +103,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Müşteri güncelleme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Problem güncelleme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
@@ -112,7 +112,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
-            var dbresult = db.DeleteSV_Customer(this.id, trans);
+            var dbresult = db.DeleteUT_LocationConfigUser(this.id, trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -120,7 +120,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Müşteri silme işlemi başarısız oldu."
+                    message = "Problem silme işlemi başarısız oldu."
                 };
             }
             else
@@ -129,18 +129,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Müşteri silme işlemi başarılı şekilde gerçekleştirildi."
+                    message = "Problem silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
         }
-
-        public ResultStatus GetByPhone(string phoneNumber)
-        {
-            var db = new WorkOfTimeDatabase();
-            var result = new ResultStatus { result = true };
-            var data = db.GetVWSV_CustomerByPhoneNumber(phoneNumber);
-            result.objects = data;
-            return result;
-        }
+       
     }
+
 }

@@ -15,6 +15,16 @@
                 }
                 var row = $(_this).parents("tr");
                 $(row).remove();
+                var updateInput = $('#ServiceForm').data('bs.validator');
+                if (updateInput != null) {
+                    updateInput.update();
+                }
+                setTimeout(function () {
+                    var updateInput = $('#InsertMultiple').data('bs.validator');
+                    if (updateInput != null) {
+                        updateInput.update();
+                    }
+                }, 250)
             },
             AddRow: function () {
                 var problems = $($('#rowForProductProblem').html());
@@ -49,12 +59,20 @@
                     .attr('name', 'Problems[' + page.productProblem.counter + '].description')
                 problems.find('[data-problem="warranty"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].warranty')
+                problems.find('[data-first]')
+                    .attr('id', "warranty_" + page.productProblem.counter + 1)
+                problems.find('[data-second]')
+                    .attr('id', "warranty_" + page.productProblem.counter);
+                problems.find('[data-firstlabel]')
+                    .attr('for', "warranty_" + page.productProblem.counter + 1)
+                problems.find('[data-secondlabel]')
+                    .attr('for', "warranty_" + page.productProblem.counter )
                 problems.find('[data-problem="price"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].warranty')
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false });
                 page.productProblem.counter++;
                 setTimeout(function () {
-                    var updateInput = $('#ServiceForm').data('bs.validator');
+                    var updateInput = $('#InsertMultiple').data('bs.validator');
                     if (updateInput != null) {
                         updateInput.update();
                     }
@@ -63,13 +81,9 @@
             }
         },
         methods: {
-            getDeviceInformation: function (e) {
+            getDeviceInformation: function () {
                 page.productProblem.AddRow();
-                var data = e.sender.dataItem();
-                if (data.id == null) {
-                    return;
-                }
-                GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: data.id }, function (resp) {
+                GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: '@Model.inventoryId' }, function (resp) {
                     if (resp == null) {
                         return;
                     }
@@ -77,8 +91,8 @@
                         swal("Seri Numarasına Ait Ürün Yoktur", "Bu seri numarasına ait envanterde kayıtlı cihaz yoktur!", "warning");
                         return;
                     }
-                    $("#inventoryLink").attr("href", "/PRD/VWPRD_Inventory/Detail?id=" + data.id);
-                    page.inputs.metarial(e);
+                    $("#inventoryLink").attr("href", "/PRD/VWPRD_Inventory/Detail?id=@Model.inventoryId");
+                    page.inputs.metarial();
                     if (resp.objects == null) {
                         return;
                     }
@@ -121,11 +135,6 @@
                 }
             },
             metarial: function () {
-                var productId = $("#inventoryId").data("kendoDropDownList").dataItem().productId;
-                if (productId == null) {
-                    return;
-                }
-                debugger
                 $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
                     $(item).removeAttr("disabled");
                     var kendo = $(item).data("kendoDropDownList");
@@ -138,7 +147,7 @@
                         dataValueField: "materialId",
                         dataSource: {
                             transport: {
-                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=" + productId,
+                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId",
                             }
                         }
                     }).data("kendoDropDownList");
@@ -150,14 +159,23 @@
         },
 
     }
-
+    page.methods.getDeviceInformation();
 
 </script>
 
 <script type="text/template" id="rowForProductProblem" data-selector="modalContainer">
     <tr>
         <td>
-            <input style=" width: 100%; margin-top: 16px;" type="checkbox" checked class="k-input" />
+            <div style="margin-left:10px" class="radio akilliRadioGrup clearfix">
+                <input type="radio"  data-problem="warranty" data-first  id="warranty_0" checked="" value="1" autocomplete="off">
+                <label tabindex="0" data-firstlabel class="radio-label" for="warranty_0">
+                    Garantiye Dahil
+                </label>
+                <input type="radio"  data-problem="warranty" data-second id="warranty_1" value="0" autocomplete="off">
+                <label tabindex="0"  data-secondlabel class="radio-label" for="warranty_1">
+                    Garanti Dışı
+                </label>
+            </div>
         </td>
         <td>
             <div class="form-group">
@@ -189,7 +207,8 @@
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
-    { "data-formType", "Ajax" }
+    { "data-formType", "Ajax" },
+    { "id","InsertMultiple"}
 }))
 {
     <style>
@@ -326,31 +345,10 @@
                 <div class="ibox-content clearfix">
                     <fieldset>
                         <legend>Cihaz Bilgileri</legend>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label label-md req " for="inventoryId">IMEI/Seri No Giriniz</label>
-                                <div class="input-group">
-                                    @(Html.Akilli()
-          .DropDownListFor(x => x.inventoryId)
-          .OptionLabel("Cihaz Seçiniz..")
-          .DataTextField("fullNameProduct")
-          .DataValueField("id")
-          .Action(b => b.Action("DataSourceDropDown", "VWPRD_Inventory", new { area = "PRD" }))
-          .Sort(x => x.Add("serialcode").Ascending())
-          .Filter<VWPRD_Inventory>(x => x.lastActionType != (int)EnumPRD_InventoryActionType.Harcandi)
-          .Events(x => x.DataBound("page.methods.getDeviceInformation"))
-          .Validate(Validations.Required)
-          .Readonly(true)
-          .Execute("id"))
-                                    <span class="input-group-addon">
-                                        <a href="" id="inventoryLink" target="_blank"><i class="fa fa-link text-white"></i></a>
-                                    </span>
-                                </div>
-                                <div class=""></div>
-                            </div>
-                        </div>
                         <div id="deviceInfo">
+              
                             <div class="col-lg-4">
+                             
                                 <dl class="dl-horizontal">
                                     <dt>Garanti Durumu</dt>
                                     <dd id="warrantyStatus"></dd>
@@ -371,10 +369,10 @@
                             </div>
                             <div class="col-lg-8">
                                 <dl class="dl-horizontal">
-                                    <dt>Tam Cihaz Adı: </dt>
+                                    <dt>Cihaz</dt>
                                     <dd>
                                         <span style="white-space: pre-wrap;word-break: break-all;"><strong><u id="deviceName"></u></strong></span>
-                                        <a href="/PRD/VWPRD_Product/Detail?id=@Model.productId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                        <a  href="" data-original-title="Cihaz Detayı" target="_blank" class="text-navy " id="inventoryLink"> <i class="fa fa-link"></i> </a>
                                     </dd>
                                 </dl>
                                 <dl class="dl-horizontal">

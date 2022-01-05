@@ -132,7 +132,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var feedback = new FeedBack();
 			model.description = "Bir Sonraki Aşamaya Geçildi!";
 			var dbresult = model.Save(userStatus.user.id);
-			dbresult = new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id);
+            if (model.status!= (short)EnumSV_ServiceActions.Done)
+            {
+				dbresult &= new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id);
+			}
+	
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
@@ -148,7 +152,44 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		{
 			model.Transaction = new VWPRD_Transaction();
 			model.Transaction.type = model.Type;
-			return View(model);
+			return View(model.Load());
+		}
+		[HttpPost]
+		[AllowEveryone]
+		public ActionResult Upsert(VMSV_ServiceOperationModel model,bool?isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			if (model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
+			{
+				model.description = "Harcama Bildirimi Yapıldı";
+			}
+			else if (model.Transaction.type == (int)EnumPRD_TransactionType.FireFisi)
+			{
+
+				model.description = "Fire Bildirimi Yapıldı";
+			}
+			var dbresult = model.Upsert(userStatus.user.id);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success(model.description, false, Request.UrlReferrer.AbsoluteUri) : feedback.Error($"{model.description }başarısız")
+			};
+
+			return Json(result, JsonRequestBehavior.AllowGet);
+		}
+		[AllowEveryone]
+		public JsonResult QualityCheck(Guid serviceId,bool status) {
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = new VMSV_ServiceOperationModel().QualiltyCheck(serviceId,status,userStatus.user.id);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Aşama Güncellendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+			};
+			return Json(result,JsonRequestBehavior.AllowGet);
+
 		}
 	}
 }

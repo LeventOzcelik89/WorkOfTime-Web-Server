@@ -28,6 +28,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string stage_Title { get; set;}
         public string serialCode { get; set;}
         public string product_Title { get; set;}
+        public Guid? productId { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }

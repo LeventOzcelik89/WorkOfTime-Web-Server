@@ -1,0 +1,97 @@
+﻿@model VMUT_LocationConfigUserModel
+@{
+    ViewBag.Title = "Personel Bilgileri Detayı";
+}
+
+
+<script type="text/javascript" data-selector="modalContainer">
+
+
+    function setInput(e) {
+        var sender = e.sender.dataItem();
+        if (sender != undefined) {
+            $("#locationConfigDetail").attr("data-href", "/UT/VWUT_LocationConfig/Detail?id=" + sender.id);
+        }
+    }
+   
+    $(document)
+        .on("change", "#locationConfigId", function (e, resp) {
+            var dropdown = $("#locationConfigId").data("kendoDropDownList");
+            var value = dropdown.dataItem(dropdown.selectedIndex);
+            $("#DropDownList").val(value.configName);
+        })
+        .on('change', '[name="isTrackingActive"]', function () {
+
+            setTimeout(function () { pageLocation.dfn.harita.map.updateSize(); }, 500);
+
+        })
+
+        ;
+</script>
+
+
+
+<form action="@Url.Action("Upsert", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+      data-selector="modalContainer" data-formType="Ajax">
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.userId)
+
+    <div class="row">
+
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
+                </div>
+                <div class="col-md-6">
+                    @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.locationConfigId)
+                            .OptionLabel("Lütfen Konfig Belirtiniz...")
+                            .DataTextField("configName")
+                            .DataValueField("id")
+                            .Events(x=>x.Change("setInput"))
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationConfig", new { area = "UT" }))
+                .Sort(x => x.Add("configName").Ascending())
+                .Execute()
+                )
+                        <div class="input-group-addon">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <div class="form-group">
+                <div class="col-md-12">
+                    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="row" data-cascade="[name='isTrackingActive']" data-show="0">
+        <hr />
+        <div class="col-md-12">
+            @Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/MapOverView.cshtml", Model)
+        </div>
+    </div>
+
+</form>

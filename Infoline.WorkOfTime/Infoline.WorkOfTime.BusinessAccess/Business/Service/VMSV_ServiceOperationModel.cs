@@ -4,20 +4,33 @@ using System;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Web;
+using System.Linq;
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMSV_ServiceOperationModel : VWSV_ServiceOperation
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
-        public  Guid? companyId { get; set; }
-        public List<VWPRD_TransactionItem> wastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
+        public List<VWPRD_ProductionProduct> expens { get; set; }
         public VWPRD_Transaction Transaction { get; set; }
+        public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
+        public List<VWPRD_Product> ServiceNotifications { get; set; }
         public short Type { get; set; }
+        public Guid? storageId { get; set; }
         public VMSV_ServiceOperationModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var data = db.GetVWSV_ServiceOperationById(this.id);
+            if (serviceId != null)
+            {
+                var findService = db.GetVWSV_ServiceById(serviceId.Value);
+                if (findService != null)
+                {
+                    var serviceModel = new VMSV_ServiceModel();
+                    serviceModel.GetVWPRD_ProductMateriels(findService.productId.HasValue ? findService.productId.Value : new Guid());
+                    TreeProduct = serviceModel.GetProductMetarials;
+                }
+            }
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
@@ -67,19 +80,55 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-       
-            if (this.companyId.HasValue)
+            var getService = new VMSV_ServiceModel { id = serviceId.Value }.Load();
+            if (this.status==(short)EnumSV_ServiceOperation.AskCustomer)
             {
-                var getCompany = db.GetVWCMP_CompanyById(this.companyId.Value);
-                if (getCompany!=null)
+                getService.SendMail(1);
+            }
+            if (this.CompanyId.HasValue)
+            {
+                var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+                if (getCompany != null)
                 {
-                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br>" + description;
+
+                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br></br>" + description;
                 }
-            } 
-            var dbresult = db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
-            if (!dbresult.result)
+
+                getService.stage = (short)EnumSV_ServiceStages.DeviceHanded;//süreç başa döner
+                res &= db.UpdateSV_Service(getService.B_ConvertType<SV_Service>(), false, trans);
+                var getProduct = db.GetVWPRD_ProductById(getService.productId.Value);
+                var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
+                var transItem = new VMPRD_TransactionItems
+                {
+                    productId = getInventory.productId,
+                    quantity = 1,
+                    serialCodes = getInventory.serialcode ?? "",
+                    unitPrice = getProduct.currentSellingPrice,
+                    
+                };
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(CompanyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = CompanyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                    id = Guid.NewGuid(),
+                };
+                res &= transModelCompanyId.Save(this.createdby, trans);
+             
+            }
+            res &= db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
+            if (!res.result)
             {
-                Log.Error(dbresult.message);
+                Log.Error(res.message);
                 return new ResultStatus
                 {
                     result = false,
@@ -95,6 +144,79 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
+
+        public ResultStatus Upsert(Guid userId)
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            var user = db.GetVWSH_UserById(userId);
+            var result = new ResultStatus { result = true };
+            if (expens != null)
+            {
+                var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+                {
+                    productId = x.productId,
+                    quantity = x.quantity,
+                    serialCodes = x.serialCodes ?? "",
+                    unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentBuyingPrice,
+                }).ToList();
+                var transId = Guid.NewGuid();
+                var transModel = new VMPRD_TransactionModel
+                {
+                    outputTable = "SV_Service",
+                    outputCompanyId = user.CompanyId,
+                    outputId = this.storageId,
+                    created = DateTime.Now,
+                    createdby = userId,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = expensItem,
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = this.Transaction.type,
+                    id = transId,
+
+                };
+                result &= transModel.Save(userId, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = DateTime.Now,
+                    createdby = userId,
+                    dataId = transId,
+                    dataTable = "PRD_Transaction",
+                    description = this.description,
+                    serviceId = this.serviceId,
+                    status = this.Transaction.type == (short)EnumPRD_TransactionType.HarcamaBildirimi ? (short)EnumSV_ServiceOperation.HarcamaBildirildi : (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
+                }.Save(userId, null, this.trans);
+            }
+         
+                if (this.ServiceNotifications != null)
+                {
+                    foreach (var item in ServiceNotifications)
+                    {
+                        result &= new VMSV_ServiceOperationModel
+                        {
+                            created = DateTime.Now,
+                            createdby = this.createdby,
+                            dataId = item.id,
+                            description= db.GetVWPRD_ProductById(item.id)?.currentBuyingPrice.ToString()??"",
+                            dataTable = "PRD_Product",
+                            serviceId = this.serviceId,
+                            status = (short)EnumSV_ServiceOperation.ServicePriceAdded
+                        }.Save(this.createdby, null, this.trans);
+                    }
+                }
+           
+            if (result.result)
+            {
+                 trans.Commit();
+            }
+            else
+            {
+                 trans.Rollback();
+            }
+            return result;
+        }
+
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
@@ -142,6 +264,46 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Servis Operasyonu silme işlemi başarılı şekilde gerçekleştirildi."
                 };
             }
+        }
+        public ResultStatus GetStockByProductAndStorageId(Guid[] productId, Guid storageId)
+        {
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            result.objects = db.GetVWPRD_StockSummaryByProductIdsAndStockId(productId, storageId);
+            return result;
+        }
+        public ResultStatus QualiltyCheck(Guid serviceId, bool status, Guid userId)
+        {
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            if (status == true)
+            {
+                result &= new VMSV_ServiceModel { id = serviceId }.NextStage(userId, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarılı",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControl,
+                }.Save(userId, null, this.trans);
+            }
+            else
+            {
+                var service = new VMSV_ServiceModel { id = serviceId }.Load();
+                service.stage = (int)EnumSV_ServiceStages.Fixing;
+                result &= service.Save(userId, null, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = this.created,
+                    createdby = userId,
+                    description = "Kalite Kontrol Başarısız",
+                    serviceId = this.id,
+                    status = (int)EnumSV_ServiceOperation.QualityControlNot,
+                }.Save(userId, null, this.trans);
+            }
+            return result;
         }
     }
 }
