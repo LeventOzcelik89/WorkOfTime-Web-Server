@@ -7,6 +7,19 @@
     var permits = (System.Collections.Generic.List<KeyValue>)(ViewBag.permits);
 }
 
+
+<script type="text/javascript" data-selector="modalContainer">
+
+    $(document)
+        .on('click', '[href="#VWUT_LocationConfigUsers"]', function () {
+
+            pageLocation.dfn.harita.map.updateSize();
+
+        })
+
+        ;
+</script>
+
 @if (userStatus.AuthorizedRoles.Contains(new Guid("df09bcdb-9d52-4fa1-a941-d702fc8ce491")))
 {
     @(Html.Akilli()
@@ -36,6 +49,7 @@ else
 
     @section Javascript{
         <script src="~/Content/Custom/js/wordexport.js"></script>
+        <script src="~/Content/Areas/SH/location.js"></script>
         <script type="text/javascript">
 
             var userDetail = {
@@ -90,6 +104,7 @@ else
                     $(dataProduct).hide();
                 }
             })
+
            .on('before:submit', '#VWSH_PublicationsFormInsert,#VWSH_PublicationsFormUpdate', function (e) {
                $('[data-item="keywords"]').each(function (c) {
                    var data = $(this).data("tagify");
@@ -123,13 +138,13 @@ else
         </script>
     }
 
-<script type="text/x-kendo-template" id="template">
+    <script type="text/x-kendo-template" id="template">
 
-    <a data-href="" data-button="ShiftDetail" id="shiftTrackingDetailButton" onclick="ShiftTrackingFunc()" data-method="GET" data-show="single" class="k-button hidden">Detay</a>
-    <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span>Excel'e Aktar</a>
-    <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span>PDF'e Aktar</a>
+        <a data-href="" data-button="ShiftDetail" id="shiftTrackingDetailButton" onclick="ShiftTrackingFunc()" data-method="GET" data-show="single" class="k-button hidden">Detay</a>
+        <a class="k-button k-button-icontext k-grid-excel" href="\\#"><span class="k-icon k-i-excel"></span>Excel'e Aktar</a>
+        <a class="k-button k-button-icontext k-grid-pdf" href="\\#"><span class="k-icon k-i-pdf"></span>PDF'e Aktar</a>
 
-</script>
+    </script>
 
     <style type="text/css">
         #VWSH_UserRole, #VWSH_Ticket {
@@ -160,6 +175,8 @@ else
             line-height: 20px !important;
         }
     </style>
+
+
     <div class="row">
         <div class="col-lg-3">
             <div class="ibox ">
@@ -498,7 +515,7 @@ else
                             <a data-toggle="tab" href="#VWVWSH_ShiftTrackingTab" aria-expanded="false"><i class="glyphicon glyphicon-calendar text-success fa-2x" aria-hidden="true"></i></a>
                         </li>
 
-                        <li  data-toggle="tooltip" data-placement="top" title="Personel Konum Takip">
+                        <li data-toggle="tooltip" data-placement="top" title="Personel Konum Takip">
                             <a data-toggle="tab" href="#VWUT_LocationConfigUsers" aria-expanded="false"><i class="fa fa-map-marker text-success fa-2x" aria-hidden="true"></i></a>
                         </li>
 
@@ -751,27 +768,27 @@ else
 
                         <div class="tab-pane" id="VWINV_PermitTab">
                             @*<div class="row">
-                @foreach (var item in permits)
-                {
-                    var str = "";
-                    var control = item.Value.ToString().Split(',');
-                    if (control.Count() > 1)
-                    {
-                        str += control[0] + " Saat ";
-                        str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
-                    }
-                    if (control.Count() == 1)
-                    {
-                        str += control[0] + " Saat ";
-                    }
+                                    @foreach (var item in permits)
+                                    {
+                                        var str = "";
+                                        var control = item.Value.ToString().Split(',');
+                                        if (control.Count() > 1)
+                                        {
+                                            str += control[0] + " Saat ";
+                                            str += (Convert.ToInt32(control[1]) * 60) / 100 + " Dakika";
+                                        }
+                                        if (control.Count() == 1)
+                                        {
+                                            str += control[0] + " Saat ";
+                                        }
 
-                    <div class="col-md-3">
-                        <div class="dd-handle">
-                            <span class="label label-info"><i> @(item.Tooltip == "true" ? item.Value + " Gün" : str)</i></span> <small> @item.Key </small>
-                        </div>
-                    </div>
-                }
-            </div>*@
+                                        <div class="col-md-3">
+                                            <div class="dd-handle">
+                                                <span class="label label-info"><i> @(item.Tooltip == "true" ? item.Value + " Gün" : str)</i></span> <small> @item.Key </small>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>*@
 
                             <h4><i class="fa text-building fa-clock-o"></i> PERSONEL İZİN İŞLEMLERİ </h4>
                             @(Html.Akilli()
@@ -1097,14 +1114,14 @@ else
 
                         </div>
                         <div class="tab-pane" id="VWUT_LocationConfigUsers">
-                           
+
                             @(Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/Detail.cshtml", Model.configUser ?? new VMUT_LocationConfigUserModel { userId = Model.id  }))
 
                         </div>
 
 
-                        </div>
                     </div>
+                </div>
             </section>
 
 
@@ -1219,7 +1236,8 @@ else
 	}
 	$(document)
 		.on('ready', function () {
-			$('#shiftTrackingStartDate').data('kendoDatePicker').trigger('change');
+            $('#shiftTrackingStartDate').data('kendoDatePicker').trigger('change');
+            setTimeout(function () { pageLocation.dfn.harita.map.updateSize();},1000)
 		})
         .on('ready', function () {
             $('#shiftTrackingEndDate').data('kendoDatePicker').trigger('change');
