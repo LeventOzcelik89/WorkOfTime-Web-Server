@@ -421,7 +421,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         <a href='http://developer.workoftime.com/Apk/Android/app-debug.apk'><img src= 'http://developer.workoftime.com/Content/Takip/img/googlePlay.jpg' /></a></p>
                         <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
                         <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
-                        
+
 
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
@@ -439,7 +439,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
                         <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
                         <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
-                        ", password, url, tenantName, user.loginname, user.email, serviceDomain,tenantCode);
+                        ", password, url, tenantName, user.loginname, user.email, serviceDomain, tenantCode);
 
                     new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
@@ -453,9 +453,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
             }
         }
-        
-     
-       
+
+
+
         public ResultStatus Dismissal()
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -480,7 +480,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Seçilen personel zaten işten çıkarılmıştır.",
                 };
             }
-            var envanterKontrol = db.GetVWPRD_StockSummaryByStockId(user.id).Where(x => x.quantity >0).ToList();
+            var envanterKontrol = db.GetVWPRD_StockSummaryByStockId(user.id).Where(x => x.quantity > 0).ToList();
             var zimmetDusme = db.GetVWPRD_StockSummaryByStockId(user.id).Where(a => a.quantity < 0);
             if (envanterKontrol.Count() != zimmetDusme.Count())
             {
@@ -612,7 +612,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.blockMailList = db.GetSYS_BlockMailByUserId(this.id).ToList();
             this.VWSH_PersonInformation = db.GetVWSH_PersonInformationByUserId(this.id) ?? new VWSH_PersonInformation { UserId = this.id, IdentificationNumber = this.loginname };
             this.VWINV_CompanyPersonAvailabilities = new INV_CompanyPersonAvailabilityModel(this.id, new VWINV_CompanyPersonAvailability[] { }).GetDailySchemaByPerson();
-            this.configUser = db.GetVWUT_LocationConfigUserByUserId(this.id).B_ConvertType<VMUT_LocationConfigUserModel>();
+
+            var dbConfigUser = db.GetVWUT_LocationConfigUserByUserId(this.id);
+            if (dbConfigUser != null)
+            {
+                this.configUser = dbConfigUser.B_ConvertType<VMUT_LocationConfigUserModel>();
+            }
+
             this.Roles = rolesDB.Where(x => x.roleid.HasValue).Select(a => a.roleid.Value).ToList();
             return this;
         }
@@ -630,8 +636,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public ResultStatus ValidateEmail(string email)
         {
             var res = db.GetSH_UserInfosByEmail(email);
-			if (res.Count() > 1)
-			{
+            if (res.Count() > 1)
+            {
                 return new ResultStatus
                 {
                     result = (res == null),
@@ -663,7 +669,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
     }
-    
+
 
     public class VMSHUserAndFileResume : VWSH_User
     {
