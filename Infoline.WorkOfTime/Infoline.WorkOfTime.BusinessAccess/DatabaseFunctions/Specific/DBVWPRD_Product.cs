@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             using (var db = GetDB())
             {
-                return db.Table<VWPRD_Product>().Where(a => a.type==(short)type).Execute().ToArray();
+                return db.Table<VWPRD_Product>().Where(a => a.type == (short)type).Execute().ToArray();
             }
         }
 

@@ -27,7 +27,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
         public List<VWPRD_TransactionItem> WastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
-
+        public double TotalWasted { get; set; } = 0;
+        public double TotalSpended { get; set; } = 0;
         public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
 
         public VMSV_ServiceModel Load()
@@ -67,6 +68,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.CameWith = getCameWith.ToList();
                 this.SetButtonPermission();
                 this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>();
+                if (ServiceOperations.Count>0)
+                {
+                    var spend =  GetSpendedProducts(id);
+                    var wasted =GetWastedProducts(id);
+                    TotalSpended= spend.Sum(x => x.unitPrice * x.quantity) ?? 0;
+                    TotalWasted = wasted.Sum(x => x.unitPrice * x.quantity) ?? 0;
+                    
+                }
             }
             return this;
         }
@@ -532,7 +541,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 
         }
-        public ResultStatus GetWastedProducts(Guid serviceId)
+        public List<VWPRD_TransactionItem> GetWastedProducts(Guid serviceId)
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -542,15 +551,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x=>x.dataId.Value).ToArray());
                 if (allItems.Length<=0)
                 {
-                    return new ResultStatus { result = false };
+                    return new List<VWPRD_TransactionItem>();
                 }
-                this.WastageProducts = allItems.ToList();
+                this.WastageProducts = allItems.Select(x=> { x.id = x.transactionId.Value; return x; }).ToList();
                 
             }
-            return new ResultStatus { result=true,objects= this.WastageProducts };
+            return WastageProducts;
 
         }
-        public ResultStatus GetSpendedProducts(Guid serviceId)
+        public List<VWPRD_TransactionItem> GetSpendedProducts(Guid serviceId)
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
@@ -560,12 +569,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var allItems = db.GetVWPRD_TransactionItemByTransactionIds(getAllServiceAction.Select(x => x.dataId.Value).ToArray());
                 if (allItems.Length <= 0)
                 {
-                    return new ResultStatus { result = false };
+                    return new List<VWPRD_TransactionItem>();
                 }
-                this.SpendedProducts = allItems.ToList();
+                this.SpendedProducts = allItems.Select(x => { x.id = x.transactionId.Value; return x; }).ToList();
 
             }
-            return new ResultStatus { result = true, objects = this.SpendedProducts };
+            return SpendedProducts;
 
         }
     }

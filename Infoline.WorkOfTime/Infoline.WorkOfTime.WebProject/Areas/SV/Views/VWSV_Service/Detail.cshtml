@@ -8,8 +8,6 @@
     var activeStage = "";
 }
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
-<link href="css/plugins/blueimp/css/blueimp-gallery.min.css" rel="stylesheet">
-<script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
 <style type="text/css">
     li {
         list-style: none;
@@ -58,7 +56,7 @@
             <div class="ibox">
                 <div class="ibox-title">
                     <h5>
-                        <i class="fa text-success fa fa-list-alt"></i> Cihaz Bilgileri
+                        <i class="fa text-success fa fa-list-alt"></i> Servis Bilgileri
                     </h5>
                 </div>
                 <div class="ibox-content clearfix">
@@ -84,6 +82,19 @@
                                 <dt>Üretim Tarihi: </dt>
                                 <dd> @Model.ProducedDate </dd>
                             </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Fire Tutarı</dt>
+                                <dd>@Model.TotalWasted.ToString("N2") ₺</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Başlama Tarihi</dt>
+                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Tamamlanma Tarihi</dt>
+                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                            </dl>
+
                         </div>
                         <div class="col-lg-8">
                             <dl class="dl-horizontal">
@@ -113,6 +124,14 @@
                                     <b>@Model.VWPRD_Inventory.serialcode</b>
                                     <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
                                 </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Hizmet Tutarı</dt>
+                                <dd>   @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>Convert.ToDouble(x.description)).ToString("N2")) ₺</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Toplam Harcama Tutarı</dt>
+                                <dd>@Model.TotalSpended.ToString("N2") ₺</dd>
                             </dl>
                         </div>
                     </div>
@@ -211,7 +230,21 @@
                                 <h5>Fire Bildirimleri</h5>
                             </div>
                             <div class="ibox-content clearfix" style="height:600px">
-                                <div id="fire"></div>
+                                @(Html.Akilli()
+.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TransactionItem>("Wasted")
+.DataSource(x => x.Ajax().Read(r => r.Action("GetWastedProducts", "VWSV_Service", new { area = "SV",serviceId = Model.id })).PageSize(25))
+.Columns(x =>
+{
+    x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+    x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("#:kendo.toString(quantity,'n2') #").Width(180);
+    x.Bound(y => y.unitId_Title).Title("Birim").Width(180);
+    x.Bound(y => y.createdby_Title).Title("İşlemi Yapan").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Single))
+.ToolBar(x =>
+{
+    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+}))
                             </div>
                         </div>
                     </div>
@@ -221,7 +254,21 @@
                                 <h5>Harcama Bildirimleri</h5>
                             </div>
                             <div class="ibox-content clearfix" style="height:600px">
-                                <div id="spend"></div>
+                                @(Html.Akilli()
+.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_TransactionItem>("spended")
+.DataSource(x => x.Ajax().Read(r => r.Action("GetSpendedProducts", "VWSV_Service", new { area = "SV",serviceId=Model.id })).PageSize(25))
+.Columns(x =>
+{
+    x.Bound(y => y.productId_Title).Title("Ürün").Width(250);
+    x.Bound(y => y.quantity).Title("Miktar").Width(180).ClientTemplate("#:kendo.toString(quantity,'n2') #").Width(180);
+    x.Bound(y => y.unitId_Title).Title("Birim").Width(180);
+    x.Bound(y => y.createdby_Title).Title("İşlemi Yapan").Width(180);
+})
+.Selectable(x => x.Mode(GridSelectionMode.Single))
+.ToolBar(x =>
+{
+    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+}))
                             </div>
                         </div>
                     </div>
@@ -250,6 +297,10 @@
                         <dt>E-Posta Adresi</dt>
                         <dd>@Model.Customer.email</dd>
                     </dl>
+                    <dl class="dl-horizontal">
+                        <dt>Adres</dt>
+                        <dd>@Model.Customer.Address</dd>
+                    </dl>
                 </div>
             </div>
 
@@ -260,19 +311,22 @@
                             @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
                             {
                                 var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
-                                <div class="vertical-timeline-block" data-select="@operation.status">
-                                    <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
-                                        <i class="@OpsEnum.Generic["icon"]"></i>
+                                if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
+                                {
+                                    <div class="vertical-timeline-block" data-select="@operation.status">
+                                        <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
+                                            <i class="@OpsEnum.Generic["icon"]"></i>
+                                        </div>
+                                        <div class="vertical-timeline-content">
+                                            <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
+                                            <p class="clearfix ">
+                                                @Html.Raw(operation.description)
+                                                <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
+                                            </p>
+                                            <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
+                                        </div>
                                     </div>
-                                    <div class="vertical-timeline-content">
-                                        <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
-                                        <p class="clearfix ">
-                                            @Html.Raw(operation.description)
-                                            <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
-                                        </p>
-                                        <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
-                                    </div>
-                                </div>
+                                }
                             }
                         </div>
                     </div>
@@ -281,21 +335,29 @@
         </div>
     </div>
 </div>
-<div class="fixedStart">
-    <input type="checkbox" checked id="fixed">
-    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-    <div class="fix-buttons" id="buttons">
-        @foreach (var button in buttons)
-        {
-            if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+@if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Done || Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
+{
+
+}
+else
+{
+    <div class="fixedStart">
+        <input type="checkbox" checked id="fixed">
+        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+        <div class="fix-buttons" id="buttons">
+            @foreach (var button in buttons)
             {
-                <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
-                    <i class="@button.Generic["icon"]"></i>
-                </a>
+                if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+                {
+                    <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
+                        <i class="@button.Generic["icon"]"></i>
+                    </a>
+                }
             }
-        }
+        </div>
     </div>
-</div>
+}
+
 <script type="text/javascript">
     var page = {
         stage:'@Html.Raw(activeStage)',
@@ -313,8 +375,6 @@
                         if (ss=="True") {
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
                         }
-
-
                             var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
                         $(item).attr("data-original-title", stage);
                     }
@@ -333,96 +393,4 @@
         }
     }
     page.methods.setButtonServiceId();
-    $(document)
-        .on("ready", function () {
-            GetJsonDataFromUrl('/SV/VWSV_Service/GetWastedProducts', { serviceId: '@Model.id' }, function (res) {
-                var cols = [
-                    { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#:kendo.toString(productId_Title)#" },
-                    { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
-                    { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
-                    { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
-                    { field: 'unitId_Title', title: 'Birim', width: 70 },
-                    {
-                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
-                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
-                    },
-                ];
-
-                $("#fire").kendoGrid({
-                    toolbar: [
-
-                    ], excel: {
-                        fileName: "Fire_Bildirimleri.xlsx"
-                    },
-                    dataSource: res.objects,
-                    pageSize: 100,
-                    height: 600,
-                    sortable: true,
-                    resizable: true,
-                    selectable: 'Single, Row',
-                    pageable: {
-                        refresh: true,
-                        pageSizes: true,
-                        buttonCount: 5
-                    },
-                    columns: cols
-                });
-            });
-            GetJsonDataFromUrl('/SV/VWSV_Service/GetSpendedProducts', { serviceId: '@Model.id' }, function (res) {
-                var cols = [
-                    { field: 'materialId_Title', title: 'Ürün Adı', width: 300, template: "#:kendo.toString(productId_Title)#" },
-                    { field: 'createdby_Title', title: 'İşlem Yapan Personel', width: 200 },
-                    { field: 'created', title: "Tarih", format: '{0:dd/MM/yyyy HH:mm}', width: 200, type: "date" },
-                    { field: 'quantity', title: 'Fire Miktarı', format: '{0:N0}', width: 200, template: "#:kendo.toString(quantity ?? 0,'N0')# " },
-                    { field: 'unitId_Title', title: 'Birim', width: 70 },
-                    {
-                        field: 'serialCodes', title: 'Seri Numaraları', format: '{0:N0}',
-                        template: "<a class='btn btn-link table-text' data-original-title='Seri Numaralarını Göster' id='serialCodesModalButton' data-serialCodes='#:serialCodes#' data-placement='bottom'><span >#:serialCodes#</span></i></a> "
-                    },
-                ];
-
-                $("#spend").kendoGrid({
-                    toolbar: [
-
-                    ], excel: {
-                        fileName: "Harcanan-Urunler.xlsx"
-                    },
-                    dataSource: res.objects,
-                    pageSize: 100,
-                    height: 650,
-                    sortable: true,
-                    resizable: true,
-                    selectable: 'Single, Row',
-                    pageable: {
-                        refresh: true,
-                        pageSizes: true,
-                        buttonCount: 5
-                    },
-                    columns: cols
-                });
-            });
-        }).on("click", '#serialCodesModalButton', function () {
-
-            var findSerialCodes = $(this).attr("data-serialcodes").split(",");
-            BootstrapDialog.show({
-                size: 'size-wide',
-                type: 'type-info',
-                title: "Seri Numaraları",
-                message: function (dialog) {
-
-                    var text = "<style>.margin-right{margin:10px;font-size:15px;padding: 10px 12px;} </style>";
-
-                    $.each(findSerialCodes, function (i, item) {
-
-                        text += "<div class='badge margin-right' >" + item + "</div>"
-                    })
-                    return text;
-                },
-                closable: true,
-                closeByBackdrop: true,
-                closeByKeyboard: true,
-
-            });
-        });
-
 </script>

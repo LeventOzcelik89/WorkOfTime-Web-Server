@@ -41,6 +41,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControl = 201,
         [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu")]
         AskCustomer = 400,
+        [Description("Hizmet Ücreti Eklendi"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Hizmet Eklendi")]
+        ServicePriceAdded = 500,
     }
     partial class WorkOfTimeDatabase
     {

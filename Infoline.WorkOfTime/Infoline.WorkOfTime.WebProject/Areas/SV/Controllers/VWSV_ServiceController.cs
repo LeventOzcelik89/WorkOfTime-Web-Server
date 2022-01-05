@@ -4,6 +4,7 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
 using System.Web.Mvc;
+using System.Linq;
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
     public class VWSV_ServiceController : Controller
@@ -120,17 +121,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return View();
         }
         [AllowEveryone]
-        public JsonResult GetWastedProducts(Guid serviceId) {
+        public ContentResult GetWastedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId) {
 
-            var data = new VMSV_ServiceModel().GetWastedProducts(serviceId);
-            return Json(data, JsonRequestBehavior.AllowGet);
+            var data = new VMSV_ServiceModel().GetWastedProducts(serviceId).ToDataSourceResult(request);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         [AllowEveryone]
-        public JsonResult GetSpendedProducts(Guid serviceId)
+        public ContentResult GetSpendedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId)
         {
-
-            var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId);
-            return Json(data, JsonRequestBehavior.AllowGet);
+            var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId).ToDataSourceResult(request);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
+
     }
 }

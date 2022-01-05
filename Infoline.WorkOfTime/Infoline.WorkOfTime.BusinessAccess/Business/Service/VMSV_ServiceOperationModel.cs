@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductionProduct> expens { get; set; }
         public VWPRD_Transaction Transaction { get; set; }
         public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
+        public List<VWPRD_Product> ServiceNotifications { get; set; }
         public short Type { get; set; }
         public Guid? storageId { get; set; }
         public VMSV_ServiceOperationModel Load()
@@ -95,13 +96,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 getService.stage = (short)EnumSV_ServiceStages.DeviceHanded;//süreç başa döner
                 res &= db.UpdateSV_Service(getService.B_ConvertType<SV_Service>(), false, trans);
+                var getProduct = db.GetVWPRD_ProductById(getService.productId.Value);
                 var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
                 var transItem = new VMPRD_TransactionItems
                 {
                     productId = getInventory.productId,
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
-                    unitPrice = 0,
+                    unitPrice = getProduct.currentSellingPrice,
+                    
                 };
                 var transModelCompanyId = new VMPRD_TransactionModel
                 {
@@ -120,6 +123,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     id = Guid.NewGuid(),
                 };
                 res &= transModelCompanyId.Save(this.createdby, trans);
+             
             }
             res &= db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
             if (!res.result)
@@ -147,40 +151,61 @@ namespace Infoline.WorkOfTime.BusinessAccess
             trans = trans ?? db.BeginTransaction();
             var user = db.GetVWSH_UserById(userId);
             var result = new ResultStatus { result = true };
-            var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+            if (expens != null)
             {
-                productId = x.productId,
-                quantity = x.quantity,
-                serialCodes = x.serialCodes ?? "",
-                unitPrice = 0
-            }).ToList();
-            var transId = Guid.NewGuid();
-            var transModel = new VMPRD_TransactionModel
-            {
-                outputTable="SV_Service",
-                outputCompanyId = user.CompanyId,
-                outputId = this.storageId,
-                created = DateTime.Now,
-                createdby = userId,
-                status = (int)EnumPRD_TransactionStatus.islendi,
-                items = expensItem,
-                date = DateTime.Now,
-                code = BusinessExtensions.B_GetIdCode(),
-                type = this.Transaction.type,
-                id = transId,
-                
-            };
-            result &= transModel.Save(userId, trans);
-            result &= new VMSV_ServiceOperationModel
-            {
-                created = DateTime.Now,
-                createdby = userId,
-                dataId=transId,
-                dataTable= "PRD_Transaction",
-                description = this.description,
-                serviceId = this.serviceId,
-                status = this.Transaction.type==(short)EnumPRD_TransactionType.HarcamaBildirimi?(short)EnumSV_ServiceOperation.HarcamaBildirildi: (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
-            }.Save(userId, null, this.trans);
+                var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+                {
+                    productId = x.productId,
+                    quantity = x.quantity,
+                    serialCodes = x.serialCodes ?? "",
+                    unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentBuyingPrice,
+                }).ToList();
+                var transId = Guid.NewGuid();
+                var transModel = new VMPRD_TransactionModel
+                {
+                    outputTable = "SV_Service",
+                    outputCompanyId = user.CompanyId,
+                    outputId = this.storageId,
+                    created = DateTime.Now,
+                    createdby = userId,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = expensItem,
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = this.Transaction.type,
+                    id = transId,
+
+                };
+                result &= transModel.Save(userId, trans);
+                result &= new VMSV_ServiceOperationModel
+                {
+                    created = DateTime.Now,
+                    createdby = userId,
+                    dataId = transId,
+                    dataTable = "PRD_Transaction",
+                    description = this.description,
+                    serviceId = this.serviceId,
+                    status = this.Transaction.type == (short)EnumPRD_TransactionType.HarcamaBildirimi ? (short)EnumSV_ServiceOperation.HarcamaBildirildi : (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
+                }.Save(userId, null, this.trans);
+            }
+         
+                if (this.ServiceNotifications != null)
+                {
+                    foreach (var item in ServiceNotifications)
+                    {
+                        result &= new VMSV_ServiceOperationModel
+                        {
+                            created = DateTime.Now,
+                            createdby = this.createdby,
+                            dataId = item.id,
+                            description= db.GetVWPRD_ProductById(item.id)?.currentBuyingPrice.ToString()??"",
+                            dataTable = "PRD_Product",
+                            serviceId = this.serviceId,
+                            status = (short)EnumSV_ServiceOperation.ServicePriceAdded
+                        }.Save(this.createdby, null, this.trans);
+                    }
+                }
+           
             if (result.result)
             {
                  trans.Commit();

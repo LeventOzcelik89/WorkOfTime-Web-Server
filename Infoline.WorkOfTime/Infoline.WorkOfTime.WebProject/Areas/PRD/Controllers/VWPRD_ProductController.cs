@@ -68,6 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		public ContentResult DataSourceDropDownForInventoryWithHizmet([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
+			condition.Filter.Operand2 = condition.Filter.Operand1;
 			var db = new WorkOfTimeDatabase();
 			var data = new List<VWPRD_Product>();
 			var stockSummary = db.GetVWPRD_StockSummary(condition);
@@ -75,10 +76,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			{
 				var productIds = stockSummary.Where(a => a.productId.HasValue && a.quantity > 0).Select(a => a.productId.Value).ToArray();
 				var products = db.GetVWPRD_ProductByIds(productIds);
-				
+				var newcondition = KendoToExpression.Convert(request);
+				newcondition.Filter.Operand1 = newcondition.Filter.Operand2;
 				if (products.Count() > 0)
 				{
-					data.AddRange(db.GetVWPRD_ProductByType(EnumPRD_ProductType.Hizmet));
+					data.AddRange(db.GetVWPRD_Product(newcondition));
 					data.AddRange(products.ToList());
 				}
 			}
