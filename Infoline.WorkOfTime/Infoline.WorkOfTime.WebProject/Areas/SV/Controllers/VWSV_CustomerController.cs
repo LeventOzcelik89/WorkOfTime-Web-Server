@@ -13,6 +13,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
 	public class VWSV_CustomerController : Controller
 	{
+		[PageInfo("Değişen Cihaz Güncelleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Index()
 		{
 		    return View();
@@ -125,7 +126,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
-		[AllowEveryone]
+		[PageInfo("Müşternin Telefon numarasında bilgilerini alan metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public JsonResult GetByPhoneNumber(string phoneNumber)
 		{
 			return Json(new VMSV_CustomerModel().GetByPhone(phoneNumber), JsonRequestBehavior.AllowGet);

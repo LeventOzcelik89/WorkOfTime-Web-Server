@@ -11,14 +11,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
     public class VWSV_ProblemController : Controller
     {
-
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Listelendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Index()
         {
             return View();
         }
 
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -33,8 +32,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -43,8 +41,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Detaylarının Gösterildiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Detail(VMSV_ProblemModel model)
         {
 
@@ -52,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
 
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Insert(VMSV_ProblemModel model)
         {
             model.code = Extensions.VersionCode;
@@ -60,7 +57,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
 
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMSV_ProblemModel model, bool? isPost)
         {
@@ -77,7 +74,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
 
-        [AllowEveryone]
+
+        [PageInfo("Cihaz Problemlerinin Güncellendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Update(Guid id)
         {
             var model = new VMSV_ProblemModel { id = id };
@@ -86,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
 
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMSV_ProblemModel model)
         {
@@ -103,7 +101,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
 
-        [AllowEveryone]
+        [PageInfo("Cihaz Problemlerinin Silindiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost]
         public JsonResult Delete(string[] id)
         {

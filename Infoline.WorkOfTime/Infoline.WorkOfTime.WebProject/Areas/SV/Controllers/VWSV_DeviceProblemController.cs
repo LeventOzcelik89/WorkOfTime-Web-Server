@@ -14,13 +14,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
     public class VWSV_DeviceProblemController : Controller
     {
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Index()
         {
             return View();
         }
 
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             data.Total = db.GetVWSV_DeviceProblemCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
@@ -45,22 +45,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Detayının Olduğu Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Detail(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
-            var data = db.GetVWSV_DeviceProblemById(id);
+
+            var data = new VMSV_DeviceProblemModel { id = id }.Load();
             return View(data);
         }
 
-
+        [PageInfo("Servise Ait Cihazın Sorunlarının Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Insert()
         {
             var data = new VWSV_DeviceProblem { id = Guid.NewGuid() };
             return View(data);
         }
 
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Eklendiği Method", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(SV_DeviceProblem item)
         {
@@ -79,15 +79,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Güncellendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Update(Guid id)
         {
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWSV_DeviceProblemById(id);
             return View(data);
         }
-        [AllowEveryone]
-
+        [PageInfo("Servise Ait Cihazın Sorunlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(SV_DeviceProblem item)
         {
@@ -107,8 +106,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Silindiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost]
         public JsonResult Delete(string[] id)
         {

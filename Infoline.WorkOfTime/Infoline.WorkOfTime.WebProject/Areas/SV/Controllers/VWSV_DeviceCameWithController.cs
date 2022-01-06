@@ -1,11 +1,10 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
+
 using System.Linq;
 using System.Web.Mvc;
 
@@ -13,13 +12,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
 	public class VWSV_DeviceCameWithController : Controller
 	{
-		[AllowEveryone]
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,7 +45,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Detayı", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,13 +54,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("YEni Cihazın Yanında Gelen Eşyaların Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Insert()
 		{
 		    var data = new VWSV_DeviceCameWith { id = Guid.NewGuid() };
 		    return View(data);
 		}
-		[AllowEveryone]
+		[PageInfo("YEni Cihazın Yanında Gelen Eşyaların Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(SV_DeviceCameWith item)
@@ -78,7 +80,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo(" Cihazın Yanında Gelen Eşyaların Güncellendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -86,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo(" Cihazın Yanında Gelen Eşyaların Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(SV_DeviceCameWith item)
 		{
@@ -107,7 +110,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo(" Cihazın Yanında Gelen Eşyaların Silindiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost]
 		public JsonResult Delete(string[] id)
 		{

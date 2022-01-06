@@ -1,11 +1,9 @@
 ﻿using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -13,13 +11,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
 	public class VWSV_ServiceOperationController : Controller
 	{
-		[AllowEveryone]
+
+		[PageInfo("Servis Operasyonlarının Listelendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Servis Operasyonlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,7 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Detaylarının Olduğu Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Detail(Guid id)
 		{
 		    
@@ -52,13 +52,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Insert(VMSV_ServiceOperationModel model)
 		{
 		    return View(model);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMSV_ServiceOperationModel model,bool?ispost)
 		{
@@ -76,14 +76,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Update(VMSV_ServiceOperationModel model)
 		{
 			var data = new VMSV_ServiceOperationModel().Load();
 		    return View(data);
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMSV_ServiceOperationModel model, bool? ispost)
 		{
@@ -100,7 +101,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Silindiği Met", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost]
 		public JsonResult Delete(string[] id)
 		{

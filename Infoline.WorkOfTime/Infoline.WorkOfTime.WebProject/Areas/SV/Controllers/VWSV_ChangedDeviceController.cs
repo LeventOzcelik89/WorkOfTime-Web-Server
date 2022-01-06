@@ -1,25 +1,21 @@
-﻿using Infoline.WorkOfTime.BusinessData;
-using Infoline.WorkOfTime.BusinessAccess;
-using Infoline.Web.Utility;
+﻿using Infoline.WorkOfTime.BusinessAccess;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Web.Mvc;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
 	public class VWSV_ChangedDeviceController : Controller
 	{
-		[AllowEveryone]
+		[PageInfo("Değişen Cihazların Listelendiği Sayfa",SHRoles.TeknikServisYoneticiRolu,SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-		[AllowEveryone]
+		[PageInfo("Değişsen Cihazların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("Değişen Cihazların Dropdownda Listelenmesi için gereken metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,22 +40,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[AllowEveryone]
+		
+		[PageInfo("Değişen Cihazların Ayrıntıları", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Detail(Guid id)
 		{
 			var data = new VMSV_ChangedDeviceModel {id=id }.Load();
-
 			return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Yeni Değişen Cihaz Ekleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Insert(VMSV_ChangedDeviceModel model)
 		{
 		   
 		    return View(model);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Yeni Değişen Cihaz Ekleme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMSV_ChangedDeviceModel model, bool? isPost)
 		{
@@ -75,14 +71,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    };
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
-		[AllowEveryone]
+		
+		[PageInfo(" Değişen Cihaz Güncelleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Update(VMSV_ChangedDeviceModel model)
 		{
 			var data = new VMSV_ChangedDeviceModel().Load();
 			return View(data);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Değişen Cihaz Güncelleme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMSV_ChangedDeviceModel model, bool? isPost)
 		{
@@ -99,7 +96,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+
+		[PageInfo("Değişen Cihaz Silme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost]
 		public JsonResult Delete(VMSV_ChangedDeviceModel model)
 		{
