@@ -1,19 +1,32 @@
 ﻿@model VMUT_LocationConfigUserModel
 @{
     ViewBag.Title = "Personel Bilgileri Detayı";
-
 }
 
-<script type="text/javascript">
-    function openPage() {
-        var checkbox = $('[name="isTrackingActive"]:checked').val()
-        if (checkbox == 0) {
-            window.open("/UT/VWUT_LocationConfigUser/MapOverView?userId=@Model.userId")
-            
-        }
-        else {
+
+<script type="text/javascript" data-selector="modalContainer">
+
+
+    function setInput(e) {
+        var sender = e.sender.dataItem();
+        if (sender != undefined) {
+            $("#locationConfigDetail").attr("data-href", "/UT/VWUT_LocationConfig/Detail?id=" + sender.id);
         }
     }
+   
+    $(document)
+        .on("change", "#locationConfigId", function (e, resp) {
+            var dropdown = $("#locationConfigId").data("kendoDropDownList");
+            var value = dropdown.dataItem(dropdown.selectedIndex);
+            $("#DropDownList").val(value.configName);
+        })
+        .on('change', '[name="isTrackingActive"]', function () {
+
+            setTimeout(function () { pageLocation.dfn.harita.map.updateSize(); }, 500);
+
+        })
+
+        ;
 </script>
 
 
@@ -22,50 +35,63 @@
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
     @Html.HiddenFor(model => model.userId)
 
+    <div class="row">
 
-    <div class="form-group clearfix">
-        <div class="col-md-4">
-            <label class="control-label label-md " for="isTrackingActive">Personel Konum Takip</label>
-        </div>
-
-        <div class="col-md-8">
-            @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
-        </div>
-
-
-
-    </div>
-    <div class="form-group clearfix">
-        <div class="dropdown" data-cascade="[name='isTrackingActive']" data-show="0">
-            <div class="col-md-4">
-                <label class="control-label label-md " for="isTrackingActive">Personel Konum Takip</label>
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
+                </div>
+                <div class="col-md-6">
+                    @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
+                </div>
             </div>
+        </div>
 
-            <div class="col-md-8">
-                @(
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        @(
                             Html.Akilli()
                             .DropDownListFor(model => model.locationConfigId)
                             .OptionLabel("Lütfen Konfig Belirtiniz...")
                             .DataTextField("configName")
                             .DataValueField("id")
+                            .Events(x=>x.Change("setInput"))
                             .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationConfig", new { area = "UT" }))
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
                 )
+                        <div class="input-group-addon">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        </div>
+                    </div>
+                </div>
             </div>
-
-            </div>
-
         </div>
-    <div>
-        @Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/MapOverView.cshtml", Model)
-    </div>
-            <div class="buttons">
-                <button class="btn btn-md btn-success pull-right" type="submit" onclick="openPage()">Kaydet</button>
+
+        <div class="col-md-2">
+            <div class="form-group">
+                <div class="col-md-12">
+                    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                </div>
             </div>
+        </div>
+
+    </div>
+
+    <div class="row" data-cascade="[name='isTrackingActive']" data-show="0">
+        <hr />
+        <div class="col-md-12">
+            @Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/MapOverView.cshtml", Model)
+        </div>
+    </div>
 
 </form>
