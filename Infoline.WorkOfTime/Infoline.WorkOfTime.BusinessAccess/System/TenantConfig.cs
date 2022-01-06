@@ -217,7 +217,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.YardimMasaTalep,
             SHRoles.YardimMasaYonetim,
             SHRoles.YardimMasaMusteri,
-            SHRoles.SatinAlmaOnaylayiciGorev
+            SHRoles.SatinAlmaOnaylayiciGorev,
+            SHRoles.TeknikServisBayiRolu,
+            SHRoles.TeknikServisYoneticiRolu
         };
         public IysInformation IysInformations { get; set; }
 

@@ -146,7 +146,15 @@ namespace System
         //Doküman Yönetimi
         [PropInfo("Doküman Yönetim Rolü", "Doküman sayfaları ile ilgili işlemleri yapar.")]
         public const string DokumanYonetimRolu = "00000000-0000-0000-0006-000000000000";
-        //Doküman Yönetimi
+        //Doküman
+        //
+
+        //Teknik Servis Yönetimi
+        [PropInfo("Teknik Servis Yönetici Rolü", "Teknik Servis sayfaları ile ilgili işlemleri yapar.")]
+        public const string TeknikServisYoneticiRolu = "00000000-0000-0000-0007-000000000000";
+        [PropInfo("Teknik Servis Bayi Rolü", "Teknik Servis bayi sayfaları ile ilgili işlemleri yapar.")]
+        public const string TeknikServisBayiRolu = "00000000-0000-0000-0007-100000000000";
+        //Teknik Servis Yönetimi
 
     }
 
