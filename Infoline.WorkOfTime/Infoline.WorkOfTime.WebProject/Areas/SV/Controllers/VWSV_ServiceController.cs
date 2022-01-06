@@ -10,12 +10,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
     public class VWSV_ServiceController : Controller
     {
         [AllowEveryone]
-        [PageInfo("Garanti-Teknik Servis Listeleme Sayfası", SHRoles.UretimYonetici)]
+        [PageInfo("Garanti-Teknik Servis Listeleme Sayfası")]
         public ActionResult Index()
         {
             return View();
         }
         [AllowEveryone]
+        [PageInfo("Garanti-Teknik Servis Listeleme Methodu")]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -29,6 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         [AllowEveryone]
+        [PageInfo("Garanti-Teknik Servis DropDown Listeleme Methodu")]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -37,12 +39,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         [AllowEveryone]
+        [PageInfo("Garanti-Teknik Servis Detay Sayfası")]
         public ActionResult Detail(Guid id)
         {
 
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
         [AllowEveryone]
+        [PageInfo("Yeni Garanti-Teknik Servis Ekleme Sayfası")]
         public ActionResult Insert(VMSV_ServiceModel model)
         {
             model.code = BusinessExtensions.B_GetIdCode();
@@ -51,6 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [AllowEveryone]
         [HttpPost, ValidateAntiForgeryToken]
+        [PageInfo("Yeni Garanti-Teknik Servis Ekleme Metodu")]
         public JsonResult Insert(VMSV_ServiceModel model, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -64,12 +69,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis Düzenleme Sayfası")]
         public ActionResult Update(VMSV_ServiceModel model)
         {
             return View(model.Load());
         }
         [AllowEveryone]
         [HttpPost, ValidateAntiForgeryToken]
+        [PageInfo(" Garanti-Teknik Servis Düzenleme Metodu")]
         public JsonResult Update(VMSV_ServiceModel model,bool? ispost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -84,6 +91,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [AllowEveryone]
         [HttpPost]
+        [PageInfo(" Garanti-Teknik Servis Silme Metodu")]
         public JsonResult Delete(VMSV_ServiceModel model)
         {
           
@@ -98,35 +106,41 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Bilgileri Metodu")]
         public JsonResult DeviceInformation(Guid inventoryId)
         {
             return Json(new VMSV_ServiceModel().DeviceInformation(inventoryId), JsonRequestBehavior.AllowGet);
         }
 
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Alma Çıktı Sayfası")]
         public ActionResult Print(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
 
         [AllowEveryone]
+        [PageInfo("Garanti-Teknik Servis'e gelen cihazın metaryel ağacındaki tüm ürünleri alan metod")]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
             var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToArray(); 
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis Cihazının farklı servise taşınmasını sağlayan method ")]
         public ActionResult Transfer(Guid serviceId)
         {
             return View();
         }
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis'in Fire Verilmiş Ürünleri Alan method ")]
         public ContentResult GetWastedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId) {
 
             var data = new VMSV_ServiceModel().GetWastedProducts(serviceId).ToDataSourceResult(request);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         [AllowEveryone]
+        [PageInfo(" Garanti-Teknik Servis'in harcama yapılmış Ürünleri Alan method ")]
         public ContentResult GetSpendedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId)
         {
             var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId).ToDataSourceResult(request);

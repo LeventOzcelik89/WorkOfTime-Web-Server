@@ -48,12 +48,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     PRD_TitanDeviceActivated = findTitan;
                     if (findTitan.CreatedOfTitan.HasValue)
                     {
-                        if (findTitan.CreatedOfTitan.Value.AddYears(2) <= DateTime.Now)
+                        if (findTitan.CreatedOfTitan.Value.AddYears(2) >= DateTime.Now)
                         {
                             WarrantyStatus = "Garantili";
                         }
                         WarrantyStart = findTitan.CreatedOfTitan.Value.ToShortDateString();
-                        WarrantyEnd = findTitan.CreatedOfTitan.Value.AddDays(2).ToShortDateString();
+                        WarrantyEnd = findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString();
                     }
                 }
                 this.EntegrationImport = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode) ?? new VWPRD_EntegrationImport();
@@ -512,7 +512,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if(stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                //ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
             }
