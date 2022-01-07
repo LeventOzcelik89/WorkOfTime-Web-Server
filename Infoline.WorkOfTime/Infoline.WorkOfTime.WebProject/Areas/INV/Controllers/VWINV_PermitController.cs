@@ -951,5 +951,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				return Json(new ResultStatusUI { Result = false, FeedBack = new FeedBack().Error(ex.Message, "Sonuç Yüklenemedi") }, JsonRequestBehavior.AllowGet);
 			}
 		}
+		[PageInfo("İzin Raporu",SHRoles.IKYonetici)]
+		public ActionResult SummaryReport() {
+
+
+			return View();
+		
+		
+		
+		}
 	}
 }

@@ -1,0 +1,61 @@
+﻿@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="row">
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
+    </div>
+    <div class="col-xs-12 col-sm-6 col-md-3">
+        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
+    </div>
+</div>
+
+
+@(Html.Akilli()
+    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_PermitSummary>("VWINV_PermitSummary")
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_PermitSummary", new { area = "INV" })).PageSize(25))
+    .Columns(x =>
+    {
+        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+        x.Bound(y => y.PermitYearlyDeserved).Title("PermitYearlyDeserved").Width(180);
+        x.Bound(y => y.PermitYearlyUsed).Title("PermitYearlyUsed").Width(180);
+        x.Bound(y => y.PermitExcuseDeserved).Title("PermitExcuseDeserved").Width(180);
+        x.Bound(y => y.PermitExcuseUsed).Title("PermitExcuseUsed").Width(180);
+        x.Bound(y => y.Name).Title("Name").Width(180);
+        x.Bound(y => y.IsPaidPermit).Title("IsPaidPermit").Width(180);
+        x.Bound(y => y.PaidPermitDay).Title("PaidPermitDay").Width(180);
+        x.Bound(y => y.CanHourly).Title("CanHourly").Width(180);
+        x.Bound(y => y.Descriptions).Title("Descriptions").Width(180);
+        x.Bound(y => y.BeDocumented).Title("BeDocumented").Width(180);
+        x.Bound(y => y.RequestStaff).Title("RequestStaff").Width(180);
+        x.Bound(y => y.ViewStaff).Title("ViewStaff").Width(180);
+        x.Bound(y => y.IsPaidPermit_Title).Title("IsPaidPermit_Title").Width(180);
+        x.Bound(y => y.CanHourly_Title).Title("CanHourly_Title").Width(180);
+        x.Bound(y => y.BeDocumented_Title).Title("BeDocumented_Title").Width(180);
+        x.Bound(y => y.userId_Title).Title("userId_Title").Width(180);
+        x.Bound(y => y.companyId_Title).Title("companyId_Title").Width(180);
+        x.Bound(y => y.departmentId_Title).Title("departmentId_Title").Width(180);
+        x.Bound(y => y.permitTypeId).Title("permitTypeId").Width(180);
+        x.Bound(y => y.employeeJobStartDate).Title("employeeJobStartDate").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.employeeDateOfBirth).Title("employeeDateOfBirth").Width(180).Format(Extensions.DateFormatShort(true));
+        x.Bound(y => y.employeeStatus).Title("employeeStatus").Width(180);
+        x.Bound(y => y.Type_Title).Title("Type_Title").Width(180);
+        x.Bound(y => y.Status_Title).Title("Status_Title").Width(180);
+    })
+    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .ToolBar(x =>
+    {
+        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWINV_PermitSummary", new { area = "INV" }));
+        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWINV_PermitSummary", new { area = "INV" }));
+        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWINV_PermitSummary", new { area = "INV" }));
+        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWINV_PermitSummary", new { area = "INV" }));
+    }))
