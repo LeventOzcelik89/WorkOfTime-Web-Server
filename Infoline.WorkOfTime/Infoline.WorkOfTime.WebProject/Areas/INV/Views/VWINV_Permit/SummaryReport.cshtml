@@ -1,0 +1,197 @@
+﻿
+@{
+    ViewBag.Title = "Çalışan İzin Özet Raporu";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@section Javascript{
+    <script type="text/javascript">
+        var page = {
+            data: null,
+            filters: function () {
+                var grid = $('#VWEMP_LeaveSummary').data('handler');
+                var arr = new Array();
+                arr.push({ field: "employeeId", value: $("#employeeId").val() });
+                arr.push({ field: "companyId", value: $("#companyId").val() });
+                arr.push({ field: "branchId", value: $("#branchId").val() });
+                arr.push({ field: "sectionId", value: $("#sectionId").val() });
+                arr.push({ field: "departmentId", value: $("#departmentId").val() });
+                arr.push({ field: "unitId", value: $("#unitId").val() });
+                arr.push({ field: "titleId", value: $("#titleId").val() });
+                arr.push({ field: "employeeStatus", value: $("#employeeStatusFilter").val() });
+
+                var filterArr = new Array();
+
+                filterArr.push("(isDefaultType~eq~true)");
+
+                var defaultFilter = grid.dataSource.transport.parameterMap({ filter: { logic: "and", filters: grid.options.dataSource.filter } }).filter;
+
+                if (defaultFilter != null && defaultFilter != "") {
+                    filterArr.push(defaultFilter);
+                };
+
+                arr.filter(a => a.value.length > 0).forEach(function (c) {
+                    filterArr.push("(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")");
+                });
+
+                if ($('[data-grid="VWEMP_LeaveSummary"][data-query].active').length > 0) {
+                    var query = $('[data-grid="VWEMP_LeaveSummary"][data-query].active').data("query");
+                    filterArr.push(query);
+                }
+
+                var filter = "(" + filterArr.map(function (a) { return a }).join("~and~") + ")";
+                var parserFilter = kendo.filterParser(filter);
+
+                grid.dataSource.filter(parserFilter);
+            },
+        }
+        $(document)
+            .on('ready', function () {
+                setTimeout(function () {
+                    //page.filters();
+                }, 1000)
+            });
+    </script>
+}
+<div class="col-12">
+
+
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWINV_PermitSummary>("VWEMP_LeaveSummary")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWINV_PermitSummary", new { area = "EMP"})).Sort(a=>a.Add("userId_Title")).PageSize(25))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.userId_Title).Title("Çalışan Ad-Soyad").Width(200);
+                        x.Bound(y => y.Status_Title).Title("Çalışan Durumu").Width(200).Hidden(true);
+                        x.Bound(y => y.employeeJobStartDate).Title("İş Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                        x.Bound(y => y.Type_Title).Title("İzin Türü").Width(200);
+                        x.Bound(y => y.PermitYearlyDeserved).Title("Bu Yıl Hakedilen").Width(200);
+                        //x.Bound(y => y.permit).Title("Toplam Hakedilen").Width(200);
+                        x.Bound(y => y.PermitExcuseUsed).Title("Kullanılan Onaylanmış").Width(220);
+                        //x.Bound(y => y.permit).Title("Onayda Bekleyen").Width(180);
+                        //x.Bound(y => y.permit).Title("Toplam Kalan").Width(150);
+                    })
+                    .Scrollable(x => x.Height(600))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+
+                    }))
+      
+        </div>
+<div class="fixedStart">
+    <input type="checkbox" id="fixed">
+    <label title="" for="fixed" id="fixed"><i class="icon-filter"> </i></label>
+
+    <div class="fix-buttons" style="width:370px;visibility:hidden;">
+        <div class="widget-content-area" style="border-top-left-radius: 6px;border-top-right-radius: 6px;border-style:solid;border-color:#ceced2;border-width:thin;">
+            <h4 style="padding:10px 0 !important;">Detaylı Filtre</h4>
+            <div class="row">
+                <div class="col-md-12">
+                    <form class="form-horizontal">
+                        <div class="row">
+                            <div class="form-group col-md-12">
+                                @(Html.Akilli()
+			                     .MultiSelect("employeeId")
+			                     .Placeholder("Lütfen çalışan seçiniz..")
+			                     .DataTextField("fullName")
+			                     .DataValueField("id")
+			                     .Action(b => b.Action("DataSourceDropDown", "VWEMP_Employee", new { area = "EMP" }))
+			                     .Execute()
+			                    )
+                            </div>
+                            @*<div class="form-group col-md-12">
+                                @(Html.Akilli().
+			                        MultiSelect("employeeStatusFilter").
+			                        Placeholder("Çalışan durumu seçiniz..").
+			                        DataTextField("enumDescription").
+			                        DataValueField("Id").
+			                        Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+			                        Filter<Infoline.MOB.BusinessData.SYS_Enums>(a => a.tableName == "EMP_Employee" && a.fieldName == "status").
+			                        Sort(x => x.Add("enumKey").Ascending()).
+                                    Value((int)EnumEMP_EmployeeStatus.active).
+			                        Execute("enumKey"))
+                            </div>*@
+                            <div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("companyId")
+                                .Placeholder("Şirket seçiniz..")
+                                .DataTextField("full_Title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<CMP_Company>(a=>a.pid == System.UIHelper.Guid.Null)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>
+                            <div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("branchId")
+                                .Placeholder("Şube seçiniz..")
+                                .DataTextField("full_Title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<CMP_Company>(a=>a.pid != System.UIHelper.Guid.Null)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>
+                            @*<div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("sectionId")
+                                .Placeholder("Bölüm seçiniz..")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_OrganizationUnit", new { area = "UT" }))
+                                .Filter<UT_OrganizationUnit>(a=>a.type == (int)EnumUT_OrganizationUnitType.Section)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>*@
+                            @*<div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("departmentId")
+                                .Placeholder("Departman seçiniz..")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_OrganizationUnit", new { area = "UT" }))
+                                .Filter<UT_OrganizationUnit>(a=>a.type == (int)EnumUT_OrganizationUnitType.Department)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>*@
+                            @*<div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("unitId")
+                                .Placeholder("Birim seçiniz..")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_OrganizationUnit", new { area = "UT" }))
+                                .Filter<UT_OrganizationUnit>(a=>a.type == (int)EnumUT_OrganizationUnitType.Unit)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>*@
+                            @*<div class="form-group col-md-12" style="width:150px;">
+                                @(Html.Akilli()
+                                .MultiSelect("titleId")
+                                .Placeholder("Ünvan seçiniz..")
+                                .DataTextField("title")
+                                .DataValueField("id")
+                                .TagMode(TagMode.Single)
+                                .Action(b => b.Action("DataSourceDropDown", "VWUT_OrganizationUnit", new { area = "UT" }))
+                                .Filter<UT_OrganizationUnit>(a=>a.type == (int)EnumUT_OrganizationUnitType.Title)
+                                .Sort(x => x.Add("title").Ascending())
+                                .Execute())
+                            </div>*@
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <button class="btn btn-md btn-block btn-success" onclick="page.filters()" type="button" style="padding: 9px;margin-top: 0px !important;"><i class="icon-search"></i> Sorgula</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
