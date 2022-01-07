@@ -450,7 +450,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
             {
-
+                ButtonPermission.Add(EnumSV_ServiceActions.PrintEnd);
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
             {
@@ -512,7 +512,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if(stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.PrintEnd);
                 //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
             }
