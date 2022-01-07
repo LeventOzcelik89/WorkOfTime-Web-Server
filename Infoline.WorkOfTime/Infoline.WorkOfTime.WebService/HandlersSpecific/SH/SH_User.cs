@@ -233,23 +233,17 @@ namespace Infoline.WorkOfTime.WebService.Handler
             {
                 var db = new WorkOfTimeDatabase();
                 var data = ParseRequest<VMSH_UserModel>(context);
+
                 data.created = DateTime.Now;
                 data.createdby = CallContext.Current.UserId;
 
                 if (!string.IsNullOrEmpty(data.RoleIds))
                 {
-                    var roleids = data.RoleIds.Split(',');
-                    data.Roles = new List<Guid> { };
-
-                    foreach (var item in roleids)
-                    {
-                        data.Roles.Add(new Guid(item));
-                    }
+                    data.Roles = data.RoleIds.Split(',').Select(a => new Guid(a)).ToList();
                 }
 
-                var rs = data.Save();
+                RenderResponse(context, data.Save());
 
-                RenderResponse(context, rs);
             }
             catch (Exception ex)
             {
