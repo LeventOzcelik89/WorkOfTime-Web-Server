@@ -16,6 +16,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return View();
         }
 
+        [PageInfo("Personel Takip Haritası", SHRoles.IdariPersonelYonetici)]
+        public ActionResult MapAll()
+        {
+            return View();
+        }
+
         [PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici)]
         public ContentResult GetMapData(DateTime startDate, DateTime endDate, Guid userId)
         {
@@ -34,5 +40,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             }
             return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
         }
+
+
     }
 }

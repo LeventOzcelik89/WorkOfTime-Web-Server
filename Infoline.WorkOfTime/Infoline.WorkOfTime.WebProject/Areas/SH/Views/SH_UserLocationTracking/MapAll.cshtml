@@ -7,7 +7,7 @@
 }
 @section Javascript{
     <script type="text/javascript">
-        
+
         var control = false;
         var selectedFeature = null;
 
@@ -57,6 +57,22 @@
                 layersSwip: function (e) {
                     $(e).toggleClass("active");
                     $('[data-tool="Swipe"]').trigger("click");
+                },
+                AllUsers: function (elem, target) {
+
+                    var hasActive = $(elem).hasClass("active");
+                    $(elem).parent().find("button").removeClass("active");
+
+                    if (hasActive) {
+                        $(".btn-bar.right").animate({ right: -430 }, 200);
+                    } else {
+                        $(elem).addClass("active");
+                        $(".btn-bar.right").animate({ right: -430 }, 200, function () {
+                            $('.pan-container').find('.pan-content').hide();
+                            $('.pan-container').find("#" + target).show();
+                            $(".btn-bar.right").animate({ right: 15 }, 200);
+                        });
+                    }
                 },
                 slideTab: function (elem, target) {
 
@@ -389,47 +405,6 @@
 
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
 
-    <div class="btn-bar" style="width:100%;top:2%;">
-        <div style="display: inherit;margin: 0 auto;">
-
-            <div class="col-md-4">
-                <div id="PersonSearch">
-                    @(Html.Akilli()
-                                .DropDownList("PersonSearching")
-                                .OptionLabel("Satış Personeli Ara")
-                                .MinLength(0)
-                                .DataTextField("FullName")
-                                .DataValueField("id")
-                                .DataSource(a => a.Read("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-                                .Filter<VWCMP_Company>(f => f.type == (int)EnumCMP_CompanyType.Benimisletmem)
-                                .Sort(x => x.Add("FullName").Ascending())
-                                .Events(e => { e.Change("page.onChangePerson");})
-                                .Execute("id")
-                    )
-                </div>
-            </div>
-            <div class="col-md-4 datetimeTemp">
-                @(Html.Akilli().DateTimePicker("StartDateTime")
-                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
-                            {
-                                {"class", "form-control"},
-                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
-                            }).MaxDateElement("EndDateTime").Events(e => { e.Change("page.onChangeDate"); }))
-
-
-            </div>
-            <div class="col-md-4 datetimeTemp" style="margin-left: 270px;">
-                @(Html.Akilli().DateTimePicker("EndDateTime")
-                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
-                                    {
-                                        {"class", "form-control"},
-                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
-                                    }).MinDateElement("StartDateTime").Events(e => { e.Change("page.onChangeDate"); }))
-            </div>
-        </div>
-
-    </div>
-
     <div class="btn-bar left top animated slideInLeft" style="top: 140px;">
         <div class="btn-container m-b-lg">
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
@@ -437,6 +412,7 @@
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.AllUsers(this)" data-placement="right" data-original-title="Tüm Personeller"><i class="fa fa-child"></i></button>
         </div>
     </div>
 
@@ -468,6 +444,7 @@
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+            <button id="AllUsers" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.AllUsers(this, 'personId')"><i class="fa fa-child"></i></button>
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
@@ -524,6 +501,84 @@
                                 </ul>
                             </nav>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script type="text/template" id="selectedPerson">
+    <div class="pan-content">
+        <div class="pan-head clearfix" style="margin-left: 15px;">
+            <div style="padding-top: 7px;">
+                <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
+                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL BİLGİLERİ</span>
+                </div>
+            </div>
+        </div>
+        <div>
+            <div class="clearfix">
+
+            </div>
+            <div class="cardPerson" style="padding-bottom: 10px;">
+                <div class="col-md-2">
+                    <a href="#">
+                        <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
+                    </a>
+                </div>
+                <div class="col-md-10">
+                    <nav class="nav">
+                        <ul>
+                            <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
+                            <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+
+            <div class="pan-bodyCustom">
+                <div class="col-md-12">
+                    <div class="panContentPresentation">
+                        <div class="card col-md-12">
+                            <header class="header">
+                                <div class="card-details">
+                                    <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
+                                </div>
+                            </header>
+                            <nav class="nav">
+                                <ul>
+                                    <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                    <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                    <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                    <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                    <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-3 datetimeTemp">
+                        @(Html.Akilli().DateTimePicker("StartDateTime")
+                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+                            }).MaxDateElement("EndDateTime"))
+
+                    </div>
+                    <div class="col-md-3 datetimeTemp">
+                        @(Html.Akilli().DateTimePicker("EndDateTime")
+                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
+                                    }).MinDateElement("StartDateTime"))
+                    </div>
+                    <div class="col-md-1 buttons" style="margin-top:-23px;">
+                        <button class="btn btn-md btn-success pull-right" onclick="pageLocation.onChangeDate()" type="submit">Sorgula</button>
                     </div>
                 </div>
             </div>
