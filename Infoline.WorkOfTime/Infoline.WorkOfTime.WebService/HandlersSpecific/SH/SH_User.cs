@@ -226,7 +226,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
-        [HandleFunction("SH_User/InsertCompanyCustomer")]
+        [HandleFunction("SH_User/InsertCustomerPerson")]
         public void SH_UserInsert(HttpContext context)
         {
             try
