@@ -219,7 +219,7 @@
 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
 .ToolBar(x =>
 {
-    x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_DeviceCameWith", new { area = "SV" }));
+    x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSV_DeviceCameWith", new { area = "SV" }));
 }))
                             </div>
                         </div>
@@ -335,7 +335,7 @@
         </div>
     </div>
 </div>
-@if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Done || Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
+@if ( Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
 {
 
 }
@@ -371,11 +371,13 @@ else
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
                     else if (dataEnum == 5) {
-                        var ss = '@(Model.Problems.Any(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == true))';
-                        if (ss=="True") {
+                        var isHaveWarranty = '@(Model.Problems.Any(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == true))';
+                        if (isHaveWarranty == "True") {
+                            var stageText = $(item).attr("data-original-title").replace("{{stage}}",  + " Tamir Süreci Aşamasına Geç");
+                            $(item).attr("data-original-title", stageText);
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
                         }
-                            var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
+                        var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
                         $(item).attr("data-original-title", stage);
                     }
                     else if (dataEnum == 108) {

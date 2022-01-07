@@ -69,8 +69,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControl = 201,
         [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "85BDBF", "description", "Süreci Tamamla", "attr", "data-model=false data-enum=300 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=300 data-task=Insert data-method=POST ")]
         Done = 300,
-        [Description("Müşterinin Onayına Sun"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşterinin Onayına Sun", "attr", "data-model=true data-enum=400 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
+        [Description("Müşterinin Onayına Sun"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşterinin Onayına Sun", "attr", "data-modal=true data-enum=400 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
         AskCustomer = 400,
+        [Description("Teslim Çıktısı Al"), Generic("icon", "fa fa-print", "color", "84732B", "description", "Teslim Çıktısı Al", "attr", "data-modal=false data-blank=true  data-enum=500 id=transferstart  data-href=/SV/VWSV_Service/PrintEnd?id={{}} data-task=Insert data-method=GET ")]
+        PrintEnd = 500,
     }
     partial class WorkOfTimeDatabase
     {

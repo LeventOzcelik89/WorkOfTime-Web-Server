@@ -1,0 +1,293 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
+@using System.Globalization
+@using Infoline.WorkOfTime.BusinessAccess
+@{
+
+    var userStatus = (PageSecurity)Session["userStatus"];
+
+
+}
+<html>
+<head>
+    <title>&nbsp;&nbsp;</title>
+    <script src="~/Content/2048-master/js/jquery.min.js"></script>
+    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
+
+    <style type="text/css" data-selector="modalContainer">
+        #page {
+            width: 842px !important;
+        }
+
+        table {
+            width: 100%;
+        }
+
+
+        td.stil {
+            height: 28px;
+            width: 280px;
+            padding-left: 5px;
+            font-weight: bold;
+        }
+
+        .space-left {
+            padding-left: 5px;
+        }
+
+        .demo-section {
+            position: absolute;
+            top: 11px;
+            left: 805px;
+        }
+
+        td {
+            width: 320px;
+        }
+
+
+
+        #wizard {
+            width: 100%;
+            position: relative;
+            margin-top: 50px;
+        }
+
+            #wizard img {
+                width: 100%;
+            }
+
+            #wizard .adim {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 46%;
+                z-index: 99;
+            }
+
+            #wizard .adim1 {
+                left: 3%;
+            }
+
+            #wizard .adim2 {
+                left: 28%;
+            }
+
+            #wizard .adim3 {
+                left: 52%;
+            }
+
+            #wizard .adim4 {
+                left: 77%;
+            }
+
+            #wizard .tarih {
+                position: absolute;
+                width: 25%;
+                color: #000 !important;
+                font-family: verdana;
+                font-size: 8px;
+                font-weight: bold;
+                top: 31%;
+                z-index: 199;
+            }
+         
+
+            #wizard .tarih1 {
+                left: 3%;
+            }
+
+            #wizard .tarih2 {
+                left: 28%;
+                top: 62%;
+            }
+
+            #wizard .tarih3 {
+                left: 52%;
+            }
+
+            #wizard .tarih4 {
+                left: 77%;
+                top: 62%;
+            }
+
+        table#sub tr td {
+            text-align: center;
+            line-height: 20px;
+            font-size: 15px;
+        }
+
+        table#headerTable {
+            margin-bottom: 20px;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+    </style>
+
+</head>
+<body>
+
+    <div id="page" style="align-content:center">
+
+        <h4 style="text-align:center">TEKNİK SERVİS TESLİM FORMU </h4>
+
+        <div style="display: inline-flex; width: 100%;">
+            <div style="width:33.33%"><h4 style="text-align:left">Form No: @Model.code</h4></div>
+            <div style="width:33.33%"><h4 style="text-align:center">Müşteri No: @Model.Customer.code</h4></div>
+            <div style="width:33.33%"><h4 style="text-align:right">Tarih: @DateTime.Now.ToString(Extensions.DateFormatFull())</h4></div>
+
+        </div>
+        <table class="m-b-sm" border="1" cellpadding="0" cellspacing="0" data-selector="modalContainer">
+            <tr>
+                <td colspan="4" align="left" valign="middle" class="stil" style="background: #808080;"><strong>Müşteri Bilgileri</strong></td>
+            </tr>
+            <tr>
+                <td class="stil"> Müşteri Adı</td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.Customer.fullName)</td>
+            </tr>
+            <tr>
+                <td class="stil"> Bayi Adı</td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.companyId_Title)</td>
+            </tr>
+            <tr>
+                <td class="stil">Telefon Numarası </td>
+                <td colspan="3" data-prop="Adress" class="space-left">@Model.Customer.phoneNumber</td>
+            </tr>
+            <tr>
+                <td class="stil">Diğer Telefon Numarası</td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.Customer.otherPhoneNumber)</td>
+            </tr>
+            <tr>
+                <td class="stil">E-Mail Adresi </td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.Customer.email)</td>
+            </tr>
+            <tr>
+                <td class="stil">Adres </td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.Customer.Address)</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="stil"></td>
+            </tr>
+
+
+            <tr>
+                <td colspan="4" align="left" valign="middle" class="stil" style="background: #80808038;"><strong>Cihaz Bilgileri</strong></td>
+            </tr>
+            <tr>
+                <td class="stil">Seri Numarası </td>
+                <td colspan="3" data-prop="Adress" class="space-left">@(Model.serialCode)</td>
+            </tr>
+            <tr>
+                <td class="stil">Geliş Tarihi</td>
+                <td colspan="3" class="space-left">@Model.created.Value.ToString(Extensions.DateFormatFull())</td>
+
+            </tr>
+
+            <tr>
+                <td class="stil">Garanati Durumu</td>
+                <td colspan="3" class="space-left">@Model.WarrantyStatus</td>
+
+            </tr>
+            <tr>
+                <td class="stil">Garanati Başlangıç Tarihi</td>
+                <td colspan="3" class="space-left">@Model.WarrantyStart</td>
+
+            </tr>
+            <tr>
+                <td class="stil">Garanati Bitiş Tarihi</td>
+                <td colspan="3" class="space-left">@Model.WarrantyEnd</td>
+            </tr>
+            <tr>
+                <td class="stil">Model No</td>
+                <td colspan="3" class="space-left">@Model.product_Title</td>
+            </tr>
+            <tr>
+                <td colspan="4" class="stil" stl></td>
+            </tr>
+            <tr>
+                <td colspan="4" align="left" valign="middle" class="stil" style="background: #80808038;"><strong>Tamir Edilen Cihaz Sorunları</strong></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;" align="center" class="stil">Sorun Tipi</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Ürün</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Açıklama</td>
+            </tr>
+            @foreach (var item in Model.Problems.Where(x=>x.type==(short)EnumSV_DeviceProblemType.Service))
+            {
+                <tr>
+                    <td class="text-center">@item.problemTypeId_Title</td>
+                    <td class="text-center">@item.productId_Title</td>
+                    <td class="text-center">@item.description</td>
+                </tr>
+            }
+            <tr>
+                <td colspan="4" class="stil"></td>
+            </tr>
+            <tr>
+                <td colspan="4" align="left" valign="middle" class="stil" style="background: #80808038;"><strong>Cihazın Yanında Teslim Edilenler</strong></td>
+            </tr>
+            <tr>
+                <td style="font-weight: bold;" align="center" class="stil">Cihaz Adı</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Miktar</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Açıklama</td>
+            </tr>
+            @foreach (var item in Model.CameWith)
+            {
+                <tr>
+                    <td class="text-center">@item.productId_Title</td>
+                    <td class="text-center">@item.amount Adet</td>
+                    <td class="text-center">@item.description</td>
+                </tr>
+            }
+
+        </table>
+
+        <div style="display: inline-flex; width: 100%;">
+            <div style="width: 50%;float:right">
+                <h4 class="text-center" style="margin-bottom:-20px">Teslim Alan</h4>
+                
+
+
+            </div>
+            <div style="width:50%;float:right">
+                <h4 class="text-center" style="margin-bottom:-20px">Teslim Eden</h4>
+                <br /><p class="text-center">@userStatus.user.FullName</p>
+
+
+
+            </div>
+        </div>
+        <div style="margin-top:75px"></div>
+        <div class="" style="margin-bottom:10px">
+           @* <p style="font-size:11px"><b>Değerli Müşterimiz <br /> Onarım esnasında resim,ses dosyası, rehber vs. bilgileriniz silinebilir. Kişisel bilgi güvenliği size aittir, lütfen bilgileriniz yedekleyiniz. Sim kartınızı lütfen cihazın üzerinde bırakmayınız. Cihazınızla birlikte teslim ettiğiniz aksesuarları, cihazı bırakırken ve teslim alırken kontrol ediniz. Otomatik bilgilendirme için cep telefonu numaranızı veya e-posta adresinizi bırakmanız gerekmektedir.</b></p>*@
+
+
+        </div>
+
+
+
+        <div style="top: 10px; padding: 0px;float: right">
+            <div id="qrUrl"></div>
+        </div>
+        <div style="float:left">
+            <img src="@TenantConfig.Tenant.Logo" height="100" />
+        </div>
+
+
+
+    </div>
+    <script type='text/javascript'>
+        window.print();
+
+        $("#qrUrl").kendoQRCode({
+            value: "@TenantConfig.Tenant.GetWebUrl()/SV/VWSV_Service/Detail?id=@Model.id",
+            errorCorrection: "M",
+            size: 100,
+        });
+    </script>
+</body>
+</html>

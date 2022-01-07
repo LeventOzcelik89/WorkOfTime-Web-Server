@@ -953,12 +953,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 		}
 		[PageInfo("İzin Raporu",SHRoles.IKYonetici)]
 		public ActionResult SummaryReport() {
-
-
-			return View();
-		
-		
-		
+			return View();		
 		}
 	}
 }
