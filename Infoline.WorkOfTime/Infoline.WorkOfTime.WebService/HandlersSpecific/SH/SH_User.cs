@@ -225,6 +225,37 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
+
+        [HandleFunction("SH_User/InsertCompanyCustomer")]
+        public void SH_UserInsert(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var data = ParseRequest<VMSH_UserModel>(context);
+                data.created = DateTime.Now;
+                data.createdby = CallContext.Current.UserId;
+
+                if (!string.IsNullOrEmpty(data.RoleIds))
+                {
+                    var roleids = data.RoleIds.Split(',');
+                    data.Roles = new List<Guid> { };
+
+                    foreach (var item in roleids)
+                    {
+                        data.Roles.Add(new Guid(item));
+                    }
+                }
+
+                var rs = data.Save();
+
+                RenderResponse(context, rs);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 
     public class VWSH_UserOrderType : VWSH_User
