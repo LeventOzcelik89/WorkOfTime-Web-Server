@@ -8,7 +8,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public int PermitYearlyDeserved { get; set;}
         public int PermitYearlyUsed { get; set;}
         public double PermitExcuseDeserved { get; set;}
-        public double PermitExcuseUsed { get; set;}
         public double dayCountUsable { get; set;}
         public string Name { get; set;}
         public bool? IsPaidPermit { get; set;}
@@ -27,11 +26,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public string companyId_Title { get; set;}
         public Guid? DepartmentId { get; set;}
         public string departmentId_Title { get; set;}
-        public string permitTypeId { get; set;}
         public DateTime? employeeJobStartDate { get; set;}
         public DateTime? employeeDateOfBirth { get; set;}
-        public bool? employeeStatus { get; set;}
+        public bool? userStatus { get; set;}
         public string Type_Title { get; set;}
         public string Status_Title { get; set;}
+        public double? dayCountUsed { get; set;}
+        public double? dayCountUsedPending { get; set;}
     }
 }

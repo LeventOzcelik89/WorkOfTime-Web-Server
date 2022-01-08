@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Started = 107,
         [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
         PartChanged = 108,
-        [Description("Değiştirilecek Parçalar Belirlendi"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Parça Değişikliği Yapıldı")]
+        [Description("Değiştirilecek Parçalar Belirlendi"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Değiştirilecek Parçalar Belirlendi")]
         PartDefinied = 109,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız")]
         QualityControlNot = 200,

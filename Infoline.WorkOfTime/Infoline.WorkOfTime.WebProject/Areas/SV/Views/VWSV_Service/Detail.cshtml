@@ -127,7 +127,7 @@
                             </dl>
                             <dl class="dl-horizontal">
                                 <dt>Toplam Hizmet Tutarı</dt>
-                                <dd>   @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>Convert.ToDouble(x.description)).ToString("N2")) ₺</dd>
+                                <dd>   @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>x.description.Length>0? Convert.ToDouble(x.description):0).ToString("N2")) ₺</dd>
                             </dl>
                             <dl class="dl-horizontal">
                                 <dt>Toplam Harcama Tutarı</dt>
@@ -373,8 +373,6 @@ else
                     else if (dataEnum == 5) {
                         var isHaveWarranty = '@(Model.Problems.Any(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == true))';
                         if (isHaveWarranty == "True") {
-                            var stageText = $(item).attr("data-original-title").replace("{{stage}}",  + " Tamir Süreci Aşamasına Geç");
-                            $(item).attr("data-original-title", stageText);
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
                         }
                         var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
@@ -390,7 +388,8 @@ else
                         var inventoryId = $(item).attr("data-href").replace("%%", "@Model.inventoryId");
                         $(item).attr("data-href", inventoryId)
                     }
-                  });
+                });
+
             }
         }
     }

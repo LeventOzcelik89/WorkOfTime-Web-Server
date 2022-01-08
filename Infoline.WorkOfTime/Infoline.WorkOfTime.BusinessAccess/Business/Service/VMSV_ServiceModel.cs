@@ -250,14 +250,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     result &= Coming.Save(this.createdby, null, this.trans);
                 }
             }
-            result &= new VMSV_ServiceOperationModel
-            {
-                created = this.created,
-                createdby = this.createdby,
-                description = "Servis Kaydı Güncellendi",
-                serviceId = this.id,
-                status = (int)EnumSV_ServiceOperation.Updated,
-            }.Save(this.createdby, null, this.trans);
+            //result &= new VMSV_ServiceOperationModel
+            //{
+            //    created = this.created,
+            //    createdby = this.createdby,
+            //    description = "Servis Kaydı Güncellendi",
+            //    serviceId = this.id,
+            //    status = (int)EnumSV_ServiceOperation.Updated,
+            //}.Save(this.createdby, null, this.trans);
             if (result.result)
             {
                 return new ResultStatus
