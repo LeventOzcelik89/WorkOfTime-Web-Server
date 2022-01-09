@@ -60,7 +60,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.EntegrationAction = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode) ?? new PRD_EntegrationAction(); ;
                 this.VWPRD_Inventory = findInventory;
                 var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId.Value);
-                ProducedDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).FirstOrDefault().created.Value.ToShortDateString();
+                if (findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).Count()>0)
+                {
+                    ProducedDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).FirstOrDefault().created.Value.ToShortDateString();
+                }
+          
                 this.Customer = new VMSV_CustomerModel().B_EntityDataCopyForMaterial(customer);
                 var getProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
                 Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
@@ -136,22 +140,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var getInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
             result &= new VMSV_CustomerUserModel { customerId = Customer.id, serviceId = this.id, type = (int)EnumSV_CustomerUser.Other }.Save(this.createdby, null, this.trans);
             var user = db.GetVWSH_UserById(this.createdby.Value);
-            var transItem = new VMPRD_TransactionItems
+            if (!string.IsNullOrEmpty(getInventory.serialcode))
             {
-                productId = getInventory.productId,
-                quantity = 1,
-                serialCodes = getInventory.serialcode ?? "",
-                unitPrice = 0,
-            };
-            if (companyId.HasValue)
-            {
-                var transModelCompanyId = new VMPRD_TransactionModel
+                var transItem = new VMPRD_TransactionItems
                 {
-                    inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                    productId = getInventory.productId,
+                    quantity = 1,
+                    serialCodes = getInventory.serialcode ?? "",
+                    unitPrice = 0,
+                };
+                if (companyId.HasValue)
+                {
+                    var transModelCompanyId = new VMPRD_TransactionModel
+                    {
+                        inputId = db.GetCMP_StorageByCompanyIdFirst(companyId.Value)?.id,
+                        inputTable = "CMP_Storage",
+                        inputCompanyId = companyId,
+                        outputCompanyId = getInventory.lastActionDataCompanyId,
+                        outputId = getInventory.lastActionDataId,
+                        created = this.created,
+                        createdby = this.createdby,
+                        status = (int)EnumPRD_TransactionStatus.islendi,
+                        items = new List<VMPRD_TransactionItems> { transItem },
+                        date = DateTime.Now,
+                        code = BusinessExtensions.B_GetIdCode(),
+                        type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
+                        id = Guid.NewGuid(),
+                    };
+                    result &= transModelCompanyId.Save(this.createdby, trans);
+                }
+                var transModel = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(user.CompanyId.Value)?.id,
                     inputTable = "CMP_Storage",
-                    inputCompanyId = companyId,
+                    inputCompanyId = user.CompanyId,
                     outputCompanyId = getInventory.lastActionDataCompanyId,
-                    outputId =getInventory.lastActionDataId,
+                    outputId = getInventory.lastActionDataId,
                     created = this.created,
                     createdby = this.createdby,
                     status = (int)EnumPRD_TransactionStatus.islendi,
@@ -161,25 +185,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
                     id = Guid.NewGuid(),
                 };
-                result &= transModelCompanyId.Save(this.createdby, trans);
+                result &= transModel.Save(this.createdby, trans);
+
             }
-            var transModel = new VMPRD_TransactionModel
-            {
-                inputId = db.GetCMP_StorageByCompanyIdFirst(user.CompanyId.Value)?.id,
-                inputTable = "CMP_Storage",
-                inputCompanyId = user.CompanyId,
-                outputCompanyId = getInventory.lastActionDataCompanyId,
-                outputId = getInventory.lastActionDataId,
-                created = this.created,
-                createdby = this.createdby,
-                status = (int)EnumPRD_TransactionStatus.islendi,
-                items = new List<VMPRD_TransactionItems> { transItem },
-                date = DateTime.Now,
-                code = BusinessExtensions.B_GetIdCode(),
-                type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
-                id = Guid.NewGuid(),
-            };
-            result &= transModel.Save(this.createdby, trans);
+        
+           
             if (Problems != null)
             {
                 foreach (var problem in Problems)

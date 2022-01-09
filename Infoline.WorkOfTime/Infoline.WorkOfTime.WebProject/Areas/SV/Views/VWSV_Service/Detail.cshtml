@@ -66,6 +66,7 @@
                                 <dt>Form No</dt>
                                 <dd>@Model.code</dd>
                             </dl>
+
                             <dl class="dl-horizontal">
                                 <dt>Garanti Durumu</dt>
                                 <dd>@Model.WarrantyStatus</dd>
@@ -94,6 +95,7 @@
                                 <dt>Tamamlanma Tarihi</dt>
                                 <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
                             </dl>
+               
 
                         </div>
                         <div class="col-lg-8">
@@ -133,6 +135,7 @@
                                 <dt>Toplam Harcama Tutarı</dt>
                                 <dd>@Model.TotalSpended.ToString("N2") ₺</dd>
                             </dl>
+                           
                         </div>
                     </div>
                 </div>
@@ -276,89 +279,147 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div class="ibox">
-                <div class="ibox-title">
-                    <h5>Müşteri Bilgileri</h5>
-                </div>
-                <div class="ibox-content clearfix" style="min-height:180px">
-                    <dl class="dl-horizontal">
-                        <dt>Müşteri Adı Soyadı</dt>
-                        <dd>@Model.Customer.fullName</dd>
-                    </dl>
-                    <dl class="dl-horizontal">
-                        <dt>Telefon Numarası</dt>
-                        <dd>@Model.Customer.phoneNumber</dd>
-                    </dl>
-                    <dl class="dl-horizontal">
-                        <dt>Telefon Numarası (Diğer)</dt>
-                        <dd>@Model.Customer.otherPhoneNumber</dd>
-                    </dl>
-                    <dl class="dl-horizontal">
-                        <dt>E-Posta Adresi</dt>
-                        <dd>@Model.Customer.email</dd>
-                    </dl>
-                    <dl class="dl-horizontal">
-                        <dt>Adres</dt>
-                        <dd>@Model.Customer.Address</dd>
-                    </dl>
-                </div>
-            </div>
+            <div class="tabs-container">
+                <ul class="nav nav-tabs">
+                    <li class="active" data-toggle="tooltip" data-placement="top" title="Müşteri Bilgileri">
+                        <a data-toggle="tab" href="#musteriBilgileri" aria-expanded="true"><i class="fa fa-user text-success"></i></a>
+                    </li>
+                    <li data-toggle="tooltip" data-placement="top" title="Teslim Bilgileri">
+                        <a data-toggle="tab" href="#teslimBilgileri" aria-expanded="true"><i class="  fa fa-truck text-success"></i></a>
+                    </li>
 
-            <div class="ibox-content">
-                <div class="tab-content" style="max-height: 700px;overflow: scroll;">
-                    <div class="client-detail">
-                        <div id="vertical-timeline" class="vertical-container dark-timeline">
-                            @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
-                            {
-                                var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
-                                if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
+                </ul>
+                <div class="tab-content" style="margin-bottom:20px">
+                    <div class="tab-pane active" id="musteriBilgileri">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Müşteri Bilgileri</h5>
+                            </div>
+                            <div class="ibox-content clearfix" >
+                                <dl class="dl-horizontal">
+                                    <dt>Müşteri Adı Soyadı</dt>
+                                    <dd>@Model.Customer.fullName</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Telefon Numarası</dt>
+                                    <dd>@Model.Customer.phoneNumber</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Telefon Numarası (Diğer)</dt>
+                                    <dd>@Model.Customer.otherPhoneNumber</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>E-Posta Adresi</dt>
+                                    <dd>@Model.Customer.email</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Adres</dt>
+                                    <dd>@Model.Customer.Address</dd>
+                                </dl>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="tab-pane" id="teslimBilgileri">
+                        <div class="ibox">
+                            <div class="ibox-title">
+                                <h5>Teslim Bilgileri</h5>
+                            </div>
+                            <div class="ibox-content clearfix">
+                                <dl class="dl-horizontal">
+                                    <dt>Teslim Eden Tipi</dt>
+                                    <dd>@(Model.companyId.HasValue?"Bayi":"Müşteri")</dd>
+                                </dl>
+                                @if (Model.companyId.HasValue)
                                 {
-                                    <div class="vertical-timeline-block" data-select="@operation.status">
-                                        <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
-                                            <i class="@OpsEnum.Generic["icon"]"></i>
-                                        </div>
-                                        <div class="vertical-timeline-content">
-                                            <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
-                                            <p class="clearfix ">
-                                                @Html.Raw(operation.description)
-                                                <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
-                                            </p>
-                                            <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
-                                        </div>
-                                    </div>
+                                    <dl class="dl-horizontal">
+                                        <dt>Teslim Eden Bayi</dt>
+                                        <dd>@Model.companyId_Title</dd>
+                                    </dl>
                                 }
-                            }
+
+                                <dl class="dl-horizontal">
+                                    <dt>Teslim Eden Açıklaması</dt>
+                                    <dd>@Model.deliveryTypeDescription</dd>
+                                </dl>
+                                <dl class="dl-horizontal">
+                                    <dt>Teslim Tipi</dt>
+                                    <dd>@Model.delivery_Title</dd>
+                                </dl>
+                                @if (Model.deliveryType == (short)EnumSV_ServiceDeliveryType.Cargo)
+                                {
+                                    <dl class="dl-horizontal">
+                                        <dt>Kargo Firması</dt>
+                                        <dd>@Model.cargoId_Title</dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>Kargo Takip Numarası</dt>
+                                        <dd>@Model.cargoNo</dd>
+                                    </dl>
+                                }
+                                <dl class="dl-horizontal">
+                                    <dt>Teslim Açılaması</dt>
+                                    <dd>@Model.deliveryTypeDescription</dd>
+                                </dl>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-@if ( Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
-{
-
-}
-else
-{
-    <div class="fixedStart">
-        <input type="checkbox" checked id="fixed">
-        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-        <div class="fix-buttons" id="buttons">
-            @foreach (var button in buttons)
+                <div class="ibox-content">
+                    <div class="tab-content" style="max-height: 700px;overflow: scroll;">
+                        <div class="client-detail">
+                            <div id="vertical-timeline" class="vertical-container dark-timeline">
+                                @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
+                                {
+                                    var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
+                                    if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
+                                    {
+                                        <div class="vertical-timeline-block" data-select="@operation.status">
+                                            <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
+                                                <i class="@OpsEnum.Generic["icon"]"></i>
+                                            </div>
+                                            <div class="vertical-timeline-content">
+                                                <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
+                                                <p class="clearfix ">
+                                                    @Html.Raw(operation.description)
+                                                    <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
+                                                </p>
+                                                <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
+                                            </div>
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+                </div>
+            </div>
+            @if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
             {
-                if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
-                {
-                    <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
-                        <i class="@button.Generic["icon"]"></i>
-                    </a>
-                }
-            }
-        </div>
-    </div>
-}
 
-<script type="text/javascript">
+            }
+            else
+            {
+                <div class="fixedStart">
+                    <input type="checkbox" checked id="fixed">
+                    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+                    <div class="fix-buttons" id="buttons">
+                        @foreach (var button in buttons)
+                        {
+                            if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+                            {
+                                <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
+                                    <i class="@button.Generic["icon"]"></i>
+                                </a>
+                            }
+                        }
+                    </div>
+                </div>
+            }
+
+            <script type="text/javascript">
     var page = {
         stage:'@Html.Raw(activeStage)',
         methods: {
@@ -394,4 +455,4 @@ else
         }
     }
     page.methods.setButtonServiceId();
-</script>
+            </script>
