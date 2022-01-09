@@ -5,10 +5,9 @@ namespace Infoline.WorkOfTime.BusinessData
 {
     public partial class VWINV_PermitSummary : InfolineTable
     {
-        public int PermitYearlyDeserved { get; set;}
+        public double dayCountDeserved { get; set;}
         public int PermitYearlyUsed { get; set;}
-        public double PermitExcuseDeserved { get; set;}
-        public double dayCountUsable { get; set;}
+        public double? dayCountUsable { get; set;}
         public string Name { get; set;}
         public bool? IsPaidPermit { get; set;}
         public int? PaidPermitDay { get; set;}

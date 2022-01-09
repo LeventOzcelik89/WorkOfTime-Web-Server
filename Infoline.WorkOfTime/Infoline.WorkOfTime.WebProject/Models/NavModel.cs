@@ -170,6 +170,7 @@ namespace System.Web.Mvc
             var izinislemleri = new Menu("İzin İşlemleri");
             izinislemleri.AddChild(new Menu("Tüm İzinler", "/INV/VWINV_Permit/Index"));
             izinislemleri.AddChild(new Menu("İzin Raporları", "/INV/VWINV_Permit/Dashboard"));
+            izinislemleri.AddChild(new Menu("Personel İzin Özet Raporu", "/INV/VWINV_Permit/SummaryReport"));
             izinislemleri.AddChild(new Menu("Yıl Bazlı Personel İzin Raporları", "/INV/VWINV_Permit/YearlyStaffReport"));
             izinislemleri.AddChild(new Menu("İzin Tipi Tanımları", "/INV/INV_PermitType/Index"));
             izinislemleri.AddChild(new Menu("Resmi İzin Tanımları", "/INV/VWINV_PermitOffical/Index"));

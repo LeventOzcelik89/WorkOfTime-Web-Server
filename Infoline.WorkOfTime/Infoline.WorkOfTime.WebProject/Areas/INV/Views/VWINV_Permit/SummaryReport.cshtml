@@ -1,6 +1,6 @@
 ﻿
 @{
-    ViewBag.Title = "Çalışan İzin Özet Raporu";
+    ViewBag.Title = "Personel İzin Özet Raporu";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 <link href="~/Content/Custom/css/FixedButtons2.css" rel="stylesheet" />
@@ -53,7 +53,7 @@
     }
 
     .fixedStart #fixed i {
-        padding: 14px 14px 14px 10px;
+        padding: 14px 14px 14px 14px;
         line-height: 47px;
     }
 
@@ -115,12 +115,13 @@
                 arr.push({ field: "userId", value: $("#userId").val() });
                 arr.push({ field: "companyId", value: $("#companyId").val() });
                 arr.push({ field: "departmentId", value: $("#departmentId").val() });
+                arr.push({ field: "id", value: $("#type").val() });
                 var filterArr = new Array();
-                var defaultFilter = grid.dataSource.transport.parameterMap({ filter: { logic: "and", filters: grid.options.dataSource.filter } }).filter;
+                //var defaultFilter = grid.dataSource.transport.parameterMap({ filter: { logic: "and", filters: grid.options.dataSource.filter } }).filter;
 
-                if (defaultFilter != null && defaultFilter != "") {
-                    filterArr.push(defaultFilter);
-                };
+                //if (defaultFilter != null && defaultFilter != "") {
+                //    filterArr.push(defaultFilter);
+                //};
 
                 arr.filter(a => a.value != null).forEach(function (c) {
                     filterArr.push("(" + c.value.map(function (e) { return c.field + "~eq~'" + e + "'"; }).join("~or~") + ")");
@@ -157,14 +158,12 @@
                         x.Bound(y => y.Status_Title).Title("Çalışan Durumu").Width(200).Hidden(true);
                         x.Bound(y => y.employeeJobStartDate).Title("İş Başlangıç Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
                         x.Bound(y => y.Name).Title("İzin Türü").Width(200);
-                        x.Bound(y => y.PermitYearlyDeserved).Title("Bu Yıl Hakedilen").Width(200);
-                        //x.Bound(y => y.permit).Title("Toplam Hakedilen").Width(200);
+                        x.Bound(y => y.dayCountDeserved).Title("Bu Yıl Hakedilen").Width(200);
                         x.Bound(y => y.dayCountUsed).Title("Kullanılan Onaylanmış").Width(220);
                         x.Bound(y => y.dayCountUsedPending).Title("Onayda Bekleyen").Width(180);
                         x.Bound(y => y.dayCountUsable).Title("Toplam Kalan").Width(150);
                     })
                     .Scrollable(x => x.Height(600))
-                    .Groupable()
                     .Selectable(x => x.Mode(GridSelectionMode.Single))
                     .ToolBar(x =>
                     {
@@ -183,11 +182,22 @@
             </div>
             <div class="ibox-content clearfix">
               
-                    <form class="form-horizontal" style="padding:0px !important">
-
-                        <div class="form-group ">
-                            <div class="col-md-12">
-                                @(Html.Akilli()
+                <form class="form-horizontal" style="padding:0px !important">
+                    <div class="form-group ">
+                        <div class="col-md-12">
+                            @(Html.Akilli()
+                                     .MultiSelect("type")
+                                     .Placeholder("Lütfen İzin Tipi seçiniz..")
+                                     .DataTextField("Name")
+                                     .DataValueField("id")
+                                     .Action(b => b.Action("DataSourceDropDown", "INV_PermitType", new { area = "INV" }))
+                                     .Execute()
+                                    )
+                        </div>
+                    </div>
+                    <div class="form-group ">
+                        <div class="col-md-12">
+                            @(Html.Akilli()
                                      .MultiSelect("userId")
                                      .Placeholder("Lütfen çalışan seçiniz..")
                                      .DataTextField("FullName")
@@ -195,11 +205,11 @@
                                      .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                                      .Execute()
                                     )
-                            </div>
                         </div>
-                        <div class="form-group ">
-                            <div class="col-md-12">
-                                @(Html.Akilli()
+                    </div>
+                    <div class="form-group ">
+                        <div class="col-md-12">
+                            @(Html.Akilli()
                                     .MultiSelect("companyId")
                                     .Placeholder("Şirket seçiniz..")
                                     .DataTextField("fullName")
@@ -208,12 +218,12 @@
                                     .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
                                     .Sort(x => x.Add("name").Ascending())
                                     .Execute())
-                            </div>
                         </div>
+                    </div>
 
-                        <div class="form-group ">
-                            <div class="col-md-12">
-                                @(Html.Akilli()
+                    <div class="form-group ">
+                        <div class="col-md-12">
+                            @(Html.Akilli()
                                     .MultiSelect("departmentId")
                                     .Placeholder("Departman seçiniz..")
                                     .DataTextField("Name")
@@ -222,14 +232,14 @@
                                     .Action(b => b.Action("DataSourceDropDown", "VWINV_CompanyDepartments", new { area = "INV" }))
                                     .Sort(x => x.Add("Name").Ascending())
                                     .Execute())
-                            </div>
-
-                        </div>
-                        <div class=" pull-right">
-                            <button class="btn btn-md btn-block btn-success" onclick="page.filters()" type="button" style="padding: 9px;margin-top: 0px !important;"><i class="icon-search"></i> Sorgula</button>
                         </div>
 
-                    </form>
+                    </div>
+                    <div class=" pull-right">
+                        <button class="btn btn-md btn-block btn-success" onclick="page.filters()" type="button" style="padding: 9px;margin-top: 0px !important;"><i class="icon-search"></i> Sorgula</button>
+                    </div>
+
+                </form>
               
             </div>
         </div>
