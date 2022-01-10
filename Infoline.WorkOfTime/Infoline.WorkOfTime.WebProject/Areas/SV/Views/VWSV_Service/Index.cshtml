@@ -3,6 +3,90 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var now = DateTime.Now;
 }
+<style>
+    .theme-config {
+      
+        top: 125px!important;
+
+    }
+</style>
+<script>
+    page = {
+        load: function (e) {
+        
+            var data = e.sender.dataSource.data();
+            if (data.length > 0) {
+
+                $("#total").text(data.length);
+                var solved = $.Enumerable.From(data).Where(x => x.lastOperationStatus ==300).ToArray().length;
+                var customer = $.Enumerable.From(data).Where(x => x.stage ==2).ToArray().length;
+                var totalCamed = $.Enumerable.From(data).GroupBy(x => x.inventoryId).ToArray().length;
+                $("#solved").text(solved);
+                $("#customer").text(customer);
+                $("#device").text(totalCamed);
+             
+
+            }
+
+
+        }
+
+    }
+</script>
+<div class="row">
+    <div class="col-sm-3">
+        <div class="widget style1 yellow-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa icon-tools fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>  Toplam Teknik Servis Kaydı </span>
+                    <h2 class="font-bold" id="total">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 blue-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-check fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>Çözülmüş Teknik Servis Kaydı</span>
+                    <h2 class="font-bold" id="solved">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 red-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-user fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>Kullanıcı Onayı Bekleyen Teknik Servis Kaydı</span>
+                    <h2 class="font-bold" id="customer">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm-3">
+        <div class="widget style1 navy-bg">
+            <div class="row">
+                <div class="col-xs-4">
+                    <i class="fa fa-mobile-phone fa-5x"></i>
+                </div>
+                <div class="col-xs-8 text-right">
+                    <span>Teknik Servise Gelmiş Cihaz Adedi</span>
+                    <h2 class="font-bold" id="device">0</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWSV_Service>("VWSV_Service")
     .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSV_Service", new { area = "SV" })).PageSize(25))
@@ -20,6 +104,7 @@
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
     .Scrollable(x=>x.Height(650))
+    .Events(x=>x.DataBound("page.load"))
     .ToolBar(x =>
     {
         x.Custom().Text("<i data-original-title='Yeni Teknik Servis Kaydı Ekle' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } ,{ "data-modal","false"},{ "data-blank",""} }).Url(Url.Action("Insert", "VWSV_Service", new { area = "SV" }));
