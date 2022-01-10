@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.Agent
         public TaskPlanner(TEN_Tenant tenant)
         {
             this._tenant = tenant;
-            this._db = new WorkOfTimeDatabase();
+            this._db = tenant.GetDatabase();
         }
 
         public void CreateTasks(DateTime dt)
@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.Agent
                 foreach (var plan in plans)
                 {
 
-                    var schedulerModel = new TaskSchedulerModel();
+                    var schedulerModel = new TaskSchedulerModel { db = this._db };
                     schedulerModel.Load(plan.id);
 
                     if (!schedulerModel.TaskPlan.taskCreationTime.HasValue)
@@ -135,14 +135,13 @@ namespace Infoline.WorkOfTime.Agent
 
                 foreach (var schedule in creationTasks)
                 {
-
+                    var model = new VMFTM_TaskModel { db = this._db };
                     if (schedule.TemplateModel.taskTemplateInventories.Count() == 0)
                     {
                         foreach (var task in schedule.TaskPlan._TaskList)
                         {
-                            var _task = task
-                                .B_ConvertType<FTM_Task>()
-                                .B_ConvertType<VMFTM_TaskModel>()
+
+                            var _task = model.B_EntityDataCopyForMaterial(task.B_ConvertType<FTM_Task>())
                                 .AppendObjectToOther(schedule.TemplateModel);
 
                             _task.id = Guid.NewGuid();

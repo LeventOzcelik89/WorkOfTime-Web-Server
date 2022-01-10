@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.sendMail = this.sendMail ?? true;
         }
 
-        private WorkOfTimeDatabase db { get; set; }
+        public WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
 
         public List<FTM_TaskTemplateUser> taskTemplateUsers { get; set; } = new List<FTM_TaskTemplateUser>();

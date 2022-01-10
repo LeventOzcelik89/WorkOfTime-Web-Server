@@ -88,6 +88,7 @@ namespace Infoline.WorkOfTime.Agent
                 }
 
                 PersonCalendar();
+
                 new TaskPlanner(_tenant).CreateTasks(now);
 
                 Thread.Sleep(new TimeSpan(0, 1, 0));

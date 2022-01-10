@@ -12,7 +12,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
 	public class VMFTM_TaskModel : VWFTM_Task
 	{
-		private WorkOfTimeDatabase db { get; set; }
+		public WorkOfTimeDatabase db { get; set; }
 		private DbTransaction trans { get; set; }
 		public List<VWFTM_TaskOperation> taskOperations { get; set; }
 		public List<VWFTM_TaskUser> taskUsers { get; set; }
