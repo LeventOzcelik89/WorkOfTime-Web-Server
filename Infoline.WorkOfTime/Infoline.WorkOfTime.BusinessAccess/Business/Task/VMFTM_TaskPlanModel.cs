@@ -10,7 +10,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMFTM_TaskPlanModel : VWFTM_TaskPlan
     {
-        private WorkOfTimeDatabase db { get; set; }
+        public WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
         private bool loadedTasks { get; set; } = false;
 
