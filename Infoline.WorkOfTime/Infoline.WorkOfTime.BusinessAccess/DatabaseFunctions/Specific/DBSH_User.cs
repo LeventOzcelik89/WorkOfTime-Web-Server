@@ -76,8 +76,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-
-
         public SH_User[] GetSH_UserByIds(Guid[] ids)
         {
             using (var db = GetDB())
@@ -86,5 +84,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public SH_User[] GetSH_UserByEmail(string email)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_User>().Where(x => x.email == email).Execute().ToArray();
+            }
+        }
+
+        public SH_User[] GetSH_UserByEmailWithNotEqualUserId(string email, Guid userId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<SH_User>().Where(x => x.email == email && x.id != userId).Execute().ToArray();
+            }
+        }
     }
 }
