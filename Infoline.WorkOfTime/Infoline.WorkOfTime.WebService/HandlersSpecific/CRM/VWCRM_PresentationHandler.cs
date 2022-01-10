@@ -241,7 +241,9 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     JobStartDate = DateTime.Now,
                 };
                 result &= db.InsertSH_User(user, trans);
+               
                 result &= db.InsertINV_CompanyPerson(companyPerson, trans);
+             
                 var potentialOpportunity = new CRM_Presentation
                 {
                     id = Guid.NewGuid(),
@@ -253,13 +255,24 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     CompletionRate = 10,
                     SalesPersonId = db.GetSH_UserByRoleId("00000000-0000-0000-0000-420000000000").FirstOrDefault().id,
                     PlaceofArrival=(Int32)EnumCRM_PresentationPlaceofArrival.Web
+                    
+                };
+                var product = new CRM_PresentationProducts
+                {
+                    createdby = userId,
+                    created = DateTime.Now,
+                    PresentationId = potentialOpportunity.id,
+                    ProductId = new Guid("8629d59e-0890-46fc-80bb-fd2f2fbaad27"),
+                    Amount = 1,
+
                 };
                 result &= db.InsertCRM_Presentation(potentialOpportunity, trans);
+                result &= db.InsertCRM_PresentationProducts(product, trans);
                 var contact = new CRM_Contact
                 {
                     id = Guid.NewGuid(),
                     customerId = getCustomer.id,
-                    ContactStatus = 1,
+                    ContactStatus = (short)EnumCRM_ContactContactStatus.ToplantiPlanlandi ,
                     ContactStartDate = model.StartDate,
                     ContactEndDate = model.EndDate,
                     PresentationId = potentialOpportunity.id,

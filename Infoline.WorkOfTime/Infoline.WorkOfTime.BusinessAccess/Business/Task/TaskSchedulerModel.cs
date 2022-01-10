@@ -18,11 +18,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
 
             this.db = this.db ?? new WorkOfTimeDatabase();
+            this.TaskPlan.db = this.db;
+            this.TemplateModel.db = this.db;
 
             if (taskPlanId.HasValue)
             {
-                this.TaskPlan.id = taskPlanId.Value;
-                this.TaskPlan.Load();
+                this.TaskPlan = new VMFTM_TaskPlanModel { id = taskPlanId.Value, db = this.db }.Load();
 
                 if (this.TaskPlan.templateId.HasValue)
                 {

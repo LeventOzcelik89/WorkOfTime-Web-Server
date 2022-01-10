@@ -129,7 +129,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		[PageInfo("Müşternin Telefon numarasında bilgilerini alan metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public JsonResult GetByPhoneNumber(string phoneNumber)
 		{
-			return Json(new VMSV_CustomerModel().GetByPhone(phoneNumber), JsonRequestBehavior.AllowGet);
+			return Json(Helper.Json.Serialize( new VMSV_CustomerModel().GetByPhone(phoneNumber)), JsonRequestBehavior.AllowGet);
 		
 		}
 

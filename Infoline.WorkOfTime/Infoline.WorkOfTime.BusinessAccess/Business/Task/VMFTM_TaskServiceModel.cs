@@ -107,6 +107,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var data = _db.GetVWFTM_TaskById(taskId);
             var operations = _db.GetVWFTM_TaskOperationByTaskId(taskId).ToList();
+            var userDetail = new VWSH_User();
+            if (data.assignUserId.HasValue)
+            {
+                userDetail = _db.GetVWSH_UserById(data.assignUserId.Value);
+            }
             var car = new VWCMP_CompanyCars();
             var companyCarStorage = new VWCMP_Storage();
             if (data.companyCarId.HasValue)
@@ -257,6 +262,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     model.email = cmp.email;
                     model.companyDescription = cmp.description;
                 }
+            }
+
+            if (userDetail != null)
+            {
+                model.company_Title = userDetail.Company_Title ?? null;
+                model.companyId = userDetail.CompanyId ?? null;
             }
 
             var followUpUsers = _db.GetVWFTM_TaskFollowUpUserByTaskId(taskId);

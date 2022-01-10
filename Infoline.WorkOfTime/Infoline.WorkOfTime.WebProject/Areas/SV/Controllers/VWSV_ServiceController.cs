@@ -9,13 +9,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 {
     public class VWSV_ServiceController : Controller
     {
-        [AllowEveryone]
+        
         [PageInfo("Garanti-Teknik Servis Listeleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Index()
         {
             return View();
         }
-        [AllowEveryone]
+        
         [PageInfo("Garanti-Teknik Servis Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
@@ -29,7 +29,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             data.Total = db.GetVWSV_ServiceCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
+        
         [PageInfo("Garanti-Teknik Servis DropDown Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
@@ -38,14 +38,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             var data = db.GetVWSV_Service(condition);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
+        
         [PageInfo("Garanti-Teknik Servis Detay Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Detail(Guid id)
         {
 
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
-        [AllowEveryone]
+        
         [PageInfo("Yeni Garanti-Teknik Servis Ekleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Insert(VMSV_ServiceModel model)
         {
@@ -53,7 +53,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             
             return View(model);
         }
-        [AllowEveryone]
+        
         [HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Yeni Garanti-Teknik Servis Ekleme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public JsonResult Insert(VMSV_ServiceModel model, bool? isPost)
@@ -68,13 +68,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis Düzenleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Update(VMSV_ServiceModel model)
         {
             return View(model.Load());
         }
-        [AllowEveryone]
+        
         [HttpPost, ValidateAntiForgeryToken]
         [PageInfo(" Garanti-Teknik Servis Düzenleme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public JsonResult Update(VMSV_ServiceModel model,bool? ispost)
@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [AllowEveryone]
+        
         [HttpPost]
         [PageInfo(" Garanti-Teknik Servis Silme Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public JsonResult Delete(VMSV_ServiceModel model)
@@ -105,41 +105,50 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis Cihaz Bilgileri Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public JsonResult DeviceInformation(Guid inventoryId)
         {
             return Json(new VMSV_ServiceModel().DeviceInformation(inventoryId), JsonRequestBehavior.AllowGet);
         }
 
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Alma Çıktı Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Print(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Ver Çıktı Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        public ActionResult PrintEnd(Guid id)
+        {
+            return View(new VMSV_ServiceModel { id = id }.Load());
+        }
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Barkod Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        public ActionResult Barcode(Guid id)
+        {
+            return View(new VMSV_ServiceModel { id = id }.Load());
+        }
 
-        [AllowEveryone]
         [PageInfo("Garanti-Teknik Servis'e gelen cihazın metaryel ağacındaki tüm ürünleri alan metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
             var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToArray(); 
             return Content(Infoline.Helper.Json.Serialize(data),  "application / json");
 
         }
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis Cihazının farklı servise taşınmasını sağlayan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Transfer(Guid serviceId)
         {
             return View();
         }
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis'in Fire Verilmiş Ürünleri Alan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult GetWastedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId) {
 
             var data = new VMSV_ServiceModel().GetWastedProducts(serviceId).ToDataSourceResult(request);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
+        
         [PageInfo(" Garanti-Teknik Servis'in harcama yapılmış Ürünleri Alan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult GetSpendedProducts([DataSourceRequest] DataSourceRequest request,Guid serviceId)
         {

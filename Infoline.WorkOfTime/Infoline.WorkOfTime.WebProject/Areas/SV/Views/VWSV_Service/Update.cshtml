@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Servis Kaydı Güncelle";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 <script>
     var page = {
@@ -79,7 +80,6 @@
                         return;
                     }
                 }
-               
                 GetJsonDataFromUrl('/VWSV_Service/DeviceInformation', { inventoryId: data.id }, function (resp) {
                     if (resp == null) {
                         return;
@@ -106,14 +106,15 @@
                 });
             },
             load: function () {
-                page.model.Problems.forEach(function (item, i) {
-                    page.productProblem.AddRow(item);
-                });
-                page.model.CameWith.forEach(function (item, i) {
-
-                    page.cameWith.AddRow(item);
-
-                });
+                setTimeout(function () {
+                    page.model.Problems.forEach(function (item, i) {
+                        page.productProblem.AddRow(item);
+                    });
+                    page.model.CameWith.forEach(function (item, i) {
+                        page.cameWith.AddRow(item);
+                    });
+                }, 350)
+               
             }
         },
         productProblem: {
@@ -128,7 +129,6 @@
                 $(row).remove();
             },
             AddRow: function (data) {
-                debugger
                 var problems = $($('#rowForProductProblem').html());
                 $('#RowContainer_Problem').append(problems);
                 problems.find('[data-problem="id"]')
@@ -174,14 +174,13 @@
                             },
                             "dataTextField": "metarialId_Title",
                             "delay": 1000,
-                            "filter": "contains",
                             "dataValueField": "metarialId",
                             "optionLabel": "Cihaz Parçası Seçiniz..",
                             "value": data != null ? data.productId : null
                         });
                 problems.find('[data-problem="description"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].description')
-                    .attr('value',data.description)
+                    .attr('value', data != null ? data.description : null)
                 page.productProblem.counter++;
                 page.inputs.metarial(true);
                 setTimeout(function () {
@@ -190,7 +189,6 @@
                         updateInput.update();
                     }
                 }, 250)
-                
             }
         },
         cameWith: {
@@ -290,10 +288,14 @@
                             $("#Customer_name").val(data.objects.name ?? "");
                             $("#Customer_lastName").val(data.objects.lastName ?? "");
                             $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
-                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
                             $("#openLocationId").data("handler").value(data.objects.openLocationId ?? "");
                             $("#Customer_Address").val(data.objects.Address ?? "");
                             $("#Customer_id").val(data.objects.id ?? "");
+                            $("#Customer_email").val(data.objects.email ?? "");
+                            $("#location").val(data.objects.location);
+                            $("#location").trigger("change");
+                            haritalar['location'].feature.remove('DrawLayer', 'DrawFeature');
+                            haritalar['location'].feature.add('DrawLayer', 'DrawFeature', data.objects.location);
                             swal.close();
                         } else { }
                         swal.close();
@@ -305,7 +307,6 @@
             });
         }).on("ready", function () {
             page.methods.load();
-           
         }).on("change", "form", function () {
             setTimeout(function () {
                 var updateInput = $('#ServiceForm').data('bs.validator');
@@ -324,7 +325,7 @@
         </td>
         <td>
             <div class="form-group">
-                <input data-problem="productId"  class="k-input form-control" />
+                <input data-problem="productId" class="k-input form-control" />
             </div>
         </td>
         <td>
@@ -503,16 +504,39 @@
     @Html.HiddenFor(model => model.Customer.id)
     @Html.HiddenFor(model => model.code)
     @Html.HiddenFor(model => model.stage)
-    <div class="row">
-        <div class="col-sm-4" id="col4">
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Teslim Eden Bilgileri</legend>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="customerType">Teslim Eden Tipi</label>
-                                @(Html.Akilli()
+<div class="row">
+    <div class="col-sm-4" id="col4">
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Cihazın Gireceği Depo</legend>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="customerType">Cihazın Gireceği Depo</label>
+                            @(Html.Akilli()
+          .DropDownListFor(x => x.storageId)
+          .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+          .DataTextField("fullName")
+          .DataValueField("id")
+          .Template("#=TemplateEngine('storageTemplate',data)#")
+          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+          .Sort(x => x.Add("name").Ascending())
+          .Filter<CMP_Storage>(x=>x.companyId==userStatus.user.CompanyId.Value)
+          .Validate(Validations.Required)
+          .Execute("id"))
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Teslim Eden Bilgileri</legend>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="customerType">Teslim Eden Tipi</label>
+                            @(Html.Akilli()
         .DropDownListFor(model => model.customerType)
         .OptionLabel("Lütfen Teslim Eden Tipini Seçiniz Seçiniz..")
         .DataValueField("Id")
@@ -523,42 +547,43 @@
         .Execute("enumKey")
           .Validate(Validations.Required)
                             )
-                            </div>
                         </div>
-                        <div class="form-group" data-cascade="#customerType" data-show="1" data-animation="fast">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md" for="companyId">Teslim Eden Bayi</label>
-                                @(Html.Akilli()
+                    </div>
+                    <div class="form-group" data-cascade="#customerType" data-show="1" data-animation="fast">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md" for="companyId">Teslim Eden Bayi</label>
+                            @(Html.Akilli()
           .DropDownListFor(x => x.companyId)
           .OptionLabel("Bayi Seçiniz..")
           .DataTextField("fullName")
           .DataValueField("id")
           .Template("#=TemplateEngine('companyTemplate',data)#")
           .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+          .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))
           .Sort(x => x.Add("name").Ascending())
           .Execute("id"))
-                            </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md " for="deliveryTypeDescription">Teslim Eden Açıklaması</label>
-                                @Html.TextAreaFor(x => x.customerTypeDescription, new Dictionary<string, object>() {
-                               { "class","from-control width100"},
-                               {"placeholder","Teslim Açıklaması Girin.." },
-                               })
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md " for="deliveryTypeDescription">Teslim Eden Açıklaması</label>
+                            @Html.TextAreaFor(x => x.customerTypeDescription, new Dictionary<string, object>() {
+                           { "class","from-control width100"},
+                           {"placeholder","Teslim Açıklaması Girin.." },
+                           })
                         </div>
-                    </fieldset>
-                </div>
+                    </div>
+                </fieldset>
             </div>
-            <div class="ibox" data-cascade="#customerType" data-show="1,2" data-animation="fast">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Teslim Bilgileri</legend>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
-                                @(Html.Akilli()
+        </div>
+        <div class="ibox" data-cascade="#customerType" data-show="1,2" data-animation="fast">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Teslim Bilgileri</legend>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                            @(Html.Akilli()
         .DropDownListFor(model => model.deliveryType)
         .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
         .DataValueField("Id")
@@ -569,12 +594,12 @@
         .Execute("enumKey")
           .Validate(Validations.Required)
                             )
-                            </div>
                         </div>
-                        <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md" for="cargoId">Kargo Firması</label>
-                                @(Html.Akilli()
+                    </div>
+                    <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md " for="cargoId">Kargo Firması</label>
+                            @(Html.Akilli()
           .DropDownListFor(x => x.cargoId)
           .OptionLabel("Kargo Firması Seçiniz..")
           .DataTextField("fullName")
@@ -582,91 +607,92 @@
           .Template("#=TemplateEngine('companyTemplate',data)#")
           .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
           .Sort(x => x.Add("name").Ascending())
+           .Filter<VWCMP_Company>(x => x.CMPTypes_Title.Contains("kargo") || x.CMPTypes_Title.Contains("Kargo"))
           .Events(x=>x.Change("page.inputs.cargoId"))
           .Execute("id"))
-                            </div>
                         </div>
-                        <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="cargoNo">Kargo Takip Numarası</label>
-                                @Html.TextBoxFor(model => model.cargoNo, new Dictionary<string, object>()
-                                 {
-                                     {"class", "form-control"},
-                                     {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
-                                 }).Validate(Validations.Required)
-                            </div>
+                    </div>
+                    <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md " for="cargoNo">Kargo Takip Numarası</label>
+                            @Html.TextBoxFor(model => model.cargoNo, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen Kargo Takip Numarası Girin.."},
+                             })
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md" for="deliveryTypeDescription">Teslim Açıklaması</label>
-                                @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
-                               { "class","from-control width100"},
-                               {"placeholder","Teslim Açıklaması Girin.." }
-                               })
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md" for="deliveryTypeDescription">Teslim Açıklaması</label>
+                            @Html.TextAreaFor(x => x.deliveryTypeDescription, new Dictionary<string, object>() {
+                           { "class","from-control width100"},
+                           {"placeholder","Teslim Açıklaması Girin.." }
+                           })
                         </div>
-                    </fieldset>
-                </div>
+                    </div>
+                </fieldset>
             </div>
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Müşteri Bilgileri</legend>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="phoneNumber">Telefon Numarası</label>
-                                @Html.TextBoxFor(model => model.Customer.phoneNumber, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Müşterinin Telefonunu Girin.."},
-                    }).Validate(Validations.TelefonNo(true))
-                            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Müşteri Bilgileri</legend>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="phoneNumber">Telefon Numarası</label>
+                            @Html.TextBoxFor(model => model.Customer.phoneNumber, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Müşterinin Telefonunu Girin.."},
+                }).Validate(Validations.TelefonNo(true))
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="name">Ad</label>
-                                @Html.TextBoxFor(model => model.Customer.name, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Müşteri Ad Girin.."},
-                    }).Validate(Validations.TextName(true, 2, 50))
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="name">Ad</label>
+                            @Html.TextBoxFor(model => model.Customer.name, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Müşteri Ad Girin.."},
+                }).Validate(Validations.TextName(true, 2, 50))
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="Customer_lastName">Soyad</label>
-                                @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Müşteri Soyad Girin.."},
-                    }).Validate(Validations.TextName(true, 2, 50))
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="Customer_lastName">Soyad</label>
+                            @Html.TextBoxFor(model => model.Customer.lastName, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Müşteri Soyad Girin.."},
+                }).Validate(Validations.TextName(true, 2, 50))
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md " for="lastName">Diğer Telefon Numarası</label>
-                                @Html.TextBoxFor(model => model.Customer.otherPhoneNumber, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Müşterinin Diğer Telefonunu Girin.."},
-                    }).Validate(Validations.TelefonNo(false))
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md " for="lastName">Diğer Telefon Numarası</label>
+                            @Html.TextBoxFor(model => model.Customer.otherPhoneNumber, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Müşterinin Diğer Telefonunu Girin.."},
+                }).Validate(Validations.TelefonNo(false))
                         </div>
-                        <div class="form-group">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md " for="Customer_email">E-Posta Adresi</label>
-                                @Html.TextBoxFor(model => model.Customer.email, new Dictionary<string, object>()
-                    {
-                        {"class", "form-control"},
-                        {"placeholder", "Lütfen Müşterinin E-Posta Adresini Girin.."},
-                    }).Validate(Validations.EMail(false))
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-12">
+                            <label class="control-label label-md req" for="Customer_otherPhoneNumber">E-Posta Adresi</label>
+                            @Html.TextBoxFor(model => model.Customer.email, new Dictionary<string, object>()
+                {
+                    {"class", "form-control"},
+                    {"placeholder", "Lütfen Müşterinin E-Posta Adresini Girin.."},
+                }).Validate(Validations.EMail(true))
                         </div>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label req label-md" for="location">Lokasyon</label>
-                                @(
-Html.Akilli().MapInput().Name("location").
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label req label-md" for="location">Lokasyon</label>
+                            @(
+Html.Akilli().MapInputFor(x=>x.Customer.location).
 HelpText("Lütfen Lokasyon seçiniz.").
 HtmlAttributes(new Dictionary<string, object>()
                 {
@@ -679,12 +705,12 @@ Navigation(true).
 Opened(true).
 Searchable(true)
             )
-                            </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
-                                @(
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
+                            @(
 Html.Akilli()
 .DropDownListFor(model => model.Customer.openLocationId)
 .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
@@ -695,32 +721,32 @@ Html.Akilli()
 .Sort(x => x.Add("pid_Title").Ascending())
 .Execute()
             )
-                            </div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label label-md " for="address">Adres</label>
-                                @Html.TextAreaFor(model => model.Customer.Address, new Dictionary<string, object>()
-                                 {
-                                     {"class", "form-control"},
-                                     {"placeholder", "Lütfen Adres giriniz.."}
-                                 }).Validate(Validations.TextEverywhere(false, 0, 1000))
-                            </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md " for="address">Adres</label>
+                            @Html.TextAreaFor(model => model.Customer.Address, new Dictionary<string, object>()
+                             {
+                                 {"class", "form-control"},
+                                 {"placeholder", "Lütfen Adres giriniz.."}
+                             }).Validate(Validations.TextEverywhere(false, 0, 1000))
                         </div>
-                    </fieldset>
-                </div>
+                    </div>
+                </fieldset>
             </div>
         </div>
-        <div class="col-sm-8">
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Cihaz Bilgileri</legend>
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label label-md req " for="inventoryId">IMEI/Seri No Giriniz</label>
-                                <div class="input-group">
-                                    @(Html.Akilli()
+    </div>
+    <div class="col-sm-8">
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Cihaz Bilgileri</legend>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md req " for="inventoryId">IMEI/Seri No Giriniz</label>
+                            <div class="input-group">
+                                @(Html.Akilli()
           .DropDownListFor(x => x.inventoryId)
           .OptionLabel("Cihaz Seçiniz..")
           .DataTextField("fullNameProduct")
@@ -731,137 +757,136 @@ Html.Akilli()
           .Events(x => x.DataBound("page.methods.load").DataBound("page.methods.getDeviceInformation").Change("page.methods.getDeviceInformation"))
           .Validate(Validations.Required)
           .Execute("id"))
-                                    <span class="input-group-addon">
-                                        <a href="" id="inventoryLink" target="_blank"><i class="fa fa-link text-white"></i></a>
-                                    </span>
-                                </div>
-                                <div class=""></div>
+                                <span class="input-group-addon">
+                                    <a href="" id="inventoryLink" target="_blank"><i class="fa fa-link text-white"></i></a>
+                                </span>
                             </div>
+                            <div class=""></div>
                         </div>
-                        <div id="deviceInfo" style="display:none">
-                            <div class="col-lg-4">
-                                <dl class="dl-horizontal">
-                                    <dt>Form No</dt>
-                                    <dd>@Model.code</dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Garanti Durumu</dt>
-                                    <dd id="warrantyStatus"></dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Garanti Bitiş Tarihi: </dt>
-                                    <dd id="warranty">  </dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Aktivasyon Tarihi: </dt>
-                                    <dd id="activation">  </dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Üretim Tarihi: </dt>
-                                    <dd id="dateofMani">  </dd>
-                                </dl>
-                              
-                            </div>
-                            <div class="col-lg-8">
-                                <dl class="dl-horizontal">
-                                    <dt>Tam Cihaz Adı: </dt>
-                                    <dd>
-                                        <span style="white-space: pre-wrap;word-break: break-all;"><strong><u id="deviceName"></u></strong></span>
-                                        <a href="/PRD/VWPRD_Product/Detail?id=" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
-                                    </dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Distribütör: </dt>
-                                    <dd id="dist">
-                                    </dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Bayi: </dt>
-                                    <dd id="company">  </dd>
-                                </dl>
-                                <dl class="dl-horizontal">
-                                    <dt>Satın Alınma Tarihi:</dt>
-                                    <dd id="dateofSell"></dd>
-                                </dl>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Cihaz Sorunları</legend>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="clearfix" id="productProblem">
-                                    <table class="table table-bordered" cellpadding="1" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th width="33%">Sorun Tipi</th>
-                                                <th width="33%">Ürün</th>
-                                                <th width="30%">Açıklama</th>
-                                                <th width="4%">  <button data-original-title="Yeni Cihaz Problemi Ekle" type="button" id="newProduct" class="btn btn-md btn-primary" onclick="page.productProblem.AddRow()"><i class="fa fa-plus"></i> </button></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="RowContainer_Problem">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            <div class="ibox">
-                <div class="ibox-content clearfix">
-                    <fieldset>
-                        <legend>Cihazın Yanında Teslim Edilenler</legend>
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <div class="clearfix" id="productCameWith">
-                                    <table class="table table-bordered" cellpadding="1" cellspacing="0">
-                                        <thead>
-                                            <tr>
-                                                <th width="40%">Ürün</th>
-                                                <th width="15%">Adet</th>
-                                                <th width="40%">Açıklama</th>
-                                                <th width="5%">  <button data-original-title="Cihazın Yanında Teslim Edilen Ürün Ekle" type="button" class="btn btn-md btn-primary" onclick="page.cameWith.AddRow()"><i class="fa fa-plus"></i> </button></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody id="RowContainer_CameWith">
-                                        </tbody>
-                                    </table>
-                                </div>
-                            </div>
-                        </div>
-                    </fieldset>
-                </div>
-            </div>
-            <div class="ibox">
-                <div class="ibox">
-                    <div class="ibox-content clearfix">
-                        <fieldset>
-                            <legend>Cihaz Fotoğrafları</legend>
-                            @(Html.Akilli().FileUpload()
-                                      .DataTable("SV_Service")
-                                      .DataId(Model.id)
-                                      .DataKey(x => x.fileGroup == "Cihaz Fotoğrafları").AutoSend(false))
-                        </fieldset>
                     </div>
-                </div>
+                    <div id="deviceInfo" style="display:none">
+                        <div class="col-lg-4">
+                            <dl class="dl-horizontal">
+                                <dt>Form No</dt>
+                                <dd>@Model.code</dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Garanti Durumu</dt>
+                                <dd id="warrantyStatus"></dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Garanti Bitiş Tarihi: </dt>
+                                <dd id="warranty">  </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Aktivasyon Tarihi: </dt>
+                                <dd id="activation">  </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Üretim Tarihi: </dt>
+                                <dd id="dateofMani">  </dd>
+                            </dl>
+                        </div>
+                        <div class="col-lg-8">
+                            <dl class="dl-horizontal">
+                                <dt>Tam Cihaz Adı: </dt>
+                                <dd>
+                                    <span style="white-space: pre-wrap;word-break: break-all;"><strong><u id="deviceName"></u></strong></span>
+                                    <a href="/PRD/VWPRD_Product/Detail?id=" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Distribütör: </dt>
+                                <dd id="dist">
+                                </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Bayi: </dt>
+                                <dd id="company">  </dd>
+                            </dl>
+                            <dl class="dl-horizontal">
+                                <dt>Satın Alınma Tarihi:</dt>
+                                <dd id="dateofSell"></dd>
+                            </dl>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Cihaz Sorunları</legend>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="clearfix" id="productProblem">
+                                <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th width="33%">Sorun Tipi</th>
+                                            <th width="33%">Ürün</th>
+                                            <th width="30%">Açıklama</th>
+                                            <th width="4%">  <button data-original-title="Yeni Cihaz Problemi Ekle" type="button" id="newProduct" class="btn btn-md btn-primary" onclick="page.productProblem.AddRow()"><i class="fa fa-plus"></i> </button></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="RowContainer_Problem">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Cihazın Yanında Teslim Edilenler</legend>
+                    <div class="row">
+                        <div class="col-sm-12">
+                            <div class="clearfix" id="productCameWith">
+                                <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                                    <thead>
+                                        <tr>
+                                            <th width="40%">Ürün</th>
+                                            <th width="15%">Adet</th>
+                                            <th width="40%">Açıklama</th>
+                                            <th width="5%">  <button data-original-title="Cihazın Yanında Teslim Edilen Ürün Ekle" type="button" class="btn btn-md btn-primary" onclick="page.cameWith.AddRow()"><i class="fa fa-plus"></i> </button></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="RowContainer_CameWith">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </fieldset>
+            </div>
+        </div>
+        <div class="ibox">
+            <div class="ibox">
                 <div class="ibox-content clearfix">
                     <fieldset>
-                        <legend>Dosyalar</legend>
+                        <legend>Cihaz Fotoğrafları</legend>
                         @(Html.Akilli().FileUpload()
                                       .DataTable("SV_Service")
                                       .DataId(Model.id)
-                                      .DataKey(x => x.fileGroup == "Servis Dosyası").AutoSend(false))
+                                      .DataKey(x => x.fileGroup == "Cihaz Fotoğrafları").AutoSend(false))
                     </fieldset>
                 </div>
             </div>
+            <div class="ibox-content clearfix">
+                <fieldset>
+                    <legend>Dosyalar</legend>
+                    @(Html.Akilli().FileUpload()
+                                      .DataTable("SV_Service")
+                                      .DataId(Model.id)
+                                      .DataKey(x => x.fileGroup == "Servis Dosyası").AutoSend(false))
+                </fieldset>
+            </div>
         </div>
     </div>
+</div>
     <div class="buttons">
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>

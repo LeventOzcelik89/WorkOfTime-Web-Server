@@ -20,7 +20,7 @@
 <link href="~/Content/Custom/css/PRD_transaction.css" rel="stylesheet" data-selector="modalContainer" />
 <script type="text/javascript" data-selector="modalContainer">
     $(document).off("change", "#amount");
-    var page = {
+    var pageTrans = {
         Model: @Html.Raw( Json.Encode(Model) ),
         status:'@Model.Transaction.status',
         stock: [],
@@ -33,14 +33,14 @@
         isNew:false,
         events: {
             typeChange: function (e) {
-                page.type = $("#type").data("kendoDropDownList").value();
-                page.inputId = null;
-                page.inputCompanyId = null;
-                page.outputId = null;
-                page.outputCompanyId = null;
+                pageTrans.type = $("#type").data("kendoDropDownList").value();
+                pageTrans.inputId = null;
+                pageTrans.inputCompanyId = null;
+                pageTrans.outputId = null;
+                pageTrans.outputCompanyId = null;
                 $('[data-type]').each(function (c) {
                     var attrtype = $(this).attr("data-type");
-                    var control = attrtype.split(",").indexOf(page.type) > -1;
+                    var control = attrtype.split(",").indexOf(pageTrans.type) > -1;
                     $(this).find(".has-error").removeClass("has-error");
                     $(this).find(".help-block.with-errors").remove();
                     $(this).find('.has-danger').removeClass("has-danger")
@@ -70,71 +70,70 @@
                 });
                 $('#description').trigger("blur");
                 $('[data-button="type"]').removeClass("active");
-                $('[data-button="type"][value="' + page.type + '"]').addClass("active");
+                $('[data-button="type"][value="' + pageTrans.type + '"]').addClass("active");
             },
             typeLoad: function () {
-                page.events.typeChange();
+                pageTrans.events.typeChange();
             },
             typeButton: function (e) {
                 var value = $(e).attr("value");
                 $("#type").data("kendoDropDownList").value(value);
-                page.events.typeChange();
+                pageTrans.events.typeChange();
             },
             removeRow: function (item) {
                 $(item).parents('tr').remove();
             },
             removeAllRows: function () {
-                if (page.Counter == 1 || page.Counter == 0) {
+                if (pageTrans.Counter == 1 || pageTrans.Counter == 0) {
+                    $("tbody tr").remove();
                     return;
                 }
                 $("tbody tr").remove();
             },
             addRow: function (data, isNew) {
-
-                page.isNew = isNew;
+                pageTrans.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="id"]')
-                    .attr('name', 'expens[' + page.Counter + '].id')
+                    .attr('name', 'expens[' + pageTrans.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
                 temp.find('[data-item="materialName"]')
                     .attr('data-value', data != null?data.materialId_Title:"");
                 temp.find('[data-item="type"]')
                     .attr('data-value', (data != null ? data.type : 0));
                 temp.find('[data-item="id"]')
-                    .attr('name', 'expens[' + page.Counter + '].id')
+                    .attr('name', 'expens[' + pageTrans.Counter + '].id')
                     .attr('id', (data != null ? data.id : kendo.guid()));
                 temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-");
                 var metarialId = data != null ? data.materialId : "-";
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
                 temp.find('[data-item="quantity"]')
-                    .attr('name', 'expens[' + page.Counter + '].quantity')
-                    .attr("data-value", data != undefined ? data.quantity : 0)
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0) });
+                    .attr('name', 'expens[' + pageTrans.Counter + '].quantity')
+                    .attr("data-value", data != undefined ? data.quantity : 1)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (1) });
                 temp.find('[data-item="stockLeft"]')
                     .attr("data-value", data != undefined ? data.stockLeft : 0)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (data != null ? data.stockLeft : 0), "readonly": true});
                 temp.find('[data-item="serialCodes"]')
-                    .attr('name', 'expens[' + page.Counter + '].serialCodes')
+                    .attr('name', 'expens[' + pageTrans.Counter + '].serialCodes')
                     .attr('value', data != null ? data.serialCodes : '')
                     .tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor." });
                 var newFilter = {
                     filters: [
-                        { field: "stockId", operator: "eq", value: page.outputId },
+                        { field: "stockId", operator: "eq", value: pageTrans.outputId },
                     ]
                 };
                 temp.find('[data-item="productId"]')
-                    .attr('name', 'expens[' + page.Counter + '].productId')
+                    .attr('name', 'expens[' + pageTrans.Counter + '].productId')
                     .kendoDropDownList(
                         {
-                            "value": (data != null ? data.materialId : null),
-                            "change": page.events.productChange,
-							"dataBound": page.events.productChange,
+                            "change": pageTrans.events.productChange,
+							"dataBound": pageTrans.events.productChange,
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
-                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDownForInventory" } },
+                                "transport": { "read": { "url": "/PRD/VWPRD_StockSummary/DataSourceDropDown" } },
                                 "pageSize": 100,
-                                "page": 1,
+                                "pageTrans": 1,
                                 "total": 0,
                                 "serverPaging": true,
                                 "serverSorting": true,
@@ -142,22 +141,20 @@
 
                                 "filter": newFilter
                             },
-                            "dataTextField": "fullName",
+                            "dataTextField": "productId_Title",
                             "delay": 1000,
                             "filter": true,
-                            "template": '#=TemplateEngine("productCustomTemplate",data)#',
-                            "dataValueField": "id",
+                            "dataValueField": "productId",
                             "optionLabel": "Lütfen Ürün Seçiniz..",
                         });
-                page.Counter++;
+                pageTrans.Counter++;
             },
             productChange: function (e) {
-
+                debugger
                 var data = e.sender.dataItem(e.sender.selectedIndex);
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
-                var findProductName = tr.find('[data-item="materialName"]').attr("data-value");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
                 var stockLeft = tr.find('[data-item="stockLeft"]').data("kendoNumericTextBox");
                 serialCodes.prop("required", false);
@@ -166,15 +163,15 @@
                     serialCodes.removeData("tagify");
                 }
                 if (data.id == "") {
-                    if (!page.isNew) {
+                    if (!pageTrans.isNew) {
                         tr.remove();
-                        swal("Stoklarda Yok!", findProductName + " stoklarda mevcut değildir.", "warning");
+                       /* swal("Stoklarda Yok!", findProductName + " stoklarda mevcut değildir.", "warning");*/
                     }
-                    page.isNew = false;
+                    pageTrans.isNew = false;
 
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    stockLeft.value(data.stockTotal??0);
+                    stockLeft.value(data.quantity??0);
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
                     serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
                     if (data.stockType == 2) {
@@ -182,9 +179,9 @@
                         var values = data.id == e.sender._initial ? (serialCodes.val() || "") : "";
                         var valuesArr = [];
                         try {
-                            valuesArr = JSON.parse(values).map(function (a) { return { value: a.value, readonly: page.status == 1 } });
+                            valuesArr = JSON.parse(values).map(function (a) { return { value: a.value, readonly: pageTrans.status == 1 } });
                         } catch (e) {
-                            valuesArr = (values).split(",").map(function (a) { return { value: a, readonly: page.status == 1 } });
+                            valuesArr = (values).split(",").map(function (a) { return { value: a, readonly: pageTrans.status == 1 } });
                         }
                         try {
                             serialCodes.val(JSON.stringify(valuesArr));
@@ -192,7 +189,7 @@
                         }
                         var whitelist = $.ajax({
                             url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-                            data: { productId: data.id, lastActionDataId: page.Model.Transaction.outputId, lastActionDataCompanyId: page.Model.Transaction.outputCompanyId },
+                            data: { productId: data.productId, lastActionDataId: pageTrans.Model.Transaction.outputId, lastActionDataCompanyId: pageTrans.Model.Transaction.outputCompanyId },
                             async: false,
                         }).responseJSON || [];
                         whitelist = whitelist.concat(valuesArr.map(a => a.value));
@@ -222,26 +219,26 @@
                         serialCodes.tagify({ placeholder: "Seri Numaralı bir takip yapılmıyor."});
                     }
                     //e.sender._initial = null;
-                    if (page.Model.Transaction.type == 14) {
-                        page.events.pushData();
+                    if (pageTrans.Model.Transaction.type == 14) {
+                        pageTrans.events.pushData();
                     }
                 }
             },
             outputCompanyChange: function (e) {
-                page.outputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputCompanyId) };
+                pageTrans.outputCompanyId = e.sender.value() == "" ? null : e.sender.value();
+                if (e.sender.element.attr("data-change") == "true") { pageTrans.events.openedProduct(pageTrans.outputCompanyId) };
             },
             outputChange: function (e) {
-                page.outputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputId) };
+                pageTrans.outputId = e.sender.value() == "" ? null : e.sender.value();
+                if (e.sender.element.attr("data-change") == "true") { pageTrans.events.openedProduct(pageTrans.outputId) };
             },
             inputCompanyChange: function (e) {
-                page.inputCompanyId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputCompanyId) };
+                pageTrans.inputCompanyId = e.sender.value() == "" ? null : e.sender.value();
+                if (e.sender.element.attr("data-change") == "true") { pageTrans.events.openedProduct(pageTrans.inputCompanyId) };
             },
             inputChange: function (e) {
-                page.inputId = e.sender.value() == "" ? null : e.sender.value();
-                if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.inputId) };
+                pageTrans.inputId = e.sender.value() == "" ? null : e.sender.value();
+                if (e.sender.element.attr("data-change") == "true") { pageTrans.events.openedProduct(pageTrans.inputId) };
             },
             openedProduct: function (value) {
                 $("#productTable")[value ? "slideDown" : "slideUp"]();
@@ -250,7 +247,7 @@
                     product.enable(true);
                     product.one("dataBound", function (e) {
                         product.trigger("change");
-                        if (page.status == 1) {
+                        if (pageTrans.status == 1) {
                             product.readonly(true);
                         }
                     });
@@ -295,9 +292,9 @@
                 var temp = $($('#RowTemplate_Hizmet').html());
                 $('#RowContainer_Hizmet').append(temp);
                 temp.find('[data-item="quantity"]')
-                    .attr('name', 'ServiceNotifications[' + page.hizmet.counter + '].quantity')
-                    .attr("data-value", data != undefined ? data.quantity : 0)
-                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0) });
+                    .attr('name', 'ServiceNotifications[' + pageTrans.hizmet.counter + '].quantity')
+                    .attr("data-value", data != undefined ? data.quantity : 1)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (1) });
             
             
                 var newFilter = {
@@ -306,7 +303,7 @@
                     ]
                 };
                 temp.find('[data-item="id"]')
-                    .attr('name', 'ServiceNotifications[' + page.hizmet.counter + '].productId')
+                    .attr('name', 'ServiceNotifications[' + pageTrans.hizmet.counter + '].productId')
                     .kendoDropDownList(
                         {
                             "value": (data != null ? data.materialId : null),
@@ -314,7 +311,7 @@
                                 "type": "aspnetmvc-ajax",
                                 "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
                                 "pageSize": 100,
-                                "page": 1,
+                                "pageTrans": 1,
                                 "total": 0,
                                 "serverPaging": true,
                                 "serverSorting": true,
@@ -329,21 +326,22 @@
                             "dataValueField": "id",
                             "optionLabel": "Lütfen Hizmet Seçiniz..",
                         });
-                page.hizmet.counter++;
+                pageTrans.hizmet.counter++;
             },
         },
         inputs: {
             companyChange: function (e) {
-                page.outputId = e.sender.dataItem().id;
-                page.events.removeAllRows();
-                $.each(page.Model.TreeProduct, function (i, item) {
-                    page.events.addRow(item, false);
-                });
+                pageTrans.outputId = e.sender.dataItem().id;
+                pageTrans.events.removeAllRows();
+                pageTrans.events.addRow(null,false);
+                //$.each(pageTrans.Model.TreeProduct, function (i, item) {
+                //    pageTrans.events.addRow(item, false);
+                //});
             }
         },
 
     };
-    if (page.Model.tenderIds != null)
+    if (pageTrans.Model.tenderIds != null)
     {
         $('[data-item="islendi"]').addClass('hide');
     }
@@ -379,13 +377,14 @@
                         navigator.clipboard.writeText(textArea.val());
                     })
                     .catch(err => {
-                       MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
+                 /*      MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")*/
                     });
             }
         })
         .on("change", "#amount", function () {
-            page.events.pushData();
+            pageTrans.events.pushData();
         })
+        
 </script>
 <script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
     <div class="clearfix" style="padding: 8px 0;">
@@ -442,7 +441,7 @@
             <input data-item="serialCodes" data-role="tagify" />
         </td>
         <td>
-            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="page.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
+            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.events.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
         </td>
     </tr>
 </script>
@@ -457,12 +456,12 @@
        
         <td>
             <div class="input-group">
-                <input data-item="quantity" min="0" />
-                <span data-item="amount" class="input-group-addon"> </span>
+                <input data-item="quantity" min="1" />
+                <span data-item="amount" class="input-group-addon">Adet</span>
             </div>
         </td>
         <td>
-            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="page.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
+            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
         </td>
     </tr>
 </script>
@@ -501,7 +500,7 @@
           .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
           .Sort(x => x.Add("name").Ascending())
           .Filter<CMP_Storage>(x=>x.companyId==userStatus.user.CompanyId.Value)
-          .Events(x=>x.Change("page.inputs.companyChange"))
+          .Events(x=>x.Change("pageTrans.inputs.companyChange"))
           .Execute("id"))
             </div>
         </div>
@@ -516,7 +515,7 @@
                         <th style="width:10%">HARCANAN MİKTAR</th>
                         <th style="width:10%">STOK MİKTARI </th>
                         <th style="width:46%">SERİ NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
-                        <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="page.events.addRow(null, true)"><i class="fa fa-plus"></i></button></th>
+                        <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="pageTrans.events.addRow(null, true)"><i class="fa fa-plus"></i></button></th>
                     </tr>
                 </thead>
                 <tbody id="RowContainer_Upsert">
@@ -535,7 +534,7 @@
                         <tr>
                             <th style="width:75%">HİZMET</th>
                             <th style="width:22%">HARCANAN MİKTAR</th>
-                            <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="page.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
+                            <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="pageTrans.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
                         </tr>
                     </thead>
                     <tbody id="RowContainer_Hizmet">
