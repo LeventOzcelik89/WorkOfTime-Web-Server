@@ -85,12 +85,12 @@
             },
             removeAllRows: function () {
                 if (pageTrans.Counter == 1 || pageTrans.Counter == 0) {
+                    $("tbody tr").remove();
                     return;
                 }
                 $("tbody tr").remove();
             },
             addRow: function (data, isNew) {
-
                 pageTrans.isNew = isNew;
                 var temp = $($('#RowTemplate_Upsert').html());
                 $('#RowContainer_Upsert').append(temp);
@@ -127,12 +127,11 @@
                     .attr('name', 'expens[' + pageTrans.Counter + '].productId')
                     .kendoDropDownList(
                         {
-                            "value": (data != null ? data.materialId : null),
                             "change": pageTrans.events.productChange,
 							"dataBound": pageTrans.events.productChange,
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
-                                "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDownForInventory" } },
+                                "transport": { "read": { "url": "/PRD/VWPRD_StockSummary/DataSourceDropDown" } },
                                 "pageSize": 100,
                                 "pageTrans": 1,
                                 "total": 0,
@@ -142,17 +141,16 @@
 
                                 "filter": newFilter
                             },
-                            "dataTextField": "fullName",
+                            "dataTextField": "productId_Title",
                             "delay": 1000,
                             "filter": true,
-                            "template": '#=TemplateEngine("productCustomTemplate",data)#',
-                            "dataValueField": "id",
+                            "dataValueField": "productId",
                             "optionLabel": "Lütfen Ürün Seçiniz..",
                         });
                 pageTrans.Counter++;
             },
             productChange: function (e) {
-
+                debugger
                 var data = e.sender.dataItem(e.sender.selectedIndex);
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
@@ -173,7 +171,7 @@
 
                 } else {
                     tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
-                    stockLeft.value(data.stockTotal??0);
+                    stockLeft.value(data.quantity??0);
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
                     serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
                     if (data.stockType == 2) {
@@ -191,7 +189,7 @@
                         }
                         var whitelist = $.ajax({
                             url: '/PRD/VWPRD_Transaction/DataSourceInventoryCodes',
-                            data: { productId: data.id, lastActionDataId: pageTrans.Model.Transaction.outputId, lastActionDataCompanyId: pageTrans.Model.Transaction.outputCompanyId },
+                            data: { productId: data.productId, lastActionDataId: pageTrans.Model.Transaction.outputId, lastActionDataCompanyId: pageTrans.Model.Transaction.outputCompanyId },
                             async: false,
                         }).responseJSON || [];
                         whitelist = whitelist.concat(valuesArr.map(a => a.value));
@@ -335,9 +333,10 @@
             companyChange: function (e) {
                 pageTrans.outputId = e.sender.dataItem().id;
                 pageTrans.events.removeAllRows();
-                $.each(pageTrans.Model.TreeProduct, function (i, item) {
-                    pageTrans.events.addRow(item, false);
-                });
+                pageTrans.events.addRow(null,false);
+                //$.each(pageTrans.Model.TreeProduct, function (i, item) {
+                //    pageTrans.events.addRow(item, false);
+                //});
             }
         },
 
@@ -378,13 +377,14 @@
                         navigator.clipboard.writeText(textArea.val());
                     })
                     .catch(err => {
-                       MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")
+                 /*      MesajWarning("Toplu serinumarası işlemleri için lütfen izin veriniz.","Bilgilendirme")*/
                     });
             }
         })
         .on("change", "#amount", function () {
             pageTrans.events.pushData();
         })
+        
 </script>
 <script type="text/x-kendo-template" id="productCustomTemplate" data-selector="modalContainer">
     <div class="clearfix" style="padding: 8px 0;">

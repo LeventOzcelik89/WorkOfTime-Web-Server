@@ -31,5 +31,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public string Address { get; set;}
         public string code { get; set;}
+        public IGeometry  location { get; set;}
     }
 }

@@ -1,5 +1,6 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMSV_ServiceModel
 @{
+    var userStatus = (PageSecurity)Session["userStatus"];
     ViewBag.Title = "Yeni Servis Kaydı Oluştur";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -36,7 +37,6 @@
                 if (productId == null) {
                     return;
                 }
-               
                 $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
                     $(item).removeAttr("disabled");
                     var kendo = $(item).data("kendoDropDownList");
@@ -57,6 +57,9 @@
             },
             cargoId: function () {
                 $("#cargoNo").removeAttr("disabled");
+                $("#cargoId").removeAttr("disabled");
+                $("#cargoId").removeAttr("data-disabled");
+
             }
         },
         methods: {
@@ -110,11 +113,10 @@
                     .attr('name', 'Problems[' + page.productProblem.counter + '].id')
                 problems.find('[data-problem="problemTypeId"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].problemTypeId')
-                    .attr('data-insertUrl','/SV/VWSV_Problem/Insert')
+                    .attr('data-insertUrl', '/SV/VWSV_Problem/Insert')
                     .attr('data-insertField', 'name')
-                    .attr('data-modal','false')
+                    .attr('data-modal', 'false')
                     .attr('data-refresh', 'true')
-           
                     .kendoDropDownList(
                         {
                             "dataSource": {
@@ -227,6 +229,7 @@
         }).on("change", "#Customer_phoneNumber", function () {
             var val = $(this).val();
             GetJsonDataFromUrl("/SV/VWSV_Customer/GetByPhoneNumber", { phoneNumber: val }, function (data) {
+                data = JSON.parse(data);
                 if (data.objects != null) {
                     swal({
                         title: "Bu Telefon Numarasına Bağlı Müşteri Bulundu",
@@ -244,11 +247,14 @@
                             $("#Customer_name").val(data.objects.name ?? "");
                             $("#Customer_lastName").val(data.objects.lastName ?? "");
                             $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
-                            $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
                             $("#openLocationId").data("handler").value(data.objects.openLocationId ?? "");
                             $("#Customer_Address").val(data.objects.Address ?? "");
                             $("#Customer_id").val(data.objects.id ?? "");
                             $("#Customer_email").val(data.objects.email ?? "");
+                            $("#location").val(data.objects.location);
+                            $("#location").trigger("change");
+                            haritalar['location'].feature.remove('DrawLayer', 'DrawFeature');
+                            haritalar['location'].feature.add('DrawLayer', 'DrawFeature', data.objects.location);
                             swal.close();
                         } else { }
                         swal.close();
@@ -269,8 +275,7 @@
                 }
             }, 150)
         })
-    $("#ServiceForm").submit(function (e) {
-    })
+   
 </script>
 <script type="text/template" id="rowForProductProblem">
     <tr>
@@ -464,6 +469,29 @@
             <div class="ibox">
                 <div class="ibox-content clearfix">
                     <fieldset>
+                        <legend>Cihazın Gireceği Depo</legend>
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="customerType">Cihazın Gireceği Depo</label>
+                                @(Html.Akilli()
+          .DropDownListFor(x => x.storageId)
+          .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+          .DataTextField("fullName")
+          .DataValueField("id")
+          .Template("#=TemplateEngine('storageTemplate',data)#")
+          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+          .Sort(x => x.Add("name").Ascending())
+          .Filter<CMP_Storage>(x=>x.companyId==userStatus.user.CompanyId.Value)
+          .Validate(Validations.Required)
+          .Execute("id"))
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <div class="ibox">
+                <div class="ibox-content clearfix">
+                    <fieldset>
                         <legend>Teslim Eden Bilgileri</legend>
                         <div class="form-group">
                             <div class="col-sm-12">
@@ -612,19 +640,19 @@
                         </div>
                         <div class="form-group">
                             <div class="col-sm-12">
-                                <label class="control-label label-md " for="Customer_otherPhoneNumber">E-Posta Adresi</label>
+                                <label class="control-label label-md req" for="Customer_otherPhoneNumber">E-Posta Adresi</label>
                                 @Html.TextBoxFor(model => model.Customer.email, new Dictionary<string, object>()
                     {
                         {"class", "form-control"},
                         {"placeholder", "Lütfen Müşterinin E-Posta Adresini Girin.."},
-                    }).Validate(Validations.EMail(false))
+                    }).Validate(Validations.EMail(true))
                             </div>
                         </div>
                         <div class="form-group">
                             <div class="col-md-12">
                                 <label class="control-label req label-md" for="location">Lokasyon</label>
                                 @(
-Html.Akilli().MapInput().Name("location").
+Html.Akilli().MapInputFor(x=>x.Customer.location).
 HelpText("Lütfen Lokasyon seçiniz.").
 HtmlAttributes(new Dictionary<string, object>()
                 {
@@ -718,7 +746,6 @@ Html.Akilli()
                                     <dt>Üretim Tarihi: </dt>
                                     <dd id="dateofMani">  </dd>
                                 </dl>
-
                             </div>
                             <div class="col-lg-8">
                                 <dl class="dl-horizontal">

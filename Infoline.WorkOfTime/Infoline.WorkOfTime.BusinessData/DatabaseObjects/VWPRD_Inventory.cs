@@ -7,8 +7,8 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public int isItSalable { get; set;}
         public string fullName { get; set;}
-        public string searchField { get; set;}
         public string fullNameProduct { get; set;}
+        public string searchField { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string productId_Title { get; set;}

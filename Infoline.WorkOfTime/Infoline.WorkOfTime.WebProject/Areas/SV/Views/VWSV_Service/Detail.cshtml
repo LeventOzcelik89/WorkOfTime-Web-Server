@@ -6,6 +6,7 @@
     var buttons = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceActions>();
     var operationEnums = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumSV_ServiceOperation>().ToArray();
     var activeStage = "";
+    var activeStageKey = 0;
 }
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
 <style type="text/css">
@@ -20,7 +21,7 @@
     }
 
     #detailProduction .main-timeline2 .timeline2 {
-        width: 20% !important;
+        width: 16.6666% !important;
     }
 
     .tab-pane {
@@ -36,6 +37,7 @@
                     if (Model.stage + 1 == Convert.ToInt32(stage.Key))
                     {
                         activeStage = stage.Value;
+                        activeStageKey = Convert.ToInt32(stage.Key);
                     }
                     <div class="timeline2 @Html.Raw(Model.stage >= Convert.ToInt32(stage.Key) ? "green2" : "")">
                         <a href="#" style="cursor:default" class="timeline-content2" data-toggle="tooltip" data-html="true" data-placement="top" data-original-title="@stage.Generic["description"]">
@@ -84,58 +86,59 @@
                                 <dd> @Model.ProducedDate </dd>
                             </dl>
                             <dl class="dl-horizontal">
-                                <dt>Toplam Fire Tutarı</dt>
-                                <dd>@Model.TotalWasted.ToString("N2") ₺</dd>
-                            </dl>
-                            <dl class="dl-horizontal">
                                 <dt>Başlama Tarihi</dt>
                                 <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
                             </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Tamamlanma Tarihi</dt>
-                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
-                            </dl>
+                          
                
 
                         </div>
                         <div class="col-lg-8">
-                            <dl class="dl-horizontal">
-                                <dt>Tam Cihaz Adı: </dt>
-                                <dd>
-                                    <span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@Model.product_Title</u></strong></span>
-                                    <a href="/PRD/VWPRD_Product/Detail?id=@Model.productId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
-                                </dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Distribütör: </dt>
-                                <dd>
-                                    @Model.EntegrationAction.DistributorName
-                                </dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Bayi: </dt>
-                                <dd>   @Model.EntegrationImport.company_Name</dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Satın Alınma Tarihi:</dt>
-                                <dd>@(Model.EntegrationImport.contractStartDate.HasValue ? Model.EntegrationImport.contractStartDate.Value.ToShortDateString() : "")</dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>IMEI/Seri Numarası</dt>
-                                <dd>
-                                    <b>@Model.VWPRD_Inventory.serialcode</b>
-                                    <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
-                                </dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Toplam Hizmet Tutarı</dt>
-                                <dd>   @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>x.description.Length>0? Convert.ToDouble(x.description):0).ToString("N2")) ₺</dd>
-                            </dl>
-                            <dl class="dl-horizontal">
-                                <dt>Toplam Harcama Tutarı</dt>
-                                <dd>@Model.TotalSpended.ToString("N2") ₺</dd>
-                            </dl>
-                           
+                            <div class="row">
+                                <div class="col-sm-9">
+                                    <dl class="dl-horizontal">
+                                        <dt>Tam Cihaz Adı: </dt>
+                                        <dd>
+                                            <span style="white-space: pre-wrap;word-break: break-all;"><strong><u>@Model.product_Title</u></strong></span>
+                                            <a href="/PRD/VWPRD_Product/Detail?id=@Model.productId" target="_blank" class="text-navy " id="deviceId"> <i class="fa fa-link"></i> </a>
+                                        </dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>Distribütör: </dt>
+                                        <dd>
+                                            @(Model.EntegrationImport.created.HasValue ? Model.EntegrationImport.created.Value.ToShortDateString():"")
+                                        </dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>Bayi: </dt>
+                                        <dd>   @Model.EntegrationImport.company_Name</dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>Satın Alınma Tarihi:</dt>
+                                        <dd>@(Model.EntegrationImport.contractStartDate.HasValue ? Model.EntegrationImport.contractStartDate.Value.ToShortDateString() : "")</dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>IMEI/Seri Numarası</dt>
+                                        <dd>
+                                            <b>@Model.VWPRD_Inventory.serialcode</b>
+                                            <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
+                                        </dd>
+                                    </dl>
+                                    <dl class="dl-horizontal">
+                                        <dt>Tamamlanma Tarihi</dt>
+                                        <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                                    </dl>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div style="width:10%;margin-bottom:10px;vertical-align: inherit;">
+                                        <span data-toggle="tooltip" data-placement="left" data-original-title="Toplam Hizmet Tutarı" style="margin-top: 8px;min-width:100px" class="btn btn-info m-r-sm"><b> @(Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.ServicePriceAdded&&x.dataTable=="PRD_Product").Sum(x=>x.description.Length>0? Convert.ToDouble(x.description):0).ToString("N2")) ₺ </b></span>
+                                        <span data-placement="left" data-original-title="Toplam Harcama Tutarı" style="margin-top: 8px;min-width:100px" class="btn btn-primary m-r-sm"><b>@Model.TotalSpended.ToString("N2") ₺</b> </span>
+                                        <span data-placement="left" data-original-title="Toplam Fire Miktarı" style="margin-top: 8px;min-width:100px" class="btn btn-warning"><b>@Model.TotalWasted.ToString("N2") ₺</b> </span>
+                                    </div>
+                                </div>
+                            </div>
+                          
+                        
                         </div>
                     </div>
                 </div>
@@ -200,6 +203,7 @@
 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
 .ToolBar(x =>
 {
+    x.Custom().Text("<i class='fa fa-plus-circle' data-original-title='Cihaz Problemi Ekle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" },{"id","deviceProblemAdd" }, { "data-method", "GET" }, { "data-modal", "true" }, { "data-blank", "" } }).Url(Url.Action("AddMultipleDeviceProblem", "VWSV_DeviceProblem", new { area = "SV",serviceId=Model.id , inventoryId=Model.inventoryId,productId=Model.productId }));
 }))
                             </div>
                         </div>
@@ -422,6 +426,7 @@
             <script type="text/javascript">
     var page = {
         stage:'@Html.Raw(activeStage)',
+        stageKey:'@Html.Raw(activeStageKey)',
         methods: {
             setButtonServiceId: function() {
                 $("#buttons [data-href]").each(function (i, item) {
@@ -452,7 +457,13 @@
                 });
 
             }
-        }
-    }
-    page.methods.setButtonServiceId();
+        }   
+                }
+                if (page.stageKey==2) {
+                    $('#deviceProblemAdd').show();
+                }
+                else {
+                    $('#deviceProblemAdd').hide();
+                }
+                page.methods.setButtonServiceId();
             </script>

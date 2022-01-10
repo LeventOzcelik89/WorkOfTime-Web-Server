@@ -216,7 +216,7 @@
                 <td style="font-weight: bold;" align="center" class="space-left">Ürün</td>
                 <td style="font-weight: bold;" align="center" class="space-left">Açıklama</td>
             </tr>
-            @foreach (var item in Model.Problems.Where(x=>x.type==(short)EnumSV_DeviceProblemType.Service))
+            @foreach (var item in Model.Problems.Where(x => x.type == (short)EnumSV_DeviceProblemType.Service))
             {
                 <tr>
                     <td class="text-center">@item.problemTypeId_Title</td>
@@ -243,7 +243,24 @@
                     <td class="text-center">@item.description</td>
                 </tr>
             }
+            <tr>
+                <td colspan="4" class="stil" stl></td>
+            </tr>
+            <tr>
+                <td colspan="4" align="left" valign="middle" class="stil" style="background: #80808038;"><strong>Cihaz Masrafı</strong></td>
 
+            </tr>
+            <tr>
+                <td style="font-weight: bold;" align="center" class="stil">İşcilik Ücreti</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Masraf</td>
+                <td style="font-weight: bold;" align="center" class="space-left">Toplam</td>
+
+            </tr>
+            <tr>
+                <td class="text-center" @(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.ServicePriceAdded && x.dataTable == "PRD_Product").Sum(x => x.description.Length > 0 ? Convert.ToDouble(x.description) : 0).ToString("N0")) ₺</td>
+                <td class="text-center">@Model.TotalSpended.ToString("N2") ₺</td>
+                <td class="text-center">@((Model.ServiceOperations.Where(x=>x.dataTable=="PRD_Product").Sum(x=> x.description.Length > 0 ? Convert.ToDouble(x.description) : 0) + Model.TotalSpended).ToString("N2")) ₺</td>
+            </tr>
         </table>
 
         <div style="display: inline-flex; width: 100%;">

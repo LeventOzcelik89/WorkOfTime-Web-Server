@@ -35,10 +35,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         UserPermission = 2,
         [Description("Tamir Başladı"), Generic("icon", "fa fa-wrench", "description", "Tamir Süreci Başladı")]
         Fixing= 3,
-        //[Description("Kalite Kontrol"), Generic("icon", "fa fa-check", "description", "Kalite Kontrol Süreci Başladı")]
-        //Qualitycontrol = 4,
+        [Description("Kalite Kontrol"), Generic("icon", "fa fa-check", "description", "Kalite Kontrol Süreci Başladı")]
+        Qualitycontrol = 4,
         [Description("Müşteriye Teslim"), Generic("icon", "fa fa-truck", "description", "Kalite Kontrol Başarılı, Cihaz Müşteriye Telsim Ediliyor")]
-        Delivery = 4,
+        Delivery = 5,
     }
     [EnumInfo(typeof(SV_Service), "Actions")]
     public enum EnumSV_ServiceActions
@@ -61,7 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Harcama = 101,
         [Description("Yeni Imei Ata"), Generic("icon", "fa fa-barcode", "color", "0496FF", "description", "Yeni Imei Ata", "attr", "data-model=true data-enum=102 id=transferstart  data-href=/SV/VWSV_ChangedDevice/Insert?serviceId={{}}&oldInventoryId=%% data-task=Insert data-method=GET ")]
         NewImei = 102,
-        [Description("Değişecek Parça Belirle"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Değişecek Parça Belirle", "attr", "data-model=true data-enum=108 id=transferstart  data-href=/SV/VWSV_DeviceProblem/AddMultipleDeviceProblem?serviceId={{}}&productId={}&inventoryId=[] data-task=Insert data-method=GET ")]
+        [Description("Cihaz Problemlerini Belirle"), Generic("icon", "fa fa-question", "color", "392061", "description", "Cihaz Problemlerini Belirle", "attr", "data-model=true data-enum=108 id=transferstart  data-href=/SV/VWSV_DeviceProblem/AddMultipleDeviceProblem?serviceId={{}}&productId={}&inventoryId=[] data-task=Insert data-method=GET ")]
         ChancingPart = 108,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız", "attr", "data-model=false data-enum=200 id=transferstart  data-href=/SV/VWSV_ServiceOperation/QualityCheck?serviceId={{}}&status=False data-task=Insert data-method=POST")]
         QualityControllNot= 200,
@@ -69,7 +69,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControl = 201,
         [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "85BDBF", "description", "Süreci Tamamla", "attr", "data-model=false data-enum=300 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=300 data-task=Insert data-method=POST ")]
         Done = 300,
-        [Description("Müşterinin Onayına Sun"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşterinin Onayına Sun", "attr", "data-modal=true data-enum=400 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
+        [Description("Müşteriye Mail Gönder"), Generic("icon", "fa fa-user", "color", "F45B69", "description", "Müşteriye Mail Gönder", "attr", "data-modal=true data-enum=400 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
         AskCustomer = 400,
         [Description("Teslim Çıktısı Al"), Generic("icon", "fa fa-print", "color", "84732B", "description", "Teslim Çıktısı Al", "attr", "data-modal=false data-blank=true  data-enum=500 id=transferstart  data-href=/SV/VWSV_Service/PrintEnd?id={{}} data-task=Insert data-method=GET ")]
         PrintEnd = 500,

@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? openLocationId { get; set;}
         public string Address { get; set;}
         public string code { get; set;}
+        public IGeometry  location { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string openAddressLocationId_Title { get; set;}

@@ -157,13 +157,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     productId = x.productId,
                     quantity = x.quantity,
-                    serialCodes = x.serialCodes ?? "",
+                    serialCodes = x.serialCodes??null,
                     unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentBuyingPrice,
                 }).ToList();
                 var transId = Guid.NewGuid();
                 var transModel = new VMPRD_TransactionModel
                 {
-                    outputTable = "SV_Service",
+                    inputId=null,
+                    inputTable=null,
+                    outputTable = "CMP_Storage",
                     outputCompanyId = user.CompanyId,
                     outputId = this.storageId,
                     created = DateTime.Now,
@@ -173,7 +175,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     date = DateTime.Now,
                     code = BusinessExtensions.B_GetIdCode(),
                     type = this.Transaction.type,
-                    id = transId,
+                    id = transId
 
                 };
                 result &= transModel.Save(userId, trans);

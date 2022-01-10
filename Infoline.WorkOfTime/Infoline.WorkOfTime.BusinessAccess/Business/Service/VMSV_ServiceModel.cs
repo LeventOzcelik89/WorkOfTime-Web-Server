@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -22,13 +23,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductMateriel> GetProductMetarials { get; set; } = new List<VWPRD_ProductMateriel>();
         public List<VWSV_ServiceOperation> ServiceOperations { get; set; } = new List<VWSV_ServiceOperation>();
         public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
-        public PRD_EntegrationAction EntegrationAction { get; set; } = new PRD_EntegrationAction();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
         public List<VWPRD_TransactionItem> WastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public double TotalWasted { get; set; } = 0;
         public double TotalSpended { get; set; } = 0;
+        public IGeometry location { get; set; }
+        public Guid? openLocationId { get; set; }
         public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
 
         public VMSV_ServiceModel Load()
@@ -57,7 +59,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                 }
                 this.EntegrationImport = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode) ?? new VWPRD_EntegrationImport();
-                this.EntegrationAction = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode) ?? new PRD_EntegrationAction(); ;
                 this.VWPRD_Inventory = findInventory;
                 var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId.Value);
                 if (findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).Count() > 0)
@@ -89,6 +90,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWSV_ServiceById(this.id);
+            Customer.openLocationId = this.openLocationId;
+            Customer.location = this.location;
             if (DeliveryTpeActual.HasValue)
             {
                 this.deliveryType = (short?)DeliveryTpeActual;
@@ -174,7 +177,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     var transModel = new VMPRD_TransactionModel
                     {
-                        inputId = db.GetCMP_StorageByCompanyIdFirst(user.CompanyId.Value)?.id,
+                        inputId = this.storageId,
                         inputTable = "CMP_Storage",
                         inputCompanyId = user.CompanyId,
                         outputCompanyId = getInventory.lastActionDataCompanyId,
@@ -262,6 +265,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Coming.serviceId = this.id;
                     result &= Coming.Save(this.createdby, null, this.trans);
                 }
+
             }
             //result &= new VMSV_ServiceOperationModel
             //{
@@ -305,20 +309,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var findTitan = db.GetPRD_TitanDeviceActivatedByInventoryId(inventoryId);
             var findDist = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode);
             var findManiDate = db.GetPRD_InventoryActionByInventoryId(inventoryId);
-            var findSelling = db.GetVWPRD_EntegrationImportBySerialCode(findInventory.serialcode);
             findManiDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).ToArray();
             findTitan = findTitan ?? new PRD_TitanDeviceActivated();
             object titan = new
             {
                 warranty = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2).ToShortDateString() : "Cihaz Aktif Edilmemiştir",
-                warrantyStatus = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2) <= DateTime.Now ? "Garantili" : "Garanti Dışı" : "Garanti Dışı",
+                warrantyStatus = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.AddYears(2) >= DateTime.Now ? "Garantili" : "Garanti Dışı" : "Garanti Dışı",
                 activation = findTitan.CreatedOfTitan.HasValue ? findTitan.CreatedOfTitan.Value.ToShortDateString() : "Cihaz Aktif Edilmemiştir",
                 deviceName = findInventory.fullNameProduct,
                 deviceId = findInventory.productId.HasValue ? findInventory.productId.ToString() : "",
                 dist = findDist != null ? findDist.DistributorName : "",
                 company = findDist != null ? findDist.CustomerOperatorName : "",
                 manifacturDate = findManiDate.Length > 0 ? findManiDate.FirstOrDefault().created.Value.ToShortDateString() : "",
-                sellingDate = findSelling != null ? findSelling.contractStartDate.HasValue ? findSelling.contractStartDate.Value.ToShortDateString() : "" : ""
+                sellingDate = findDist != null ? findDist.created.HasValue ? findDist.created.Value.ToShortDateString() : "" : ""
             };
             return new ResultStatus { result = true, objects = titan };
         }
@@ -429,7 +432,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Restart)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.TransferEnded)
@@ -440,25 +443,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.AsamaBildirimi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.FireBildirimiYapildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.HarcamaBildirildi)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Updated)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Done)
@@ -468,19 +471,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.Started)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.PartChanged)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
             else
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 SetStageButton();
             }
 
@@ -489,44 +492,47 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             if (stage == (int)EnumSV_ServiceStages.DeviceHanded)
             {
-
-                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+
             }
             else if (stage == (int)EnumSV_ServiceStages.Detection)
             {
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.ChancingPart);
-                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+          
             }
             else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
-                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                //ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+
 
             }
             else if (stage == (int)EnumSV_ServiceStages.Fixing)
             {
+                ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.Fire);
                 ButtonPermission.Add(EnumSV_ServiceActions.Harcama);
                 ButtonPermission.Add(EnumSV_ServiceActions.NewImei);
+               
+
+            }
+            else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
+            {
+                ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
+                ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
 
             }
-            //else if (stage == (int)EnumSV_ServiceStages.Qualitycontrol)
-            //{
-            //    ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-            //    ButtonPermission.Add(EnumSV_ServiceActions.QualityControllNot);
-            //    ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
-
-            //}
             else if (stage == (int)EnumSV_ServiceStages.Delivery)
             {
                 ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
                 ButtonPermission.Add(EnumSV_ServiceActions.PrintEnd);
-                //ButtonPermission.Add(EnumSV_ServiceActions.Stop);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.Done);
             }
             else
