@@ -17,6 +17,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? companyId { get; set;}
         public short? customerType { get; set;}
         public string customerTypeDescription { get; set;}
+        public Guid? storageId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string inventoryCode_Title { get; set;}
@@ -29,6 +30,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string serialCode { get; set;}
         public string product_Title { get; set;}
         public Guid? productId { get; set;}
+        public string storageId_Title { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }

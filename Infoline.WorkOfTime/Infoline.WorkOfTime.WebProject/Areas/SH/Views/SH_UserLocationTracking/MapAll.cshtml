@@ -58,7 +58,7 @@
                     $(e).toggleClass("active");
                     $('[data-tool="Swipe"]').trigger("click");
                 },
-                AllUsers: function (elem, target) {
+                slideTab: function (elem, target) {
 
                     var hasActive = $(elem).hasClass("active");
                     $(elem).parent().find("button").removeClass("active");
@@ -74,7 +74,7 @@
                         });
                     }
                 },
-                slideTab: function (elem, target) {
+                AllUsers: function (elem, target) {
 
                     var hasActive = $(elem).hasClass("active");
                     $(elem).parent().find("button").removeClass("active");
@@ -258,22 +258,11 @@
                     MesajWarning("Konum bulunamadı.", "Uyarı");
                 }
             },
-            onChangePerson: function (_this) {
-                var featureId = _this.sender.value();
-                var startDateTime = $('#StartDateTime').data('kendoDateTimePicker').value();
-                var endDateTime = $('#EndDateTime').data('kendoDateTimePicker').value();
-                page.getDataAndApply(featureId, startDateTime, endDateTime);
-            },
             onChangeDate: function () {
-                var startDateTime = $('#StartDateTime').data('kendoDateTimePicker').value();
-                var endDateTime = $('#EndDateTime').data('kendoDateTimePicker').value();
-                var personId = $('#PersonSearching').data('kendoDropDownList').value();
-                if (personId != undefined && personId != "") {
-                    page.getDataAndApply(personId, startDateTime, endDateTime);
-                }
+                    page.getDataAndApply();
             },
-            getDataAndApply: function (userId, startDateTime, endDateTime) {
-                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapData', { startDate: kendo.toString(startDateTime, 'yyyy-MM-dd HH:mm'), endDate: kendo.toString(endDateTime, 'yyyy-MM-dd HH:mm'), userId: userId }, function (res) {
+            getDataAndApply: function () {
+                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', { }, function (res) {
                     page.defines.filteredData = res;
                     page.applyFilter();
                 }, "Konumlar yükleniyor..");
@@ -405,6 +394,32 @@
 
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
 
+    <div class="btn-bar" style="width:100%;top:2%;">
+        <div style="display: inherit;margin: 0 auto;">
+
+          
+            <div class="col-md-4 datetimeTemp">
+                @(Html.Akilli().DateTimePicker("StartDateTime")
+                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+                            }).MaxDateElement("EndDateTime").Events(e => { e.Change("page.onChangeDate"); }))
+
+
+            </div>
+            <div class="col-md-4 datetimeTemp" style="margin-left: 270px;">
+                @(Html.Akilli().DateTimePicker("EndDateTime")
+                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
+                                    }).MinDateElement("StartDateTime").Events(e => { e.Change("page.onChangeDate"); }))
+            </div>
+        </div>
+
+    </div>
+
     <div class="btn-bar left top animated slideInLeft" style="top: 140px;">
         <div class="btn-container m-b-lg">
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
@@ -412,7 +427,7 @@
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.AllUsers(this)" data-placement="right" data-original-title="Tüm Personeller"><i class="fa fa-child"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.AllUsers(this)" data-placement="right" data-original-title="Personel Bilgileri"><i class="fa fa-child"></i></button>
         </div>
     </div>
 
@@ -443,8 +458,8 @@
     <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
-            <button id="AllUsers" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.AllUsers(this, 'personId')"><i class="fa fa-child"></i></button>
+            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+            <button id="PersonelListesi" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.AllUsers(this, 'selectedPerson')"><i class="fa fa-child"></i></button>
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
@@ -503,12 +518,23 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-md-12">
+                    <div class="panContentPresentation">
+                        <div class="card col-md-12">
+                            @(Html.Akilli().DateTimePicker("StartDateTime")
+                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+                            }).MaxDateElement("EndDateTime").Events(e => { e.Change("page.onChangeDate"); }))
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </script>
-
-<script type="text/template" id="selectedPerson">
+<script type="text/template" id="PersonelListesi">
     <div class="pan-content">
         <div class="pan-head clearfix" style="margin-left: 15px;">
             <div style="padding-top: 7px;">
@@ -556,29 +582,6 @@
                                 </ul>
                             </nav>
                         </div>
-                    </div>
-                </div>
-
-                <div class="row">
-                    <div class="col-md-3 datetimeTemp">
-                        @(Html.Akilli().DateTimePicker("StartDateTime")
-                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
-                            {
-                                {"class", "form-control"},
-                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
-                            }).MaxDateElement("EndDateTime"))
-
-                    </div>
-                    <div class="col-md-3 datetimeTemp">
-                        @(Html.Akilli().DateTimePicker("EndDateTime")
-                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
-                                    {
-                                        {"class", "form-control"},
-                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
-                                    }).MinDateElement("StartDateTime"))
-                    </div>
-                    <div class="col-md-1 buttons" style="margin-top:-23px;">
-                        <button class="btn btn-md btn-success pull-right" onclick="pageLocation.onChangeDate()" type="submit">Sorgula</button>
                     </div>
                 </div>
             </div>

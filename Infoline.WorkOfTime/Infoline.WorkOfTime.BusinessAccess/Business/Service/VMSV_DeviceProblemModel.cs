@@ -68,6 +68,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
+            
             var dbresult = db.InsertSV_DeviceProblem(this.B_ConvertType<SV_DeviceProblem>(), this.trans);
             if (!dbresult.result)
             {

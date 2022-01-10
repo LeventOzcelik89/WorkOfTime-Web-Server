@@ -123,6 +123,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Barkod Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        public ActionResult Barcode(Guid id)
+        {
+            return View(new VMSV_ServiceModel { id = id }.Load());
+        }
 
         [PageInfo("Garanti-Teknik Servis'e gelen cihazın metaryel ağacındaki tüm ürünleri alan metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {

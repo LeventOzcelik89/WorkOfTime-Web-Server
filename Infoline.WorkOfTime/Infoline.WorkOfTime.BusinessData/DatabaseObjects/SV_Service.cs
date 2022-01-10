@@ -17,5 +17,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? companyId { get; set;}
         public short? customerType { get; set;}
         public string customerTypeDescription { get; set;}
+        public Guid? storageId { get; set;}
     }
 }

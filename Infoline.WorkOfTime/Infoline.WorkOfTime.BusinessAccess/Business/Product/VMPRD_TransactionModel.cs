@@ -841,6 +841,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 switch (dataTable)
                 {
+                    case "SV_Service":
                     case "CMP_Storage":
                    
                         var storage = db.GetVWCMP_StorageById(dataId.Value);
