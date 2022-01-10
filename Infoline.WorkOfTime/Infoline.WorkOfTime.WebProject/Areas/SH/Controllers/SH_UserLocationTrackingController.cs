@@ -41,6 +41,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
         }
 
+        [PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici)]
+        public ContentResult GetMapDatas()
+        {
+            var db = new WorkOfTimeDatabase();
+            var trackingDatas = new SH_UserLocationTrackingMap();
+            var locationTrackingDatas = db.GetVWUT_LocationTracking()
+                .OrderByDescending(c => c.timeStamp)
+                .GroupBy(x => x.userId).Select(x => new VWUT_LocationTracking
+                {
+                    userId = x.Key,
+                    timeStamp = x.Select(v => v.timeStamp).FirstOrDefault(),
+                    location = x.Select(v => v.location).FirstOrDefault(),
+                    
+                }).ToArray();
+            if (locationTrackingDatas.Count() > 0)
+            {
+                trackingDatas.LocationTrackings = locationTrackingDatas;
+            }
+            return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
+        }
+
 
     }
 }
