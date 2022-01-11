@@ -33,6 +33,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Personel işletmesi zorunlu alandır." };
             }
 
+            var emails = new SH_User[0];
+            if (user == null)
+            {
+                emails = db.GetSH_UserByEmail(this.email);
+            }
+            else
+            {
+                emails = db.GetSH_UserByEmailWithNotEqualUserId(this.email, user.id);
+            }
+
+            if (emails.Count() > 0)
+            {
+                return new ResultStatus { result = false, message = "Email Adresi Kullanılıyor" };
+            }
+
             var company = db.GetVWCMP_CompanyById(this.CompanyId.Value);
             var result = new ResultStatus { result = true };
             if (company.type == (int)EnumCMP_CompanyType.Benimisletmem)
