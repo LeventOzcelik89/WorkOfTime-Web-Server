@@ -155,6 +155,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId).ToDataSourceResult(request);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
+        [PageInfo(" Garanti-Teknik Servis'in harcama yapılmış Ürünleri Alan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        public ContentResult GetIndexData()
+        {
+            var data = new VMSV_ServiceModel().GetIndexData();
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
 
     }
 }

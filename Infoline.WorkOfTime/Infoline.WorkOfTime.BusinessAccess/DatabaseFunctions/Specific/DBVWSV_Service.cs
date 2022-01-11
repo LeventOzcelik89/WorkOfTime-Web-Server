@@ -27,17 +27,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
     [EnumInfo(typeof(SV_Service), "stage")]
     public enum EnumSV_ServiceStages
     {
-        [Description("Cihaz Teslim Alındı"), Generic("icon", "fa fa-bookmark",  "description", "Cihaz Teslim Alındı")]
+        [Description("Cihaz Teslim Alındı"), Generic("icon", "fa fa-bookmark", "color", "0267C1", "description", "Cihaz Teslim Alındı")]
         DeviceHanded=0,
-        [Description("Tespit"), Generic("icon", "fa fa-cogs", "description", "Cihazın Sornuları Tespit Ediliyor")]
+        [Description("Tespit"), Generic("icon", "fa fa-cogs", "color", "0075C4", "description", "Cihazın Sornuları Tespit Ediliyor")]
         Detection = 1,
-        [Description("Kullanıcı Onayı"), Generic("icon", "fa fa-user", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
+        [Description("Kullanıcı Onayı"), Generic("icon", "fa fa-user", "color", "EFA00B", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
         UserPermission = 2,
-        [Description("Tamir Başladı"), Generic("icon", "fa fa-wrench", "description", "Tamir Süreci Başladı")]
+        [Description("Tamir Başladı"), Generic("icon", "fa fa-wrench", "color", "D65108", "description", "Tamir Süreci Başladı")]
         Fixing= 3,
-        [Description("Kalite Kontrol"), Generic("icon", "fa fa-check", "description", "Kalite Kontrol Süreci Başladı")]
+        [Description("Kalite Kontrol"), Generic("icon", "fa fa-check", "color", "591F0A", "description", "Kalite Kontrol Süreci Başladı")]
         Qualitycontrol = 4,
-        [Description("Müşteriye Teslim"), Generic("icon", "fa fa-truck", "description", "Kalite Kontrol Başarılı, Cihaz Müşteriye Telsim Ediliyor")]
+        [Description("Müşteriye Teslim"), Generic("icon", "fa fa-truck", "color", "61E786", "description", "Kalite Kontrol Başarılı, Cihaz Müşteriye Telsim Ediliyor")]
         Delivery = 5,
     }
     [EnumInfo(typeof(SV_Service), "Actions")]
@@ -88,6 +88,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
             {
                 return db.Table<VWSV_Service>().Where(x => x.code == code &&x.id==id).Execute().FirstOrDefault();
+            }
+        }
+        public int GetVWSV_ServiceProductCount(DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWSV_Service>().GroupBy(x=>x.inventoryId).Execute().Count();
             }
         }
     }

@@ -596,5 +596,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return SpendedProducts;
 
         }
+        public ResultStatus GetIndexData()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var result = new ResultStatus { result = true };
+            var getCount = db.GetVWSV_ServiceCount(new BEXP());
+            var getCountFixed = db.GetVWSV_ServiceCount(new BEXP { Operand1=(COL)"lastOperationStatus", Operand2=(VAL)((short)EnumSV_ServiceActions.Done),Operator=BinaryOperator.Equal });
+            var getCountWaiting = db.GetVWSV_ServiceCount(new BEXP { Operand1=(COL)"stage", Operand2=(VAL)((short)EnumSV_ServiceStages.UserPermission),Operator=BinaryOperator.Equal });
+            var diffirent = db.GetVWSV_ServiceProductCount();
+
+
+            return new ResultStatus { result = true, objects = new { total = getCount, fixeds = getCountFixed, waiting=getCountWaiting,diff= diffirent } };
+
+        }
     }
 }
