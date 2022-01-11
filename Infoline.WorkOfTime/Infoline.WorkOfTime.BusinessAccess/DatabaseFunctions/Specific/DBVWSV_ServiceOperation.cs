@@ -13,7 +13,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Done = 300,
         [Description("Süreç Durduruldu"), Generic("icon", "fa fa-pause", "color", "FFBF00", "description", "Süreç Durduruldu", "order", "3")]
         Waiting = 2,
-        [Description("Süreç Yeniden Başladı"), Generic("icon", "fa fa-stop", "color", "FFBF00", "description", "Süreç Yeniden Başladı", "order", "4")]
+        [Description("Süreç Yeniden Başladı"), Generic("icon", "fa fa-stop", "color", "CA2E55", "description", "Süreç Yeniden Başladı", "order", "4")]
         Restart = 3,
         [Description("Aşama Geçişi Yapıldı"), Generic("icon", "fa fa-arrow-right", "color", "97CC04", "description", "Aşama Bildirimi Yapıldı", "order", "5")]
         AsamaBildirimi = 5,
@@ -27,7 +27,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         HarcamaBildirildi = 101,
         [Description("Yeni Imei Atandı"), Generic("icon", "fa fa-barcode", "color", "392061", "description", "Yeni Imei Atandı", "order", "10")]
         NewImei = 102,
-        [Description("Teknik Servis Bulgusu Eklendi"), Generic("icon", "fa fa-cogs", "color", "E3C16F", "description", "Teknik Servis Bulgusu Eklendi", "order", "11")]
+        [Description("Teknik Servis Bulgusu Eklendi"), Generic("icon", "fa fa-cogs", "color", "392061", "description", "Teknik Servis Bulgusu Eklendi", "order", "11")]
         PartDefinied = 109,
         [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-tasks", "color", "3083DC", "description", "Parça Değişikliği Yapıldı", "order", "12")]
         PartChanged = 108,

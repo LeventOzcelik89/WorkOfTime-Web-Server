@@ -154,6 +154,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
                     status = (int)EnumSV_ServiceOperation.PartDefinied,
                 }.Save(userStatus.user.id, null, trans);
             }
+            if (model.ServiceNotifications != null)
+            {
+                foreach (var item in model.ServiceNotifications)
+                {
+                    dbresult &= new VMSV_ServiceOperationModel
+                    {
+
+                        dataId = item.id,
+                        description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "0",    
+                        dataTable = "PRD_Product",
+                        serviceId = model.serviceId,
+                        status = (short)EnumSV_ServiceOperation.ServicePriceAdded
+                    }.Save(userStatus.user.id, null, trans);
+                }
+            }
             if (dbresult.result)
             {
                 trans.Commit();

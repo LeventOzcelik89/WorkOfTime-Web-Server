@@ -197,6 +197,7 @@
     x.Bound(y => y.warrantyTitle).Title("Garantiye Dahil Mi?").Width(180);
     x.Bound(y => y.problemTypeId_Title).Title("Problem Tipi").Width(180);
     x.Bound(y => y.productId_Title).Title("Ürünü").Width(180);
+    x.Bound(y => y.price).Title("Fiyat").Width(100).ClientTemplate("#:kendo.toString(price,'N2')# ₺");
     x.Bound(y => y.description).Title("Açıklama").Width(180);
 })
 .Selectable(x => x.Mode(GridSelectionMode.Multiple))
@@ -436,8 +437,8 @@ else
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
                     else if (dataEnum == 5) {
-                        var isHaveWarranty = '@(Model.Problems.Any(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == true))';
-                        if (isHaveWarranty == "True") {
+                        var isHaveWarranty = '@(Model.Problems.Where(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == false).Count()>0)';
+                        if (isHaveWarranty == "False") {
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
                         }
                         var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");

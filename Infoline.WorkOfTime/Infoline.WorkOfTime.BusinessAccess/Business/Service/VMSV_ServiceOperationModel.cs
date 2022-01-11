@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var getService = new VMSV_ServiceModel { id = serviceId.Value }.Load();
             if (this.status==(short)EnumSV_ServiceOperation.AskCustomer)
             {
-             
+                SendAskCustomerMail();
             }
             if (this.CompanyId.HasValue)
             {
@@ -145,6 +145,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        private void SendAskCustomerMail()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var data = new VMSV_ServiceModel {id=this.serviceId.Value }.Load();
+            var imei = db.GetPRD_InventoryById(data.inventoryId.Value);
+            if (data.Customer.email != null)
+            {
+                var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
+                text += "<p>" + imei.serialcode + " kodlu cihaz için teknik servis bedelleri ektedir.</p>";
+
+                text += "<p>Bilgilerinize.</p>";
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true, null, null, new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/Print?id={data.id}" }, false);
+            }
+
+        }
+
         public ResultStatus Upsert(Guid userId)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -158,7 +174,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     productId = x.productId,
                     quantity = x.quantity,
                     serialCodes = x.serialCodes??null,
-                    unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentBuyingPrice,
+                    unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentSellingPrice,
                 }).ToList();
                 var transId = Guid.NewGuid();
                 var transModel = new VMPRD_TransactionModel
@@ -200,7 +216,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             created = DateTime.Now,
                             createdby = this.createdby,
                             dataId = item.id,
-                            description= db.GetVWPRD_ProductById(item.id)?.currentBuyingPrice.ToString()??"",
+                            description= db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString()??"",
                             dataTable = "PRD_Product",
                             serviceId = this.serviceId,
                             status = (short)EnumSV_ServiceOperation.ServicePriceAdded

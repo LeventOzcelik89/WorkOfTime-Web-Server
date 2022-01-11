@@ -29,9 +29,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
     {
         [Description("Cihaz Teslim Alındı"), Generic("icon", "fa fa-bookmark", "color", "0267C1", "description", "Cihaz Teslim Alındı")]
         DeviceHanded=0,
-        [Description("Tespit"), Generic("icon", "fa fa-cogs", "color", "0075C4", "description", "Cihazın Sornuları Tespit Ediliyor")]
+        [Description("Tespit"), Generic("icon", "fa fa-cogs", "color", "0075C4", "description", "Cihazın Sorunlaru Tespit Ediliyor")]
         Detection = 1,
-        [Description("Kullanıcı Onayı"), Generic("icon", "fa fa-user", "color", "EFA00B", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
+        [Description("Müşteri Onayı"), Generic("icon", "fa fa-user", "color", "EFA00B", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
         UserPermission = 2,
         [Description("Tamir Başladı"), Generic("icon", "fa fa-wrench", "color", "D65108", "description", "Tamir Süreci Başladı")]
         Fixing= 3,
@@ -61,7 +61,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Harcama = 101,
         [Description("Yeni Imei Ata"), Generic("icon", "fa fa-barcode", "color", "0496FF", "description", "Yeni Imei Ata", "attr", "data-model=true data-enum=102 id=transferstart  data-href=/SV/VWSV_ChangedDevice/Insert?serviceId={{}}&oldInventoryId=%% data-task=Insert data-method=GET ")]
         NewImei = 102,
-        [Description("Cihaz Problemlerini Belirle"), Generic("icon", "fa fa-question", "color", "392061", "description", "Cihaz Problemlerini Belirle", "attr", "data-model=true data-enum=108 id=transferstart  data-href=/SV/VWSV_DeviceProblem/AddMultipleDeviceProblem?serviceId={{}}&productId={}&inventoryId=[] data-task=Insert data-method=GET ")]
+        [Description("Cihaz Problemlerini Belirle"), Generic("icon", "fa fa-cogs", "color", "392061", "description", "Cihaz Problemlerini Belirle", "attr", "data-model=true data-enum=108 id=transferstart  data-href=/SV/VWSV_DeviceProblem/AddMultipleDeviceProblem?serviceId={{}}&productId={}&inventoryId=[] data-task=Insert data-method=GET ")]
         ChancingPart = 108,
         [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız", "attr", "data-model=false data-enum=200 id=transferstart  data-href=/SV/VWSV_ServiceOperation/QualityCheck?serviceId={{}}&status=False data-task=Insert data-method=POST")]
         QualityControllNot= 200,

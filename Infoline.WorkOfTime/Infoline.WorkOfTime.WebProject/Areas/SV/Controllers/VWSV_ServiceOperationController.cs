@@ -129,9 +129,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 		[AllowEveryone]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
+			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			model.description = "Bir Sonraki Aşamaya Geçildi!";
+			var getService = db.GetSV_ServiceById(model.serviceId.Value);
+			var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
+			
+			model.description = $"{stages.Where(x=>(Convert.ToInt32(x.Key)==getService.stage+1)).FirstOrDefault().Value} Aşamasına Geçildi";
 			var dbresult = model.Save(userStatus.user.id);
             if (model.status!= (short)EnumSV_ServiceActions.Done)
             {

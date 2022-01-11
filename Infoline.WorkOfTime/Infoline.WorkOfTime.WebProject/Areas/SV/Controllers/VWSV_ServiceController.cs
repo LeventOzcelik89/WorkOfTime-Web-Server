@@ -119,7 +119,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
-        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Ver Çıktı Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [AllowEveryone]
+        [ExportPDF]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Ver Çıktı Sayfası")]
         public ActionResult PrintEnd(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
