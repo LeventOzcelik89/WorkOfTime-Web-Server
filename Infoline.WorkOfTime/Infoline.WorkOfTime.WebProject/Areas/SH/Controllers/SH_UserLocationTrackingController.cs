@@ -46,18 +46,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         {
             var db = new WorkOfTimeDatabase();
             var trackingDatas = new SH_UserLocationTrackingMap();
-            var locationTrackingDatas = db.GetVWUT_LocationTracking()
-                .OrderByDescending(c => c.timeStamp)
-                .GroupBy(x => x.userId).Select(x => new VWUT_LocationTracking
+            var locationTrackingDatas = db.GetVWUT_LocationConfigUser()
+                .GroupBy(x => x.userId_Title).Select(x => new VWUT_LocationConfigUser
                 {
-                    userId = x.Key,
+                    userId_Title = x.Key,
                     timeStamp = x.Select(v => v.timeStamp).FirstOrDefault(),
-                    location = x.Select(v => v.location).FirstOrDefault(),
-                    
+                    lastLocation = x.Select(v => v.lastLocation).FirstOrDefault(),
+                    userId = x.Select(v => v.userId).FirstOrDefault(),
+                    title = x.Select(v => v.title).FirstOrDefault()
+
                 }).ToArray();
             if (locationTrackingDatas.Count() > 0)
             {
-                trackingDatas.LocationTrackings = locationTrackingDatas;
+                trackingDatas.LocationTrackingsAll = locationTrackingDatas;
             }
             return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
         }

@@ -9,9 +9,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
     [EnumInfo(typeof(UT_LocationConfigUser), "isTrackingActive")]
     public enum EnumUT_LocationConfigUserisTrackingActive
     {
-        [Description("Evet")]
-        Evet = 0,
         [Description("Hayır")]
+        Evet = 0,
+        [Description("Evet")]
         Hayir = 1
     }
 
