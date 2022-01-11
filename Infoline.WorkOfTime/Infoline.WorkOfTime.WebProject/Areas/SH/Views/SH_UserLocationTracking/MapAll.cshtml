@@ -73,7 +73,7 @@
                             $(".btn-bar.right").animate({ right: 15 }, 200);
                         });
                     }
-                },
+                },   
                 AllUsers: function (elem, target) {
 
                     var hasActive = $(elem).hasClass("active");
@@ -174,16 +174,16 @@
 
                 if (page.defines.filteredData != undefined) {
 
-                    var trackingDatas = page.defines.filteredData.LocationTrackings;
+                    var trackingDatas = page.defines.filteredData.LocationTrackingsAll;
                     if (trackingDatas != null) {
 
                         if (trackingDatas.length > 0) {
                             $.each($.Enumerable.From(trackingDatas).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
 
-                                if (data.location != null) {
+                                if (data.lastLocation != null) {
                                     if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4) ) {
 
-                                        var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.location);
+                                        var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
                                         if (feature) {
                                             feature.set("properties", data);
 
@@ -193,7 +193,7 @@
                                        
                                     }
                                     else  {
-                                        var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.location);
+                                        var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
                                         if (feature) {
                                             feature.set("properties", data);
 
@@ -246,15 +246,6 @@
                     MesajWarning("Konum bulunamadı.", "Uyarı");
                 }
             },
-            onChangeDate: function () {
-                    page.getDataAndApply();
-            },
-            getDataAndApply: function () {
-                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', { }, function (res) {
-                    page.defines.filteredData = res;
-                    page.applyFilter();
-                }, "Konumlar yükleniyor..");
-            },
             search: function (_this) {
                 var type = $(_this).attr("data-content");
                 var key = $(_this).val();
@@ -295,6 +286,10 @@
 
                 $('[data-target=".search-content"]').attr("data-placement", "left");
                 $('[data-target=".search-content"]').tooltip();
+                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
+                    page.defines.filteredData = res;
+                    page.applyFilter();
+                }, "Konumlar yükleniyor..");
             })
             .on("click", '[data-name="filterType"]', function (e) {
                 var _this = $(this);
@@ -357,8 +352,8 @@
 
                         var elem = $($('#selectedPerson').html());
                         var personelInfos = page.defines.filteredData;
-                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderBy(x => x.timeStamp).FirstOrDefault();
-                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackings).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackingsAll).OrderBy(x => x.timeStamp).FirstOrDefault();
+                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData.LocationTrackingsAll).OrderByDescending(x => x.timeStamp).FirstOrDefault();
                         var locations = prop.location.split('(')[1].replace(')', "");
                         var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
                         var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
@@ -382,32 +377,6 @@
 
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
 
-    <div class="btn-bar" style="width:100%;top:2%;">
-        <div style="display: inherit;margin: 0 auto;">
-
-          
-            <div class="col-md-4 datetimeTemp">
-                @(Html.Akilli().DateTimePicker("StartDateTime")
-                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
-                            {
-                                {"class", "form-control"},
-                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
-                            }).MaxDateElement("EndDateTime").Events(e => { e.Change("page.onChangeDate"); }))
-
-
-            </div>
-            <div class="col-md-4 datetimeTemp" style="margin-left: 270px;">
-                @(Html.Akilli().DateTimePicker("EndDateTime")
-                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
-                                    {
-                                        {"class", "form-control"},
-                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
-                                    }).MinDateElement("StartDateTime").Events(e => { e.Change("page.onChangeDate"); }))
-            </div>
-        </div>
-
-    </div>
-
     <div class="btn-bar left top animated slideInLeft" style="top: 140px;">
         <div class="btn-container m-b-lg">
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
@@ -415,7 +384,6 @@
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.AllUsers(this)" data-placement="right" data-original-title="Personel Bilgileri"><i class="fa fa-child"></i></button>
         </div>
     </div>
 
@@ -433,9 +401,8 @@
             <table class="slider">
                 <tbody>
                     <tr>
-                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">İlk Konum</td>
-                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">Konum</td>
-                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #f8ac59;padding: 0 10px 0 10px;">Son Konum</td>
+                        <td class="category" style="height: 48px;width: 230px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı</td>
+                        <td class="category" style="height: 48px;width: 230px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı</td>
                     </tr>
                 </tbody>
             </table>
@@ -447,7 +414,6 @@
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectCompany" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
-            <button id="PersonelListesi" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.AllUsers(this, 'selectedPerson')"><i class="fa fa-child"></i></button>
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
@@ -515,60 +481,6 @@
                                 {"class", "form-control"},
                                 {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
                             }).MaxDateElement("EndDateTime").Events(e => { e.Change("page.onChangeDate"); }))
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</script>
-<script type="text/template" id="PersonelListesi">
-    <div class="pan-content">
-        <div class="pan-head clearfix" style="margin-left: 15px;">
-            <div style="padding-top: 7px;">
-                <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL BİLGİLERİ</span>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="clearfix">
-
-            </div>
-            <div class="cardPerson" style="padding-bottom: 10px;">
-                <div class="col-md-2">
-                    <a href="#">
-                        <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
-                    </a>
-                </div>
-                <div class="col-md-10">
-                    <nav class="nav">
-                        <ul>
-                            <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
-                            <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-
-            <div class="pan-bodyCustom">
-                <div class="col-md-12">
-                    <div class="panContentPresentation">
-                        <div class="card col-md-12">
-                            <header class="header">
-                                <div class="card-details">
-                                    <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
-                                </div>
-                            </header>
-                            <nav class="nav">
-                                <ul>
-                                    <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
-                                    <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
-                                    <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
-                                    <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
-                                    <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
-                                </ul>
-                            </nav>
                         </div>
                     </div>
                 </div>
