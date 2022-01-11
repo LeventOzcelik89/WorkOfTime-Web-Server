@@ -391,7 +391,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                  text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
 
                 text += "<p>Bilgilerinize.</p>";
-                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true,null,null,new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/Print?serviceId={data.id}"},false);
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true,null,null,new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/Print?id={data.id}"},false);
             }
 
 
