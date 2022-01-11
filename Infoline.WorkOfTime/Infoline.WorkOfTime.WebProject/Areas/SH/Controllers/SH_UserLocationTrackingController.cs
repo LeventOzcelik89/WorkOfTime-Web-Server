@@ -48,12 +48,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var trackingDatas = new SH_UserLocationTrackingMap();
             var locationTrackingDatas = db.GetVWUT_LocationTracking()
                 .OrderByDescending(c => c.timeStamp)
-                .GroupBy(x => x.userId).Select(x => new VWUT_LocationTracking
+                .GroupBy(x => x.userId_Title).Select(x => new VWUT_LocationTracking
                 {
-                    userId = x.Key,
+                    userId_Title = x.Key,
                     timeStamp = x.Select(v => v.timeStamp).FirstOrDefault(),
                     location = x.Select(v => v.location).FirstOrDefault(),
-                    
+                    userId = x.Select(v => v.userId).FirstOrDefault(),
+                    title = x.Select(v => v.title).FirstOrDefault()
+
                 }).ToArray();
             if (locationTrackingDatas.Count() > 0)
             {
