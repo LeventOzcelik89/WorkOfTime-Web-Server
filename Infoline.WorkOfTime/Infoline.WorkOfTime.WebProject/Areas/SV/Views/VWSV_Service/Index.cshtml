@@ -14,18 +14,14 @@
     page = {
         load: function (e) {
         
-            var data = $("#VWSV_Service").data("kendoGrid").dataSource.data();
-            if (data.length > 0) {
-                $("#total").text(data.length);
-                var solved = $.Enumerable.From(data).Where(x => x.lastOperationStatus ==300).ToArray().length;
-                var customer = $.Enumerable.From(data).Where(x => x.stage ==2).ToArray().length;
-                var totalCamed = $.Enumerable.From(data).GroupBy(x => x.inventoryId).ToArray().length;
-                $("#solved").text(solved);
-                $("#customer").text(customer);
-                $("#device").text(totalCamed);
-             
-
-            }
+            GetJsonDataFromUrl("/SV/VWSV_Service/GetIndexData", "", function (data) {
+                data = data.objects;
+                    $("#total").text(data.total);
+                    $("#solved").text(data.fixeds);
+                    $("#customer").text(data.wating);
+                    $("#device").text(data.diff);
+            });
+            
 
 
         }

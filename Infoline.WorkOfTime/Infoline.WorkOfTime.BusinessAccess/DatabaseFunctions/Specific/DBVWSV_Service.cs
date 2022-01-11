@@ -90,12 +90,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWSV_Service>().Where(x => x.code == code &&x.id==id).Execute().FirstOrDefault();
             }
         }
-        public int GetVWSV_ServiceProductCount(DbTransaction tran = null)
-        {
-            using (var db = GetDB(tran))
-            {
-                return db.Table<VWSV_Service>().GroupBy(x=>x.inventoryId).Execute().Count();
-            }
-        }
     }
 }

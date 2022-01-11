@@ -224,7 +224,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (result.result)
             {
-                SendMail();
+                SendMailForDelivery();
                 return new ResultStatus
                 {
                     result = true,
@@ -380,7 +380,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return this;
         }
-        public void SendMail(int type = 0)
+        public void SendMailForDelivery()
         {
             db = db ?? new WorkOfTimeDatabase();
             var data = this.Load();
@@ -388,20 +388,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
-                if (type == 1)
-                {
+                 text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
 
-                    text += "<p>Müşterinin Onayına Sun</p>";
-
-                }
-                else
-                {
-
-                    text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
-
-                }
                 text += "<p>Bilgilerinize.</p>";
-                new Email().Template("Template1", "satinalma.jpg", TenantConfig.Tenant.TenantName + " | WorkOfTime | Teknik Servis", text).Send((Int16)EmailSendTypes.SatinAlma, data.Customer.email, "Teknik Servis", true);
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true,null,null,new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/Print?serviceId={data.id}"},false);
             }
 
 
@@ -600,10 +590,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
-            var getCount = db.GetVWSV_ServiceCount(new BEXP());
+            var getCount = db.GetVWSV_ServiceCount(new BEXP {Operand1=(COL)"id",Operator=BinaryOperator.IsNotNull});
             var getCountFixed = db.GetVWSV_ServiceCount(new BEXP { Operand1=(COL)"lastOperationStatus", Operand2=(VAL)((short)EnumSV_ServiceActions.Done),Operator=BinaryOperator.Equal });
             var getCountWaiting = db.GetVWSV_ServiceCount(new BEXP { Operand1=(COL)"stage", Operand2=(VAL)((short)EnumSV_ServiceStages.UserPermission),Operator=BinaryOperator.Equal });
-            var diffirent = db.GetVWSV_ServiceProductCount();
+            var diffirent = db.GetVWSV_Service().GroupBy(x => x.inventoryId).Count();
 
 
             return new ResultStatus { result = true, objects = new { total = getCount, fixeds = getCountFixed, waiting=getCountWaiting,diff= diffirent } };

@@ -83,7 +83,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var getService = new VMSV_ServiceModel { id = serviceId.Value }.Load();
             if (this.status==(short)EnumSV_ServiceOperation.AskCustomer)
             {
-                getService.SendMail(1);
+             
             }
             if (this.CompanyId.HasValue)
             {
