@@ -187,7 +187,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Aşama Güncellendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+				FeedBack = dbresult.result ? feedback.Success("Aşama Güncellendi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Güncelleme işlemi başarısız")
 			};
 			return Json(result,JsonRequestBehavior.AllowGet);
 

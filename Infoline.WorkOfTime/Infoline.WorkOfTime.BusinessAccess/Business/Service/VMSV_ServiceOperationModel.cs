@@ -287,7 +287,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = this.created,
                     createdby = userId,
                     description = "Kalite Kontrol Başarılı",
-                    serviceId = this.id,
+                    serviceId = serviceId,
                     status = (int)EnumSV_ServiceOperation.QualityControl,
                 }.Save(userId, null, this.trans);
             }
@@ -301,9 +301,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = this.created,
                     createdby = userId,
                     description = "Kalite Kontrol Başarısız",
-                    serviceId = this.id,
+                    serviceId = serviceId,
                     status = (int)EnumSV_ServiceOperation.QualityControlNot,
                 }.Save(userId, null, this.trans);
+            }
+            if (result.result)
+            {
+                trans.Commit();
+            }
+            else
+            {
+                Log.Error(result.message);
+                trans.Rollback();
             }
             return result;
         }
