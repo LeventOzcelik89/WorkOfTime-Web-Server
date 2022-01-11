@@ -388,7 +388,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
-                 text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir</p>";
+                 text += "<p>" + imei.serialcode + " kodlu cihaz teknik servisimize gelmiştir. Kabul Formu Ektedir.</p>";
 
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true,null,null,new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/Print?id={data.id}"},false);

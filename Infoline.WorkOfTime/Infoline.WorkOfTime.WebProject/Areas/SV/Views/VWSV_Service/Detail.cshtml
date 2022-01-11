@@ -27,6 +27,14 @@
     .tab-pane {
         padding: 0px !important;
     }
+
+    #left .animated {
+        -webkit-animation-duration: 1s;
+        animation-duration: 5s !important;
+        -webkit-animation-fill-mode: both;
+        animation-fill-mode: both;
+        z-index: 100;
+    }
 </style>
 <div class="animated slideInRight">
     <div id="detailProduction">
@@ -68,11 +76,6 @@
                                 <dt>Form No</dt>
                                 <dd>@Model.code</dd>
                             </dl>
-
-                            <dl class="dl-horizontal">
-                                <dt>Garanti Durumu</dt>
-                                <dd>@Model.WarrantyStatus</dd>
-                            </dl>
                             <dl class="dl-horizontal">
                                 <dt>Garanti Bitiş Tarihi: </dt>
                                 <dd>@Model.WarrantyEnd  </dd>
@@ -89,9 +92,10 @@
                                 <dt>Başlama Tarihi</dt>
                                 <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Started && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
                             </dl>
-                          
-               
-
+                            <dl class="dl-horizontal">
+                                <dt>Tamamlanma Tarihi</dt>
+                                <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
+                            </dl>
                         </div>
                         <div class="col-lg-8">
                             <div class="row">
@@ -124,10 +128,7 @@
                                             <a href="/PRD/VWPRD_Inventory/Detail?id=@Model.VWPRD_Inventory.id" target="_blank" class="text-navy "> <i class="fa fa-link"></i> </a>
                                         </dd>
                                     </dl>
-                                    <dl class="dl-horizontal">
-                                        <dt>Tamamlanma Tarihi</dt>
-                                        <dd>@(Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done&&x.created.HasValue).Count()>0? Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done && x.created.HasValue).FirstOrDefault().created.Value.ToShortDateString():"")</dd>
-                                    </dl>
+                                 
                                 </div>
                                 <div class="col-sm-3">
                                     <div style="width:10%;margin-bottom:10px;vertical-align: inherit;">
@@ -137,8 +138,6 @@
                                     </div>
                                 </div>
                             </div>
-                          
-                        
                         </div>
                     </div>
                 </div>
@@ -149,7 +148,7 @@
                         <a data-toggle="tab" href="#musteri" aria-expanded="true"><i class="fa fa-sliders text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihaz Problemleri(Teknik Servis Bulguları)">
-                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="  fa fa-code-fork text-success"></i></a>
+                        <a data-toggle="tab" href="#tecnic" aria-expanded="true"><i class="  fa fa-cogs  text-success"></i></a>
                     </li>
                     <li data-toggle="tooltip" data-placement="top" title="Cihazın Yanında Gelenler">
                         <a data-toggle="tab" href="#uretimBildirimleri" aria-expanded="false"><i class="fa fa-inbox text-success" aria-hidden="true"></i></a>
@@ -282,7 +281,11 @@
                 </div>
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-4" id="left">
+            <div class="alert  @(Model.WarrantyStatus=="Garanti Dışı"?"alert-danger":"alert-success") " role="alert">
+                <h3 class="text-center   @(Model.WarrantyStatus=="Garanti Dışı"?"infinite animated text-danger flash ":"") "><i class="fa  @(Model.WarrantyStatus=="Garanti Dışı"?"fa-exclamation-triangle":"fa-check")  fa-4x "></i></h3>
+                <h3 class="text-center"><b>@Model.WarrantyStatus</b></h3>
+            </div>
             <div class="tabs-container">
                 <ul class="nav nav-tabs">
                     <li class="active" data-toggle="tooltip" data-placement="top" title="Müşteri Bilgileri">
@@ -291,7 +294,6 @@
                     <li data-toggle="tooltip" data-placement="top" title="Teslim Bilgileri">
                         <a data-toggle="tab" href="#teslimBilgileri" aria-expanded="true"><i class="  fa fa-truck text-success"></i></a>
                     </li>
-
                 </ul>
                 <div class="tab-content" style="margin-bottom:20px">
                     <div class="tab-pane active" id="musteriBilgileri">
@@ -299,7 +301,7 @@
                             <div class="ibox-title">
                                 <h5>Müşteri Bilgileri</h5>
                             </div>
-                            <div class="ibox-content clearfix" >
+                            <div class="ibox-content clearfix">
                                 <dl class="dl-horizontal">
                                     <dt>Müşteri Adı Soyadı</dt>
                                     <dd>@Model.Customer.fullName</dd>
@@ -340,7 +342,6 @@
                                         <dd>@Model.companyId_Title</dd>
                                     </dl>
                                 }
-
                                 <dl class="dl-horizontal">
                                     <dt>Teslim Eden Açıklaması</dt>
                                     <dd>@Model.deliveryTypeDescription</dd>
@@ -369,61 +370,59 @@
                     </div>
                 </div>
             </div>
-                <div class="ibox-content">
-                    <div class="tab-content" style="max-height: 700px;overflow: scroll;">
-                        <div class="client-detail">
-                            <div id="vertical-timeline" class="vertical-container dark-timeline">
-                                @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
+            <div class="ibox-content">
+                <div class="tab-content" style="max-height: 700px;overflow: scroll;">
+                    <div class="client-detail">
+                        <div id="vertical-timeline" class="vertical-container dark-timeline">
+                            @foreach (var operation in Model.ServiceOperations.OrderByDescending(x => x.created))
+                            {
+                                var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
+                                if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
                                 {
-                                    var OpsEnum = operationEnums.Where(a => Convert.ToInt32(a.Key) == operation.status.Value).FirstOrDefault();
-                                    if (operation.status.Value != (short)EnumSV_ServiceOperation.ServicePriceAdded)
-                                    {
-                                        <div class="vertical-timeline-block" data-select="@operation.status">
-                                            <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
-                                                <i class="@OpsEnum.Generic["icon"]"></i>
-                                            </div>
-                                            <div class="vertical-timeline-content">
-                                                <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
-                                                <p class="clearfix ">
-                                                    @Html.Raw(operation.description)
-                                                    <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
-                                                </p>
-                                                <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
-                                            </div>
+                                    <div class="vertical-timeline-block" data-select="@operation.status">
+                                        <div class="vertical-timeline-icon" style="background-color:#@OpsEnum.Generic["color"];color: white;">
+                                            <i class="@OpsEnum.Generic["icon"]"></i>
                                         </div>
-                                    }
+                                        <div class="vertical-timeline-content">
+                                            <h5 class="text-left">@OpsEnum.Generic["description"]</h5>
+                                            <p class="clearfix ">
+                                                @Html.Raw(operation.description)
+                                                <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", operation.created)</small>
+                                            </p>
+                                            <div class="small text-muted m-t-sm"> İşlem Yapan :  @operation.createdby_Title </div>
+                                        </div>
+                                    </div>
                                 }
-                            </div>
+                            }
                         </div>
                     </div>
                 </div>
             </div>
-                </div>
-            </div>
-            @if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
+        </div>
+    </div>
+</div>
+@if (Model.lastOperationStatus == (short)EnumSV_ServiceOperation.Canceled)
+{
+}
+else
+{
+    <div class="fixedStart">
+        <input type="checkbox" checked id="fixed">
+        <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
+        <div class="fix-buttons" id="buttons">
+            @foreach (var button in buttons)
             {
-
+                if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
+                {
+                    <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
+                        <i class="@button.Generic["icon"]"></i>
+                    </a>
+                }
             }
-            else
-            {
-                <div class="fixedStart">
-                    <input type="checkbox" checked id="fixed">
-                    <label title="" for="fixed" id="fixed"><i class="fa-2x fa fa-plus"> </i></label>
-                    <div class="fix-buttons" id="buttons">
-                        @foreach (var button in buttons)
-                        {
-                            if (Model.ButtonPermission.Contains((EnumSV_ServiceActions)Convert.ToInt32(button.Key)))
-                            {
-                                <a data-original-title="@button.Generic["description"]" style="background-color:#@button.Generic["color"]" @button.Generic["attr"]>
-                                    <i class="@button.Generic["icon"]"></i>
-                                </a>
-                            }
-                        }
-                    </div>
-                </div>
-            }
-
-            <script type="text/javascript">
+        </div>
+    </div>
+}
+<script type="text/javascript">
     var page = {
         stage:'@Html.Raw(activeStage)',
         stageKey:'@Html.Raw(activeStageKey)',
@@ -455,9 +454,8 @@
                         $(item).attr("data-href", inventoryId)
                     }
                 });
-
             }
-        }   
+        }
                 }
                 if (page.stageKey==2) {
                     $('#deviceProblemAdd').show();
@@ -466,4 +464,4 @@
                     $('#deviceProblemAdd').hide();
                 }
                 page.methods.setButtonServiceId();
-            </script>
+</script>

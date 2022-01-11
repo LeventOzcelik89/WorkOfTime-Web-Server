@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         TransferStart = 0,
         [Description("Süreci İptal Et"), Generic("icon", "fa fa-times", "color", "ff0000", "description", "Süreci İptal Et", "attr", "data-model=true data-enum=1 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=1 data-task=Insert data-method=GET ")]
         Cancel = 1,
-        [Description("Süreci Durdur"), Generic("icon", "fa fa-stop", "color", "FFBF00", "description", "Süreci Durdur", "attr", "data-model=true data-enum=2 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=2 data-task=Insert data-method=GET ")]
+        [Description("Süreci Durdur"), Generic("icon", "fa fa-pause", "color", "FFBF00", "description", "Süreci Durdur", "attr", "data-model=true data-enum=2 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=2 data-task=Insert data-method=GET ")]
         Stop = 2,
         [Description("Süreci Yeniden Başlat"), Generic("icon", "fa fa-play", "color", "FFBF00", "description", "Süreci Yeniden Başlat", "attr", "data-model=true data-enum=3 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=3 data-task=Insert data-method=GET ")]
         ReStart = 3,

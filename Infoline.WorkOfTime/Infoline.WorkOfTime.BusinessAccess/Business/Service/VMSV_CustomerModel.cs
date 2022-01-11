@@ -27,6 +27,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var data = db.GetVWSV_CustomerById(this.id);
             var res = new ResultStatus { result = true };
             var validation = Validator();
+            if (this.code==null)
+            {
+                this.code = BusinessExtensions.B_GetIdCode();
+            }
             if (validation.result == false)
             {
                 return validation;

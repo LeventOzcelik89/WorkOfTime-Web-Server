@@ -64,7 +64,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Servis Kaydı Başarıyla Oluşturuldu", true, Url.Action("Index")) : feedback.Warning("Servis Kaydı Oluşturma İşlemi Başarısız")
+                FeedBack = dbresult.result ? feedback.Success("Servis Kaydı Başarıyla Oluşturuldu", false, Url.Action("Index")) : feedback.Warning("Servis Kaydı Oluşturma İşlemi Başarısız")
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
