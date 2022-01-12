@@ -121,13 +121,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servisin Taşındığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Transfer(VMSV_ServiceOperationModel model)
 		{
 			return View(model);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -152,7 +152,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-		[AllowEveryone]
+		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public ActionResult Upsert(VMSV_ServiceOperationModel model)
 		{
 			model.Transaction = new VWPRD_Transaction();
@@ -160,7 +161,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model.Load());
 		}
 		[HttpPost]
-		[AllowEveryone]
+		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public ActionResult Upsert(VMSV_ServiceOperationModel model,bool?isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -183,7 +185,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-		[AllowEveryone]
+		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public JsonResult QualityCheck(Guid serviceId,bool status) {
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -195,6 +198,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			};
 			return Json(result,JsonRequestBehavior.AllowGet);
 
+		}
+		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
+		public ActionResult Cargo(VMSV_ServiceOperationModel model)
+		{
+			model.Transaction = new VWPRD_Transaction();
+			model.Transaction.type = model.Type;
+			return View(model.Load());
 		}
 	}
 }
