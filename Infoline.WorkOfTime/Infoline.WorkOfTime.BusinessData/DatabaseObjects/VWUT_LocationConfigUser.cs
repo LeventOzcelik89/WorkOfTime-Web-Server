@@ -14,6 +14,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string configName { get; set;}
         public IGeometry  lastLocation { get; set;}
         public string timeStamp { get; set;}
+        public string ProfilePhoto { get; set;}
         public string title { get; set;}
     }
 }

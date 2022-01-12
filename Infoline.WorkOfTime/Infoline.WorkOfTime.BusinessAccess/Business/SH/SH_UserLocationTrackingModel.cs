@@ -1,4 +1,5 @@
-﻿using Infoline.Framework.Database;
+﻿using GeoAPI.Geometries;
+using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -7,11 +8,11 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-	public class SH_UserLocationTrackingModel
-	{
-		private WorkOfTimeDatabase db { get; set; }
-		private DbTransaction trans { get; set; }
-	}
+    public class SH_UserLocationTrackingModel
+    {
+        private WorkOfTimeDatabase db { get; set; }
+        private DbTransaction trans { get; set; }
+    }
     public class SH_UserLocationTrackingMap
     {
         public VWUT_LocationTracking[] LocationTrackings { get; set; }
@@ -21,5 +22,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string Title { get; set; }
         public string ProfilePhoto { get; set; }
         public string Department_Title { get; set; }
+    }
+
+    public class UTLocationUserFilter
+    {
+        public Guid? userId { get; set; } = null;
+        public DateTime StartDateTime { get; set; }
+        public DateTime EndDateTime { get; set; }
     }
 }
