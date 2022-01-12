@@ -25,6 +25,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWPRD_EntegrationImport EntegrationImport { get; set; } = new VWPRD_EntegrationImport();
         public PRD_TitanDeviceActivated PRD_TitanDeviceActivated { get; set; } = new PRD_TitanDeviceActivated();
         public VWPRD_Inventory VWPRD_Inventory { get; set; } = new VWPRD_Inventory();
+        public PRD_EntegrationAction pRD_EntegrationAction { get; set; } = new PRD_EntegrationAction();
         public List<VWPRD_TransactionItem> WastageProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public double TotalWasted { get; set; } = 0;
@@ -65,7 +66,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     ProducedDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).FirstOrDefault().created.Value.ToShortDateString();
                 }
-
+                var findDist = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode);
+                this.pRD_EntegrationAction = findDist;
                 this.Customer = new VMSV_CustomerModel().B_EntityDataCopyForMaterial(customer);
                 var getProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
                 Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
