@@ -146,7 +146,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
                 }
                 dbresult &= new VMSV_ServiceOperationModel
                 {
-                    description = "Değişmesi Gereken Parçalar Belirlendi",
+                    description = "Teknik Servis Bulgusu Eklendi",
                     serviceId = model.serviceId,
                     status = (int)EnumSV_ServiceOperation.PartDefinied,
                 }.Save(userStatus.user.id, null, trans);
