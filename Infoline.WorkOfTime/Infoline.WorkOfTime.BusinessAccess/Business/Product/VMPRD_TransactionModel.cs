@@ -787,6 +787,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.CihazDegisimi;
                 case EnumPRD_TransactionType.TeknikServisTransferi:
                     return EnumPRD_InventoryActionType.TeknikServiceGeldi;
+                case EnumPRD_TransactionType.TeknikServisCikis:
+                    return EnumPRD_InventoryActionType.TeknikServisdenCikti;
                 default:
                     return null;
             }
@@ -829,6 +831,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return EnumPRD_InventoryActionType.CihazDegisimi;
                 case EnumPRD_TransactionType.TeknikServisTransferi:
                     return EnumPRD_InventoryActionType.TeknikServiceGeldi;
+                case EnumPRD_TransactionType.TeknikServisCikis:
+                    return EnumPRD_InventoryActionType.TeknikServisdenCikti;
                 
                 default:
                     return null;

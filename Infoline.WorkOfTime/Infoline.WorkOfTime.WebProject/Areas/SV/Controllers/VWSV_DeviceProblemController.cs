@@ -108,19 +108,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [PageInfo("Servise Ait Cihazın Sorunlarının Silindiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost]
-        public JsonResult Delete(string[] id)
+        public JsonResult Delete(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-
-            var item = id.Select(a => new SV_DeviceProblem { id = new Guid(a) });
-
-            var dbresult = db.BulkDeleteSV_DeviceProblem(item);
+            var dbresult = new VMSV_DeviceProblemModel { id = id }.Delete(userStatus.user.id);
 
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success("Cihaz Sorunu Silme İşlemi Başarılı") : feedback.Warning("Cihaz Sorunu Silme İşlemi Başarısız")
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
@@ -149,10 +146,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
                 }
                 dbresult &= new VMSV_ServiceOperationModel
                 {
-                    description = "Değişmesi Gereken Parçalar Belirlendi",
+                    description = "Teknik Servis Bulgusu Eklendi",
                     serviceId = model.serviceId,
                     status = (int)EnumSV_ServiceOperation.PartDefinied,
                 }.Save(userStatus.user.id, null, trans);
+            }
+            if (model.ServiceNotifications != null)
+            {
+                foreach (var item in model.ServiceNotifications)
+                {
+                    dbresult &= new VMSV_ServiceOperationModel
+                    {
+
+                        dataId = item.id,
+                        description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "0",    
+                        dataTable = "PRD_Product",
+                        serviceId = model.serviceId,
+                        status = (short)EnumSV_ServiceOperation.ServicePriceAdded
+                    }.Save(userStatus.user.id, null, trans);
+                }
             }
             if (dbresult.result)
             {

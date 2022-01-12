@@ -49,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		{
 		    
 		    var data = new VMSV_ServiceOperationModel{id=id };
-		    return View(data);
+			return View(data.Load());
 		}
 
 		[PageInfo("Servis Operasyonlarının Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
@@ -121,23 +121,35 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servise Gelen Cihazın Taşındığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Transfer(VMSV_ServiceOperationModel model)
 		{
 			return View(model);
 		}
 
-		[AllowEveryone]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
+			var db = new WorkOfTimeDatabase();
+			var trans = db.BeginTransaction();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			model.description = "Bir Sonraki Aşamaya Geçildi!";
-			var dbresult = model.Save(userStatus.user.id);
+			var getService = db.GetSV_ServiceById(model.serviceId.Value);
+			var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
+			
+			model.description = $"{stages.Where(x=>(Convert.ToInt32(x.Key)==getService.stage+1)).FirstOrDefault().Value} Aşamasına Geçildi";
+			var dbresult = model.Save(userStatus.user.id,null,trans);
             if (model.status!= (short)EnumSV_ServiceActions.Done)
             {
-				dbresult &= new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id);
+				dbresult &= new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id,trans);
 			}
-	
+            if (dbresult.result)
+            {
+				trans.Commit();
+            }
+            else
+            {
+				trans.Rollback();
+            }
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
@@ -148,7 +160,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-		[AllowEveryone]
+		[PageInfo("Fire ve Harcama Bildirimi Yapan Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public ActionResult Upsert(VMSV_ServiceOperationModel model)
 		{
 			model.Transaction = new VWPRD_Transaction();
@@ -156,7 +169,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model.Load());
 		}
 		[HttpPost]
-		[AllowEveryone]
+		[PageInfo("Fire ve Harcama Bildirimi Yapan Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public ActionResult Upsert(VMSV_ServiceOperationModel model,bool?isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -179,7 +193,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-		[AllowEveryone]
+		[PageInfo("Kalite Kontrolun Yapıldığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
 		public JsonResult QualityCheck(Guid serviceId,bool status) {
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -191,6 +206,27 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			};
 			return Json(result,JsonRequestBehavior.AllowGet);
 
+		}
+		[PageInfo("Servisin  Müşteriye Teslim Edilen Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
+		public ActionResult Cargo(VMSV_ServiceOperationModel model)
+		{
+			return View(model);
+		}
+		[HttpPost]
+		[PageInfo("Servisin  Müşteriye Teslim Edilen", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
+		public JsonResult Cargo(VMSV_ServiceOperationModel model,bool?isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = model.Cargo(userStatus.user.id);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Süreç Tamamlandı", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Kargo Bilgileri Tanımlama  işlemi başarısız")
+			};
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 	}
 }
