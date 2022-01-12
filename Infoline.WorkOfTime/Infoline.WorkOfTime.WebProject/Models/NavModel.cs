@@ -160,10 +160,6 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Çalışma Durumu Raporları", "/SH/VWSH_ShiftTracking/TotalStaffWorkingStatus"));
             personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             personel.AddChild(new Menu("Detaylı Personel Raporları", "/SH/VWSH_UserReport"));
-            if (userStatus.user.id == Guid.Empty)
-            {
-                personel.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
-            }
             personel.AddChild(new Menu("Organizasyon Şeması Yönetimi", "/INV/VWINV_CompanyDepartments"));
             ik.AddChild(personel);
 
@@ -206,6 +202,15 @@ namespace System.Web.Mvc
             cvhavuzu.AddChild(new Menu("Personel Talep İşlemleri", "/HR/VWHR_StaffNeeds/MyIndex"));
             cvhavuzu.AddChild(new Menu("Mülakatlar", "/HR/VWHR_PlanPerson/MyIndex"));
             ik.AddChild(cvhavuzu);
+
+            var personeltakip = new Menu("Personel Takip İşlemleri");
+            if (userStatus.user.id == Guid.Empty)
+            {
+                personeltakip.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
+            }
+            personeltakip.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/SH_UserLocationTracking/MapAll"));
+            ik.AddChild(personeltakip);
+
             return ik;
         }
 

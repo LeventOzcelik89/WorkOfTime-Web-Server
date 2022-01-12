@@ -1,4 +1,4 @@
-﻿
+﻿@model UTLocationUserFilter
 @{
     ViewBag.Title = "Personel Takip Haritası";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -251,9 +251,10 @@
             onChangeDate: function () {
                 var startDateTime = $('#StartDateTime').data('kendoDateTimePicker').value();
                 var endDateTime = $('#EndDateTime').data('kendoDateTimePicker').value();
-                var personId = $('#PersonSearching').data('kendoDropDownList').value();
+                var personId = $('#userId').data('kendoDropDownList').value();
                 if (personId != undefined && personId != "") {
                     page.getDataAndApply(personId, startDateTime, endDateTime);
+                    page.applyFilter();
                 }
             },
             getDataAndApply: function (userId, startDateTime, endDateTime) {
@@ -385,6 +386,11 @@
                 }
             });
     </script>
+    <script>
+        $(document).on("ready", function () {
+            page.onChangeDate();
+        });
+    </script>
 }
 
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
@@ -395,7 +401,7 @@
             <div class="col-md-4">
                 <div id="PersonSearch">
                     @(Html.Akilli()
-                                .DropDownList("PersonSearching")
+                                .DropDownListFor(a => a.userId)
                                 .OptionLabel("Satış Personeli Ara")
                                 .MinLength(0)
                                 .DataTextField("FullName")
@@ -409,7 +415,7 @@
                 </div>
             </div>
             <div class="col-md-4 datetimeTemp">
-                @(Html.Akilli().DateTimePicker("StartDateTime")
+                @(Html.Akilli().DateTimePickerFor(a => a.StartDateTime)
                             .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
                             {
                                 {"class", "form-control"},
@@ -419,7 +425,7 @@
 
             </div>
             <div class="col-md-4 datetimeTemp" style="margin-left: 270px;">
-                @(Html.Akilli().DateTimePicker("EndDateTime")
+                @(Html.Akilli().DateTimePickerFor(a => a.EndDateTime)
                                     .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
                                     {
                                         {"class", "form-control"},

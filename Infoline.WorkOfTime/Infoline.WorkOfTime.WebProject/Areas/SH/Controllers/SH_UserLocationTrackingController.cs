@@ -11,9 +11,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
     public class SH_UserLocationTrackingController : Controller
     {
         [PageInfo("Personel Takip Haritası", SHRoles.IdariPersonelYonetici)]
-        public ActionResult Map()
+        public ActionResult Map(UTLocationUserFilter model)
         {
-            return View();
+            return View(model);
         }
 
         [PageInfo("Personel Takip Haritası", SHRoles.IdariPersonelYonetici)]
@@ -44,23 +44,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         [PageInfo("Personel İzleme Haritası Data Metodu", SHRoles.IdariPersonelYonetici)]
         public ContentResult GetMapDatas()
         {
-            var db = new WorkOfTimeDatabase();
-            var trackingDatas = new SH_UserLocationTrackingMap();
-            var locationTrackingDatas = db.GetVWUT_LocationConfigUser()
-                .GroupBy(x => x.userId_Title).Select(x => new VWUT_LocationConfigUser
-                {
-                    userId_Title = x.Key,
-                    timeStamp = x.Select(v => v.timeStamp).FirstOrDefault(),
-                    lastLocation = x.Select(v => v.lastLocation).FirstOrDefault(),
-                    userId = x.Select(v => v.userId).FirstOrDefault(),
-                    title = x.Select(v => v.title).FirstOrDefault()
 
-                }).ToArray();
-            if (locationTrackingDatas.Count() > 0)
-            {
-                trackingDatas.LocationTrackingsAll = locationTrackingDatas;
-            }
-            return Content(Infoline.Helper.Json.Serialize(trackingDatas), "application/json");
+            //  Get LocationConfigUsers
+
+
+            var db = new WorkOfTimeDatabase();
+            var locationTrackingDatas = db.GetVWUT_LocationConfigUser().ToList();
+            
+            return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
 
 
