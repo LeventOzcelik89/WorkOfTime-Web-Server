@@ -67,7 +67,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     ProducedDate = findManiDate.Where(x => x.type == (int)EnumPRD_InventoryActionType.Uretildi).FirstOrDefault().created.Value.ToShortDateString();
                 }
                 var findDist = db.GetPRD_EntegrationActionBySerialNumbersOrImei(findInventory.serialcode);
-                this.pRD_EntegrationAction = findDist;
+                this.pRD_EntegrationAction = findDist ?? new PRD_EntegrationAction();
                 this.Customer = new VMSV_CustomerModel().B_EntityDataCopyForMaterial(customer);
                 var getProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
                 Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
