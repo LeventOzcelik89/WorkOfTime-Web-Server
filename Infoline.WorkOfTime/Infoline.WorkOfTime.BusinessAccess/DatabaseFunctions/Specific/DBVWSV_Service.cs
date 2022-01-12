@@ -67,7 +67,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControllNot= 200,
         [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-check-circle", "color", "FF934F", "description", "Kalite Kontrol Başarılı", "attr", "data-model=false data-enum=201 id=transferstart  data-href=/SV/VWSV_ServiceOperation/QualityCheck?serviceId={{}}&status=True data-task=Insert data-method=POST")]
         QualityControl = 201,
-        [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "85BDBF", "description", "Süreci Tamamla", "attr", "data-model=false data-enum=300 id=transferstart data-ask data-href=/SV/VWSV_ServiceOperation/NextStage?serviceId={{}}&status=300 data-task=Insert data-method=POST ")]
+        [Description("Süreci Tamamla"), Generic("icon", "fa fa-check", "color", "85BDBF", "description", "Süreci Tamamla", "attr", "data-model=true data-enum=300 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Cargo?serviceId={{}} data-task=Insert data-method=GET ")]
         Done = 300,
         [Description("Müşteriye Mail Gönder"), Generic("icon", "fa fa-user", "color", "F45B69", "description", "Müşteriye Mail Gönder", "attr", "data-modal=true data-enum=400 id=transferstart  data-href=/SV/VWSV_ServiceOperation/Insert?serviceId={{}}&status=400 data-task=Insert data-method=GET ")]
         AskCustomer = 400,

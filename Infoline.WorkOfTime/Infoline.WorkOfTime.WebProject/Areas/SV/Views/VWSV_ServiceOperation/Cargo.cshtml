@@ -6,11 +6,11 @@
 }
 <script data-selector="modalContainer">
     var page = {
-        inputs={
+        inputs: {
             cargoId: function () {
-                $("#cargoNo").removeAttr("disabled");
-                $("#cargoId").removeAttr("disabled");
-                $("#cargoId").removeAttr("data-disabled");
+                $("#CargoNo").removeAttr("disabled");
+                $("#CargoId").removeAttr("disabled");
+                $("#CargoId").removeAttr("data-disabled");
             }
         }
     }
@@ -22,68 +22,65 @@
     {"id","ServiceForm" },
     { "data-selector", "modalContainer" },
 }))
-@Html.AntiForgeryToken()
-@Html.ValidationSummary(true)
-@Html.HiddenFor(model => model.id)
-@Html.HiddenFor(model => model.serviceId)
-<div class="row">
-    <div class="col-sm-12" id="col4">
-        <div class="ibox">
-            <div class="ibox-content clearfix">
-                <fieldset>
-                    <legend><i class="fa ii-hareketler" /> Teslim Eden Bilgileri</legend>
-                    <div class="form-group">
-                        <div class="col-sm-12">
-                            <label class="control-label label-md req" for="customerType">Teslim Eden Tipi</label>
-                            @(Html.Akilli()
-        .DropDownListFor(model => model.customerType)
-        .OptionLabel("Lütfen Teslim Eden Tipini Seçiniz Seçiniz..")
-        .DataValueField("Id")
-        .DataTextField("enumDescription")
-        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
-        .Sort(x => x.Add("enumKey").Ascending())
-        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "CustomerType")
-        .Execute("enumKey")
-          .Validate(Validations.Required)
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.serviceId)
+    <div class="row">
+        <div class="col-sm-12" id="col4">
+            <fieldset>
+                <legend><i class="fa ii-hareketler" /> Teslim Edilme Bilgileri</legend>
+                <div class="form-group">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md req" for="customerType">Teslim Edilme Tipi</label>
+                        @(Html.Akilli()
+.DropDownListFor(model => model.customerType)
+.OptionLabel("Lütfen Teslim Eden Tipini Seçiniz Seçiniz..")
+.DataValueField("Id")
+.DataTextField("enumDescription")
+.Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+.Sort(x => x.Add("enumKey").Ascending())
+.Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "CustomerType")
+.Execute("enumKey")
+.Validate(Validations.Required)
                             )
-                        </div>
                     </div>
-                    <div class="form-group" data-cascade="#customerType" data-show="1" data-animation="fast">
-                        <div class="col-sm-12">
-                            <label class="control-label label-md" for="companyId">Teslim Eden Bayi</label>
-                            @(Html.Akilli()
-          .DropDownListFor(x => x.CompanyId)
-          .OptionLabel("Bayi Seçiniz..")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('companyTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-          .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))
-          .Sort(x => x.Add("name").Ascending())
-          .Execute("id"))
-                        </div>
+                </div>
+                <div class="form-group" data-cascade="#customerType" data-show="1" data-animation="fast">
+                    <div class="col-sm-12">
+                        <label class="control-label label-md" for="companyId">Teslim Edilen Bayi</label>
+                        @(Html.Akilli()
+.DropDownListFor(x => x.CompanyId)
+.OptionLabel("Bayi Seçiniz..")
+.DataTextField("fullName")
+.DataValueField("id")
+.Template("#=TemplateEngine('companyTemplate',data)#")
+.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+.Filter<VWCMP_Company>(x => x.CMPTypes_Title.Contains("Bayi") || x.CMPTypes_Title.Contains("bayi"))
+.Sort(x => x.Add("name").Ascending())
+.Execute("id"))
                     </div>
-                
-                </fieldset>
-            </div>
-        </div>
-        <div class="ibox" data-cascade="#customerType" data-show="1,2" data-animation="fast">
-            <div class="ibox-content clearfix">
+                </div>
+
+            </fieldset>
+            <div data-cascade="#customerType" data-show="1,2" data-animation="fast">
+
                 <fieldset>
-                    <legend><i class="fa fa-exchange" /> Teslim Bilgileri</legend>
+                    <legend><i class="fa fa-exchange" /> Teslim Edilme Bilgileri</legend>
                     <div class="form-group">
                         <div class="col-sm-12">
-                            <label class="control-label label-md req" for="deliveryType">Teslim Tipi</label>
+                            <label class="control-label label-md req" for="deliveryType">Teslim Edilme Tipi</label>
                             @(Html.Akilli()
-        .DropDownListFor(model => model.deliveryType)
-        .OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
-        .DataValueField("Id")
-        .DataTextField("enumDescription")
-        .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
-        .Sort(x => x.Add("enumKey").Ascending())
-        .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
-        .Execute("enumKey")
-          .Validate(Validations.Required)
+.DropDownListFor(model => model.deliveryType)
+.OptionLabel("Lütfen Teslim Tipini Seçiniz Seçiniz..")
+.DataValueField("Id")
+.DataTextField("enumDescription")
+.Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+.Sort(x => x.Add("enumKey").Ascending())
+.Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "SV_Service" && a.fieldName == "DeliveryType")
+.Execute("enumKey")
+.Validate(Validations.Required)
                             )
                         </div>
                     </div>
@@ -91,16 +88,16 @@
                         <div class="col-sm-12">
                             <label class="control-label label-md " for="cargoId">Kargo Firması</label>
                             @(Html.Akilli()
-          .DropDownListFor(x => x.CargoId)
-          .OptionLabel("Kargo Firması Seçiniz..")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('companyTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-          .Sort(x => x.Add("name").Ascending())
-           .Filter<VWCMP_Company>(x => x.CMPTypes_Title.Contains("kargo") || x.CMPTypes_Title.Contains("Kargo"))
-          .Events(x=>x.Change("page.inputs.cargoId"))
-          .Execute("id"))
+.DropDownListFor(x => x.CargoId)
+.OptionLabel("Kargo Firması Seçiniz..")
+.DataTextField("fullName")
+.DataValueField("id")
+.Template("#=TemplateEngine('companyTemplate',data)#")
+.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+.Sort(x => x.Add("name").Ascending())
+.Filter<VWCMP_Company>(x => x.CMPTypes_Title.Contains("kargo") || x.CMPTypes_Title.Contains("Kargo"))
+.Events(x => x.Change("page.inputs.cargoId"))
+.Execute("id"))
                         </div>
                     </div>
                     <div class="form-group" data-cascade="#deliveryType" data-show="2" data-animation="fast">
@@ -114,7 +111,28 @@
                         </div>
                     </div>
                 </fieldset>
+
             </div>
+            <fieldset>
+                <legend>Açıklama</legend>
+                <div class="form-group">
+                    <div class="col-md-12">
+                        <label class="control-label label-md req" for="description">Açıklama</label>
+                        @Html.TextAreaFor(model => model.description, new Dictionary<string, object>()
+                        {
+                            {"class", "form-control w100"},
+                        }).Validate(Validations.Required)
+                    </div>
+                </div>
+            </fieldset>
+        </div>
+     
+
+
+
+        <div class="buttons">
+            <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+            <button class="btn btn-md btn-success pull-right" type="submit">Kaydet Ve Süreci Tamamla</button>
         </div>
     </div>
-</div>
+}

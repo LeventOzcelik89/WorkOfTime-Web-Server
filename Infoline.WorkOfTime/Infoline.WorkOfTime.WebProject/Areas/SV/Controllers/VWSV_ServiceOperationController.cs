@@ -121,7 +121,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Servisin Taşındığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Servise Gelen Cihazın Taşındığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public ActionResult Transfer(VMSV_ServiceOperationModel model)
 		{
 			return View(model);
@@ -152,7 +152,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Fire ve Harcama Bildirimi Yapan Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
 		public ActionResult Upsert(VMSV_ServiceOperationModel model)
 		{
@@ -161,7 +161,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model.Load());
 		}
 		[HttpPost]
-		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Fire ve Harcama Bildirimi Yapan Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
 		public ActionResult Upsert(VMSV_ServiceOperationModel model,bool?isPost)
 		{
@@ -185,7 +185,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
-		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Kalite Kontrolun Yapıldığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
 		public JsonResult QualityCheck(Guid serviceId,bool status) {
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -199,13 +199,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return Json(result,JsonRequestBehavior.AllowGet);
 
 		}
-		[PageInfo("Servisin  Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Servisin  Müşteriye Teslim Edilen Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 
 		public ActionResult Cargo(VMSV_ServiceOperationModel model)
 		{
-			model.Transaction = new VWPRD_Transaction();
-			model.Transaction.type = model.Type;
-			return View(model.Load());
+			return View(model);
+		}
+		[HttpPost]
+		[PageInfo("Servisin  Müşteriye Teslim Edilen", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+
+		public JsonResult Cargo(VMSV_ServiceOperationModel model,bool?isPost)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = model.Cargo(userStatus.user.id);
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Süreç Tamamlandı", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Kargo Bilgileri Tanımlama  işlemi başarısız")
+			};
+			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 	}
 }

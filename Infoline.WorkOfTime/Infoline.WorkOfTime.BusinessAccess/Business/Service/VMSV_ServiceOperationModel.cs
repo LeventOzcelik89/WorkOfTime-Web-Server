@@ -81,7 +81,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             var getService = new VMSV_ServiceModel { id = serviceId.Value }.Load();
-            if (this.status==(short)EnumSV_ServiceOperation.AskCustomer)
+            if (this.status == (short)EnumSV_ServiceOperation.AskCustomer)
             {
                 SendAskCustomerMail();
             }
@@ -104,7 +104,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
                     unitPrice = getProduct.currentSellingPrice,
-                    
+
                 };
                 var transModelCompanyId = new VMPRD_TransactionModel
                 {
@@ -123,7 +123,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     id = Guid.NewGuid(),
                 };
                 res &= transModelCompanyId.Save(this.createdby, trans);
-             
+
             }
             res &= db.InsertSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), this.trans);
             if (!res.result)
@@ -148,12 +148,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private void SendAskCustomerMail()
         {
             db = db ?? new WorkOfTimeDatabase();
-            var data = new VMSV_ServiceModel {id=this.serviceId.Value }.Load();
+            var data = new VMSV_ServiceModel { id = this.serviceId.Value }.Load();
             var imei = db.GetPRD_InventoryById(data.inventoryId.Value);
             if (data.Customer.email != null)
             {
                 var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
                 text += "<p>" + imei.serialcode + " kodlu cihaz için teknik servis bedelleri ektedir.</p>";
+
+                text += "<p>Bilgilerinize.</p>";
+                new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true, null, null, new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/PrintEnd?id={data.id}" }, false);
+            }
+
+        }
+        private void SendDoneMail()
+        {
+            db = db ?? new WorkOfTimeDatabase();
+            var data = new VMSV_ServiceModel { id = this.serviceId.Value }.Load();
+            var imei = db.GetPRD_InventoryById(data.inventoryId.Value);
+            if (data.Customer.email != null)
+            {
+                var text = "<h3>Sayın " + data.Customer.fullName + "</h3>";
+                text += "<p>" + imei.serialcode + " kodlu cihaz için yapılan işlemler tamamlanmıştır.</p>";
 
                 text += "<p>Bilgilerinize.</p>";
                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Teknik Servis Bildirimi Hakkında", text).Send((Int16)EmailSendTypes.ZorunluMailler, data.Customer.email, $"{TenantConfig.Tenant.TenantName } | Teknik Servis Bildirimi", true, null, null, new string[] { $"{TenantConfig.Tenant.GetWebUrl()}/SV/VWSV_Service/PrintEnd?id={data.id}" }, false);
@@ -173,14 +188,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     productId = x.productId,
                     quantity = x.quantity,
-                    serialCodes = x.serialCodes??null,
+                    serialCodes = x.serialCodes ?? null,
                     unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentSellingPrice,
                 }).ToList();
                 var transId = Guid.NewGuid();
                 var transModel = new VMPRD_TransactionModel
                 {
-                    inputId=null,
-                    inputTable=null,
+                    inputId = null,
+                    inputTable = null,
                     outputTable = "CMP_Storage",
                     outputCompanyId = user.CompanyId,
                     outputId = this.storageId,
@@ -206,31 +221,87 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     status = this.Transaction.type == (short)EnumPRD_TransactionType.HarcamaBildirimi ? (short)EnumSV_ServiceOperation.HarcamaBildirildi : (short)EnumSV_ServiceOperation.FireBildirimiYapildi,
                 }.Save(userId, null, this.trans);
             }
-         
-                if (this.ServiceNotifications != null)
+
+            if (this.ServiceNotifications != null)
+            {
+                foreach (var item in ServiceNotifications)
                 {
-                    foreach (var item in ServiceNotifications)
+                    result &= new VMSV_ServiceOperationModel
                     {
-                        result &= new VMSV_ServiceOperationModel
-                        {
-                            created = DateTime.Now,
-                            createdby = this.createdby,
-                            dataId = item.id,
-                            description= db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString()??"",
-                            dataTable = "PRD_Product",
-                            serviceId = this.serviceId,
-                            status = (short)EnumSV_ServiceOperation.ServicePriceAdded
-                        }.Save(this.createdby, null, this.trans);
-                    }
+                        created = DateTime.Now,
+                        createdby = this.createdby,
+                        dataId = item.id,
+                        description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "",
+                        dataTable = "PRD_Product",
+                        serviceId = this.serviceId,
+                        status = (short)EnumSV_ServiceOperation.ServicePriceAdded
+                    }.Save(this.createdby, null, this.trans);
                 }
-           
+            }
+
             if (result.result)
             {
-                 trans.Commit();
+                trans.Commit();
             }
             else
             {
-                 trans.Rollback();
+                trans.Rollback();
+            }
+            return result;
+        }
+
+        public ResultStatus Cargo(Guid userId)
+        {
+            if (!this.serviceId.HasValue)
+            {
+                return new ResultStatus { result = false };
+            }
+            var result = new ResultStatus { result = true };
+            db = db ?? new WorkOfTimeDatabase();
+            trans = trans ?? db.BeginTransaction();
+            
+            this.status = (short)EnumSV_ServiceOperation.Done;
+            var getService = db.GetVWSV_ServiceById(this.serviceId.Value);
+            var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
+            
+            var transItem = new VMPRD_TransactionItems
+            {
+                productId = getInventory.productId,
+                quantity = 1,
+                serialCodes = getInventory.serialcode ?? "",
+                unitPrice = 0,
+            };
+            if (CompanyId.HasValue)
+            {
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = db.GetCMP_StorageByCompanyIdFirst(CompanyId.Value)?.id,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = CompanyId,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisCikis,
+                    id = Guid.NewGuid(),
+                };
+                this.dataTable = "PRD_Transaction";
+                this.dataId = transModelCompanyId.id;
+                result &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            result &=  this.Save(userId, null, trans);
+            if (result.result)
+            {
+                this.SendDoneMail();
+                trans.Commit();
+            }
+            else
+            {
+                trans.Rollback();
             }
             return result;
         }
