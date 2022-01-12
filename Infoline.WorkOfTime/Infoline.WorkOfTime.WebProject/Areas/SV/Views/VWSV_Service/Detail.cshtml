@@ -9,7 +9,7 @@
     var activeStageKey = 0;
     var activeStageIcon = "";
     var deliveryInfo = new VWSV_ServiceOperation();
-    if (Model.ServiceOperations.Where(x=>x.status==(short)EnumSV_ServiceOperation.Done).Count()>0)
+    if (Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done).Count() > 0)
     {
         deliveryInfo = Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done).FirstOrDefault();
     }
@@ -48,6 +48,7 @@
             <div class="main-timeline2">
                 @foreach (var stage in stages)
                 {
+
                     if (Model.stage + 1 == Convert.ToInt32(stage.Key))
                     {
                         activeStage = stage.Value;
@@ -312,7 +313,7 @@
                     <div class="tab-pane active" id="musteriBilgileri">
                         <div class="ibox">
                             <div class="ibox-title">
-                                <h5>Müşteri Alma Bilgileri</h5>
+                                <h5>Müşteri Bilgileri</h5>
                             </div>
                             <div class="ibox-content clearfix">
                                 <dl class="dl-horizontal">
@@ -381,7 +382,7 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="tab-pane" id="teslimEtmeBilgileri">
                         <div class="ibox">
                             <div class="ibox-title">
@@ -399,7 +400,7 @@
                                         <dd>@deliveryInfo.companyId_Title</dd>
                                     </dl>
                                 }
-                                
+
                                 <dl class="dl-horizontal">
                                     <dt>Teslim Alma Tipi</dt>
                                     <dd>@deliveryInfo.delivery_Title</dd>
@@ -494,10 +495,13 @@ else
                         $(item).attr("data-ask", "Transfer Sürecinin Bitirmek İstediğinze Emin Misiniz?");
                     }
                     else if (dataEnum == 5) {
-                        var isHaveWarranty = '@(Model.Problems.Where(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == false).Count()>0)';
-                        if (isHaveWarranty == "False") {
+                        if (@Model.stage==1) {
+                              var isHaveWarranty = '@(Model.Problems.Where(x => x.type == (short)EnumSV_DeviceProblemType.Service && x.warranty == false).Count()>0)';
+                         if (isHaveWarranty == "False") {
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
+                            }
                         }
+
                         var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
                         $(item).attr("data-original-title", stage);
                     }

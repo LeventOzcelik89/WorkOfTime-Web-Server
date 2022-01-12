@@ -133,7 +133,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var trans = db.BeginTransaction();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			var getService = db.GetSV_ServiceById(model.serviceId.Value);
+			var getService = db.GetVWSV_ServiceById(model.serviceId.Value);
 			var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
 			
 			model.description = $"{stages.Where(x=>(Convert.ToInt32(x.Key)==getService.stage+1)).FirstOrDefault().Value} Aşamasına Geçildi";
@@ -150,10 +150,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             {
 				trans.Rollback();
             }
+			getService = db.GetVWSV_ServiceById(model.serviceId.Value);
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success("Diğer Aşamaya Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+				FeedBack = dbresult.result ? feedback.Success($"{getService.stage_Title} Aşamasına Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
 			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);
