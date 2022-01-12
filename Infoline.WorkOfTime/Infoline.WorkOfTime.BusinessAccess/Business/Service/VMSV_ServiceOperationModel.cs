@@ -85,7 +85,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 SendAskCustomerMail();
             }
-            if (this.CompanyId.HasValue)
+            if (this.CompanyId.HasValue&&this.deliveryType.HasValue)
             {
                 var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
                 if (getCompany != null)

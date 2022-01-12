@@ -112,13 +112,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Json(new VMSV_ServiceModel().DeviceInformation(inventoryId), JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Alma Çıktı Sayfası"), AllowEveryone, ExportPDF]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Alma Çıktı Sayfası"), AllowEveryone]
         public ActionResult Print(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
         [AllowEveryone]
-        [ExportPDF]
+      
         [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Ver Çıktı Sayfası")]
         public ActionResult PrintEnd(Guid id)
         {
