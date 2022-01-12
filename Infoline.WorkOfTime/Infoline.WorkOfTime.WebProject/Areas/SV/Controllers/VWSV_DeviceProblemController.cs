@@ -108,19 +108,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
         [PageInfo("Servise Ait Cihazın Sorunlarının Silindiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         [HttpPost]
-        public JsonResult Delete(string[] id)
+        public JsonResult Delete(Guid id)
         {
-            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-
-            var item = id.Select(a => new SV_DeviceProblem { id = new Guid(a) });
-
-            var dbresult = db.BulkDeleteSV_DeviceProblem(item);
+            var dbresult = new VMSV_DeviceProblemModel { id = id }.Delete(userStatus.user.id);
 
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+                FeedBack = dbresult.result ? feedback.Success("Cihaz Sorunu Silme İşlemi Başarılı") : feedback.Warning("Cihaz Sorunu Silme İşlemi Başarısız")
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);

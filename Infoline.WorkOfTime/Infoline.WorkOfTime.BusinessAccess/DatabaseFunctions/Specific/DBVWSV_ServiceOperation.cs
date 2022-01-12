@@ -29,19 +29,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
         NewImei = 102,
         [Description("Teknik Servis Bulgusu Eklendi"), Generic("icon", "fa fa-cogs", "color", "392061", "description", "Teknik Servis Bulgusu Eklendi", "order", "11")]
         PartDefinied = 109,
-        [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-tasks", "color", "3083DC", "description", "Parça Değişikliği Yapıldı", "order", "12")]
+        [Description("Teknik Servis Bulgusu Silindi"), Generic("icon", "fa fa-cogs", "color", "DD0426", "description", "Teknik Servis Bulgusu Silindi", "order", "12")]
+        PartDeleted = 110,
+        [Description("Parça Değişikliği Yapıldı"), Generic("icon", "fa fa-tasks", "color", "3083DC", "description", "Parça Değişikliği Yapıldı", "order", "13")]
         PartChanged = 108,
-        [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "6D213C", "description", "Servis Kaydı Güncellendi", "order", "13")]
+        [Description("Servis Kaydı Güncellendi"), Generic("icon", "fa fa-edit", "color", "6D213C", "description", "Servis Kaydı Güncellendi", "order", "14")]
         Updated = 105,
-        [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız", "order", "14")]
+        [Description("Kalite Kontrol Başarısız"), Generic("icon", "fa fa-exclamation-triangle", "color", "731963", "description", "Kalite Kontrol Başarısız", "order", "15")]
         QualityControlNot = 200,
-        [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-exclamation-triangle", "color", "7DDE92", "description", "Kalite Kontrol Başarılı", "order", "15")]
+        [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-exclamation-triangle", "color", "7DDE92", "description", "Kalite Kontrol Başarılı", "order", "16")]
         QualityControl = 201,
-        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu", "order", "16")]
+        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu", "order", "17")]
         AskCustomer = 400,
-        [Description("Hizmet Ücreti Eklendi"), Generic("icon", "fa fa-money", "color", "B1B1F2", "description", "Hizmet Eklendi", "order", "17")]
+        [Description("Hizmet Ücreti Eklendi"), Generic("icon", "fa fa-money", "color", "B1B1F2", "description", "Hizmet Eklendi", "order", "18")]
         ServicePriceAdded = 500,
-        [Description("Servis Süreci İptal Edildi"), Generic("icon", "fa fa-times", "color", "ff0000", "description", "Servis Süreci İptal Edildi", "order","18")]
+        [Description("Servis Süreci İptal Edildi"), Generic("icon", "fa fa-times", "color", "ff0000", "description", "Servis Süreci İptal Edildi", "order","19")]
         Canceled = 1,
     }
     partial class WorkOfTimeDatabase

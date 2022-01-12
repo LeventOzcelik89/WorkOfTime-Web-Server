@@ -231,6 +231,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         created = DateTime.Now,
                         createdby = this.createdby,
                         dataId = item.id,
+                        pid=this.id,
                         description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = this.serviceId,

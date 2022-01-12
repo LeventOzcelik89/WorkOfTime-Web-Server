@@ -49,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		{
 		    
 		    var data = new VMSV_ServiceOperationModel{id=id };
-		    return View(data);
+			return View(data.Load());
 		}
 
 		[PageInfo("Servis Operasyonlarının Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
@@ -130,18 +130,26 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
 			var db = new WorkOfTimeDatabase();
+			var trans = db.BeginTransaction();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
 			var getService = db.GetSV_ServiceById(model.serviceId.Value);
 			var stages = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumSV_ServiceStages>();
 			
 			model.description = $"{stages.Where(x=>(Convert.ToInt32(x.Key)==getService.stage+1)).FirstOrDefault().Value} Aşamasına Geçildi";
-			var dbresult = model.Save(userStatus.user.id);
+			var dbresult = model.Save(userStatus.user.id,null,trans);
             if (model.status!= (short)EnumSV_ServiceActions.Done)
             {
-				dbresult &= new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id);
+				dbresult &= new VMSV_ServiceModel { id = model.serviceId.Value }.NextStage(userStatus.user.id,trans);
 			}
-	
+            if (dbresult.result)
+            {
+				trans.Commit();
+            }
+            else
+            {
+				trans.Rollback();
+            }
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,

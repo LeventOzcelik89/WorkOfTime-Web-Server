@@ -15,11 +15,13 @@ namespace Infoline.WorkOfTime.BusinessData
         public string dataTable { get; set;}
         public short? customerType { get; set;}
         public short? deliveryType { get; set;}
+        public Guid? pid { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string serviceId_Title { get; set;}
         public string cargoId_Title { get; set;}
         public string companyId_Title { get; set;}
         public string delivery_Title { get; set;}
+        public string status_Title { get; set;}
     }
 }

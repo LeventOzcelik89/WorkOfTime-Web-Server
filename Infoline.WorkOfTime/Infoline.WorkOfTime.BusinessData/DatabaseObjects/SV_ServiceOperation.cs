@@ -24,5 +24,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string dataTable { get; set;}
         public short? customerType { get; set;}
         public short? deliveryType { get; set;}
+        public Guid? pid { get; set;}
     }
 }

@@ -69,7 +69,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
-            
+
             var dbresult = db.InsertSV_DeviceProblem(this.B_ConvertType<SV_DeviceProblem>(), this.trans);
             if (!dbresult.result)
             {
@@ -111,12 +111,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 };
             }
         }
-        public ResultStatus Delete(DbTransaction transaction = null)
+        public ResultStatus Delete(Guid userId, DbTransaction transaction = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             //İlişkili kayıtlar kontol edilerek dilme işlemine müsade edilecek;
+            var findProblem = db.GetVWSV_DeviceProblemById(this.id);
             var dbresult = db.DeleteSV_DeviceProblem(this.id, trans);
+            dbresult = new VMSV_ServiceOperationModel
+            {
+                description = $"{findProblem.productId_Title} ürününde olan  {findProblem.problemTypeId_Title} adlı sorun silinmiştir.",  
+                serviceId = findProblem.serviceId,
+                dataId = findProblem.id,
+                dataTable = "SV_DeviceProblem",
+                status =(short)EnumSV_ServiceOperation.PartDeleted}.Save(userId, null, trans);
+
+
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
