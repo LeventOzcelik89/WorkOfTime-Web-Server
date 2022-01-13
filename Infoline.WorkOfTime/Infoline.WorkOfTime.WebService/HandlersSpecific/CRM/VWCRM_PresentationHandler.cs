@@ -213,7 +213,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     getCustomer = new CMP_Company
                     {
                         created = DateTime.Now,
-                        createdby = userId,
+                        createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                         code = BusinessExtensions.B_GetIdCode(),
                         id = Guid.NewGuid(),
                         name = model.SchoolName
@@ -228,12 +228,12 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     phone = model.ResponsiblePhone,
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                 };
                 var companyPerson = new INV_CompanyPerson
                 {
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     CompanyId = getCustomer.id,
                     Title = "Potansiyel Müşteri",
                     Level = 0,
@@ -248,12 +248,12 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 {
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     Name = model.SchoolName + " potansiyel fırsat",
                     CustomerCompanyId = getCustomer.id,
                     PresentationStageId = db.GetCRM_ManagerStageDefaultValue().id,
                     CompletionRate = 10,
-                    SalesPersonId = db.GetSH_UserByRoleId("00000000-0000-0000-0000-420000000000").FirstOrDefault().id,
+                    SalesPersonId =new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     PlaceofArrival=(Int32)EnumCRM_PresentationPlaceofArrival.Web
                     
                 };
@@ -278,14 +278,14 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     PresentationId = potentialOpportunity.id,
                     PresentationStageId = db.GetCRM_ManagerStageDefaultValue().id,
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     Description = "Katılımcı Sayısı:" + model.ParticipantCount + " Yaş Aralığı:" + model.RangeOfAge
                 };
                 var calendar = new INV_CompanyPersonCalendar
                 {
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     Description = model.SchoolName + " ile web sitesinden gelen potansiyel fırsat",
                     StartDate = model.StartDate,
                     EndDate = model.EndDate,
@@ -295,9 +295,9 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var calenderUser = new INV_CompanyPersonCalendarPersons
                 {
                     created = DateTime.Now,
-                    createdby = userId,
+                    createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
                     IDPersonCalendar = calendar.id,
-                    IdUser = db.GetSH_UserByRoleId("00000000-0000-0000-0000-420000000000").FirstOrDefault().id
+                    IdUser = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4")
                 };
                 result &= db.InsertCRM_Contact(contact, trans);
                 result &= db.InsertINV_CompanyPersonCalendar(calendar, trans);
