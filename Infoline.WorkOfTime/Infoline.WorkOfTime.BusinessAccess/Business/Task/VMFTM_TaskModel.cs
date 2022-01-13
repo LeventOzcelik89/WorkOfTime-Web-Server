@@ -30,6 +30,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public DateTime? taskEndDate { get; set; }
 		public Guid? companyStorageId { get; set; }
 		public CMP_CompanyCars companyCar { get; set; }
+		public List<VWPA_Transaction> transactions { get; set; } = new List<VWPA_Transaction>();
 		public string group_Title { get; set; }
 		public string userMails { get; set; }
 		public string[] files { get; set; }
@@ -91,6 +92,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						this.group_Title = group.groupId_Title;
 					}
 				}
+
+				this.transactions = db.GetVWPA_TransactionByDataId(task.id).ToList();
 
 				if (this.companyCarId.HasValue)
 				{
