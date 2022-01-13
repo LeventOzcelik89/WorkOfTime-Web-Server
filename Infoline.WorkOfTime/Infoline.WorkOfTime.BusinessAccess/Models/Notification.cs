@@ -3,6 +3,7 @@ using System;
 using System.Configuration;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
@@ -12,7 +13,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private string NotificationUrl { get; set; } = "https://fcm.googleapis.com/fcm/send";
         private string NotificationAuthorizationKey { get; set; } = "AAAAEX9p954:APA91bE5nA9SE1NllSA7x9VrfErrZRtavNeZcSH_sE0wOE-lZZ6zJ1s1NBnv7mQQfl0VO01lLJ8Ix1KK4HSTV2nfYKmbQ1hB5XEJTQf42nyxFKcxIKFsF_YMxHSZNNHsLUxLrv77MXaZ";
 
-        public void NotificationSend(Guid userId, string titleText, string bodyText, string key_1Data = "", string key_2Data = "", string returnUrl = "", Guid? returnUrlId = null, bool? hasConfirmation = false)
+
+        private void NotificationSendAsync(Guid userId, string titleText, string bodyText, string key_1Data = "", string key_2Data = "", string returnUrl = "", Guid? returnUrlId = null, bool? hasConfirmation = false)
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
             var userToken = db.GetSH_UserFireBaseTokenByUserId(userId);
@@ -35,7 +37,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         key_2 = key_2Data
                     }
                 };
-
+                new VMSYS_NotificationModel
+                {
+                    created = DateTime.Now,
+                    createdby = userId,
+                    userId = userId,
+                    message = bodyText,
+                    title = titleText,
+                    url = key_1Data,
+                    paramaters = key_2Data
+                }.Save(userId);
                 using (var clientm = new WebClient())
                 {
                     clientm.Headers.Add("Authorization", "key=" + this.NotificationAuthorizationKey);
@@ -45,6 +56,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var result = JsonConvert.DeserializeObject(res);
                 }
             }
+        }
+        public void NotificationSend(Guid userId, string titleText, string bodyText, string key_1Data = "", string key_2Data = "", string returnUrl = "", Guid? returnUrlId = null, bool? hasConfirmation = false)
+        {
+            Task.Run(() => NotificationSendAsync(userId, titleText, bodyText, key_1Data, key_2Data, returnUrl, returnUrlId, hasConfirmation));
         }
     }
 }
