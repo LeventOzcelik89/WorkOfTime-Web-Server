@@ -43,14 +43,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid[] _approvalPersons = new Guid[0];
 		public Guid[] _managerPersons = new Guid[0];
 
-		public VMCMP_RequestModels Load(bool? isTransform)
+		public VMCMP_RequestModels Load(bool? isTransform, DbTransaction trans = null)
 		{
 			db = db ?? new WorkOfTimeDatabase();
-			var invoice = db.GetCMP_InvoiceById(this.id);
+			var invoice = db.GetCMP_InvoiceById(this.id, trans);
+			var request = db.GetVWCMP_RequestById(this.id, trans);
 
 			if (invoice != null)
 			{
-				this.B_EntityDataCopyForMaterial(invoice, true);
+				this.B_EntityDataCopyForMaterial(request, true);
 				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
 				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
 
@@ -70,10 +71,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 					if (invoice != null)
 					{
-						var tender = db.GetVWCMP_InvoiceByPid(invoice.id);
+						var tender = db.GetVWCMP_InvoiceByPid(request.id);
 						if (tender != null)
 						{
-							Tender = db.GetVWCMP_InvoiceByPid(invoice.id);
+							Tender = db.GetVWCMP_InvoiceByPid(tender.id);
 						}
 					}
 
