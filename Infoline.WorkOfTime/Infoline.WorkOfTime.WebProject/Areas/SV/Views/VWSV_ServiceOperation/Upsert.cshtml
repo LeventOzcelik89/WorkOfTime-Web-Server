@@ -49,19 +49,13 @@
                 $('#RowContainer_Upsert').append(temp);
                 temp.find('[data-item="id"]')
                     .attr('name', 'expens[' + pageTrans.Counter + '].id')
-                    .attr('id', (data != null ? data.id : kendo.guid()));
-                temp.find('[data-item="materialName"]')
-                    .attr('data-value', data != null?data.materialId_Title:"");
-                temp.find('[data-item="type"]')
-                    .attr('data-value', (data != null ? data.type : 0));
-                temp.find('[data-item="id"]')
-                    .attr('name', 'expens[' + pageTrans.Counter + '].id')
-                    .attr('id', (data != null ? data.id : kendo.guid()));
+                    .attr('id', 'expens[' + pageTrans.Counter + '].id')
                 temp.find('[data-item="amount"]').text(data != null ? data.unitId_Title : "-");
                 var metarialId = data != null ? data.materialId : "-";
                 temp.find('[data-item="metarialDetailText"]').attr("href", "/PRD/VWPRD_Product/Detail?id=" + metarialId);
                 temp.find('[data-item="quantity"]')
                     .attr('name', 'expens[' + pageTrans.Counter + '].quantity')
+                    .attr('id', 'expens[' + pageTrans.Counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity : 1)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (1) });
                 temp.find('[data-item="stockLeft"]')
@@ -81,6 +75,7 @@
                 };
                 temp.find('[data-item="productId"]')
                     .attr('name', 'expens[' + pageTrans.Counter + '].productId')
+                    .attr('id', 'expens[' + pageTrans.Counter + '].productId')
                     .kendoDropDownList(
                         {
                             "change": pageTrans.events.productChange,
@@ -106,7 +101,6 @@
                 pageTrans.Counter++;
             },
             productChange: function (e) {
-                debugger
                 var data = e.sender.dataItem(e.sender.selectedIndex);
                 var tr = this.element.parents('tr');
                 var serialCodes = tr.find('[data-item="serialCodes"]');
@@ -120,7 +114,7 @@
                     if (data.unitId_Title!=null) {
                         $(item).text(data.unitId_Title);
                     }
-                   
+
 
                 })
                 serialCodes.prop("required", false);
@@ -330,10 +324,8 @@
         <td data-target="">
             <div class="form-group">
                 <div class="input-group">
-                    <input type="hidden" data-item="id" />
-                    <input type="hidden" data-item="type" />
-                    <input type="hidden" data-item="materialName" />
-                    <input data-item="productId" required class=" form-control" data-refresh="" />
+
+                    <input data-item="productId" required class="form-control" data-refresh="" />
                     <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
                 </div>
             </div>
@@ -379,20 +371,25 @@
 <script type="text/template" data-selector="modalContainer" id="RowTemplate_Hizmet">
     <tr>
         <td data-target="">
-            <div class="input-group">
-                <input class="form-control" data-refresh="" data-item="id" />
-                <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
+            <div class="form-group">
+                <div class="input-group">
+                    <input class="form-control" data-refresh="" data-item="id" />
+                    <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
+                </div>
             </div>
+
         </td>
 
         <td>
-            <div class="input-group">
-                <input data-item="quantity" min="1" />
-                <span data-item="amount" class="input-group-addon">Adet</span>
+            <div class="form-group">
+                <div class="input-group">
+                    <input data-item="quantity" min="1" />
+                    <span data-item="amount" class="input-group-addon">Adet</span>
+                </div>
             </div>
         </td>
         <td>
-            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
+            <button class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
         </td>
     </tr>
 </script>

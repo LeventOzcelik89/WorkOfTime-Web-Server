@@ -182,8 +182,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             trans = trans ?? db.BeginTransaction();
             var user = db.GetVWSH_UserById(userId);
             var result = new ResultStatus { result = true };
+         
+
             if (expens != null)
             {
+                if (this.expens.Any(x => !x.productId.HasValue))
+                {
+                    return new ResultStatus { message = "Lütfen Ürün Seçiniz!", result = false };
+                }
                 var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
                 {
                     productId = x.productId,
@@ -224,6 +230,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (this.ServiceNotifications != null)
             {
+                if (this.ServiceNotifications.Any(x => x.id==null))
+                {
+                    trans.Rollback();
+                    return new ResultStatus { message = "Lütfen Ürün Seçiniz!", result = false };
+                }
+
                 foreach (var item in ServiceNotifications)
                 {
                     result &= new VMSV_ServiceOperationModel
