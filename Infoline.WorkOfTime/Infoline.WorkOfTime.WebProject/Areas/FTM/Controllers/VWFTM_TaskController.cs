@@ -655,6 +655,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		public ActionResult Print(VMFTM_TaskModel request)
 		{
 			var data = request.Load();
+
+			if (TenantConfig.Tenant.TenantCode == 1187)
+			{
+				return PartialView("~/Areas/FTM/Views/VWFTM_Task/1187/_Print.cshtml",data);
+			}
+
 			return View(data);
 		}
 		[PageInfo("Saha Görevi Düzenle (Yetkili Personel/Saha Görev Yöneticisi)", SHRoles.SahaGorevPersonel, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
