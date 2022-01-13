@@ -136,7 +136,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div>Bilgilerinize.</div>";
                         var notify = "Sayın " + user.FullName + " tarafınıza "+ this.Task.code+ "kodlu görev oluşturulmuştur.";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, user.email, "Saha Görevi Doğrulama Kodu ", true);
-                        notification.NotificationSend(user.id,"Saha Görev Yönetimi", notify);
+                        notification.NotificationSend(user.id, this.createdby, "Saha Görev Yönetimi", notify);
                     }
                     this.description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcılara doğrulama kodu gönderildi";
                     rs &= db.BulkUpdateFTM_TaskUser(taskUsers.Select(a => new FTM_TaskUser().B_EntityDataCopyForMaterial(a, true)), true, trans);
@@ -367,7 +367,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div>Görev detaylarını görüntülemek ve çözümü onaylamak için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + this.taskId + "'>tıklayınız.</a> </div>";
                         text += "<div>Bilgilerinize.</div>";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Cozum, usrm.email, "Çözüm Bildirimi", true);
-                        notification.NotificationSend(usrm.id,"Saha Görev Yönetimi",notfy);
+                        notification.NotificationSend(usrm.id,this.createdby,"Saha Görev Yönetimi",notfy);
                     }
                     message = "Çözüm başarılı bir şekilde bildirildi.";
 
@@ -385,7 +385,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + this.taskId + "'>tıklayınız.</a> </div>";
                         text += "<div>Bilgilerinize.</div>";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, myuser.email, status == EnumFTM_TaskOperationStatus.CozumOnaylandi ? "Çözüm Onay Bilgilendirmesi" : "Çözüm Red Bilgilendirmesi ", true);
-                        notification.NotificationSend(myuser.id,"Saha Görev Yönetimi",notify);
+                        notification.NotificationSend(myuser.id,this.createdby,"Saha Görev Yönetimi",notify);
                     }
                     message = "Çözüm onay/red işlemi başarılı bir şekilde gerçekleşti.";
 
@@ -399,7 +399,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             msj += "<div><strong>" + "(" + this.Task.code + ") " + this.Task.product_Title + "</strong> ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir. </div>";
                             msj += "<div>Bilgilerinize.</div>";
                             new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Cozum, customerUser.email, "Çözüm Onay Bilgilendirmesi", true);
-                            notification.NotificationSend(customerUser.id,"Saha Görev Yönetimi", notify);
+                            notification.NotificationSend(customerUser.id,Task.createdby,"Saha Görev Yönetimi", notify);
                         }
                     }
                     //Todo Oğuz => Müşteriye mail  Taskı oluşturan diğer işletme personeliyse mail yollanacak

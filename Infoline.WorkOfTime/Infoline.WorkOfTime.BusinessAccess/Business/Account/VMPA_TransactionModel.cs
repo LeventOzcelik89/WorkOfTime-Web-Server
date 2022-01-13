@@ -209,7 +209,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
-                        notification.NotificationSend(user.id, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
+                        notification.NotificationSend(user.id, userId,"Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
                     }
                 }
                 else if (this.direction == 3)// yeniden talep 
@@ -227,7 +227,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Düzenleme ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Düzenleme", true);
-                        notification.NotificationSend(user.id, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
+                        notification.NotificationSend(user.id, userId, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
                     }
                 }
                 else
@@ -553,7 +553,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<p>Ödemeniz beklenmektedir.</p>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                        notify.NotificationSend(user.id, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "");
+                        notify.NotificationSend(user.id,this.createdby, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "");
                     }
                 }
             }
@@ -905,7 +905,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                notification.NotificationSend(user.id,this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
                             }
                         }
                     }
@@ -934,7 +934,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                notification.NotificationSend(user.id, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                notification.NotificationSend(user.id, this.createdby,"Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
                             }
                         }
                     }

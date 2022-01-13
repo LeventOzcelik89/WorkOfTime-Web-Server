@@ -276,7 +276,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				foreach (var assignableUser in assignableUsers)
 				{
-					new Notification().NotificationSend(assignableUser, "Görev Ataması", "Tarafınıza görev ataması yapıldı.");
+					new Notification().NotificationSend(assignableUser, this.createdby, "Görev Ataması", "Tarafınıza görev ataması yapıldı.");
 				}
 				if (requestFiles != null)
 				{
@@ -316,7 +316,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail/" + this.id + "'>tıklayınız.</a> </div>";
 					text += "<div>Bilgilerinize.</div>";
 					new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, user.email, "Saha Görevi Oluşturuldu ", true);
-					notification.NotificationSend(user.id, "Görev Yönetimi", notify);
+					notification.NotificationSend(user.id,this.createdby, "Görev Yönetimi", notify);
 				}
 			}
 			if (rs.result)
@@ -348,7 +348,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail/" + this.id + "'>tıklayınız.</a> </div>";
 						text += "<div>Bilgilerinize.</div>";
 						new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, user.email, "Saha Görevi Oluşturuldu ", true);
-						notification.NotificationSend(user.id, "Görev Yönetimi", notify);
+						notification.NotificationSend(user.id,this.createdby, "Görev Yönetimi", notify);
 					}
 				}
 			}
@@ -581,7 +581,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					text += "<div>Bilgilerinize.</div>";
 					var notify = "Sayın " + operatorm.FullName + " müşteri işletme " + task.customer_Title + " adına " + task.createdby_Title + " tarafından " + this.fixture_Title + "envaterine arıza kaydı oluşturulumuştur.";
 					new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, operatorm.email, "Saha Görevi Oluşturuldu ", true);
-					notification.NotificationSend(operatorm.id, "Görev Yönetimi", notify);
+					notification.NotificationSend(operatorm.id,this.createdby ,"Görev Yönetimi", notify);
 				}
 				if (user != null)
 				{
@@ -607,7 +607,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					msj += "<p>Bilgilerinize.</p>";
 					msj += "<p>Saygılarımızla.</p>";
 					new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Operasyon, user.email, "Arıza/Bakım Kaydı Oluşturuldu ", true);
-					notification.NotificationSend(user.id, "Görev Yönetimi", notify);
+					notification.NotificationSend(user.id,this.createdby, "Görev Yönetimi", notify);
 				}
 			}
 			return rs;
@@ -784,7 +784,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail/" + this.id + "'>tıklayınız.</a> </div>";
 					text += "<div>Bilgilerinize.</div>";
 					new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, user.email, "Saha Görevi Oluşturuldu ", true);
-					notification.NotificationSend(user.id, "Görev Yönetimi", notify);
+					notification.NotificationSend(user.id,this.createdby, "Görev Yönetimi", notify);
 				}
 			}
 			if (rs.result)
@@ -1105,7 +1105,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					text += "<div>Bilgilerinize.</div>";
 					var notify = string.Format("Sayın " + fullName + ", tarafınıza " + this.code + " kodlu görev oluşturulumuştur.");
 					new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Görev Bildirimi", text).Send((Int16)EmailSendTypes.Operasyon, mail, "İş Planı Hakkında ", true, null, bccMail.ToArray(), documentList.ToArray(), true);
-					notification.NotificationSend(customerId, "Görev Bildirimi", notify);
+					notification.NotificationSend(customerId, this.createdby,"Görev Bildirimi", notify);
 				}
 			}
 

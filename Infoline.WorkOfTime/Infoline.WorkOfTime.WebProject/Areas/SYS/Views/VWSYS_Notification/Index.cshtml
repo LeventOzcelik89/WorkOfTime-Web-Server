@@ -1,22 +1,19 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Bildirim Kayıtları";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 @(Html.Akilli()
     .Grid<Infoline.WorkOfTime.BusinessData.VWSYS_Notification>("VWSYS_Notification")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSYS_Notification", new { area = "SYS" })).PageSize(25))
+    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSYS_Notification", new { area = "SYS" })).Sort(a=>a.Add("created").Descending()).PageSize(25))
     .Columns(x =>
     {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.message).Title("message").Width(180);
-        x.Bound(y => y.title).Title("title").Width(180);
-        x.Bound(y => y.url).Title("url").Width(180);
-        x.Bound(y => y.paramaters).Title("paramaters").Width(180);
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.userId_Title).Title("userId_Title").Width(180);
+        x.Bound(y => y.userId_Title).Title("Gönderilen Kullanıcı").Width(180);
+        x.Bound(y => y.created).Title("Gönderilme Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+        x.Bound(y => y.title).Title("Başlık").Width(180);
+
     })
     .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+    .Scrollable(x=>x.Height(650))
     .ToolBar(x =>
     {
         x.Custom().Text("<i class='fa fa-bell' data-original-title='Bildirim Göner'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSYS_Notification", new { area = "SYS" }));

@@ -45,14 +45,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SYS.Controllers
 			return View(new VMSYS_NotificationModel { id = id }.Load());
 		}
 		[PageInfo("Bildirimlerin Listelendiği Sayfa", SHRoles.SistemYonetici)]
-		public ActionResult Insert(Guid id)
+		public ActionResult Insert()
 		{
-			return View(new VMSYS_NotificationModel { id = id }.Load());
+			return View(new VMSYS_NotificationModel());
 		}
+		[PageInfo("Bildirimlerin Listelendiği Sayfa", SHRoles.SistemYonetici)]
+		[HttpPost]
 		public JsonResult Insert(VMSYS_NotificationModel model) {
-
+			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			new BusinessAccess.Notification().NotificationSend(model.userId.Value, model.title, model.message,model.url,model.paramaters,"",null,false);
+			new BusinessAccess.Notification().NotificationSend(model.userId.Value, userStatus.user.id, model.title, model.message,model.url,model.paramaters,"",null,false);
 			var result = new ResultStatusUI
 			{
 

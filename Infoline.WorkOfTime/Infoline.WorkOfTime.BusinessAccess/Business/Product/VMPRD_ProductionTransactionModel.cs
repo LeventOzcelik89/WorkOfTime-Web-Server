@@ -980,7 +980,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						+ "<br></br> Bilgilerinize.<br></br> İyi Çalışmalar.", personName, String.Format("{0:dd/MM/yyyy HH:mm}", this.date), url, this.id);
 						new Email().Template("Template1", "personelzimmet.jpg", "Personel Zimmet Verme İşlemi", contentUser)
 						.Send((Int16)EmailSendTypes.Zimmet, user.email, tenantName + " | WORKOFTIME | Personel Zimmet Verme İşlemi", true);
-						notifaction.NotificationSend(user.id, "Personel Zimmet Verme İşlemi", notify);
+						notifaction.NotificationSend(user.id,this.createdby, "Personel Zimmet Verme İşlemi", notify);
 					}
 
 					var title = this.status == (int)EnumPRD_TransactionStatus.beklemede ? "Onayınızı Bekleyen Personel Zimmet Verme İşlemi" : "Personel Zimmet Verme İşlemi";
@@ -994,7 +994,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						  + "<br></br> Envanterin zimmetini <a href='{4}/PRD/VWPRD_Transaction/Detail?id={5}'> buraya tıklayarak </a> kontrol edebilirsiniz.<br></br>"
 						  + productTable
 						  + "<br> </br> Bilgilerinize.<br></br> İyi Çalışmalar.", fullName, String.Format("{0:dd/MM/yyyy HH:mm}", this.date), this.outputId_Title, personName, url, this.id);
-						notifaction.NotificationSend(id, "Personel Zimmet Verme İşlemi", notify);
+						notifaction.NotificationSend(id,this.createdby.Value, "Personel Zimmet Verme İşlemi", notify);
 						new Email().Template("Template1", "personelzimmet.jpg", title, contentSuperVisor)
 							.Send((Int16)EmailSendTypes.Zimmet, mail, tenantName + " | WORKOFTIME | Personel Zimmet Verme İşlemi", true);
 					}
@@ -1016,7 +1016,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						+ productTable
 						+ "<br> </br> Bilgilerinize.<br></br> İyi Çalışmalar.", personName, String.Format("{0:dd/MM/yyyy HH:mm}", this.date), url, this.id);
 						var notify = "Zimmetinizden çıkartılan envanter(ler) var";
-						notifaction.NotificationSend(user.id, "Personel Zimmet Alma İşlemi", notify);
+						notifaction.NotificationSend(user.id,this.createdby, "Personel Zimmet Alma İşlemi", notify);
 						new Email().Template("Template1", "personelzimmet.jpg", "Personel Zimmet Alma İşlemi", contentUser)
 							.Send((Int16)EmailSendTypes.Zimmet, user.email, tenantName + " | WORKOFTIME | Personel Zimmet Alma İşlemi", true);
 					}
@@ -1034,7 +1034,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						 + "<br></br> Deponuzun durumunu <a href='{6}/CMP/VWCMP_Storage/Detail?id={7}'> buraya tıklayarak </a> kontrol edebilirsiniz.<br></br>"
 						   + productTable
 						 + "<br> </br> Bilgilerinize.<br></br> İyi Çalışmalar.", fullName, String.Format("{0:dd/MM/yyyy HH:mm}", this.date != null ? this.date : DateTime.Now), this.outputId_Title, this.inputId_Title, url, this.id, url, this.inputId);
-						notifaction.NotificationSend(id, "Personel Zimmet Alma İşlemi", notify);
+						notifaction.NotificationSend(id,this.createdby ,"Personel Zimmet Alma İşlemi", notify);
 						new Email().Template("Template1", "personelzimmet.jpg", title, contentSuperVisor)
 							.Send((Int16)EmailSendTypes.Zimmet, mail, tenantName + " | WORKOFTIME | Personel Zimmet Alma İşlemi", true);
 					}

@@ -141,7 +141,6 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var bytes = Convert.FromBase64String(res.file64);
                 File.WriteAllBytes(imagesPath, bytes);
             }
-
             path = path.Substring(path.IndexOf("Files", StringComparison.Ordinal));
             var sysfiles = new SYS_Files()
             {
@@ -161,7 +160,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus { result = false, message = rsFiles.message });
             }
 
-            RenderResponse(context, new ResultStatus { result = true, message = "Dosya yükleme işlemi başarılı." });
+            RenderResponse(context, new ResultStatus { result = true, message = "Dosya yükleme işlemi başarılı.",objects=sysfiles.FilePath });
         }
 
         [HandleFunction("SYS_Files/UpdateProfileImage")]
