@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			db = db ?? new WorkOfTimeDatabase();
 			var invoice = db.GetCMP_InvoiceById(this.id);
-			var request = db.GetVWCMP_RequestById(this.id);
+			var request = db.GetVWCMP_InvoiceById(this.id);
 
 			if (invoice != null)
 			{
