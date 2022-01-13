@@ -49,6 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         [PageInfo("Yeni Garanti-Teknik Servis Ekleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ActionResult Insert(VMSV_ServiceModel model)
         {
+            var userStatus = (PageSecurity)Session["userStatus"];
             model.code = BusinessExtensions.B_GetIdCode();
             
             return View(model);

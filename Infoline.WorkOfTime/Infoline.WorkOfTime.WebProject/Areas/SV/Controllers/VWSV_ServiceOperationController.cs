@@ -178,18 +178,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var feedback = new FeedBack();
 			if (model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
 			{
-				model.description = "Harcama Bildirimi Yapıldı";
+				model.description = "Harcama Bildirimi ";
 			}
 			else if (model.Transaction.type == (int)EnumPRD_TransactionType.FireFisi)
 			{
 
-				model.description = "Fire Bildirimi Yapıldı";
+				model.description = "Fire Bildirimi ";
 			}
 			var dbresult = model.Upsert(userStatus.user.id);
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success(model.description, false, Request.UrlReferrer.AbsoluteUri) : feedback.Error($"{model.description }başarısız")
+				FeedBack = dbresult.result ? feedback.Success(model.description+" Başarılı!", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning($"{model.description } </br> {dbresult.message} Başarısız!")
 			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);
