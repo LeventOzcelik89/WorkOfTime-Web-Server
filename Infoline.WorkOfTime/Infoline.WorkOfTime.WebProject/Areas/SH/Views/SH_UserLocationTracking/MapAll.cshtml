@@ -141,7 +141,7 @@
                     })
                 });
 
-                svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24"><g><path d="M0 0h24v24H0z" fill="none"/><path fill="#E74C3C" d="M17.084 15.812a7 7 0 1 0-10.168 0A5.996 5.996 0 0 1 12 13a5.996 5.996 0 0 1 5.084 2.812zM12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zM12 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></g></svg>';
+                svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24"><g><path d="M0 0h24v24H0z" fill="none"/><path fill="#E74C3C" d="M17.084 15.812a7 7 0 1 0-10.168 0A5.996 5.996 0 0 1 12 13a5.996 5.996 0 0 1 5.084 2.812zM12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zM12 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/><image href="111.png" x="0" y="0" height="30px" width="30px"/></g></svg>';
                 var lastLocation = new ol.style.Style({
                     image: new ol.style.Icon({
                         opacity: 1,
@@ -170,6 +170,8 @@
             },
             locateFeatureToMap: function () {
                 var points = [];
+                var beforefour = 0;
+                var afterfour = 0;
                 if (page.defines.filteredData != undefined) {
 
                     var trackingDatas = page.defines.filteredData;
@@ -180,6 +182,7 @@
 
                                 if (data.lastLocation != null) {
                                     if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4)) {
+                                        beforefour++;
 
                                         var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
                                         if (feature) {
@@ -190,6 +193,7 @@
 
                                     }
                                     else {
+                                        afterfour++;
                                         var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
                                         if (feature) {
                                             feature.set("properties", data);
@@ -201,7 +205,8 @@
 
                                 }
                             });
-
+                            $("#infourhour").text("4 Saat içinde Konum Alındı " + " " + "=" + " " + afterfour);
+                            $("#outfourhour").text("4 Saat içinde Konum Alınamadı " + " " + "=" + " " + beforefour);
 
                         }
 
@@ -397,8 +402,8 @@
             <table class="slider">
                 <tbody>
                     <tr>
-                        <td class="category" style="height: 48px;width: 230px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı </td>
-                        <td class="category" style="height: 48px;width: 230px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı</td>
+                        <td class="category" id="infourhour" style="height: 48px;width: 300px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı </td>
+                        <td class="category" id="outfourhour" style="height: 48px;width: 300px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı</td>
                     </tr>
                 </tbody>
             </table>
