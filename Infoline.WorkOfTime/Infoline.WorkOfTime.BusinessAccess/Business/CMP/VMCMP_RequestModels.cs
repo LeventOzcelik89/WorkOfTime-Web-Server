@@ -47,11 +47,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			db = db ?? new WorkOfTimeDatabase();
 			var invoice = db.GetCMP_InvoiceById(this.id);
-			var request = db.GetVWCMP_RequestById(this.id);
 
 			if (invoice != null)
 			{
-				this.B_EntityDataCopyForMaterial(request, true);
+				this.B_EntityDataCopyForMaterial(invoice, true);
 				this.InvoiceItems = db.GetVWCMP_InvoiceItemByInvoiceId(this.id).OrderBy(a => a.itemOrder).ToList();
 				this.InvoiceActions = db.GetVWCMP_InvoiceActionByInvoiceId(this.id).ToList();
 
@@ -69,12 +68,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						}
 					}
 
-					if (request != null)
+					if (invoice != null)
 					{
-						var tender = db.GetVWCMP_InvoiceByPid(request.id);
+						var tender = db.GetVWCMP_InvoiceByPid(invoice.id);
 						if (tender != null)
 						{
-							Tender = db.GetVWCMP_InvoiceByPid(tender.id);
+							Tender = db.GetVWCMP_InvoiceByPid(invoice.id);
 						}
 					}
 
