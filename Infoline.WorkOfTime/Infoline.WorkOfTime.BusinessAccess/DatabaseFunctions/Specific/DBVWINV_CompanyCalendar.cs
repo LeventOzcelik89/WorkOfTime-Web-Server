@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var text = "";
             if (userId.HasValue && userId.Value != Guid.Empty)
             {
-                text = " (PCP.IdUser ='" + userId + "' or PCP.createdby = '" + userId + "') and";
+                text = " (PCP.IdUser ='" + userId + "' or PCP.createdby = '" + userId + "' or PCP.IdUser='"+new Guid("75d8d82f-add2-41dc-9920-92f6292efed4") +"') and";
             }
             using (var db = GetDB())
             {
