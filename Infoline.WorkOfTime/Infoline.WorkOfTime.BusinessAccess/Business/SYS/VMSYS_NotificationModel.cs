@@ -64,7 +64,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
-            var dbresult = db.InsertSYS_Notification(this.B_ConvertType<SYS_Notification>(), this.trans)
+            var dbresult = db.InsertSYS_Notification(this.B_ConvertType<SYS_Notification>(), this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
