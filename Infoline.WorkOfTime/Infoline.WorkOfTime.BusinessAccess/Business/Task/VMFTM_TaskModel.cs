@@ -29,6 +29,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public DateTime? taskStartDate { get; set; }
 		public DateTime? taskEndDate { get; set; }
 		public Guid? companyStorageId { get; set; }
+		public CMP_CompanyCars companyCar { get; set; }
+		public string group_Title { get; set; }
 		public string userMails { get; set; }
 		public string[] files { get; set; }
 		public static TimeSpan VerifyCodeDueDate = new TimeSpan(999, 30, 0);
@@ -46,6 +48,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public Guid[] FTM_TaskSubjectTypeIds { get; set; }
 		public short? isSendDocuments { get; set; }
 		public bool isTaskRule { get; set; }
+		public string operationStartTime { get; set; }
 		public string TypeTitle(short? key)
 		{
 			var enumTypeArray = EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().ToArray();
@@ -78,6 +81,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					}
 				}
 
+				if (task.assignUserId.HasValue)
+				{
+					var group = db.GetVWSH_GroupUserByUserId(task.assignUserId.Value);
+
+					this.group_Title = "-";
+					if (group != null)
+					{
+						this.group_Title = group.groupId_Title;
+					}
+				}
 
 				if (this.companyCarId.HasValue)
 				{
@@ -85,6 +98,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					if (companyCar != null)
 					{
 						this.companyStorageId = companyCar.companyStorageId;
+						this.companyCar = companyCar;
 					}
 				}
 				if (taskOperations.Count() > 0)

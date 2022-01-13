@@ -21,5 +21,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWSH_GroupUsers>().Where(a => a.userId.In(userIds)).OrderBy(a => a.created).Execute().ToArray();
             }
         }
+
+        public VWSH_GroupUsers GetVWSH_GroupUserByUserId(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWSH_GroupUsers>().Where(a => a.userId == userId).OrderBy(a => a.created).Execute().FirstOrDefault();
+            }
+        }
     }
 }
