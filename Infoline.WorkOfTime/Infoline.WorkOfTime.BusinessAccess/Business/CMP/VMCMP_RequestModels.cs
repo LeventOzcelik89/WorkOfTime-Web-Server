@@ -45,6 +45,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		public VMCMP_RequestModels Load(bool? isTransform)
 		{
+			//Kontrol Edilecek.
 			db = db ?? new WorkOfTimeDatabase();
 			var invoice = db.GetCMP_InvoiceById(this.id);
 			var request = db.GetVWCMP_InvoiceById(this.id);
