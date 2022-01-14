@@ -229,6 +229,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     id = Guid.NewGuid(),
                     created = DateTime.Now,
                     createdby = new Guid("75d8d82f-add2-41dc-9920-92f6292efed4"),
+                    type=(short)EnumSH_UserType.OtherPerson
                 };
                 var companyPerson = new INV_CompanyPerson
                 {
