@@ -34,6 +34,5 @@ namespace Infoline.WorkOfTime.BusinessData
         public string Manager1Approval_Title { get; set;}
         public string Car_Title { get; set;}
         public string TotalHoursText { get; set;}
-        public string searchField { get; set;}
     }
 }
