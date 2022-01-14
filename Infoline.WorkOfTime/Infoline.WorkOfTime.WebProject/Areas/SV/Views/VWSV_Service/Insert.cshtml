@@ -43,15 +43,23 @@
                     if (kendo != undefined) {
                         kendo.destroy();
                     }
-                    $(item).kendoDropDownList({
+                     $(item).kendoDropDownList({
+                        "change": page.inputs.productChange,
                         optionLabel: "Cihaz Parçası Seçiniz...",
                         dataTextField: "materialId_Title",
                         dataValueField: "materialId",
                         dataSource: {
-                            transport: {
-                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=" + productId,
-                            }
-                        }
+                            "type": "aspnetmvc-ajax",
+                            "transport": { "read": { "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=" + productId } },
+                            "pageSize": 100,
+                            "page": 1,
+                            "total": 0,
+                            "serverPaging": true,
+                            "serverSorting": true,
+                            "serverFiltering": true,
+                        },
+                        "delay": 1000,
+                        "filter": "contains",
                     }).data("kendoDropDownList");
                 });
             },
@@ -275,7 +283,7 @@
                 }
             }, 150)
         })
-   
+
 </script>
 <script type="text/template" id="rowForProductProblem">
     <tr>

@@ -45,13 +45,15 @@
                                 "transport": { "read": { "url": "/SV/VWSV_Problem/DataSourceDropDown" } },
                                 "pageSize": 100,
                                 "page": 1,
-                                "total": 0
+                                "total": 0,
+                                "serverPaging": true,
+                                "serverSorting": true,
+                                "serverFiltering": true,
                             },
                             "dataTextField": "fullName",
                             "delay": 1000,
                             "filter": "contains",
                             "dataValueField": "id",
-
                             "optionLabel": "Lütfen Problem Tipini Seçiniz..",
                         });
                 problems.find('[data-problem="productId"]')
@@ -169,10 +171,17 @@
                         dataTextField: "materialId_Title",
                         dataValueField: "materialId",
                         dataSource: {
-                            transport: {
-                                read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId",
-                            }
-                        }
+                            "type": "aspnetmvc-ajax",
+                            "transport": { "read": { "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId" } },
+                            "pageSize": 100,
+                            "page": 1,
+                            "total": 0,
+                            "serverPaging": true,
+                            "serverSorting": true,
+                            "serverFiltering": true,
+                        },
+                        "delay": 1000,
+                        "filter": "contains",
                     }).data("kendoDropDownList");
                 });
             },
@@ -181,7 +190,7 @@
                 if (data) {
                     var tr = this.element.parents('tr');
                     var productPrice = tr.find('[data-problem="price"]').data("kendoNumericTextBox")
-                    productPrice.value(data.product_Price??0);
+                    productPrice.value(data.service_Price??0);
                  }
             },
             cargoId: function () {
@@ -244,7 +253,7 @@
     <tr>
         <td>
             <div style="margin-left:10px" class="radio akilliRadioGrup clearfix">
-                <input type="radio" data-problem="warranty" data-first id="warranty_0" value="1"  autocomplete="off">
+                <input type="radio" data-problem="warranty" data-first id="warranty_0" value="1" autocomplete="off">
                 <label tabindex="0" data-firstlabel class="radio-label" for="warranty_0">
                     Garantiye Dahil
                 </label>
