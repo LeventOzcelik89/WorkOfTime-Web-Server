@@ -21,6 +21,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         Alis = 0,
         [Description("Birim Fiyat")]
         Satis = 1,
+        [Description("Teknik Servis")]
+        TeknikServis= 2,
     }
 
     partial class WorkOfTimeDatabase

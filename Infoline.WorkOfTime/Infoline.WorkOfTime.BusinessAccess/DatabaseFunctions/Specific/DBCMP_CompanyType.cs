@@ -35,5 +35,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_CompanyType>().Where(a => a.companyId == companyId).Execute().ToArray();
             }
         }
+
+        public CMP_Types[] GetCMP_TypesLike(string name, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<CMP_Types>().Where(a => a.typeName.ToLower().Contains(name.ToLower())).Execute().ToArray();
+            }
+        }
+
     }
 }

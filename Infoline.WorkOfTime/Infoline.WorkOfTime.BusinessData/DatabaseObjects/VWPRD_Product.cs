@@ -42,5 +42,9 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? currentSellingCurrencyId { get; set;}
         public string currentSellingCurrencyId_Title { get; set;}
         public string currentSellingCurrencyCode { get; set;}
+        public double? currentServicePrice { get; set;}
+        public Guid? currentServiceCurrencyId { get; set;}
+        public string currentServiceCurrencyId_Title { get; set;}
+        public string currentServiceCurrencyCode { get; set;}
     }
 }

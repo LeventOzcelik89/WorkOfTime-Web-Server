@@ -50,6 +50,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             this.currentSellingCurrencyId = this.currentSellingCurrencyId ?? new Guid("7EC29DCA-9073-4028-90F2-D5613357117A");
             this.currentBuyingCurrencyId = this.currentBuyingCurrencyId ?? new Guid("7EC29DCA-9073-4028-90F2-D5613357117A");
+            this.currentServiceCurrencyId = this.currentBuyingCurrencyId ?? new Guid("7EC29DCA-9073-4028-90F2-D5613357117A");
 
             return this;
         }
@@ -139,6 +140,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 type = (short)EnumPRD_ProductPriceType.Satis,
             };
 
+            var priceService = new PRD_ProductPrice
+            {
+                created = DateTime.Now,
+                createdby = this.createdby,
+                productId = this.id,
+                price = this.currentServicePrice,
+                currencyId = this.currentServiceCurrencyId,
+                type = (short)EnumPRD_ProductPriceType.TeknikServis,
+            };
+
 
             if (product.isCriticalStock == true)
             {
@@ -154,6 +165,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (priceSelling.price != null && priceSelling.price != 0 && this.currentSellingCurrencyId.HasValue)
             {
                 rs &= db.InsertPRD_ProductPrice(priceSelling, transaction);
+            }
+            if (priceService.price != null && priceService.price != 0 && this.currentServiceCurrencyId.HasValue)
+            {
+                rs &= db.InsertPRD_ProductPrice(priceService, transaction);
             }
             rs &= db.BulkInsertPRD_ProductCompany(productCompanys, transaction);
 
@@ -177,6 +192,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var productCompanysOld = db.GetPRD_ProductCompanyByProductId(this.id);
             var productPriceBuyingOld = db.GetPRD_ProductPriceByProductId(this.id, EnumPRD_ProductPriceType.Alis);
             var productPriceSellingOld = db.GetPRD_ProductPriceByProductId(this.id, EnumPRD_ProductPriceType.Satis);
+            var productPriceServicegOld = db.GetPRD_ProductPriceByProductId(this.id, EnumPRD_ProductPriceType.TeknikServis);
             var productCompanysNew = this.supplierCompanyIds.Select(a => new PRD_ProductCompany
             {
                 created = DateTime.Now,
@@ -215,6 +231,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         price = this.currentBuyingPrice,
                         currencyId = this.currentBuyingCurrencyId,
                         type = (short)EnumPRD_ProductPriceType.Alis,
+                    }, transaction);
+                }
+            }
+
+            if (this.currentServicePrice != null && this.currentServicePrice != 0 && this.currentServiceCurrencyId.HasValue)
+            {
+                if (productPriceServicegOld == null || (productPriceServicegOld.currencyId != this.currentBuyingCurrencyId) || (productPriceServicegOld.price != this.currentBuyingPrice))
+                {
+                    rs &= db.InsertPRD_ProductPrice(new PRD_ProductPrice
+                    {
+                        created = DateTime.Now,
+                        createdby = this.changedby,
+                        productId = this.id,
+                        price = this.currentServicePrice,
+                        currencyId = this.currentServiceCurrencyId,
+                        type = (short)EnumPRD_ProductPriceType.TeknikServis,
                     }, transaction);
                 }
             }

@@ -57,6 +57,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public CMP_Types[] CMP_Types { get; set; }
         public bool? hasRelation { get; set; }
+        public string CmpTypeSearch { get; set; }
 
 
         public VMCMP_CompanyModel Load()
@@ -74,10 +75,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.B_EntityDataCopyForMaterial(company, true);
                 this.sector = db.GetCMP_SectorByCompanyId(this.id).Select(x => x.sectorId.Value).ToArray();
             }
+            if (string.IsNullOrEmpty(CmpTypeSearch))
+            {
+                this.CMP_TypeIds = db.GetCMP_CompanyTypeByCompanyIdTypesIds(this.id);
+            }
+            else
+            {
+                var searched = db.GetCMP_TypesLike(CmpTypeSearch);
+                if (searched!=null)
+                {
+                    this.CMP_TypeIds = searched.Select(x => x.id).ToArray();
+                }
+                else
+                {
+                    var id = Guid.NewGuid();
+                    db.InsertCMP_Types(new BusinessData.CMP_Types { 
+                        id=id,
+                        createdby=Guid.Empty,
+                        typeName=CmpTypeSearch
+                    });
+                    this.CMP_TypeIds = new Guid[] { id};
+                }
+             
+            }
 
-            this.CMP_TypeIds = db.GetCMP_CompanyTypeByCompanyIdTypesIds(this.id);
             this.code = this.code ?? BusinessExtensions.B_GetIdCode();
             this.type = this.type ?? (Int32)EnumCMP_CompanyType.Diger;
+       
             return this;
         }
 

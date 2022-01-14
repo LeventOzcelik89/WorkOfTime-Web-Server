@@ -112,8 +112,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
 		public ActionResult Insert(VMCMP_CompanyModel data)
 		{
-			data.Load();
-			return View(data);
+			return View(data.Load());
 		}
 
 		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
