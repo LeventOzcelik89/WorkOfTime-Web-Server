@@ -8,6 +8,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using static Infoline.WorkOfTime.BusinessAccess.WorkOfTimeDatabase;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
@@ -537,6 +538,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = "Başarılı"
             };
 
+        }
+
+        public SummaryHeadersPermitNew GetMyPermitSummary(Guid userId)
+        {
+            db = new WorkOfTimeDatabase();
+            return db.GetVWINV_PermitMyPermitCountFilter(userId);
+        }
+
+        public SummaryHeadersPermitNew GetRequestPermitSummary(Guid userId)
+        {
+            db = new WorkOfTimeDatabase();
+            return db.GetVWINV_PermitRequestPermitCountFilter(userId);
         }
     }
 }
