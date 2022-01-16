@@ -9,6 +9,9 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,6 +25,47 @@ namespace Infoline.WorkOfTime.Controllers
     [AllowEveryone]
     public class GeneralController : Controller
     {
+
+
+        public ContentResult img(Guid id)
+        {
+
+            var db = new WorkOfTimeDatabase();
+            var profil = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", id);
+
+
+            var mark = new System.Drawing.Bitmap(Server.MapPath("/Content/Custom/img/PersonsBackImage/mark.png"));
+            var profilFoto = new System.Drawing.Bitmap(Server.MapPath(profil.FilePath));
+
+            //  kalite bozulmadan resize
+            //  var profil2 = new Bitmap(profilFoto, 40, 40);
+
+
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(mark))
+            {
+                g.DrawImage(profilFoto, new System.Drawing.Rectangle(18, 8, 40, 40));
+            }
+
+
+
+
+            using (var ms = new MemoryStream())
+            {
+
+                mark.Save(ms, ImageFormat.Bmp);
+
+                Response.Clear();
+                Response.ContentType = "image/png";
+                Response.AddHeader("content-disposition", "attachment; qr.png");
+                Response.BinaryWrite(ms.ToArray());
+                Response.End();
+
+            }
+
+            return Content(null);
+
+        }
+
         public JsonResult GetEnums([DataSourceRequest] DataSourceRequest request)
         {
             var db = new WorkOfTimeDatabase();
@@ -918,7 +962,7 @@ namespace Infoline.WorkOfTime.Controllers
 
         public ContentResult GetYears()
         {
-            var maxYear = DateTime.Now.Year+1;
+            var maxYear = DateTime.Now.Year + 1;
             var minYear = DateTime.Now.Year - 30;
             var years = new List<object>();
             for (int i = maxYear; i >= minYear; i--)
@@ -1015,7 +1059,7 @@ namespace Infoline.WorkOfTime.Controllers
             months.Add(new { id = 5, title = "Cuma" });
             months.Add(new { id = 6, title = "Cumartesi" });
             months.Add(new { id = 7, title = "Pazar" });
-            
+
             return Content(Infoline.Helper.Json.Serialize(months), "application/json");
         }
     }
