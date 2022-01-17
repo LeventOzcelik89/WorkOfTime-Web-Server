@@ -48,7 +48,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
-        [HandleFunction("VWINV_Permit/GetAllPageInfo")]
+        [HandleFunction("VWINV_Permit/GetRequestPageInfo")]
         public void VWINV_PermitGetAllPageInfo(HttpContext context)
         {
             try
