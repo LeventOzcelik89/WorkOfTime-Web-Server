@@ -58,28 +58,60 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
             return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
-
-        [AllowEveryone]
-        public ActionResult Image(Guid userId)
-        {
-            var db = new WorkOfTimeDatabase();
-            var pp = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", userId);
-
-            var dir =TenantConfig.Tenant.GetWebUrl()+pp.FilePath;
-            return base.File(dir, "image");
-        }
-
-        [AllowEveryone]
-        public ActionResult Marker(string value)
-        {
-            var url = TenantConfig.Tenant.GetWebUrl();
-            var dir = ("/Content/Custom/img/PersonsBackImage/mapmarker.png");
-            var path = url + dir;
-            return base.File(path, "image/png");
-
-        }
-
-
         
+
+        [AllowEveryone]
+        public ContentResult img(Guid id)
+        {
+
+            var db = new WorkOfTimeDatabase();
+            var profil = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", id);
+
+
+            var mark = new System.Drawing.Bitmap(Server.MapPath("/Content/Custom/img/PersonsBackImage/mark.png"));
+            var profilFoto = new System.Drawing.Bitmap(Server.MapPath(profil.FilePath));
+
+            //  kalite bozulmadan resize
+            //  var profil2 = new Bitmap(profilFoto, 40, 40);
+
+
+            Bitmap bmp = new Bitmap(40, 40);
+            using (GraphicsPath gp = new GraphicsPath())
+            {
+                gp.AddEllipse(0, 0, 40, 40);
+                using (Graphics gr = Graphics.FromImage(bmp))
+                {
+                    gr.SetClip(gp);
+                    gr.DrawImage(profilFoto, Point.Empty);
+                }
+            }
+
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(mark))
+            {
+                g.DrawImage(bmp, new System.Drawing.Rectangle(18, 8, 40, 40));
+            }
+
+
+
+
+            using (var ms = new MemoryStream())
+            {
+
+                mark.Save(ms, ImageFormat.Bmp);
+
+                Response.Clear();
+                Response.ContentType = "image/png";
+                Response.AddHeader("content-disposition", "attachment; qr.png");
+                Response.BinaryWrite(ms.ToArray());
+                Response.End();
+
+            }
+
+            return Content(null);
+
+        }
+
+
+
     }
 }
