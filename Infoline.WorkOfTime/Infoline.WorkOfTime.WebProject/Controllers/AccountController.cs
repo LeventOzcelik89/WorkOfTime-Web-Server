@@ -567,13 +567,14 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 					{
 						var transactionItems = db.GetPRD_TransactionItemByProductIds(products.Select(a => a.id).ToArray());
 						var transactionItemList = new List<PRD_TransactionItem>();
-						foreach (var transactionItem in transactionItems)
+						if (transactionItems.Count() > 0)
 						{
-							//transactionItem.unitId
+							foreach (var product in products)
+							{
+								//var transacion = transactionItems.Where(a => a.productId == product.id).
+							}
 						}
 					}
-
-
 				}
 			}
 		}
