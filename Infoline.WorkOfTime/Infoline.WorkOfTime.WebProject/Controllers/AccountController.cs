@@ -571,8 +571,17 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 						{
 							foreach (var product in products)
 							{
-								//var transacion = transactionItems.Where(a => a.productId == product.id).
+								var transactions = transactionItems.Where(a => a.productId == product.id).ToList();
+								foreach (var transaction in transactions)
+								{
+									transaction.alternativeUnitId = product.unitId.HasValue ? product.unitId.Value : new Guid("8F6E4C58-47AB-445C-B3C6-6DF642AF1DAC");
+									transaction.unitId = product.unitId.HasValue ? product.unitId.Value : new Guid("8F6E4C58-47AB-445C-B3C6-6DF642AF1DAC");
+									transaction.alternativeQuantity = 1;
+									transactionItemList.Add(transaction);
+								}
 							}
+
+							db.BulkUpdatePRD_TransactionItem(transactionItemList);
 						}
 					}
 				}

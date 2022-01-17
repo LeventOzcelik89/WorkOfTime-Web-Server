@@ -27,6 +27,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var db = new WorkOfTimeDatabase();
 			var dbresult = new ResultStatus { result = true };
 
+			var isExistsDefault = db.GetPRD_ProductUnitIsDefaultCount((int)EnumPRD_ProductUnitIsDefault.Evet);
+			if (isExistsDefault > 0)
+			{
+				return Json(new ResultStatusUI
+				{
+					FeedBack =  feedback.Warning("Varsayılan ürün birimi mevcuttur."),
+				}, JsonRequestBehavior.AllowGet);
+			}
+
 			data.createdby = userStatus.user.id;
 			data.created = DateTime.Now;
 
@@ -35,9 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Json(new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Ürüne birim tanımlaması gerçekleştirildi.") :
-											 feedback.Warning(!string.IsNullOrEmpty(dbresult.message) ? dbresult.message : "Ürüne birim tanımlama işlemi başarısız oldu."),
-				Object = data.id
+				FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Warning("Kaydetme işlemi başarısız.Mesaj : " + dbresult.message),
 			}, JsonRequestBehavior.AllowGet);
 		}
 
@@ -56,6 +63,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
+
 
 			item.changed = DateTime.Now;
 			item.changedby = userStatus.user.id;
@@ -111,6 +119,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var res = new ResultStatus { result = true };
 			var feedback = new FeedBack();
 			var data = db.GetPRD_ProductUnitById(id);
+
+			if (data.isDefault == (int)EnumPRD_ProductUnitIsDefault.Evet)
+			{
+				return Json(new ResultStatusUI { FeedBack = feedback.Warning("Varsayılan ürün birimi silinemez.")}, JsonRequestBehavior.AllowGet);
+			}
 
 			res &= db.DeletePRD_ProductUnit(data);
 
