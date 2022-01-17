@@ -27,13 +27,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var db = new WorkOfTimeDatabase();
 			var dbresult = new ResultStatus { result = true };
 
-			var isExistsDefault = db.GetPRD_ProductUnitIsDefaultCount((int)EnumPRD_ProductUnitIsDefault.Evet);
-			if (isExistsDefault > 0)
+			if (data.productId.HasValue)
 			{
-				return Json(new ResultStatusUI
+				var isExistsDefault = db.GetPRD_ProductUnitIsDefaultCount((int)EnumPRD_ProductUnitIsDefault.Evet, data.productId.Value);
+				if (isExistsDefault > 0)
 				{
-					FeedBack =  feedback.Warning("Varsayılan ürün birimi mevcuttur."),
-				}, JsonRequestBehavior.AllowGet);
+					return Json(new ResultStatusUI
+					{
+						FeedBack =  feedback.Warning("Varsayılan bir ürün birimi zaten mevcuttur."),
+					}, JsonRequestBehavior.AllowGet);
+				}
 			}
 
 			data.createdby = userStatus.user.id;
@@ -122,7 +125,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 			if (data.isDefault == (int)EnumPRD_ProductUnitIsDefault.Evet)
 			{
-				return Json(new ResultStatusUI { FeedBack = feedback.Warning("Varsayılan ürün birimi silinemez.")}, JsonRequestBehavior.AllowGet);
+				return Json(new ResultStatusUI { FeedBack = feedback.Warning("Varsayılan ürün birimi silinemez.") }, JsonRequestBehavior.AllowGet);
 			}
 
 			res &= db.DeletePRD_ProductUnit(data);
