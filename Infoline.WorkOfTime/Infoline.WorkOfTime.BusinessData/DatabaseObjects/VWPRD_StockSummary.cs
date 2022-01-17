@@ -12,6 +12,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? stockId { get; set;}
         public string stockTable { get; set;}
         public Guid? stockCompanyId { get; set;}
+        public Guid? tritemUnitId { get; set;}
         public string stockId_Title { get; set;}
         public string productName { get; set;}
         public short? productType { get; set;}

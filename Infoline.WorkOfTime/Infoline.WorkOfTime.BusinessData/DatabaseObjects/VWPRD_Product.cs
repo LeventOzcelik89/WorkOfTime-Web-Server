@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string categoryId_Title { get; set;}
         public string brandId_Title { get; set;}
         public string unitId_Title { get; set;}
+        public Guid? productUnitId { get; set;}
         public string type_Title { get; set;}
         public string stockType_Title { get; set;}
         public string status_Title { get; set;}
