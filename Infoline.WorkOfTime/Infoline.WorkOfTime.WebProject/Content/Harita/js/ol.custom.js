@@ -33,7 +33,7 @@ var AkilliHarita = function (elementId, options) {
         uiMousePosition: false,
         uiMesurement: false,
         uiInfo: false,
-        uiInfoContent: "T.C Çevre Bakanlığı SIS Projesi",
+        uiInfoContent: "WorkOfTime Projesi",
         ImportDragAndDrop: false,
     }
 
