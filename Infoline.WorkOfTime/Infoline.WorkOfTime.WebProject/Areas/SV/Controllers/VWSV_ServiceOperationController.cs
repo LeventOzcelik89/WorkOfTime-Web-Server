@@ -60,20 +60,35 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 		[PageInfo("Servis Operasyonlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(VMSV_ServiceOperationModel model,bool?ispost)
+		public JsonResult Insert(VMSV_ServiceOperationModel model,bool?state)
 		{
 		  
 		    var userStatus = (PageSecurity)Session["userStatus"];
 		    var feedback = new FeedBack();
-
-			var dbresult = model.Save(userStatus.user.id);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu",false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Kaydetme işlemi başarısız")
-		    };
+            if (model.status==(int)EnumSV_ServiceOperation.QualityControlNot)
+            {
+				var dbresult = new VMSV_ServiceOperationModel { description=model.description }.QualiltyCheck(model.serviceId.Value, false, userStatus.user.id);
+				var result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Kaydetme işlemi başarısız")
+				};
+				return Json(result, JsonRequestBehavior.AllowGet);
+			}
+            else
+            {
+				var dbresult = model.Save(userStatus.user.id);
+				var result = new ResultStatusUI
+				{
+					Result = dbresult.result,
+					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Kaydetme işlemi başarısız")
+				};
+				return Json(result, JsonRequestBehavior.AllowGet);
+			}
+			
+		   
 		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+		   
 		}
 
 		[PageInfo("Servis Operasyonlarının Güncellendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
