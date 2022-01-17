@@ -1,8 +1,8 @@
 ﻿using Infoline.Framework.Database;
-using Infoline.Web.SmartHandlers;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessAccess.Mobile;
 using Infoline.WorkOfTime.BusinessData;
+using Infoline.Web.SmartHandlers;
 using System;
 using System.ComponentModel.Composition;
 using System.Web;
@@ -10,22 +10,22 @@ using System.Web;
 namespace Infoline.WorkOfTime.WebService.Handler
 {
     [Export(typeof(ISmartHandler))]
-    public partial class VWINV_PermitHandler : BaseSmartHandler
+    public partial class VWINV_CommissionsPersonsHandler : BaseSmartHandler
     {
-        public VWINV_PermitHandler()
-            : base("VWINV_PermitHandler")
+        public VWINV_CommissionsPersonsHandler()
+            : base("VWINV_CommissionsPersonsHandler")
         {
 
         }
 
-        [HandleFunction("VWINV_Permit/GetById")]
-        public void VWINV_PermitGetById(HttpContext context)
+        [HandleFunction("VWINV_CommissionsPersons/GetById")]
+        public void VWINV_CommissionsPersonsGetById(HttpContext context)
         {
             try
             {
                 var db = new WorkOfTimeDatabase();
                 var id = context.Request["id"];
-                var data = db.GetVWINV_PermitById(new Guid((string)id));
+                var data = db.GetVWINV_CommissionsPersonsById(new Guid((string)id));
                 RenderResponse(context, data);
             }
             catch (Exception ex)
@@ -34,12 +34,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
-        [HandleFunction("VWINV_Permit/GetMyPageInfo")]
-        public void VWINV_PermitGetMyPageInfo(HttpContext context)
+        [HandleFunction("VWINV_CommissionsPersons/GetMyPageInfo")]
+        public void VWINV_CommissionsPersonsGetMyPageInfo(HttpContext context)
         {
             try
             {
-                var data = new VMINV_PermitModel().GetMyPermitSummary(CallContext.Current.UserId);
+                var data = new VMINV_CommissionsModel().GetMyCommissionsSummary(CallContext.Current.UserId);
                 RenderResponse(context, data);
             }
             catch (Exception ex)
@@ -48,12 +48,12 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
-        [HandleFunction("VWINV_Permit/GetRequestPageInfo")]
-        public void VWINV_PermitGetAllPageInfo(HttpContext context)
+        [HandleFunction("VWINV_CommissionsPersons/GetRequestPageInfo")]
+        public void VWINV_CommissionsPersonsGetAllPageInfo(HttpContext context)
         {
             try
             {
-                var data = new VMINV_PermitModel().GetRequestPermitSummary(CallContext.Current.UserId);
+                var data = new VMINV_CommissionsModel().GetRequestCommissionsSummary(CallContext.Current.UserId);
                 RenderResponse(context, data);
             }
             catch (Exception ex)

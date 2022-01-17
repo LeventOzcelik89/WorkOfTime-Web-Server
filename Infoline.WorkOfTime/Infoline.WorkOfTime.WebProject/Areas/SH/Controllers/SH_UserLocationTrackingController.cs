@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Web;
@@ -54,71 +55,63 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
             var db = new WorkOfTimeDatabase();
             var locationTrackingDatas = db.GetVWUT_LocationConfigUser().ToList();
-            
+
             return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
+        
 
         [AllowEveryone]
-        public static System.Drawing.Bitmap CombineBitmap(string[] files)
+        public ContentResult img(Guid id)
         {
-            //read all images into memory
-            List<System.Drawing.Bitmap> images = new List<System.Drawing.Bitmap>();
-            System.Drawing.Bitmap finalImage = null;
 
-            try
+            var db = new WorkOfTimeDatabase();
+            var profil = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", id);
+
+
+            var mark = new System.Drawing.Bitmap(Server.MapPath("/Content/Custom/img/PersonsBackImage/mark.png"));
+            var profilFoto = new System.Drawing.Bitmap(Server.MapPath(profil.FilePath));
+
+            //  kalite bozulmadan resize
+            //  var profil2 = new Bitmap(profilFoto, 40, 40);
+
+
+            Bitmap bmp = new Bitmap(40, 40);
+            using (GraphicsPath gp = new GraphicsPath())
             {
-                int width = 0;
-                int height = 0;
-
-                foreach (string greenbackground in files)
+                gp.AddEllipse(0, 0, 40, 40);
+                using (Graphics gr = Graphics.FromImage(bmp))
                 {
-                    //create a Bitmap from the file and add it to the list
-                    System.Drawing.Bitmap bitmap = new System.Drawing.Bitmap(greenbackground);
-
-                    //update the size of the final bitmap
-                    width += bitmap.Width;
-                    height = bitmap.Height > height ? bitmap.Height : height;
-
-                    images.Add(bitmap);
-                }
-
-                //create a bitmap to hold the combined image
-                finalImage = new System.Drawing.Bitmap(width, height);
-
-                //get a graphics object from the image so we can draw on it
-                using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(finalImage))
-                {
-                    //set background color
-                    g.Clear(System.Drawing.Color.Red);
-
-                    //go through each image and draw it on the final image
-                    int offset = 0;
-                    foreach (System.Drawing.Bitmap redbackground in images)
-                    {
-                        g.DrawImage(redbackground,
-                          new System.Drawing.Rectangle(offset, 0, redbackground.Width, redbackground.Height));
-                        offset += redbackground.Width;
-                    }
-                }
-
-                return finalImage;
-            }
-            catch (Exception ex)
-            {
-                if (finalImage != null)
-                    finalImage.Dispose();
-
-                throw ex;
-            }
-            finally
-            {
-                //clean up memory
-                foreach (System.Drawing.Bitmap redbackground in images)
-                {
-                    redbackground.Dispose();
+                    gr.SetClip(gp);
+                    gr.DrawImage(profilFoto, Point.Empty);
                 }
             }
+
+            using (System.Drawing.Graphics g = System.Drawing.Graphics.FromImage(mark))
+            {
+                g.DrawImage(bmp, new System.Drawing.Rectangle(18, 8, 40, 40));
+            }
+
+
+
+
+            using (var ms = new MemoryStream())
+            {
+
+                mark.Save(ms, ImageFormat.Bmp);
+
+                Response.Clear();
+                Response.ContentType = "image/png";
+                Response.AddHeader("content-disposition", "attachment; qr.png");
+                Response.BinaryWrite(ms.ToArray());
+                Response.End();
+
+            }
+
+            return Content(null);
+
         }
+
+
 
     }
 }

@@ -9,6 +9,9 @@ using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -22,6 +25,10 @@ namespace Infoline.WorkOfTime.Controllers
     [AllowEveryone]
     public class GeneralController : Controller
     {
+
+
+        
+
         public JsonResult GetEnums([DataSourceRequest] DataSourceRequest request)
         {
             var db = new WorkOfTimeDatabase();
@@ -918,7 +925,7 @@ namespace Infoline.WorkOfTime.Controllers
 
         public ContentResult GetYears()
         {
-            var maxYear = DateTime.Now.Year+1;
+            var maxYear = DateTime.Now.Year + 1;
             var minYear = DateTime.Now.Year - 30;
             var years = new List<object>();
             for (int i = maxYear; i >= minYear; i--)
@@ -1015,7 +1022,7 @@ namespace Infoline.WorkOfTime.Controllers
             months.Add(new { id = 5, title = "Cuma" });
             months.Add(new { id = 6, title = "Cumartesi" });
             months.Add(new { id = 7, title = "Pazar" });
-            
+
             return Content(Infoline.Helper.Json.Serialize(months), "application/json");
         }
     }
