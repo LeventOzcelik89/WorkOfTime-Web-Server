@@ -400,8 +400,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     created = this.created,
                     createdby = userId,
-                    description = "Kalite Kontrol Başarısız",
                     serviceId = serviceId,
+                    description=this.description,
                     status = (int)EnumSV_ServiceOperation.QualityControlNot,
                 }.Save(userId, null, this.trans);
             }

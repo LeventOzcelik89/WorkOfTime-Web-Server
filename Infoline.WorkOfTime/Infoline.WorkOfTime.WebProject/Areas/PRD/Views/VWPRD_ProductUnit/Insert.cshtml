@@ -1,0 +1,107 @@
+﻿@model Infoline.WorkOfTime.BusinessData.PRD_ProductUnit
+@{
+	ViewBag.Title = "Ürüne Birim Tanımla";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+@using (Html.BeginForm("Insert", "VWPRD_ProductUnit", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.HiddenFor(model => model.id)
+
+
+	if (Model.productId.HasValue)
+	{
+		@Html.HiddenFor(model => model.productId)
+	}
+	else
+	{
+		<div class="form-group">
+			<div class="col-md-4">
+				<label class="control-label label-md req" for="productId">Ürün</label>
+			</div>
+			<div class="col-md-8">
+				@(
+                  Html.Akilli()
+                  .DropDownListFor(model => model.productId)
+                  .OptionLabel("Lütfen Ürün seçiniz..")
+                  .DataTextField("name")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWPRD_Product", new { area = "PRD" }))
+                  .Template("#=TemplateEngine('productTemplate',data)#")
+                  .Sort(x => x.Add("name").Ascending())
+                    .Filter<PRD_Product>(x => x.stockType == (int)EnumPRD_ProductStockType.SeriNoluTakip)
+                  .Validate(Validations.Required)
+                  .Execute()
+                )
+			</div>
+		</div>
+	}
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="companyId">Birim</label>
+		</div>
+		<div class="col-md-8">
+			@(
+		Html.Akilli()
+		.DropDownListFor(model => model.unitId)
+		.OptionLabel("Lütfen Birim seçiniz..")
+		.DataValueField("id")
+		.DataTextField("name")
+		.Action(b => b.Action("DataSourceDropDown", "UT_Unit", new { area = "UT" }))
+		.Sort(x => x.Add("name").Ascending())
+		.Validate(Validations.Required)
+		.Execute()
+            )
+		</div>
+	</div>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="quantity">Miktar</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                    Html.Akilli()
+                    .NumericTextBoxFor(a => a.quantity)
+                    .Min(0)
+                    .Format("N2").Validate(Validations.NumberOnly(true,1,12))
+                )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="isActive">Varsayılan Birim Mi?</label>
+		</div>
+		<div class="col-md-8">
+			<div class="clearfix m-b-md">
+				<div class="radio akilliRadioGrup clearfix">
+					@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_ProductUnitIsDefault>().OrderBy(x => x.Generic["order"]))
+					{
+						@(Html.RadioButtonFor(model => model.isDefault, item.Key, new Dictionary<string, object> { { "id", "isDefault" + item.Key } }))
+						<label for="isDefault@(item.Key)" tabindex="0" class="radio-label">
+							@item.Value
+						</label>
+					}
+				</div>
+			</div>
+
+		</div>
+	</div>
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+
+}

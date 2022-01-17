@@ -1,17 +1,17 @@
 ﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_ProductModel
 @{
-    ViewBag.Title = "Ürün&Hizmet Detayı";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+	ViewBag.Title = "Ürün&Hizmet Detayı";
+	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <style type="text/css">
-    .list-group.clear-list .list-group-item {
-        padding: 5px 0px !important;
-    }
+	.list-group.clear-list .list-group-item {
+		padding: 5px 0px !important;
+	}
 
-    .table {
-        border-top: 0px #ddd solid;
-    }
+	.table {
+		border-top: 0px #ddd solid;
+	}
 </style>
 
 <script type="text/javascript">
@@ -95,232 +95,232 @@
 </script>
 
 <div class="row">
-    <div class="col-lg-3">
-        <div class="ibox ">
-            <div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
-                <div class="m-b-md">
-                    <h2 class="font-bold no-margins">
-                        @Model.name
-                    </h2>
-                    <small> <i class="icon-barcode-1"></i> @Model.code <i class="icon-barcode-1"></i></small>
-                </div>
-                <img src="@(Model.logo  != null ? Model.logo : "/Content/Custom/img/urun-bulunamadi.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 100px;width:100px;margin: auto;margin-top: 25px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png')">
+	<div class="col-lg-3">
+		<div class="ibox ">
+			<div class="p-md text-center mypageBg" style="background:url('/Content/Custom/img/MyPageBackground.png');color: #ffffff;padding-bottom:10px !important;">
+				<div class="m-b-md">
+					<h2 class="font-bold no-margins">
+						@Model.name
+					</h2>
+					<small> <i class="icon-barcode-1"></i> @Model.code <i class="icon-barcode-1"></i></small>
+				</div>
+				<img src="@(Model.logo  != null ? Model.logo : "/Content/Custom/img/urun-bulunamadi.png")" alt="image" class="img-circle m-t-xs img-responsive" style="height: 100px;width:100px;margin: auto;margin-top: 25px;border: 2px #fff solid;" onerror="ImageError(this, '/Content/Custom/img/urun-bulunamadi.png')">
 
-                <div style="margin-top: 15px;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-method="GET" data-href="@Url.Action("Update", "VWPRD_Product", new { area = "PRD", id = Model.id  })">  <i class="fa fa-edit"></i> Ürün Düzenle </a>
-                </div>
-            </div>
-            <div class="widget-text-box" style="padding:0px !important;">
+				<div style="margin-top: 15px;">
+					<a class="btn btn-xs btn-info" data-task="Insert" data-method="GET" data-href="@Url.Action("Update", "VWPRD_Product", new { area = "PRD", id = Model.id  })">  <i class="fa fa-edit"></i> Ürün Düzenle </a>
+				</div>
+			</div>
+			<div class="widget-text-box" style="padding:0px !important;">
 
-                <ul class="list-group">
-                    @if (!string.IsNullOrEmpty(Model.barcode))
-                    {
-                        try
-                        {
-                            <li class="list-group-item">
-                                @Html.Kendo().Barcode().Name("barcode").Value(Model.barcode).Height(100)
-                            </li>
-                        }
-                        catch
-                        {
+				<ul class="list-group">
+					@if (!string.IsNullOrEmpty(Model.barcode))
+					{
+						try
+						{
+							<li class="list-group-item">
+								@Html.Kendo().Barcode().Name("barcode").Value(Model.barcode).Height(100)
+							</li>
+						}
+						catch
+						{
 
-                        }
-                    }
-
-
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.code != null ? Model.code : "-")</span>
-                        Kodu :
-                    </li>
-
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.name != null ? Model.name : "-")</span>
-                        Adı :
-                    </li>
-
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.unitId_Title)</span>
-                        Birimi :
-                    </li>
-
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.type_Title)</span>
-                        Stok Türü :
-                    </li>
-
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.stockType_Title)</span>
-                        Stok Takip Tipi :
-                    </li>
-
-                    @if (Model.stockType != (short)EnumPRD_ProductStockType.Stoksuz)
-                    {
-                        <li class="list-group-item">
-                            <span class="badge badge-white">@Html.Raw(Model.isCriticalStock_Title)</span>
-                            Kritik Stok :
-                        </li>
-
-                        if (Model.isCriticalStock == true)
-                        {
-                            <li class="list-group-item">
-                                <span class="badge badge-white">@Html.Raw(string.Format("{0:N0}", Model.criticalStock))</span>
-                                Kritik Stok Miktarı :
-                            </li>
-                        }
-                    }
-
-                    <li class="list-group-item">
-                        @if (Model.currentBuyingPrice != null)
-                        {
-                            <a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.Alis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
-                            <span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentBuyingPrice, Model.currentBuyingCurrencyId_Title))</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-white">-</span>
-                        }
-                        Birim Maliyet (Vergiler Hariç) :
-                    </li>
-
-                    <li class="list-group-item">
-                        @if (Model.currentSellingPrice != null)
-                        {
-                            <a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.Satis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
-                            <span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentSellingPrice, Model.currentSellingCurrencyId_Title))</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-white">-</span>
-                        }
-                        Birim Fiyat(Vergiler Hariç) :
-                    </li>
-
-                    <li class="list-group-item">
-                        @if (Model.currentServicePrice != null)
-                        {
-                            <a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.TeknikServis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
-                            <span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentServicePrice, Model.currentServiceCurrencyId_Title))</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-white">-</span>
-                        }
-                        Birim Fiyat(Vergiler Hariç) :
-                    </li>
+						}
+					}
 
 
-                    <li class="list-group-item">
-                        @if (Model.currentSellingPoint != null)
-                        {
-                            <a href="#" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
-                            <span class="badge badge-white">@Html.Raw(string.Format("{0:N1}", Model.currentSellingPoint))</span>
-                        }
-                        else
-                        {
-                            <span class="badge badge-white">-</span>
-                        }
-                        Güncel Satış Puanı:
-                    </li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.code != null ? Model.code : "-")</span>
+						Kodu :
+					</li>
 
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.brandId_Title != null ? Model.brandId_Title : "-")</span>
-                        Marka :
-                    </li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.name != null ? Model.name : "-")</span>
+						Adı :
+					</li>
 
-                    <li class="list-group-item">
-                        <span class="badge badge-white">@Html.Raw(Model.categoryId_Title != null ? Model.categoryId_Title : "-")</span>
-                        Kategori :
-                    </li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.unitId_Title)</span>
+						Birimi :
+					</li>
 
-                    <li class="list-group-item">
-                        Açıklama :
-                    </li>
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.type_Title)</span>
+						Stok Türü :
+					</li>
 
-                    @if (Model.description != null)
-                    {
-                        <li class="list-group-item">
-                            @Html.Raw(Model.description)
-                        </li>
-                    }
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.stockType_Title)</span>
+						Stok Takip Tipi :
+					</li>
 
-                </ul>
-            </div>
-        </div>
-        @Html.Action("Detail", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "PRD_Product" })
-        
+					@if (Model.stockType != (short)EnumPRD_ProductStockType.Stoksuz)
+					{
+						<li class="list-group-item">
+							<span class="badge badge-white">@Html.Raw(Model.isCriticalStock_Title)</span>
+							Kritik Stok :
+						</li>
 
-        <div class="ibox collapsed">
-            <div class="ibox-title">
-                <h5>QR Kod</h5>
-                <div class="ibox-tools">
-                    <a class="collapse-link">
-                        <i class="fa fa-chevron-up"></i>
-                    </a>
-                </div>
-            </div>
-            <div class="ibox-content clearfix">
-                <div class="qrCodeWrapper" style="width:170px;">
-                    @(  Html.Kendo().QRCode()
+						if (Model.isCriticalStock == true)
+						{
+							<li class="list-group-item">
+								<span class="badge badge-white">@Html.Raw(string.Format("{0:N0}", Model.criticalStock))</span>
+								Kritik Stok Miktarı :
+							</li>
+						}
+					}
+
+					<li class="list-group-item">
+						@if (Model.currentBuyingPrice != null)
+						{
+							<a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.Alis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
+							<span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentBuyingPrice, Model.currentBuyingCurrencyId_Title))</span>
+						}
+						else
+						{
+							<span class="badge badge-white">-</span>
+						}
+						Birim Maliyet (Vergiler Hariç) :
+					</li>
+
+					<li class="list-group-item">
+						@if (Model.currentSellingPrice != null)
+						{
+							<a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.Satis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
+							<span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentSellingPrice, Model.currentSellingCurrencyId_Title))</span>
+						}
+						else
+						{
+							<span class="badge badge-white">-</span>
+						}
+						Birim Fiyat(Vergiler Hariç) :
+					</li>
+
+					<li class="list-group-item">
+						@if (Model.currentServicePrice != null)
+						{
+							<a data-task="Insert" data-method="GET" data-href="@Url.Action("Index", "VWPRD_ProductPrice", new { area = "PRD", productId = Model.id,type=(int)EnumPRD_ProductPriceType.TeknikServis  })" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
+							<span class="badge badge-white">@Html.Raw(string.Format("{0:N2} {1}", Model.currentServicePrice, Model.currentServiceCurrencyId_Title))</span>
+						}
+						else
+						{
+							<span class="badge badge-white">-</span>
+						}
+						Birim Fiyat(Vergiler Hariç) :
+					</li>
+
+
+					<li class="list-group-item">
+						@if (Model.currentSellingPoint != null)
+						{
+							<a href="#" class="pull-right" data-original-title="Geçmiş"><i class="fa fa-history"></i></a>
+							<span class="badge badge-white">@Html.Raw(string.Format("{0:N1}", Model.currentSellingPoint))</span>
+						}
+						else
+						{
+							<span class="badge badge-white">-</span>
+						}
+						Güncel Satış Puanı:
+					</li>
+
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.brandId_Title != null ? Model.brandId_Title : "-")</span>
+						Marka :
+					</li>
+
+					<li class="list-group-item">
+						<span class="badge badge-white">@Html.Raw(Model.categoryId_Title != null ? Model.categoryId_Title : "-")</span>
+						Kategori :
+					</li>
+
+					<li class="list-group-item">
+						Açıklama :
+					</li>
+
+					@if (Model.description != null)
+					{
+						<li class="list-group-item">
+							@Html.Raw(Model.description)
+						</li>
+					}
+
+				</ul>
+			</div>
+		</div>
+		@Html.Action("Detail", "VWSYS_TableAdditionalProperty", new { area = "SYS", dataId = Model.id, dataTable = "PRD_Product" })
+
+
+		<div class="ibox collapsed">
+			<div class="ibox-title">
+				<h5>QR Kod</h5>
+				<div class="ibox-tools">
+					<a class="collapse-link">
+						<i class="fa fa-chevron-up"></i>
+					</a>
+				</div>
+			</div>
+			<div class="ibox-content clearfix">
+				<div class="qrCodeWrapper" style="width:170px;">
+					@(  Html.Kendo().QRCode()
                              .Name("QRCode")
                              .Value(Model.code)
                              .Size(160)
                         )
-                    <span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
-                    <div style="text-align:center;">
-                        <a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
-                        <a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+					<span data-error-correction="M" data-bind="value: qrcode" style="height: 100px;"></span>
+					<div style="text-align:center;">
+						<a href="#" class="btn btn-danger btn-xs" data-target="QRCode" data-print="qrcode" data-original-title="QR Kod Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
+						<a href="#" data-export="qr-code-png" download="qr-code.png" data-target="QRCode" class="btn btn-success btn-xs" data-original-title="QR Kod İndir"><i class="fa fa-download"></i> İndir</a>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-    <div class="col-lg-9">
-        <div class="row">
-            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
-                <div class="widget style1 yellow-bg">
-                    <div class="row">
-                        <div class="col-xs-2 hidden-md wHeader">
-                            <i class="icon-home-4 fa-4x"></i>
-                        </div>
-                        <div class="col-xs-10 text-right wInformation">
-                            <span>Depolardaki Stok</span>
-                            <h2><span>@string.Format("{0:n2}", Model.stockStorage) @Model.unitId_Title</span></h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
-                <div class="widget style1 lazur-bg">
-                    <div class="row">
-                        <div class="col-xs-2 hidden-md wHeader">
-                            <i class="icon-adult fa-4x"></i>
-                        </div>
-                        <div class="col-xs-10 text-right wInformation">
-                            <span>Personellerdeki Stok</span>
-                            <h2><span>@string.Format("{0:n2}", Model.stockPerson) @Model.unitId_Title</span></h2>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
-                <div id="Card_e2a97d72" class="widget style1 blue-bg">
-                    <div class="row">
-                        <div class="col-xs-2 hidden-md wHeader">
-                            <i class="icon-cubes fa-4x"></i>
-                        </div>
-                        <div class="col-xs-10 text-right wInformation">
-                            <span>Toplam Stok</span>
-                            <h2><span>@string.Format("{0:n2}", Model.stockTotal)  @Model.unitId_Title</span></h2>
-                        </div>
-                    </div>
-                </div>
+	<div class="col-lg-9">
+		<div class="row">
+			<div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+				<div class="widget style1 yellow-bg">
+					<div class="row">
+						<div class="col-xs-2 hidden-md wHeader">
+							<i class="icon-home-4 fa-4x"></i>
+						</div>
+						<div class="col-xs-10 text-right wInformation">
+							<span>Depolardaki Stok</span>
+							<h2><span>@string.Format("{0:n2}", Model.stockStorage) @Model.unitId_Title</span></h2>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+				<div class="widget style1 lazur-bg">
+					<div class="row">
+						<div class="col-xs-2 hidden-md wHeader">
+							<i class="icon-adult fa-4x"></i>
+						</div>
+						<div class="col-xs-10 text-right wInformation">
+							<span>Personellerdeki Stok</span>
+							<h2><span>@string.Format("{0:n2}", Model.stockPerson) @Model.unitId_Title</span></h2>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="colmd3Cards col-xs-12 col-sm-12 col-md-4">
+				<div id="Card_e2a97d72" class="widget style1 blue-bg">
+					<div class="row">
+						<div class="col-xs-2 hidden-md wHeader">
+							<i class="icon-cubes fa-4x"></i>
+						</div>
+						<div class="col-xs-10 text-right wInformation">
+							<span>Toplam Stok</span>
+							<h2><span>@string.Format("{0:n2}", Model.stockTotal)  @Model.unitId_Title</span></h2>
+						</div>
+					</div>
+				</div>
 
-            </div>
-        </div>
+			</div>
+		</div>
 
-        <section style="margin-bottom: 20px;">
-            <div class="tabs-container">
+		<section style="margin-bottom: 20px;">
+			<div class="tabs-container">
 				<ul class="nav nav-tabs">
 
 
@@ -344,6 +344,9 @@
 						<a data-toggle="tab" href="#VWPRD_StockActions" aria-expanded="false"><i class="icon-exchange-1 text-success fa-2x" aria-hidden="true"></i></a>
 					</li>
 
+					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_ProductUnit", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Ürün Birim Tanımları">
+						<a data-toggle="tab" href="#VWPRD_ProductUnitTabs" aria-expanded="false"><i class="icon-list-numbered-1 text-success fa-2x" aria-hidden="true"></i></a>
+					</li>
 					<li class="pull-right" data-href="@Url.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })" data-toggle="tooltip" data-placement="top" title="Ürün Primleri">
 						<a data-toggle="tab" href="#VWPRD_ProductBounties" aria-expanded="false"><i class="icon-gift text-success fa-2x" aria-hidden="true"></i></a>
 					</li>
@@ -471,6 +474,30 @@
                         )
 					</div>
 
+					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductUnit", new { area = "PRD" })" id="VWPRD_ProductUnitTabs">
+						<h4><i class="icon-list-numbered-1 text-success"></i> ÜRÜN BİRİM TANIMLARI </h4>
+						@(Html.Akilli()
+							.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_ProductUnit>("VWPRD_ProductUnit")
+							.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_ProductUnit", new { area = "PRD" })).Filter(t => t.productId == Model.id).PageSize(25).Sort(t => t.Add(p => p.created).Descending()))
+							  .Scrollable(a => a.Height(485))
+							.Columns(x =>
+							{
+								x.Bound(y => y.unitId_Title).Title("Birim").Width(180);
+								x.Bound(y => y.quantity).Title("Miktar").Width(180).Format("{0:N0}");
+								x.Bound(y => y.isDefault_Title).Title("Varsayılan Mı").Width(180);
+								x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+							}
+							)
+							.Selectable(x => x.Mode(GridSelectionMode.Single))
+							.ToolBar(x =>
+							{
+								x.Custom().Text("<i data-original-title='Ürüne Birim Tanımla' class='fa fa-plus-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPRD_ProductUnit", new { area = "PRD", productId = Model.id }));
+								x.Custom().Text("<i data-original-title='Ürün Birim Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-modal", "true" }, { "data-blank", "true" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_ProductUnit", new { area = "PRD" }));
+								x.Custom().Text("<i title='Ürün Birimini Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductUnit", new { area = "PRD" }));
+								x.Custom().Text("<i data-original-title='Ürün Birim Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductUnit", new { area = "PRD" }));
+							}))
+					</div>
+
 					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductBounty", new { area = "PRD" })" id="VWPRD_ProductBounties">
 						<h4><i class="icon-gift text-success"></i> ÜRÜN PRİMLERİ </h4>
 						@(Html.Akilli()
@@ -490,8 +517,8 @@
 								x.Custom().Text("<i title='Ürün Primini Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWPRD_ProductBounty", new { area = "PRD" }));
 								x.Custom().Text("<i data-original-title='Ürün Prim Tanımını Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_ProductBounty", new { area = "PRD" }));
 							}))
-	 				</div>
-            
+					</div>
+
 					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_ProductPointSelling", new { area = "CMP" })" id="VWPRD_ProductPointSellings">
 						<h4><i class="icon-star-empty text-success"></i> SATIŞ PUANI GEÇMİŞİ </h4>
 						@(Html.Akilli()
@@ -544,37 +571,37 @@
 
 				</div>
 
-            </div>
-        </section>
+			</div>
+		</section>
 
-    </div>
+	</div>
 </div>
 
 <script type="text/javascript">
-    $(document)
-        .on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
-            var detail = $('[data-storage="detail"]');
-            var dataProduct = $('[data-productStorage="detail"]');
-            $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
-            if (res.stockType == 2 && res.quantity != 0) {
-                $(dataProduct).show();
-                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
-            }
-            else {
-                $(dataProduct).hide();
-            }
-        })
+	$(document)
+		.on("selected:grid", "#VWPRD_StockSummaryStorage", function (e, res) {
+			var detail = $('[data-storage="detail"]');
+			var dataProduct = $('[data-productStorage="detail"]');
+			$(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+			if (res.stockType == 2 && res.quantity != 0) {
+				$(dataProduct).show();
+				$(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+			}
+			else {
+				$(dataProduct).hide();
+			}
+		})
 
-        .on("selected:grid", "#VWPRD_StockSummaryPerson", function (e, res) {
-            var dataProduct = $('[data-productPerson="detail"]');
-            var detail = $('[data-person="detail"]');
-            $(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
-            if (res.stockType == 2 && res.quantity != 0) {
-                $(dataProduct).show();
-                $(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
-            }
-            else {
-                $(dataProduct).hide();
-            }
-        });
+		.on("selected:grid", "#VWPRD_StockSummaryPerson", function (e, res) {
+			var dataProduct = $('[data-productPerson="detail"]');
+			var detail = $('[data-person="detail"]');
+			$(detail).attr("data-href", '/PRD/VWPRD_StockSummary/Detail?productId=' + res.productId + '&stockId=' + res.stockId + '&stockTable=' + res.stockTable);
+			if (res.stockType == 2 && res.quantity != 0) {
+				$(dataProduct).show();
+				$(dataProduct).attr("data-href", '/PRD/VWPRD_Inventory/DetailInventory?productId=' + res.productId + '&stockId=' + res.stockId);
+			}
+			else {
+				$(dataProduct).hide();
+			}
+		});
 </script>

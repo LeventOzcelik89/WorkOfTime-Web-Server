@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessData;
 using System;
+using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 
@@ -68,7 +69,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 return new SummaryHeadersCommission
                 {
-                    waiting = db.Table<VWINV_CommissionsPersons>().Where(c => c.IdUser == userId && (c.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor || c.ApproveStatus== (Int32)EnumINV_CommissionsApproveStatus.Onaylandi)).Count(),
+                    waiting = db.Table<VWINV_CommissionsPersons>().Where(c => c.IdUser == userId && (c.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor || c.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi)).Count(),
                     waitingFilter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId + "'},'Operand2':{'Operand1':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'0'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'1'},'Operator':'Or'},'Operator':'And'}}",
                     approved = db.Table<VWINV_CommissionsPersons>().Where(c => c.IdUser == userId && c.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi).Count(),
                     approvedFilter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'3'},'Operator':'And'}}",
@@ -89,8 +90,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     waiting = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userid && a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Bekliyor && a.IsOwner == true).Count(),
                     waitingFilter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'Manager1Approval','Operator':'Equal','Operand2':'" + userid + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'0'},'Operator':'And'},'Operand2':{'Operand1':'IsOwner','Operator':'Equal','Operand2':'True'},'Operator':'And'}}",
 
-                    approved = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userid && a.IsOwner == true && 
-                    (a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi || 
+                    approved = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userid && a.IsOwner == true &&
+                    (a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.Onaylandi ||
                     a.ApproveStatus == (Int32)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi)).Count(),
                     approvedFilter = "{'Filter':{'Operand1':{'Operand1':" +
                     "{'Operand1':'Manager1Approval','Operator':'Equal','Operand2':'" + userid + "'}," +
@@ -124,13 +125,105 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-       
+
 
         public VWINV_CommissionsPersons[] GetVWINV_CommissionsPersonsByIds(Guid[] ids, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
                 return db.Table<VWINV_CommissionsPersons>().Where(a => a.id.In(ids)).Execute().ToArray();
+            }
+        }
+
+        public SummaryHeadersCommissionsNew GetVWINV_CommissionsMyCommissionsCountFilter(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                var headers = new SummaryHeadersCommissionsNew { };
+
+                headers.headerFilters = new HeadersCommissions();
+                headers.headerFilters.title = "Durumuna Göre";
+                headers.headerFilters.Filters = new List<HeadersCommissionsItem>();
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Onay Beklenen",
+                    filter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'0'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'1'},'Operator':'Or'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.IdUser == userId && (a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Bekliyor || a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Onaylandi)).Count(),
+                    isActive = true
+                });
+
+                // burasınıda ayarla
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Imzalı Dosya Beklenen",
+                    filter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.IdUser == userId && a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Onaylandi).Count(),
+                    isActive = false
+                });
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Onaylanan",
+                    filter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'3'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.IdUser == userId && a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi).Count(),
+                    isActive = true
+                });
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Reddedilmiş",
+                    filter = "{'Filter':{'Operand1':{'Operand1':'IdUser','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'2'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.IdUser == userId && a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi).Count(),
+                    isActive = true
+                });
+
+                return headers;
+            }
+        }
+
+        public SummaryHeadersCommissionsNew GetVWINV_CommissionsRequestCommissionsCountFilter(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                var headers = new SummaryHeadersCommissionsNew { };
+
+                headers.headerFilters = new HeadersCommissions();
+                headers.headerFilters.title = "Durumuna Göre";
+                headers.headerFilters.Filters = new List<HeadersCommissionsItem>();
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Onay Beklenen",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'Manager1Approval','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'0'},'Operator':'And'},'Operand2':{'Operand1':'IsOwner','Operator':'Equal','Operand2':'True'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userId && a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Bekliyor && a.IsOwner == true).Count(),
+                    isActive = true
+                });
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Onaylanan",
+                    filter = "{'Filter':{'Operand1':{'Operand1':" +
+                    "{'Operand1':'Manager1Approval','Operator':'Equal','Operand2':'" + userId.ToString() + "'}," +
+                    "'Operand2':{'Operand1':'IsOwner','Operator':'Equal','Operand2':'True'}," +
+                    "'Operator':'And'}," +
+                    "'Operand2':" +
+                    "{'Operand1':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'1'}," +
+                    "'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'3'}," +
+                    "'Operator':'Or'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userId && a.IsOwner == true && (a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Onaylandi || a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.IslakImzaYuklendi)).Count(),
+                    isActive = true
+                });
+
+                headers.headerFilters.Filters.Add(new HeadersCommissionsItem
+                {
+                    title = "Reddedilmiş",
+                    filter = "{'Filter':{'Operand1':{'Operand1':{'Operand1':'Manager1Approval','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'ApproveStatus','Operator':'Equal','Operand2':'2'},'Operator':'And'},'Operand2':{'Operand1':'IsOwner','Operator':'Equal','Operand2':'True'},'Operator':'And'}}",
+                    count = db.Table<VWINV_CommissionsPersons>().Where(a => a.Manager1Approval == userId && a.ApproveStatus == (int)EnumINV_CommissionsApproveStatus.Reddedildi && a.IsOwner == true).Count(),
+                    isActive = true
+                });
+
+                return headers;
             }
         }
     }

@@ -9,9 +9,12 @@ namespace Infoline.WorkOfTime.BusinessData
         public string currency_Title { get; set;}
         public Guid? transactionId { get; set;}
         public Guid? productId { get; set;}
-        public double? quantity { get; set;}
         public double? unitPrice { get; set;}
         public string serialCodes { get; set;}
+        public Guid? unitId { get; set;}
+        public double? quantity { get; set;}
+        public Guid? defaultUnitId { get; set;}
+        public double? defaultQuantity { get; set;}
         public string code { get; set;}
         public DateTime? date { get; set;}
         public short? type { get; set;}
@@ -22,6 +25,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? dataId { get; set;}
         public string dataTable { get; set;}
         public Guid? dataCompanyId { get; set;}
+        public Guid? tritemUnitId { get; set;}
         public string createdby_Title { get; set;}
         public string stockId_Title { get; set;}
         public string stockCompanyId_Title { get; set;}

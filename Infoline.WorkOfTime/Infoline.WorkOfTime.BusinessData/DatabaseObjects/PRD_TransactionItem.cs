@@ -17,10 +17,6 @@ namespace Infoline.WorkOfTime.BusinessData
         /// </summary>
         public Guid? productId { get; set;}
         /// <summary>
-        /// İşlem miktarının tutulduğu alandır.
-        /// </summary>
-        public double? quantity { get; set;}
-        /// <summary>
         /// İşlem birim tutarının tutulduğu alandır.
         /// </summary>
         public double? unitPrice { get; set;}
@@ -28,5 +24,12 @@ namespace Infoline.WorkOfTime.BusinessData
         /// işlemdeki serinumaralarının tutulduğu alandır.
         /// </summary>
         public string serialCodes { get; set;}
+        public Guid? unitId { get; set;}
+        /// <summary>
+        /// İşlem miktarının tutulduğu alandır.
+        /// </summary>
+        public double? quantity { get; set;}
+        public Guid? defaultUnitId { get; set;}
+        public double? defaultQuantity { get; set;}
     }
 }

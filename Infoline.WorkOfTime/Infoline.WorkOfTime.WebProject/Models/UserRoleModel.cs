@@ -47,7 +47,7 @@ namespace System.Web.Mvc
             public string _schema = "";
             public string _filename = "";
             public string[] attributes = new string[] { "href", "src", "url" };
-         
+
 
             public KeywordStream(HttpContextBase context, Stream s, string schema, string filename)
             {
@@ -104,7 +104,7 @@ namespace System.Web.Mvc
                 base.Close();
             }
 
-  
+
         }
 
         public static byte[] GetPdfAsByteArray(string fileName, string text)
@@ -143,13 +143,13 @@ namespace System.Web.Mvc
 
                 return pdfConvert.Convert(document);
             }
-            catch
+            catch (Exception ex)
             {
                 return null;
             }
         }
 
-    
+
     }
 
 
@@ -340,7 +340,7 @@ namespace System.Web.Mvc
                     }
                 }
 
-        
+
 
 
                 var menu = nodes.Where(a => a.Name == "ul" && a.Attributes.Contains("id") && a.Attributes["id"].Value == "side-menu").FirstOrDefault();
@@ -421,7 +421,7 @@ namespace System.Web.Mvc
             }
         }
 
-        
+
 
     }
     public sealed class UserRoleControl : AuthorizeAttribute

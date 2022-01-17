@@ -7,11 +7,22 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-	public class VMINV_CommissionsModel : VWINV_Commissions
-	{
-		private WorkOfTimeDatabase db { get; set; }
-		private DbTransaction trans { get; set; }
-	}
+    public class VMINV_CommissionsModel : VWINV_Commissions
+    {
+        private WorkOfTimeDatabase db { get; set; }
+        private DbTransaction trans { get; set; }
+        public SummaryHeadersCommissionsNew GetMyCommissionsSummary(Guid userId)
+        {
+            db = new WorkOfTimeDatabase();
+            return db.GetVWINV_CommissionsMyCommissionsCountFilter(userId);
+        }
+
+        public SummaryHeadersCommissionsNew GetRequestCommissionsSummary(Guid userId)
+        {
+            db = new WorkOfTimeDatabase();
+            return db.GetVWINV_CommissionsRequestCommissionsCountFilter(userId);
+        }
+    }
 
     public class VWINV_CommissionsForm : VWINV_Commissions
     {
@@ -46,4 +57,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string LogoPath { get; set; }
     }
 
+    public class SummaryHeadersCommissionsNew
+    {
+        public HeadersCommissions headerFilters { get; set; }
+    }
+
+    public class HeadersCommissions
+    {
+        public string title { get; set; }
+        public List<HeadersCommissionsItem> Filters { get; set; }
+    }
+
+    public class HeadersCommissionsItem
+    {
+        public string title { get; set; }
+        public int count { get; set; }
+        public string filter { get; set; }
+        public bool isActive { get; set; }
+    }
 }

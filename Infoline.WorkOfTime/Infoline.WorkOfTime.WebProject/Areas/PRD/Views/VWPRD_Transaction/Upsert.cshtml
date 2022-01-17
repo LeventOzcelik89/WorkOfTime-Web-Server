@@ -122,9 +122,13 @@
                     $(item).find('[data-item="productId"]')
                         .attr('name', 'items[' + page.Counter + '].productId')
 
+					$(item).find('[data-item="unitId"]')
+						.attr('name', 'items[' + page.Counter + '].unitId')
+
 
                     var quant = $(item).find('[data-item="quantity"]').data('kendoNumericTextBox');
                     var prod = $(item).find('[data-item="productId"]').data('kendoDropDownList');
+					var prodUnit = $(item).find('[data-item="unitId"]').data('kendoDropDownList');
                     var serials = $(item).find('[data-item="serialCodes"]').data("tagify");
 
                     if (prod.value() == null) {
@@ -157,6 +161,8 @@
                 if (page.events.ValidateRows() == false) {
                     return false;
                 }
+
+                debugger;
 
                 var temp = $($('#RowTemp').html());
                 $('#RowContainer').append(temp);
@@ -209,6 +215,34 @@
                             "optionLabel": "Lütfen Ürün Seçiniz.."
                         });
 
+				temp.find('[data-item="unitId"]')
+					.attr('name', 'items[' + page.Counter + '].unitId')
+					.kendoDropDownList(
+						{
+							"value": (data != undefined ? data.unitId : null),
+							"dataSource": {
+								"type": "aspnetmvc-ajax",
+								"transport": { "read": { "url": "/PRD/VWPRD_ProductUnit/DataSourceDropDown" } },
+								"pageSize": 100,
+								"page": 1,
+								"total": 0,
+								"serverPaging": true,
+								"serverSorting": true,
+								"serverFiltering": true,
+								"sort": [
+									{ "field": "unitId_Title", "dir": "asc" },
+								]
+							},
+							"dataTextField": "unitId_Title",
+							"delay": 1000,
+                            "filter": "contains",
+                            "width":"200px",
+                            "autoBind": false,
+                            "enable": false,
+							"dataValueField": "unitId",
+							"optionLabel": "Birimi Seçiniz"
+						});
+
                 if (page.status == '1') {
                     temp.find('[data-item="islendi"]').attr('disabled', 'disabled');
                 }
@@ -223,6 +257,8 @@
                 var serialCodes = tr.find('[data-item="serialCodes"]');
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
+				var unitId = tr.find('[data-item="unitId"]').data("kendoDropDownList");
+
                 var priceProp = page.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
 
                 if (serialCodes.data('tagify')) {
@@ -235,18 +271,29 @@
                     unitPrice.enable(false);
                     quantity.value(0);
                     quantity.enable(false);
+                    unitId.value(null);
+                    unitId.enable(false);
                     serialCodes.val("");
                     serialCodes.prop("readonly", true);
                     serialCodes.tagify({ placeholder:"Henüz ürün seçimi yapılmadı." });
                 } else {
                     var allowCustomSerialCode = ["0", "2", "3", "4", "5"];
-                    tr.find('[data-selector="unit"]').text(data.unitId_Title || "Adet");
                     quantity.enable(true);
                     quantity.value((data.id == e.sender._initial ? (quantity.value() || 0) : 0));
                     unitPrice.enable(true);
                     unitPrice.value(data.id == e.sender._initial ? (unitPrice.value() || data[priceProp] || 0) : (data[priceProp] || 0));
                     serialCodes.prop("readonly", data.stockType == 2 ? false : true);
                     serialCodes.val(data.id == e.sender._initial ? (serialCodes.val() || "") : "");
+
+
+					var filter = ("(productId~eq~"+data.id+")");
+                    var filterJSON = kendo.filterParser(filter);
+                    unitId.dataSource.filter(filterJSON);
+                    unitId.enable(true);
+
+                    if (data.id != e.sender._initial) {
+						unitId.value(data.productUnitId)
+                    }
 
                     if (data.stockType == 2) {
                         
@@ -417,9 +464,13 @@
 		<td>
 			<div class="input-group">
 				<input data-item="quantity" />
-				<span class="input-group-addon"> Adet</span>
+				<div class="input-group-addon" style="background-color:white !important">
+					<input type="hidden" data-item="unitId" />
+				</div>
+
 			</div>
 		</td>
+		
 		<td>
 			<input data-item="serialCodes" data-role="tagify" />
 		</td>
@@ -556,7 +607,7 @@
 					<th style="width: 2%">#</th>
 					<th style="width:40%">ÜRÜN</th>
 					<th style="width:10%">BİRİM<br /> FİYAT</th>
-					<th style="width:10%">MİKTAR<br /> </th>
+					<th style="width:17%">MİKTAR<br /> </th>
 					<th style="width:36%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
 					<th style="width:4%"></th>
 				</tr>
