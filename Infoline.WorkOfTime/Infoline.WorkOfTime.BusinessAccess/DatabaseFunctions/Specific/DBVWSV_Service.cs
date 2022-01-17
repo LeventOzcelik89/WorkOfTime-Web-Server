@@ -31,7 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         DeviceHanded=0,
         [Description("Tespit"), Generic("icon", "fa fa-cogs", "color", "0075C4", "description", "Cihazın Sorunlaru Tespit Ediliyor")]
         Detection = 1,
-        [Description("Müşteri Onayı"), Generic("icon", "fa fa-user", "color", "EFA00B", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
+        [Description("Fiyat Onayı"), Generic("icon", "fa fa-user", "color", "EFA00B", "description", "Cihazın Problemlerinin Tamiri İçin Kullanıcı Onayına Gitti")]
         UserPermission = 2,
         [Description("Tamir Başladı"), Generic("icon", "fa fa-wrench", "color", "D65108", "description", "Tamir Süreci Başladı")]
         Fixing= 3,

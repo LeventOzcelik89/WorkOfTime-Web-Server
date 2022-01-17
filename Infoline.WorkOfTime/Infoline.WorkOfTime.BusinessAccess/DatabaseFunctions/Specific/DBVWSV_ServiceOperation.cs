@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         QualityControlNot = 200,
         [Description("Kalite Kontrol Başarılı"), Generic("icon", "fa fa-exclamation-triangle", "color", "7DDE92", "description", "Kalite Kontrol Başarılı", "order", "16")]
         QualityControl = 201,
-        [Description("Müşteri Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu", "order", "17")]
+        [Description("Fiyat Onayına Sunuldu"), Generic("icon", "fa fa-user", "color", "B1B1F2", "description", "Müşteri Onayına Sunuldu", "order", "17")]
         AskCustomer = 400,
         [Description("Hizmet Ücreti Eklendi"), Generic("icon", "fa fa-money", "color", "B1B1F2", "description", "Hizmet Eklendi", "order", "18")]
         ServicePriceAdded = 500,
