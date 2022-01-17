@@ -20,6 +20,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public short? discountType { get; set;}
         public string description { get; set;}
         public int? itemOrder { get; set;}
+        public double? alternativeQuantity { get; set;}
+        public Guid? alternativeUnitId { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string Product_Title { get; set;}

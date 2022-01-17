@@ -13,8 +13,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string serialCodes { get; set;}
         public Guid? unitId { get; set;}
         public double? quantity { get; set;}
-        public Guid? defaultUnitId { get; set;}
-        public double? defaultQuantity { get; set;}
+        public Guid? alternativeUnitId { get; set;}
+        public double? alternativeQuantity { get; set;}
         public string code { get; set;}
         public DateTime? date { get; set;}
         public short? type { get; set;}
@@ -37,6 +37,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string status_Title { get; set;}
         public string type_Title { get; set;}
         public string unitId_Title { get; set;}
+        public string alternativeUnitId_Title { get; set;}
         public double? totalPrice { get; set;}
         public double? totalQuantity { get; set;}
     }
