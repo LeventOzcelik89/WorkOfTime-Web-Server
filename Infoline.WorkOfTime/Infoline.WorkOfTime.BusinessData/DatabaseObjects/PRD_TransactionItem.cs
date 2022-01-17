@@ -29,7 +29,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// İşlem miktarının tutulduğu alandır.
         /// </summary>
         public double? quantity { get; set;}
-        public Guid? defaultUnitId { get; set;}
-        public double? defaultQuantity { get; set;}
+        public Guid? alternativeUnitId { get; set;}
+        public double? alternativeQuantity { get; set;}
     }
 }

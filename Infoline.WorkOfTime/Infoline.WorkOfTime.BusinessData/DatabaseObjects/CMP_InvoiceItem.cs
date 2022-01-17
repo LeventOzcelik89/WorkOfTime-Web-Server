@@ -56,5 +56,7 @@ namespace Infoline.WorkOfTime.BusinessData
         /// Ürünün gösterimde sıralamasını tutan alandır.
         /// </summary>
         public int? itemOrder { get; set;}
+        public double? alternativeQuantity { get; set;}
+        public Guid? alternativeUnitId { get; set;}
     }
 }
