@@ -119,8 +119,8 @@
 
                 $('[data-original-title]').tooltip();
 
-                //marketlar burda oluşuyor
-                svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24"><g><path d="M0 0h24v24H0z" fill="none"/><path fill="#1ab394" d="M17.084 15.812a7 7 0 1 0-10.168 0A5.996 5.996 0 0 1 12 13a5.996 5.996 0 0 1 5.084 2.812zM12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zM12 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></g></svg>'; var firstLocation = new ol.style.Style({
+                ////marketlar burda oluşuyor
+                svg = 'img'; var firstLocation = new ol.style.Style({
                     image: new ol.style.Icon({
                         opacity: 1,
                         src: 'data:image/svg+xml,' + escape(svg),
@@ -130,7 +130,7 @@
                         anchorYUnits: 'pixels',
                     })
                 });
-                svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 512 512"><path fill="#ff0202" d="M256,0C115.39,0,0,115.39,0,256s115.39,256,256,256s256-115.39,256-256S396.61,0,256,0z"/></svg>';
+                svg = 'img';
                 var locations = new ol.style.Style({
                     image: new ol.style.Icon({
                         opacity: 1,
@@ -142,7 +142,7 @@
                     })
                 });
 
-                svg = '<svg xmlns="http://www.w3.org/2000/svg" width="40px" height="40px" viewBox="0 0 24 24"><g><path d="M0 0h24v24H0z" fill="none"/><path fill="#E74C3C" d="M17.084 15.812a7 7 0 1 0-10.168 0A5.996 5.996 0 0 1 12 13a5.996 5.996 0 0 1 5.084 2.812zM12 23.728l-6.364-6.364a9 9 0 1 1 12.728 0L12 23.728zM12 12a3 3 0 1 1 0-6 3 3 0 0 1 0 6z"/></g></svg>';
+                svg = 'img';
                 var lastLocation = new ol.style.Style({
                     image: new ol.style.Icon({
                         opacity: 1,
@@ -153,6 +153,9 @@
                         anchorYUnits: 'pixels',
                     })
                 });
+
+              
+
 
                 page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
                 page.dfn.harita.style.addCustom("locationsStyle", locations);
@@ -165,7 +168,7 @@
                 page.dfn.harita.layer.addVector("Action", "Action");
                 
 
-                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
+                page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
 
             },
             locateFeatureToMap: function () {
@@ -178,15 +181,23 @@
                     if (trackingDatas != null) {
 
                         if (trackingDatas.length > 0) {
-                            $.each($.Enumerable.From(trackingDatas).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+                            $.each($.Enumerable.From(trackingDatas).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
                              
                                
-                                if (data.lastLocation != null) {
                                     if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4)) {
                                         beforefour++;
 
+                                        var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
+
                                         var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
                                         if (feature) {
+
+                                            // style.add
+                                            page.dfn.harita.style.add("RedMarkStyle" + data.id, null,null,null,img);
+                                            //  feature.setStyle
+                                            page.dfn.harita.feature.setStyle(data.id, "RedMarkStyle" + data.id);
+
+
                                             feature.set("properties", data);
 
                                             points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
@@ -197,6 +208,11 @@
                                         afterfour++;
                                         var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
                                         if (feature) {
+                                            var img = "/SH/SH_UserLocationTracking/GreenMark?id=" + data.userId + '&.png';
+                                            // style.add
+                                            page.dfn.harita.style.add("GreenMarkerStyle" + data.id, null, null, null, img);
+                                            //  feature.setStyle
+                                            page.dfn.harita.feature.setStyle(data.id, "GreenMarkerStyle" + data.id);
                                             feature.set("properties", data);
 
                                             points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
@@ -204,10 +220,9 @@
 
                                     }
 
-                                }
                             });
-                            $("#infourhour").text("4 Saat içinde Konum Alındı " + " " + "=" + " " + afterfour);
-                            $("#outfourhour").text("4 Saat içinde Konum Alınamadı " + " " + "=" + " " + beforefour);
+                            $("#infourhour").text("4 Saat içinde Konum Alındı " + "(" + afterfour + ")");
+                            $("#outfourhour").text("4 Saat içinde Konum Alınamadı " + "(" + beforefour + ")");
 
                         }
 
@@ -255,9 +270,9 @@
 
                 page.loadPanelData(type, key);
             },
+            
             getPersonDetailForHover: function (data) {
                 var person = page.defines.filteredData;
-
                 var text = '<div class="item">                                                                                  ' +
                     '  <div class="head text-center clearfix">                                                                  ' +
                     '      <a target="_blank" href="#">                                                                         ' +
@@ -268,7 +283,7 @@
                     '   <ul class="list-group clear-list m-t">                                                                  ' +
                     '        <li class="list-group-item fist-item">                                                             ' +
                     '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseTimeStamp(data.timeStamp) +
+                    page.parseLastLocation(data.id) +
                     '            </span>                                                                                        ' +
                     '            Konumun Alındığı Tarih                                                                         ' +
                     '        </li>                                                                                              ' +
@@ -279,6 +294,11 @@
             },
             parseTimeStamp: function (timeStamp) {
                 return kendo.toString(new Date(timeStamp * 1), 'dd.MM.yyyy HH:mm');
+            },
+
+            parseLastLocation: function (id) {
+                var lastLocations = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == id).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                return kendo.toString(new Date(lastLocations.timeStamp * 1), 'dd.MM.yyyy HH:mm');
             }
         }
 
@@ -304,7 +324,7 @@
             })
             .on("hover:feature", "#Harita", function (e, resp) {
                 page.dfn.harita.overlay.remove('slider-station');
-
+                debugger;
                 if (resp.type == "add") {
                     var elem = resp.element;
                     var prop = elem.get("properties");
@@ -353,8 +373,10 @@
                         $('#personTemplate').html(null)
                         var elem = $($('#selectedPerson').html());
                         var personelInfos = page.defines.filteredData;
-                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).OrderBy(x => x.timeStamp).FirstOrDefault();
-                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
+                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+                      
+
                         var locations = prop.lastLocation.split('(')[1].replace(')', "");
                         var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
                         var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
@@ -422,6 +444,7 @@
         </div>
     </div>
 </div>
+
 
 
 <script type="text/template" id="selectedPerson">
