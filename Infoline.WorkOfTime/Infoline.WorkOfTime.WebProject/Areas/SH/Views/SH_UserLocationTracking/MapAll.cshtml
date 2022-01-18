@@ -154,7 +154,7 @@
                     })
                 });
 
-              
+
 
 
                 page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
@@ -164,12 +164,15 @@
                 page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
                 page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
                 page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
+                page.dfn.harita.layer.createControl("PersonelList", "BAKIM ALANLARI LİSTESİ", "fa fa-search", ["PersonelList"]);
+
 
                 page.dfn.harita.layer.addVector("Action", "Action");
-                
+
 
                 page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
 
+                page.PersonelList();
             },
             locateFeatureToMap: function () {
                 var points = [];
@@ -182,43 +185,43 @@
 
                         if (trackingDatas.length > 0) {
                             $.each($.Enumerable.From(trackingDatas).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
-                             
-                               
-                                    if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4)) {
-                                        beforefour++;
-
-                                        var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
-
-                                        var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
-                                        if (feature) {
-
-                                            // style.add
-                                            page.dfn.harita.style.add("RedMarkStyle" + data.id, null,null,null,img);
-                                            //  feature.setStyle
-                                            page.dfn.harita.feature.setStyle(data.id, "RedMarkStyle" + data.id);
 
 
-                                            feature.set("properties", data);
+                                if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4)) {
+                                    beforefour++;
 
-                                            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
-                                        }
+                                    var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
 
+                                    var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
+                                    if (feature) {
+
+                                        // style.add
+                                        page.dfn.harita.style.add("RedMarkStyle" + data.id, null, null, null, img);
+                                        //  feature.setStyle
+                                        page.dfn.harita.feature.setStyle(data.id, "RedMarkStyle" + data.id);
+
+
+                                        feature.set("properties", data);
+
+                                        points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
                                     }
-                                    else {
-                                        afterfour++;
-                                        var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
-                                        if (feature) {
-                                            var img = "/SH/SH_UserLocationTracking/GreenMark?id=" + data.userId + '&.png';
-                                            // style.add
-                                            page.dfn.harita.style.add("GreenMarkerStyle" + data.id, null, null, null, img);
-                                            //  feature.setStyle
-                                            page.dfn.harita.feature.setStyle(data.id, "GreenMarkerStyle" + data.id);
-                                            feature.set("properties", data);
 
-                                            points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
-                                        }
+                                }
+                                else {
+                                    afterfour++;
+                                    var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
+                                    if (feature) {
+                                        var img = "/SH/SH_UserLocationTracking/GreenMark?id=" + data.userId + '&.png';
+                                        // style.add
+                                        page.dfn.harita.style.add("GreenMarkerStyle" + data.id, null, null, null, img);
+                                        //  feature.setStyle
+                                        page.dfn.harita.feature.setStyle(data.id, "GreenMarkerStyle" + data.id);
+                                        feature.set("properties", data);
 
+                                        points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
                                     }
+
+                                }
 
                             });
                             $("#infourhour").text("4 Saat içinde Konum Alındı " + "(" + afterfour + ")");
@@ -270,7 +273,7 @@
 
                 page.loadPanelData(type, key);
             },
-            
+
             getPersonDetailForHover: function (data) {
                 var person = page.defines.filteredData;
                 var text = '<div class="item">                                                                                  ' +
@@ -299,8 +302,21 @@
             parseLastLocation: function (id) {
                 var lastLocations = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == id).OrderByDescending(x => x.timeStamp).FirstOrDefault();
                 return kendo.toString(new Date(lastLocations.timeStamp * 1), 'dd.MM.yyyy HH:mm');
+            },
+            PersonelList: function () {
+                var areas_panel = page.dfn.harita.panel.get('PersonelList')['PersonelList'];
+                areas_panel.content.find('ul').html(null);
+
+                $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
+
+
+                    $('<li data-id="' + data.id + '" >' + '<div><span><img src="' + (data.ProfilePhoto != null ? data.ProfilePhoto : '"~/Content/Custom/img/na.png"') + '" style="width: 30px; height:30px;"></img></span><span>' + "   " + '</span><span>' + data.userId_Title + '</span></div>' + '</li>').appendTo($('#PersonelList').find('ul'));
+                    
+
+                });
             }
         }
+      
 
         $(document)
             .on("ready", function () {
@@ -375,7 +391,7 @@
                         var personelInfos = page.defines.filteredData;
                         var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
                         var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-                      
+
 
                         var locations = prop.lastLocation.split('(')[1].replace(')', "");
                         var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
@@ -438,9 +454,11 @@
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectCompany" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+            <button id="PersonelList" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'PersonList')"><i class="fa fa-users"></i></button>
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
+            <div id="PersonelList"></div>
         </div>
     </div>
 </div>
@@ -452,7 +470,7 @@
         <div class="pan-head clearfix" style="margin-left: 15px;">
             <div style="padding-top: 7px;">
                 <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                    <span style="padding-left: 5px;text-transform: uppercase;">SATIŞ EKİBİ PERSONEL BİLGİLERİ</span>
+                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL BİLGİLERİ</span>
                 </div>
             </div>
         </div>
@@ -507,7 +525,13 @@
             </div>
         </div>
     </div>
+    <div class="pan-content" id="PersonelList">
+        <ul></ul>
+    </div>
 </script>
+
+
+
 
 @section Css{
     <style type="text/css">
