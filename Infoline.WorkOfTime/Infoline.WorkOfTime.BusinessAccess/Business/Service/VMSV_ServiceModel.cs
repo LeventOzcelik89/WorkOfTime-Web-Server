@@ -156,7 +156,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
                     unitPrice = 0,
-                    unitId = getProduct.unitId
+                    unitId = getProduct.unitId,
+                    alternativeQuantity=1,
+                    alternativeUnitId=getProduct.unitId
                 };
                 if (companyId.HasValue)
                 {

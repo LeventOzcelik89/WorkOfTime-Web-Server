@@ -142,7 +142,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu,SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
 			var db = new WorkOfTimeDatabase();
 			var trans = db.BeginTransaction();
@@ -210,7 +210,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 		[PageInfo("Kalite Kontrolun Yapıldığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
-
 		public JsonResult QualityCheck(Guid serviceId,bool status) {
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();

@@ -10,13 +10,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
     public class VWSV_ServiceController : Controller
     {
         
-        [PageInfo("Garanti-Teknik Servis Listeleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Garanti-Teknik Servis Listeleme Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
         public ActionResult Index()
         {
             return View();
         }
         
-        [PageInfo("Garanti-Teknik Servis Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Garanti-Teknik Servis Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         
-        [PageInfo("Garanti-Teknik Servis DropDown Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Garanti-Teknik Servis DropDown Listeleme Methodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
         
-        [PageInfo("Garanti-Teknik Servis Detay Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Garanti-Teknik Servis Detay Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ActionResult Detail(Guid id)
         {
 
@@ -107,7 +107,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         }
 
         
-        [PageInfo(" Garanti-Teknik Servis Cihaz Bilgileri Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Bilgileri Metodu", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public JsonResult DeviceInformation(Guid inventoryId)
         {
             return Json(new VMSV_ServiceModel().DeviceInformation(inventoryId), JsonRequestBehavior.AllowGet);
@@ -123,7 +123,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
         }
-        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Barkod Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo(" Garanti-Teknik Servis Cihaz Teslim Barkod Sayfası", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ActionResult Barcode(Guid id)
         {
             return View(new VMSV_ServiceModel { id = id }.Load());
@@ -155,7 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             var data = new VMSV_ServiceModel().GetSpendedProducts(serviceId).ToDataSourceResult(request);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo(" Garanti-Teknik Servis'in harcama yapılmış Ürünleri Alan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo(" Garanti-Teknik Servis'in harcama yapılmış Ürünleri Alan method ", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult GetIndexData()
         {
             var data = new VMSV_ServiceModel().GetIndexData();

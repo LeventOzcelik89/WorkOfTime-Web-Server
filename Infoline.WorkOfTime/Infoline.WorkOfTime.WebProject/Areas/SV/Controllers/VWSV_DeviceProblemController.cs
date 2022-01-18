@@ -122,12 +122,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Teknik Servis  Sorunlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu )]
         public ActionResult AddMultipleDeviceProblem(VMSV_DeviceProblemModel model)
         {
             return View(model);
         }
-        [AllowEveryone]
+        [PageInfo("Servise Ait Cihazın Teknik Servis  Sorunlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public JsonResult InsertMultiple(VMSV_DeviceProblemModel model)
         {
             var db = new WorkOfTimeDatabase();
