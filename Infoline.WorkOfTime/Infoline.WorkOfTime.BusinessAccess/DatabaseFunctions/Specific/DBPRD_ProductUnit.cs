@@ -33,5 +33,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public int GetPRD_ProductUnitIsDefaultCount(int isDefaultType, Guid productId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<PRD_ProductUnit>().Where(a => a.isDefault == isDefaultType && a.productId == productId).Execute().Count();
+            }
+        }
+
     }
 }
