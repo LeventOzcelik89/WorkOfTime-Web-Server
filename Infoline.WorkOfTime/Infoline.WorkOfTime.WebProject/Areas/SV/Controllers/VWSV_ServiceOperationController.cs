@@ -226,7 +226,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 		public ActionResult Cargo(VMSV_ServiceOperationModel model)
 		{
-			return View(model);
+			return View(model.Load());
 		}
 		[HttpPost]
 		[PageInfo("Servisin  Müşteriye Teslim Edilen", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]

@@ -334,7 +334,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private ResultStatus Update()
         {
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdateSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), false, this.trans);
+            dbresult &= db.UpdateSV_ServiceOperation(this.B_ConvertType<SV_ServiceOperation>(), true, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
