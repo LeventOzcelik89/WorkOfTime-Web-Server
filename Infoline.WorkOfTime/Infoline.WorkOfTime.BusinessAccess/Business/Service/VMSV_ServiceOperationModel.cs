@@ -85,7 +85,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 SendAskCustomerMail();
             }
-            if (this.CompanyId.HasValue&&!this.deliveryType.HasValue)
+            if (this.CompanyId.HasValue && !this.deliveryType.HasValue)
             {
                 var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
                 if (getCompany != null)
@@ -104,9 +104,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
                     unitPrice = getProduct.currentSellingPrice,
-                    unitId=getProduct.unitId,
-                    alternativeQuantity=1,
-                    alternativeUnitId=getProduct.unitId
+                    unitId = getProduct.unitId,
+                    alternativeQuantity = 1,
+                    alternativeUnitId = getProduct.unitId
 
                 };
                 var transModelCompanyId = new VMPRD_TransactionModel
@@ -185,7 +185,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             trans = trans ?? db.BeginTransaction();
             var user = db.GetVWSH_UserById(userId);
             var result = new ResultStatus { result = true };
-         
+
 
             if (expens != null)
             {
@@ -193,13 +193,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { message = "Lütfen Ürün Seçiniz!", result = false };
                 }
-                var expensItem = this.expens.Select(x => new VMPRD_TransactionItems
+                var expensItem = this.expens.Select(x =>
                 {
-                    productId = x.productId,
-                    quantity = x.quantity,
-                    serialCodes = x.serialCodes ?? null,
-                    unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentSellingPrice,
-                }).ToList();
+                    var getProduct = db.GetVWPRD_ProductById(x.productId.Value);
+                    return new VMPRD_TransactionItems
+                    {
+
+                        productId = x.productId,
+                        quantity = x.quantity,
+                        serialCodes = x.serialCodes ?? null,
+                        unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentSellingPrice,
+                        alternativeQuantity = x.quantity,
+                        alternativeUnitId = getProduct.unitId,
+                        unitId = getProduct.unitId
+
+                    };
+                });
                 var transId = Guid.NewGuid();
                 var transModel = new VMPRD_TransactionModel
                 {
@@ -211,7 +220,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = DateTime.Now,
                     createdby = userId,
                     status = (int)EnumPRD_TransactionStatus.islendi,
-                    items = expensItem,
+                    items = expensItem.ToList(),
                     date = DateTime.Now,
                     code = BusinessExtensions.B_GetIdCode(),
                     type = this.Transaction.type,
@@ -233,7 +242,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             if (this.ServiceNotifications != null)
             {
-                if (this.ServiceNotifications.Any(x => x.id==null))
+                if (this.ServiceNotifications.Any(x => x.id == null))
                 {
                     trans.Rollback();
                     return new ResultStatus { message = "Lütfen Ürün Seçiniz!", result = false };
@@ -246,7 +255,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         created = DateTime.Now,
                         createdby = this.createdby,
                         dataId = item.id,
-                        pid=this.id,
+                        pid = this.id,
                         description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = this.serviceId,
@@ -275,11 +284,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var result = new ResultStatus { result = true };
             db = db ?? new WorkOfTimeDatabase();
             trans = trans ?? db.BeginTransaction();
-            
+
             this.status = (short)EnumSV_ServiceOperation.Done;
             var getService = db.GetVWSV_ServiceById(this.serviceId.Value);
             var getInventory = db.GetVWPRD_InventoryById(getService.inventoryId.Value);
-            
+
             var transItem = new VMPRD_TransactionItems
             {
                 productId = getInventory.productId,
@@ -309,7 +318,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = transModelCompanyId.id;
                 result &= transModelCompanyId.Save(this.createdby, trans);
             }
-            result &=  this.Save(userId, null, trans);
+            result &= this.Save(userId, null, trans);
             if (result.result)
             {
                 this.SendDoneMail();
@@ -404,7 +413,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     created = this.created,
                     createdby = userId,
                     serviceId = serviceId,
-                    description=this.description,
+                    description = this.description,
                     status = (int)EnumSV_ServiceOperation.QualityControlNot,
                 }.Save(userId, null, this.trans);
             }

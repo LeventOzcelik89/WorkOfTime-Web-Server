@@ -9,6 +9,7 @@
     var activeStageKey = 0;
     var activeStageIcon = "";
     var deliveryInfo = new VWSV_ServiceOperation();
+    var userStatus = (PageSecurity)Session["userStatus"];
     if (Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done).Count() > 0)
     {
         deliveryInfo = Model.ServiceOperations.Where(x => x.status == (short)EnumSV_ServiceOperation.Done).FirstOrDefault();
@@ -465,6 +466,9 @@
                         <div class="ibox">
                             <div class="ibox-title">
                                 <h5>Teslim Etme Bilgileri</h5>
+                                <div class="pull-right">
+                                    <a href="#" class="btn btn-xs btn-warning m-l-xs"><i class="fa fa-edit"> </i></a>
+                                </div>
                             </div>
                             <div class="ibox-content clearfix">
                                 <dl class="dl-horizontal">
@@ -562,7 +566,8 @@ else
     var page = {
         stage:'@Html.Raw(activeStage)',
         stageKey: '@Html.Raw(activeStageKey)',
-        stageIcon:'@Html.Raw(activeStageIcon)',
+        stageIcon: '@Html.Raw(activeStageIcon)',
+        userRoles:@Html.Raw(Infoline.Helper.Json.Serialize(userStatus.AuthorizedRoles)),
         methods: {
             setButtonServiceId: function() {
                 $("#buttons [data-href]").each(function (i, item) {
@@ -579,9 +584,16 @@ else
                             $(item).attr("data-ask", "Tüm Değiştirilecek parçalar garantiye dahil olduğu için otomatik olarak tamir aşamasına geçilecektir.");
                             }
                         }
-
                         var stage = $(item).attr("data-original-title").replace("{{stage}}", page.stage + " Aşamasına Geç");
                         $(item).attr("data-original-title", stage);
+                        if (@Model.stage!= 2) {
+                            if (page.userRoles.indexOf('@(new Guid(SHRoles.SistemYonetici))') >= 0 || page.userRoles.indexOf('@(new Guid(SHRoles.TeknikServisBayiRolu))')>=0|| page.userRoles.indexOf('@(new Guid(SHRoles.TeknikServisYoneticiRolu))')>=0) {
+                                $(item).show();
+                            }
+                            else {
+                                $(item).hide();
+                            }
+                        }
                     }
                     else if (dataEnum == 108) {
                         var productId = $(item).attr("data-href").replace("{}", "@Model.productId");
