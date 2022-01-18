@@ -87,6 +87,7 @@
             },
             removeRow: function (item) {
 
+                debugger;
                 if (page.Counter == 1 || page.Counter == 0) {
                     return;
                 }
@@ -121,6 +122,12 @@
 
                     $(item).find('[data-item="productId"]')
                         .attr('name', 'items[' + page.Counter + '].productId')
+
+					$(item).find('[data-item="inputCompanyId"]')
+                        .attr('name', 'items[' + page.Counter + '].inputCompanyId')
+
+					$(item).find('[data-item="inputId"]')
+						.attr('name', 'items[' + page.Counter + '].inputId')
 
 					$(item).find('[data-item="unitId"]')
 						.attr('name', 'items[' + page.Counter + '].alternativeUnitId')
@@ -201,7 +208,7 @@
                                 "serverSorting": true,
                                 "serverFiltering": true,
                                 "sort": [
-                                    { "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
+                                    //{ "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
                                     { "field": "fullName", "dir": "asc" },
                                 ],
                                 "filter": [{ "field": "stockType", "operator": "neq", "value": 0 }]
@@ -214,6 +221,65 @@
                             "dataValueField": "id",
                             "optionLabel": "Lütfen Ürün Seçiniz.."
                         });
+
+				temp.find('[data-item="inputCompanyId"]')
+					.attr('name', 'items[' + page.Counter + '].inputCompanyId')
+					.kendoDropDownList(
+						{
+							//"value": (data != undefined ? data.productId : null),
+							"change": page.events.companyChange,
+							"dataSource": {
+								"type": "aspnetmvc-ajax",
+								"transport": { "read": { "url": "/CMP/VWCMP_Company/DataSourceDropDown" } },
+								"pageSize": 100,
+								"page": 1,
+								"total": 0,
+								"serverPaging": true,
+								"serverSorting": true,
+								"serverFiltering": true,
+								"sort": [
+									//{ "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
+									{ "field": "name", "dir": "asc" },
+								],
+							},
+							"dataTextField": "name",
+							"delay": 1000,
+							"filter": "contains",
+							//"template": '#=TemplateEngine("companyTemplate",data)#',
+                            "autoBind": false,
+							"dataValueField": "id",
+							"optionLabel": "Lütfen Cari Seçiniz.."
+                        });
+
+				temp.find('[data-item="inputId"]')
+					.attr('name', 'items[' + page.Counter + '].inputId')
+					.kendoDropDownList(
+						{
+							//"value": (data != undefined ? data.productId : null),
+							//"change": page.events.productChange,
+							"dataSource": {
+								"type": "aspnetmvc-ajax",
+								"transport": { "read": { "url": "/CMP/VWCMP_Storage/DataSourceDropDown" } },
+								"pageSize": 100,
+								"page": 1,
+								"total": 0,
+								"serverPaging": true,
+								"serverSorting": true,
+								"serverFiltering": true,
+								"sort": [
+									//{ "field": "id:" + (data != undefined ? data.productId : kendo.guid()).split('-').join('_')  , 'dir': 'asc' },
+									{ "field": "name", "dir": "asc" },
+								],
+							},
+							"dataTextField": "name",
+							"delay": 1000,
+                            "filter": "contains",
+							//"template": '#=TemplateEngine("storageTemplate",data)#',
+                            "autoBind": false,
+							"enable": false,
+							"dataValueField": "id",
+							"optionLabel": "Lütfen Depo Seçiniz.."
+						});
 
 				temp.find('[data-item="unitId"]')
 					.attr('name', 'items[' + page.Counter + '].alternativeUnitId')
@@ -258,6 +324,7 @@
                 var unitPrice = tr.find('[data-item="unitPrice"]').data("kendoNumericTextBox");
                 var quantity = tr.find('[data-item="quantity"]').data("kendoNumericTextBox");
 				var unitId = tr.find('[data-item="unitId"]').data("kendoDropDownList");
+				var storage = tr.find('[data-item="inputId"]').data("kendoDropDownList");
 
                 var priceProp = page.type < 10 ? "currentBuyingPrice" : "currentSellingPrice";
 
@@ -271,6 +338,8 @@
                     unitPrice.enable(false);
                     quantity.value(0);
                     quantity.enable(false);
+                    //storage.value(null);
+                    //storage.enable(false);
                     unitId.value(null);
                     unitId.enable(false);
                     serialCodes.val("");
@@ -346,6 +415,31 @@
                     //e.sender._initial = null;
                 }
             },
+			companyChange: function (e) {
+
+				var data = e.sender.dataItem(e.sender.selectedIndex);
+				var tr = this.element.parents('tr');
+				var storage = tr.find('[data-item="inputId"]').data("kendoDropDownList");
+
+                debugger;
+
+
+				if (data.id == "") {
+					storage.value(null);
+					storage.enable(false);
+				} else {
+
+					var filter = ("(companyId~eq~" + data.id + ")");
+                    var filterJSON = kendo.filterParser(filter);
+					storage.dataSource.filter(filterJSON);
+					storage.enable(true);
+
+					//if (data.id != e.sender._initial) {
+					//	storage.value(data.productUnitId)
+					//}
+
+				}
+			},
             outputCompanyChange: function (e) {
                 page.outputCompanyId = e.sender.value() == "" ? null : e.sender.value();
                 if (e.sender.element.attr("data-change") == "true") { page.events.openedProduct(page.outputCompanyId) };
@@ -454,6 +548,12 @@
 			<input type="hidden" data-item="id" />
 			<input data-item="productId" class="form-control" data-insertfield="name" data-inserturl="/PRD/VWPRD_Product/Insert?stockType=1&type=1" data-modal="true" data-refresh="" />
 		</td>
+		<td data-target="">
+			<input data-item="inputCompanyId" class="form-control" />
+		</td>
+		<td data-target="">
+			<input data-item="inputId" class="form-control" />
+		</td>
 		<td>
 			<div class="input-group">
 				<input data-item="unitPrice" />
@@ -481,7 +581,7 @@
 </script>
 
 
-@using (Html.BeginForm("Upsert", "VWPRD_Transaction", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("Upsert", "VWPRD_DistributionPlan", FormMethod.Post, new Dictionary<string, object>() {
 	{ "class", "form-horizontal" },
 	{ "role", "form" },
 	{ "data-selector", "modalContainer" },
@@ -540,20 +640,91 @@
 	</div>
 
 
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action0.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action1.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action2.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action3.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action4.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action5.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action10.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action11.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action12.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action13.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action14.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action15.cshtml", Model);
-	Html.RenderPartial("~/Areas/PRD/Views/VWPRD_Transaction/Insert/Action99.cshtml", Model);
+	<div class="row">
+		<div class="hr-line-dashed"></div>
 
+		<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="ouputId10">Çıkış Yapılacak Depo</label>
+				</div>
+				<div class="col-md-8">
+					@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.outputId)
+                    .Id("ouputId10")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("fullName")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.outputChange"))
+                    .AddAttribute("data-change", "true")
+                    .Filter<VWCMP_Storage>(a => a.myStorage == true)
+                    .Sort(x => x.Add("fullName").Ascending())
+                    .AutoBind(false)
+                    .Execute()
+                )
+					@Html.Hidden("outputTable", "CMP_Storage", new { id = "outputTable10", disabled = "true" })
+				</div>
+			</div>
+		</div>
+
+		@*<div class="col-md-6">
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="inputCompanyId10">Alıcı Cari</label>
+				</div>
+				<div class="col-md-8">
+					@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputCompanyId)
+                    .Id("inputCompanyId10")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('companyTemplate',data)#")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+                    .Sort(x => x.Add("name").Ascending())
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-md-4">
+					<label class="control-label label-md req" for="inputId10">Alıcı Şube/Depo</label>
+				</div>
+				<div class="col-md-8">
+					@(
+                    Html.Akilli()
+                    .DropDownListFor(model => model.inputId)
+                    .Id("inputId10")
+                    .OptionLabel("Lütfen Seçim Yapınız..")
+                    .DataTextField("name")
+                    .DataValueField("id")
+                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                    .ValueTemplate("#=companyId_Title# | #=fullName#)")
+                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                    .Events(a => a.Change("page.events.inputChange"))
+                    .Sort(x => x.Add("name").Ascending())
+                    .CascadeFrom("inputCompanyId10")
+                    .CascadeFromField("companyId")
+                    .Enable(false)
+                    .AutoBind(false)
+                    .Execute()
+                )
+					@Html.Hidden("inputTable", "CMP_Storage", new { id = "inputTable10", disabled = "true" })
+				</div>
+			</div>
+		</div>*@
+
+
+
+
+	</div>
 
 	<div class="clearfix m-t-md" style="display:none;" id="productTable">
 		<div class="hr-line-dashed"></div>
@@ -561,7 +732,9 @@
 			<thead>
 				<tr>
 					<th style="width: 2%">#</th>
-					<th style="width:40%">ÜRÜN</th>
+					<th style="width:29%">ÜRÜN</th>
+					<th style="width:15%">ALICI<br /> CARİ</th>
+					<th style="width:15%">ALICI<br /> DEPO</th>
 					<th style="width:10%">BİRİM<br /> FİYAT</th>
 					<th style="width:17%">MİKTAR<br /> </th>
 					<th style="width:36%">SERİ<br /> NUMARALARI  <i data-original-title="Toplu seri numarası girişleri için excelden kopyalamayı veya seri numaralarını virgüllü bir şekilde kopyalamayı deneyebilirsiniz." class="fa fa-info-circle"></i></th>
@@ -583,15 +756,15 @@
 		<div class="hr-line-dashed"></div>
 		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
 
-		@if (userStatus.AuthorizedRoles.Contains(new Guid(System.SHRoles.StokYoneticisi)) || userStatus.AuthorizedRoles.Contains(new Guid(System.SHRoles.DepoSorumlusu)))
+		@if (userStatus.AuthorizedRoles.Contains(new Guid(System.SHRoles.StokYoneticisi)) || userStatus.AuthorizedRoles.Contains(new Guid(System.SHRoles.DepoSorumlusu)) || userStatus.AuthorizedRoles.Contains(new Guid(System.SHRoles.SistemYonetici)))
 		{
-			<button data-type="0,1,2,3,4,5,6,10,11,12,13,14,15,16,99" class="btn btn-md btn-primary pull-right hide" formaction="@Url.Action("Upsert","VWPRD_Transaction",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.islendi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
+			<button class="btn btn-md btn-primary pull-right" formaction="@Url.Action("Upsert","VWPRD_DistributionPlan",new {area="PRD" })" name="status" value="@((int)EnumPRD_DistributionPlanStatus.Tamamlandi)" type="submit"><i class="icon-ok-2"></i>Kaydet ve Stokları Güncelle</button>
 		}
 
-		@if (Model.status != (int)EnumPRD_TransactionStatus.islendi)
-		{
-			<button data-type="0,1,2,3,4,5,6,10,11,12,13,14,15,16,99" class="btn btn-md btn-success pull-right hide m-r-sm" formaction="@Url.Action("Upsert","VWPRD_Transaction",new {area="PRD" })" name="status" value="@((int)EnumPRD_TransactionStatus.beklemede)" type="submit"><i class="icon-folder-open-1"></i> Kaydet </button>
-		}
+		@*@if (Model.status != (int)EnumPRD_TransactionStatus.islendi)
+		{*@
+			<button class="btn btn-md btn-success pull-right hide m-r-sm" formaction="@Url.Action("Upsert","VWPRD_DistributionPlan",new {area="PRD" })" name="status" value="@((int)EnumPRD_DistributionPlanStatus.Planlandi)" type="submit"><i class="icon-folder-open-1"></i> Kaydet </button>
+		@*}*@
 
 	</div>
 }
