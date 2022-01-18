@@ -81,7 +81,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 				var result = new ResultStatusUI
 				{
 					Result = dbresult.result,
-					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Kaydetme işlemi başarısız")
+					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Teknik Servis Aksiyonu Oluşturulamadı")
 				};
 				return Json(result, JsonRequestBehavior.AllowGet);
 			}
@@ -169,7 +169,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success($"{getService.stage_Title} Aşamasına Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+				FeedBack = dbresult.result ? feedback.Success($"{getService.stage_Title} Aşamasına Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning($"{getService.stage_Title} Aşamasına Geçilme İşlemi Başarısız")
 			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);

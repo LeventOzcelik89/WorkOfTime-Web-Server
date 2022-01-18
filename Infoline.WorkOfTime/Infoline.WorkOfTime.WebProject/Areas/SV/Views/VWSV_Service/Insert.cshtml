@@ -224,12 +224,12 @@
         }
     }
     $(document)
-        .on('change', '#location', function () {
-            var location = $('#location').val()
-            if (location != "") {
-                GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: location }, function (resp) {
+        .on('change', '#locationMap', function () {
+            var locations = $('#locationMap').val()
+            if (locations != "") {
+                GetJsonDataFromUrl('/General/GetVWUT_LocationByLocationInterSect', { location: locations }, function (resp) {
                     if (resp) {
-                        DropDownSetValue($("#openLocationId").data("kendoDropDownList"), resp.id);
+                        $("#openLocation").data("handler").value(resp.pid);
                         $('#Customer_Address').val(resp.pid_Title);
                     }
                 })
@@ -255,14 +255,14 @@
                             $("#Customer_name").val(data.objects.name ?? "");
                             $("#Customer_lastName").val(data.objects.lastName ?? "");
                             $("#Customer_otherPhoneNumber").val(data.objects.otherPhoneNumber ?? "");
-                            $("#openLocationId").data("handler").value(data.objects.openLocationId ?? "");
+                            $("#openLocation").data("handler").value(data.objects.openLocationId ?? "");
                             $("#Customer_Address").val(data.objects.Address ?? "");
                             $("#Customer_id").val(data.objects.id ?? "");
                             $("#Customer_email").val(data.objects.email ?? "");
-                            $("#location").val(data.objects.location);
-                            haritalar['location'].feature.remove('DrawLayer', 'DrawFeature');
-                            haritalar['location'].feature.add('DrawLayer', 'DrawFeature', data.objects.location);
-                            $("#location").trigger("change");
+                            $("#locationMap").val(data.objects.location);
+                            haritalar['locationMap'].feature.remove('DrawLayer', 'DrawFeature');
+                            haritalar['locationMap'].feature.add('DrawLayer', 'DrawFeature', data.objects.location);
+                            $("#locationMap").trigger("change");
                             swal.close();
                         } else { }
                         swal.close();
@@ -662,7 +662,7 @@
                             <div class="col-md-12">
                                 <label class="control-label req label-md" for="location">Lokasyon</label>
                                 @(
-Html.Akilli().MapInputFor(x=>x.Customer.location).
+Html.Akilli().MapInputFor(x=>x.locationMap).
 HelpText("Lütfen Lokasyon seçiniz.").
 HtmlAttributes(new Dictionary<string, object>()
                 {
@@ -682,7 +682,7 @@ Searchable(true)
                                 <label class="control-label label-md" for="locationId">Ülke,İl,İlçe</label>
                                 @(
 Html.Akilli()
-.DropDownListFor(model => model.Customer.openLocationId)
+.DropDownListFor(model => model.openLocation)
 .OptionLabel("Lütfen Ülke,İl,İlçe seçiniz..")
 .DataTextField("pid_Title")
 .DataValueField("id")
