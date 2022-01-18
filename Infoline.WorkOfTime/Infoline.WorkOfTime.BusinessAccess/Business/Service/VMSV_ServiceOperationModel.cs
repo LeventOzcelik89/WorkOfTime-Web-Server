@@ -104,6 +104,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
                     unitPrice = getProduct.currentSellingPrice,
+                    unitId=getProduct.unitId
 
                 };
                 var transModelCompanyId = new VMPRD_TransactionModel

@@ -221,6 +221,7 @@
                     .attr('name', 'ServiceNotifications[' + page.hizmet.counter + '].id')
                     .kendoDropDownList(
                         {
+                            "change": page.hizmet.productChange,
                             "value": (data != null ? data.materialId : null),
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
@@ -243,6 +244,23 @@
                         });
                 page.hizmet.counter++;
             },
+            productChange: function (e) {
+                debugger
+                if (e == null) {
+                    return;
+                }
+                var data = e.sender.dataItem();
+                var tr = this.element.parents("tr");
+                if (tr == null) {
+                    return;
+                }
+                var findUnitPrice = $(tr).find('[data-problem="price"]');
+                var findUnitId = $(tr).find('[data-item="amount"]');
+                var findLink = $(tr).find('[data-item="metarialDetailText"]');
+                findLink.attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.id);
+                findUnitId.text(data.currentServiceCurrencyId_Title??"₺");
+
+            }
         },
     }
     page.methods.getDeviceInformation();
@@ -306,6 +324,15 @@
             <div class="input-group">
                 <input data-item="quantity" min="1" />
                 <span data-item="amount" class="input-group-addon">Adet</span>
+            </div>
+        </td>
+        <td>
+            <div class="form-group">
+                <div class="input-group">
+                    <input data-problem="price" disabled class="k-input form-control" />
+                    <span data-item="amount" class="input-group-addon"> ₺ </span>
+                </div>
+
             </div>
         </td>
         <td>
@@ -554,6 +581,7 @@
                             <tr>
                                 <th style="width:75%">HİZMET</th>
                                 <th style="width:22%">HARCANAN MİKTAR</th>
+                                <th style="width:22%">BİRİM FİYAT</th>
                                 <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="page.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
                             </tr>
                         </thead>
