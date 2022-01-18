@@ -396,22 +396,23 @@
 						<h4><i class="icon-home-4 text-success"></i> ŞUBE/DEPO STOK ÖZETİ </h4>
 
 						@(Html.Akilli()
-                            .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
-                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.productId == Model.id).PageSize(25))
-                            .Columns(x =>
-                            {
-                                x.Bound(y => y.stockCompanyId_Title).Title("Cari").Width(500);
-                                x.Bound(y => y.stockId_Title).Title("Şube/Depo/Kısım").Width(500);
-                                x.Bound(y => y.quantity).Title("Miktar").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(180);
-                                x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
-                            })
-                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                            .ToolBar(x =>
-                            {
-                                x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-storage", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
-                                x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
-                            }
-                            ))
+							.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_StockSummary>("VWPRD_StockSummaryStorage")
+							.DataSource(x => x.Ajax().Read(r => r.Action("DataSourceIndex", "VWPRD_StockSummary", new { area = "PRD" })).Filter(a => a.stockTable == "CMP_Storage" && a.productId == Model.id).PageSize(25))
+							.Columns(x =>
+							{
+								x.Bound(y => y.stockCompanyId_Title).Title("Cari").Width(500);
+								x.Bound(y => y.stockId_Title).Title("Şube/Depo/Kısım").Width(500);
+								x.Bound(y => y.alternativeQuantity).Title("Miktar").ClientTemplate("<span style='color:#=(alternativeQuantity<0 ? 'red' : 'green')#'>#:kendo.toString(alternativeQuantity, 'n2')# #:alternativeUnitId_Title#</span> ").Width(180);
+								x.Bound(y => y.quantity).Title("Varsayılan Birim Miktarı").ClientTemplate("<span style='color:#=(quantity<0 ? 'red' : 'green')#'>#:kendo.toString(quantity, 'n2')# #:unitId_Title#</span> ").Width(190);
+								x.Bound(y => y.unitId_Title).Title("Birim").Hidden(true);
+							})
+							.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+							.ToolBar(x =>
+							{
+								x.Custom().Text("<i data-original-title='Stok Hareketi' class='icon-exchange-1'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-storage", "detail" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWPRD_StockSummary", new { area = "PRD" }));
+								x.Custom().Text("<i data-original-title='Envanter Özeti' class='icon-buffer'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-productStorage", "detail" }, { "data-default", "" } }).Url(Url.Action("DetailInventory", "VWPRD_Inventory", new { area = "PRD" }));
+							}
+							))
 					</div>
 
 					<div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRD_StockSummary", new { area = "CMP" })" id="VWPRD_StockSummaryPersons">

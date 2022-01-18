@@ -151,13 +151,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			this.trans = _trans ?? db.BeginTransaction();
 			var transaction = db.GetPRD_TransactionById(this.id);
-			this.items = this.items.Where(a => a.productId.HasValue && a.quantity > 0).ToList();
+			this.items = this.items.Where(a => a.productId.HasValue && a.alternativeQuantity > 0).ToList();
 			this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 			this.status = this.status ?? (int)EnumPRD_TransactionStatus.beklemede;
 			this.date = this.date ?? DateTime.Now;
 			if (this.type == null) return new ResultStatus { result = false, message = "İşlem tipi seçilmeli." };
 			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
-			if (this.items.Where(a => !a.unitId.HasValue).Count() > 0) return new ResultStatus { result = false, message = "Lütfen ürünün birimini seçiniz." };
+			if (this.items.Where(a => !a.alternativeUnitId.HasValue).Count() > 0) return new ResultStatus { result = false, message = "Lütfen ürünün birimini seçiniz." };
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
 			var productids = this.items.Select(a => a.productId.Value).ToArray();
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
@@ -234,20 +234,45 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var DBTransactionItems = db.GetPRD_TransactionItemByTransactionId(this.id);
 			var DBproduct = db.GetPRD_ProductByIds(DBTransactionItems.Where(a => a.productId.HasValue).Select(a => a.productId.Value).ToArray());
 			var PRDTransaction = new PRD_Transaction().B_EntityDataCopyForMaterial(this, true);
-			var PRDTransactionItems = this.items.Select(a => new PRD_TransactionItem
+
+			var PRDTransactionItems = new List<PRD_TransactionItem>();
+
+			if (this.items.Count() > 0 && this.items.Where(a => a.productId.HasValue).Count() > 0)
 			{
-				id = a.id,
-				productId = a.productId,
-				quantity = a.quantity,
-				serialCodes = a.serialCodes,
-				unitPrice = a.unitPrice,
-				created = this.created,
-				createdby = this.createdby,
-				changed = this.changed,
-				changedby = this.changedby,
-				transactionId = this.id,
-				unitId = a.unitId
-			});
+				var productUnits = db.GetPRD_ProductUnitByProductIds(this.items.Select(b => b.productId.Value).ToArray());
+
+				foreach (var item in this.items)
+				{
+					var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
+					if (product == null) continue;
+
+					var productUnit = productUnits.Where(a => a.unitId == item.alternativeUnitId && a.productId == item.productId).FirstOrDefault();
+					var defaultUnit = productUnits.Where(a => a.productId == item.productId && a.isDefault == (int)EnumPRD_ProductUnitIsDefault.Evet).FirstOrDefault();
+
+					if (productUnit == null || defaultUnit == null) continue;
+
+					var transItem = new PRD_TransactionItem
+					{
+						id = item.id,
+						productId = item.productId,
+						serialCodes = item.serialCodes,
+						unitPrice = item.unitPrice,
+						created = this.created,
+						createdby = this.createdby,
+						changed = this.changed,
+						changedby = this.changedby,
+						transactionId = this.id,
+						unitId = defaultUnit.unitId,
+						quantity = (defaultUnit.quantity / productUnit.quantity) * item.alternativeQuantity,
+						alternativeUnitId = item.alternativeUnitId,
+						alternativeQuantity = item.alternativeQuantity,
+					};
+
+					PRDTransactionItems.Add(transItem);
+				}
+
+			}
+
 			if (this.status == (int)EnumPRD_TransactionStatus.beklemede || DBproduct.Count(a => a.stockType == (int)EnumPRD_ProductStockType.SeriNoluTakip) == 0)
 			{
 				DBResult &= db.UpdatePRD_Transaction(PRDTransaction, false, this.trans);
@@ -367,7 +392,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					if (product == null) continue;
 					if (productUnits == null) continue;
 
-					var productUnit = productUnits.Where(a => a.unitId == item.unitId && a.productId == item.productId).FirstOrDefault();
+					var productUnit = productUnits.Where(a => a.unitId == item.alternativeUnitId && a.productId == item.productId).FirstOrDefault();
 					var defaultUnit = productUnits.Where(a => a.productId == item.productId && a.isDefault == (int)EnumPRD_ProductUnitIsDefault.Evet).FirstOrDefault();
 
 					if (productUnit == null || defaultUnit == null) continue;
@@ -378,10 +403,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						createdby = this.createdby,
 						productId = item.productId,
 						transactionId = this.id,
-						quantity =  (item.quantity * productUnit.quantity),
-						unitId =  item.unitId,
-						defaultUnitId = defaultUnit.unitId,
-						defaultQuantity = (item.quantity * defaultUnit.quantity), 
+						unitId = defaultUnit.unitId,
+						quantity = (defaultUnit.quantity / productUnit.quantity) * item.alternativeQuantity,
+						alternativeUnitId = item.alternativeUnitId,
+						alternativeQuantity = item.alternativeQuantity,
 						unitPrice = item.unitPrice,
 						serialCodes = item.serialCodes,
 					};
