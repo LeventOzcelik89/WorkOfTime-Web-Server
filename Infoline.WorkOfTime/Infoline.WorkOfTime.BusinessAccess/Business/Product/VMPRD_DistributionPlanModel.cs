@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				this.created = DateTime.Now;
 				this.createdby = userId;
-				rs = this.Insert(inventoryId);
+				//rs = this.Insert(inventoryId);
 			}
 			else
 			{
@@ -81,7 +81,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.createdby = distributionPlan.createdby;
 				this.changed = DateTime.Now;
 				this.changedby = userId;
-				rs = this.Update(distributionPlan);
+				//rs = this.Update(distributionPlan);
 			}
 			if (rs.result == true)
 			{
@@ -94,17 +94,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return rs;
 		}
 		
-		private ResultStatus Insert(Guid? inventoryId)
-		{
-			var DBResult = new ResultStatus { result = true };
+		//private ResultStatus Insert(Guid? inventoryId)
+		//{
+		//	var DBResult = new ResultStatus { result = true };
 
 
 		
-		}
-		private ResultStatus Update(PRD_DistributionPlan distributionPlan)
-		{
+		//}
+		//private ResultStatus Update(PRD_DistributionPlan distributionPlan)
+		//{
 
-		}
+		//}
 
 		public ResultStatus Delete(DbTransaction _trans = null)
 		{
