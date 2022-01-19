@@ -71,6 +71,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			this.trans = _trans ?? db.BeginTransaction();
 			var distributionPlan = db.GetPRD_DistributionPlanById(this.id);
+
+			this.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
+			this.outputTable = "CMP_Storage";
+			this.inputTable = "CMP_Storage";
+
+			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
+			if (this.items.Where(a => !a.alternativeUnitId.HasValue).Count() > 0) return new ResultStatus { result = false, message = "Ürün birimi seçilmedi." };
+			if (this.items.Where(a => !a.inputId.HasValue).Count() > 0) return new ResultStatus { result = false, message = "Giriş yapılacak depo seçilmedi." };
+			if (this.items.Where(a => !a.alternativeQuantity.HasValue || a.alternativeQuantity <= 0).Count() > 0) return new ResultStatus { result = false, message = "Ürün miktarı giriniz." };
+
+
+
 			this.items = this.items.Where(a => a.productId.HasValue && a.alternativeQuantity > 0).ToList();
 			this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 			this.status = this.status ?? (int)EnumPRD_TransactionStatus.beklemede;
@@ -79,6 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();
 			this.products = db.GetVWPRD_ProductByIds(productids).ToList();
 			this.inventories = db.GetVWPRD_InventoryBySerialCodesAndIds(productids, serials).ToList();
+
 
 			var rs = new ResultStatus { result = true };
 			if (distributionPlan == null)
@@ -133,9 +146,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var PRDInventoryActions = new List<PRD_InventoryAction>();
 			this.outputId = outputInfo.id;
 			this.outputCompanyId = outputInfo.companyId;
-			this.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
-			this.outputTable = "CMP_Storage";
-			this.inputTable = "CMP_Storage";
 
 			if (this.items.Count() > 0 && this.items.Where(a => a.productId.HasValue).Count() > 0)
 			{
@@ -247,7 +257,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				DBResult.message = "<ul style='margin:10px 0 0 0;padding:0;'>" + string.Join("", errorList.Select(a => "<li>" + a + "</li>")) + "</ul>";
 				return DBResult;
 			}
-			
+
 			DBResult &= db.BulkInsertPRD_Transaction(PRDTransactions, this.trans);
 			DBResult &= db.InsertPRD_DistributionPlan(PRDDistributionPlan, this.trans);
 			DBResult &= db.BulkInsertPRD_DistributionPlanRelation(PRDDistributionPlanRelations, this.trans);
