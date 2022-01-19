@@ -1,0 +1,203 @@
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMPRD_DistributionPlanModel
+@{
+	ViewBag.Title = "Stok Envanter İşlemi Detay";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var types = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_TransactionType>();
+	var count = types.Count();
+	var transactionIds = Model.items.Where(a=>a.transactionId.HasValue).Select(a => a.transactionId.Value).ToArray();
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<script type="text/javascript" data-selector="modalContainer">
+	$(document)
+		.on("selected:grid", "#PRD_DistributionPlanGrid", function (e, res) {
+			debugger;
+			var detail = $("#taskFormDetail");
+			$(detail).attr("data-href", "/FTM/VWFTM_TaskForm/Detail?id=" + res.formId);
+		})
+</script>
+
+<script type="text/javascript" data-selector="modalContainer">
+    function CalculateFunction(price, quantity) {
+
+    };
+</script>
+<style type="text/css" data-selector="modalContainer">
+
+	.form-group {
+		margin-bottom: 10px;
+	}
+
+	.modal-lg {
+		width: 95%;
+	}
+
+	table.table-custom {
+		table-layout: fixed;
+	}
+
+		table.table-custom thead {
+			background-color: #d6d5d4;
+			font-size: 11px;
+		}
+
+		table.table-custom tr {
+			border-bottom: 1px #d6d5d4 solid;
+		}
+
+		table.table-custom tbody tr:last-child {
+			border-bottom: none;
+		}
+
+		table.table-custom tbody td {
+			padding: 6px !important;
+		}
+</style>
+
+<div class="form-horizontal" data-selector="modalContainer">
+	<div class="ibox">
+		<div class="ibox-content clearfix" style="border:none;">
+			<div class="row">
+				<div class="col-md-4">
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Evrak Kodu</strong>
+						</div>
+						<div class="col-md-8">
+							:  @Model.code
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Evrak Tarihi (Fiil'i)</strong>
+						</div>
+						<div class="col-md-8">
+							: @string.Format("{0:dd.MM.yyyy HH:mm}", Model.date)
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-4 text-right">
+							<strong>Evrak Açıklaması</strong>
+						</div>
+						<div class="col-md-8">
+							: @Model.description
+						</div>
+
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="row">
+						<div class="col-md-5 text-right">
+							<strong>İşlemi Gerçekleştiren</strong>
+						</div>
+						<div class="col-md-7">
+							: @Model.createdby_Title
+						</div>
+					</div>
+
+					<div class="row">
+						<div class="col-md-5 text-right">
+							<strong>Evrak Kayıt Tarihi</strong>
+						</div>
+						<div class="col-md-7">
+							: @string.Format("{0:dd.MM.yyyy HH:mm}", Model.created)
+						</div>
+					</div>
+					<div class="row">
+						<div class="col-md-5 text-right">
+							<strong>İşlem Tipi</strong>
+						</div>
+						<div class="col-md-7">
+							: Giden İrsaliye
+						</div>
+					</div>
+				</div>
+				<div class="col-md-4">
+					<div class="col-md-4">
+						<label class="control-label label-md" for="File">İşlem Dosyası</label>
+					</div>
+					<div class="col-md-8">
+						@(
+                             Html.Akilli().FileUpload()
+                            .DataTable("PRD_Transaction")
+                            .DataId(Model.id)
+                            .DataKey(x => x.fileGroup == "İşlem Dosyası")
+                            .PreviewMode(true)
+                        )
+					</div>
+
+				</div>
+			</div>
+
+			<div class="row">
+				<div class="col-md-12">
+					<div class="hr-line-dashed"></div>
+				</div>
+				<div class="clearfix">
+					<div class="col-md-4">
+						<div class="row">
+							<div class="col-md-4 text-right">
+								<strong>Çıkış Yapılacak Depo/Şube</strong>
+							</div>
+							<div class="col-md-8">
+								: @Model.outputCompanyId_Title - @Model.outputId_Title
+							</div>
+						</div>
+
+					</div>
+					@*<div class="col-md-4">
+						<div class="row">
+							<div class="col-md-5 text-right">
+								<strong>Müşteri Depo/Şube</strong>
+							</div>
+							<div class="col-md-7">
+								: @Model.inputCompanyId_Title - @Model.inputId_Title
+							</div>
+						</div>
+					</div>*@
+				</div>
+			</div>
+
+			<div class="clearfix m-t-md" id="productTable">
+				@(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWPRD_DistributionPlanRelation>("VWPRD_DistributionPlan")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSourcePlanRelation", "VWPRD_DistributionPlan", new { area = "PRD" })).Sort(a => a.Add("created").Descending()).PageSize(25))
+                    .Scrollable(a => a.Height(650))
+                    .Filterable(t => t.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+                        x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
+                        x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
+                        x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
+                        x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
+                        x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
+                        x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
+                        x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+                    })
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
+                        {
+                            x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+                        }
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-upload' data-original-title='Dosya Yükle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" }, {"data-visible","" } }).Url(Url.Action("UploadForm", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+                        x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+                    }))
+			</div>
+
+			<div class="buttons">
+				<div class="hr-line-dashed"></div>
+				<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+			</div>
+
+		</div>
+	</div>
+</div>

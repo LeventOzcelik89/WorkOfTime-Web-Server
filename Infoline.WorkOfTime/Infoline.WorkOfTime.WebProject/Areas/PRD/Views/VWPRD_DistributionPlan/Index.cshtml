@@ -33,7 +33,7 @@
 						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_DistributionPlanStatus>())
 						{
 							<li class="clearfix">
-								<a href="#" data-grid="VWPRD_Transaction" data-category="0" data-query="(status~eq~@item.Key)">
+								<a href="#" data-grid="VWPRD_DistributionPlan" data-category="0" data-query="(status~eq~@item.Key)">
 									<i class="@item.Generic["icon"] text-@item.Generic["color"]"></i>  @item.Value
 									<span class="label label-@item.Generic["color"] pull-right" data-counturl="/PRD/VWPRD_DistributionPlan/DataSourceCount?filter=(status~eq~@item.Key)">0</span>
 								</a>
@@ -63,11 +63,11 @@
 					.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_DistributionPlan>("VWPRD_DistributionPlan")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_DistributionPlan", new { area = "PRD" })).Sort(a => a.Add("created").Descending()).PageSize(25))
 					.Scrollable(a => a.Height(650))
-					.Filterable(t => t.Mode(GridFilterMode.Row))
+					//.Filterable(t => t.Mode(GridFilterMode.Row))
 					.Columns(x =>
 					{
 						//x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
-						x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
+						x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(false);
 						x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
 						//x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
 						//x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
@@ -76,15 +76,15 @@
 						//x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
 						x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
 					})
-					.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
 					.ToolBar(x =>
 					{
 						if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
 						{
 							x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
 						}
-						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
-						x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
+						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_DistributionPlan", new { area = "PRD" }));
+						x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_DistributionPlan", new { area = "PRD" }));
 						x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
 					}))
 			</div>
