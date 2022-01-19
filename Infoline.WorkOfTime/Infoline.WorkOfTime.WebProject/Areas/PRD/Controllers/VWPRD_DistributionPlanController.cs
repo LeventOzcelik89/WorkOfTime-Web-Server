@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success("Dağıtım/Sevkiyat Oluşturma İşlemi Başarılı") : feedback.Warning("Dağıtım/Sevkiyat Oluşturma İşlemi Başarısız")
             }, JsonRequestBehavior.AllowGet);
         }
 

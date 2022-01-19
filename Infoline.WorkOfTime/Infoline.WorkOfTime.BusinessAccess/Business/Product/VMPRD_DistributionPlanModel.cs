@@ -258,12 +258,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			return DBResult;
 		}
 
-		//}
-		//private ResultStatus Update(PRD_DistributionPlan distributionPlan)
-		//{
-
-		//}
-
 		public ResultStatus Delete(DbTransaction _trans = null)
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
