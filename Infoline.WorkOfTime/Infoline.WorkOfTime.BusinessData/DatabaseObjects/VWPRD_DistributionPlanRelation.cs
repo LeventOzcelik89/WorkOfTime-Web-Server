@@ -18,5 +18,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string invoiceId_Title { get; set;}
         public string orderId_Title { get; set;}
         public string description { get; set;}
+        public string outputCompanyId_Title { get; set;}
+        public string inputCompanyId_Title { get; set;}
+        public short? type { get; set;}
     }
 }

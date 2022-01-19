@@ -16,6 +16,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		private DbTransaction trans { get; set; }
 		private List<VWPRD_Product> products { get; set; }
 		private List<VWPRD_Inventory> inventories { get; set; }
+		public Guid? inputId { get; set; }
+		public Guid? inputCompanyId { get; set; }
+		public Guid? outputCompanyId { get; set; }
+		public string outputTable { get; set; }
+		public string inputTable { get; set; }
+		public short? type { get; set; }
+
+
 		public VMPRD_DistributionPlanModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
@@ -123,6 +131,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var PRDTransactionItems = new List<PRD_TransactionItem>();
 			var PRDInventories = new List<PRD_Inventory>();
 			var PRDInventoryActions = new List<PRD_InventoryAction>();
+			this.outputId = outputInfo.id;
+			this.outputCompanyId = outputInfo.companyId;
+			this.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
+			this.outputTable = "CMP_Storage";
+			this.inputTable = "CMP_Storage";
 
 			if (this.items.Count() > 0 && this.items.Where(a => a.productId.HasValue).Count() > 0)
 			{
@@ -136,6 +149,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 					foreach (var item in items)
 					{
+						this.inputId = item.inputId;
+						this.inputCompanyId = item.inputCompanyId;
+
 						var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
 						if (product == null) continue;
 						if (productUnits == null) continue;
@@ -210,10 +226,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						PRDTransactionItems.Add(transItem);
 					}
 
-					var transaction = new PRD_Transaction();
-					transaction.type = (int)EnumPRD_TransactionType.GidenIrsaliye;
 
-					PRDTransactions.Add(transaction.B_EntityDataCopyForMaterial(this));
+					PRDTransactions.Add(new PRD_Transaction().B_EntityDataCopyForMaterial(this));
 					PRDDistributionPlanRelations.Add(new PRD_DistributionPlanRelation
 					{
 						id = Guid.NewGuid(),

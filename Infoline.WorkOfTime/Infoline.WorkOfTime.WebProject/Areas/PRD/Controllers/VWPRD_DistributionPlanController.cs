@@ -31,6 +31,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [AllowEveryone]
         [PageInfo("Dağıtım/Sevkiyat Planı İlişkileri Grid DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SatisPersoneli, SHRoles.IKYonetici)]
         public ContentResult DataSourcePlanRelation([DataSourceRequest] DataSourceRequest request)
         {
