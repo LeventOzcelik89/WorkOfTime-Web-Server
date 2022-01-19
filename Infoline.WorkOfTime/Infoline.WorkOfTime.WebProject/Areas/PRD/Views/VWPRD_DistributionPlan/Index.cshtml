@@ -1,5 +1,5 @@
 ﻿@{
-	ViewBag.Title = "Dağıtım/Sevkiyat Planı Listesi";
+	ViewBag.Title = "Dağıtım/Sevkiyat Listesi";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 	var userStatus = (PageSecurity)Session["userStatus"];
 }
@@ -22,39 +22,18 @@
 
 
 <div class="row">
-	<div class="col-md-2">
-		<div class="ibox ">
-			<div class="ibox-content mailbox-content">
-				<div class="file-manager">
-					<a class="btn btn-block btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_DistributionPlan",new { area="PRD" })"><i class="fa fa-truck"></i> Dağıtım/Sevkiyat Planı Tanımla</a>
-					<div class="space-25"></div>
-					<h5>PLAN DURUMUNA GÖRE </h5>
-					<ul class="folder-list m-b-md" style="padding: 0">
-						@foreach (var item in Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumPRD_DistributionPlanStatus>())
-						{
-							<li class="clearfix">
-								<a href="#" data-grid="VWPRD_Transaction" data-category="0" data-query="(status~eq~@item.Key)">
-									<i class="@item.Generic["icon"] text-@item.Generic["color"]"></i>  @item.Value
-									<span class="label label-@item.Generic["color"] pull-right" data-counturl="/PRD/VWPRD_DistributionPlan/DataSourceCount?filter=(status~eq~@item.Key)">0</span>
-								</a>
-							</li>
-						}
-					</ul>
-					<div class="space-25"></div>
-				</div>
-			</div>
-		</div>
-	</div>
-
-
-	<div class="col-md-10">
+	<div class="col-md-12">
 		<div class="ibox ">
 			<div class="ibox-title">
-				<h5>Dağıtım/Sevkiyat Planı Listesi</h5>
-				<div class="ibox-tools">
-					<a class="collapse-link">
-						<i class="fa fa-chevron-up"></i>
-					</a>
+				<div class="col-md-9">
+					<h5>Dağıtım/Sevkiyat Listesi</h5>
+				</div>
+				<div class="col-md-3">
+
+					<div class="btn-group pull-right">
+						@*<a class="btn btn-sm btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert?multiple=true"> <i class="fa fa-plus-square-o"></i> Yeni Çoklu Görev </a>*@
+						<a class="btn btn-sm btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_DistributionPlan",new { area="PRD" })"><i class="fa fa-truck"></i> Dağıtım/Sevkiyat Planı Tanımla</a>
+					</div>
 				</div>
 			</div>
 			<div class="ibox-content">
@@ -63,29 +42,25 @@
 					.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_DistributionPlan>("VWPRD_DistributionPlan")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_DistributionPlan", new { area = "PRD" })).Sort(a => a.Add("created").Descending()).PageSize(25))
 					.Scrollable(a => a.Height(650))
-					.Filterable(t => t.Mode(GridFilterMode.Row))
+					//.Filterable(t => t.Mode(GridFilterMode.Row))
 					.Columns(x =>
 					{
-						//x.Bound(y => y.searchField).Title("İşlem Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('PRD_TransactionTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
-						x.Bound(y => y.code).Title("İşlem Kodu").Width(130).Hidden(true);
-						x.Bound(y => y.status_Title).Title("İşlem Durumu").Width(130).Hidden(true);
-						//x.Bound(y => y.type_Title).Title("İşlem Tipi").Width(130).Hidden(true);
-						//x.Bound(y => y.inputId_Title).Title("Giriş Yapılan Yer").Width(130).Hidden(true);
-						//x.Bound(y => y.outputId_Title).Title("Çıkış Yapılan Yer").Width(130).Hidden(true);
-						//x.Bound(y => y.invoiceId_Title).Title("Fatura").Width(130).Hidden(true);
-						//x.Bound(y => y.orderId_Title).Title("Sipariş").Width(130).Hidden(true);
-						x.Bound(y => y.description).Title("Hareket Açıklaması").Width(130).Hidden(true);
+						x.Bound(y => y.code).Title("Dağıtım Kodu").Width(130).Hidden(false);
+						x.Bound(y => y.outputCompanyId_Title).Title("Çıkış Yapılacak Cari").Width(130).Hidden(false);
+						x.Bound(y => y.outputId_Title).Title("Çıkış Yapılacak Depo").Width(130).Hidden(false);
+						x.Bound(y => y.description).Title("Açıklama").Width(130).Hidden(false);
+						x.Bound(y => y.created).Title("Oluşturma Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
 					})
-					.Selectable(x => x.Mode(GridSelectionMode.Multiple))
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
 					.ToolBar(x =>
 					{
-						if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)))
+						if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)) ||
+						userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))
+						)
 						{
-							x.Custom().Text("<i class='fa fa-edit'  data-original-title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_Transaction", new { area = "PRD" }));
+							x.Custom().Text("<i class='fa fa-plus-circle'  data-original-title='Dağıtım/Sevkiyatı Planla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_DistributionPlan", new { area = "PRD" }));
 						}
-						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_Transaction", new { area = "PRD" }));
-						x.Custom().Text("<i class='fa fa-print' data-original-title='Yazdır'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-blank", "" }, { "data-modal", "false" }, { "data-visible", "" } }).Url(Url.Action("Print", "VWPRD_Transaction", new { area = "PRD" }));
-						x.Custom().Text("<i class='fa fa-trash' data-original-title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWPRD_Transaction", new { area = "PRD" }));
+						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_DistributionPlan", new { area = "PRD" }));
 					}))
 			</div>
 		</div>

@@ -151,13 +151,33 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			this.db = this.db ?? new WorkOfTimeDatabase();
 			this.trans = _trans ?? db.BeginTransaction();
 			var transaction = db.GetPRD_TransactionById(this.id);
-			this.items = this.items.Where(a => a.productId.HasValue && a.alternativeQuantity > 0).ToList();
+			this.items = this.items.Where(a => a.productId.HasValue && (a.alternativeQuantity > 0 || a.quantity > 0)).ToList();
 			this.code = string.IsNullOrEmpty(this.code) ? BusinessExtensions.B_GetIdCode() : this.code;
 			this.status = this.status ?? (int)EnumPRD_TransactionStatus.beklemede;
 			this.date = this.date ?? DateTime.Now;
 			if (this.type == null) return new ResultStatus { result = false, message = "İşlem tipi seçilmeli." };
 			if (this.items.Count() == 0) return new ResultStatus { result = false, message = "Ürün kalemi girilmedi." };
-			if (this.items.Where(a => !a.alternativeUnitId.HasValue).Count() > 0) return new ResultStatus { result = false, message = "Lütfen ürünün birimini seçiniz." };
+			if (this.items.Where(a => !a.alternativeUnitId.HasValue || !a.unitId.HasValue).Count() > 0)
+			{
+				var products = db.GetVWPRD_ProductByIds(this.items.Where(a => a.productId.HasValue).Select(b => b.productId.Value).ToArray());
+				if (products.Count() > 0)
+				{
+					foreach (var item in this.items)
+					{
+						var unitId = products.Where(a => a.id == item.productId).Select(b => b.productUnitId).FirstOrDefault();
+						if (!item.unitId.HasValue)
+						{
+							item.unitId = unitId.HasValue ? unitId.Value : new Guid("8F6E4C58-47AB-445C-B3C6-6DF642AF1DAC");
+						}
+
+						if (!item.alternativeUnitId.HasValue)
+						{
+							item.alternativeUnitId = unitId.HasValue ? unitId.Value : new Guid("8F6E4C58-47AB-445C-B3C6-6DF642AF1DAC");
+							item.alternativeQuantity = item.quantity ?? 1;
+						}
+					}
+				}
+			}
 			if (this.type == (int)EnumPRD_TransactionType.Transfer && (this.inputId == this.outputId)) return new ResultStatus { result = false, message = "Çıkış Yapılacak şube/depo/kısım ile Giriş Yapılacak şube/depo/kısım birbirinden farklı olmalıdır." };
 			var productids = this.items.Select(a => a.productId.Value).ToArray();
 			var serials = this.items.Where(a => a.serialCodes != null).SelectMany(a => a.serialCodes.Split(',').Select(c => c.ToLower())).ToArray();

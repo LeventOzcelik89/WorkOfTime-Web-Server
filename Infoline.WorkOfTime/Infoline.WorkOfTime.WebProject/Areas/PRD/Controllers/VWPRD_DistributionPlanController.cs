@@ -31,6 +31,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
+        [AllowEveryone]
+        [PageInfo("Dağıtım/Sevkiyat Planı İlişkileri Grid DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SatisPersoneli, SHRoles.IKYonetici)]
+        public ContentResult DataSourcePlanRelation([DataSourceRequest] DataSourceRequest request)
+        {
+            var condition = KendoToExpression.Convert(request);
+            var page = request.Page;
+            request.Filters = new FilterDescriptor[0];
+            request.Sorts = new SortDescriptor[0];
+            request.Page = 1;
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWPRD_DistributionPlanRelation(condition).RemoveGeographies().ToDataSourceResult(request);
+            data.Total = db.GetVWPRD_DistributionPlanRelationCount(condition.Filter);
+            return Content(Infoline.Helper.Json.Serialize(data), "application/json");
+        }
+
         [PageInfo("Dağıtım/Sevkiyat Planı Miktar DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi)]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
@@ -49,7 +64,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
         [PageInfo("Dağıtım/Sevkiyat Planı Detayı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.IKYonetici, SHRoles.UretimPersonel, SHRoles.UretimYonetici, SHRoles.Personel)]
-        public ActionResult Detail(VMPRD_TransactionModel model)
+        public ActionResult Detail(VMPRD_DistributionPlanModel model)
         {
             var data = model.Load();
             return View(data);
@@ -74,7 +89,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success(dbresult.message) : feedback.Warning(dbresult.message)
+                FeedBack = dbresult.result ? feedback.Success("Dağıtım/Sevkiyat Oluşturma İşlemi Başarılı") : feedback.Warning(dbresult.message)
             }, JsonRequestBehavior.AllowGet);
         }
 
