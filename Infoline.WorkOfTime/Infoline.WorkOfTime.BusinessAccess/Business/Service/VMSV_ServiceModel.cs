@@ -30,8 +30,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_TransactionItem> SpendedProducts { get; set; } = new List<VWPRD_TransactionItem>();
         public double TotalWasted { get; set; } = 0;
         public double TotalSpended { get; set; } = 0;
-        public IGeometry location { get; set; }
-        public Guid? openLocationId { get; set; }
+        public IGeometry locationMap { get; set; }
+        public Guid? openLocation { get; set; }
         public List<EnumSV_ServiceActions> ButtonPermission { get; set; } = new List<EnumSV_ServiceActions>();
 
         public VMSV_ServiceModel Load()
@@ -40,11 +40,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var data = db.GetVWSV_ServiceById(this.id);
             if (data != null)
             {
-
+                
                 this.B_EntityDataCopyForMaterial(data, true);
                 var findInventory = db.GetVWPRD_InventoryById(this.inventoryId.Value);
                 var customerService = db.GetVWSV_CustomerUserByServiceId(this.id);
                 var customer = db.GetVWSV_CustomerById(customerService.customerId.Value);
+                this.locationMap = customer.location;
+                this.openLocation = customer.openLocationId;
                 var findTitan = db.GetPRD_TitanDeviceActivatedByInventoryId(this.inventoryId.Value);
                 if (findTitan != null)
                 {
@@ -92,8 +94,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWSV_ServiceById(this.id);
-            Customer.openLocationId = this.openLocationId;
-            Customer.location = this.location;
+            Customer.openLocationId = this.openLocation;
+            Customer.location = this.locationMap;
             if (DeliveryTpeActual.HasValue)
             {
                 this.deliveryType = (short?)DeliveryTpeActual;
@@ -147,12 +149,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var user = db.GetVWSH_UserById(this.createdby.Value);
             if (!string.IsNullOrEmpty(getInventory.serialcode))
             {
+                var getProduct = db.GetVWPRD_ProductById(getInventory.productId.HasValue ? getInventory.productId.Value : Guid.NewGuid());
                 var transItem = new VMPRD_TransactionItems
                 {
                     productId = getInventory.productId,
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
                     unitPrice = 0,
+                    unitId = getProduct.unitId,
+                    alternativeQuantity=1,
+                    alternativeUnitId=getProduct.unitId
                 };
                 if (companyId.HasValue)
                 {
@@ -192,6 +198,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         code = BusinessExtensions.B_GetIdCode(),
                         type = (short)EnumPRD_TransactionType.TeknikServisTransferi,
                         id = Guid.NewGuid(),
+                        
                     };
                     result &= transModel.Save(this.createdby, trans);
                 }

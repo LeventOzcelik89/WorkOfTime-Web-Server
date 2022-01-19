@@ -17,6 +17,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public IGeometry  location { get; set;}
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
-        public string openAddressLocationId_Title { get; set;}
+        public string openAddressLocation_Title { get; set;}
     }
 }

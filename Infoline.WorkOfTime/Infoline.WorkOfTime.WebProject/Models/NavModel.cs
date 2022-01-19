@@ -343,6 +343,7 @@ namespace System.Web.Mvc
             var menu = new Menu("Depo ve Stok", "#", "fa fa-cubes");
             menu.AddChild(new Menu("Ürün & Hizmet Listesi", "/PRD/VWPRD_Product/Index"));
             menu.AddChild(new Menu("Stok ve Envanter İşlemleri", "/PRD/VWPRD_Transaction/Index"));
+            menu.AddChild(new Menu("Dağıtım/Sevkiyat İşlemleri", "/PRD/VWPRD_DistributionPlan/Index"));
             menu.AddChild(new Menu("Envanter Listesi", "/PRD/VWPRD_Inventory/Index"));
             if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1201 || TenantConfig.Tenant.TenantCode == 1100)
             {

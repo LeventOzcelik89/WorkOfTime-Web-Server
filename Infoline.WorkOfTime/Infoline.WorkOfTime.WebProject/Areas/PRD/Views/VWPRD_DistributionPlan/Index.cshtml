@@ -1,0 +1,68 @@
+﻿@{
+	ViewBag.Title = "Dağıtım/Sevkiyat Listesi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+	var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+@*<script type="text/javascript">
+    $(document)
+        .on('selected:grid', '#VWPRD_Transaction', function (e, item) {
+            if (item.status == '@((Int32)EnumPRD_TransactionStatus.islendi)') {
+                $('[data-visible=""]').show();
+            } else {
+                $('[data-visible=""]').hide();
+            }
+        })
+		.on("success", "#VWCMP_CompanyInsertForm", function (e, resp) {
+			if (resp.Result) {
+				$("#outputId0").data("kendoDropDownList").dataSource.read();
+			}
+		});
+</script>*@
+
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="ibox ">
+			<div class="ibox-title">
+				<div class="col-md-9">
+					<h5>Dağıtım/Sevkiyat Listesi</h5>
+				</div>
+				<div class="col-md-3">
+
+					<div class="btn-group pull-right">
+						@*<a class="btn btn-sm btn-success" style="margin-top: -5px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert?multiple=true"> <i class="fa fa-plus-square-o"></i> Yeni Çoklu Görev </a>*@
+						<a class="btn btn-sm btn-primary" data-task="Insert" data-method="GET" data-href="@Url.Action("Upsert","VWPRD_DistributionPlan",new { area="PRD" })"><i class="fa fa-truck"></i> Dağıtım/Sevkiyat Planı Tanımla</a>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content">
+
+				@(Html.Akilli()
+					.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_DistributionPlan>("VWPRD_DistributionPlan")
+					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_DistributionPlan", new { area = "PRD" })).Sort(a => a.Add("created").Descending()).PageSize(25))
+					.Scrollable(a => a.Height(650))
+					//.Filterable(t => t.Mode(GridFilterMode.Row))
+					.Columns(x =>
+					{
+						x.Bound(y => y.code).Title("Dağıtım Kodu").Width(130).Hidden(false);
+						x.Bound(y => y.outputCompanyId_Title).Title("Çıkış Yapılacak Cari").Width(130).Hidden(false);
+						x.Bound(y => y.outputId_Title).Title("Çıkış Yapılacak Depo").Width(130).Hidden(false);
+						x.Bound(y => y.description).Title("Açıklama").Width(130).Hidden(false);
+						x.Bound(y => y.created).Title("Oluşturma Tarihi").Width(190).Format(Extensions.DateFormatFull(true));
+					})
+					.Selectable(x => x.Mode(GridSelectionMode.Single))
+					.ToolBar(x =>
+					{
+						if(userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.DepoSorumlusu)) ||
+						userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici))
+						)
+						{
+							x.Custom().Text("<i class='fa fa-plus-circle'  data-original-title='Dağıtım/Sevkiyatı Planla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Upsert", "VWPRD_DistributionPlan", new { area = "PRD" }));
+						}
+						x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "true" } }).Url(Url.Action("Detail", "VWPRD_DistributionPlan", new { area = "PRD" }));
+					}))
+			</div>
+		</div>
+	</div>
+</div>

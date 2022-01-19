@@ -67,14 +67,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var res = new ResultStatus { result = true };
             //Validasyonlarını yap
             var dbresult = db.InsertSV_ChangedDevice(this.B_ConvertType<SV_ChangedDevice>(), this.trans);
+            
             var getOldInventory = db.GetVWPRD_InventoryById(oldInventoryId.Value);
             var getNewInventory= db.GetVWPRD_InventoryById(newInventoryId.Value);
             var oldTransItem = new VMPRD_TransactionItems
             {
                 productId = getOldInventory.productId,
                 quantity = 1,
-                serialCodes = getOldInventory.serialcode?? "",
+                serialCodes = getOldInventory.serialcode ?? "",
                 unitPrice = 0,
+                alternativeQuantity = 1,
+                alternativeUnitId = db.GetVWPRD_ProductById(getOldInventory.productId.Value).unitId
+            
 
 
             };
@@ -84,6 +88,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 quantity = 1,
                 serialCodes = getNewInventory.serialcode ?? "",
                 unitPrice = 0,
+                alternativeQuantity = 1,
+                alternativeUnitId = db.GetVWPRD_ProductById(getNewInventory.productId.Value).unitId
             };
         
            

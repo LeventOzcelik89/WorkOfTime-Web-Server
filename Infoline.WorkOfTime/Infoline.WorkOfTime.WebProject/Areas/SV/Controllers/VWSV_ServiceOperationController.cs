@@ -81,7 +81,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 				var result = new ResultStatusUI
 				{
 					Result = dbresult.result,
-					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Kaydetme işlemi başarısız")
+					FeedBack = dbresult.result ? feedback.Success("Teknik Servis Aksiyon Kaydı Başarıyla Oluşturuldu", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning("Teknik Servis Aksiyonu Oluşturulamadı")
 				};
 				return Json(result, JsonRequestBehavior.AllowGet);
 			}
@@ -142,7 +142,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu,SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
 			var db = new WorkOfTimeDatabase();
 			var trans = db.BeginTransaction();
@@ -169,7 +169,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			var result = new ResultStatusUI
 			{
 				Result = dbresult.result,
-				FeedBack = dbresult.result ? feedback.Success($"{getService.stage_Title} Aşamasına Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Error("Güncelleme işlemi başarısız")
+				FeedBack = dbresult.result ? feedback.Success($"{getService.stage_Title} Aşamasına Geçildi", false, Request.UrlReferrer.AbsoluteUri) : feedback.Warning($"{getService.stage_Title} Aşamasına Geçilme İşlemi Başarısız")
 			};
 
 			return Json(result, JsonRequestBehavior.AllowGet);
@@ -210,7 +210,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 		[PageInfo("Kalite Kontrolun Yapıldığı Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
-
 		public JsonResult QualityCheck(Guid serviceId,bool status) {
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
@@ -227,7 +226,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 		public ActionResult Cargo(VMSV_ServiceOperationModel model)
 		{
-			return View(model);
+			return View(model.Load());
 		}
 		[HttpPost]
 		[PageInfo("Servisin  Müşteriye Teslim Edilen", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
