@@ -35,12 +35,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 title = titleText,
                                 icon = "push_icon",
                                 color = "red",
-                                sound= "default"
+                                sound = "default"
                             },
-                           
+
                             data = new
                             {
-                                key_1 = key_1Data,
+                                key_1 = TenantConfig.Tenant.GetWebUrl() + key_1Data,
                                 key_2 = key_2Data
                             }
                         };

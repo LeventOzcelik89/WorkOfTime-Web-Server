@@ -169,7 +169,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var getTransaction = db.GetVWPA_TransactionById(this.id);
                 this.created = DateTime.Now;
                 this.createdby = userId;
-                
+
                 if (this.IsCopy == true)
                 {
                     this.id = this.newId;
@@ -181,9 +181,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.changed = DateTime.Now;
                 this.changedby = userId;
                 var getTransaction = db.GetVWPA_TransactionById(this.id);
-                if (getTransaction!=null)
+                if (getTransaction != null)
                 {
-                    this.createdby =getTransaction.createdby;
+                    this.createdby = getTransaction.createdby;
                 }
 
                 res = Update(trans);
@@ -209,7 +209,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Reddi ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Reddi", true);
-                        notification.NotificationSend(user.id, userId,"Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir");
+                        notification.NotificationSend(user.id, userId, "Masraf talebiniz reddedilmiştir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından reddedilmiştir", $"/PA/VWPA_Transaction/DetailExpense?id={this.id}");
                     }
                 }
                 else if (this.direction == 3)// yeniden talep 
@@ -227,7 +227,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Talebi Düzenleme ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Talebi Düzenleme", true);
-                        notification.NotificationSend(user.id, userId, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir");
+                        notification.NotificationSend(user.id, userId, "Masraf düzenleme istenmektedir", "Masraf talebiniz" + getDeclineUser.FullName + " tarafından düzenleme talebi istenmiştir", $"/PA/VWPA_Transaction/DetailExpense?id={this.id}");
                     }
                 }
                 else
@@ -553,7 +553,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<p>Ödemeniz beklenmektedir.</p>";
                         text += "<p>Bilgilerinize.</p>";
                         new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                        notify.NotificationSend(user.id,this.createdby, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "");
+                        notify.NotificationSend(user.id, this.createdby, createdUser.FullName + " kişisi masraf talebinde bulunmuştur", "", $"/PA/VWPA_Transaction/DetailExpense?id={this.id}");
                     }
                 }
             }
@@ -847,8 +847,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
                             rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
                             rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
-                              
-                            });
+
+                                });
                             }
                         }
                     }
@@ -882,12 +882,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 }
                 if (notNullOrder == null)
-                {                    
+                {
                     var getTrans = db.GetPA_TransactionById(this.id);
                     if (getTrans != null)
-                    {   
-                        
-                        var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.confirmationUserIds!=null);
+                    {
+
+                        var isUserExist = confirmations.OrderBy(x => x.ruleOrder).FirstOrDefault(x => x.confirmationUserIds != null);
                         if (isUserExist != null)
                         {
                             var users = db.GetVWSH_UserByIds(isUserExist.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
@@ -905,7 +905,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                notification.NotificationSend(user.id,this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                notification.NotificationSend(user.id, this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur", $"/PA/VWPA_Transaction/DetailExpenseConfirmation?id={this.id}");
                             }
                         }
                     }
@@ -913,8 +913,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 else
                 {
                     var findNotCommited = confirmations.Where(x => x.status == null && x.confirmationUserIds != null).OrderBy(x => x.ruleOrder).ToList();
-                    var findWillCommit = findNotCommited.Where(x=>x.confirmationUserIds!=null&&x.ruleOrder==notNullOrder.ruleOrder+1).FirstOrDefault();
-                    if (findWillCommit!=null)
+                    var findWillCommit = findNotCommited.Where(x => x.confirmationUserIds != null && x.ruleOrder == notNullOrder.ruleOrder + 1).FirstOrDefault();
+                    if (findWillCommit != null)
                     {
                         var users = db.GetVWSH_UserByIds(findWillCommit.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
                         var getTrans = db.GetPA_TransactionById(this.id);
@@ -934,11 +934,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                 text += "<div><a href='" + getTenantUrl + "/PA/VWPA_Transaction/IndexRequest" + "'>Detaya gitmek için tıklayınız.</a> </div>";
                                 text += "<p>Bilgilerinize.</p>";
                                 new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Masraf Onayı ", text).Send((Int16)EmailSendTypes.MasrafOnay, user.email, "Masraf Onayı", true);
-                                notification.NotificationSend(user.id, this.createdby,"Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur");
+                                notification.NotificationSend(user.id, this.createdby, "Onayınızı bekleyen masraf talebi var", createdUser.FullName + " kişisi masraf talebinde bulunmuştur", $"/PA/VWPA_Transaction/DetailExpenseConfirmation?id={this.id}", "");
                             }
                         }
                     }
-                   
+
                 }
             }
         }

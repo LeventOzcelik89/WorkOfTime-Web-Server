@@ -18,7 +18,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string verifyCode { get; set; }
         public string Logo { get; set; }
         public PRD_StockTaskPlan taskPlan { get; set; } = new PRD_StockTaskPlan();
-		public VWCMP_Request Request { get; set; }
+        public VWCMP_Request Request { get; set; }
         public VWCMP_InvoiceItemReport[] CMP_InvoiceItemReports { get; set; }
 
         public VMFTM_TaskOperationModel Load()
@@ -34,8 +34,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 this.Task = db.GetVWFTM_TaskById(this.taskId.Value);
 
-				if (this.Task != null)
-				{
+                if (this.Task != null)
+                {
                     this.Request = db.GetVWCMP_RequestByTaskId(this.taskId.Value);
                     this.CMP_InvoiceItemReports = db.GetVWCMP_InvoiceItemReportByTaskId(this.taskId.Value);
                 }
@@ -134,9 +134,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div>Doğrulama Kodu : <strong>" + verifyCode + "</strong></div>";
                         text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + this.taskId + "'>tıklayınız.</a> </div>";
                         text += "<div>Bilgilerinize.</div>";
-                        var notify = "Sayın " + user.FullName + " tarafınıza "+ this.Task.code+ "kodlu görev oluşturulmuştur.";
+                        var notify = "Sayın " + user.FullName + " tarafınıza " + this.Task.code + "kodlu görev oluşturulmuştur.";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, user.email, "Saha Görevi Doğrulama Kodu ", true);
-                        notification.NotificationSend(user.id, this.createdby, "Saha Görev Yönetimi", notify);
+                        notification.NotificationSend(user.id, this.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
                     }
                     this.description = string.Join(",", users.Select(a => a.FullName)) + " kullanıcılara doğrulama kodu gönderildi";
                     rs &= db.BulkUpdateFTM_TaskUser(taskUsers.Select(a => new FTM_TaskUser().B_EntityDataCopyForMaterial(a, true)), true, trans);
@@ -340,10 +340,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (this.taskId.HasValue)
                     {
                         var followUpUsers = db.GetFTM_TaskFollowUpUserByTaskId(this.taskId.Value);
-                        if(followUpUsers.Count() > 0)
+                        if (followUpUsers.Count() > 0)
                         {
                             var fllwusers = db.GetVWSH_UserByIds(followUpUsers.Where(x => x.userId.HasValue).Select(x => x.userId.Value).ToArray());
-                            if(fllwusers.Count() > 0)
+                            if (fllwusers.Count() > 0)
                             {
                                 managers.AddRange(fllwusers);
                             }
@@ -351,7 +351,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                     foreach (var usrm in managers)
                     {
-                        var notfy = "Sayın Yetkili " + usrm.FullName+ " "+ this.Task.code+ " kodlu görev için çözüm bildirildi.";
+                        var notfy = "Sayın Yetkili " + usrm.FullName + " " + this.Task.code + " kodlu görev için çözüm bildirildi.";
                         var text = "<h3>Sayın Yetkili " + usrm.FullName + "</h3>";
                         text += "<div><strong>" + this.Task.code + "</strong> kodlu görev için çözüm bildirildi. </div>";
                         text += "<p>Görev Tipi : <strong>" + this.Task.type_Title + "</strong></p>";
@@ -367,7 +367,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         text += "<div>Görev detaylarını görüntülemek ve çözümü onaylamak için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + this.taskId + "'>tıklayınız.</a> </div>";
                         text += "<div>Bilgilerinize.</div>";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Cozum, usrm.email, "Çözüm Bildirimi", true);
-                        notification.NotificationSend(usrm.id,this.createdby,"Saha Görev Yönetimi",notfy);
+                        notification.NotificationSend(usrm.id, this.createdby, "Saha Görev Yönetimi", notfy, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
                     }
                     message = "Çözüm başarılı bir şekilde bildirildi.";
 
@@ -378,14 +378,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var myuser = db.GetVWSH_UserById(this.Task.assignUserId.Value);
                     if (myuser != null)
                     {
-                        var notify = "Sayın " + myuser.FullName + " " + this.Task.code + " kodlu görev için bildirdiğiniz çözüm "+ (status == EnumFTM_TaskOperationStatus.CozumOnaylandi ? "onaylandı" : "reddedildi");
+                        var notify = "Sayın " + myuser.FullName + " " + this.Task.code + " kodlu görev için bildirdiğiniz çözüm " + (status == EnumFTM_TaskOperationStatus.CozumOnaylandi ? "onaylandı" : "reddedildi");
                         var text = "<h3>Sayın " + myuser.FullName + "</h3>";
                         text += "<div><strong>" + this.Task.code + "</strong> kodlu görev için bildirdiğiniz çözüm <strong>" + (status == EnumFTM_TaskOperationStatus.CozumOnaylandi ? "onaylandı" : "reddedildi") + "</strong>. </div>";
                         text += "<div>Onay/Red Açıklaması : " + this.description + " </div>";
                         text += "<div>Görev detaylarını görüntülemek için <a href='" + TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + this.taskId + "'>tıklayınız.</a> </div>";
                         text += "<div>Bilgilerinize.</div>";
                         new Email().Template("Template1", "gorevMailFoto.jpg", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", text).Send((Int16)EmailSendTypes.Operasyon, myuser.email, status == EnumFTM_TaskOperationStatus.CozumOnaylandi ? "Çözüm Onay Bilgilendirmesi" : "Çözüm Red Bilgilendirmesi ", true);
-                        notification.NotificationSend(myuser.id,this.createdby,"Saha Görev Yönetimi",notify);
+                        notification.NotificationSend(myuser.id, this.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
                     }
                     message = "Çözüm onay/red işlemi başarılı bir şekilde gerçekleşti.";
 
@@ -394,12 +394,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         var customerUser = db.GetVWSH_UserById(Task.createdby.Value);
                         if (customerUser != null && customerUser.type == (Int32)EnumSH_UserType.OtherPerson && status == EnumFTM_TaskOperationStatus.CozumOnaylandi)
                         {
-                            var notify="Sayın " + customerUser.FullName + "(" + this.Task.code + ") " + this.Task.product_Title + " ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir.";
+                            var notify = "Sayın " + customerUser.FullName + "(" + this.Task.code + ") " + this.Task.product_Title + " ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir.";
                             var msj = "<h3>Sayın " + customerUser.FullName + "</h3>";
                             msj += "<div><strong>" + "(" + this.Task.code + ") " + this.Task.product_Title + "</strong> ürün için talep ettiğiniz arıza/bakım kaydı çözümlenmiştir. </div>";
                             msj += "<div>Bilgilerinize.</div>";
                             new Email().Template("Template1", "bos.png", TenantConfig.Tenant.TenantName + " | Saha Görev Yönetimi", msj).Send((Int16)EmailSendTypes.Cozum, customerUser.email, "Çözüm Onay Bilgilendirmesi", true);
-                            notification.NotificationSend(customerUser.id,Task.createdby,"Saha Görev Yönetimi", notify);
+                            notification.NotificationSend(customerUser.id, Task.createdby, "Saha Görev Yönetimi", notify, $"/FTM/VWFTM_Task/Detail?id={this.taskId}");
                         }
                     }
                     //Todo Oğuz => Müşteriye mail  Taskı oluşturan diğer işletme personeliyse mail yollanacak
@@ -419,42 +419,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     break;
                 case EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi:
 
-					break;
-				case EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi:
+                    break;
+                case EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi:
 
-					if (string.IsNullOrEmpty(this.jsonResult))
-					{
-						return new ResultStatus { result = false, message = "Lütfen formu doldurunuz." };
-					}
+                    if (string.IsNullOrEmpty(this.jsonResult))
+                    {
+                        return new ResultStatus { result = false, message = "Lütfen formu doldurunuz." };
+                    }
 
-					if (this.formId == null)
-					{
-						return new ResultStatus { result = false, message = "Form seçmelisiniz." };
-					}
+                    if (this.formId == null)
+                    {
+                        return new ResultStatus { result = false, message = "Form seçmelisiniz." };
+                    }
 
-					var anketFormResult = new FTM_TaskFormResult
-					{
-						createdby = this.createdby,
-						created = DateTime.Now,
-						jsonResult = this.jsonResult,
-						formId = this.formId,
-						taskId = this.taskId,
-						taskOperationId = this.id
-					};
+                    var anketFormResult = new FTM_TaskFormResult
+                    {
+                        createdby = this.createdby,
+                        created = DateTime.Now,
+                        jsonResult = this.jsonResult,
+                        formId = this.formId,
+                        taskId = this.taskId,
+                        taskOperationId = this.id
+                    };
 
-					rs &= db.InsertFTM_TaskFormResult(anketFormResult);
+                    rs &= db.InsertFTM_TaskFormResult(anketFormResult);
 
-					var anketForm = db.GetFTM_TaskFormById(formId.Value);
-					if (anketForm != null)
-					{
-						this.description = anketForm.name + " formu dolduruldu.";
-					}
+                    var anketForm = db.GetFTM_TaskFormById(formId.Value);
+                    if (anketForm != null)
+                    {
+                        this.description = anketForm.name + " formu dolduruldu.";
+                    }
 
-					message = "Memnuniyet anketi formu başarıyla dolduruldu.";
-					break;
-				default:
-					break;
-			}
+                    message = "Memnuniyet anketi formu başarıyla dolduruldu.";
+                    break;
+                default:
+                    break;
+            }
 
             rs &= db.InsertFTM_TaskOperation(new FTM_TaskOperation().B_EntityDataCopyForMaterial(this, true));
 

@@ -222,7 +222,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 var notify = String.Format(notiftText, companyPerson.FullName, ownerInfo.FullName, created, start, end); ;
                 new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                                .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, companyPerson.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görevlendirme Onayı Hakkında.."), true);
-                notification.NotificationSend(companyPerson.id, item.createdby,"Görev Talep Onayı Hakkında", notify);
+                notification.NotificationSend(companyPerson.id, item.createdby,"Görev Talep Onayı Hakkında", notify, $"/INV/VWINV_Commissions/DetailConfirmation?id={item.id}");
             }
             else
             {
@@ -246,7 +246,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     var notify = string.Format(notifyText, person.FullName, created, start, end);
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                               .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, person.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görevlendirme Onayı Hakkında.."), true);
-                    notification.NotificationSend(person.id,item.createdby, "Görev Talep Onayı Hakkında", notify);
+                    notification.NotificationSend(person.id,item.createdby, "Görev Talep Onayı Hakkında", notify, $"/INV/VWINV_Commissions/Detail?id={item.id}");
                 }
             }
             return Json(new ResultStatusUI
@@ -450,7 +450,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     var notify = String.Format("Sayın İnsan Kaynakları Yöneticisi, {0} - {1} tarihleri arasında  {2} adlı personel(ler) görevlendirme gerçekleştirecektir.", string.Format("{0:dd.MM.yyyy HH:mm}", commision.StartDate),
                        string.Format("{0:dd.MM.yyyy HH:mm}", commision.EndDate),
                        userss);
-                    notification.NotificationSend(insankaynaklari.id,item.createdby, "Görevlendirmeye Çıkacak Personeller Hakkında", notify);
+                    notification.NotificationSend(insankaynaklari.id,item.createdby, "Görevlendirmeye Çıkacak Personeller Hakkında", notify, $"/INV/VWINV_Commissions/Detail?id={item.id}");
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görevlendirmeye Çıkacak Personeller Hakkında", mesaj).Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, insankaynaklari.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görevlendirmeye Çıkacak Personeller Hakkında"), true);
                 }
                 if (commision.RequestForAccommodation == (int)EnumINV_CommissionsRequestForAccommodation.Var)
@@ -505,7 +505,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 var mesaj = string.Format(text, ownerInfo.FullName, created, start, end, personels, commision.Manager1Approval_Title);
 
                 var notify = string.Format("Sayın {0}, {1} tarihinde, {2} - {3} tarihleri arasında oluşturduğunuz görevlendirme talebi yöneticiniz {5} tarafından reddedildi. ", ownerInfo.FullName, created, start, end, personels, commision.Manager1Approval_Title);
-                notification.NotificationSend(ownerInfo.id,item.createdby, "Görev Talep Onayı Hakkında", notify);
+                notification.NotificationSend(ownerInfo.id,item.createdby, "Görev Talep Onayı Hakkında", notify, $"/INV/VWINV_Commissions/Detail?id={item.id}");
                 new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                         .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, ownerInfo.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görevlendirme Onayı Hakkında.."), true);
 
@@ -530,7 +530,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     var siteName = TenantConfig.Tenant.GetWebUrl();
                     var notify = string.Format(notifyText, person.FullName, created, start, end);
                     var mesaj = string.Format(text, person.FullName, created, start, end, siteName);
-                    notification.NotificationSend(person.id,item.createdby, "Görev Talep Onayı Hakkında", notify);
+                    notification.NotificationSend(person.id,item.createdby, "Görev Talep Onayı Hakkında", notify, $"/INV/VWINV_Commissions/Detail?id={item.id}");
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talep Onayı Hakkında", mesaj)
                        .Send((Int16)EmailSendTypes.GorevlendirmeSurecTamamlama, person.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görevlendirme Onayı Hakkında.."), true);
 
@@ -550,7 +550,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     var siteName = TenantConfig.Tenant.GetWebUrl();
                     var mesajText = string.Format(baslik, IdariPersonelYonetici.firstname + " " + IdariPersonelYonetici.lastname, created, start, end, ownerInfo.FullName, siteName, travelInfo);
                     var nofity = string.Format("Sayın {0}, {1} tarihinde, {2} {3} tarihleri arasında {4} isimli personelin görevlendirme talebi onaylanmıştır.", IdariPersonelYonetici.firstname + " " + IdariPersonelYonetici.lastname, created, start, end, ownerInfo.FullName);
-                    notification.NotificationSend(IdariPersonelYonetici.id, item.createdby,"Görev Talebi Bilgilendirmesi Hakkında", nofity);
+                    notification.NotificationSend(IdariPersonelYonetici.id, item.createdby,"Görev Talebi Bilgilendirmesi Hakkında", nofity, $"/INV/VWINV_Commissions/Detail?id={item.id}");
                     new Email().Template("Template1", "gorevMailFoto.jpg", "Görev Talebi Bilgilendirmesi Hakkında", mesajText)
                       .Send((Int16)EmailSendTypes.GorevlendirmeOnaylari, IdariPersonelYonetici.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Görev Talebi Bilgilendirmesi Hakkında.."), true);
                 }
