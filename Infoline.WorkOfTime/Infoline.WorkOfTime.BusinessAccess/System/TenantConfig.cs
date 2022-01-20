@@ -943,6 +943,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         SHRoles.YardimMasaTalep,
                     });
                     break;
+                case 1203:
+                    this.MailingUsers = new string[] {
+                        "ahmet.temiz@infoline-tr.com",
+                        "bilal.dursun@infoline-tr.com",
+                        "senol.elik@infoline-tr.com" };
+                    this.Roles.AddRange(new List<string> {
+                        SHRoles.YardimMasaYonetim,
+                        SHRoles.YardimMasaPersonel,
+                        SHRoles.YardimMasaTalep,
+                    });
+                    break;
                 case 1999:
                     this.MailingUsers = new string[] { "ahmet.temiz@infoline-tr.com", "senol.elik@infoline-tr.com" };
                     this.Roles.AddRange(new List<string> {

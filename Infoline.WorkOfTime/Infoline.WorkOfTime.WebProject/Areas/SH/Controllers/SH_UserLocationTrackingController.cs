@@ -77,7 +77,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var mark = new System.Drawing.Bitmap(Server.MapPath("/Content/Custom/img/PersonsBackImage/mark.png"));// markın bulunduğu alan
 #if DEBUG
 
-            var profilFoto = new System.Drawing.Bitmap(Server.MapPath("/Content/Custom/img/na.png"));
+            var profilFoto = new System.Drawing.Bitmap(Server.MapPath(profil.FilePath));
 
             //Profil fotoğrafının circle yapıldığı yer
             Image dstImage = new Bitmap(profilFoto.Width, profilFoto.Height, profilFoto.PixelFormat);
@@ -158,7 +158,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 g.DrawImage(dstImage, new System.Drawing.Rectangle(12, 1, 40, 40));
 
             }
-
 
 
 
