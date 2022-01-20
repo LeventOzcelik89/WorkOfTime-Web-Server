@@ -514,7 +514,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 			var dbres = new ResultStatus { result = true };
 			var trans = db.BeginTransaction();
 
-			if (productUnit == null)
+			if (productUnit.Count() == 0)
 			{
 				var products = db.GetVWPRD_Product();
 				var productUnitList = new List<PRD_ProductUnit>();
