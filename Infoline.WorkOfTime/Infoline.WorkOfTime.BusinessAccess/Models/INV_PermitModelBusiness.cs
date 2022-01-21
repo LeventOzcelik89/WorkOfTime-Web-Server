@@ -91,7 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var notify = string.Format(nofityText, manager1.firstname + " " + manager1.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name);
                     var mesaj = string.Format(text, manager1.firstname + " " + manager1.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name, url, item.id);
                     new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj).Send((Int16)EmailSendTypes.IzinOnaylari, manager1.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Onayı Hakkında.."), true);
-                    notification.NotificationSend(manager1.id,item.createdby, "İzin Talebi Onayı Hakkında", notify);
+                    notification.NotificationSend(manager1.id,item.createdby, "İzin Talebi Onayı Hakkında", notify, $"/INV/VWINV_Permit/DetailConfirmation?id={item.id}");
                     break;
                 case EnumINV_PermitApproveStatus.Yonetici1Onay:
                 case EnumINV_PermitApproveStatus.Yonetici1Red:
@@ -99,14 +99,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var notify2 = String.Format(nofityText, manager2.firstname + " " + manager2.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name);
                     var mesaj2 = string.Format(text, manager2.firstname + " " + manager2.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name, url, item.id);
                     new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj2).Send((Int16)EmailSendTypes.IzinOnaylari, manager2.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Onayı Hakkında.."), true);
-                    notification.NotificationSend(manager2.id, item.createdby, "İzin Talebi Onayı Hakkında", notify2);
+                    notification.NotificationSend(manager2.id, item.createdby, "İzin Talebi Onayı Hakkında", notify2, $"/INV/VWINV_Permit/DetailConfirmation?id={item.id}");
                     break;
                 case EnumINV_PermitApproveStatus.Yonetici2Onay:
                 case EnumINV_PermitApproveStatus.Yonetici2Red:
                     var notify3 = String.Format(nofityText, IKYonetici.firstname + " " + IKYonetici.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name);
                     var mesaj3 = string.Format(text, IKYonetici.firstname + " " + IKYonetici.lastname, personel.firstname + " " + personel.lastname, created, start, end, calc.Text, permitType.Name, string.Join(" , ", projects), url, item.id);
                     new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj3).Send((Int16)EmailSendTypes.IzinOnaylari, IKYonetici.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Onayı Hakkında.."), true);
-                    notification.NotificationSend(IKYonetici.id, item.createdby, "İzin Talebi Onayı Hakkında", notify3);
+                    notification.NotificationSend(IKYonetici.id, item.createdby, "İzin Talebi Onayı Hakkında", notify3, $"/INV/VWINV_Permit/DetailConfirmation?id={item.id}");
                     break;
                 case EnumINV_PermitApproveStatus.IkKontrol:
                     var textmy = @"<h3>Sayın {0},</h3> 
@@ -115,7 +115,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var notify4 = string.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3}  tarihleri arasındaki {4} {5} yöneticileriniz ve insan kaynakları tarafından onaylanmıştır. İzin sürecinizin devam edebilmesi için ıslak imzalı izin formunuzu yüklemelisiniz", personel.firstname + " " + personel.lastname, DateTime.Now, start, end, calc.Text, permitType.Name);
                     var mesaj4 = string.Format(textmy, personel.firstname + " " + personel.lastname, DateTime.Now, start, end, calc.Text, permitType.Name, url);
                     new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj4).Send((Int16)EmailSendTypes.IzinSurecTamamlama, personel.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
-                    notification.NotificationSend(personel.id, item.createdby, "İzin Talebi Onayı Hakkında", mesaj4);
+                    notification.NotificationSend(personel.id, item.createdby, "İzin Talebi Onayı Hakkında", mesaj4, $"/INV/VWINV_Permit/Detail?id={item.id}");
                     break;
                 case EnumINV_PermitApproveStatus.IkKontrolRed:
                     var textmy1 = @"<h3>Sayın {0},</h3> 
@@ -124,7 +124,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var notify5 = string.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3}  tarihleri arasındaki {4} {5} yöneticileriniz ve insan kaynakları tarafından reddedilmiştir. ", personel.firstname + " " + personel.lastname, DateTime.Now, start, end, calc.Text, permitType.Name);
                     var mesaj5= string.Format(textmy1, personel.firstname + " " + personel.lastname, DateTime.Now, start, end, calc.Text, permitType.Name, url);
                     new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj5).Send((Int16)EmailSendTypes.IzinSurecTamamlama, personel.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
-                    notification.NotificationSend(personel.id, item.createdby, "İzin Talebi Onayı Hakkında", mesaj5);
+                    notification.NotificationSend(personel.id, item.createdby, "İzin Talebi Onayı Hakkında", mesaj5, $"/INV/VWINV_Permit/Detail?id={item.id}");
                     break;
                 case EnumINV_PermitApproveStatus.IslakImzaYuklendi:
                     break;
