@@ -23,7 +23,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string inputTable { get; set; }
 		public short? type { get; set; }
 
-
 		public VMPRD_DistributionPlanModel Load()
 		{
 			this.db = this.db ?? new WorkOfTimeDatabase();
@@ -305,76 +304,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
-		//private List<string> Validator(VWPRD_TransactionItem item)
-		//{
-		//	var errorList = new List<string>();
-		//	var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
-		//	var type = (EnumPRD_TransactionType)this.type;
-		//	var serialCodes = (item.serialCodes ?? "").Split(',');
-		//	if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
-		//	{
-		//		errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
-		//	}
-		//	var maintanceInventory = new List<string>();
-		//	var unvalidInventory = new List<string>();
-		//	var existInventory = new List<string>();
-		//	var unkownInventory = new List<string>();
-		//	foreach (var serialcode in serialCodes)
-		//	{
-		//		var winventory = this.inventories.Where(a => a.productId == item.productId && a.serialcode == serialcode).FirstOrDefault();
-		//		//Kontroller Yapılacak duruma göre
-		//		if (winventory != null && winventory.firstActionType == (int)EnumPRD_InventoryActionType.BakimEnvanteri)
-		//		{
-		//			maintanceInventory.Add(winventory.serialcode);
-		//		}
-		//		switch (type)
-		//		{
-		//			case EnumPRD_TransactionType.GelenIrsaliye:
-		//			case EnumPRD_TransactionType.Kiralama:
-		//				if (winventory != null && winventory.lastActionDataCompanyId != this.outputCompanyId) unvalidInventory.Add(serialcode);
-		//				break;
-		//			case EnumPRD_TransactionType.ZimmetAlma:
-		//				if (winventory == null) unkownInventory.Add(serialcode);
-		//				if (winventory != null && winventory.lastActionDataId != this.outputId) unvalidInventory.Add(serialcode);
-		//				break;
-		//			case EnumPRD_TransactionType.AcilisFisi:
-		//			case EnumPRD_TransactionType.UretimFisi:
-		//			case EnumPRD_TransactionType.SayimFazlasi:
-		//				if (winventory != null && winventory.lastActionDataId != this.outputId) existInventory.Add(serialcode);
-		//				break;
-		//			case EnumPRD_TransactionType.GidenIrsaliye:
-		//			case EnumPRD_TransactionType.ZimmetVerme:
-		//			case EnumPRD_TransactionType.KiralayaVerme:
-		//			case EnumPRD_TransactionType.SarfFisi:
-		//			case EnumPRD_TransactionType.FireFisi:
-		//			case EnumPRD_TransactionType.SayimEksigi:
-		//			case EnumPRD_TransactionType.Transfer:
-		//				if (winventory == null) unvalidInventory.Add(serialcode);
-		//				if (winventory != null && winventory.lastActionDataId != this.outputId) unvalidInventory.Add(serialcode);
-		//				break;
-		//			default:
-		//				break;
-		//		}
-		//	}
-		//	if (existInventory.Count() > 0)
-		//	{
-		//		errorList.Add(string.Format("<strong>{0}</strong> ürünü için <strong>{1}</strong> girilen serinumaraları  <strong>{2}</strong> zaten farklı carilerde kayıtlı.", product.fullName, string.Join(",", existInventory), this.outputId_Title));
-		//	}
-		//	if (unvalidInventory.Count() > 0)
-		//	{
-		//		errorList.Add(string.Format("<strong>{0}</strong> ürünü için <strong>{1}</strong> girilen serinumaraları  <strong>{2}</strong> çıkış carisinde bulunmamaktadır.", product.fullName, string.Join(",", unvalidInventory), this.outputId_Title));
-		//	}
-		//	if (unkownInventory.Count() > 0)
-		//	{
-		//		errorList.Add(string.Format("<strong>{0}</strong> ürünü için <strong>{1}</strong> girilen serinumaraları stoklarda bulunmamaktadır. Sadece stoklarda bulunan serinumaraları ile işlem yapabilirsiniz.", product.fullName, string.Join(",", unkownInventory)));
-		//	}
-		//	if (maintanceInventory.Count() > 0)
-		//	{
-		//		errorList.Add(string.Format("<strong>{0}</strong> ürünü için <strong>{1}</strong> girilen serinumaraları bakım envanteri olarak kayıtlıdır.Bu envanterler üzerinde işlem yapamazsınız.", product.fullName, string.Join(",", maintanceInventory)));
-		//	}
-		//	return errorList;
-		//}
+		public VMPRD_DistributionPlanDetail LoadDisributionPlanDetail(Guid distributionId)
+		{
+			var data = new VMPRD_DistributionPlanDetail();
+			this.db = this.db ?? new WorkOfTimeDatabase();
 
+			var distributionPlan = db.GetVWPRD_DistributionPlanById(distributionId);
+
+			if (data == null)
+			{
+				return null;
+			}
+
+			data.B_EntityDataCopyForMaterial(distributionPlan);
+			var relations = db.GetVWPRD_DistributionPlanRelationByDistributionPlanId(distributionPlan.id);
+			if (relations.Count() > 0)
+			{
+				data.distributionPlans.AddRange(relations);
+			}
+
+			return data;
+		}
 	}
 
 	public class VMPRD_TransactionItemList : VWPRD_TransactionItem
@@ -386,7 +336,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public string currencyTitle { get; set; }
 		public Guid? inputCompanyId { get; set; }
 		public Guid? inputId { get; set; }
-
 	}
 
+	public class VMPRD_DistributionPlanDetail : VWPRD_DistributionPlan
+	{
+		public List<VWPRD_DistributionPlanRelation> distributionPlans { get; set; }
+	}
 }
