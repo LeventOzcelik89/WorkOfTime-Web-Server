@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                     distributionId = new Guid(queryString);
 				}
 
-                var data = new VMPRD_DistributionPlanModel().LoadDisributionPlanDetail(new Guid(distributionId));
+                var data = new VMPRD_DistributionPlanModel().LoadDisributionPlanDetail(distributionId);
                 if (data == null)
                 {
                     RenderResponse(context, new ResultStatus() { result = false, message = "Envanter Bulunamadı" });
