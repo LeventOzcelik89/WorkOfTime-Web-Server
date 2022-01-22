@@ -340,6 +340,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 	public class VMPRD_DistributionPlanDetail : VWPRD_DistributionPlan
 	{
-		public List<VWPRD_DistributionPlanRelation> distributionPlans { get; set; }
+		public List<VWPRD_DistributionPlanRelation> distributionPlans { get; set; } = new List<VWPRD_DistributionPlanRelation>();
 	}
 }

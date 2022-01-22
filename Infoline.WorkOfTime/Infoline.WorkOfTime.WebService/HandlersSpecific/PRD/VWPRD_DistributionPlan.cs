@@ -37,7 +37,7 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 var data = new VMPRD_DistributionPlanModel().LoadDisributionPlanDetail(distributionId);
                 if (data == null)
                 {
-                    RenderResponse(context, new ResultStatus() { result = false, message = "Envanter Bulunamadı" });
+                    RenderResponse(context, new ResultStatus() { result = false, message = "Dağıtım Planı Bulunamadı." });
                 }
 
                 RenderResponse(context, data);
