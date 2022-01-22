@@ -110,10 +110,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (rs.result == true)
 			{
 				if (_trans == null) trans.Commit();
+				rs.message = "Dağıtım/Sevkiyat Oluşturma İşlemi Başarılı";
 			}
 			else
 			{
 				if (_trans == null) trans.Rollback();
+				rs.message = "Dağıtım/Sevkiyat Oluşturma İşlemi Başarısız";
 			}
 			return rs;
 		}

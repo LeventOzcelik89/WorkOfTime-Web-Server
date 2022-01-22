@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Infoline.WorkOfTime.WebService.HandlersSpecific
@@ -41,6 +42,23 @@ namespace Infoline.WorkOfTime.WebService.HandlersSpecific
                 }
 
                 RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
+        [HandleFunction("VWPRD_DistributionPlan/Upsert")]
+        public void VWPRD_DistributionPlanUpsert(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+                var model = ParseRequest<VMPRD_DistributionPlanModel>(context);
+                var rs = model.Save(CallContext.Current.UserId);
+                rs.message = Regex.Replace(rs.message, "<.*?>", String.Empty);
+                RenderResponse(context, rs);
             }
             catch (Exception ex)
             {
