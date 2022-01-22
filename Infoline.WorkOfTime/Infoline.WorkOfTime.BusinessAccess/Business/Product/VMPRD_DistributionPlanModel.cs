@@ -110,10 +110,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			if (rs.result == true)
 			{
 				if (_trans == null) trans.Commit();
+				rs.message = "Dağıtım/Sevkiyat Oluşturma İşlemi Başarılı";
 			}
 			else
 			{
 				if (_trans == null) trans.Rollback();
+				rs.message = "Dağıtım/Sevkiyat Oluşturma İşlemi Başarısız";
 			}
 			return rs;
 		}
@@ -340,6 +342,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 	public class VMPRD_DistributionPlanDetail : VWPRD_DistributionPlan
 	{
-		public List<VWPRD_DistributionPlanRelation> distributionPlans { get; set; }
+		public List<VWPRD_DistributionPlanRelation> distributionPlans { get; set; } = new List<VWPRD_DistributionPlanRelation>();
 	}
 }

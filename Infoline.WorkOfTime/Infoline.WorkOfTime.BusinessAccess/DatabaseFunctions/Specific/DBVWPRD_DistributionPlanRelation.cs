@@ -18,7 +18,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWPRD_DistributionPlanRelation>().Where(a => a.id == distributionId).OrderBy(a => a.created).Execute().ToArray();
+                return db.Table<VWPRD_DistributionPlanRelation>().Where(a => a.distributionPlanId == distributionId).OrderBy(a => a.created).Execute().ToArray();
             }
         }
     }
