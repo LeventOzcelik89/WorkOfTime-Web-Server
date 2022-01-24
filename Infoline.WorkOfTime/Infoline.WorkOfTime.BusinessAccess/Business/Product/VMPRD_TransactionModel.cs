@@ -568,10 +568,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var product = this.products.Where(a => a.id == item.productId).FirstOrDefault();
 			var type = (EnumPRD_TransactionType)this.type;
 			var serialCodes = (item.serialCodes ?? "").Split(',');
-			if (serialCodes.Count(a => a != "" && a != null) != item.quantity)
+
+			if (item.quantity.HasValue || item.alternativeQuantity.HasValue)
 			{
-				errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), item.quantity));
+				double quantity = 0;
+
+				if (item.quantity.HasValue)
+				{
+					quantity = item.quantity.Value;
+				}
+
+				if (item.alternativeQuantity.HasValue)
+				{
+					quantity = item.alternativeQuantity.Value;
+				}
+
+				if (serialCodes.Count(a => a != "" && a != null) != quantity)
+				{
+					errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), quantity));
+				}
 			}
+			
 			var maintanceInventory = new List<string>();
 			var unvalidInventory = new List<string>();
 			var existInventory = new List<string>();
