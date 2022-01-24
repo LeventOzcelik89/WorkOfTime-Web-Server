@@ -237,7 +237,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						PRDTransactionItems.Add(transItem);
 					}
 
-
+					this.code =  BusinessExtensions.B_GetIdCode();
 					PRDTransactions.Add(new PRD_Transaction().B_EntityDataCopyForMaterial(this));
 					PRDDistributionPlanRelations.Add(new PRD_DistributionPlanRelation
 					{

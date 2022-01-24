@@ -27,7 +27,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			var db = new WorkOfTimeDatabase();
 			var dbresult = new ResultStatus { result = true };
 
-			if (data.productId.HasValue)
+			if (data.productId.HasValue && data.isDefault == (int)EnumPRD_ProductUnitIsDefault.Evet)
 			{
 				var isExistsDefault = db.GetPRD_ProductUnitIsDefaultCount((int)EnumPRD_ProductUnitIsDefault.Evet, data.productId.Value);
 				if (isExistsDefault > 0)
