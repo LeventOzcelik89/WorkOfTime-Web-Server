@@ -457,6 +457,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.Load();
             return db.GetVWPA_AdvancesApprovedByUserId(userId);
         }
+
+        public SummaryHeadersAdvance GetRequestAdvanceSummary(Guid userId)
+        {
+            this.Load();
+            return db.GetVWPA_AdvancesRequestByUserId(userId);
+        }
+
         public ResultStatus InsertConfirmation(Guid userId, DbTransaction trans = null)
         {
             var dbresult = new ResultStatus { result = true };

@@ -7,7 +7,7 @@ using System.Web;
 
 namespace Infoline.WorkOfTime.WebService.Handler
 {
-	[Export(typeof(ISmartHandler))]
+    [Export(typeof(ISmartHandler))]
     public partial class VWPA_AdvanceHandler : BaseSmartHandler
     {
         public VWPA_AdvanceHandler()
@@ -197,7 +197,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
             }
         }
-        
+
 
         [HandleFunction("VWPA_Advance/DemandAgain")]
         public void VWPA_AdvanceDemandAgain(HttpContext context)
@@ -219,5 +219,19 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
+
+        [HandleFunction("VWPA_Advance/GetRequestPageInfo")]
+        public void VWPA_AdvanceGetRequestPageInfo(HttpContext context)
+        {
+            try
+            {
+                var data = new VMPA_AdvanceModel().GetRequestAdvanceSummary(CallContext.Current.UserId);
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
     }
 }

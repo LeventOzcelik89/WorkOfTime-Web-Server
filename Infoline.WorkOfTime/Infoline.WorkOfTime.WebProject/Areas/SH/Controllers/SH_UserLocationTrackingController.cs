@@ -57,6 +57,36 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
             return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
+
+
+
+        //[AllowEveryone]
+        //public ContentResult RedMark(Guid id)//// bool ccc ekleyip arka tarafa green resmini getir.
+        //{
+
+
+        //    //var db = new WorkOfTimeDatabase();
+        //    //var profil = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", id);// dbden pp fotoları geliyor
+
+        //    //if (profil == null || !System.IO.File.Exists(Server.MapPath(profil.FilePath)))// Profil reesmi olmayanlara boş profil resmi ataması yapılıyor.
+        //    //{
+
+        //    //    using (var ms = new MemoryStream())
+        //    //    {
+        //    //        var bitma = Bitmap.FromFile(Server.MapPath("/Content/custom/img/PersonsBackImage/nonprofilemark.png"));
+        //    //        bitma.Save(ms, ImageFormat.Png);
+
+        //    //        Response.Clear();
+        //    //        Response.ContentType = "image/png";
+        //    //        Response.AddHeader("content-disposition", "attachment; qr.png");
+        //    //        Response.BinaryWrite(ms.ToArray());
+        //    //        Response.End();
+
+        //    //    }
+
+        //    //    return Content(null);
+
+        //    //}
     }
 }
 
