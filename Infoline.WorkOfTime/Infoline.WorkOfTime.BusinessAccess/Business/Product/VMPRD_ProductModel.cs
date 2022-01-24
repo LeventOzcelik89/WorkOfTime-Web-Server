@@ -181,6 +181,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					created = DateTime.Now,
 					createdby = this.createdby,
 					isDefault = (int)EnumPRD_ProductUnitIsDefault.Evet,
+					productId = this.id,
 					quantity = 1,
 					unitId = new Guid("8F6E4C58-47AB-445C-B3C6-6DF642AF1DAC")
 				};
