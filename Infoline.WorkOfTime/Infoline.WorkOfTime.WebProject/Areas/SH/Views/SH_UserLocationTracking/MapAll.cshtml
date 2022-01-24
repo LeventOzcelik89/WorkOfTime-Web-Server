@@ -4,21 +4,33 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
 
+
 }
 
 <style type="text/css">
     .marker > img {
-        height: 43px;
+        height: 39px;
+        width: 38px;
         border-radius: 100%;
         z-index: 3;
         position: absolute;
         top: -33px;
-        left: -17px;
+        left: -15px;
     }
 
     .marker {
         position: relative;
         height: 60px;
+    }
+
+    .overlay {
+        position: relative;
+        height: 60px;
+    }
+
+    overlay.img-circle {
+        position: center;
+        height: 43px;
     }
 </style>
 
@@ -179,20 +191,22 @@
                     })
                 });
 
+                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/GreenMark.png");
+                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/mark.png");
+
+                page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
+                page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
+
+                ////page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
+                ////page.dfn.harita.style.addCustom("locationsStyle", locations);
+                ////page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
+
+                //page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
+                //page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
+                //page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
 
 
-
-                page.dfn.harita.style.addCustom("firstLocationStyle", firstLocation);
-                page.dfn.harita.style.addCustom("locationsStyle", locations);
-                page.dfn.harita.style.addCustom("lastLocationStyle", lastLocation);
-
-                page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
-                page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
-                page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
-
-
-
-                page.dfn.harita.layer.addVector("Action", "Action");
+                //page.dfn.harita.layer.addVector("Action", "Action");
 
 
                 page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
@@ -202,6 +216,38 @@
                 var points = [];
                 var beforefour = 0;
                 var afterfour = 0;
+
+                $.each(page.defines.filteredData, function (i, item) {
+
+                    if (item.lastLocation == null) {
+                        return;
+                    }
+
+                    var layer = new Date(parseInt(item.timeStamp)) > new Date().addHours(-4)
+                        ? 'GreenMark'
+                        : 'RedMark';
+
+                    var feature = page.dfn.harita.feature.add(layer, item.id, item.lastLocation);
+                    if (feature == undefined) {
+                        return;
+                    }
+
+                    feature.set("properties", item);
+                    page.dfn.harita.overlay.add("overlay_" + item.id, '<img onerror="ImageError(this, \'/Content/Custom/img/na.png\')" src="' + '@TenantConfig.Tenant.GetWebUrl()' + item.ProfilePhoto + '" />', 'marker', "center-center", feature.getGeometry().getCoordinates());
+                    
+
+
+                });
+
+                var greenCounts = page.dfn.harita.layer.get('GreenMark')['GreenMark'].getSource().getFeatures().length;
+                var redCounts = page.dfn.harita.layer.get('RedMark')['RedMark'].getSource().getFeatures().length;
+                $("#infourhour").text("(" + greenCounts + ")");
+                $("#outfourhour").text("(" + redCounts + ")");
+                
+
+                @*$.each($.Enumerable.From(trackingDatas).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray())
+
+
                 if (page.defines.filteredData != undefined) {
 
                     var trackingDatas = page.defines.filteredData;
@@ -210,39 +256,43 @@
                         if (trackingDatas.length > 0) {
                             $.each($.Enumerable.From(trackingDatas).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
 
+                                var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
 
                                 if (new Date(parseInt(data.timeStamp)) < new Date().addHours(-4)) {
                                     beforefour++;
 
-                                    var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
 
-                                    var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
                                     if (feature) {
 
-                                        // style.add
-                                        page.dfn.harita.style.add("RedMarkStyle" + data.id, null, null, null, img);
+                                        //// style.add
+                                        //page.dfn.harita.style.add("img" + data.id, null, null, null, img);
                                         //  feature.setStyle
-                                        page.dfn.harita.feature.setStyle(data.id, "RedMarkStyle" + data.id);
+                                        page.dfn.harita.feature.setStyle(data.id, "MarkStyle");
 
 
                                         feature.set("properties", data);
 
                                         points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+                                        page.dfn.harita.overlay.add("overlay" + data.id, "<img id="ImgMark" src= " + '@TenantConfig.Tenant.GetWebUrl()' + data.ProfilePhoto + ">", "marker", "center-center", feature.getGeometry().getCoordinates());
+                                        document.getElementById("ImgMark").onerror = "ImageError(this, '/Content/Custom/img/urun-bulunamadi.png' )
                                     }
 
                                 }
                                 else {
                                     afterfour++;
-                                    var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
+
+                                    var feature = page.dfn.harita.feature.add("LastLocation", data.id, data.lastLocation);
                                     if (feature) {
-                                        var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
-                                        // style.add
-                                        page.dfn.harita.style.add("GreenMarkerStyle" + data.id, null, null, null, img);
-                                        //  feature.setStyle
-                                        page.dfn.harita.feature.setStyle(data.id, "GreenMarkerStyle" + data.id);
+
+                                        //// style.add
+                                        //page.dfn.harita.style.add("img" + data.id, null, null, null, img);
+                                        ////  feature.setStyle
+                                        page.dfn.harita.feature.setStyle(data.id, "GreenMarkStyle");
                                         feature.set("properties", data);
 
                                         points.push(feature.getGeoJSON().geometry.coordinates.join(" "));
+
+                                        page.dfn.harita.overlay.add("overlay" + data.id, "<img id="ImgMark" src= " + '@TenantConfig.Tenant.GetWebUrl()' + data.ProfilePhoto + " >", "marker", "center-center", feature.getGeometry().getCoordinates());
                                     }
 
                                 }
@@ -254,9 +304,10 @@
                         }
 
                     }
-                }
+                }*@
             },
             applyFilter: function () {
+                return;
                 page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
                 page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
                 page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
@@ -349,7 +400,7 @@
                     html.find('[data-id="configName"]').html(data.configName ?? "-");
                     html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
 
-                    html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+                    html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto );
 
                     //  data-id="title" data-id="configName" data-id="isTrackingActive"
 
@@ -371,7 +422,7 @@
                 $('[data-target=".search-content"]').tooltip();
                 GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
                     page.defines.filteredData = res;
-                    page.applyFilter();
+                    page.locateFeatureToMap();
                 }, "Konumlar yükleniyor..");
             })
             .on("click", '[data-name="filterType"]', function (e) {
@@ -463,6 +514,7 @@
 
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
 
+
     <div class="btn-bar left top animated slideInLeft" style="top: 140px;">
         <div class="btn-container m-b-lg">
             <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
@@ -487,8 +539,8 @@
             <table class="slider">
                 <tbody>
                     <tr>
-                        <td class="category" id="infourhour" style="height: 48px;width: 300px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı </td>
-                        <td class="category" id="outfourhour" style="height: 48px;width: 300px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı</td>
+                        <td class="category" style="height: 48px;width: 300px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı <span id="infourhour"></span></td>
+                        <td class="category" style="height: 48px;width: 300px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></td>
                     </tr>
                 </tbody>
             </table>
@@ -499,7 +551,7 @@
     <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom " onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
             <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
         </div>
         <div class="pan-container">
@@ -507,7 +559,7 @@
 
         </div>
         <div class="pan-container-2">
-            <div style="height: 600px; overflow: auto;" id="personAllTemp"></div>
+            <div style="height: 800px; overflow: auto;" id="personAllTemp" ></div>
         </div>
     </div>
 </div>
@@ -612,7 +664,7 @@
     <div class="card">
         <div class="row">
             <div class="col-md-3">
-                <img class="img-thumbnail img-circle" data-id="ProfilePhoto" />
+                <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" />
             </div>
             <div class="col-md-9">
                 <a class="btn btn-xs btn-warning pull-right" tooltip="Düzenle"><i class="fa fa-pencil"></i></a>
