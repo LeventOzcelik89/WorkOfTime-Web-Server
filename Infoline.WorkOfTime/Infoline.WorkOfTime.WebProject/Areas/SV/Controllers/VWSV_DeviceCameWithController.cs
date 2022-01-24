@@ -19,7 +19,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		}
 
 
-		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Cihazın Yanında Gelen Eşyaların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);

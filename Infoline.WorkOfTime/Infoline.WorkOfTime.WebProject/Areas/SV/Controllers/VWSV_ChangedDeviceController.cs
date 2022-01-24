@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return View();
 		}
 
-		[PageInfo("Değişsen Cihazların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Değişsen Cihazların Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Değişen Cihazların Dropdownda Listelenmesi için gereken metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Değişen Cihazların Dropdownda Listelenmesi için gereken metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);

@@ -17,11 +17,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return View();
         }
 
-        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
-
             var page = request.Page;
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
@@ -32,7 +31,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Cihaz Problemlerinin Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

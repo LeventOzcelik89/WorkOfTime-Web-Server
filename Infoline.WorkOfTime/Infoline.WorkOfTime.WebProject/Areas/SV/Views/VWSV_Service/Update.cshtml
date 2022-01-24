@@ -51,6 +51,7 @@
                         optionLabel: "Cihaz Parçası Seçiniz...",
                         dataTextField: "materialId_Title",
                         dataValueField: "materialId",
+                        filter: "contains",
                         dataSource: {
                             transport: {
                                 read: "/SV/VWSV_Service/ProductMaterielDataSource?productId=" + productId,
@@ -106,15 +107,14 @@
                 });
             },
             load: function () {
-                setTimeout(function () {
-                    page.model.Problems.forEach(function (item, i) {
+               
+                page.model.Problems.filter(x => x.type == 0).forEach(function (item, i) {
                         page.productProblem.AddRow(item);
                     });
                     page.model.CameWith.forEach(function (item, i) {
                         page.cameWith.AddRow(item);
                     });
-                }, 350)
-               
+                               
             }
         },
         productProblem: {
@@ -141,7 +141,7 @@
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
                                 "transport": { "read": { "url": "/SV/VWSV_Problem/DataSourceDropDown" } },
-                                "pageSize": 100,
+                                "pageSize": 999999,
                                 "page": 1,
                                 "total": 0
                             },
@@ -165,28 +165,37 @@
                                 "type": "aspnetmvc-ajax",
                                 "transport": {
                                     "read": {
-                                        "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.inventoryId"
+                                        "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId"
                                     }
                                 },
-                                "pageSize": 100,
+                                "pageSize": 99999,
                                 "page": 1,
                                 "total": 0,
-                                "serverPaging": true,
-                                "serverSorting": true,
-                                "serverFiltering": true,
                             },
                             "dataTextField": "metarialId_Title",
-                            "delay": 1000,
+                            "delay": 2000,
+                            "filter": "contains",
                             "dataValueField": "metarialId",
                             "optionLabel": "Cihaz Parçası Seçiniz..",
                             "value": data != null ? data.productId : null
                         });
+                
+
                 problems.find('[data-problem="description"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].description')
                     .attr('value', data != null ? data.description : null)
                 page.productProblem.counter++;
-                page.inputs.metarial(true);
+                if (data != null) {
+                    page.inputs.metarial(true);
+                }
+                else {
+                    page.inputs.metarial(false);
+                }
+              
                 setTimeout(function () {
+                    if (data != null) {
+                        $('[name="Problems[0].productId"]').data("handler").value(data.productId);
+                    }
                     var updateInput = $('#ServiceForm').data('bs.validator');
                     if (updateInput != null) {
                         updateInput.update();
@@ -516,19 +525,36 @@
                     <div class="form-group">
                         <div class="col-sm-12">
                             <label class="control-label label-md req" for="customerType">Cihazın Gireceği Depo</label>
-                            @(Html.Akilli()
-          .DropDownListFor(x => x.storageId)
-          .OptionLabel("Cihazın Gireceği Depo Seçiniz")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('storageTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
-          .Sort(x => x.Add("name").Ascending())
-          .Filter<CMP_Storage>(x=>x.companyId==userStatus.user.CompanyId.Value)
-          .Validate(Validations.Required)
-          .Execute("id"))
+                            @if (userStatus.user.RoleIds.Contains(SHRoles.SistemYonetici))
+                            {
+                                @Html.Raw(Html.Akilli()
+                                .DropDownListFor(x => x.storageId)
+                                .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+                                .DataTextField("fullName")
+                                .DataValueField("id")
+                                .Template("#=TemplateEngine('storageTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Validate(Validations.Required)
+                                .Execute("id"));
+                            }
+                            else
+                            {
+                                @Html.Raw(Html.Akilli()
+                                .DropDownListFor(x => x.storageId)
+                                .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+                                .DataTextField("fullName")
+                                .DataValueField("id")
+                                .Template("#=TemplateEngine('storageTemplate',data)#")
+                                .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Filter<CMP_Storage>(x => x.companyId == (userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.Empty))
+                                .Validate(Validations.Required)
+                                .Execute("id"));
+                            }
                         </div>
                     </div>
+              
                 </fieldset>
             </div>
         </div>

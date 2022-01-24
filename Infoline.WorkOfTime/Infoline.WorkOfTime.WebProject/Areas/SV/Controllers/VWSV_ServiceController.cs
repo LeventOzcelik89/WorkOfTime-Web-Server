@@ -131,8 +131,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
         [PageInfo("Garanti-Teknik Servis'e gelen cihazın metaryel ağacındaki tüm ürünleri alan metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
         public ContentResult ProductMaterielDataSource(Guid productId , [DataSourceRequest] DataSourceRequest request) {
+            request.PageSize = 10000;
             var data = new VMSV_ServiceModel().GetVWPRD_ProductMateriels(productId).GetProductMetarials.ToDataSourceResult(request); 
-            return Content(Infoline.Helper.Json.Serialize(data.Data),  "application / json");
+            return Content(Infoline.Helper.Json.Serialize(data.Data), "application/json");
 
         }
         

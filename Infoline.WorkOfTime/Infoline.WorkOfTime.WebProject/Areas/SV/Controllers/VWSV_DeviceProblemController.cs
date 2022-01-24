@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             return View();
         }
 
-        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             data.Total = db.GetVWSV_DeviceProblemCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+        [PageInfo("Servise Ait Cihazın Sorunlarının Listelendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
 
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {

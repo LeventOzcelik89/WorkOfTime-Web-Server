@@ -91,7 +91,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (getCompany != null)
                 {
 
-                    description = $"Transfer Edilen Şube: {getCompany.fullName} </br></br>" + description;
+                    description = $"Transfer Edilen Şube: {getCompany.fullName} " + System.Environment.NewLine + description;
                 }
 
                 getService.stage = (short)EnumSV_ServiceStages.DeviceHanded;//süreç başa döner
@@ -202,7 +202,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         productId = x.productId,
                         quantity = x.quantity,
                         serialCodes = x.serialCodes ?? null,
-                        unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentSellingPrice,
+                        unitPrice = db.GetVWPRD_ProductById(x.productId.Value)?.currentServicePrice,
                         alternativeQuantity = x.quantity,
                         alternativeUnitId = getProduct.unitId,
                         unitId = getProduct.unitId
@@ -256,7 +256,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         createdby = this.createdby,
                         dataId = item.id,
                         pid = this.id,
-                        description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "",
+                        description = db.GetVWPRD_ProductById(item.id)?.currentServicePrice.ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = this.serviceId,
                         status = (short)EnumSV_ServiceOperation.ServicePriceAdded
