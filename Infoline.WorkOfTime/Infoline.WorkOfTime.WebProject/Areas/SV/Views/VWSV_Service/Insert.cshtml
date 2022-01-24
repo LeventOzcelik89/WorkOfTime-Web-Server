@@ -43,7 +43,7 @@
                     if (kendo != undefined) {
                         kendo.destroy();
                     }
-                     $(item).kendoDropDownList({
+                    $(item).kendoDropDownList({
                         "change": page.inputs.productChange,
                         optionLabel: "Cihaz Parçası Seçiniz...",
                         dataTextField: "materialId_Title",
@@ -477,21 +477,37 @@
             <div class="ibox">
                 <div class="ibox-content clearfix">
                     <fieldset>
-                        <legend><i class="fa ii-ambarmevcudu"/> Cihazın Gireceği Depo</legend>
+                        <legend><i class="fa ii-ambarmevcudu" /> Cihazın Gireceği Depo</legend>
                         <div class="form-group">
                             <div class="col-sm-12">
                                 <label class="control-label label-md req" for="customerType">Cihazın Gireceği Depo</label>
-                                @(Html.Akilli()
-          .DropDownListFor(x => x.storageId)
-          .OptionLabel("Cihazın Gireceği Depo Seçiniz")
-          .DataTextField("fullName")
-          .DataValueField("id")
-          .Template("#=TemplateEngine('storageTemplate',data)#")
-          .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
-          .Sort(x => x.Add("name").Ascending())
-          .Filter<CMP_Storage>(x=>x.companyId==(userStatus.user.CompanyId.HasValue?userStatus.user.CompanyId.Value:Guid.Empty))
-          .Validate(Validations.Required)
-          .Execute("id"))
+                                @if (userStatus.user.RoleIds.Contains(SHRoles.SistemYonetici))
+                                {
+                                    @Html.Raw(Html.Akilli()
+                                    .DropDownListFor(x => x.storageId)
+                                    .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+                                    .DataTextField("fullName")
+                                    .DataValueField("id")
+                                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Validate(Validations.Required)
+                                    .Execute("id"));
+                                }
+                                else
+                                {
+                                    @Html.Raw(Html.Akilli()
+                                    .DropDownListFor(x => x.storageId)
+                                    .OptionLabel("Cihazın Gireceği Depo Seçiniz")
+                                    .DataTextField("fullName")
+                                    .DataValueField("id")
+                                    .Template("#=TemplateEngine('storageTemplate',data)#")
+                                    .Action(b => b.Action("DataSourceDropDown", "VWCMP_Storage", new { area = "CMP" }))
+                                    .Sort(x => x.Add("name").Ascending())
+                                    .Filter<CMP_Storage>(x => x.companyId == (userStatus.user.CompanyId.HasValue ? userStatus.user.CompanyId.Value : Guid.Empty))
+                                    .Validate(Validations.Required)
+                                    .Execute("id"));
+                                }
                             </div>
                         </div>
                     </fieldset>

@@ -210,7 +210,10 @@
                     .attr('name', 'ServiceNotifications[' + page.hizmet.counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity : 1)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (1) });
-
+                temp.find('[data-item="price"]')
+                    .attr('name', 'ServiceNotifications[' + page.hizmet.counter + '].price')
+                    .attr("data-value", data != undefined ? data.price : 1)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0) });
 
                 var newFilter = {
                     filters: [
@@ -254,11 +257,15 @@
                 if (tr == null) {
                     return;
                 }
-                var findUnitPrice = $(tr).find('[data-problem="price"]');
+                var findUnitPrice = $(tr).find('[data-item="price"]').data("handler");
                 var findUnitId = $(tr).find('[data-item="amount"]');
+                var findAmountIcon = $(tr).find('[data-item="amounticon"]');
                 var findLink = $(tr).find('[data-item="metarialDetailText"]');
+
                 findLink.attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.id);
-                findUnitId.text(data.currentServiceCurrencyId_Title??"₺");
+                findUnitId.text(data.productUnitId_Title ?? "Adet");
+                findAmountIcon.text(data.currentServiceCurrencyId_Title ?? "₺");
+                findUnitPrice.value(data.currentServicePrice);
 
             }
         },
@@ -314,25 +321,28 @@
 <script type="text/template" data-selector="modalContainer" id="RowTemplate_Hizmet">
     <tr>
         <td data-target="">
-            <div class="input-group">
-                <input class="form-control" data-refresh="" data-item="id" />
-                <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
+            <div class="form-group">
+                <div class="input-group">
+                    <input class="form-control k-input" data-refresh="" required data-item="id"  />
+                    <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
+                </div>
             </div>
         </td>
 
         <td>
-            <div class="input-group">
-                <input data-item="quantity" min="1" />
-                <span data-item="amount" class="input-group-addon">Adet</span>
+            <div class="form-group">
+                <div class="input-group">
+                    <input data-item="quantity" class="k-input form-control" required min="1" />
+                    <span data-item="amount"  class="input-group-addon">Adet</span>
+                </div>
             </div>
         </td>
         <td>
             <div class="form-group">
                 <div class="input-group">
-                    <input data-problem="price" disabled class="k-input form-control" />
-                    <span data-item="amount" class="input-group-addon"> ₺ </span>
+                    <input data-item="price" disabled class="k-input form-control"  />
+                    <span data-item="amounticon" class="input-group-addon"> ₺ </span>
                 </div>
-
             </div>
         </td>
         <td>
@@ -381,7 +391,10 @@
             margin-right: 0px !important;
             margin-left: 0px !important;
         }
-
+        #hizmetTable .form-group {
+            margin-right: 0px !important;
+            margin-left: 0px !important;
+        }
         #productCameWith .form-group {
             margin-right: 0px !important;
             margin-left: 0px !important;
@@ -576,13 +589,13 @@
             <fieldset>
                 <legend>Hizmet Bildir</legend>
                 <div class="clearfix" id="hizmetTable">
-                    <table class="table table-custom" cellpadding="1" cellspacing="0">
+                    <table class="table table-bordered" cellpadding="1" cellspacing="0">
                         <thead>
                             <tr>
-                                <th style="width:75%">HİZMET</th>
-                                <th style="width:22%">HARCANAN MİKTAR</th>
-                                <th style="width:22%">BİRİM FİYAT</th>
-                                <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="page.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
+                                <th style="width:60%">Hizmet</th>
+                                <th style="width:20%">Harcanan Miktar</th>
+                                <th style="width:15%">Birim Fiyat</th>
+                                <th style="width:5%"><button class="btn btn-md btn-primary "  data-original-title="Yeni Hizmet Ekle"  type="button" onclick="page.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
                             </tr>
                         </thead>
                         <tbody id="RowContainer_Hizmet">

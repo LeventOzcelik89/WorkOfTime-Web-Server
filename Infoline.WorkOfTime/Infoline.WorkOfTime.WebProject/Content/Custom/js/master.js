@@ -1507,10 +1507,12 @@ function DropDownSetValue(dropdown, value) {
         dropdown.dataSource.sort().splice(0, dropdown.dataSource.sort().length);
     }
 
-
-    $.each(data, function (i, item) {
-        dropdown.dataSource.sort().push(item);
-    });
+    if (dropdown.dataSource.sort() != null) {
+        $.each(data, function (i, item) {
+            dropdown.dataSource.sort().push(item);
+        });
+    }
+   
 
     dropdown.dataSource.read();
 
