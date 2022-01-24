@@ -85,6 +85,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 SendAskCustomerMail();
             }
+            if (this.status==(short)EnumSV_ServiceOperation.CostDenied)
+            {
+                getService.stage = (short)EnumSV_ServiceStages.Delivery;//süreç biter
+                res &= db.UpdateSV_Service(getService.B_ConvertType<SV_Service>(), false, trans);
+              
+            }
             if (this.CompanyId.HasValue && !this.deliveryType.HasValue)
             {
                 var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
@@ -103,7 +109,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     productId = getInventory.productId,
                     quantity = 1,
                     serialCodes = getInventory.serialcode ?? "",
-                    unitPrice = getProduct.currentSellingPrice,
+                    unitPrice = getProduct.currentServicePrice,
                     unitId = getProduct.unitId,
                     alternativeQuantity = 1,
                     alternativeUnitId = getProduct.unitId

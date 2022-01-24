@@ -58,9 +58,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 		    return View(model);
 		}
 
-		[PageInfo("Servis Operasyonlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
+		[PageInfo("Servis Fiyat Onayının Eklendiği Sayfa", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
+		public ActionResult CostOperation(VMSV_ServiceOperationModel model)
+		{
+			return View("Insert",model);
+		}
+
+
+		[PageInfo("Servis Operasyonlarının Eklendiği Metod", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu, SHRoles.CagriMerkezi)]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(VMSV_ServiceOperationModel model,bool?state)
+		public JsonResult InsertOps(VMSV_ServiceOperationModel model,bool?state)
 		{
 		  
 		    var userStatus = (PageSecurity)Session["userStatus"];
@@ -142,7 +149,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu,SHRoles.TeknikServisBayiRolu,SHRoles.CagriMerkezi)]
+		[PageInfo("Servis Operasyonlarının Güncellendiği Metod", SHRoles.TeknikServisYoneticiRolu,SHRoles.TeknikServisBayiRolu)]
 		public JsonResult NextStage(VMSV_ServiceOperationModel model) {
 			var db = new WorkOfTimeDatabase();
 			var trans = db.BeginTransaction();

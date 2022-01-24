@@ -45,6 +45,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         ServicePriceAdded = 500,
         [Description("Servis Süreci İptal Edildi"), Generic("icon", "fa fa-times", "color", "ff0000", "description", "Servis Süreci İptal Edildi", "order","19")]
         Canceled = 1,
+        [Description("Fiyat Onayı Alındı"), Generic("icon", "fa fa-check ", "color", "04C8B4", "description", "Fiyat Onayı Alındı","order","20")]
+        CostAccepted = 501,
+        [Description("Fiyat Onayı Reddedildi"), Generic("icon", "fa  fa-exclamation-triangle", "color", "E51010", "description", "Fiyat Onayı Reddedildi", "order", "20")]
+        CostDenied = 502,
+
+
     }
     partial class WorkOfTimeDatabase
     {

@@ -75,7 +75,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 Problems = getProblems.Select(x => new VMSV_DeviceProblemModel().B_EntityDataCopyForMaterial(x)).ToList();
                 var getCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id).Select(x => new VMSV_DeviceCameWithModel().B_EntityDataCopyForMaterial(x));
                 this.CameWith = getCameWith.ToList();
-                this.SetButtonPermission();
+               
                 this.ServiceOperations = db.GetVWSV_ServiceOperationsByIdServiceId(this.id).ToList() ?? new List<VWSV_ServiceOperation>();
                 if (ServiceOperations.Count > 0)
                 {
@@ -85,6 +85,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     TotalWasted = wasted.Sum(x => x.unitPrice * x.quantity) ?? 0;
 
                 }
+                this.SetButtonPermission();
             }
             return this;
         }
@@ -436,6 +437,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else if (lastOperationStatus == (int)EnumSV_ServiceOperation.TransferEnded)
             {
+                ButtonPermission.Add(EnumSV_ServiceActions.Cancel);
+                ButtonPermission.Add(EnumSV_ServiceActions.Stop);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 SetStageButton();
             }
@@ -504,6 +507,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else if (stage == (int)EnumSV_ServiceStages.UserPermission)
             {
+                if (this.ServiceOperations.Any(x=>x.status==(short)EnumSV_ServiceOperation.CostAccepted)|| this.ServiceOperations.Any(x => x.status == (short)EnumSV_ServiceOperation.CostDenied))                {
+
+                }
+                else
+                {
+                    ButtonPermission.Add(EnumSV_ServiceActions.CostAccepted);
+                    ButtonPermission.Add(EnumSV_ServiceActions.CostDenied);
+                }
+               
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
                 ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
