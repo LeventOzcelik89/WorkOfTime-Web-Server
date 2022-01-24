@@ -308,7 +308,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				var notify = string.Format("Sayın {0}, {1} isimli personel {2} tarihinde, {3} - {4} tarihleri arasında onaylanan izni ısalk imzalı dosyasını yüklemiştir",permit.IkApproval_Title,permit.Person_Title,changed,start,end);
 				new Email().Template("Template1", "working.jpg", "İzin Talebi Islak İmzalı Dosyası Hakkında", mesaj)
 				.Send((Int16)EmailSendTypes.IzinOnaylari, insankaynaklari.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Islak İmzalı Dosyası Hakkında.."), true);
-				notification.NotificationSend(insankaynaklari.id,item.createdby, "İzin Talebi Islak İmzalı Dosyası Hakkında", notify);
+				notification.NotificationSend(insankaynaklari.id,item.createdby, "İzin Talebi Islak İmzalı Dosyası Hakkında", notify, $"/INV/VWINV_Permit/Detail?id={permit.id}");
 				if (userStatus.user.id == insankaynaklari.id)
 				{
 					return Json(new ResultStatusUI
@@ -336,7 +336,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				var notify = string.Format("Sayın {0}, {1} isimli personel {2} tarihinde, {3} - {4} tarihleri arasında {5} {6} talebinde bulunmuştur. ", permit.Manager2Approval_Title, permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title);
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 				  .Send((Int16)EmailSendTypes.IzinOnaylari, manager2.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Onayı Hakkında.."), true);
-				notification.NotificationSend(manager2.id,item.createdby, "İzin Talebi Onayı Hakkında", notify);
+				notification.NotificationSend(manager2.id,item.createdby, "İzin Talebi Onayı Hakkında", notify, notify, $"/INV/VWINV_Permit/DetailConfirmation?id={permit.id}");
 			}
 
 			if (permit.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Onay)
@@ -349,7 +349,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				var notify = string.Format("Sayın {0}, {1} isimli personel {2} tarihinde, {3} - {4} tarihleri arasında {5} {6} talebinde bulunmuştur. Yöneticileri  {7} ve {8} tarafından onaylanmıştır.Sistem üzerinden kontrolünüz beklenmektedir. ", permit.Manager2Approval_Title, permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title, permit.Manager1Approval_Title, permit.Manager2Approval_Title);
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 			   .Send((Int16)EmailSendTypes.IzinOnaylari, insankaynaklari.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Onayı Hakkında.."), true);
-				notification.NotificationSend(insankaynaklari.id, item.createdby,"İzin Talebi Onayı Hakkında", notify);
+				notification.NotificationSend(insankaynaklari.id, item.createdby,"İzin Talebi Onayı Hakkında", notify, notify, $"/INV/VWINV_Permit/DetailConfirmation?id={permit.id}");
 			}
 
 			if (permit.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici1Red || permit.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.Yonetici2Red)
@@ -362,7 +362,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				var notify = String.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3} </u> tarihleri arasındaki {4} {5}, yöneticileriniz tarafından reddedilmiştir  ", permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title);
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 				  .Send((Int16)EmailSendTypes.IzinOnaylari, permitUser.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
-				notification.NotificationSend(permitUser.id,item.createdby, "İzin Talebi Onayı Hakkında", notify);
+				notification.NotificationSend(permitUser.id,item.createdby, "İzin Talebi Onayı Hakkında", notify, notify, $"/INV/VWINV_Permit/Detail?id={permit.id}");
 			}
 
 			if (permit.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IkKontrolRed)
@@ -372,7 +372,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 <p>Bilgilerinize.<br>İyi Çalışmalar.</p>";
 				var notify = String.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3} </u> tarihleri arasındaki {4} {5}, insan kaynakları tarafından reddedilmiştir  ", permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title);
 				var mesaj = string.Format(text, permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title);
-				notification.NotificationSend(permitUser.id, item.createdby, "İzin Talebi Onayı Hakkında", notify);
+				notification.NotificationSend(permitUser.id, item.createdby, "İzin Talebi Onayı Hakkında", notify, notify, $"/INV/VWINV_Permit/Detail?id={permit.id}");
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 				 .Send((Int16)EmailSendTypes.IzinOnaylari, permitUser.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
 			}
@@ -386,7 +386,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 				var notify = string.Format("Sayın {0}, {1} tarihinde talep ettiğiniz {2} - {3} tarihleri arasındaki {4} {5}, yöneticileriniz {6} ve  insan kaynakları tarafından onaylanmıştır  ", permit.Person_Title, changed, start, end, calc.Text, permit.PermitType_Title, permit.Manager1Approval_Title + "," + permit.Manager2Approval_Title);
 				new Email().Template("Template1", "izinMailFoto.jpg", "İzin Talebi Onayı Hakkında", mesaj)
 					.Send((Int16)EmailSendTypes.IzinSurecTamamlama, permitUser.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "İzin Talebi Hakkında.."), true);
-				notification.NotificationSend(permitUser.id,item.createdby, "İzin Talebi Onayı Hakkında", notify);
+				notification.NotificationSend(permitUser.id,item.createdby, "İzin Talebi Onayı Hakkında", notify, notify, $"/INV/VWINV_Permit/Detail?id={permit.id}");
 			}
 
 			if (permit.ApproveStatus == (Int32)EnumINV_PermitApproveStatus.IslakImzaYuklendi && insankaynaklari != null && userStatus.user.id == insankaynaklari.id)

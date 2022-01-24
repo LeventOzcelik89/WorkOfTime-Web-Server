@@ -12,7 +12,7 @@ using System.ComponentModel;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
- 
+
     partial class WorkOfTimeDatabase
     {
         public SH_UserFireBaseToken GetSH_UserFireBaseTokenByUserId(Guid id, DbTransaction tran = null)
@@ -23,5 +23,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public ResultStatus UpdateSH_UserFireBaseTokenByUserId(SH_UserFireBaseToken item, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.ExecuteUpdate<SH_UserFireBaseToken>(item);
+            }
+        }
     }
 }

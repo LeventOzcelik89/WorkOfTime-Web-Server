@@ -5,6 +5,23 @@
     var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
 
 }
+
+<style type="text/css">
+    .marker > img {
+        height: 43px;
+        border-radius: 100%;
+        z-index: 3;
+        position: absolute;
+        top: -33px;
+        left: -17px;
+    }
+
+    .marker {
+        position: relative;
+        height: 60px;
+    }
+</style>
+
 @section Javascript{
     <script type="text/javascript">
 
@@ -74,7 +91,7 @@
                             $('.pan-container').removeClass('hide');
                             $('.pan-container-2').addClass('hide');
                         }
-                        
+
                         $(".btn-bar.right").animate({ right: -430 }, 200, function () {
                             $('.pan-container-2').find('.pan-content').hide();
                             $('.pan-container-2').find("#" + target).show();
@@ -172,7 +189,7 @@
                 page.dfn.harita.layer.addVector("İlk Konum", "FirstLocation", "firstLocationStyle", "firstLocationStyle", "firstLocationStyle")
                 page.dfn.harita.layer.addVector("Konumlar", "Locations", "locationsStyle", "locationsStyle", "locationsStyle")
                 page.dfn.harita.layer.addVector("Son Konum", "LastLocation", "lastLocationStyle", "lastLocationStyle", "lastLocationStyle")
-   
+
 
 
                 page.dfn.harita.layer.addVector("Action", "Action");
@@ -218,7 +235,7 @@
                                     afterfour++;
                                     var feature = page.dfn.harita.feature.add("FirstLocation", data.id, data.lastLocation);
                                     if (feature) {
-                                        var img = "/SH/SH_UserLocationTracking/GreenMark?id=" + data.userId + '&.png';
+                                        var img = "/SH/SH_UserLocationTracking/RedMark?id=" + data.userId + '&.png';
                                         // style.add
                                         page.dfn.harita.style.add("GreenMarkerStyle" + data.id, null, null, null, img);
                                         //  feature.setStyle
@@ -321,15 +338,25 @@
 
 
 
-                    $('#personAllTemp').html(null)
-                    var html = $($('#PersonelList').html());
+                $('#personAllTemp').html(null);
+
 
                 $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
-                    html.find('[data-id="personFullName"]').html(data.userId_Title != null ? data.userId_Title : "-");
-                    html.find('[data-id="personelPhoto"]').attr('src', data.ProfilePhoto);
-                    $('#personAllTemp').append(html.html()); })
+                    var html = $($('#PersonelList').html());
 
-                   
+                    html.find('[data-id="userId_Title"]').html(data.userId_Title ?? "-");
+                    html.find('[data-id="title"]').html(data.title ?? "-");
+                    html.find('[data-id="configName"]').html(data.configName ?? "-");
+                    html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
+
+                    html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+
+                    //  data-id="title" data-id="configName" data-id="isTrackingActive"
+
+                    $('#personAllTemp').append(html);
+                });
+
+
 
             }
         }
@@ -477,10 +504,10 @@
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
-       
+
         </div>
-        <div class="pan-container-2">   
-        <div style="height: 600px; overflow: auto;" id="personAllTemp"></div>
+        <div class="pan-container-2">
+            <div style="height: 600px; overflow: auto;" id="personAllTemp"></div>
         </div>
     </div>
 </div>
@@ -549,29 +576,56 @@
     </div>
 </script>
 
-<script type="text/template" id="PersonelList">
-    <div class="pan-content">
-        <div>
 
-            <div class="pan-bodyCustom" style="height:110px">
-                <div class="col-md-12">
-                    <div class="panContentPresentation">
-                        <div class="card col-md-12" style="height:100px;">
-                            <nav class="nav">
-                                <ul>
-                                    <li>
-                                    <span><img style="width:30px; height:30px;" data-id="personelPhoto" /></span>
-                                    <span data-id="personFullName"></span>
-                                    <span></span>
-                                    </li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
+
+
+<style type="text/css">
+
+    .card img {
+        width: 50px;
+    }
+
+    .card {
+        color: #fff;
+    }
+
+        .card h4 {
+            margin-bottom: 0px;
+        }
+
+        .card .durum {
+            text-decoration: underline;
+        }
+
+        .card .btn {
+            opacity: 0;
+            transition: all 0.2s ease;
+        }
+
+        .card:hover .btn {
+            opacity: 1;
+        }
+</style>
+
+<script type="text/template" id="PersonelList">
+
+    <div class="card">
+        <div class="row">
+            <div class="col-md-3">
+                <img class="img-thumbnail img-circle" data-id="ProfilePhoto" />
+            </div>
+            <div class="col-md-9">
+                <a class="btn btn-xs btn-warning pull-right" tooltip="Düzenle"><i class="fa fa-pencil"></i></a>
+
+                <h4 data-id="userId_Title"></h4>
+                <div class="text-muted" data-id="title"></div>
+                <div data-id="configName"></div>
+                <div class="durum" data-id="isTrackingActive">Konum Takibi Kapalı</div>
+
             </div>
         </div>
     </div>
+
 </script>
 
 

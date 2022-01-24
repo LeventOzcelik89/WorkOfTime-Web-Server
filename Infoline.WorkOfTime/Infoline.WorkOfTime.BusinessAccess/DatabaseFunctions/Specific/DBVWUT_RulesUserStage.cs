@@ -19,6 +19,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+
         public VWUT_RulesUserStage GetVWUT_RulesUserStageByOrderAndTypeAndRulesId(short order, Guid rulesId)
         {
             using (var db = GetDB())
