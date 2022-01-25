@@ -515,11 +515,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     ButtonPermission.Add(EnumSV_ServiceActions.CostAccepted);
                     ButtonPermission.Add(EnumSV_ServiceActions.CostDenied);
+                    ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 }
-               
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+            
 
 
             }

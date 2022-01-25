@@ -201,7 +201,6 @@
 
         },
         hizmet: {
-            
             counter: 0,
             removeRow: function (item) {
                 $(item).parents('tr').remove();
@@ -214,18 +213,33 @@
                     .attr('name', 'ServiceNotifications[' + pageTrans.hizmet.counter + '].quantity')
                     .attr("data-value", data != undefined ? data.quantity : 1)
                     .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (1) });
+                temp.find('[data-item="price"]')
+                    .attr('name', 'ServiceNotifications[' + pageTrans.hizmet.counter + '].price')
+                    .attr("data-value", data != undefined ? data.price : 1)
+                    .kendoNumericTextBox({ "format": "N0", "culture": "tr-TR", "spinners": false, "value": (0) });
+
+                var newFilter = {
+                    filters: [
+                        { field: "type", operator: "eq", value: 0 },// yeni filtre eklenicekse DataSourceDropDownForInventoryWithHizmet buranında değişmesi gerekir
+                    ]
+                };
                 temp.find('[data-item="id"]')
                     .attr('name', 'ServiceNotifications[' + pageTrans.hizmet.counter + '].id')
                     .kendoDropDownList(
                         {
                             "change": pageTrans.hizmet.productChange,
-                            "dataBound": pageTrans.hizmet.productChange,
                             "value": (data != null ? data.materialId : null),
                             "dataSource": {
                                 "type": "aspnetmvc-ajax",
                                 "transport": { "read": { "url": "/PRD/VWPRD_Product/DataSourceDropDown" } },
                                 "pageSize": 100,
-                                "filter": { field: "type", operator: "eq", value: 0 }
+                                "page": 1,
+                                "total": 0,
+                                "serverPaging": true,
+                                "serverSorting": true,
+                                "serverFiltering": true,
+
+                                "filter": newFilter
                             },
                             "dataTextField": "fullName",
                             "delay": 1000,
@@ -237,10 +251,25 @@
                 pageTrans.hizmet.counter++;
             },
             productChange: function (e) {
+                debugger
                 if (e == null) {
                     return;
                 }
-                debugger;
+                var data = e.sender.dataItem();
+                var tr = this.element.parents("tr");
+                if (tr == null) {
+                    return;
+                }
+                var findUnitPrice = $(tr).find('[data-item="price"]').data("handler");
+                var findUnitId = $(tr).find('[data-item="amount"]');
+                var findAmountIcon = $(tr).find('[data-item="amounticon"]');
+                var findLink = $(tr).find('[data-item="metarialDetailText"]');
+
+                findLink.attr("href", "/PRD/VWPRD_Product/Detail?id=" + data.id);
+                findUnitId.text(data.productUnitId_Title ?? "Adet");
+                findAmountIcon.text(data.currentServiceCurrencyId_Title ?? "₺");
+                findUnitPrice.value(data.currentServicePrice);
+
             }
         },
         inputs: {
@@ -380,17 +409,16 @@
         <td data-target="">
             <div class="form-group">
                 <div class="input-group">
-                    <input class="form-control" data-refresh="" data-item="id" />
+                    <input class="form-control k-input" data-refresh="" required data-item="id" />
                     <a data-item="metarialDetailText" class="btn m-r-sm btn btn-primary input-group-addon" data-original-title="Ürün Detayı" id="productGridDetailButton" target="_blank" href=""> <i class="fa fa-link"></i></a>
                 </div>
             </div>
-
         </td>
 
         <td>
             <div class="form-group">
                 <div class="input-group">
-                    <input data-item="quantity" min="1" />
+                    <input data-item="quantity" class="k-input form-control" required min="1" />
                     <span data-item="amount" class="input-group-addon">Adet</span>
                 </div>
             </div>
@@ -398,13 +426,13 @@
         <td>
             <div class="form-group">
                 <div class="input-group">
-                    <input data-item="unitPrice" readonly min="0" />
-                    <span class="input-group-addon"> TL</span>
+                    <input data-item="price" disabled class="k-input form-control" />
+                    <span data-item="amounticon" class="input-group-addon"> ₺ </span>
                 </div>
             </div>
         </td>
         <td>
-            <button class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
+            <button data-item="islendi" class="btn btn-md btn-danger" data-original-title="Satırı Sil" type="button" onclick="pageTrans.hizmet.removeRow(this)" style="height: 40px;"><i class="fa fa-close"></i></button>
         </td>
     </tr>
 </script>
@@ -482,24 +510,24 @@
         </fieldset>
         @if (Model.Transaction.type == (int)EnumPRD_TransactionType.HarcamaBildirimi)
         {
-            <fieldset>
-                <legend>Hizmet Bildir</legend>
-                <div class="clearfix" id="hizmetTable">
-                    <table class="table table-custom" cellpadding="1" cellspacing="0">
-                        <thead>
-                            <tr>
-                                <th style="width:75%">HİZMET</th>
-                                <th style="width:22%">HARCANAN MİKTAR</th>
-                                <th style="width:22%">BİRİM FİYAT</th>
-                                <th style="width:3%"><button class="btn btn-info pull-right " type="button" onclick="pageTrans.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
-                            </tr>
-                        </thead>
-                        <tbody id="RowContainer_Hizmet">
-                        </tbody>
+    <fieldset>
+        <legend>Hizmet Bildir</legend>
+        <div class="clearfix" id="hizmetTable">
+            <table class="table table-bordered" cellpadding="1" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width:60%">Hizmet</th>
+                        <th style="width:20%">Harcanan Miktar</th>
+                        <th style="width:15%">Birim Fiyat</th>
+                        <th style="width:5%"><button class="btn btn-md btn-primary " data-original-title="Yeni Hizmet Ekle" type="button" onclick="pageTrans.hizmet.addRow(null)"><i class="fa fa-plus"></i></button></th>
+                    </tr>
+                </thead>
+                <tbody id="RowContainer_Hizmet">
+                </tbody>
 
-                    </table>
-                </div>
-            </fieldset>
+            </table>
+        </div>
+    </fieldset>
 
         }
 

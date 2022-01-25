@@ -58,11 +58,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                if (this.type == null)
+                var getUser = db.GetSH_UserById(this.id);
+                if (getUser==null)
                 {
-                    this.type = (int)EnumSH_UserType.OtherPerson;
+                    if (this.type == null)
+                    {
+                        this.type = (int)EnumSH_UserType.OtherPerson;
+                    }
                 }
-
+                else
+                {
+                    this.type = getUser.type;
+                }
                 result &= this.UpsertOther(user);
             }
 

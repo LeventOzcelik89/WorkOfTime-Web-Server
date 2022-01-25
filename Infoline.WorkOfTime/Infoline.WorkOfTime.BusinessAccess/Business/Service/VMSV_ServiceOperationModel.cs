@@ -324,6 +324,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = transModelCompanyId.id;
                 result &= transModelCompanyId.Save(this.createdby, trans);
             }
+            else
+            {
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = null,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = null,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisCikis,
+                    id = Guid.NewGuid(),
+                };
+                this.dataTable = "PRD_Transaction";
+                this.dataId = transModelCompanyId.id;
+                result &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            
+         
             result &= this.Save(userId, null, trans);
             if (result.result)
             {
