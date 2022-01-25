@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductionProduct> expens { get; set; }
         public VWPRD_Transaction Transaction { get; set; }
         public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
-        public List<VWPRD_Product> ServiceNotifications { get; set; }
+        public List<VWPRD_ProductMateriel> ServiceNotifications { get; set; }
         public short Type { get; set; }
         public Guid? storageId { get; set; }
         public VMSV_ServiceOperationModel Load()
@@ -262,7 +262,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         createdby = this.createdby,
                         dataId = item.id,
                         pid = this.id,
-                        description = db.GetVWPRD_ProductById(item.id)?.currentServicePrice.ToString() ?? "",
+                        description = (db.GetVWPRD_ProductById(item.id)?.currentServicePrice*item.quantity).ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = this.serviceId,
                         status = (short)EnumSV_ServiceOperation.ServicePriceAdded
