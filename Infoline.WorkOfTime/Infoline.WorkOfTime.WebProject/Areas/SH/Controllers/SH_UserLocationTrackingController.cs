@@ -83,6 +83,33 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
+        [AllowEveryone]
+        public ActionResult Insert()
+        {
+            var data = new VWUT_LocationConfigUser { id = Guid.NewGuid() };
+            return View(data);
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowEveryone]
+        public JsonResult Insert(UT_LocationConfigUser item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            item.created = DateTime.Now;
+            item.createdby = userStatus.user.id;
+            var dbresult = db.InsertUT_LocationConfigUser(item);
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
 
         //[AllowEveryone]
         //public ContentResult RedMark(Guid id)//// bool ccc ekleyip arka tarafa green resmini getir.
