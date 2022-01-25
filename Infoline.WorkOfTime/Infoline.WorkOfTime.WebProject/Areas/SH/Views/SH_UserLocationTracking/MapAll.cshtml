@@ -15,7 +15,7 @@
         z-index: 3;
         position: absolute;
         top: -33px;
-        left: -15px;
+        left: -18px;
     }
 
     .marker {
@@ -109,7 +109,10 @@
                             $('.pan-container-2').find("#" + target).show();
                             $(".btn-bar.right").animate({ right: 15 }, 200);
                         });
+
+
                     }
+
                 },
                 AllUsers: function (elem, target) {
 
@@ -400,8 +403,13 @@
                     html.find('[data-id="configName"]').html(data.configName ?? "-");
                     html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
 
-                    html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto );
+                    html.find('[data-id="ProfilePhoto"]').attr('src', data.ProfilePhoto);
+                    html.find('[data-id="btnbtn"]').attr('data-id', data.userId).on("click", function (e) {
+                        var id = $(this).attr("data-id");
+                        Kendo_GetRequest("/UT/VWUT_LocationConfigUser/Upsert?id=" + id + '&locationConfigId=' +  data.locationConfigId, null, $('<button data-task="Insert"></button>'))
+                    });
 
+                
                     //  data-id="title" data-id="configName" data-id="isTrackingActive"
 
                     $('#personAllTemp').append(html);
@@ -411,6 +419,7 @@
 
             }
         }
+
 
 
         $(document)
@@ -423,6 +432,10 @@
                 GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
                     page.defines.filteredData = res;
                     page.locateFeatureToMap();
+                    page.PersonelList();
+                    page.fn.slideTab($('#personAllTemp'), 'PersonelList')
+                    $('.pan-container').addClass('hide');
+                    $('#selectCompany').addClass('hide');
                 }, "Konumlar yükleniyor..");
             })
             .on("click", '[data-name="filterType"]', function (e) {
@@ -548,7 +561,7 @@
     </div>
 
 
-    <div class="btn-bar right top animated slideInRight" style="width:490px;right:-800px;">
+    <div class="btn-bar right top animated slideInRight " style="width:490px;right:-800px;">
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectCompany" class="btn btn-lg btn-circle btn-custom active" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
@@ -559,7 +572,7 @@
 
         </div>
         <div class="pan-container-2">
-            <div style="height: 800px; overflow: auto;" id="personAllTemp" ></div>
+            <div style="height: 600px; overflow-y: scroll;" id="personAllTemp" ></div>
         </div>
     </div>
 </div>
@@ -660,14 +673,14 @@
 </style>
 
 <script type="text/template" id="PersonelList">
-
+    
     <div class="card">
         <div class="row">
             <div class="col-md-3">
                 <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" />
             </div>
             <div class="col-md-9">
-                <a class="btn btn-xs btn-warning pull-right" tooltip="Düzenle"><i class="fa fa-pencil"></i></a>
+                <a class="btn btn-xs btn-warning pull-right"  data-id="btnbtn" tooltip="Düzenle"><i class="fa fa-pencil"></i></a>
 
                 <h4 data-id="userId_Title"></h4>
                 <div class="text-muted" data-id="title"></div>

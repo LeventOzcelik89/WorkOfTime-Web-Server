@@ -36,7 +36,7 @@
 
 
 
-<form action="@Url.Action("Update", "SH_UserLocationTrackingController" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+<form action="@Url.Action("Insert", "SH_UserLocationTrackingController" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
@@ -44,6 +44,32 @@
     @Html.HiddenFor(model => model.userId)
 
     <div class="row">
+
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="locationConfigId">Personel Seçiniz</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.userId_Title)
+                            .OptionLabel("Lütfen Personel Belirtiniz...")
+                            .DataTextField("userId_Title")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationTracking", new { area = "UT" }))
+                .Sort(x => x.Add("userId_Title").Ascending())
+                .Execute()
+                )
+                        <div class="input-group-addon" id="inputgroupid">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <div class="col-md-5">
             <div class="form-group">
