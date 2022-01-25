@@ -11,6 +11,11 @@
         var sender = e.sender.dataItem();
         if (sender != undefined) {
             $("#locationConfigDetail").attr("data-href", "/UT/VWUT_LocationConfig/Detail?id=" + sender.id);
+            $("#inputgroupid").removeClass("hide");
+
+        }
+        if (sender.id == "") {
+            $("#inputgroupid").addClass("hide");
         }
     }
 
@@ -29,31 +34,36 @@
         ;
 </script>
 
-<html>
-<head>
-    <meta name="viewport" content="width=device-width" />
-    <title>Update</title>
-</head>
-<body>
-    <div class="col-md-5">
-        <div class="form-group">
-            <div class="col-md-6">
-                <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
-            </div>
-            <div class="col-md-6">
-                @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
+
+
+<form action="@Url.Action("Update", "SH_UserLocationTrackingController" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+      data-selector="modalContainer" data-formType="Ajax">
+
+    @Html.AntiForgeryToken()
+    @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.userId)
+
+    <div class="row">
+
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
+                </div>
+                <div class="col-md-6">
+                    @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="col-md-5">
-        <div class="form-group">
-            <div class="col-md-6">
-                <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
-            </div>
-            <div class="col-md-6">
-                <div class="input-group">
-                    @(
+        <div class="col-md-5">
+            <div class="form-group">
+                <div class="col-md-6">
+                    <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
+                </div>
+                <div class="col-md-6">
+                    <div class="input-group">
+                        @(
                             Html.Akilli()
                             .DropDownListFor(model => model.locationConfigId)
                             .OptionLabel("Lütfen Konfig Belirtiniz...")
@@ -64,19 +74,22 @@
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
                 )
-                    <div class="input-group-addon">
-                        <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        <div class="input-group-addon" id="inputgroupid">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-md-2">
-        <div class="form-group">
-            <div class="col-md-12">
-                <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+
+        <div class="col-md-2">
+            <div class="form-group">
+                <div class="col-md-12">
+                    <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                </div>
             </div>
         </div>
+
     </div>
-</body>
-</html>
+
+</form>

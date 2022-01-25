@@ -1,4 +1,4 @@
-﻿@model VMUT_LocationConfigUserModel
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
 @{
     ViewBag.Title = "Personel Bilgileri Detayı";
 }
@@ -11,9 +11,14 @@
         var sender = e.sender.dataItem();
         if (sender != undefined) {
             $("#locationConfigDetail").attr("data-href", "/UT/VWUT_LocationConfig/Detail?id=" + sender.id);
+            $("#inputgroupid").removeClass("hide");
+
+        }
+        if (sender.id=="") {
+            $("#inputgroupid").addClass("hide");
         }
     }
-   
+
     $(document)
         .on("change", "#locationConfigId", function (e, resp) {
             var dropdown = $("#locationConfigId").data("kendoDropDownList");
@@ -69,8 +74,8 @@
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
                 )
-                        <div class="input-group-addon">
-                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        <div class="input-group-addon" id="inputgroupid">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@(Model != null ? Model.locationConfigId : null)" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
                         </div>
                     </div>
                 </div>

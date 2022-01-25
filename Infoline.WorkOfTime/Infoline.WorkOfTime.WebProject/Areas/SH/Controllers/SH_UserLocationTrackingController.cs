@@ -58,6 +58,30 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
 
+        [AllowEveryone]
+        public ActionResult Update(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWUT_LocationConfigUserById(id);
+            return View(data);
+        }
+
+        [AllowEveryone]
+        public JsonResult Update (VMUT_LocationConfigUserModel model)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+
+            var dbresult = model.Save(userStatus.user.id);
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
 
 
         //[AllowEveryone]
