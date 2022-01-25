@@ -254,7 +254,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private ResultStatus Update()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>(), true, this.trans);
+            var result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>(), false, this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
             var getAllProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
             var getAllCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id);
@@ -265,6 +265,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var problem in Problems)
                 {
                     problem.serviceId = this.id;
+                    problem.type = (int)EnumSV_DeviceProblemType.Customer;
                     result &= problem.Save(this.createdby, null, this.trans);
                 }
             }
