@@ -5,6 +5,7 @@
 }
 <script type="text/javascript" data-selector="modalContainer">
     var page = {
+        productId: newGuid(),
         productProblem: {
             counter: 0,
             RowDelete: function (_this) {
@@ -82,7 +83,7 @@
                                     "filters": [{
                                         "field": "productId",
                                         "operator": "eq",
-                                        "value": newGuid()
+                                        "value": page.productId
                                     }]
                                 }]
                             },
@@ -136,6 +137,7 @@
                     }
                     $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
                         $(item).removeAttr("disabled");
+                        page.productId = resp.objects.deviceId;
                         var grid = $(item).data("handler");
                         var newFilter = kendo.filterParser("productId~eq~" + resp.objects.deviceId);
                         grid.dataSource.filter(newFilter);
@@ -153,12 +155,14 @@
                 });
             },
             warrantyChange: function () {
+               
                 $(document).on("change", '[data-problem="warranty"]', function () {
-                    var tr = $(this).parents('tr')
+                    debugger
+                    var tr = $(this).parents('tr:first')
                     var findInputs = $(tr).find('[data-problem="warranty"]:checked');
                     if (findInputs) {
                         var val = $(findInputs[0]).val();
-                        var input = $('[data-problem="price"]').data("kendoNumericTextBox");
+                        var input = $(tr).find('[data-problem="price"]').data("kendoNumericTextBox");
                         if (val==1) {
 
                             input.readonly(true);

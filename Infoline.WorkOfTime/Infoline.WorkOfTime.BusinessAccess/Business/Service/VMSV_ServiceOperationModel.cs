@@ -413,7 +413,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var service = new VMSV_ServiceModel { id = serviceId }.Load();
                 service.stage = (int)EnumSV_ServiceStages.Fixing;
-                result &= service.Save(userId, null, trans);
+                service.changedby = userId;
+                service.changed = DateTime.Now;
+                result = db.UpdateSV_Service(service.B_ConvertType<SV_Service>(),false,trans);
+            
                 result &= new VMSV_ServiceOperationModel
                 {
                     created = this.created,

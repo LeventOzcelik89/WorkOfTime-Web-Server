@@ -15,6 +15,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         MyPerson = 0,
         [Description("Diğer İşletme Personeli")]
         OtherPerson = 1,
+        [Description("Bayi Personeli")]
+        CompanyPerson= 2,
     }
     [EnumInfo(typeof(SH_User), "status")]
     public enum EnumSH_UserStatus

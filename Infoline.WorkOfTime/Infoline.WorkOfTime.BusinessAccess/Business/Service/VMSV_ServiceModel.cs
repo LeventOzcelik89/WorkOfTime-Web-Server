@@ -555,6 +555,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public ResultStatus NextStage(Guid userId, DbTransaction trans = null)
         {
 
+            db= db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             this.Load();
             if (this.stage == (int)EnumSV_ServiceStages.Delivery)
@@ -566,7 +567,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.stage++;
             }
             this.stage++;
-            this.Save(userId, null, trans);
+            this.changedby = userId;
+            this.changed = DateTime.Now;
+            result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>());
             return result;
 
 
