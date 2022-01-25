@@ -59,7 +59,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             else
             {
                 var getUser = db.GetSH_UserById(this.id);
-                if (getUser==null)
+                if (getUser == null)
                 {
                     if (this.type == null)
                     {
@@ -486,7 +486,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public ResultStatus SendCompanyCode()
+        {
+            var db = new WorkOfTimeDatabase();
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var getCompany = db.GetCMP_CompanyById(this.CompanyId.Value);
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName}|WorkOfTime sistemi üzerinde kayıt olabileceğiniz bayi kodu aşağıdaki gibidir</p><p style='text-align:center'>" +
+                $"<h4><b>{getCompany.code}</b></h4></p>" +
+                $"<p> Web üzerinden kayıt olmak için lütfen <a href='{url}/Account/CustomerSignUp?companyCode={getCompany.code}'> Buraya tıklayınız!</a></p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Daveti", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Üyelik Daveti"), true);
 
+
+
+            return new ResultStatus { result = true, message = "Bayi Kodu Gönderildi." };
+
+
+        }
 
         public ResultStatus Dismissal()
         {

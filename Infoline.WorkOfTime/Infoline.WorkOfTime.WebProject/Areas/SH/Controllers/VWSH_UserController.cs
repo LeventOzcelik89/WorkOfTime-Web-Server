@@ -960,7 +960,25 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         {
             return View();
         }
+        [PageInfo("Şirketin Kodunu Gönderme Sayfası", SHRoles.IKYonetici)]
+        [HttpPost]
+        public JsonResult SendCompanyCodeMail(VMSH_UserModel model)
+        {
+            if (model.CompanyId==null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (model.email==null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("E-Posta Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            model.SendCompanyCode();
 
+
+
+
+            return Json(new ResultStatusUI { FeedBack = new FeedBack().Success("Bayi Kodu Gönderildi"), Result = true }, JsonRequestBehavior.AllowGet);
+        }
 
         [PageInfo("Şirket Personel Listesi", SHRoles.IKYonetici)]
         public ActionResult CompanyPersonIndex()
@@ -992,7 +1010,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             }
             return Json(new ResultStatusUI {
                 FeedBack = result.result? new FeedBack().Success("Kullanıcı Aktifleştirildi. E-Posta Gönderildi"): new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
-                Result = false
+                Result = result.result
             }, JsonRequestBehavior.AllowGet);
         }
     }
