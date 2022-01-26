@@ -172,5 +172,25 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
 
         }
+
+        [HandleFunction("Defaults/Notifications")]
+        public void DefaultsNotifications(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+
+                var userId = CallContext.Current.UserId;
+                var user = db.GetVWSH_UserById(userId);
+
+                var obj = new Defaults().GetNotificationsWithMobileNavigation(user);
+                RenderResponse(context, obj);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
+            }
+        }
+
     }
 }
