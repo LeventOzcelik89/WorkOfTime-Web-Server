@@ -1,10 +1,7 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
-
-
-
 @{
-    ViewBag.Title = "Anlık Lokasyon Takip Haritası Personel Ekle";
-
+    ViewBag.Title = "Anlık Personel Takip Haritası Personel Ekle";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 
 }
 
@@ -21,8 +18,26 @@
         if (sender.id == "") {
             $("#inputgroupid").addClass("hide");
         }
-    }
+    };
 
+    function filtrePerson() {
+        debugger;
+        var dropdown = this.dataItem().id;
+        GetJsonDataFromUrl('@Url.Action("GetUT_LocationConfigUserById","General",new {Area="" })', { id: dropdown }, function (res) {
+            if (res.Result == true) {
+                MessageWarning("Uyarı", "Personel Listede Mevcut...");
+            }
+            else {
+                return false;
+            }
+        })
+        //Burada getjsondatafromurl methodu ile general controllera istek atacaksın.
+        //Generalcontrollerda burdan gönderdiğin userın idsine göre UT_LocationConfigUser var mı bakacaksın
+        //Eğer var ise MessageWarning("asdasdsa","Mevcutta kayıy var");
+        //Yoksa return false;
+
+    }
+    
     $(document)
         .on("change", "#locationConfigId", function (e, resp) {
             var dropdown = $("#locationConfigId").data("kendoDropDownList");
@@ -34,7 +49,6 @@
             setTimeout(function () { pageLocation.dfn.harita.map.updateSize(); }, 500);
 
         })
-
         ;
 </script>
 
@@ -62,6 +76,7 @@
                             .OptionLabel("Lütfen Personel Belirtiniz...")
                             .DataTextField("FullName")
                             .DataValueField("id")
+                            .Events(x => x.Change("filtrePerson"))
                             .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                 .Sort(x => x.Add("FullName").Ascending())
                 .Execute()
