@@ -13,7 +13,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private DbTransaction trans { get; set; }
         public List<VMSV_DeviceProblemModel> Problems { get; set; }
         public Guid? inventoryId { get; set; }
-        public List<VWPRD_Product> ServiceNotifications { get; set; }
+        public List<VWPRD_ProductMateriel> ServiceNotifications { get; set; }
         public VMSV_DeviceProblemModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();

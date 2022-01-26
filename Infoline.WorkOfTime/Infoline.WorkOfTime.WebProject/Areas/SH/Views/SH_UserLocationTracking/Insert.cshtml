@@ -1,8 +1,12 @@
-﻿@model VMUT_LocationConfigUserModel
-@{
-    ViewBag.Title = "Personel Bilgileri Detayı";
-}
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
 
+
+
+@{
+    ViewBag.Title = "Anlık Lokasyon Takip Haritası Personel Ekle";
+
+
+}
 
 <script type="text/javascript" data-selector="modalContainer">
 
@@ -11,9 +15,14 @@
         var sender = e.sender.dataItem();
         if (sender != undefined) {
             $("#locationConfigDetail").attr("data-href", "/UT/VWUT_LocationConfig/Detail?id=" + sender.id);
+            $("#inputgroupid").removeClass("hide");
+
+        }
+        if (sender.id == "") {
+            $("#inputgroupid").addClass("hide");
         }
     }
-   
+
     $(document)
         .on("change", "#locationConfigId", function (e, resp) {
             var dropdown = $("#locationConfigId").data("kendoDropDownList");
@@ -31,18 +40,42 @@
 
 
 
-<form action="@Url.Action("Upsert", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+<form action="@Url.Action("Insert", "SH_UserLocationTracking" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.userId)
+    @*@Html.HiddenFor(model => model.userId)*@
 
     <div class="row">
 
-        <div class="col-md-5">
+        <div class="col-md-12">
             <div class="form-group">
+                <div class="col-md-6 req">
+                    <label class="control-label label-md " for="userId">Personel Seçiniz</label>
+                </div>
                 <div class="col-md-6">
+                    <div class="input-group">
+                        @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.userId)
+                            .OptionLabel("Lütfen Personel Belirtiniz...")
+                            .DataTextField("FullName")
+                            .DataValueField("id")
+                            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute()
+                )
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <div class="col-md-6 req">
                     <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
                 </div>
                 <div class="col-md-6">
@@ -51,9 +84,9 @@
             </div>
         </div>
 
-        <div class="col-md-5">
+        <div class="col-md-12">
             <div class="form-group">
-                <div class="col-md-6">
+                <div class="col-md-6 req">
                     <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
                 </div>
                 <div class="col-md-6">
@@ -69,15 +102,15 @@
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
                 )
-                        <div class="input-group-addon">
-                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                        <div class="input-group-addon" id="inputgroupid">
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-2">
+        <div class="col-md-12">
             <div class="form-group">
                 <div class="col-md-12">
                     <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
@@ -88,10 +121,3 @@
     </div>
 
 </form>
-
-<div class="row" data-cascade="[name='isTrackingActive']" data-show="1">
-    <hr />
-    <div class="col-md-12">
-        @Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/MapOverView.cshtml", Model)
-    </div>
-</div>

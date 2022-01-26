@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public Guid? hrPersonId { get; set; }
         public List<Guid> Roles { get; set; } = new List<Guid> { new Guid(SHRoles.Personel) };
         public double? Salary { get; set; }
-
+        public string CapthcaCode { get; set; }
         public VWSH_PersonInformation VWSH_PersonInformation { get; set; }
         public bool? hasAgi { get; set; }
         public VWINV_CompanyPersonAvailability[] VWINV_CompanyPersonAvailabilities { get; set; }
@@ -23,6 +23,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public WorkOfTimeDatabase db { get; set; }
         public DbTransaction trans { get; set; }
         public List<SYS_BlockMail> blockMailList { get; set; }
+        public string CompanyCode { get; set; }
         public ResultStatus Save(DbTransaction _trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -57,7 +58,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                this.type = (int)EnumSH_UserType.OtherPerson;
+                var getUser = db.GetSH_UserById(this.id);
+                if (getUser == null)
+                {
+                    if (this.type == null)
+                    {
+                        this.type = (int)EnumSH_UserType.OtherPerson;
+                    }
+                }
+                else
+                {
+                    this.type = getUser.type;
+                }
                 result &= this.UpsertOther(user);
             }
 
@@ -94,14 +106,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 dbUser.phone = this.phone;
                 dbUser.cellphone = this.cellphone;
                 dbUser.email = this.email;
-                dbUser.status = true;
+                dbUser.status = this.status;
+                dbUser.type = this.type;
 
                 rs &= db.UpdateSH_User(new SH_User().B_EntityDataCopyForMaterial(dbUser, true), false, trans);
             }
             else
             {
                 this.code = BusinessExtensions.B_GetIdCode();
-                this.status = true;
+                if (this.status == null)
+                {
+                    this.status = true;
+                }
+
                 this.loginname = Guid.NewGuid().ToString().Substring(0, 8);
                 this.password = db.GetMd5Hash(db.GetMd5Hash(password));
                 var user = new SH_User().B_EntityDataCopyForMaterial(this, true);
@@ -469,7 +486,24 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public ResultStatus SendCompanyCode()
+        {
+            var db = new WorkOfTimeDatabase();
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var getCompany = db.GetCMP_CompanyById(this.CompanyId.Value);
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName}|WorkOfTime sistemi üzerinde kayıt olabileceğiniz bayi kodu aşağıdaki gibidir</p><p style='text-align:center'>" +
+                $"<h4><b>{getCompany.code}</b></h4></p>" +
+                $"<p> Web üzerinden kayıt olmak için lütfen <a href='{url}/Account/CustomerSignUp?companyCode={getCompany.code}'> Buraya tıklayınız!</a></p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Daveti", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Üyelik Daveti"), true);
 
+
+
+            return new ResultStatus { result = true, message = "Bayi Kodu Gönderildi." };
+
+
+        }
 
         public ResultStatus Dismissal()
         {
@@ -682,7 +716,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
             txtUsed += minuteUsed != 0 ? minuteUsed + " dakika" : "";
             return txtUsed;
         }
+        public ResultStatus InsertCustomer()
+        {
+            db = db ?? new WorkOfTimeDatabase();
 
+            if (string.IsNullOrEmpty(this.CompanyCode))
+            {
+                return new ResultStatus { message = "Bayi Kodu Boş Olamaz", result = false };
+            }
+            this.Roles = new List<Guid> {
+                new Guid(SHRoles.BayiPersoneli)
+            };
+            this.status = false;
+            this.type = (short)EnumSH_UserType.CompanyPerson;
+            var result = this.Save();
+            if (result.result)
+            {
+                //mail gönder
+            }
+            return result;
+
+
+
+
+
+
+        }
     }
 
 

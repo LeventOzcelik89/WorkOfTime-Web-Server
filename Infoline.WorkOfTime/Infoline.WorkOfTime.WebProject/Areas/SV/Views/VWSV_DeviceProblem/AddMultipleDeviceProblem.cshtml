@@ -5,6 +5,7 @@
 }
 <script type="text/javascript" data-selector="modalContainer">
     var page = {
+        productId: newGuid(),
         productProblem: {
             counter: 0,
             RowDelete: function (_this) {
@@ -56,8 +57,43 @@
                             "dataValueField": "id",
                             "optionLabel": "Lütfen Problem Tipini Seçiniz..",
                         });
-                problems.find('[data-problem="productId"]')
+                var _sort = [{
+                    "field": "materialId_Title",
+                    "dir": "asc"
+                }];
+                        problems.find('[data-problem="productId"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].productId')
+                    .kendoDropDownList(
+                        {
+                            "dataSource": {
+                                "type": "aspnetmvc-ajax",
+                                "transport": {
+                                    "read": {
+                                        "url": "/SV/VWSV_Service/ProductMaterielDataSource"
+                                    }
+                                },
+                                "pageSize": 500,
+                                "page": 1,
+                                "serverPaging": true,
+                                "serverSorting": true,
+                                "serverFiltering": true,
+                                "sort": _sort,
+                                "filter": [{
+                                    "logic": "and",
+                                    "filters": [{
+                                        "field": "productId",
+                                        "operator": "eq",
+                                        "value": page.productId
+                                    }]
+                                }]
+                            },
+                            "change": page.inputs.productChange,
+                            "dataValueField": "materialId",
+                            "dataTextField": "materialId_Title",
+                            "delay": 1000,
+                            "filter": "contains",
+                            "optionLabel": "Cihaz Parçası Seçiniz..",
+                        });
                 problems.find('[data-problem="description"]')
                     .attr('name', 'Problems[' + page.productProblem.counter + '].description')
                 problems.find('[data-problem="warranty"]')
@@ -99,6 +135,14 @@
                     if (resp.objects == null) {
                         return;
                     }
+                    $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
+                        $(item).removeAttr("disabled");
+                        page.productId = resp.objects.deviceId;
+                        var grid = $(item).data("handler");
+                        var newFilter = kendo.filterParser("productId~eq~" + resp.objects.deviceId);
+                        grid.dataSource.filter(newFilter);
+
+                    });
                     $("#warranty").text(resp.objects.warranty);
                     $("#activation").text(resp.objects.activation);
                     $("#deviceName").text(resp.objects.deviceName);
@@ -111,12 +155,14 @@
                 });
             },
             warrantyChange: function () {
+               
                 $(document).on("change", '[data-problem="warranty"]', function () {
-                    var tr = $(this).parents('tr')
+                    debugger
+                    var tr = $(this).parents('tr:first')
                     var findInputs = $(tr).find('[data-problem="warranty"]:checked');
                     if (findInputs) {
                         var val = $(findInputs[0]).val();
-                        var input = $('[data-problem="price"]').data("kendoNumericTextBox");
+                        var input = $(tr).find('[data-problem="price"]').data("kendoNumericTextBox");
                         if (val==1) {
 
                             input.readonly(true);
@@ -159,31 +205,7 @@
                 }
             },
             metarial: function () {
-                $("#RowContainer_Problem").find('[data-problem="productId"]').each(function (i, item) {
-                    $(item).removeAttr("disabled");
-                    var kendo = $(item).data("kendoDropDownList");
-                    if (kendo != undefined) {
-                        kendo.destroy();
-                    }
-                    $(item).kendoDropDownList({
-                        "change": page.inputs.productChange,
-                        optionLabel: "Cihaz Parçası Seçiniz...",
-                        dataTextField: "materialId_Title",
-                        dataValueField: "materialId",
-                        dataSource: {
-                            "type": "aspnetmvc-ajax",
-                            "transport": { "read": { "url": "/SV/VWSV_Service/ProductMaterielDataSource?productId=@Model.productId" } },
-                            "pageSize": 100,
-                            "page": 1,
-                            "total": 0,
-                            "serverPaging": true,
-                            "serverSorting": true,
-                            "serverFiltering": true,
-                        },
-                        "delay": 1000,
-                        "filter": "contains",
-                    }).data("kendoDropDownList");
-                });
+
             },
             productChange: function (e) {
                 var data = e.sender.dataItem();
@@ -295,7 +317,7 @@
         </td>
         <td>
             <div class="form-group">
-                <input data-problem="productId" disabled class="k-input form-control" />
+                <input data-problem="productId"  class="k-input form-control" />
             </div>
         </td>
         <td>

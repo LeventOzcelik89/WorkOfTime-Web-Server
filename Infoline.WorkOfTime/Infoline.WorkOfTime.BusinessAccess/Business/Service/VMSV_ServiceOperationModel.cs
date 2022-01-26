@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<VWPRD_ProductionProduct> expens { get; set; }
         public VWPRD_Transaction Transaction { get; set; }
         public List<VWPRD_ProductMateriel> TreeProduct { get; set; } = new List<VWPRD_ProductMateriel>();
-        public List<VWPRD_Product> ServiceNotifications { get; set; }
+        public List<VWPRD_ProductMateriel> ServiceNotifications { get; set; }
         public short Type { get; set; }
         public Guid? storageId { get; set; }
         public VMSV_ServiceOperationModel Load()
@@ -262,7 +262,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         createdby = this.createdby,
                         dataId = item.id,
                         pid = this.id,
-                        description = db.GetVWPRD_ProductById(item.id)?.currentServicePrice.ToString() ?? "",
+                        description = (db.GetVWPRD_ProductById(item.id)?.currentServicePrice*item.quantity).ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = this.serviceId,
                         status = (short)EnumSV_ServiceOperation.ServicePriceAdded
@@ -324,6 +324,30 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.dataId = transModelCompanyId.id;
                 result &= transModelCompanyId.Save(this.createdby, trans);
             }
+            else
+            {
+                var transModelCompanyId = new VMPRD_TransactionModel
+                {
+                    inputId = null,
+                    inputTable = "CMP_Storage",
+                    inputCompanyId = null,
+                    outputCompanyId = getInventory.lastActionDataCompanyId,
+                    outputId = getInventory.lastActionDataId,
+                    created = this.created,
+                    createdby = this.createdby,
+                    status = (int)EnumPRD_TransactionStatus.islendi,
+                    items = new List<VMPRD_TransactionItems> { transItem },
+                    date = DateTime.Now,
+                    code = BusinessExtensions.B_GetIdCode(),
+                    type = (short)EnumPRD_TransactionType.TeknikServisCikis,
+                    id = Guid.NewGuid(),
+                };
+                this.dataTable = "PRD_Transaction";
+                this.dataId = transModelCompanyId.id;
+                result &= transModelCompanyId.Save(this.createdby, trans);
+            }
+            
+         
             result &= this.Save(userId, null, trans);
             if (result.result)
             {
@@ -413,7 +437,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var service = new VMSV_ServiceModel { id = serviceId }.Load();
                 service.stage = (int)EnumSV_ServiceStages.Fixing;
-                result &= service.Save(userId, null, trans);
+                service.changedby = userId;
+                service.changed = DateTime.Now;
+                result = db.UpdateSV_Service(service.B_ConvertType<SV_Service>(),false,trans);
+            
                 result &= new VMSV_ServiceOperationModel
                 {
                     created = this.created,

@@ -1,0 +1,84 @@
+﻿@{
+    ViewBag.Title = "Bayi Personelleri Listesi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<div class="col-sm-2">
+   
+        <a class="btn btn-block btn-primary" style="margin-bottom:20px" data-task="Insert" data-method="GET" data-href="@Url.Action("SendCompanyCodeMail", "VWSH_User", new { area = "SH",IsMyStaff = true })"><i class="fa fa-mail-forward"></i> Bayi Kodu Gönder</a>
+ 
+    <ul class="folder-list m-b-md" style="padding: 0">
+        <li class="clearfix">
+            <a href="#" data-grid="VWSH_User" data-switch="radio" data-category="1" data-query="type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'">
+                <i class="fa fa-list"></i>  Tümü
+                <span data-counturl="/SH/VWSH_User/DataSourceCount?filter=type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'" class="badge badge-success pull-right">0</span>
+            </a>
+            <a href="#" data-grid="VWSH_User" data-switch="radio" data-category="1" data-query="type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'~and~status~eq~false">
+                <i class="fa fa-spinner text-warning"></i>  Onay Bekleyenler
+                <span data-counturl="/SH/VWSH_User/DataSourceCount?filter=type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'~and~status~eq~0" class="badge badge-warning pull-right">0</span>
+            </a>
+            <a href="#" data-grid="VWSH_User" data-switch="radio" data-category="1" data-query="type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'~and~status~eq~true">
+                <i class="fa fa-check text-primary"></i>  Onaylananlar
+                <span data-counturl="/SH/VWSH_User/DataSourceCount?filter=type~eq~'@((int)(EnumSH_UserType.CompanyPerson))'~and~status~eq~1" class="badge badge-primary pull-right">0</span>
+            </a>
+          
+        </li>
+    </ul>
+</div>
+<div class="col-sm-10">
+    @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_User>("VWSH_User")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_User", new { area = "SH" }))
+                    .PageSize(25)
+                    .Sort(a => a.Add(c => c.FullName))
+                    .Filter(a => a.type == (int)(EnumSH_UserType.CompanyPerson)))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .Filterable(a => a.Mode(GridFilterMode.Row))
+                    .Scrollable(a => a.Height(650))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.searchField).Title("Personel Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('personelTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        x.Bound(y => y.code).Title("Personel Kodu").Width(180).Hidden(true);
+                        x.Bound(y => y.IdentificationNumber).Title("TC Kimlik No").Width(180).Hidden(true);
+                        x.Bound(y => y.firstname).Title("Ad").Width(180).Hidden(true);
+                        x.Bound(y => y.lastname).Title("Soyad").Width(180).Hidden(true);
+                        x.Bound(y => y.Gender_Title).Title("Cinsiyet").Hidden(true);
+                        x.Bound(y => y.title).Title("Ünvan").Hidden(true);
+                        x.Bound(y => y.Company_Title).Title("Çalıştığı Şirket").Width(180).Hidden(true);
+                        x.Bound(y => y.Department_Title).Title("Çalıştığı Departman").Width(180).Hidden(true);
+                        x.Bound(y => y.birthday).Title("Doğum Tarihi").Width(180).Format(Extensions.DateFormatShort(true)).Hidden(true);
+                        x.Bound(y => y.cellphone).Title("Şahsi Cep Telefonu").Width(180).Hidden(true);
+                        x.Bound(y => y.email).Title("Email").Width(180).Hidden(true);
+                        x.Bound(y => y.address).Title("Adres").Width(180).Hidden(true);
+                        x.Bound(y => y.companyCellPhone).Title("Şirket Cep Telefonu").Width(180).Hidden(true);
+                        x.Bound(y => y.JobStartDate).Title("İşe Giriş Tarihi").Format(Extensions.DateFormatShort(true)).Hidden(true);
+                        x.Bound(y => y.PersonWorkingCount).Title("Toplam Çalışılan Gün").Hidden(true);
+                        x.Bound(y => y.PersonWorking).Title("Toplam Çalışma Süresi").Hidden(true);
+                    })
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i class='fa fa-check' data-original-title='Personeli Onayla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "id", "confirm" } }).Url(Url.Action("Confirm", "VWSH_User", new { area = "SH" }));
+                        x.Custom().Text("<i class='fa fa-edit' data-original-title='Personel Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_User", new { area = "SH" }));
+                        x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Personel Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" },{"data-blank","" } }).Url(Url.Action("Detail", "VWSH_User", new { area = "SH" }));
+                        x.Custom().Text("<i class='icon-mail-1'  data-original-title='Yeni Şifre Gönder'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Şifre sıfırlamak istediğinizden eminmisiniz." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
+                        x.Custom().Text("<i class='fa fa-trash' data-original-title='Personeli Tamamen Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Kullanıcı bilgileri tamamen silinecektir. Eğer daha önce yapılan ödeme işlemi varsa, muhasebe verileri de etkilenecektir. Bu işlemi yapmak istediğinizden emin misiniz?" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
+
+                    })
+                )
+</div>
+<script type="text/javascript">
+    $("#VWSH_User").on("selected:grid", function () {
+        var data = $("#VWSH_User").data("handler");
+        var item = data.dataItem(data.select());
+        if (item == null) {
+            $("#confirm").hide();
+        }
+        if (item.status) {
+            $("#confirm").hide();
+        }
+        else {
+            $("#confirm").show();
+        }
+    });
+</script>

@@ -955,6 +955,64 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             }
             return Content(Infoline.Helper.Json.Serialize(result), "application/json");
         }
+        [PageInfo("Şirketin Kodunu Gönderme Sayfası", SHRoles.IKYonetici)]
+        public ActionResult SendCompanyCodeMail()
+        {
+            return View();
+        }
+        [PageInfo("Şirketin Kodunu Gönderme Sayfası", SHRoles.IKYonetici)]
+        [HttpPost]
+        public JsonResult SendCompanyCodeMail(VMSH_UserModel model)
+        {
+            if (model.CompanyId==null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (model.email==null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("E-Posta Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            model.SendCompanyCode();
+
+
+
+
+            return Json(new ResultStatusUI { FeedBack = new FeedBack().Success("Bayi Kodu Gönderildi"), Result = true }, JsonRequestBehavior.AllowGet);
+        }
+
+        [PageInfo("Şirket Personel Listesi", SHRoles.IKYonetici)]
+        public ActionResult CompanyPersonIndex()
+        {
+            return View();
+        }
+        [PageInfo("Şirket Personeli Onaylama", SHRoles.IKYonetici)]
+        public JsonResult Confirm(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var findUser = db.GetSH_UserById(id);
+            if (findUser == null)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Böyle Bir Kullanıcı Yok!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (findUser.type != (short)EnumSH_UserType.CompanyPerson)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Kullanıcı Bayi Personeli Tipinde Değildir!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            if (findUser.status == true)
+            {
+                return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Kullanıcı Zaten Onaylanmış!"), Result = false }, JsonRequestBehavior.AllowGet);
+            }
+            findUser.status = true;
+            var result = db.UpdateSH_User(findUser);
+            if (result.result)
+            {
+                SendPassword(new VMSH_UserModel {id=id});
+            }
+            return Json(new ResultStatusUI {
+                FeedBack = result.result? new FeedBack().Success("Kullanıcı Aktifleştirildi. E-Posta Gönderildi"): new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
+                Result = result.result
+            }, JsonRequestBehavior.AllowGet);
+        }
     }
 }
 

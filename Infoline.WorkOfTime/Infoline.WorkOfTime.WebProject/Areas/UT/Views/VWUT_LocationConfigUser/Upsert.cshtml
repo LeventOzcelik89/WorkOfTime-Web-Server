@@ -1,4 +1,4 @@
-﻿@model VMUT_LocationConfigUserModel
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
 @{
     ViewBag.Title = "Personel Bilgileri Detayı";
 }
@@ -14,7 +14,7 @@
             $("#inputgroupid").removeClass("hide");
 
         }
-        if (sender.id == "") {
+        if (sender.id=="") {
             $("#inputgroupid").addClass("hide");
         }
     }
@@ -36,7 +36,7 @@
 
 
 
-<form action="@Url.Action("Update", "SH_UserLocationTrackingController" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+<form action="@Url.Action("Upsert", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
@@ -75,7 +75,7 @@
                 .Execute()
                 )
                         <div class="input-group-addon" id="inputgroupid">
-                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
+                            <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@(Model != null ? Model.locationConfigId : null)" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
                         </div>
                     </div>
                 </div>
@@ -93,3 +93,10 @@
     </div>
 
 </form>
+
+<div class="row" data-cascade="[name='isTrackingActive']" data-show="1">
+    <hr />
+    <div class="col-md-12">
+        @Html.Partial("~/Areas/UT/Views/VWUT_LocationConfigUser/MapOverView.cshtml", Model)
+    </div>
+</div>

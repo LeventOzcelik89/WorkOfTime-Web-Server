@@ -254,7 +254,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         private ResultStatus Update()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>(), true, this.trans);
+            var result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>(), false, this.trans);
             result &= Customer.Save(this.createdby, null, this.trans);
             var getAllProblems = db.GetVWSV_DeviceProblemsByServiceId(this.id);
             var getAllCameWith = db.GetVWSV_DeviceCameWithByServiceId(this.id);
@@ -265,6 +265,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 foreach (var problem in Problems)
                 {
                     problem.serviceId = this.id;
+                    problem.type = (int)EnumSV_DeviceProblemType.Customer;
                     result &= problem.Save(this.createdby, null, this.trans);
                 }
             }
@@ -514,11 +515,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     ButtonPermission.Add(EnumSV_ServiceActions.CostAccepted);
                     ButtonPermission.Add(EnumSV_ServiceActions.CostDenied);
+                    ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
                 }
-               
                 ButtonPermission.Add(EnumSV_ServiceActions.NextStage);
                 ButtonPermission.Add(EnumSV_ServiceActions.TransferStart);
-                ButtonPermission.Add(EnumSV_ServiceActions.AskCustomer);
+            
 
 
             }
@@ -554,6 +555,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public ResultStatus NextStage(Guid userId, DbTransaction trans = null)
         {
 
+            db= db ?? new WorkOfTimeDatabase();
             var result = new ResultStatus { result = true };
             this.Load();
             if (this.stage == (int)EnumSV_ServiceStages.Delivery)
@@ -565,7 +567,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 this.stage++;
             }
             this.stage++;
-            this.Save(userId, null, trans);
+            this.changedby = userId;
+            this.changed = DateTime.Now;
+            result = db.UpdateSV_Service(this.B_ConvertType<SV_Service>());
             return result;
 
 

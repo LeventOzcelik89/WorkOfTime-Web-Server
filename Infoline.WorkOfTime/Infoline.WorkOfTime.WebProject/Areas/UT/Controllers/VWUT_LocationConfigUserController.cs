@@ -87,16 +87,28 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return View(data);
         }
         [AllowEveryone]
-        public JsonResult Upsert(VMUT_LocationConfigUserModel model) {
+        public ActionResult Upsert(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWUT_LocationConfigUserById(id);
+            return View(data);
+        }
+        [HttpPost]
+        [AllowEveryone]
+        public JsonResult Upsert(UT_LocationConfigUser item)
+        {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
 
-            var dbresult = model.Save(userStatus.user.id);
+            item.changed = DateTime.Now;
+            item.changedby = userStatus.user.id;
+
+            var dbresult = db.UpdateUT_LocationConfigUser(item);
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);

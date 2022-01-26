@@ -139,7 +139,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
             {
                 foreach (var item in model.Problems)
                 {
-                    item.type = 1;
+                    item.type = (short)EnumSV_DeviceProblemType.Service;
                     item.serviceId = model.serviceId;
                     item.inventoryId = model.inventoryId;
                     dbresult &= item.Save(userStatus.user.id, null, trans);
@@ -159,7 +159,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
                     {
 
                         dataId = item.id,
-                        description = db.GetVWPRD_ProductById(item.id)?.currentSellingPrice.ToString() ?? "0",    
+                        description = (db.GetVWPRD_ProductById(item.id)?.currentServicePrice * item.quantity).ToString() ?? "",
                         dataTable = "PRD_Product",
                         serviceId = model.serviceId,
                         status = (short)EnumSV_ServiceOperation.ServicePriceAdded

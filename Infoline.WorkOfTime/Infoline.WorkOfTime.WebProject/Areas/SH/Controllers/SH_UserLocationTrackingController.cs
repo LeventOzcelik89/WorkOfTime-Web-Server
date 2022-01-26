@@ -58,6 +58,57 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(locationTrackingDatas), "application/json");
         }
 
+        [AllowEveryone]
+        public ActionResult Update(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWUT_LocationConfigUserById(id);
+            return View(data);
+        }
+
+        [AllowEveryone]
+        public JsonResult Update (VMUT_LocationConfigUserModel model)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+
+            var dbresult = model.Save(userStatus.user.id);
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [AllowEveryone]
+        public ActionResult Insert()
+        {
+            var data = new VWUT_LocationConfigUser { id = Guid.NewGuid() };
+            return View(data);
+        }
+
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [AllowEveryone]
+        public JsonResult Insert(UT_LocationConfigUser item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            item.created = DateTime.Now;
+            item.createdby = userStatus.user.id;
+            var dbresult = db.InsertUT_LocationConfigUser(item);
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
 
 
         //[AllowEveryone]
