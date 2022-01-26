@@ -727,12 +727,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.Roles = new List<Guid> {
                 new Guid(SHRoles.BayiPersoneli)
             };
-            var getCompanyByCode = db.GetCMP_CompanyByCode(this.CompanyCode);
-            if (getCompanyByCode == null)
-            {
-                return new ResultStatus { message = "Girilen Bayi Koduna Ait Bayi Yoktur", result = false };
-            }
-            this.CompanyId = getCompanyByCode.id;
             this.status = false;
             this.type = (short)EnumSH_UserType.CompanyPerson;
             var result = this.Save();

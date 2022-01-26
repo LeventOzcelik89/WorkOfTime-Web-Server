@@ -641,7 +641,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return Content(Helper.Json.Serialize(new object { }), "application/json");
         }
         [AllowEveryone]
-        public ActionResult CustomerSignUp(string companyCode)
+        public ActionResult CustomerSignUp(Guid companyId)
         {
             var signQrCore = new SignQrCore
             {
@@ -659,7 +659,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 
             ViewBag.ServiceUrl = Infoline.Helper.Json.Serialize(signQrCore);
             ViewBag.returnUrl = Request.QueryString["returnUrl"];
-            return View(new VMSH_UserModel {CompanyCode=companyCode });
+            return View(new VMSH_UserModel {CompanyId=companyId});
         }
         [AllowEveryone]
         [HttpPost]

@@ -27,7 +27,6 @@
     <link href="~/Content/Plugins/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
     <link href="~/Content/Customers/@TenantConfig.Tenant.TenantCode/css/layout.css" rel="stylesheet" />
     <!--Default-->
- 
     <!--Kendo-->
     <link lang="tr" href="~/Content/Kendo/css/kendo.common-material.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/Kendo/css/kendo.mobile.all.min.css" rel="stylesheet" type="text/css" />
@@ -91,7 +90,7 @@
     <!--Language-->
     <script src="~/Content/Custom/js/master.js?v=5"></script>
 
-    
+
 
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
@@ -129,6 +128,9 @@
     <link href="~/Content/Customers/@Infoline.WorkOfTime.BusinessAccess.TenantConfig.Tenant.TenantCode/css/accountlayout.css" rel="stylesheet" />
 
     <style type="text/css">
+        .theme-config{
+            display:none!important;
+        }
         body {
             position: relative;
             overflow: hidden;
@@ -144,7 +146,6 @@
         }
 
         #layout {
-            position: fixed;
             height: 100%;
         }
 
@@ -317,20 +318,23 @@
                     @Html.HiddenFor(a => a.CapthcaCode)
 
                     <div id="loginForm">
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="control-label hide">Lütfen E-Posta İle Birlikte Gelen Bayi Kodunuzu Giriniz</label>
-                                @Html.TextBoxFor(model => model.CompanyCode, new Dictionary<string, object>() {
-                                    {"class","form-control"},
-                                    {"autocomplete","off"},
-                                    {"tabindex","1"},
-                                    {"placeholder", "Lütfen E-Posta İle Birlikte Gelen Bayi Kodunuzu Giriniz" }
-                                }).Validate(Validations.Required)
+                        <div class="form-group">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="companyId">Bayi Seçiniz</label>
+                                @(Html.Akilli()
+                                .DropDownListFor(x => x.CompanyId)
+                                .OptionLabel("Bayi Seçiniz..")
+                                .DataTextField("fullName")
+                                .DataValueField("id")
+                                .Action(b => b.Action("DataSourceDropDownForAccount", "VWCMP_Company", new { area = "CMP" }))
+                                .Filter<Infoline.WorkOfTime.BusinessData.VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))
+                                .Sort(x => x.Add("name").Ascending())
+                                .Execute("id").Validate(Validations.Required))
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-6 col-lg-6 col-xs-12">
                             <div class="form-group">
-                                <label class="control-label hide">Lütfen T.C. kimlik No Giriniz</label>
+                                <label class="control-label ">Lütfen T.C. kimlik No Giriniz</label>
                                 @Html.TextBoxFor(model => model.loginname, new Dictionary<string, object>() {
                                     {"class","form-control"},
                                     {"autocomplete","off"},
@@ -339,7 +343,7 @@
                                 }).Validate(Validations.Required)
                             </div>
                             <div class="form-group">
-                                <label class="control-label hide">Lütfen Ünvan Giriniz</label>
+                                <label class="control-label ">Lütfen Ünvan Giriniz</label>
                                 @Html.TextBoxFor(model => model.title, new Dictionary<string, object>() {
                                     {"class","form-control"},
                                     {"autocomplete","off"},
@@ -348,7 +352,7 @@
                                 }).Validate(Validations.Required)
                             </div>
                             <div class="form-group">
-                                <label class="control-label hide">Lütfen Adınızı Giriniz</label>
+                                <label class="control-label ">Lütfen Adınızı Giriniz</label>
                                 @Html.TextBoxFor(model => model.firstname, new Dictionary<string, object>() {
                                     {"class","form-control"},
                                     {"autocomplete","off"},
@@ -357,7 +361,7 @@
                                 }).Validate(Validations.Required)
                             </div>
                             <div class="form-group">
-                                <label class="control-label hide">Lütfen Soyadınızı Giriniz</label>
+                                <label class="control-label ">Lütfen Soyadınızı Giriniz</label>
                                 @Html.TextBoxFor(model => model.lastname, new Dictionary<string, object>() {
                                     {"class","form-control"},
                                     {"autocomplete","off"},
@@ -366,7 +370,7 @@
                                 }).Validate(Validations.Required)
                             </div>
                             <div class="form-group">
-                                <label class="control-label pull-left hide   " style="margin-right:15px">Lütfen Doğum Tarihinizi Girin</label>
+                                <label class="control-label pull-left    " style="margin-right:15px">Lütfen Doğum Tarihinizi Girin</label>
                                 @(Html.Akilli()
                                     .DatePickerFor(model => model.birthday).Max(DateTime.Now.AddYears(-15))
                                     .Validate(Validations.Required)
@@ -377,8 +381,8 @@
                                 <div class="col-md-4">
                                     <label class="control-label label-md hide" for="cellphone">Şahsi Cep Telefonu</label>
                                 </div>
-                               
-                                    @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
+
+                                @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
                                     {
                                         { "style", "width: 100%"},
                                         {"class", "form-control"},
@@ -386,18 +390,18 @@
                                     })
                                     .Mask("0 (000) 000 00 00")
                                     .UnmaskOnPost(true))
-                                                 
+
                             </div>
 
 
                         </div>
                         <div class="col-sm-12 col-md-6 col-lg-6 col-xs-12">
                             <div class="form-group">
-                            
-                                    <label class="control-label label-md hide" for="phone">Sabit Telefonu</label>
-                               
-                                
-                                    @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
+
+                                <label class="control-label label-md " for="phone">Sabit Telefonu</label>
+
+
+                                @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
                                      {
                                          { "style", "width: 100%"},
                                          {"class", "form-control"},
@@ -405,10 +409,10 @@
                                      })
                                      .Mask("0 (000) 000 00 00")
                                      .UnmaskOnPost(true))
-                                </div>
-                            
+                            </div>
+
                             <div class="form-group">
-                                <label class="control-label hide">Lütfen Email Adresiniz Giriniz</label>
+                                <label class="control-label ">Lütfen Email Adresiniz Giriniz</label>
                                 @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
                                      {
                                          {"placeholder","Lütfen E Mail Adresi Giriniz(test@test.com)"},
@@ -443,7 +447,7 @@
 
                             </div>
                             <div class="form-group">
-                                <label class="control-label label-md hide" for="companyOfficePhone">Şirket Ofis Telefonu / Kısa Kod</label>
+                                <label class="control-label label-md " for="companyOfficePhone">Şirket Ofis Telefonu / Kısa Kod</label>
                                 <div class="row" style="margin-right:0px;margin-left:0px;">
                                     <div class="col-md-8" style="padding-left:0px!important">
                                         @(Html.Kendo().MaskedTextBoxFor(a => a.companyOfficePhone).HtmlAttributes(new Dictionary<string, object>()
@@ -468,7 +472,7 @@
                             </div>
                             <div class="form-group">
 
-                                <label class="control-label label-md hide" for="address">Açık Adres</label>
+                                <label class="control-label label-md " for="address">Açık Adres</label>
 
 
                                 @Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
