@@ -24,6 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public DbTransaction trans { get; set; }
         public List<SYS_BlockMail> blockMailList { get; set; }
         public string CompanyCode { get; set; }
+        public bool? sendMail { get; set; } = false;
         public ResultStatus Save(DbTransaction _trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -720,9 +721,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
 
-            if (string.IsNullOrEmpty(this.CompanyCode))
+            if (!this.CompanyId.HasValue)
             {
-                return new ResultStatus { message = "Bayi Kodu Boş Olamaz", result = false };
+                return new ResultStatus { message = "Bayi Boş Olamaz", result = false };
             }
             this.Roles = new List<Guid> {
                 new Guid(SHRoles.BayiPersoneli)
@@ -732,15 +733,42 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var result = this.Save();
             if (result.result)
             {
-                //mail gönder
+
+                SendFirstCustomerMail();
+                var Iks = db.GetVWSH_UserByRoleId(SHRoles.IKYonetici);
+                if (Iks!=null&&Iks.Count()>0)
+                {
+                    foreach (var item in Iks)
+                    {
+                        SendFirstCustomerMailToIK(item);
+                    }
+                }
             }
             return result;
+        }
+        public void SendFirstCustomerMail()
+        {
+            db = db ?? new WorkOfTimeDatabase();
 
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var getCompany = db.GetCMP_CompanyById(this.CompanyId.Value);
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} | WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman size gelen e-posta ile sisteme giriş yapabilirsiniz</p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+        }
+        public void SendFirstCustomerMailToIK(VWSH_User user)
+        {
+            db = db ?? new WorkOfTimeDatabase();
 
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde {getCompany.fullName} için {this.firstname} {this.lastname} adlı kullanıcı  üyelik istedinde bulunmuştur.</p>" +
+                 $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
-
-
-
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
         }
     }
 

@@ -172,6 +172,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             item.changedby = userStatus.user.id;
             item.changed = DateTime.Now;
             var dbresult = item.Save();
+            if (dbresult.result==true&&item.sendMail==true)
+            {
+                item.SendPassword();
+            }
             return Json(new ResultStatusUI(dbresult), JsonRequestBehavior.AllowGet);
         }
 
@@ -1013,6 +1017,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 Result = result.result
             }, JsonRequestBehavior.AllowGet);
         }
+        [PageInfo("Bayi Personelleri Güncellemeye Yarayan Sayfa", SHRoles.IKYonetici)]
+        public ActionResult UpdateCompanyCustomer(VMSH_UserModel item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var model = item.Load();
+            model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(model.id, "SH_User");
+            return View(model);
+        }
+
     }
 }
 

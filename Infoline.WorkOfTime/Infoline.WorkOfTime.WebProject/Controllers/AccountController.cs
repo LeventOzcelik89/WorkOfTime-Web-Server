@@ -641,8 +641,16 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return Content(Helper.Json.Serialize(new object { }), "application/json");
         }
         [AllowEveryone]
-        public ActionResult CustomerSignUp(Guid companyId)
+        public ActionResult CustomerSignUp(Guid? companyId)
         {
+            if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
+            {
+
+            }
+            else
+            {
+                return View("Index");
+            }
             var signQrCore = new SignQrCore
             {
                 WebServiceUrl = TenantConfig.Tenant.GetWebServiceUrl(),
@@ -674,7 +682,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             {
                 Result = dbresult.result,
                 FeedBack = dbresult.result
-                    ? feedback.Success("Kaydınızı Alınmıştır. Onaylantıkdan sonra şifreniz epostanıza düşecektir.")
+                    ? feedback.Success("Kaydınızı Alınmıştır",false,Url.Action("SignIn", "Account"))
                     : feedback.Warning(dbresult.message)
             };
 
