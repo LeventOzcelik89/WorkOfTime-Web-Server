@@ -14,13 +14,14 @@
         border-radius: 100%;
         z-index: 3;
         position: absolute;
-        top: -33px;
-        left: -19px;
+        top: -30px;
+        left: -18px;
     }
 
     .marker {
         position: relative;
         height: 60px;
+        cursor: pointer;
     }
 
     .overlay {
@@ -32,7 +33,6 @@
         position: center;
         height: 43px;
     }
-
 </style>
 
 @section Javascript{
@@ -195,8 +195,8 @@
                     })
                 });
 
-                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/GreenMark.png");
-                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/mark.png");
+                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarkNew1.png");
+                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarkNew1.png");
 
                 page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
                 page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
@@ -238,7 +238,7 @@
 
                     feature.set("properties", item);
                     page.dfn.harita.overlay.add("overlay_" + item.id, '<img onerror="ImageError(this, \'/Content/Custom/img/na.png\')" src="' + '@TenantConfig.Tenant.GetWebUrl()' + item.ProfilePhoto + '" />', 'marker', "center-center", feature.getGeometry().getCoordinates());
-                    
+
 
 
                 });
@@ -247,7 +247,7 @@
                 var redCounts = page.dfn.harita.layer.get('RedMark')['RedMark'].getSource().getFeatures().length;
                 $("#infourhour").text("(" + greenCounts + ")");
                 $("#outfourhour").text("(" + redCounts + ")");
-                
+
 
                 @*$.each($.Enumerable.From(trackingDatas).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray())
 
@@ -347,12 +347,15 @@
                 }
             },
             search: function (_this) {
-                var type = $(_this).attr("data-content");
                 var key = $(_this).val();
-
-                page.loadPanelData(type, key);
+                $.each($('#personAllTemp .card'), function (e, item) {
+                    if ($(item).find('[data-id="userId_Title"]').text().toLowerCase().indexOf(key.toLowerCase()) > -1 == true) {
+                        $(item).removeClass('hide');
+                    } else {
+                        $(item).addClass('hide');
+                    }
+                });
             },
-
             getPersonDetailForHover: function (data) {
                 var person = page.defines.filteredData;
                 var text = '<div class="item">                                                                                  ' +
@@ -389,7 +392,7 @@
                 //    html.find('[data-id="personelPhoto"]').attr('src', prop.ProfilePhoto);
                 //    $('#personTemplate').append()
                 //    $('<li data-id="' + data.id + '" >' + '<div><span><img src="' + (data.ProfilePhoto != null ? data.ProfilePhoto : '"~/Content/Custom/img/na.png"') + '" style="width: 30px; height:30px;"></img></span><span>' + "   " + '</span><span>' + data.userId_Title + '</span></div>' + '</li>').appendTo($('#PersonelList').find('ul'));
-               
+
 
 
                 $('#personAllTemp').html(null);
@@ -421,7 +424,7 @@
 
                     });
 
-                
+
                     //  data-id="title" data-id="configName" data-id="isTrackingActive"
 
                     $('#personAllTemp').append(html);
@@ -480,6 +483,7 @@
 
                         page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
                         page.dfn.harita.map.updateSize();
+
                     }
                 }
             })
@@ -557,7 +561,7 @@
 
     <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px;">
         <div class="btn-container">
-            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="top" data-original-title="Renklendirme Bilgisi"><i class="fa fa-adjust"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="top" data-original-title="Renklendirme Bilgisi"><i class="fa fa-info"></i></button>
         </div>
         <div id="ColorInfo" class="color-bar">
             <table class="slider">
@@ -582,11 +586,19 @@
         <div class="pan-container-2">
 
             <div>
-                <h3 style="color:white;">PERSONEL LİSTESİ</h3>
-                <button class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"><i class="fa fa-plus-square-o"></i></button>
+                <h3 class="pan-head clearfix" style="color:white;">PERSONEL LİSTESİ</h3>
+                <a class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"></a>
+
+
+                <div class="inputContainer">
+                    <i class="fa fa-search"></i>
+                    <input type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
+                </div>
+
             </div>
 
-            <div style="height: 94%; overflow-y: scroll;" id="personAllTemp"></div>
+
+            <div style="height: calc(100% - 72px); overflow-y: scroll;" id="personAllTemp"></div>
         </div>
         <div class="pan-container">
             <div id="personTemplate"></div>
@@ -648,13 +660,13 @@
                     </div>
                 </div>
             </div>
-            <div class="col-md-12">
+            <div class="col-md-12 btnPersonelKonum">
                 <div class="row">
-                    <div class="col-md-3">
-                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userDetail">Detay</a>
+                    <div class="col-md-6 btnpersonelDetayı">
+                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userDetail">Personel Detayı</a>
                     </div>
-                    <div class="col-md-3">
-                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userId">Konumlar</a>
+                    <div class="col-md-6 btnKonumDetayı">
+                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userId">Konum Detayı</a>
                     </div>
                 </div>
             </div>
@@ -667,10 +679,76 @@
 
 <style type="text/css">
 
-    .btnDetail {
-        border-radius: 243px;
-        padding: 6px;
+
+    .btnKonumDetayı {
+        width: 127px;
     }
+
+    .btnpersonelDetayı {
+        margin-left: -35px;
+    }
+
+    .btnPersonelKonum {
+        margin-top: -27px;
+    }
+
+    .inputContainer {
+        display: block;
+        width: 81%;
+        margin-left: 43px;
+        position: relative;
+        margin-top: -30px;
+    }
+
+    .btnDetail {
+        position: relative;
+        display: inline-flex;
+        width: 30px;
+        height: 23px;
+        margin: 0 2px;
+        perspective: 1000px;
+        margin-top:15px;
+    }
+
+    .btnDetail {
+        font-size: 19px;
+        letter-spacing: 1px;
+        transform-style: preserve-3d;
+        transform: translateZ(-25px);
+        transition: transform .25s;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+        .btnDetail:before,
+        .btnDetail:after {
+            position: absolute;
+            content: "+";
+            width: 30px;
+            height: 23px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 5px solid #fff;
+            box-sizing: border-box;
+            border-radius: 5px;
+        }
+
+        .btnDetail:before {
+            color: #000;
+            background: #fff;
+            transform: rotateY(0deg) translateZ(25px);
+        }
+
+        .btnDetail:after {
+            color: white;
+            border: 5px solid #1ab394;
+            transform: rotateX( 89deg ) translateZ(25px);
+            background: #1ab394;
+        }
+
+        .btnDetail:hover {
+            transform: translateZ(-25px) rotateX(-89deg);
+        }
 
     .card img {
         width: 50px;
@@ -700,15 +778,15 @@
 </style>
 
 <script type="text/template" id="PersonelList">
-    
+
     <div class="card">
         <div class="row">
             <div class="col-md-3">
-                <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" src="/Content/Custom/img/na.png"/>
+                <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" src="/Content/Custom/img/na.png" />
             </div>
             <div class="col-md-9">
-                <a class="btn btn-xs btn-warning pull-right" data-id="btnbtn" data-original-title="Düzenle"><i class="fa fa-pencil"></i></a>
-                <a class="btn btn-xs btn-warning pull-right" style="margin-right:2%;" data-id="btnLocation" data-original-title="Lokasyon"><i class="fa fa-map-marker"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" data-original-title="Düzenle"><i class="fa fa-pencil"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-original-title="Lokasyon"><i class="fa fa-map-marker"></i></a>
 
                 <h4 data-id="userId_Title"></h4>
                 <div class="text-muted" data-id="title"></div>
@@ -1171,12 +1249,10 @@
             background: rgba(0,0,0,0.17);
             border-radius: 10px;
             margin-top: 10px;
-            max-width: 370px;
-            min-height: 100px;
-            padding: 20px;
+            padding: 10px;
             position: relative;
-            width: 100%;
             overflow: hidden;
+            margin-right: 10px;
         }
 
             .card .header {
