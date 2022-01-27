@@ -907,16 +907,7 @@ namespace Infoline.WorkOfTime.Controllers
             var users = db.GetSH_GroupUsersByGroupId(id);
             return Json(users, JsonRequestBehavior.AllowGet);
         }
-        [AllowEveryone]
-        public JsonResult GetUT_LocationConfigUserById(Guid id)
-        {
-            var db = new WorkOfTimeDatabase();
-            var userLocation = db.GetUT_LocationConfigUserByUserIdGetConfigIds(id);
-            return Json(new ResultStatusUI
-            {
-                Result = userLocation.Count() > 0 ? true : false
-            },JsonRequestBehavior.AllowGet);
-        }
+        
 
         public JsonResult GetProductMaterials(Guid productId)
         {

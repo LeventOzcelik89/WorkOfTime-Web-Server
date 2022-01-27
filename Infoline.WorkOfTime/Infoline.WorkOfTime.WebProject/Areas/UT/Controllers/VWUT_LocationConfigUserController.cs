@@ -52,32 +52,56 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return View(data);
         }
 
-        [PageInfo("Lokasyon Takip Ekleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        public ActionResult Insert()
+        [AllowEveryone]
+        public ActionResult Insert(Guid? id = null)
         {
-            var data = new VWUT_LocationConfigUser { id = Guid.NewGuid() };
-            return View(data);
+
+            if (id != null)
+            {
+                var db = new WorkOfTimeDatabase();
+                var data = db.GetVWUT_LocationConfigUserById(id.Value);
+                return View(data);
+            }
+            else
+            {
+                return View(new VWUT_LocationConfigUser());
+            }
+
         }
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Lokasyon Takip Ekleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        [AllowEveryone]
         public JsonResult Insert(UT_LocationConfigUser item)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-            item.created = DateTime.Now;
-            item.createdby = userStatus.user.id;
-            var dbresult = db.InsertUT_LocationConfigUser(item);
+            var dbresult = new ResultStatus { result = true };
+
+            var dbRow = db.GetUT_LocationConfigUserByUserId(item.userId.Value);
+            if (dbRow != null)
+            {
+                item.changed = DateTime.Now;
+                item.changedby = userStatus.user.id;
+                dbresult = db.UpdateUT_LocationConfigUser(item);
+            }
+            else
+            {
+                item.created = DateTime.Now;
+                item.createdby = userStatus.user.id;
+                dbresult = db.InsertUT_LocationConfigUser(item);
+            }
+
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error(dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
+
 
         [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ActionResult Update(Guid id)

@@ -1,8 +1,7 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
 @{
-    ViewBag.Title = "Anlık Personel Takip Haritası Personel Ekle";
+    ViewBag.Title = "Konum Takibi Yapılıcak Personel Tanımla";
     Layout = "~/Views/Shared/_Layout.cshtml";
-
 }
 
 <script type="text/javascript" data-selector="modalContainer">
@@ -20,12 +19,11 @@
         }
     };
 
-    function filtrePerson() {
-        debugger;
+    @*function filtrePerson(e) {
         var dropdown = this.dataItem().id;
         GetJsonDataFromUrl('@Url.Action("GetUT_LocationConfigUserById","General",new {Area="" })', { id: dropdown }, function (res) {
             if (res.Result == true) {
-                MessageWarning("Uyarı", "Personel Listede Mevcut...");
+                MesajWarning("Personel Listede Mevcut...", "Uyarı");
             }
             else {
                 return false;
@@ -36,8 +34,8 @@
         //Eğer var ise MessageWarning("asdasdsa","Mevcutta kayıy var");
         //Yoksa return false;
 
-    }
-    
+    }*@
+
     $(document)
         .on("change", "#locationConfigId", function (e, resp) {
             var dropdown = $("#locationConfigId").data("kendoDropDownList");
@@ -46,7 +44,6 @@
         })
         .on('change', '[name="isTrackingActive"]', function () {
 
-            setTimeout(function () { pageLocation.dfn.harita.map.updateSize(); }, 500);
 
         })
         ;
@@ -54,7 +51,7 @@
 
 
 
-<form action="@Url.Action("Insert", "SH_UserLocationTracking" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+<form action="@Url.Action("Insert", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
@@ -69,17 +66,17 @@
                     <label class="control-label label-md " for="userId">Personel Seçiniz</label>
                 </div>
                 <div class="col-md-6">
-                    <div class="input-group">
+                    <div class="input-group" style="width:100%">
                         @(
                             Html.Akilli()
                             .DropDownListFor(model => model.userId)
                             .OptionLabel("Lütfen Personel Belirtiniz...")
                             .DataTextField("FullName")
                             .DataValueField("id")
-                            .Events(x => x.Change("filtrePerson"))
+                            .Validate(Validations.Required)
                             .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
-                .Sort(x => x.Add("FullName").Ascending())
-                .Execute()
+                            .Sort(x => x.Add("FullName").Ascending())
+                            .Execute()
                 )
 
                     </div>
@@ -88,16 +85,7 @@
         </div>
 
 
-        <div class="col-md-12">
-            <div class="form-group">
-                <div class="col-md-6 req">
-                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
-                </div>
-                <div class="col-md-6">
-                    @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
-                </div>
-            </div>
-        </div>
+
 
         <div class="col-md-12">
             <div class="form-group">
@@ -113,6 +101,7 @@
                             .DataTextField("configName")
                             .DataValueField("id")
                             .Events(x=>x.Change("setInput"))
+                            .Validate(Validations.Required)
                             .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationConfig", new { area = "UT" }))
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
@@ -121,6 +110,17 @@
                             <a data-task="Insert" id="locationConfigDetail" data-modal="true" style="line-height: 16px;" data-original-title="Yapılandırma Bilgisi" data-href="/UT/VWUT_LocationConfig/Detail?id=@Model.locationConfigId" data-method="get"><i class="fa fa-eye" style="color:#ffffff"></i></a>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <div class="col-md-6 req">
+                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
+                </div>
+                <div class="col-md-6">
+                    @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
                 </div>
             </div>
         </div>
