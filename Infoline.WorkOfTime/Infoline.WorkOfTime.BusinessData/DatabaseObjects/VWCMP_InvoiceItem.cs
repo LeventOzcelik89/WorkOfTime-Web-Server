@@ -25,6 +25,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string createdby_Title { get; set;}
         public string changedby_Title { get; set;}
         public string Product_Title { get; set;}
+        public string Product_Image { get; set;}
         public string Unit_Title { get; set;}
         public string Currency_Title { get; set;}
         public string Currency_Symbol { get; set;}
