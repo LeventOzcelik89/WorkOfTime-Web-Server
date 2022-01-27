@@ -682,7 +682,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             {
                 Result = dbresult.result,
                 FeedBack = dbresult.result
-                    ? feedback.Success("Kaydınızı Alınmıştır",false,Url.Action("SignIn", "Account"))
+                    ? feedback.Success("Kaydınız Alınmıştır",false,Url.Action("SignIn", "Account"))
                     : feedback.Warning(dbresult.message)
             };
 
