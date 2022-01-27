@@ -1,6 +1,4 @@
-﻿@using BotDetect;
-@using BotDetect.Web.Mvc;
-@using Infoline.WorkOfTime.BusinessAccess
+﻿@using Infoline.WorkOfTime.BusinessAccess
 @model VMSH_UserModel
 @{
     var loginError = Convert.ToInt32(Session["LoginError"] ?? "0");
@@ -27,6 +25,11 @@
     <link href="~/Content/Plugins/bootstrap-toggle/css/bootstrap-toggle.min.css" rel="stylesheet" />
     <link href="~/Content/Customers/@TenantConfig.Tenant.TenantCode/css/layout.css" rel="stylesheet" />
     <!--Default-->
+    <!--Harita-->
+    <link href="~/Content/Harita/fonts/MapIcon/flaticon.css" rel="stylesheet" />
+    <link href="~/Content/Harita/css/ol.custom.css" rel="stylesheet" />
+    <link href="~/Content/Custom/css/custom.css" rel="stylesheet" />
+    <!--Harita-->
     <!--Kendo-->
     <link lang="tr" href="~/Content/Kendo/css/kendo.common-material.min.css" rel="stylesheet" type="text/css" />
     <link href="~/Content/Kendo/css/kendo.mobile.all.min.css" rel="stylesheet" type="text/css" />
@@ -90,7 +93,17 @@
     <!--Language-->
     <script src="~/Content/Custom/js/master.js?v=5"></script>
 
-
+    <!--Harita-->
+    <script src="~/Content/Harita/js/jQuery.Print.js"></script>
+    <script src="~/content/harita/data/projlist.js"></script>
+    <script src="~/content/harita/js/proj4.js"></script>
+    <script src="~/content/harita/js/turf.min.js"></script>
+    <script src="~/Content/Harita/js/ol.js"></script>
+    <script src="~/Content/Harita/js/ol.extensions.js"></script>
+    <script src="~/Content/Harita/js/ol.custom.js"></script>
+    <script src="~/Content/SYS_Files/js/InfolineFileUpload.js"></script>
+    <script type="text/javascript" async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9e6u_Aut3d04UZCx-6IvH6hTNkWMCbVI&libraries=places&callback=bindAutocomplete&region=TR"></script>
+    <!--Harita-->
 
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
 
@@ -115,7 +128,7 @@
 
             })
 
-            
+
 
             ;
     </script>
@@ -124,9 +137,10 @@
     <link href="~/Content/Customers/@Infoline.WorkOfTime.BusinessAccess.TenantConfig.Tenant.TenantCode/css/accountlayout.css" rel="stylesheet" />
 
     <style type="text/css">
-        .theme-config{
-            display:none!important;
+        .theme-config {
+            display: none !important;
         }
+
         body {
             position: relative;
             font-family: 'tt_smb',Tahoma, sans-serif;
@@ -203,69 +217,7 @@
             margin-left: 35px;
         }
 
-        @@media only screen and (max-width: 768px) {
-
-            .credit {
-                display: none !important;
-            }
-
-            #layout {
-                display: none !important;
-            }
-
-            #login {
-                box-shadow: none !important;
-                width: 100% !important;
-                position: absolute !important;
-                z-index: 9999 !important;
-                background: rgba(255, 255, 255, 0.7) !important;
-                opacity: 1 !important;
-                border-radius: 0 !important;
-                left: 0 !important;
-                transform: none !important;
-                height: 100% !important;
-                top: 0px !important;
-                margin-left: 0px !important;
-            }
-
-            .copyright {
-                color: white;
-            }
-
-            #login form {
-                padding: 10px 40px !important;
-                background: rgba(0, 0, 0, 0) !important;
-            }
-
-            #login::before {
-                background-image: url(/Content/Custom/img/loginmobilphoto.png);
-                opacity: 0.58;
-                background-size: cover;
-                content: "";
-                display: block;
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                z-index: -2;
-                opacity: 0.2;
-            }
-
-            .content {
-                margin-top: 5%;
-            }
-        }
-
-
-        .carousel-inner .item {
-            background-size: cover !important;
-            background-repeat: no-repeat !important;
-            background-attachment: fixed !important;
-            width: 100%;
-            height: 100%;
-            position: fixed;
-        }
+       
     </style>
 </head>
 
@@ -314,17 +266,31 @@
 
                     <div id="loginForm">
                         <div class="form-group">
+                            <div class="col-md-12">
+                                <label class="control-label label-md req" for="sendMail">Kayıt Tipi</label>
+                                @(Html.Akilli().RadioButtonGroupFor(a => a.searchType).Value(EnumSH_CompanySignUpType.Bayi))@*sadece evet hayır için koydum*@
+                            </div>
+                        </div>
+                        <div class="form-group" id="bayi">
                             <div class="col-sm-12">
-                                <label class="control-label label-md req" for="companyId">Bayi Seçiniz</label>
-                                @(Html.Akilli()
-                                .DropDownListFor(x => x.CompanyId)
-                                .OptionLabel("Bayi Seçiniz..")
-                                .DataTextField("fullName")
-                                .DataValueField("id")
-                                .Action(b => b.Action("DataSourceDropDownForAccount", "VWCMP_Company", new { area = "CMP" }))
-                                .Filter<Infoline.WorkOfTime.BusinessData.VWCMP_Company>(x=>(x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))&&x.type==(short)EnumCMP_CompanyType.Diger)
-                                .Sort(x => x.Add("name").Ascending())
-                                .Execute("id").Validate(Validations.Required))
+                                <label class="control-label label-md req" for="CompanyCode">Bayi Kodu Giriniz</label>
+                                @Html.TextBoxFor(model => model.CompanyCode, new Dictionary<string, object>() {
+                                            {"class","form-control"},
+                                            {"autocomplete","off"},
+                                            {"tabindex","1"},
+                                            {"placeholder", "Bayi Kodu Giriniz" }
+                                }).Validate(Validations.Required)
+                            </div>
+                        </div>
+                        <div class="form-group" id="vergi" style="display:none;">
+                            <div class="col-sm-12">
+                                <label class="control-label label-md req" for="vergi">Vergi Numarası Giriniz</label>
+                                @Html.TextBoxFor(model => model.TaxCode, new Dictionary<string, object>() {
+                                            {"class","form-control"},
+                                            {"autocomplete","off"},
+                                            {"tabindex","1"},
+                                            {"placeholder", "Vergi Numarası Giriniz" }
+                                })
                             </div>
                         </div>
                         <div class="col-sm-12 col-md-6 col-lg-6 col-xs-12">
@@ -373,10 +339,10 @@
                                     )
                             </div>
                             <div class="form-group">
-                                
-                                    <label class="control-label label-md " for="cellphone">Şahsi Cep Telefonu</label>
-                                
-                                
+
+                                <label class="control-label label-md " for="cellphone">Şahsi Cep Telefonu</label>
+
+
                                 @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
                                     {
                                         { "style", "width: 100%"},
@@ -417,7 +383,7 @@
                             </div>
                             <div class="form-group">
 
-                                <label class="control-label label-md hide" for="companyCellPhone">Şirket Cep Telefonu / Kısa Kod</label>
+                                <label class="control-label label-md" for="companyCellPhone">Şirket Cep Telefonu / Kısa Kod</label>
                                 <div class="row" style="margin-right:0px;margin-left:0px;">
                                     <div class="col-md-8" style="padding-left:0px!important">
                                         @(Html.Kendo().MaskedTextBoxFor(a => a.companyCellPhone).HtmlAttributes(new Dictionary<string, object>()
@@ -480,8 +446,8 @@
                             </div>
                         </div>
 
-                        <div class="col-sm-12 hide">
-                            <div class="form-group" >
+                        <div class="col-sm-12">
+                            <div class="form-group">
                                 <label class="control-label hide">Captcha</label>
                                 <div class="input-group m-b-xs">
                                     <div class="form-group pull-right" id="error">
@@ -490,8 +456,6 @@
                                 </div>
                             </div>
                         </div>
-                      
-
 
                         <div class="form-group clearfix">
                             <button type="submit" class="btn btn-success btn-md pull-right btn-block" id="SignIn">Kayıt Ol</button>
@@ -506,5 +470,39 @@
             </div>
         </div>
     </div>
+    <script type="text/javascript">
+        $("[name='searchType']").on("change", function () {
+            var val = parseInt($(this).val());
+            if (val == null) {
+                return;
+            }
+            if (val) {
+                $("#bayi").hide();
+                $("#CompanyCode").removeAttr("required");
+                $("#vergi").show();
+                $("#CompanyCode").attr("required", "");
+
+            }
+            else {
+                $("#bayi").show();
+                $("#CompanyCode").attr("required", "");
+                $("#vergi").hide();
+                $("#vergi").removeAttr("required");
+            }
+
+        });
+        $("form").submit(function (e) {
+            var response = grecaptcha.getResponse();
+            if (response == null) {
+            }
+            if (response.length === 0) {
+                swal("Lütfen İnsan Olduğunuz Doğrulayın!","Ben robot değilim seçeneğiniz işaretleyiniz","warning")
+                e.preventDefault();
+                return;
+            }
+
+        });
+    </script>
 </body>
+
 </html>

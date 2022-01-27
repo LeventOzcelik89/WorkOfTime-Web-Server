@@ -3,6 +3,7 @@ using Infoline.WorkOfTime.BusinessAccess.Models;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Drawing;
 using System.Linq;
@@ -25,6 +26,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public List<SYS_BlockMail> blockMailList { get; set; }
         public string CompanyCode { get; set; }
         public bool? sendMail { get; set; } = false;
+        public short searchType { get; set; }
+        public string TaxCode { get; set; }
         public ResultStatus Save(DbTransaction _trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
@@ -721,6 +724,36 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
 
+            if (this.searchType == (short)EnumSH_CompanySignUpType.Bayi)
+            {
+                if (this.CompanyCode == null)
+                {
+                    return new ResultStatus { message = "Bayi Kodu Boş Geçilemez", result = false };
+
+                }
+                var GetCompany = db.GetCMP_CompanyByCode(this.CompanyCode);
+                if (GetCompany == null)
+                {
+                    return new ResultStatus { message = "Girilen Kod İle Eşleşen Bayi Bulunamamıştır", result = false };
+
+                }
+                this.CompanyId = GetCompany.id;
+            }
+            else
+            {
+                if (this.TaxCode == null)
+                {
+                    return new ResultStatus { message = "Vergi Numarası Boş Geçilemez", result = false };
+
+                }
+                var GetCompany = db.GetVWCMP_CompanyByTaxNumber(this.TaxCode);
+                if (GetCompany == null)
+                {
+                    return new ResultStatus { message = "Girilen Kod İle Eşleşen Bayi Bulunamamıştır", result = false };
+
+                }
+                this.CompanyId = GetCompany.id;
+            }
             if (!this.CompanyId.HasValue)
             {
                 return new ResultStatus { message = "Bayi Boş Olamaz", result = false };
@@ -736,7 +769,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
                 SendFirstCustomerMail();
                 var Iks = db.GetVWSH_UserByRoleId(SHRoles.IKYonetici);
-                if (Iks!=null&&Iks.Count()>0)
+                if (Iks != null && Iks.Count() > 0)
                 {
                     foreach (var item in Iks)
                     {
@@ -751,9 +784,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
 
             string url = TenantConfig.Tenant.GetWebUrl();
-            var getCompany = db.GetCMP_CompanyById(this.CompanyId.Value);
             var tenantName = TenantConfig.Tenant.TenantName;
-            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} | WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman size gelen e-posta ile sisteme giriş yapabilirsiniz</p>";
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} | WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman sizi tekrar bilgilendireceğiz</p>";
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
                       .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
         }
@@ -764,7 +796,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             string url = TenantConfig.Tenant.GetWebUrl();
             var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
             var tenantName = TenantConfig.Tenant.TenantName;
-            var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde {getCompany.fullName} için {this.firstname} {this.lastname} adlı kullanıcı  üyelik istedinde bulunmuştur.</p>" +
+            var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde bayi üyelik başvurusu yapmıştır.</p> <p>" +
+                $"<b>{this.firstname} {this.lastname}</b></p>"+
+                $"<b>{getCompany.fullName}</b></p>"+
                  $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
@@ -804,4 +838,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string CertificateStatus { get; set; }
         public string CertificateEndDate { get; set; }
     }
+    public enum EnumSH_CompanySignUpType
+    {
+        [Description("Bayi Kodu")]
+        Bayi = 0,
+        [Description("Vergi Numarası")]
+        Vergi = 1
+    }
+
 }

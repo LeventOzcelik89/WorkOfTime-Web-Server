@@ -27,7 +27,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_Company>().Where(a => a.code == code||a.taxNumber==taxNumber).Execute().FirstOrDefault();
             }
         }
-         public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name, string code ,DbTransaction tran = null)
+        public VWCMP_Company GetVWCMP_CompanyByTaxNumber( string taxNumber, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Company>().Where(a => a.taxNumber == taxNumber).Execute().FirstOrDefault();
+            }
+        }
+        public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name, string code ,DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
