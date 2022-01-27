@@ -700,7 +700,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                 Result = dbresult.result,
                 FeedBack = dbresult.result
                     ? feedback.Success("Kayıt işlemi başarıyla tamamlandı.", false, Url.Action("SignIn", "Account"))
-                    : feedback.Error(dbresult.message)
+                    : feedback.Error(dbresult.message,dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);

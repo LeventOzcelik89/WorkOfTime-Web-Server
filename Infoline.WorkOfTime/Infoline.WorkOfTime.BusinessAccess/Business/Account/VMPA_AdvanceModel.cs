@@ -680,6 +680,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
             };
         }
+
         public void UpdateDataControl(VWPA_AdvanceConfirmation[] confirmations, string statusDescription)
         {
             if (this.direction == 0 || this.direction == -1 || this.direction == 1)

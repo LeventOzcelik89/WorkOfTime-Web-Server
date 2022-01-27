@@ -101,7 +101,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<CMP_Company>().Where(a => a.code == code).Execute().FirstOrDefault();
             }
         }
-
+        public VWCMP_Company GetCMP_CompanyByCodeBayi(string code, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWCMP_Company>().Where(a => a.code == code &&a.type==(short)EnumCMP_CompanyType.Diger &&a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
+            }
+        }
         public CMP_Company GetCMP_CompanyByName(string name, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

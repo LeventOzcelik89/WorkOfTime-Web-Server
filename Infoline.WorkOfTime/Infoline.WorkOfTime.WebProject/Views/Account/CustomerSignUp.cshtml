@@ -177,7 +177,7 @@
                                     <label class="control-label label-md req" for="sendMail">Kayıt Tipi</label>
                                     @(Html.Akilli().RadioButtonGroupFor(a => a.searchType).Value(EnumSH_CompanySignUpType.Bayi))@*sadece evet hayır için koydum*@
                                 </div>
-                                <div class="form-group" id="bayi">
+                                <div class="form-group" data-cascade="[name='searchType']" data-show="0"  id="bayi">
 
                                     <label class="control-label label-md req" for="CompanyCode">Bayi Kodu Giriniz</label>
                                     @Html.TextBoxFor(model => model.CompanyCode, new Dictionary<string, object>() {
@@ -187,7 +187,7 @@
                                                 {"placeholder", "Bayi Kodu Giriniz" }
                                     }).Validate(Validations.Required)
                                 </div>
-                                <div class="form-group" id="vergi" style="display:none;">
+                                <div class="form-group" id="vergi" data-cascade="[name='searchType']" data-show="1" >
                                     <label class="control-label label-md req" for="vergi">Vergi Numarası Giriniz</label>
                                     @Html.TextBoxFor(model => model.TaxCode, new Dictionary<string, object>() {
                                                 {"class","form-control"},
@@ -360,31 +360,6 @@
     </div>
     <script type="text/javascript">
 
-        $(document)
-
-            .on('change', '[name="searchType"]', function () {
-
-                var val = parseInt($(this).val());
-                if (val == null) {
-                    return;
-                }
-                if (val) {
-                    $("#bayi").hide();
-                    $("#CompanyCode").removeAttr("required");
-                    $("#vergi").show();
-                    $("#TaxCode").attr("required", "");
-
-                }
-                else {
-                    $("#bayi").show();
-                    $("#CompanyCode").attr("required", "");
-                    $("#vergi").hide();
-                    $("#TaxCode").removeAttr("required");
-                }
-
-            })
-
-            ;
 
         function onSubmit(token) {
             var form = $("form").data("bs.validator");

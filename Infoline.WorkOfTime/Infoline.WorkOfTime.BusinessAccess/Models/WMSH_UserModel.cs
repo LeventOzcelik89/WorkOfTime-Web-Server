@@ -713,14 +713,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
 
-            CMP_Company company = null;
+            VWCMP_Company company = null;
             if (this.searchType == (short)EnumSH_CompanySignUpType.Bayi)
             {
                 if (this.CompanyCode == null)
                 {
                     return new ResultStatus { message = "Bayi kodu boş geçilemez." };
                 }
-                company = db.GetCMP_CompanyByCode(this.CompanyCode);
+                company = db.GetCMP_CompanyByCodeBayi(this.CompanyCode);
             }
             else
             {
@@ -728,7 +728,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { message = "Vergi Numarası Boş Geçilemez.", result = false };
                 }
-                company = db.GetCMP_CompanyByTaxNumber(this.TaxCode);
+                company = db.GetCMP_CompanyByTaxNumberBayi(this.TaxCode);
             }
 
             if (company == null)
@@ -769,7 +769,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                       .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
         }
 
-        private void SendFirstCustomerMailToIK(VWSH_User user, CMP_Company company)
+        private void SendFirstCustomerMailToIK(VWSH_User user, VWCMP_Company company)
         {
             db = db ?? new WorkOfTimeDatabase();
 
@@ -777,7 +777,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var tenantName = TenantConfig.Tenant.TenantName;
             var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde bayi üyelik başvurusu yapmıştır.</p> <p>" +
                 $"<b>{this.firstname} {this.lastname}</b></p>" +
-                $"<b>{company.name} ({company.code})</b></p>" +
+                $"<b>{company.fullName}</b></p>" +
                  $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
