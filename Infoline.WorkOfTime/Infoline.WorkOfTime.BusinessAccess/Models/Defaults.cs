@@ -320,6 +320,19 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
             return res.ToArray();
         }
 
+        public MobileLoginInformations GetMobileLoginInformations(VWSH_User user)
+        {
+            var db = new WorkOfTimeDatabase();
+            var res = new MobileLoginInformations();
+
+            res.GetUserInfo = db.GetUserPageSecurityByUserid(user.id, CallContext.Current.TicketId);
+            res.GetConfigs = GetConfigs();
+            res.GetDataSources = GetDataSources(user.id);
+            res.MBUT_LocationConfig = new Locations().LConfigGetByUserId(user.id);
+
+            return res;
+        }
+
         public DataSources GetDataSources(Guid userId)
         {
 
@@ -552,6 +565,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
         public string description { get; set; }
         public string url { get; set; }
         public string iconUrl { get; set; }
+    }
+
+    public class MobileLoginInformations
+    {
+        public PageSecurity GetUserInfo { get; set; }
+        public ConfigDatas GetConfigs { get; set; }
+        public DataSources GetDataSources { get; set; }
+        public List<VMUT_LocationConfig> MBUT_LocationConfig { get; set; }
     }
 
     public class OtherSummaries

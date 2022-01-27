@@ -35,6 +35,24 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
+        [HandleFunction("SH_ShiftTracking/GetLastAction")]
+        public void SH_ShiftTrackingGetLastAction(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+
+                var userId = CallContext.Current.UserId;
+                var data = db.GetSH_ShiftTrackingLastRecordByUserId(userId);
+
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus() { result = false, message = ex.Message.ToString() });
+            }
+        }
+
         [HandleFunction("SH_ShiftTracking/MBInsert")]
         public void SH_ShiftTrackingMBInsert(HttpContext context)
         {
@@ -129,13 +147,13 @@ namespace Infoline.WorkOfTime.WebService.Handler
                 var date = context.Request["date"];
                 var userId = context.Request["userId"];
 
-                var data = db.VWGetSH_ShiftTrackingByDateAndUserId(Convert.ToDateTime(date),new Guid(userId));
+                var data = db.VWGetSH_ShiftTrackingByDateAndUserId(Convert.ToDateTime(date), new Guid(userId));
 
                 RenderResponse(context, new ResultStatus { result = true, objects = data });
             }
             catch (Exception ex)
             {
-                RenderResponse(context, new ResultStatus { result = false,message = ex.Message });
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
             }
         }
 

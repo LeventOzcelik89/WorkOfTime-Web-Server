@@ -192,5 +192,36 @@ namespace Infoline.WorkOfTime.WebService.Handler
             }
         }
 
+        [HandleFunction("Defaults/GetMobileInformations")]
+        public void DefaultsGetMobileInformations(HttpContext context)
+        {
+            try
+            {
+                var db = new WorkOfTimeDatabase();
+
+                if (CallContext.Current == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Kullanıcı Girişi Yapılmamış" });
+                    return;
+                }
+
+                var userId = CallContext.Current.UserId;
+                if (userId == null)
+                {
+                    RenderResponse(context, new ResultStatus { result = false, message = "Kullanıcı Girişi Yapılmamış" });
+                    return;
+                }
+
+                var user = db.GetVWSH_UserById(userId);
+                var data = new Defaults().GetMobileLoginInformations(user);
+
+                RenderResponse(context, data);
+            }
+            catch (Exception ex)
+            {
+                RenderResponse(context, new ResultStatus { result = false, message = ex.Message });
+            }
+        }
+
     }
 }
