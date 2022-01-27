@@ -3,10 +3,13 @@ using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.WebProject.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web.Mvc;
 
 namespace Infoline.WorkOfTime.WebProject.Controllers
@@ -643,50 +646,65 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         [AllowEveryone]
         public ActionResult CustomerSignUp(Guid? companyId)
         {
-            if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
             {
-
+               
             }
             else
             {
                 return View("Index");
             }
-            var signQrCore = new SignQrCore
-            {
-                WebServiceUrl = TenantConfig.Tenant.GetWebServiceUrl(),
-                WebUrl = TenantConfig.Tenant.GetWebUrl()
-            };
 
-#if DEBUG == true
-            signQrCore = new SignQrCore
-            {
-                WebServiceUrl = "http://10.100.0.91/wot",
-                WebUrl = "http://10.100.0.72:62223"
-            };
-#endif
-
-            ViewBag.ServiceUrl = Infoline.Helper.Json.Serialize(signQrCore);
             ViewBag.returnUrl = Request.QueryString["returnUrl"];
-            return View(new VMSH_UserModel {CompanyId=companyId});
+            return View(new VMSH_UserModel { CompanyId = companyId });
         }
         [AllowEveryone]
         [HttpPost]
         public JsonResult CustomerSignUp(VMSH_UserModel model)
         {
-            
-            
+            if (!ModelState.IsValid)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = new FeedBack().Warning("Bilinmeyen Bir Hatayla Karşılaşıldı")
 
-            var dbresult = model.InsertCustomer();
+                }, JsonRequestBehavior.AllowGet);
+            }
             var feedback = new FeedBack();
+            var captcha = Request.Form["g-recaptcha-response"];
+            const string secret = "6Lf7gT4eAAAAADzLH1NAl89XaEOlyv1FiYqWOFAD";
+            var restUrl = string.Format("https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}", secret, captcha);
+
+            CaptchaResult cResult = null;
+            var req = WebRequest.Create(restUrl);
+            var resp = req.GetResponse() as HttpWebResponse;
+
+            using (var reader = new StreamReader(resp.GetResponseStream()))
+            {
+                string resultObject = reader.ReadToEnd();
+                cResult = JsonConvert.DeserializeObject<CaptchaResult>(resultObject);
+            }
+
+            if (!cResult.Success)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning(cResult.ErrorCodes.Count() > 0 ? cResult.ErrorCodes.ToArray()[0] : "Doğrulama başarısız.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+            var dbresult = model.InsertCustomer();
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
                 FeedBack = dbresult.result
-                    ? feedback.Success("Kaydınız Alınmıştır",false,Url.Action("SignIn", "Account"))
-                    : feedback.Warning(dbresult.message)
+                    ? feedback.Success("Kayıt işlemi başarıyla tamamlandı.", false, Url.Action("SignIn", "Account"))
+                    : feedback.Error(dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
+
         }
     }
 
@@ -702,6 +720,19 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         public List<KeyValue> permits { get; set; }
         public INV_PermitType[] permitTypes { get; set; }
 
+
+    }
+    public class CaptchaResult
+    {
+        public bool Success { get; set; }
+        [JsonProperty("error-codes")]
+        public IEnumerable<string> ErrorCodes { get; set; }
+        [JsonProperty("challenge_ts")]
+        public DateTime ChallengeTs { get; set; }
+        [JsonProperty("hostname")]
+        public string Hostname { get; set; }
+        [JsonProperty("score")]
+        public decimal Score { get; set; }
     }
 
 }

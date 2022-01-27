@@ -33,6 +33,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = _trans ?? db.BeginTransaction();
             var user = db.GetVWSH_UserById(this.id);
+
             if (this.CompanyId == null)
             {
                 return new ResultStatus { result = false, message = "Personel işletmesi zorunlu alandır." };
@@ -53,8 +54,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Email Adresi Kullanılıyor" };
             }
 
-            var company = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+            var company = db.GetCMP_CompanyById(this.CompanyId.Value);
             var result = new ResultStatus { result = true };
+
             if (company.type == (int)EnumCMP_CompanyType.Benimisletmem)
             {
                 this.type = (int)EnumSH_UserType.MyPerson;
@@ -62,21 +64,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                var getUser = db.GetSH_UserById(this.id);
-                if (getUser == null)
-                {
-                    if (this.type == null)
-                    {
-                        this.type = (int)EnumSH_UserType.OtherPerson;
-                    }
-                }
-                else
-                {
-                    this.type = getUser.type;
-                }
+                this.type = this.type ?? (int)EnumSH_UserType.OtherPerson;
                 result &= this.UpsertOther(user);
             }
-
 
             if (_trans == null)
             {
@@ -458,8 +448,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
                         <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
 
-
-
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), false, null, null, new string[] { "http://developer.workoftime.com/QR/QRCodeCreative" }, false);
 
@@ -720,49 +708,39 @@ namespace Infoline.WorkOfTime.BusinessAccess
             txtUsed += minuteUsed != 0 ? minuteUsed + " dakika" : "";
             return txtUsed;
         }
+
         public ResultStatus InsertCustomer()
         {
             db = db ?? new WorkOfTimeDatabase();
 
+            CMP_Company company = null;
             if (this.searchType == (short)EnumSH_CompanySignUpType.Bayi)
             {
                 if (this.CompanyCode == null)
                 {
-                    return new ResultStatus { message = "Bayi Kodu Boş Geçilemez", result = false };
-
+                    return new ResultStatus { message = "Bayi kodu boş geçilemez." };
                 }
-                var GetCompany = db.GetCMP_CompanyByCode(this.CompanyCode);
-                if (GetCompany == null)
-                {
-                    return new ResultStatus { message = "Girilen Kod İle Eşleşen Bayi Bulunamamıştır", result = false };
-
-                }
-                this.CompanyId = GetCompany.id;
+                company = db.GetCMP_CompanyByCode(this.CompanyCode);
             }
             else
             {
                 if (this.TaxCode == null)
                 {
-                    return new ResultStatus { message = "Vergi Numarası Boş Geçilemez", result = false };
-
+                    return new ResultStatus { message = "Vergi Numarası Boş Geçilemez.", result = false };
                 }
-                var GetCompany = db.GetVWCMP_CompanyByTaxNumber(this.TaxCode);
-                if (GetCompany == null)
-                {
-                    return new ResultStatus { message = "Girilen Kod İle Eşleşen Bayi Bulunamamıştır", result = false };
-
-                }
-                this.CompanyId = GetCompany.id;
+                company = db.GetCMP_CompanyByTaxNumber(this.TaxCode);
             }
-            if (!this.CompanyId.HasValue)
+
+            if (company == null)
             {
-                return new ResultStatus { message = "Bayi Boş Olamaz", result = false };
+                return new ResultStatus { message = "Girilen kod ile eşleşen Bayi bulunamamıştır." };
             }
-            this.Roles = new List<Guid> {
-                new Guid(SHRoles.BayiPersoneli)
-            };
+
             this.status = false;
+            this.CompanyId = company.id;
             this.type = (short)EnumSH_UserType.CompanyPerson;
+            this.Roles = new List<Guid> { new Guid(SHRoles.BayiPersoneli) };
+
             var result = this.Save();
             if (result.result)
             {
@@ -773,13 +751,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     foreach (var item in Iks)
                     {
-                        SendFirstCustomerMailToIK(item);
+                        SendFirstCustomerMailToIK(item, company);
                     }
                 }
             }
             return result;
         }
-        public void SendFirstCustomerMail()
+
+        private void SendFirstCustomerMail()
         {
             db = db ?? new WorkOfTimeDatabase();
 
@@ -789,16 +768,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
                       .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
         }
-        public void SendFirstCustomerMailToIK(VWSH_User user)
+
+        private void SendFirstCustomerMailToIK(VWSH_User user, CMP_Company company)
         {
             db = db ?? new WorkOfTimeDatabase();
 
             string url = TenantConfig.Tenant.GetWebUrl();
-            var getCompany = db.GetVWCMP_CompanyById(this.CompanyId.Value);
             var tenantName = TenantConfig.Tenant.TenantName;
             var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde bayi üyelik başvurusu yapmıştır.</p> <p>" +
-                $"<b>{this.firstname} {this.lastname}</b></p>"+
-                $"<b>{getCompany.fullName}</b></p>"+
+                $"<b>{this.firstname} {this.lastname}</b></p>" +
+                $"<b>{company.name} ({company.code})</b></p>" +
                  $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
             new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)

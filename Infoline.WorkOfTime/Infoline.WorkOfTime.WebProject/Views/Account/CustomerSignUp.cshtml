@@ -102,35 +102,12 @@
     <script src="~/Content/Harita/js/ol.extensions.js"></script>
     <script src="~/Content/Harita/js/ol.custom.js"></script>
     <script src="~/Content/SYS_Files/js/InfolineFileUpload.js"></script>
-    <script type="text/javascript" async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB9e6u_Aut3d04UZCx-6IvH6hTNkWMCbVI&libraries=places&callback=bindAutocomplete&region=TR"></script>
     <!--Harita-->
 
-    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <script src="https://www.google.com/recaptcha/api.js?render=6Lf7gT4eAAAAAMLlMpT7gJyZcd03DHCvRPTj1GhU"></script>
 
     <script type="text/javascript">
         kendo.culture("tr-TR")
-        $(document)
-
-            .on('success', 'form#SignInForm', function (e, i) {
-
-                //  Sadece Feedback mesajlar gösteriliyor.
-                if (i.Result == false) {
-                    if (i.Object != null && i.Object.RequiredCaptcha) {
-                        document.getElementById("error").style.display = 'block';
-                        if (typeof (grecaptcha) != 'undefined') {
-                            grecaptcha.reset();
-                        }
-                    }
-
-                    return;
-
-                }
-
-            })
-
-
-
-            ;
     </script>
 
     <script src="~/Content/Customers/@Infoline.WorkOfTime.BusinessAccess.TenantConfig.Tenant.TenantCode/js/custom.js"></script>
@@ -142,366 +119,282 @@
         }
 
         body {
-            position: relative;
-            font-family: 'tt_smb',Tahoma, sans-serif;
-            font-size: 13px;
+            background-image: url("/Content/Custom/img/signin/account1.jpg");
+            background-color: #d7d7d7;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
         }
 
-        html, body {
-            -webkit-background-size: cover;
-            -moz-background-size: cover;
-            -o-background-size: cover;
-            background-size: cover;
+        .card {
+            padding: 15px;
+            background-color: white;
+            border-radius: 7.5px;
+            margin: 0 auto;
+            float: none;
+            margin-bottom: 10px;
         }
 
-        #layout {
-            height: 100%;
+        .center {
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
         }
 
-        #login {
-            box-shadow: 0px 0px 12px 0px rgb(0, 0, 0);
-            margin: auto;
-            width: 50%;
-            position: absolute;
-            z-index: 9999;
-            background: #ffffff;
-            opacity: 0.92;
-            border-radius: 15px;
-            margin-left: 25%;
-            top: 4vh;
+        .col-padding {
+            padding: 25px;
         }
 
-            #login .content h3.header {
-                font-size: 12pt;
-                text-align: center;
-                padding-top: 15px;
-                line-height: 3vh;
-            }
-
-            #login .content .logo {
-                width: 100px;
-            }
-
-            #login form {
-                padding: 0px 40px !important;
-                background-color: #ffffff;
-            }
-
-        #UserControlCaptcha_ReloadIcon, #UserControlCaptcha_SoundIcon {
-            display: none !important;
+        .card-header {
+            margin-top: 25px;
         }
 
-        input {
-            font-size: 11px;
+        .form {
+            padding: 15px !important;
         }
-
-        .input-group-addon {
-            border-radius: 1px;
-            padding: 6px 12px;
-            background-color: #ffffff !important;
-        }
-
-        i {
-            color: black;
-        }
-
-        .copyright {
-            color: white;
-        }
-
-        .credit {
-            width: 17%;
-            position: absolute;
-            z-index: 99;
-            margin-top: 20px;
-            margin-left: 35px;
-        }
-
-       
     </style>
 </head>
+<body class="body">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-12 col-padding">
+                <div class="card">
+                    <img src="@TenantConfig.Tenant.Logo" class="card-img-top center" alt="@TenantConfig.Tenant.TenantName">
+                    <div class="card-header">
+                        <h3 class="text-center">Bayi Personeli Kayıt Ekranı</h3>
+                    </div>
 
-<body>
-    <div class="container-fluids">
-
-        <div id="layout">
-            <div id="carouselExampleIndicators" class="carousel slide" data-ride="carousel">
-                <ol class="carousel-indicators">
-                    <li data-target="#carouselExampleIndicators" data-slide-to="0" class="active"></li>
-                    <li data-target="#carouselExampleIndicators" data-slide-to="1" class=""></li>
-                    <li data-target="#carouselExampleIndicators" data-slide-to="2"></li>
-                </ol>
-                <div class="carousel-inner" role="listbox">
-                    <img class="item active slide1Image" src="/Content/Custom/img/signin/account1.jpg" />
-                    <img class="item slide2Image" src="/Content/Custom/img/signin/account2.jpg" />
-                    <img class="item slide3Image" src="/Content/Custom/img/signin/account3.jpg" />
-                </div>
-            </div>
-        </div>
-
-        <div id="login" class="animated slideInDown ">
-            <div class="content ">
-                <h3 class="header">
-                    <a href="@Url.Action("Index","Account",new {area="" })">
-                        <img style="width: 15vh;" src="@TenantConfig.Tenant.Logo" class="logo" />
-                    </a>
-                    <br />
-
-
-                    <br />
-                    <strong style="color:black">Bayi Personeli Kayıt Ekranı</strong>
-                    <br />
-                </h3>
-
-
-                @using (Html.BeginForm("CustomerSignUp", "Account", FormMethod.Post, new Dictionary<string, object>() {
+                    <div class="card-body">
+                        @using (Html.BeginForm("CustomerSignUp", "Account", FormMethod.Post, new Dictionary<string, object>() {
                      {"id","SignInForm"},
                      { "role", "form" },
                      { "data-formType", "Ajax" },
                      { "data-loadingtitle" , "Bilgileriniz kontrol ediliyor.Lütfen bekleyiniz." },
                  }))
-                {
-                    @Html.Hidden("returnUrl", ViewData["returnUrl"])
-                    @Html.HiddenFor(a => a.CapthcaCode)
+                        {
+                        <div class="row">
+                            <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                                <div class="form-group">
+                                    <label class="control-label label-md req" for="sendMail">Kayıt Tipi</label>
+                                    @(Html.Akilli().RadioButtonGroupFor(a => a.searchType).Value(EnumSH_CompanySignUpType.Bayi))@*sadece evet hayır için koydum*@
+                                </div>
+                                <div class="form-group" id="bayi">
 
-                    <div id="loginForm">
-                        <div class="form-group">
-                            <div class="col-md-12">
-                                <label class="control-label label-md req" for="sendMail">Kayıt Tipi</label>
-                                @(Html.Akilli().RadioButtonGroupFor(a => a.searchType).Value(EnumSH_CompanySignUpType.Bayi))@*sadece evet hayır için koydum*@
+                                    <label class="control-label label-md req" for="CompanyCode">Bayi Kodu Giriniz</label>
+                                    @Html.TextBoxFor(model => model.CompanyCode, new Dictionary<string, object>() {
+                                                {"class","form-control"},
+                                                {"autocomplete","off"},
+                                                {"tabindex","1"},
+                                                {"placeholder", "Bayi Kodu Giriniz" }
+                                    }).Validate(Validations.Required)
+                                </div>
+                                <div class="form-group" id="vergi" style="display:none;">
+                                    <label class="control-label label-md req" for="vergi">Vergi Numarası Giriniz</label>
+                                    @Html.TextBoxFor(model => model.TaxCode, new Dictionary<string, object>() {
+                                                {"class","form-control"},
+                                                {"autocomplete","off"},
+                                                {"tabindex","1"},
+                                                {"placeholder", "Vergi Numarası Giriniz" }
+                                    })
+                                </div>
                             </div>
-                        </div>
-                        <div class="form-group" id="bayi">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="CompanyCode">Bayi Kodu Giriniz</label>
-                                @Html.TextBoxFor(model => model.CompanyCode, new Dictionary<string, object>() {
-                                            {"class","form-control"},
-                                            {"autocomplete","off"},
-                                            {"tabindex","1"},
-                                            {"placeholder", "Bayi Kodu Giriniz" }
-                                }).Validate(Validations.Required)
-                            </div>
-                        </div>
-                        <div class="form-group" id="vergi" style="display:none;">
-                            <div class="col-sm-12">
-                                <label class="control-label label-md req" for="vergi">Vergi Numarası Giriniz</label>
-                                @Html.TextBoxFor(model => model.TaxCode, new Dictionary<string, object>() {
-                                            {"class","form-control"},
-                                            {"autocomplete","off"},
-                                            {"tabindex","1"},
-                                            {"placeholder", "Vergi Numarası Giriniz" }
-                                })
-                            </div>
-                        </div>
-                        <div class="col-sm-12 col-md-6 col-lg-6 col-xs-12">
-                            <div class="form-group">
-                                <label class="control-label ">Lütfen T.C. kimlik No Giriniz</label>
-                                @Html.TextBoxFor(model => model.loginname, new Dictionary<string, object>() {
-                                    {"class","form-control"},
-                                    {"autocomplete","off"},
-                                    {"tabindex","1"},
-                                    {"placeholder", "Lütfen T.C. kimlik No Giriniz" }
-                                }).Validate(Validations.Required)
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label ">Lütfen Ünvan Giriniz</label>
-                                @Html.TextBoxFor(model => model.title, new Dictionary<string, object>() {
-                                    {"class","form-control"},
-                                    {"autocomplete","off"},
-                                    {"tabindex","1"},
-                                    {"placeholder", "Lütfen Ünvan Giriniz" }
-                                }).Validate(Validations.Required)
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label ">Lütfen Adınızı Giriniz</label>
-                                @Html.TextBoxFor(model => model.firstname, new Dictionary<string, object>() {
-                                    {"class","form-control"},
-                                    {"autocomplete","off"},
-                                    {"tabindex","1"},
-                                    {"placeholder", "Lütfen Adınızı Giriniz" }
-                                }).Validate(Validations.Required)
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label ">Lütfen Soyadınızı Giriniz</label>
-                                @Html.TextBoxFor(model => model.lastname, new Dictionary<string, object>() {
-                                    {"class","form-control"},
-                                    {"autocomplete","off"},
-                                    {"tabindex","1"},
-                                    {"placeholder", "Lütfen Soyadınızı Giriniz" }
-                                }).Validate(Validations.Required)
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label pull-left    " style="margin-right:15px">Lütfen Doğum Tarihinizi Girin</label>
-                                @(Html.Akilli()
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+
+                                <div class="form-group">
+                                    <label class="control-label ">Lütfen T.C. kimlik No Giriniz</label>
+                                    @Html.TextBoxFor(model => model.loginname, new Dictionary<string, object>() {
+                                        {"class","form-control"},
+                                        {"autocomplete","off"},
+                                        {"tabindex","1"},
+                                        {"placeholder", "Lütfen T.C. kimlik No Giriniz" }
+                                    }).Validate(Validations.TCKimlikReq())
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label ">Lütfen Ünvan Giriniz</label>
+                                    @Html.TextBoxFor(model => model.title, new Dictionary<string, object>() {
+                                        {"class","form-control"},
+                                        {"autocomplete","off"},
+                                        {"tabindex","1"},
+                                        {"placeholder", "Lütfen Ünvan Giriniz" }
+                                    }).Validate(Validations.Required)
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label ">Lütfen Adınızı Giriniz</label>
+                                    @Html.TextBoxFor(model => model.firstname, new Dictionary<string, object>() {
+                                        {"class","form-control"},
+                                        {"autocomplete","off"},
+                                        {"tabindex","1"},
+                                        {"placeholder", "Lütfen Adınızı Giriniz" }
+                                    }).Validate(Validations.Required)
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label ">Lütfen Soyadınızı Giriniz</label>
+                                    @Html.TextBoxFor(model => model.lastname, new Dictionary<string, object>() {
+                                        {"class","form-control"},
+                                        {"autocomplete","off"},
+                                        {"tabindex","1"},
+                                        {"placeholder", "Lütfen Soyadınızı Giriniz" }
+                                    }).Validate(Validations.Required)
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label">Lütfen Doğum Tarihinizi Girin</label>
+                                    @(Html.Akilli()
                                     .DatePickerFor(model => model.birthday).Max(DateTime.Now.AddYears(-15))
                                     .Validate(Validations.Required)
                                     .Placeholder("Lütfen Doğum Tarihinizi Giriniz")
                                     )
-                            </div>
-                            <div class="form-group">
-
-                                <label class="control-label label-md " for="cellphone">Şahsi Cep Telefonu</label>
-
-
-                                @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
-                                    {
-                                        { "style", "width: 100%"},
-                                        {"class", "form-control"},
-                                        {"placeholder", "Lütfen Cep Telefonunuzu Giriniz."},
-                                    })
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label label-md " for="cellphone">Şahsi Cep Telefonu</label>
+                                    @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>(){
+                                             { "style", "width: 100%"},
+                                             {"class", "form-control"},
+                                             {"placeholder", "Lütfen Cep Telefonunuzu Giriniz."},
+                                         })
                                     .Mask("0 (000) 000 00 00")
                                     .UnmaskOnPost(true))
 
-                            </div>
-
-
-                        </div>
-                        <div class="col-sm-12 col-md-6 col-lg-6 col-xs-12">
-                            <div class="form-group">
-
-                                <label class="control-label label-md " for="phone">Sabit Telefonu</label>
-
-
-                                @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>()
-                                     {
-                                         { "style", "width: 100%"},
-                                         {"class", "form-control"},
-                                         {"placeholder", "Lütfen Sabit Telefonu Giriniz"},
-                                     })
-                                     .Mask("0 (000) 000 00 00")
-                                     .UnmaskOnPost(true)
-                                     .Validate(Validations.Required))
-                            </div>
-
-                            <div class="form-group">
-                                <label class="control-label ">Lütfen Email Adresiniz Giriniz</label>
-                                @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
-                                     {
-                                         {"placeholder","Lütfen E Mail Adresi Giriniz(test@test.com)"},
-                                         {"class","form-control"},
-                                     }).Validate(Validations.EMail(true))
-                            </div>
-                            <div class="form-group">
-
-                                <label class="control-label label-md" for="companyCellPhone">Şirket Cep Telefonu / Kısa Kod</label>
-                                <div class="row" style="margin-right:0px;margin-left:0px;">
-                                    <div class="col-md-8" style="padding-left:0px!important">
-                                        @(Html.Kendo().MaskedTextBoxFor(a => a.companyCellPhone).HtmlAttributes(new Dictionary<string, object>()
-                                {
-                                    { "style", "width: 100%"},
-                                    {"class", "form-control"},
-                                    {"placeholder", "Lütfen Şirket Cep Telefonunuzu Giriniz."},
-                                })
-                                .Mask("0 (000) 000 00 00")
-                                .UnmaskOnPost(true)
-                                .Validate(Validations.Required)
-            )
-                                    </div>
-                                    <div class="col-md-4" style="padding-right:0px!important">
-                                        @Html.TextBoxFor(model => model.companyCellPhoneCode, new Dictionary<string, object>()
-                                            {
-                                                { "style", "width: 100%"},
-                                                {"class", "form-control"},
-                                                {"placeholder", "Kısa Kod"},
-                                            }).Validate(Validations.NumberOnly(false, 0, 4))
-                                    </div>
-                                </div>
-
-                            </div>
-                            <div class="form-group">
-                                <label class="control-label label-md " for="companyOfficePhone">Şirket Ofis Telefonu / Kısa Kod</label>
-                                <div class="row" style="margin-right:0px;margin-left:0px;">
-                                    <div class="col-md-8" style="padding-left:0px!important">
-                                        @(Html.Kendo().MaskedTextBoxFor(a => a.companyOfficePhone).HtmlAttributes(new Dictionary<string, object>()
-                                {
-                                    { "style", "width: 100%"},
-                                    {"class", "form-control"},
-                                    {"placeholder", "Lütfen Şirket Ofis Telefonunuzu Giriniz."},
-                                })
-                                .Mask("0 (000) 000 00 00")
-                                .UnmaskOnPost(true)
-            )
-                                    </div>
-                                    <div class="col-md-4" style="padding-right:0px!important">
-                                        @Html.TextBoxFor(model => model.companyOfficePhoneCode, new Dictionary<string, object>()
-                                            {
-                                                { "style", "width: 100%"},
-                                                {"class", "form-control"},
-                                                {"placeholder", "Dahili No"},
-                                            }).Validate(Validations.NumberOnly(false, 0, 4))
-                                    </div>
                                 </div>
                             </div>
-                            <div class="form-group">
+                            <div class="col-xs-12 col-sm-12 col-md-6 col-lg-6">
+                                <div class="form-group">
+                                    <label class="control-label label-md " for="phone">Sabit Telefonu</label>
+                                    @(Html.Kendo().MaskedTextBoxFor(a => a.phone).HtmlAttributes(new Dictionary<string, object>(){
+                                            { "style", "width: 100%"},
+                                            {"class", "form-control"},
+                                            {"placeholder", "Lütfen Sabit Telefonu Giriniz"},
+                                        })
+                                            .Mask("0 (000) 000 00 00")
+                                            .UnmaskOnPost(true)
+                                            .Validate(Validations.Required))
+                                </div>
 
-                                <label class="control-label label-md " for="address">Açık Adres</label>
+                                <div class="form-group">
+                                    <label class="control-label ">Lütfen Email Adresiniz Giriniz</label>
+                                    @Html.TextBoxFor(model => model.email, new Dictionary<string, object>()
+                                         {
+                                             {"placeholder","Lütfen E Mail Adresi Giriniz(test@test.com)"},
+                                             {"class","form-control"},
+                                         }).Validate(Validations.EMail(true))
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label label-md" for="companyCellPhone">Şirket Cep Telefonu / Kısa Kod</label>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            @(Html.Kendo().MaskedTextBoxFor(a => a.companyCellPhone).HtmlAttributes(new Dictionary<string, object>()
+                                                    {
+                                                        { "style", "width: 100%"},
+                                                        {"class", "form-control"},
+                                                        {"placeholder", "Lütfen Şirket Cep Telefonunuzu Giriniz."},
+                                                    })
+                                                    .Mask("0 (000) 000 00 00")
+                                                    .UnmaskOnPost(true)
+                                                    .Validate(Validations.Required))
 
-
-                                @Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
-                                {
-                                    {"class", "form-control"},
-                                    {"placeholder", "Lütfen adres giriniz.."},
-                                })
-
-                            </div>
-                        </div>
-
-                        <div class="col-sm-12">
-                            <div class="form-group">
-                                <label class="control-label hide">Captcha</label>
-                                <div class="input-group m-b-xs">
-                                    <div class="form-group pull-right" id="error">
-                                        <div class="g-recaptcha" data-sitekey="6LfZ8IUbAAAAALAtrjJt_e4Q93nzLEDHUh6o1rYS" style="margin:0 auto; width:300px;"></div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            @Html.TextBoxFor(model => model.companyCellPhoneCode, new Dictionary<string, object>()
+                                                {
+                                                    { "style", "width: 100%"},
+                                                    {"class", "form-control"},
+                                                    {"placeholder", "Kısa Kod"},
+                                                }).Validate(Validations.NumberOnly(false, 0, 4))
+                                        </div>
                                     </div>
                                 </div>
+                                <div class="form-group">
+                                    <label class="control-label label-md " for="companyOfficePhone">Şirket Ofis Telefonu / Kısa Kod</label>
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            @(Html.Kendo().MaskedTextBoxFor(a => a.companyOfficePhone).HtmlAttributes(new Dictionary<string, object>()
+                                                    {
+                                                        { "style", "width: 100%"},
+                                                        {"class", "form-control"},
+                                                        {"placeholder", "Lütfen Şirket Ofis Telefonunuzu Giriniz."},
+                                                    })
+                                                    .Mask("0 (000) 000 00 00")
+                                                    .UnmaskOnPost(true))
+                                        </div>
+                                        <div class="col-md-4">
+                                            @Html.TextBoxFor(model => model.companyOfficePhoneCode, new Dictionary<string, object>()
+                                                {
+                                                    { "style", "width: 100%"},
+                                                    {"class", "form-control"},
+                                                    {"placeholder", "Dahili No"},
+                                                }).Validate(Validations.NumberOnly(false, 0, 4))
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label label-md " for="address">Açık Adres</label>
+                                    @Html.TextAreaFor(model => model.address, new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen adres giriniz.."},
+                                    })
+                                </div>
+                            </div>
+                            @*<div class="col-sm-12 col-xs-12 col-md-12 col-lg-12">
+                                <div class="form-group">
+                                    <label class="control-label hide">Captcha</label>
+                                    <div class="g-recaptcha"  data-size="compact" data-sitekey="6LfZ8IUbAAAAALAtrjJt_e4Q93nzLEDHUh6o1rYS"></div>
+                                </div>
+                            </div>*@
+                            <div class="col-sm-12 col-xs-12 col-md-12 col-lg-12">
+                                <div class="form-group clearfix">
+                                    <button type="submit" class="btn btn-success btn-md   pull-right g-recaptcha btn-block"       data-callback='onSubmit'     data-action='submit'  data-sitekey="6Lf7gT4eAAAAAMLlMpT7gJyZcd03DHCvRPTj1GhU" id="SignIn">Kayıt Ol</button>
+                                </div>
+
+
                             </div>
                         </div>
-
-                        <div class="form-group clearfix">
-                            <button type="submit" class="btn btn-success btn-md pull-right btn-block" id="SignIn">Kayıt Ol</button>
-                        </div>
-
+                        }
+                    </div>
+                    <div class="card-footer">
                         <p class="text-center copyright">
-                            <br> <span style="color:black">© 2022 Tüm hakları saklıdır.</span>
+                            <br> <span style="color:#000">© 2020 Tüm hakları saklıdır.</span>
                         </p>
                     </div>
-                }
-
+                </div>
             </div>
         </div>
     </div>
     <script type="text/javascript">
-        $("[name='searchType']").on("change", function () {
-            var val = parseInt($(this).val());
-            if (val == null) {
+
+        $(document)
+
+            .on('change', '[name="searchType"]', function () {
+
+                var val = parseInt($(this).val());
+                if (val == null) {
+                    return;
+                }
+                if (val) {
+                    $("#bayi").hide();
+                    $("#CompanyCode").removeAttr("required");
+                    $("#vergi").show();
+                    $("#TaxCode").attr("required", "");
+
+                }
+                else {
+                    $("#bayi").show();
+                    $("#CompanyCode").attr("required", "");
+                    $("#vergi").hide();
+                    $("#TaxCode").removeAttr("required");
+                }
+
+            })
+
+            ;
+
+        function onSubmit(token) {
+            var form = $("form").data("bs.validator");
+            form.validate();
+            if (form.hasErrors() == true) {
                 return;
             }
-            if (val) {
-                $("#bayi").hide();
-                $("#CompanyCode").removeAttr("required");
-                $("#vergi").show();
-                $("#CompanyCode").attr("required", "");
+            $("form").submit();
+        }
 
-            }
-            else {
-                $("#bayi").show();
-                $("#CompanyCode").attr("required", "");
-                $("#vergi").hide();
-                $("#vergi").removeAttr("required");
-            }
-
-        });
-        $("form").submit(function (e) {
-            var response = grecaptcha.getResponse();
-            if (response == null) {
-            }
-            if (response.length === 0) {
-                swal("Lütfen İnsan Olduğunuz Doğrulayın!","Ben robot değilim seçeneğiniz işaretleyiniz","warning")
-                e.preventDefault();
-                return;
-            }
-
-        });
     </script>
 </body>
 
