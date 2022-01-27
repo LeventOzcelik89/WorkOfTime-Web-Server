@@ -10,7 +10,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>@(Infoline.WorkOfTime.BusinessAccess.TenantConfig.Tenant.TenantName + " | Müşteri Kayıt Ekranı")</title>
+    <title>@(Infoline.WorkOfTime.BusinessAccess.TenantConfig.Tenant.TenantName + " | Bayi Personeli Kayıt Ekranı")</title>
     <link rel="icon" type="image/x-icon" href="@TenantConfig.Tenant.Favicon">
     <!--Default-->
     <!--Default-->
@@ -115,11 +115,7 @@
 
             })
 
-            .on('before:submit', '#SignInForm', function () {
-
-                $('#CapthcaCode').val(grecaptcha.getResponse());
-
-            })
+            
 
             ;
     </script>
@@ -133,7 +129,6 @@
         }
         body {
             position: relative;
-            overflow: hidden;
             font-family: 'tt_smb',Tahoma, sans-serif;
             font-size: 13px;
         }
@@ -302,7 +297,7 @@
 
 
                     <br />
-                    <strong style="color:black">Müşteri Kayıt Ekranı</strong>
+                    <strong style="color:black">Bayi Personeli Kayıt Ekranı</strong>
                     <br />
                 </h3>
 
@@ -327,7 +322,7 @@
                                 .DataTextField("fullName")
                                 .DataValueField("id")
                                 .Action(b => b.Action("DataSourceDropDownForAccount", "VWCMP_Company", new { area = "CMP" }))
-                                .Filter<Infoline.WorkOfTime.BusinessData.VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))
+                                .Filter<Infoline.WorkOfTime.BusinessData.VWCMP_Company>(x=>(x.CMPTypes_Title.Contains("Bayi")|| x.CMPTypes_Title.Contains("bayi"))&&x.type==(short)EnumCMP_CompanyType.Diger)
                                 .Sort(x => x.Add("name").Ascending())
                                 .Execute("id").Validate(Validations.Required))
                             </div>
@@ -378,10 +373,10 @@
                                     )
                             </div>
                             <div class="form-group">
-                                <div class="col-md-4">
-                                    <label class="control-label label-md hide" for="cellphone">Şahsi Cep Telefonu</label>
-                                </div>
-
+                                
+                                    <label class="control-label label-md " for="cellphone">Şahsi Cep Telefonu</label>
+                                
+                                
                                 @(Html.Kendo().MaskedTextBoxFor(a => a.cellphone).HtmlAttributes(new Dictionary<string, object>()
                                     {
                                         { "style", "width: 100%"},
@@ -408,7 +403,8 @@
                                          {"placeholder", "Lütfen Sabit Telefonu Giriniz"},
                                      })
                                      .Mask("0 (000) 000 00 00")
-                                     .UnmaskOnPost(true))
+                                     .UnmaskOnPost(true)
+                                     .Validate(Validations.Required))
                             </div>
 
                             <div class="form-group">
@@ -484,37 +480,21 @@
                             </div>
                         </div>
 
-
-                        <div class="form-group" style="margin-left: 62px;">
-                            <label class="control-label hide">Captcha</label>
-                            <div class="input-group m-b-xs">
-                                <div class="form-group pull-right" id="error" style="@(loginError >= 3 ? "" : "display:none") ">
-                                    <div class="g-recaptcha" data-sitekey="6LfZ8IUbAAAAALAtrjJt_e4Q93nzLEDHUh6o1rYS" style="margin:0 auto; width:300px;"></div>
+                        <div class="col-sm-12 hide">
+                            <div class="form-group" >
+                                <label class="control-label hide">Captcha</label>
+                                <div class="input-group m-b-xs">
+                                    <div class="form-group pull-right" id="error">
+                                        <div class="g-recaptcha" data-sitekey="6LfZ8IUbAAAAALAtrjJt_e4Q93nzLEDHUh6o1rYS" style="margin:0 auto; width:300px;"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                      
 
 
                         <div class="form-group clearfix">
                             <button type="submit" class="btn btn-success btn-md pull-right btn-block" id="SignIn">Kayıt Ol</button>
-                        </div>
-
-
-                        <div id="example" class="k-content text-center">
-                            <div class="qr-wrapper">
-                                <div class="demo-section">
-                                    <div id="qrUrl" style="width: 100px;margin: 0 auto;" title="Mobil uygulama için QR Kod"></div>
-                                    <script src="~/Content/Kendo/js/kendo.all.min.js"></script>
-                                    <script type="text/javascript">
-                                $("#qrUrl").kendoQRCode({
-                                    value: '@ViewBag.ServiceUrl',
-                                    errorCorrection: "M",
-                                    size: 100,
-                                });
-                                    </script>
-                                </div>
-                            </div>
-
                         </div>
 
                         <p class="text-center copyright">

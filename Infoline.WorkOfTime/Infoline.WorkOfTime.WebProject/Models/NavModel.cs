@@ -161,6 +161,11 @@ namespace System.Web.Mvc
             personel.AddChild(new Menu("Mesai Takip Raporları", "/SH/VWSH_ShiftTracking/StaffWorkingStatus"));
             personel.AddChild(new Menu("Detaylı Personel Raporları", "/SH/VWSH_UserReport"));
             personel.AddChild(new Menu("Organizasyon Şeması Yönetimi", "/INV/VWINV_CompanyDepartments"));
+            if (TenantConfig.Tenant.TenantCode==1194||TenantConfig.Tenant.TenantCode==1100)
+            {
+                personel.AddChild(new Menu("Bayi Personelleri", "/SH/VWSH_User/CompanyPersonIndex"));
+            }
+         
             ik.AddChild(personel);
 
             var izinislemleri = new Menu("İzin İşlemleri");

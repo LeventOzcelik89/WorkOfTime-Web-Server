@@ -247,6 +247,79 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
 
         }
 
+        public NotificationRequest[] GetNotificationsWithMobileNavigation(VWSH_User _user)
+        {
+
+            var db = new WorkOfTimeDatabase();
+            var res = new List<NotificationRequest>();
+
+            //adedin geleceği yere _ koyulması gerekiyor.
+            if (_user != null && _user.IsWorking == true)
+            {
+                var permitList = db.GetVWINV_PermitPending(_user.id);
+                for (int i = 0; i < permitList.Count(); i++)
+                {
+                    res.Add(new NotificationRequest
+                    {
+                        description = "<font style=\"color: blue\">Onayınızı</font> bekleyen <font style=\"color: red\">izin talebi</font> bulunmaktadır.",
+                        url = TenantConfig.Tenant.GetWebUrl() + "/INV/VWINV_Permit/DetailConfirmation?id=" + permitList[i].id,
+                        iconUrl = "/Content/Custom/img/izinIcon24.png",
+                    });
+                }
+
+
+                var sendingPermitList = db.GetVWINV_PermitSinePending(_user.id);
+                for (int i = 0; i < sendingPermitList.Count(); i++)
+                {
+                    res.Add(new NotificationRequest
+                    {
+                        description = "<font style=\"color: blue\">Islak imzalı dosya</font> yüklemeniz beklenen <font style=\"color: red\">izin talebi</font> bulunmaktadır.",
+                        url = TenantConfig.Tenant.GetWebUrl() + "/INV/VWINV_Permit/Detail?id=" + sendingPermitList[i].id.ToString(),
+                        iconUrl = "/Content/Custom/img/imzaIcon24.png",
+                    });
+                }
+
+
+                var pendingConfirmationList = db.GetVWINV_CommissionsPending(_user.id);
+                for (int i = 0; i < pendingConfirmationList.Count(); i++)
+                {
+                    res.Add(new NotificationRequest
+                    {
+                        description = "<font style=\"color: blue\">Onayınızı</font> bekleyen <font style=\"color: red\">görevlendirme talebi</font> bulunmaktadır.",
+                        url = TenantConfig.Tenant.GetWebUrl() + "/INV/VWINV_Commissions/DetailConfirmation?id=" + pendingConfirmationList[i].id.ToString(),
+                        iconUrl = "/Content/Custom/img/gorevlendirmeIcon24.png",
+                    });
+                }
+
+
+                var sineConfirmationList = db.GetVWINV_CommissionsSinePending(_user.id);
+                for (int i = 0; i < sineConfirmationList.Count(); i++)
+                {
+                    res.Add(new NotificationRequest
+                    {
+                        description = "<font style=\"color: blue\">Islak imzalı dosya</font> yüklemeniz beklenen <font style=\"color: red\">görevlendirme talebi</font> bulunmaktadır.",
+                        url = TenantConfig.Tenant.GetWebUrl() + "/INV/VWINV_Commissions/Detail?id=" + sineConfirmationList[i].id.ToString(),
+                        iconUrl = "/Content/Custom/img/imzaIcon24.png",
+                    });
+                }
+
+
+                var taskList = db.GetVWFTM_TaskAssignableByUserId(_user.id);
+                for (int i = 0; i < taskList.Count(); i++)
+                {
+
+                    res.Add(new NotificationRequest
+                    {
+                        description = "<font style=\"color: blue\">Üstlenebileceğiniz</font> <font style=\"color: red\">saha görevi</font> bulunmaktadır.",
+                        url = TenantConfig.Tenant.GetWebUrl() + "/FTM/VWFTM_Task/Detail?id=" + taskList[i].id.ToString(),
+                        iconUrl = "/Content/Custom/img/maintenance.png",
+                    });
+                }
+            }
+
+            return res.ToArray();
+        }
+
         public DataSources GetDataSources(Guid userId)
         {
 
@@ -471,6 +544,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
         public string description { get; set; }
         public string url { get; set; }
         public int count { get; set; }
+        public string iconUrl { get; set; }
+    }
+
+    public class NotificationRequest
+    {
+        public string description { get; set; }
+        public string url { get; set; }
         public string iconUrl { get; set; }
     }
 
