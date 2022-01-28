@@ -16,13 +16,13 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 {
     public class AccountController : Controller
     {
-        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri)]
+        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
 
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 return RedirectToAction("Index", "VWCRM_Presentation", new { area = "CRM" });
             }
@@ -203,7 +203,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             {
                 var shUserRoles = db.GetSH_UserRoleByUserId(user.id);
 
-                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.BayiPersoneli)).FirstOrDefault() != null)
+                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.CRMBayiPersoneli)).FirstOrDefault() != null)
                 {
                     redirecturl = Url.Action("Index", "VWCRM_Presentation", new { area = "CRM" });
                 }

@@ -44,7 +44,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View();
 		}
 
-		[PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.BayiPersoneli)]
+		[PageInfo("Tüm Cari Listesi", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -57,13 +57,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.BayiPersoneli,SHRoles.BayiGorevPersoneli)]
+		[PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli,SHRoles.BayiGorevPersoneli)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var db = new WorkOfTimeDatabase();
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)))
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiGorevPersoneli)))
 			{
 				condition = UpdateQuery(condition, userStatus);
 			}
@@ -80,7 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			var data = db.GetVWCMP_Company(condition).B_ToDictionaryList(x=>new {x.fullName,x.id });
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
-		[PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli)]
+		[PageInfo("Firma&Cari Listesi Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli)]
 		public ContentResult DataSourceDropDownBayi([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -90,7 +90,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Firma&Cari Listesi Bayi Personeli Dropdown Verileri", SHRoles.Personel, SHRoles.BayiPersoneli)]
+		[PageInfo("Firma&Cari Listesi Bayi Personeli Dropdown Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
 		public ContentResult DataSourceDropDownSpesific([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -118,13 +118,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ActionResult Insert(VMCMP_CompanyModel data)
 		{
 			return View(data.Load());
 		}
 
-		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Firma&Cari Ekleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		[HttpPost]
 		public JsonResult Insert(VMCMP_CompanyModel item, bool? isPost)
 		{
@@ -160,14 +160,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ActionResult Update(VMCMP_CompanyModel item)
 		{
 			item.Load();
 			return View(item);
 		}
 
-		[PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Firma&Cari Güncelleme Sayfası", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMCMP_CompanyModel item, EnumCMP_CompanyType[] type)
 		{

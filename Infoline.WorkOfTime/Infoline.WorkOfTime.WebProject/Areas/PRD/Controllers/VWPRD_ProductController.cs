@@ -22,7 +22,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return View();
 		}
 
-		[PageInfo("Ürün Tanımları Grid Metodu", SHRoles.Personel, SHRoles.BayiPersoneli)]
+		[PageInfo("Ürün Tanımları Grid Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Ürün Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Ürün Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 		}
 
 	
-		[PageInfo("Ürün Tanımları Adet Metodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Ürün Tanımları Adet Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);

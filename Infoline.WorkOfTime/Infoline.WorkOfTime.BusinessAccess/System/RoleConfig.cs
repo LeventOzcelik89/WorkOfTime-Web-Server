@@ -135,8 +135,9 @@ namespace System
         //Dil Yönetimi
 
         //Bayi Yönetimi
-        [PropInfo("Bayi Personeli Rolü", "Potansiyel, Sipariş, Teklif ve Görev işlemlerini yapar.")]
-        public const string BayiPersoneli = "00000000-0000-0000-0005-000000000000";
+        [PropInfo("CRM Bayi Personeli Rolü", "Potansiyel, Sipariş, Teklif ve Görev işlemlerini yapar.")]
+        public const string CRMBayiPersoneli = "00000000-0000-0000-0005-000000000000";
+     
         [PropInfo("Bayi Görev Personeli Rolü", "Saha görevlerini yapar.")]
         public const string BayiGorevPersoneli = "00000000-0000-0000-0005-200000000000";
         [PropInfo("Çağrı Merkezi Rolü", "Bayinin potansiyel işlemlerini yapar.")]
@@ -156,6 +157,11 @@ namespace System
         public const string TeknikServisBayiRolu = "00000000-0000-0000-0007-100000000000";
         //Teknik Servis Yönetimi
 
+
+        [PropInfo("Hakediş Bayi Personeli Rolü", "Hakediş Bayi Personeli Rolü")]
+        public const string HakEdisBayiPersoneli = "00000000-0000-0000-0005-300000000000";
+        [PropInfo("Satış Bayi Personeli Rolü", "Hakediş Bayi Personeli Rolü")]
+        public const string SatisBayiPersoneli = "00000000-0000-0000-0005-400000000000";
     }
 
     public class PageInfo : Attribute

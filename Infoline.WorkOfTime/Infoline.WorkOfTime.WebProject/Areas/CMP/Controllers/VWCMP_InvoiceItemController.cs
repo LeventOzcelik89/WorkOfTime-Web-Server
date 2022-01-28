@@ -9,7 +9,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_InvoiceItemController : Controller
     {
-        [PageInfo("Ürün Kalemleri (Talep, Fatura, Teklif, İrsaliye, Sipariş)", SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Ürün Kalemleri (Talep, Fatura, Teklif, İrsaliye, Sipariş)", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

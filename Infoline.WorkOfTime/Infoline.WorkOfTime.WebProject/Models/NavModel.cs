@@ -17,7 +17,7 @@ namespace System.Web.Mvc
             }
             else
             {
-                if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)) && TenantConfig.Tenant.TenantCode == 1179)
+                if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) && TenantConfig.Tenant.TenantCode == 1179)
                 {
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());

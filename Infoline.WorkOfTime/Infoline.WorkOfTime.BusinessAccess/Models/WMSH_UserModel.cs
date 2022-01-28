@@ -739,7 +739,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.status = false;
             this.CompanyId = company.id;
             this.type = (short)EnumSH_UserType.CompanyPerson;
-            this.Roles = new List<Guid> { new Guid(SHRoles.BayiPersoneli) };
+            this.Roles = new List<Guid> { new Guid(SHRoles.CRMBayiPersoneli) };
 
             var result = this.Save();
             if (result.result)

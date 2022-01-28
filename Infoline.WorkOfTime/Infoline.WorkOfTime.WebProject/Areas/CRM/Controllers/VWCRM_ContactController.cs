@@ -26,7 +26,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Aktivite/Randevu Methodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -93,7 +93,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
 
-        [PageInfo("Aktivite/Randevu Detayı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli)]
+        [PageInfo("Aktivite/Randevu Detayı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli)]
         public ActionResult Detail(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -106,7 +106,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
 
 
-        [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+        [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         public ActionResult Insert(VWCRM_Contact item, DateTime? date, bool all = false)
         {
             var db = new WorkOfTimeDatabase();
@@ -134,7 +134,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(item);
         }
 
-        [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+        [PageInfo("Aktivite/Randevu Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VWCRM_Contact item, Guid[] IdUsers, DateTime? AppointmentDate, bool mailForParticipants, Guid? RelationId)
         {
@@ -394,7 +394,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Aktivite/Randevu Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+        [PageInfo("Aktivite/Randevu Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         public ActionResult Update(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -403,7 +403,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(data);
         }
 
-        [PageInfo("Aktivite/Randevu Güncelleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+        [PageInfo("Aktivite/Randevu Güncelleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VWCRM_Contact item, Guid[] IdUsers, bool mailForParticipants)
         {

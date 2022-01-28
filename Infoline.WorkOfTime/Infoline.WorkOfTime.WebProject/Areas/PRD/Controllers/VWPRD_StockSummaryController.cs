@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Ürünlerin Stok Özeti", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatisPersoneli, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Ürünlerin Stok Özeti", SHRoles.StokYoneticisi, SHRoles.DepoSorumlusu, SHRoles.SatisPersoneli, SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ActionResult StockDetailProducts(string productIds)
         {
             var model = productIds.Split(',').Select(a => (Guid?)new Guid(a)).ToList();

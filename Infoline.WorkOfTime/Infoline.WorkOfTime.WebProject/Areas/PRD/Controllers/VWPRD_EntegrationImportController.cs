@@ -19,12 +19,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         {
             return View();
         }
-        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.CRMBayiPersoneli)]
         public ActionResult ClaimReport()
         {
             return View();
         }
-        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.CRMBayiPersoneli)]
         public JsonResult ClaimReportDataSource(Guid companyId, int year, int month)
         {
             var db = new WorkOfTimeDatabase();

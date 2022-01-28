@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return View();
         }
 
-        [PageInfo("Ürün Prim Tanımları DataSource", SHRoles.Personel, SHRoles.BayiPersoneli)]
+        [PageInfo("Ürün Prim Tanımları DataSource", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Ürün Prim Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.BayiPersoneli)]
+        [PageInfo("Ürün Prim Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

@@ -288,23 +288,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     new FileBase("Toplantı Dosyası",
                                  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  ),
                     new FileBase("Kartvizitler",
                                  "*.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  ),
                     new FileBase("Diğer Dosyalar",
                                  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  )
                 }
             },
@@ -313,23 +313,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     new FileBase("Sözleşme Dosyaları",
                                  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.png, *.jpg,*.jpeg, *.doc, *.docx, *.xls, *.xlsx, *.rar, *.zip, *.msg, *.pdf, *.ppt, *.pptx, *.mp4, *.avi",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli ,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi},
-                                 new string[]{ SHRoles.CRMYonetici ,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi},
-                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi},
+                                 new string[]{ SHRoles.CRMYonetici ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi},
+                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  ),
                     new FileBase("Şirket Evrakları",
                                  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.png, *.jpg,*.jpeg, *.doc, *.docx, *.xls, *.xlsx, *.rar, *.zip, *.msg, *.pdf, *.ppt, *.pptx, *.mp4, *.avi",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  ),
                     new FileBase("Teklifler",
                                  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.png, *.jpg, *.jpeg, *.doc, *.docx, *.xls, *.xlsx, *.rar, *.zip, *.msg, *.pdf, *.ppt, *.pptx, *.mp4, *.avi",
                                  99,
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.CRMYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[] {SHRoles.CRMYonetici,SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                                  )
                 }
             },
@@ -438,9 +438,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                  new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici }
                         ),
                     new FileBase ("Teklif Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
-                                 new string[]{ SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
-                                 new string[]{ SHRoles.SatinAlmaPersonel,  SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
-                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev }
+                                 new string[]{ SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
+                                 new string[]{ SHRoles.SatinAlmaPersonel,  SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.SatinAlmaOnaylayiciGorev },
+                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatinAlmaOnaylayici, SHRoles.SatisOnaylayici, SHRoles.SatinAlmaPersonel, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.SatinAlmaOnaylayiciGorev }
                         ),
                     new FileBase ("İrsaliye Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
                                  new string[]{ SHRoles.DepoSorumlusu },
@@ -448,9 +448,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                  new string[]{ SHRoles.DepoSorumlusu }
                         ),
                     new FileBase ("Sipariş Dosyası",  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
-                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi },
-                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli }
+                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.SatisPersoneli,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi },
+                                 new string[]{ SHRoles.OnMuhasebe, SHRoles.SatisPersoneli, SHRoles.SatisOnaylayici, SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli }
                         ),
                     new FileBase ("Talep Dosyası",  "*.csv, *.jpeg, *.ppt, *.pptx, *.msg, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar,*.gif,*.jpeg,*.mp3", 99,
                                  new string[]{ SHRoles.SatinAlmaTalebi, SHRoles.SatinAlmaPersonel, SHRoles.SahaGorevPersonel },
@@ -482,9 +482,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 "CMP_Company", new[]
                 {
                     new FileBase("İşletme Logosu", "*.jpeg,*.png,*.jpg,*.jpeg",  1,
-                                                                                 new string[]{ SHRoles.Personel ,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi},
-                                                                                 new string[]{ SHRoles.Personel ,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi},
-                                                                                 new string[]{ SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi}),
+                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi},
+                                                                                 new string[]{ SHRoles.Personel ,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi},
+                                                                                 new string[]{ SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi}),
                     new FileBase("İşletme Diğer Dosyalar", "*.jpeg,*.png,*.jpg,*.jpeg",  99,
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },

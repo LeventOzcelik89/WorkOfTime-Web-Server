@@ -206,7 +206,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.SahaGorevMusteri,
             SHRoles.SistemYonetici,
             SHRoles.Cevirmen,
-            SHRoles.BayiPersoneli,
+            SHRoles.CRMBayiPersoneli,
             SHRoles.BayiGorevPersoneli,
             SHRoles.CagriMerkezi,
             SHRoles.DokumanYonetimRolu,
@@ -219,7 +219,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             SHRoles.YardimMasaMusteri,
             SHRoles.SatinAlmaOnaylayiciGorev,
             SHRoles.TeknikServisBayiRolu,
-            SHRoles.TeknikServisYoneticiRolu
+            SHRoles.TeknikServisYoneticiRolu,
+            SHRoles.HakEdisBayiPersoneli,
+            SHRoles.SatisBayiPersoneli
         };
         public IysInformation IysInformations { get; set; }
 

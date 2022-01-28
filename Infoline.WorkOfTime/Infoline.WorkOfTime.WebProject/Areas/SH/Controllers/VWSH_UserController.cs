@@ -79,7 +79,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return adet;
         }
 
-        [PageInfo("Kullanıcı Dropdown Methodu", SHRoles.Personel, SHRoles.YardimMasaTalep, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Kullanıcı Dropdown Methodu", SHRoles.Personel, SHRoles.YardimMasaTalep, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var db = new WorkOfTimeDatabase();

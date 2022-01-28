@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-        [PageInfo("Para Birimleri Veri Metodu", SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Para Birimleri Veri Metodu", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
             request.PageSize = int.MaxValue;
