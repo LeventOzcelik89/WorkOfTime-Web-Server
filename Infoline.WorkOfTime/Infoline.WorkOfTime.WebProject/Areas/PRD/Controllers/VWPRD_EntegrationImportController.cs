@@ -218,7 +218,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             if (dbresult.result)
             {
-                var de = Convert.ToInt32(CheckUserCompanyHasNullAreas().Data);
+                if (CheckUserCompanyHasNullAreas(dbresult).Data!=null)
+                {
+                    return CheckUserCompanyHasNullAreas(dbresult);
+                }
                 
             }
 
@@ -481,6 +484,38 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             }
             return Json(-1, JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public JsonResult CheckUserCompanyHasNullAreas(ResultStatus result)
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var message = "";
+            var de = Convert.ToInt32(CheckUserCompanyHasNullAreas().Data);
+            if (de != -1)
+            {
+                if (de == 0)//
+                {
+                    message = "Kullanıcının ait olduğu bir şirket yoktur";
+                }
+                else if (de == 1)
+                {
+                    message = "Şirketinizin bilgileri tam girilmemiştir.Ödeme alabilmek için şirketinize ait tüm bilgileri giriniz.";
+                }
+                else if (de == 2)
+                {
+                    message = "Ödeme Bilgileri Giriniz Ödeme alabilmek için şirketinize ait ödeme bilgilerinizi giriniz. \n Anasayfa>Ödeme Hesabı Ekle";
+                }
+
+                return Json(new ResultStatusUI
+                {
+                    Result = result.result,
+                    FeedBack = result.result ? feedback.Warning($"Kayıt Oluşturuldu </br> {message}", true) : feedback.Warning(result.message)
+                }, JsonRequestBehavior.AllowGet);
+                
+            }
+            return null;
         }
     }
 }
