@@ -296,9 +296,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             {
                 var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
                 if (authoritys.Count() > 0)
+                {
                     dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
 
                     plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+                }
             }
 
             var newTasks = new int[] {
