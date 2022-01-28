@@ -111,13 +111,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
         }
 
 
-        //[PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        //public ActionResult Update(Guid id)
-        //{
-        //    var db = new WorkOfTimeDatabase();
-        //    var data = db.GetVWUT_LocationConfigUserById(id);
-        //    return View(data);
-        //}
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        public ActionResult Update(Guid id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var data = db.GetVWUT_LocationConfigUserById(id);
+            return View(data);
+        }
         [PageInfo("Lokasyon Takip Ekleme Upsert Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici)]
         public ActionResult Upsert(Guid id)
         {
@@ -146,93 +146,93 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        //[HttpPost, ValidateAntiForgeryToken]
-        //[PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        //public JsonResult Update(UT_LocationConfigUser item)
-        //{
-        //    var db = new WorkOfTimeDatabase();
-        //    var userStatus = (PageSecurity)Session["userStatus"];
-        //    var feedback = new FeedBack();
+        [HttpPost, ValidateAntiForgeryToken]
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        public JsonResult Update(UT_LocationConfigUser item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
 
-        //    item.changed = DateTime.Now;
-        //    item.changedby = userStatus.user.id;
+            item.changed = DateTime.Now;
+            item.changedby = userStatus.user.id;
 
-        //    var dbresult = db.UpdateUT_LocationConfigUser(item);
-        //    var result = new ResultStatusUI
-        //    {
-        //        Result = dbresult.result,
-        //        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-        //    };
+            var dbresult = db.UpdateUT_LocationConfigUser(item);
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
+            };
 
-        //    return Json(result, JsonRequestBehavior.AllowGet);
-        //}
-
-
-        //[HttpPost]
-        //[PageInfo("Lokasyon Takip Silme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        //public JsonResult Delete(string[] id)
-        //{
-        //    var db = new WorkOfTimeDatabase();
-        //    var feedback = new FeedBack();
-
-        //    var item = id.Select(a => new UT_LocationConfigUser { id = new Guid(a) });
-
-        //    var dbresult = db.BulkDeleteUT_LocationConfigUser(item);
-
-        //    var result = new ResultStatusUI
-        //    {
-        //        Result = dbresult.result,
-        //        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-        //    };
-
-        //    return Json(result, JsonRequestBehavior.AllowGet);
-        //}
-
-        //[HttpPost, ValidateAntiForgeryToken]
-        //[PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        //public JsonResult UpdateTracking(UT_LocationConfigUser item)
-        //{
-        //    var db = new WorkOfTimeDatabase();
-        //    var userStatus = (PageSecurity)Session["userStatus"];
-        //    var feedback = new FeedBack();
-        //    var res = new ResultStatus { result = true };
-
-        //    var oldData = db.GetUT_LocationConfigUserById(item.id);
-        //    if (oldData == null)
-        //    {
-        //        res &= db.InsertUT_LocationConfigUser(new UT_LocationConfigUser
-        //        {
-        //            locationConfigId = item.locationConfigId,
-        //            userId = item.userId,
-        //            isTrackingActive = item.isTrackingActive,
-        //            createdby = userStatus.user.id,
-        //            created = DateTime.Now
-        //        });
-        //    }
-        //    else
-        //    {
-        //        oldData.changed = DateTime.Now;
-        //        oldData.changedby = userStatus.user.id;
-        //        oldData.isTrackingActive = item.isTrackingActive;
-        //        res &= db.UpdateUT_LocationConfigUser(oldData);
-        //    }
-
-        //    var result = new ResultStatusUI
-        //    {
-        //        Result = res.result,
-        //        FeedBack = res.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning("Güncelleme işlemi başarısız")
-        //    };
-
-        //    return Json(result, JsonRequestBehavior.AllowGet);
-        //}
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
 
 
-        [AllowEveryone]
+        [HttpPost]
+        [PageInfo("Lokasyon Takip Silme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        public JsonResult Delete(string[] id)
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+
+            var item = id.Select(a => new UT_LocationConfigUser { id = new Guid(a) });
+
+            var dbresult = db.BulkDeleteUT_LocationConfigUser(item);
+
+            var result = new ResultStatusUI
+            {
+                Result = dbresult.result,
+                FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+        [HttpPost, ValidateAntiForgeryToken]
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        public JsonResult UpdateTracking(UT_LocationConfigUser item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            var res = new ResultStatus { result = true };
+
+            var oldData = db.GetUT_LocationConfigUserById(item.id);
+            if (oldData == null)
+            {
+                res &= db.InsertUT_LocationConfigUser(new UT_LocationConfigUser
+                {
+                    locationConfigId = item.locationConfigId,
+                    userId = item.userId,
+                    isTrackingActive = item.isTrackingActive,
+                    createdby = userStatus.user.id,
+                    created = DateTime.Now
+                });
+            }
+            else
+            {
+                oldData.changed = DateTime.Now;
+                oldData.changedby = userStatus.user.id;
+                oldData.isTrackingActive = item.isTrackingActive;
+                res &= db.UpdateUT_LocationConfigUser(oldData);
+            }
+
+            var result = new ResultStatusUI
+            {
+                Result = res.result,
+                FeedBack = res.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Warning("Güncelleme işlemi başarısız")
+            };
+
+            return Json(result, JsonRequestBehavior.AllowGet);
+        }
+
+
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ActionResult MapOverView(VWUT_LocationConfigUser model)
         {
             return View(model);
         }
-        [AllowEveryone]
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ContentResult GetMapData(DateTime startDate, DateTime endDate, Guid userId)
         {
             var db = new WorkOfTimeDatabase();
