@@ -115,29 +115,29 @@
                     }
 
                 },
-                AllUsers: function (elem, target) {
+                //AllUsers: function (elem, target) {
 
-                    var hasActive = $(elem).hasClass("active");
-                    $(elem).parent().find("button").removeClass("active");
+                //    var hasActive = $(elem).hasClass("active");
+                //    $(elem).parent().find("button").removeClass("active");
 
-                    if (hasActive) {
-                        $(".btn-bar.right").animate({ right: -430 }, 200);
-                    } else {
-                        $(elem).addClass("active");
-                        $(".btn-bar.right").animate({ right: -430 }, 200, function () {
-                            $('.pan-container').find('.pan-content').hide();
-                            $('.pan-container').find("#" + target).show();
-                            $(".btn-bar.right").animate({ right: 15 }, 200);
-                        });
-                    }
-                },
-                colorSelect: function (e) {
-                    if ($('#ColorBox').hasClass("hide")) {
-                        $('#ColorBox').removeClass("hide");
-                    } else {
-                        $('#ColorBox').addClass("hide");
-                    }
-                },
+                //    if (hasActive) {
+                //        $(".btn-bar.right").animate({ right: -430 }, 200);
+                //    } else {
+                //        $(elem).addClass("active");
+                //        $(".btn-bar.right").animate({ right: -430 }, 200, function () {
+                //            $('.pan-container').find('.pan-content').hide();
+                //            $('.pan-container').find("#" + target).show();
+                //            $(".btn-bar.right").animate({ right: 15 }, 200);
+                //        });
+                //    }
+                //},
+                //colorSelect: function (e) {
+                //    if ($('#ColorBox').hasClass("hide")) {
+                //        $('#ColorBox').removeClass("hide");
+                //    } else {
+                //        $('#ColorBox').addClass("hide");
+                //    }
+                //},
                 colorInfoSelect: function (e) {
                     if ($('#ColorInfo').hasClass("hide")) {
                         $('#ColorInfo').removeClass("hide");
@@ -157,43 +157,53 @@
             data: null,
             init: function () {
 
+                $('[data-target=".search-content"]').attr("data-placement", "left");
+                $('[data-target=".search-content"]').tooltip();
+                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
+                    page.defines.filteredData = res;
+                    page.locateFeatureToMap();
+                    page.PersonelList();
+                    page.fn.slideTab($('#personAllTemp'), 'PersonelList');
+                    $('#selectCompany').addClass('hide');
+
+                }, "Konumlar yükleniyor..");
 
                 $('[data-original-title]').tooltip();
 
-                ////marketlar burda oluşuyor
-                svg = 'img'; var firstLocation = new ol.style.Style({
-                    image: new ol.style.Icon({
-                        opacity: 1,
-                        src: 'data:image/svg+xml,' + escape(svg),
-                        scale: 1.0,
-                        anchor: [0.5, 64],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'pixels',
-                    })
-                });
-                svg = 'img';
-                var locations = new ol.style.Style({
-                    image: new ol.style.Icon({
-                        opacity: 1,
-                        src: 'data:image/svg+xml,' + escape(svg),
-                        scale: 0.18,
-                        anchor: [0.5, 64],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'pixels',
-                    })
-                });
+                //////marketlar burda oluşuyor
+                //svg = 'img'; var firstLocation = new ol.style.Style({
+                //    image: new ol.style.Icon({
+                //        opacity: 1,
+                //        src: 'data:image/svg+xml,' + escape(svg),
+                //        scale: 1.0,
+                //        anchor: [0.5, 64],
+                //        anchorXUnits: 'fraction',
+                //        anchorYUnits: 'pixels',
+                //    })
+                //});
+                //svg = 'img';
+                //var locations = new ol.style.Style({
+                //    image: new ol.style.Icon({
+                //        opacity: 1,
+                //        src: 'data:image/svg+xml,' + escape(svg),
+                //        scale: 0.18,
+                //        anchor: [0.5, 64],
+                //        anchorXUnits: 'fraction',
+                //        anchorYUnits: 'pixels',
+                //    })
+                //});
 
-                svg = 'img';
-                var lastLocation = new ol.style.Style({
-                    image: new ol.style.Icon({
-                        opacity: 1,
-                        src: 'data:image/svg+xml,' + escape(svg),
-                        scale: 1.0,
-                        anchor: [0.5, 64],
-                        anchorXUnits: 'fraction',
-                        anchorYUnits: 'pixels',
-                    })
-                });
+                //svg = 'img';
+                //var lastLocation = new ol.style.Style({
+                //    image: new ol.style.Icon({
+                //        opacity: 1,
+                //        src: 'data:image/svg+xml,' + escape(svg),
+                //        scale: 1.0,
+                //        anchor: [0.5, 64],
+                //        anchorXUnits: 'fraction',
+                //        anchorYUnits: 'pixels',
+                //    })
+                //});
 
                 page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarkNew1.png");
                 page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarkNew1.png");
@@ -310,42 +320,95 @@
                     }
                 }*@
             },
-            applyFilter: function () {
-                return;
-                page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
-                page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
-                page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
-                page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
-                page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
+            //applyFilter: function () {
+            //    return;
+            //    page.dfn.harita.layer.get("FirstLocation")["FirstLocation"].getSource().clear();
+            //    page.dfn.harita.layer.get("Locations")["Locations"].getSource().clear();
+            //    page.dfn.harita.layer.get("LastLocation")["LastLocation"].getSource().clear();
+            //    page.dfn.harita.layer.get("Action")["Action"].getSource().clear();
+            //    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
 
-                page.locateFeatureToMap();
+            //    page.locateFeatureToMap();
 
-                if ($('#searchButton').hasClass("active")) {
-                    $('#searchButton').trigger("click");
-                }
+            //    if ($('#searchButton').hasClass("active")) {
+            //        $('#searchButton').trigger("click");
+            //    }
 
-            },
-            goLocation: function (_this) {
-                var featureId = $(_this).attr("data-personId");
+            //},
 
-                if (featureId && featureId != null && featureId != "") {
-                    var feature = page.dfn.harita.feature.get(featureId)[featureId];
-                    if (feature) {
-                        page.dfn.harita.helper.PanTo(feature.getGeometry().getExtent());
-                        page.dfn.harita.map.getView().setZoom(14);
+            personlists: function (e, resp) {
+                page.dfn.harita.overlay.remove('slider-station');
+                selectedFeature = resp.element == undefined ? resp.getId() : resp.element.getId();
+                var prop = resp.element == undefined ? resp.getProperties().properties : resp.element.get("properties");
 
-                        $("#Harita").trigger("select:feature", { type: "add", element: feature });
+                    if (prop != null) {
 
-                        $(".btn-bar.right").animate({ right: -800 }, 200);
+                        if ($('#selectCompany').hasClass("hide")) {
+                            $('#selectCompany').removeClass("hide");
+                        }
+
+                        if ($('#selectCompany').hasClass("active")) {
+                            $('#selectCompany').removeClass("active");
+                            setTimeout(function () {
+                                $('#selectCompany').trigger("click");
+                            }, 300)
+                        }
+                        else {
+                            $('#selectCompany').trigger("click");
+                        }
+                        $('#personTemplate').html(null)
+                        var elem = $($('#selectedPerson').html());
+                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
+                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderByDescending(x => x.timeStamp).FirstOrDefault();
+
+
+                        if (prop.lastLocation != undefined) {
+                            var locations = prop.lastLocation.split('(')[1].replace(')', "");
+                            var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                            var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+
+                            elem.find('[data-id="locationInfo"]').html(longitude + " " + latitude);
+                        }
+                        
+
+                        elem.find('[data-id="personFullName"]').html(prop.userId_Title != null ? prop.userId_Title : "-");
+                        elem.find('[data-id="personTitle"]').html(prop.title ? prop.title : "-");
+                        elem.find('[data-id="locationDate"]').html(page.parseTimeStamp(prop.timeStamp));
+                        elem.find('[data-id="locationInfo"]').html(longitude + " " + latitude);
+                        elem.find('[data-id="deviceInfo"]').html(prop.deviceId != null ? prop.deviceId : "Cihaz bilgisi bulunamadı.");
+                        elem.find('[data-id="firstLocationDate"]').html(page.parseTimeStamp(firstLocationInfo.timeStamp));
+                        elem.find('[data-id="lastLocationDate"]').html(page.parseTimeStamp(lastLocationInfo.timeStamp));
+                        elem.find('[data-id="personelPhoto"]').attr('src', prop.ProfilePhoto);
+                        elem.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + prop.userId);
+                        elem.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + prop.userId);
+                        $('#personTemplate').append(elem.html());
+
                     }
-                    else {
-                        MesajWarning("Konum bulunamadı.", "Uyarı");
-                    }
-                }
-                else {
-                    MesajWarning("Konum bulunamadı.", "Uyarı");
-                }
+
+                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
             },
+
+            //goLocation: function (_this) {
+            //    var featureId = $(_this).attr("data-personId");
+
+            //    if (featureId && featureId != null && featureId != "") {
+            //        var feature = page.dfn.harita.feature.get(featureId)[featureId];
+            //        if (feature) {
+            //            page.dfn.harita.helper.PanTo(feature.getGeometry().getExtent());
+            //            page.dfn.harita.map.getView().setZoom(14);
+
+            //            $("#Harita").trigger("select:feature", { type: "add", element: feature });
+
+            //            $(".btn-bar.right").animate({ right: -800 }, 200);
+            //        }
+            //        else {
+            //            MesajWarning("Konum bulunamadı.", "Uyarı");
+            //        }
+            //    }
+            //    else {
+            //        MesajWarning("Konum bulunamadı.", "Uyarı");
+            //    }
+            //},
             search: function (_this) {
                 var key = $(_this).val();
                 $.each($('#personAllTemp .card'), function (e, item) {
@@ -356,27 +419,27 @@
                     }
                 });
             },
-            getPersonDetailForHover: function (data) {
-                var person = page.defines.filteredData;
-                var text = '<div class="item">                                                                                  ' +
-                    '  <div class="head text-center clearfix">                                                                  ' +
-                    '      <a target="_blank" href="#">                                                                         ' +
-                    '          <div class="col-xs-12">' + data.userId_Title + '</div>                                           ' +
-                    '          <div class="col-xs-12" style="padding-top:0px;"><small> (' + data.title + ') </small> </div> ' +
-                    '      </a>                                                                                                 ' +
-                    '  </div>                                                                                                   ' +
-                    '   <ul class="list-group clear-list m-t">                                                                  ' +
-                    '        <li class="list-group-item fist-item">                                                             ' +
-                    '            <span class="pull-right listGroupValue">                                                       ' +
-                    page.parseLastLocation(data.id) +
-                    '            </span>                                                                                        ' +
-                    '            Konumun Alındığı Tarih                                                                         ' +
-                    '        </li>                                                                                              ' +
-                    '    </ul>                                                                                                  ' +
-                    '</div>';
+            //getPersonDetailForHover: function (data) {
+            //    var person = page.defines.filteredData;
+            //    var text = '<div class="item">                                                                                  ' +
+            //        '  <div class="head text-center clearfix">                                                                  ' +
+            //        '      <a target="_blank" href="#">                                                                         ' +
+            //        '          <div class="col-xs-12">' + data.userId_Title + '</div>                                           ' +
+            //        '          <div class="col-xs-12" style="padding-top:0px;"><small> (' + data.title + ') </small> </div> ' +
+            //        '      </a>                                                                                                 ' +
+            //        '  </div>                                                                                                   ' +
+            //        '   <ul class="list-group clear-list m-t">                                                                  ' +
+            //        '        <li class="list-group-item fist-item">                                                             ' +
+            //        '            <span class="pull-right listGroupValue">                                                       ' +
+            //        page.parseLastLocation(data.id) +
+            //        '            </span>                                                                                        ' +
+            //        '            Konumun Alındığı Tarih                                                                         ' +
+            //        '        </li>                                                                                              ' +
+            //        '    </ul>                                                                                                  ' +
+            //        '</div>';
 
-                return text;
-            },
+            //    return text;
+            //},
             parseTimeStamp: function (timeStamp) {
                 return kendo.toString(new Date(timeStamp * 1), 'dd.MM.yyyy HH:mm');
             },
@@ -405,11 +468,12 @@
                     html.find('[data-id="title"]').html(data.title ?? "-");
                     html.find('[data-id="configName"]').html(data.configName ?? "-");
                     html.find('[data-id="isTrackingActive"]').addClass(data.isTrackingActive == true ? 'hide' : '');
-                    html.find('[data-id="btnLocation"]').attr('data-id', data.userId).on("click", function (e) {
+                    html.find('[data-id="btnLocation"]').attr('data-id', data.userId).on("click", function (e, resp) {
                         var id = $(this).attr("data-id");
                         var feature = page.dfn.harita.feature.add(null, data.id, null);
                         if (feature) {
-                            page.dfn.harita.feature.panTo(data.id,20);
+                            page.dfn.harita.feature.panTo(data.id, 20);
+                            page.personlists(e, feature);
                         }
                     })
                     if (data.ProfilePhoto != null) {
@@ -442,99 +506,45 @@
 
                 page.init();
 
-                $('[data-target=".search-content"]').attr("data-placement", "left");
-                $('[data-target=".search-content"]').tooltip();
-                GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
-                    page.defines.filteredData = res;
-                    page.locateFeatureToMap();
-                    page.PersonelList();
-                    page.fn.slideTab($('#personAllTemp'), 'PersonelList')
-
-                }, "Konumlar yükleniyor..");
+                
             })
-            .on("click", '[data-name="filterType"]', function (e) {
-                var _this = $(this);
+            //.on("click", '[data-name="filterType"]', function (e) {
+            //    var _this = $(this);
 
-                _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
-                _this.parent().find('.fa-check').removeClass('fa fa-check');
-                _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
-                _this.find('span').addClass("fa fa-check");
-            })
-            .on("hover:feature", "#Harita", function (e, resp) {
-                page.dfn.harita.overlay.remove('slider-station');
-                if (resp.type == "add") {
-                    var elem = resp.element;
-                    var prop = elem.get("properties");
+            //    _this.parent().find('.filterButtonActive').removeClass("filterButtonActive").addClass("filterButtonPassive");
+            //    _this.parent().find('.fa-check').removeClass('fa fa-check');
+            //    _this.removeClass("filterButtonPassive").addClass("filterButtonActive");
+            //    _this.find('span').addClass("fa fa-check");
+            //})
+            //.on("hover:feature", "#Harita", function (e, resp) {
+            //    page.dfn.harita.overlay.remove('slider-station');
+            //    if (resp.type == "add") {
+            //        var elem = resp.element;
+            //        var prop = elem.get("properties");
 
-                    if (prop) {
-                        text = page.getPersonDetailForHover(prop);
-                        var geometry = resp.element.getGeometry();
-                        var coordinate = geometry.getCoordinates();
-                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+            //        if (prop) {
+            //            text = page.getPersonDetailForHover(prop);
+            //            var geometry = resp.element.getGeometry();
+            //            var coordinate = geometry.getCoordinates();
+            //            var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
 
-                        var tooltiplocation = "";
+            //            var tooltiplocation = "";
 
-                        if (pixel[1] < 400)
-                            tooltiplocation = "top-right";
-                        else if (screen.height - pixel[1] < 400)
-                            tooltiplocation = "bottom-right";
-                        else
-                            tooltiplocation = "center-right";
+            //            if (pixel[1] < 400)
+            //                tooltiplocation = "top-right";
+            //            else if (screen.height - pixel[1] < 400)
+            //                tooltiplocation = "bottom-right";
+            //            else
+            //                tooltiplocation = "center-right";
 
-                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
-                        page.dfn.harita.map.updateSize();
+            //            page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [-10, -30]);
+            //            page.dfn.harita.map.updateSize();
 
-                    }
-                }
-            })
+            //        }
+            //    }
+            //})
             .on("select:feature", "#Harita", function (e, resp) {
-                page.dfn.harita.overlay.remove('slider-station');
-                if (resp.type == "add") {
-                    selectedFeature = resp.element.getId();
-                    var prop = resp.element.get("properties");
-
-                    if (prop != null) {
-
-                        if ($('#selectCompany').hasClass("hide")) {
-                            $('#selectCompany').removeClass("hide");
-                        }
-
-                        if ($('#selectCompany').hasClass("active")) {
-                            $('#selectCompany').removeClass("active");
-                            setTimeout(function () {
-                                $('#selectCompany').trigger("click");
-                            }, 300)
-                        }
-                        else {
-                            $('#selectCompany').trigger("click");
-                        }
-                        $('#personTemplate').html(null)
-                        var elem = $($('#selectedPerson').html());
-                        var personelInfos = page.defines.filteredData;
-                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
-                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-
-
-                        var locations = prop.lastLocation.split('(')[1].replace(')', "");
-                        var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
-                        var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
-
-                        elem.find('[data-id="personFullName"]').html(prop.userId_Title != null ? prop.userId_Title : "-");
-                        elem.find('[data-id="personTitle"]').html(prop.title ? prop.title : "-");
-                        elem.find('[data-id="locationDate"]').html(page.parseTimeStamp(prop.timeStamp));
-                        elem.find('[data-id="locationInfo"]').html(longitude + " " + latitude);
-                        elem.find('[data-id="deviceInfo"]').html(prop.deviceId != null ? prop.deviceId : "Cihaz bilgisi bulunamadı.");
-                        elem.find('[data-id="firstLocationDate"]').html(page.parseTimeStamp(firstLocationInfo.timeStamp));
-                        elem.find('[data-id="lastLocationDate"]').html(page.parseTimeStamp(lastLocationInfo.timeStamp));
-                        elem.find('[data-id="personelPhoto"]').attr('src', prop.ProfilePhoto);
-                        elem.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + prop.userId);
-                        elem.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + prop.userId);
-                        $('#personTemplate').append(elem.html());
-
-                    }
-
-                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
-                }
+                page.personlists(e, resp);
             });
 
     </script>
@@ -579,30 +589,28 @@
     <div class="btn-bar right top animated slideInRight " style="width:490px;right:-800px;">
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
-            <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px; margin-bottom:5px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
+            <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
             <button id="selectCompany" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
 
         </div>
         <div class="pan-container-2">
 
-            <div>
+            <div style="width:380px;" class="pan-head clearfix">
                 <h3 class="pan-head clearfix" style="color:white;">PERSONEL LİSTESİ</h3>
                 <a class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"></a>
 
 
                 <div class="inputContainer">
                     <i class="fa fa-search"></i>
-                    <input type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
+                    <input style="width: 89%; margin-bottom: 8px;" type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
                 </div>
 
             </div>
 
 
-            <div style="height: calc(100% - 72px); overflow-y: scroll;" id="personAllTemp"></div>
+            <div style="height: calc(100% - 112px); overflow-y: scroll; margin-top: 10px;"  id="personAllTemp"></div>
         </div>
-        <div class="pan-container">
-            <div id="personTemplate"></div>
-
+        <div class="pan-container" style="height: calc(100% - 112px); overflow-y: scroll" id="personTemplate">
         </div>
     </div>
 </div>
@@ -707,7 +715,7 @@
         height: 23px;
         margin: 0 2px;
         perspective: 1000px;
-        margin-top:15px;
+        margin-top: 15px;
     }
 
     .btnDetail {
@@ -786,7 +794,7 @@
             </div>
             <div class="col-md-9">
                 <a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" data-original-title="Düzenle"><i class="fa fa-pencil"></i></a>
-                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-original-title="Lokasyon"><i class="fa fa-map-marker"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-original-title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
 
                 <h4 data-id="userId_Title"></h4>
                 <div class="text-muted" data-id="title"></div>
@@ -920,7 +928,7 @@
         .pan-container-2 {
             width: 430px;
             background: #2f404f;
-            height: calc(100vh - 170px);
+            height: calc(100vh - 200px);
             float: right;
             border-radius: 15px;
             padding: 15px;
@@ -929,7 +937,7 @@
         .pan-container {
             width: 430px;
             background: #2f404f;
-            height: calc(100vh - 170px);
+            height: calc(100vh - 200px);
             float: right;
             border-radius: 15px;
             padding: 15px;
@@ -1248,8 +1256,8 @@
         .card {
             background: rgba(0,0,0,0.17);
             border-radius: 10px;
-            margin-top: 10px;
-            padding: 10px;
+            margin-top: 7px;
+            padding: 12px;
             position: relative;
             overflow: hidden;
             margin-right: 10px;
