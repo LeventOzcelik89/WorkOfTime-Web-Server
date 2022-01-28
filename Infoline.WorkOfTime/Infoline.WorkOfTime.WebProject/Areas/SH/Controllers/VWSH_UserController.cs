@@ -79,7 +79,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return adet;
         }
 
-        [PageInfo("Kullanıcı Dropdown Methodu", SHRoles.Personel, SHRoles.YardimMasaTalep, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Kullanıcı Dropdown Methodu", SHRoles.Personel, SHRoles.YardimMasaTalep, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var db = new WorkOfTimeDatabase();
@@ -172,6 +172,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             item.changedby = userStatus.user.id;
             item.changed = DateTime.Now;
             var dbresult = item.Save();
+            if (dbresult.result == true && item.sendMail == true)
+            {
+                dbresult&= item.SendPasswordForCustomer();
+            }
             return Json(new ResultStatusUI(dbresult), JsonRequestBehavior.AllowGet);
         }
 
@@ -964,11 +968,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         [HttpPost]
         public JsonResult SendCompanyCodeMail(VMSH_UserModel model)
         {
-            if (model.CompanyId==null)
+            if (model.CompanyId == null)
             {
                 return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("Bayi Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
             }
-            if (model.email==null)
+            if (model.email == null)
             {
                 return Json(new ResultStatusUI { FeedBack = new FeedBack().Warning("E-Posta Boş Geçilemez!"), Result = false }, JsonRequestBehavior.AllowGet);
             }
@@ -1006,13 +1010,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var result = db.UpdateSH_User(findUser);
             if (result.result)
             {
-                SendPassword(new VMSH_UserModel {id=id});
+                SendPassword(new VMSH_UserModel { id = id });
             }
-            return Json(new ResultStatusUI {
-                FeedBack = result.result? new FeedBack().Success("Kullanıcı Aktifleştirildi. E-Posta Gönderildi"): new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
+            return Json(new ResultStatusUI
+            {
+                FeedBack = result.result ? new FeedBack().Success("Kullanıcı Aktifleştirildi. E-Posta Gönderildi") : new FeedBack().Warning("İşlem gerçekleştirilirken bir hata oluştu!"),
                 Result = result.result
             }, JsonRequestBehavior.AllowGet);
         }
+        [PageInfo("Bayi Personelleri Güncellemeye Yarayan Sayfa", SHRoles.IKYonetici)]
+        public ActionResult UpdateCompanyCustomer(VMSH_UserModel item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var model = item.Load();
+            model.VWPA_Accounts = db.GetVWPA_AccountsByDataIdDataTable(model.id, "SH_User");
+            return View(model);
+        }
+
     }
 }
 

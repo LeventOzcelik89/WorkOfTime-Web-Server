@@ -23,7 +23,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return View();
         }
 
-        [PageInfo("Faturalar Metodu", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.MuhasebeAlis, SHRoles.SatisFatura, SHRoles.ProjeYonetici,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Faturalar Metodu", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.MuhasebeAlis, SHRoles.SatisFatura, SHRoles.ProjeYonetici,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

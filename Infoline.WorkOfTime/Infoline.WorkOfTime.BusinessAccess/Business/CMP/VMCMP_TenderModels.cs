@@ -804,7 +804,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 tempRoles.Add(role.roleid.ToString());
             }
 
-            if (tempRoles.Contains(SHRoles.BayiPersoneli))
+            if (tempRoles.Contains(SHRoles.CRMBayiPersoneli))
             {
                 return db.GetDBVWCMP_GetMyTenderApproveSummary(userId, presentationId);
 

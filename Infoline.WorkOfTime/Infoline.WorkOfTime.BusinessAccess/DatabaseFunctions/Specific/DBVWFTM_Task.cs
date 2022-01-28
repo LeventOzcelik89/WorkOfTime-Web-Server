@@ -608,5 +608,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return headers;
             }
         }
+
+        public VWFTM_Task[] GetVWFTM_TaskAssignableByUserId(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWFTM_Task>().Where(a => a.assignUserId == null && a.isComplete == false && ((a.assignableUserIds != null && a.assignableUserIds.Contains(userId.ToString().ToUpper())))).Execute().ToArray();
+            }
+        }
     }
 }

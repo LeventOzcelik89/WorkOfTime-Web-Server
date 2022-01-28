@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB())
             {
-                return db.Table<SH_ShiftTracking>().Where(a => a.userId == userId).OrderByDesc(a => a.timestamp).Take(1).Execute().FirstOrDefault();
+                return db.Table<SH_ShiftTracking>().Where(a => a.userId == userId).OrderByDesc(a => a.created).Execute().FirstOrDefault();
             }
         }
 

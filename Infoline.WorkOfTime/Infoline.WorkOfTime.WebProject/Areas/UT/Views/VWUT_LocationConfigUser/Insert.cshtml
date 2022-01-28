@@ -1,8 +1,8 @@
-﻿@model VMUT_LocationConfigUserModel
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_LocationConfigUser
 @{
-    ViewBag.Title = "Personel Bilgileri Detayı";
+    ViewBag.Title = "Konum Takibi Yapılıcak Personel Tanımla";
+    Layout = "~/Views/Shared/_Layout.cshtml";
 }
-
 
 <script type="text/javascript" data-selector="modalContainer">
 
@@ -17,7 +17,7 @@
         if (sender.id == "") {
             $("#inputgroupid").addClass("hide");
         }
-    }
+    };
 
     $(document)
         .on("change", "#locationConfigId", function (e, resp) {
@@ -27,28 +27,26 @@
         })
         .on('change', '[name="isTrackingActive"]', function () {
 
-            setTimeout(function () { pageLocation.dfn.harita.map.updateSize(); }, 500);
 
         })
-
         ;
 </script>
 
 
 
-<form action="@Url.Action("Update", "SH_UserLocationTrackingController" ,new { area = "SH" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
+<form action="@Url.Action("Insert", "VWUT_LocationConfigUser" ,new { area = "UT" })" method="post" class="form-horizontal" role="form" style="padding: 15px;" data-loadingtitle="Kullanıcı düzenleme işleminiz gerçekleştiriliyor.Lütfen Bekleyiniz.."
       data-selector="modalContainer" data-formType="Ajax">
 
     @Html.AntiForgeryToken()
     @Html.HiddenFor(model => model.id)
-    @Html.HiddenFor(model => model.userId)
+    @*@Html.HiddenFor(model => model.userId)*@
 
     <div class="row">
 
-        <div class="col-md-5">
+        <div class="col-md-12">
             <div class="form-group">
-                <div class="col-md-6">
-                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi</label>
+                <div class="col-md-6 req">
+                    <label class="control-label label-md " for="isTrackingActive">Konum Takibi Yapılacak Mı?</label>
                 </div>
                 <div class="col-md-6">
                     @Html.Akilli().RadioButtonGroupFor(model => model.isTrackingActive).Value(EnumUT_LocationConfigUserisTrackingActive.Evet)
@@ -56,13 +54,41 @@
             </div>
         </div>
 
-        <div class="col-md-5">
+
+        <div class="col-md-12">
             <div class="form-group">
+                <div class="col-md-6 req">
+                    <label class="control-label label-md " for="userId">Personel Seçiniz</label>
+                </div>
                 <div class="col-md-6">
+                    <div class="input-group" style="width:100%">
+                        @(
+                            Html.Akilli()
+                            .DropDownListFor(model => model.userId)
+                            .OptionLabel("Lütfen Personel Belirtiniz...")
+                            .DataTextField("FullName")
+                            .DataValueField("id")
+                            .Validate(Validations.Required)
+                            .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                            .Sort(x => x.Add("FullName").Ascending())
+                            .Execute()
+                )
+
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+        <div class="col-md-12">
+            <div class="form-group">
+                <div class="col-md-6 req">
                     <label class="control-label label-md " for="locationConfigId">Yapılandırma Belirtiniz</label>
                 </div>
                 <div class="col-md-6">
-                    <div class="input-group">
+                    <div class="input-group" style="width:100%;">
                         @(
                             Html.Akilli()
                             .DropDownListFor(model => model.locationConfigId)
@@ -70,6 +96,7 @@
                             .DataTextField("configName")
                             .DataValueField("id")
                             .Events(x=>x.Change("setInput"))
+                            .Validate(Validations.Required)
                             .Action(b => b.Action("DataSourceDropDown", "VWUT_LocationConfig", new { area = "UT" }))
                 .Sort(x => x.Add("configName").Ascending())
                 .Execute()
@@ -82,7 +109,9 @@
             </div>
         </div>
 
-        <div class="col-md-2">
+
+
+        <div class="col-md-12">
             <div class="form-group">
                 <div class="col-md-12">
                     <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>

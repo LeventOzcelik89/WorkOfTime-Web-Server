@@ -17,13 +17,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWFTM_TaskAuthority[] GetVWFTM_TaskAuthorityByUserId(Guid userId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
-
             {
                 return db.Table<VWFTM_TaskAuthority>().Where(a => a.userId == userId).Execute().ToArray();
             }
         }
 
-        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerId(Guid userId,Guid customerId, DbTransaction tran = null)
+        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerId(Guid userId, Guid customerId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
 
@@ -32,7 +31,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerIdAndNotId(Guid userId, Guid customerId,Guid id, DbTransaction tran = null)
+        public FTM_TaskAuthority GetFTM_TaskAuthorityByUserIdAndCustomerIdAndNotId(Guid userId, Guid customerId, Guid id, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
 

@@ -907,6 +907,7 @@ namespace Infoline.WorkOfTime.Controllers
             var users = db.GetSH_GroupUsersByGroupId(id);
             return Json(users, JsonRequestBehavior.AllowGet);
         }
+        
 
         public JsonResult GetProductMaterials(Guid productId)
         {

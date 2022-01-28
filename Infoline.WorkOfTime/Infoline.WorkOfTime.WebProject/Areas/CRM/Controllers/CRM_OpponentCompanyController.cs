@@ -34,7 +34,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Rakip Firma Veri Methodu", SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Rakip Firma Veri Methodu", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

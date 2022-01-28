@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Satış Teklif Şablonları", SHRoles.Personel,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+		[PageInfo("Satış Teklif Şablonları", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -75,7 +75,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[PageInfo("Satış Teklif Şablonları", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis,SHRoles.BayiPersoneli,SHRoles.CagriMerkezi)]
+		[PageInfo("Satış Teklif Şablonları", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
 		public ActionResult Update(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -84,7 +84,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Satış Teklif Şablonları", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Satış Teklif Şablonları", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.MuhasebeSatis, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		[HttpPost, ValidateAntiForgeryToken, ValidateInput(false)]
 		public JsonResult Update(CMP_InvoiceDocumentTemplateModel item)
 		{

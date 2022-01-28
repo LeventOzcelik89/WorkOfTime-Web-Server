@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
 	public class VWCMP_OrderController : Controller
 	{
-		[PageInfo("Satış Siparişleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Satış Siparişleri", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
 		public ActionResult IndexSelling()
 		{
 			return View();
@@ -68,7 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		}
 
 
-		[PageInfo("Siparişler Metodu", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Siparişler Metodu", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			request = UpdateRequest(request);
@@ -76,7 +76,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			request.Page = 1;
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
 			{
 				condition = UpdateQuery(condition, userStatus);
 			}
@@ -86,13 +86,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Siparişler Adet Metodu", SHRoles.Personel, SHRoles.BayiPersoneli)]
+		[PageInfo("Siparişler Adet Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
 		public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
 		{
 			request = UpdateRequest(request);
 			var condition = KendoToExpression.Convert(request);
 			var userStatus = (PageSecurity)Session["userStatus"];
-			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
 			{
 				condition = UpdateQuery(condition, userStatus);
 			}
@@ -111,7 +111,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Satış Sipariş Detayı", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Satış Sipariş Detayı", SHRoles.SatisOnaylayici, SHRoles.SatisPersoneli, SHRoles.MuhasebeSatis, SHRoles.SatisFatura, SHRoles.DepoSorumlusu, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
 		public ActionResult DetailSelling(Guid id)
 		{
 			var data = new VMCMP_OrderModels { id = id }.Load(false);
@@ -119,7 +119,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(data);
 		}
 
-		[PageInfo("Satış Siparişi Ekleme", SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Satış Siparişi Ekleme", SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
 		public ActionResult InsertSelling(VMCMP_OrderModels item, bool? transform = false)
 		{
 			item.Load(transform);
@@ -131,7 +131,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			return View(item);
 		}
 
-		[PageInfo("Sipariş Ekleme Metodu", SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli)]
+		[PageInfo("Sipariş Ekleme Metodu", SHRoles.SatisPersoneli, SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMCMP_OrderModels item)
 		{

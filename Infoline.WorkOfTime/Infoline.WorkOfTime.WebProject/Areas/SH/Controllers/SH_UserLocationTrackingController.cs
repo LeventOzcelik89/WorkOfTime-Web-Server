@@ -1,4 +1,5 @@
-﻿using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using MessagingToolkit.QRCode.Codec;
 using System;
@@ -67,7 +68,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         }
 
         [AllowEveryone]
-        public JsonResult Update (VMUT_LocationConfigUserModel model)
+        public JsonResult Update(VMUT_LocationConfigUserModel model)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -83,61 +84,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
 
-        [AllowEveryone]
-        public ActionResult Insert()
-        {
-            var data = new VWUT_LocationConfigUser { id = Guid.NewGuid() };
-            return View(data);
-        }
+     
 
-
-        [HttpPost, ValidateAntiForgeryToken]
-        [AllowEveryone]
-        public JsonResult Insert(UT_LocationConfigUser item)
-        {
-            var db = new WorkOfTimeDatabase();
-            var userStatus = (PageSecurity)Session["userStatus"];
-            var feedback = new FeedBack();
-            item.created = DateTime.Now;
-            item.createdby = userStatus.user.id;
-            var dbresult = db.InsertUT_LocationConfigUser(item);
-            var result = new ResultStatusUI
-            {
-                Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-            };
-
-            return Json(result, JsonRequestBehavior.AllowGet);
-        }
-
-
-        //[AllowEveryone]
-        //public ContentResult RedMark(Guid id)//// bool ccc ekleyip arka tarafa green resmini getir.
-        //{
-
-
-        //    //var db = new WorkOfTimeDatabase();
-        //    //var profil = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", id);// dbden pp fotoları geliyor
-
-        //    //if (profil == null || !System.IO.File.Exists(Server.MapPath(profil.FilePath)))// Profil reesmi olmayanlara boş profil resmi ataması yapılıyor.
-        //    //{
-
-        //    //    using (var ms = new MemoryStream())
-        //    //    {
-        //    //        var bitma = Bitmap.FromFile(Server.MapPath("/Content/custom/img/PersonsBackImage/nonprofilemark.png"));
-        //    //        bitma.Save(ms, ImageFormat.Png);
-
-        //    //        Response.Clear();
-        //    //        Response.ContentType = "image/png";
-        //    //        Response.AddHeader("content-disposition", "attachment; qr.png");
-        //    //        Response.BinaryWrite(ms.ToArray());
-        //    //        Response.End();
-
-        //    //    }
-
-        //    //    return Content(null);
-
-        //    //}
     }
 }
 

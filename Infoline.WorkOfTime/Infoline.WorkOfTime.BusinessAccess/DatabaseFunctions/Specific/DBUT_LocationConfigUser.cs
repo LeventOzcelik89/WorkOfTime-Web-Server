@@ -17,7 +17,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
     partial class WorkOfTimeDatabase
     {
-        public UT_LocationConfigUser[] GetUT_LocationConfigUserByUserIdGetConfigIds(Guid userId, DbTransaction tran = null)
+        public UT_LocationConfigUser[] GetUT_LocationConfigUserByUserId(Guid userId, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {

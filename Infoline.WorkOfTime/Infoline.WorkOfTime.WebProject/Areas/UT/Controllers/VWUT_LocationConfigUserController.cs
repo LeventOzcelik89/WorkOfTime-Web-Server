@@ -52,32 +52,64 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return View(data);
         }
 
-        [PageInfo("Lokasyon Takip Ekleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
-        public ActionResult Insert()
+        [PageInfo("Lokasyon Takip Ekleme Insert Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici,SHRoles.SistemYonetici)]
+        public ActionResult Insert(Guid? id = null)
         {
-            var data = new VWUT_LocationConfigUser { id = Guid.NewGuid() };
-            return View(data);
+
+            if (id != null)
+            {
+                var db = new WorkOfTimeDatabase();
+                var data = db.GetVWUT_LocationConfigUserById(id.Value);
+                return View(data);
+            }
+            else
+            {
+                return View(new VWUT_LocationConfigUser());
+            }
+
         }
 
 
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Lokasyon Takip Ekleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Lokasyon Takip Ekleme Insert ve Update Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici)]
         public JsonResult Insert(UT_LocationConfigUser item)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
-            item.created = DateTime.Now;
-            item.createdby = userStatus.user.id;
-            var dbresult = db.InsertUT_LocationConfigUser(item);
-            var result = new ResultStatusUI
-            {
-                Result = dbresult.result,
-                FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-            };
+            var dbresult = new ResultStatus { result = true };
 
-            return Json(result, JsonRequestBehavior.AllowGet);
+            var dbRow = db.GetUT_LocationConfigUserByUserId(item.userId.Value).FirstOrDefault();
+            if (dbRow != null)
+            {
+                item.changed = DateTime.Now;
+                item.changedby = userStatus.user.id;
+                dbresult = db.UpdateUT_LocationConfigUser(item);
+                var result = new ResultStatusUI
+                {
+                    Result = dbresult.result,
+                    FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error(dbresult.message),
+                };
+
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                item.created = DateTime.Now;
+                item.createdby = userStatus.user.id;
+                dbresult = db.InsertUT_LocationConfigUser(item);
+                var result = new ResultStatusUI
+                {
+                    Result = dbresult.result,
+                    FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error(dbresult.message),
+                };
+
+                return Json(result, JsonRequestBehavior.AllowGet);
+            }
+
+            
         }
+
 
         [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ActionResult Update(Guid id)
@@ -86,7 +118,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             var data = db.GetVWUT_LocationConfigUserById(id);
             return View(data);
         }
-        [AllowEveryone]
+        [PageInfo("Lokasyon Takip Ekleme Upsert Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici)]
         public ActionResult Upsert(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -94,7 +126,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return View(data);
         }
         [HttpPost]
-        [AllowEveryone]
+        [PageInfo("Lokasyon Takip Ekleme Upsert Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici)]
         public JsonResult Upsert(UT_LocationConfigUser item)
         {
             var db = new WorkOfTimeDatabase();
@@ -195,13 +227,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
         }
 
 
-        //  userid geliyor
-        [AllowEveryone]
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ActionResult MapOverView(VWUT_LocationConfigUser model)
         {
             return View(model);
         }
-        [AllowEveryone]
+        [PageInfo("Lokasyon Takip Güncelleme Konfigürasyon Sayfası", SHRoles.IKYonetici, SHRoles.SahaGorevYonetici)]
         public ContentResult GetMapData(DateTime startDate, DateTime endDate, Guid userId)
         {
             var db = new WorkOfTimeDatabase();

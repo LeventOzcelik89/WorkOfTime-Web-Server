@@ -3,23 +3,26 @@ using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Infoline.WorkOfTime.WebProject.Models;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Web.Mvc;
 
 namespace Infoline.WorkOfTime.WebProject.Controllers
 {
     public class AccountController : Controller
     {
-        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri)]
+        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri,SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
 
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 return RedirectToAction("Index", "VWCRM_Presentation", new { area = "CRM" });
             }
@@ -42,6 +45,11 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             if (userStatus.user.id == new Guid("DCEAA584-35B7-4637-AF55-48CCF013C9D3"))
             {
                 return RedirectToAction("ScadaTasks", "VWFTM_TaskGrid", new { area = "FTM" });
+            }
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.CompanyPerson)
+            {
+                return RedirectToAction("IndexMy", "VWCMP_Company", new { area = "CMP" });
             }
 
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)
@@ -200,7 +208,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             {
                 var shUserRoles = db.GetSH_UserRoleByUserId(user.id);
 
-                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.BayiPersoneli)).FirstOrDefault() != null)
+                if (TenantConfig.Tenant.TenantCode == 1179 || TenantConfig.Tenant.TenantCode == 1100 && shUserRoles.Where(x => x.roleid.Value == new Guid(SHRoles.CRMBayiPersoneli)).FirstOrDefault() != null)
                 {
                     redirecturl = Url.Action("Index", "VWCRM_Presentation", new { area = "CRM" });
                 }
@@ -640,44 +648,67 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             return Content(Helper.Json.Serialize(new object { }), "application/json");
         }
         [AllowEveryone]
-        public ActionResult CustomerSignUp(Guid companyId)
+        public ActionResult CustomerSignUp(Guid? companyId)
         {
-            var signQrCore = new SignQrCore
+            if (TenantConfig.Tenant.TenantCode == 1194 || TenantConfig.Tenant.TenantCode == 1100)
             {
-                WebServiceUrl = TenantConfig.Tenant.GetWebServiceUrl(),
-                WebUrl = TenantConfig.Tenant.GetWebUrl()
-            };
-
-#if DEBUG == true
-            signQrCore = new SignQrCore
+               
+            }
+            else
             {
-                WebServiceUrl = "http://10.100.0.91/wot",
-                WebUrl = "http://10.100.0.72:62223"
-            };
-#endif
+                return View("Index");
+            }
 
-            ViewBag.ServiceUrl = Infoline.Helper.Json.Serialize(signQrCore);
             ViewBag.returnUrl = Request.QueryString["returnUrl"];
-            return View(new VMSH_UserModel {CompanyId=companyId});
+            return View(new VMSH_UserModel { CompanyId = companyId });
         }
         [AllowEveryone]
         [HttpPost]
         public JsonResult CustomerSignUp(VMSH_UserModel model)
         {
-            
-            
+            if (!ModelState.IsValid)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = new FeedBack().Warning("Bilinmeyen Bir Hatayla Karşılaşıldı")
 
-            var dbresult = model.InsertCustomer();
+                }, JsonRequestBehavior.AllowGet);
+            }
             var feedback = new FeedBack();
+            var captcha = Request.Form["g-recaptcha-response"];
+            const string secret = "6Lf7gT4eAAAAADzLH1NAl89XaEOlyv1FiYqWOFAD";
+            var restUrl = string.Format("https://www.google.com/recaptcha/api/siteverify?secret={0}&response={1}", secret, captcha);
+
+            CaptchaResult cResult = null;
+            var req = WebRequest.Create(restUrl);
+            var resp = req.GetResponse() as HttpWebResponse;
+
+            using (var reader = new StreamReader(resp.GetResponseStream()))
+            {
+                string resultObject = reader.ReadToEnd();
+                cResult = JsonConvert.DeserializeObject<CaptchaResult>(resultObject);
+            }
+
+            if (!cResult.Success)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning(cResult.ErrorCodes.Count() > 0 ? cResult.ErrorCodes.ToArray()[0] : "Doğrulama başarısız.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+            var dbresult = model.InsertCustomer();
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
                 FeedBack = dbresult.result
-                    ? feedback.Success("Kaydınızı Alınmıştır. Onaylantıkdan sonra şifreniz epostanıza düşecektir.")
-                    : feedback.Warning(dbresult.message)
+                    ? feedback.Success("Kayıt işlemi başarıyla tamamlandı.", false, Url.Action("SignIn", "Account"))
+                    : feedback.Error(dbresult.message,dbresult.message)
             };
 
             return Json(result, JsonRequestBehavior.AllowGet);
+
         }
     }
 
@@ -693,6 +724,19 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         public List<KeyValue> permits { get; set; }
         public INV_PermitType[] permitTypes { get; set; }
 
+
+    }
+    public class CaptchaResult
+    {
+        public bool Success { get; set; }
+        [JsonProperty("error-codes")]
+        public IEnumerable<string> ErrorCodes { get; set; }
+        [JsonProperty("challenge_ts")]
+        public DateTime ChallengeTs { get; set; }
+        [JsonProperty("hostname")]
+        public string Hostname { get; set; }
+        [JsonProperty("score")]
+        public decimal Score { get; set; }
     }
 
 }

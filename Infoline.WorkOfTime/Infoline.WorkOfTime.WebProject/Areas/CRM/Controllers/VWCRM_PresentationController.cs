@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 {
     public class VWCRM_PresentationController : Controller
     {
-        [PageInfo("Potansiyel Fırsatlar", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel Fırsatlar", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Index()
         {
             var db = new WorkOfTimeDatabase();
@@ -23,12 +23,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return View(data);
         }
 
-        [PageInfo("Potansiyel/Fırsat Methodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Methodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 request.Page = 1;
@@ -45,12 +45,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Potansiyel/Fırsat Veri Methodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Veri Methodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQuery(cc, userStatus);
@@ -63,12 +63,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Potansiyel/Fırsat Toplam Veri Methodu", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Toplam Veri Methodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public int DataSourceCount([DataSourceRequest] DataSourceRequest request)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 var cc = KendoToExpression.Convert(request);
                 cc = UpdateQuery(cc, userStatus);
@@ -82,13 +82,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return count;
         }
 
-        [PageInfo("Potansiyel/Fırsat Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Ekleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Insert(VMCRM_PresentationModel model)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             model.SalesPersonId = userStatus.user.id;
             var res = model.Load();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 res.ChannelCompanyId = userStatus.user.CompanyId;
                 return PartialView("~/Areas/CRM/Views/VWCRM_Presentation/SellerInsert.cshtml", res);
@@ -103,7 +103,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
         }
 
-        [PageInfo("Potansiyel/Fırsat Ekleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Ekleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         [HttpPost, ValidateAntiForgeryToken]
         public ContentResult Insert(VMCRM_PresentationModel item, DateTime? AppointmentDate, string AbsoluteUri, bool? isPost)
         {
@@ -157,12 +157,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         }
 
-        [PageInfo("Potansiyel/Fırsat Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Update(VMCRM_PresentationModel model)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             model.Load();
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.BayiPersoneli)))
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)))
             {
                 model.ChannelCompanyId = userStatus.user.CompanyId;
                 return PartialView("~/Areas/CRM/Views/VWCRM_Presentation/SellerUpdate.cshtml", model);
@@ -177,7 +177,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }
         }
 
-        [PageInfo("Potansiyel/Fırsat Güncelleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Güncelleme Methodu", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMCRM_PresentationModel item, bool? isPost)
         {
@@ -192,7 +192,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Potansiyel/Fırsat Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Detayı", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult Detail(Guid id, bool? isAddContact)
         {
             var db = new WorkOfTimeDatabase();
@@ -438,7 +438,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
 
-        [PageInfo("Potansiyel/Fırsat Not Ekleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Not Ekleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ContentResult InsertNote(Guid presentationId, string note)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -446,7 +446,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return Content(Infoline.Helper.Json.Serialize(dbresult), "application/json");
         }
 
-        [PageInfo("Potansiyel/Fırsat Aşama Güncelle", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Aşama Güncelle", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult UpdateState(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -455,7 +455,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
         }
 
         [HttpPost]
-        [PageInfo("Potansiyel/Fırsat Aşaması Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Potansiyel/Fırsat Aşaması Güncelleme", SHRoles.SatisPersoneli, SHRoles.CRMYonetici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public JsonResult UpdateState(CRM_Presentation item)
         {
             var db = new WorkOfTimeDatabase();
@@ -514,7 +514,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
 
         }
 
-        [PageInfo("Önem Derecesi Güncelleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Önem Derecesi Güncelleme Metodu", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public JsonResult UpdatePriorityLevel(Guid id, int priorityLevel)
         {
             var db = new WorkOfTimeDatabase();
@@ -631,7 +631,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CRM.Controllers
             return query;
         }
 
-        [PageInfo("Satış Duvarı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.SatisOnaylayici, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+        [PageInfo("Satış Duvarı", SHRoles.CRMYonetici, SHRoles.SatisPersoneli, SHRoles.SatisFatura, SHRoles.SatisOnaylayici, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
         public ActionResult AgileBoard(VWAgileBoardDashboardModel item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

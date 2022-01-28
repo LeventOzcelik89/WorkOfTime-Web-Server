@@ -22,7 +22,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 		{
 			return View();
 		}
-		[PageInfo("İşletme Şube/Depo/Kısımları Grid Verileri", SHRoles.Personel, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("İşletme Şube/Depo/Kısımları Grid Verileri", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
@@ -35,7 +35,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 			data.Total = db.GetVWCMP_StorageCount(condition.Filter);
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
-		[PageInfo("İşletme Şube/Depo/Kısımları Dropdown Verileri", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.BayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("İşletme Şube/Depo/Kısımları Dropdown Verileri", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);

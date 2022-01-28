@@ -2,6 +2,7 @@
 using Infoline.Framework.Database;
 using Infoline.Web.SmartHandlers;
 using Infoline.WorkOfTime.BusinessAccess;
+using Infoline.WorkOfTime.BusinessAccess.Mobile;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace Infoline.WorkOfTime.WebService
             foreach (var location in locations)
             {
                 location.userId = new Guid(id);
-                if(!string.IsNullOrEmpty(location.latitude) && !string.IsNullOrEmpty(location.longitude))
+                if (!string.IsNullOrEmpty(location.latitude) && !string.IsNullOrEmpty(location.longitude))
                 {
                     var point = "POINT(" + location.longitude + " " + location.latitude + ")";
                     location.location = new NetTopologySuite.IO.WKTReader().Read(point);
@@ -51,42 +52,23 @@ namespace Infoline.WorkOfTime.WebService
 
             var res = db.BulkInsertUT_LocationTracking(locations);
 
-            RenderResponse(context, new ResultStatus { result = res.result , message = res.result ? "Kaydetme işlemi başarılı" : "Kaydetme işlemi başarısız oldu." });
+            RenderResponse(context, new ResultStatus { result = res.result, message = res.result ? "Kaydetme işlemi başarılı" : "Kaydetme işlemi başarısız oldu." });
         }
 
 
         [HandleFunction("MBUT_LocationConfig/GetByUserId")]
         public void MBUT_LocationConfigGetByUserId(HttpContext context)
         {
-            var db = new WorkOfTimeDatabase();
-
-            if(CallContext.Current == null)
+            if (CallContext.Current == null)
             {
                 RenderResponse(context, new ResultStatus { result = false, message = "Kullanıcı girişi yapılmamış" });
                 return;
-
             }
-            var list = new List<VMUT_LocationConfig>();
-            var data = db.GetUT_LocationConfigUserByUserIdGetConfigIds(CallContext.Current.UserId).Where(x => x.locationConfigId.HasValue).Select(x => x.locationConfigId.Value).ToArray();
-            if(data.Count() > 0)
+
+            var locationList = new Locations().LConfigGetByUserId(CallContext.Current.UserId);
+            if (locationList != null)
             {
-
-                var locationConfigs = db.GetUT_LocationConfigByIds(data);
-                foreach (var locationConfig in locationConfigs)
-                {
-                    var res = new VMUT_LocationConfig();
-                    var datas = res.B_EntityDataCopyForMaterial(locationConfig);
-                    var tracking = db.GetUT_LocationConfigUserAndConfigId(CallContext.Current.UserId, locationConfig.id);
-
-                    if(tracking != null)
-                    {
-                        datas.isTrackingActive = tracking.isTrackingActive;
-                    }
-
-                    list.Add(datas);
-                }
-
-                RenderResponse(context, new ResultStatus { result = true, objects = list });
+                RenderResponse(context, new ResultStatus { result = true, objects = locationList });
                 return;
             }
 

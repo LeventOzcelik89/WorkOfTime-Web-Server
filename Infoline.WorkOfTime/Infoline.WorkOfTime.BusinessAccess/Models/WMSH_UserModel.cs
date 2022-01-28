@@ -3,6 +3,7 @@ using Infoline.WorkOfTime.BusinessAccess.Models;
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data.Common;
 using System.Drawing;
 using System.Linq;
@@ -24,11 +25,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public DbTransaction trans { get; set; }
         public List<SYS_BlockMail> blockMailList { get; set; }
         public string CompanyCode { get; set; }
+        public bool? sendMail { get; set; } = false;
+        public short searchType { get; set; }
+        public string TaxCode { get; set; }
         public ResultStatus Save(DbTransaction _trans = null)
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = _trans ?? db.BeginTransaction();
             var user = db.GetVWSH_UserById(this.id);
+
             if (this.CompanyId == null)
             {
                 return new ResultStatus { result = false, message = "Personel işletmesi zorunlu alandır." };
@@ -49,8 +54,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Email Adresi Kullanılıyor" };
             }
 
-            var company = db.GetVWCMP_CompanyById(this.CompanyId.Value);
+            var company = db.GetCMP_CompanyById(this.CompanyId.Value);
             var result = new ResultStatus { result = true };
+
             if (company.type == (int)EnumCMP_CompanyType.Benimisletmem)
             {
                 this.type = (int)EnumSH_UserType.MyPerson;
@@ -58,21 +64,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else
             {
-                var getUser = db.GetSH_UserById(this.id);
-                if (getUser == null)
-                {
-                    if (this.type == null)
-                    {
-                        this.type = (int)EnumSH_UserType.OtherPerson;
-                    }
-                }
-                else
-                {
-                    this.type = getUser.type;
-                }
+                this.type = this.type ?? (int)EnumSH_UserType.OtherPerson;
                 result &= this.UpsertOther(user);
             }
-
 
             if (_trans == null)
             {
@@ -454,8 +448,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         <p> QR kodu uygulamada açılan kameraya okutunuz.</p>
                         <p><img src='{1}/QR/QRCodeCreative'></p>", password, url, tenantName, TenantConfig.Tenant.TenantCode);
 
-
-
                     new Email().Template("Template1", "userMailFoto.jpg", "Şifre Sıfırlama Bildirimi", mesajIcerigi)
                               .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", "Şifre Sıfırlama Bildirimi"), false, null, null, new string[] { "http://developer.workoftime.com/QR/QRCodeCreative" }, false);
 
@@ -478,6 +470,49 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
 
 
+                return new ResultStatus { result = true, message = "Şifre gönderme işlemi başarıyla gerçekleşti." };
+            }
+            else
+            {
+                return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
+            }
+        }
+        public ResultStatus SendPasswordForCustomer()
+        {
+
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var password = Guid.NewGuid().ToString().Substring(0, 8);
+
+            var user = db.GetVWSH_UserById(this.id);
+            var company = db.GetCMP_CompanyById(user.CompanyId.Value);
+            if (company==null)
+            {
+                return new ResultStatus { result = false, message = "Kullanıcıya her hangi bir şirkete ait değildir." };
+            }
+            if (string.IsNullOrEmpty(user.email))
+            {
+                return new ResultStatus { result = false, message = "Şifre bilgisi gönderilebilmesi için e-posta adresi gerekmektedir.Lütfen bir e-posta adresi tanılayınız." };
+            }
+
+            user.password = db.GetMd5Hash(db.GetMd5Hash(password));
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var tenantCode = TenantConfig.Tenant.TenantCode;
+
+
+            var rs = db.UpdateSH_User(user.B_ConvertType<SH_User>(), true);
+            if (rs.result == true)
+            {
+
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                        <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
+                        <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
+                        <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
+                        <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
+                        ", password, url, tenantName, user.email, user.email, "", company.name+ " ("+company.code+")");
+
+                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
                 return new ResultStatus { result = true, message = "Şifre gönderme işlemi başarıyla gerçekleşti." };
             }
             else
@@ -716,31 +751,79 @@ namespace Infoline.WorkOfTime.BusinessAccess
             txtUsed += minuteUsed != 0 ? minuteUsed + " dakika" : "";
             return txtUsed;
         }
+
         public ResultStatus InsertCustomer()
         {
             db = db ?? new WorkOfTimeDatabase();
 
-            if (string.IsNullOrEmpty(this.CompanyCode))
+            VWCMP_Company company = null;
+            if (this.searchType == (short)EnumSH_CompanySignUpType.Bayi)
             {
-                return new ResultStatus { message = "Bayi Kodu Boş Olamaz", result = false };
+                if (this.CompanyCode == null)
+                {
+                    return new ResultStatus { message = "Bayi kodu boş geçilemez." };
+                }
+                company = db.GetCMP_CompanyByCodeBayi(this.CompanyCode);
             }
-            this.Roles = new List<Guid> {
-                new Guid(SHRoles.BayiPersoneli)
-            };
+            else
+            {
+                if (this.TaxCode == null)
+                {
+                    return new ResultStatus { message = "Vergi Numarası Boş Geçilemez.", result = false };
+                }
+                company = db.GetCMP_CompanyByTaxNumberBayi(this.TaxCode);
+            }
+
+            if (company == null)
+            {
+                return new ResultStatus { message = "Girilen kod ile eşleşen Bayi bulunamamıştır." };
+            }
+
             this.status = false;
+            this.CompanyId = company.id;
             this.type = (short)EnumSH_UserType.CompanyPerson;
+            this.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli)};
+
             var result = this.Save();
             if (result.result)
             {
-                //mail gönder
+
+                SendFirstCustomerMail();
+                var Iks = db.GetVWSH_UserByRoleId(SHRoles.IKYonetici);
+                if (Iks != null && Iks.Count() > 0)
+                {
+                    foreach (var item in Iks)
+                    {
+                        SendFirstCustomerMailToIK(item, company);
+                    }
+                }
             }
             return result;
+        }
+        private void SendFirstCustomerMail()
+        {
+            db = db ?? new WorkOfTimeDatabase();
 
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Merhaba!</h3> <p>{tenantName} | WorkOfTime sistemi üzerinde kayıt isteğiniz başarıyla alınmıştır. Süreciniz onaylandığı zaman sizi tekrar bilgilendireceğiz</p>";
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
+        }
 
+        private void SendFirstCustomerMailToIK(VWSH_User user, VWCMP_Company company)
+        {
+            db = db ?? new WorkOfTimeDatabase();
 
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var mesajIcerigi = $"<h3>Sayın {user.FullName},</h3></br> <p>{tenantName} | WorkOfTime sistemi üzerinde bayi üyelik başvurusu yapmıştır.</p> <p>" +
+                $"<b>{this.firstname} {this.lastname}</b></p>" +
+                $"<b>{company.fullName}</b></p>" +
+                 $"<p> Detaylar için <a href='{url}/SH/VWSH_User/CompanyPersonIndex?userId={this.id}'> Buraya tıklayınız!</a></p>";
 
-
-
+            new Email().Template("Template1", "userMailFoto.jpg", "Bayi Kayıt İsteği", mesajIcerigi)
+                      .Send((Int16)EmailSendTypes.ZorunluMailler, this.email, string.Format("{0} | {1}", tenantName, "Bayi Kayıt İsteği"), true);
         }
     }
 
@@ -776,4 +859,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string CertificateStatus { get; set; }
         public string CertificateEndDate { get; set; }
     }
+    public enum EnumSH_CompanySignUpType
+    {
+        [Description("Bayi Kodu")]
+        Bayi = 0,
+        [Description("Vergi Numarası")]
+        Vergi = 1
+    }
+
 }

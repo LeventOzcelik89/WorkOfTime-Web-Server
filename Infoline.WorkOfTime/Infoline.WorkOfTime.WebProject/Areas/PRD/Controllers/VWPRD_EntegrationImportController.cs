@@ -9,22 +9,21 @@ using Infoline.Framework.Database;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_EntegrationImportController : Controller
     {
-        [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index()
         {
             return View();
         }
-        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult ClaimReport()
         {
             return View();
         }
-        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.BayiPersoneli)]
+        [PageInfo("Hak Ediş Raporu Veri kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.CRMBayiPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult ClaimReportDataSource(Guid companyId, int year, int month)
         {
             var db = new WorkOfTimeDatabase();
@@ -142,10 +141,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(returnObject, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Hakediş Veri Kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş Veri Kaynağı", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
+            var userStatus = (PageSecurity)Session["userStatus"];
             var condition = KendoToExpression.Convert(request);
+            condition = new VMPRD_EntegrationImport().UpdateDataSource(condition, userStatus);
             request.Filters = new FilterDescriptor[0];
             request.Sorts = new SortDescriptor[0];
             request.Page = 1;
@@ -154,12 +155,44 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             data.Total = db.GetVWPRD_EntegrationImportCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Insert(VMPRD_EntegrationImport item, bool? isPost)
         {
-            return View(item.Load());
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var db = new WorkOfTimeDatabase();
+            item.Load();
+            var feedBack = new FeedBack();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var findUserCompany = db.GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
+                if (findUserCompany != null)
+                {
+                    var findDist = db.GetVWCMP_CompanyByIdDistributor(findUserCompany.pid.HasValue ? findUserCompany.pid.Value : new Guid());
+                    if (findDist != null)
+                    {
+                        item.distributor_id = findDist.id;
+                    }
+                    else
+                    {
+                        return Json(new ResultStatusUI
+                        {
+                            Result = false,
+                            FeedBack = feedBack.Warning("Herhangi bir distribütöre kayıtlı değilsiniz!")
+                        });
+                    }
+                }
+                else
+                {
+                    return Json(new ResultStatusUI
+                    {
+                        Result = false,
+                        FeedBack = feedBack.Warning("Herhangi bir bayiye kayıtlı değilsiniz!")
+                    });
+                }
+            }
+            return View(item);
         }
-        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMPRD_EntegrationImport item)
         {
@@ -167,8 +200,31 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var serialNumberIsExist = db.GetPRD_InventoryBySerialCodeOrImei(item.imei, item.imei);
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                item.company_Id = userStatus.user.CompanyId;
+                var findUserCompany = db.GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
+                if (findUserCompany != null)
+                {
+                    var findDist = db.GetVWCMP_CompanyByIdDistributor(findUserCompany.pid.HasValue ? findUserCompany.pid.Value : new Guid());
+                    if (findDist != null)
+                    {
+                        item.distributor_id = findDist.id;
+                    }
+                }
+            }
             var dbresult = item.Save(userStatus.user.id);
             var message = serialNumberIsExist == null ? "Bu IMEI numarasının sistemde karşılığı yoktur!" : "";
+
+            if (dbresult.result)
+            {
+                if (CheckUserCompanyHasNullAreas(dbresult).Data!=null)
+                {
+                    return CheckUserCompanyHasNullAreas(dbresult);
+                }
+                
+            }
+
             var result = new ResultStatusUI
             {
                 Result = dbresult.result,
@@ -176,19 +232,63 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
-        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Update(VMPRD_EntegrationImport item, bool? isPost)
         {
-            return View(item.Load());
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var db = new WorkOfTimeDatabase();
+            item.Load();
+            var feedBack = new FeedBack();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var findUserCompany = db.GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
+                if (findUserCompany != null)
+                {
+                    var findDist = db.GetVWCMP_CompanyByIdDistributor(findUserCompany.pid.HasValue ? findUserCompany.pid.Value : new Guid());
+                    if (findDist != null)
+                    {
+                        item.distributor_id = findDist.id;
+                    }
+                    else
+                    {
+                        return Json(new ResultStatusUI
+                        {
+                            Result = false,
+                            FeedBack = feedBack.Warning("Herhangi bir distribütöre kayıtlı değilsiniz!")
+                        });
+                    }
+                }
+                else
+                {
+                    return Json(new ResultStatusUI
+                    {
+                        Result = false,
+                        FeedBack = feedBack.Warning("Herhangi bir bayiye kayıtlı değilsiniz!")
+                    });
+                }
+            }
+            return View(item);
         }
-        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Update(VMPRD_EntegrationImport item)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
             var feedback = new FeedBack();
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                item.company_Id = userStatus.user.CompanyId;
+                var findUserCompany = db.GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
+                if (findUserCompany != null)
+                {
+                    var findDists = db.GetVWCMP_CompanyByIdDistributor(findUserCompany.pid.HasValue ? findUserCompany.pid.Value : new Guid());
+                    if (findDists != null)
+                    {
+                        item.distributor_id = findDists.id;
+                    }
+                }
+            }
             var findDist = db.GetCMP_CompanyById(item.distributor_id.Value);
             var findCompany = db.GetCMP_CompanyById(item.company_Id.Value);
             item.distributorCode = findDist.code;
@@ -201,8 +301,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-
-        [PageInfo("Dosyadan ekleme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Dosyadan ekleme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost]
         public JsonResult Import(string model)
         {
@@ -220,8 +319,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             foreach (var item in excel)
             {
-
-
                 var companyCode = item.customerCode;
                 excelResult.rowNumber++;
                 var isExistBefore = db.Get_PRDEntegrationImportByImei(item.imei);
@@ -317,12 +414,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             };
             return Json(result1, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Hakediş Doğrulama metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş Doğrulama metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult VerifyData(Guid distId, Guid companyId, Guid productId, string imei, int month, int year)
         {
             return Json("", JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Hakediş Silme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici)]
+        [PageInfo("Hakediş Silme metodu ", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult Delete(Guid[] id)
         {
             var result = new ResultStatus { result = true };
@@ -342,7 +439,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Success("Silme işlemi başarıyla gerçekleşti")
                 }, JsonRequestBehavior.AllowGet);
             }
-
             else
             {
                 Log.Error(result.message);
@@ -353,10 +449,73 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     FeedBack = new FeedBack().Warning("Hakediş Bildirimi Silme İşlemi Başarısız Oldu!")
                 }, JsonRequestBehavior.AllowGet);
             }
+        }
 
 
+        [AllowEveryone]
+        public JsonResult CheckUserCompanyHasNullAreas()
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                var findUserCompany = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+                var findCompanyAccount = db.GetPA_AccountByDataId(findUserCompany.id);
+                if (findUserCompany != null)
+                {
+                    if (string.IsNullOrEmpty(findUserCompany.taxNumber)
+                        || string.IsNullOrEmpty(findUserCompany.email)
+                        || string.IsNullOrEmpty(findUserCompany.phone)
+                        || string.IsNullOrEmpty(findUserCompany.invoiceAddress)
+                        || string.IsNullOrEmpty(findUserCompany.taxOffice))
+                    {
+                        return Json(1, JsonRequestBehavior.AllowGet);//Kullanıcını Boş Alanları var
+                    }
 
+                }
+                else
+                {
+                    return Json(0);//Şirketi Yok
+                }
+                if (findCompanyAccount.Count() <= 0 || findCompanyAccount == null)
+                {
+                    return Json(2);//tanımlanmış ödeme bilgisi yok;
+                }
 
+            }
+            return Json(-1, JsonRequestBehavior.AllowGet);
+        }
+        [AllowEveryone]
+        public JsonResult CheckUserCompanyHasNullAreas(ResultStatus result)
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var message = "";
+            var de = Convert.ToInt32(CheckUserCompanyHasNullAreas().Data);
+            if (de != -1)
+            {
+                if (de == 0)//
+                {
+                    message = "Kullanıcının ait olduğu bir şirket yoktur";
+                }
+                else if (de == 1)
+                {
+                    message = "Şirketinizin bilgileri tam girilmemiştir.Ödeme alabilmek için şirketinize ait tüm bilgileri giriniz.";
+                }
+                else if (de == 2)
+                {
+                    message = "Ödeme Bilgileri Giriniz Ödeme alabilmek için şirketinize ait ödeme bilgilerinizi giriniz. \n Anasayfa>Ödeme Hesabı Ekle";
+                }
+
+                return Json(new ResultStatusUI
+                {
+                    Result = result.result,
+                    FeedBack = result.result ? feedback.Warning($"Kayıt Oluşturuldu </br> {message}", true) : feedback.Warning(result.message)
+                }, JsonRequestBehavior.AllowGet);
+                
+            }
+            return null;
         }
     }
 }
