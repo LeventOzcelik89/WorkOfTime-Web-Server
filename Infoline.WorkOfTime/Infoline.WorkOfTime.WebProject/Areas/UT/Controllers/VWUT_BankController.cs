@@ -32,7 +32,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Bankalar Veri Methodu", SHRoles.OnMuhasebe)]
+		[PageInfo("Bankalar Veri Methodu", SHRoles.OnMuhasebe,SHRoles. HakEdisBayiPersoneli)]
 
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{

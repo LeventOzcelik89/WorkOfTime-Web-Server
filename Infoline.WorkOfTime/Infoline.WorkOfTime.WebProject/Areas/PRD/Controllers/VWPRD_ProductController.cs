@@ -36,7 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 			return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-		[PageInfo("Ürün Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi)]
+		[PageInfo("Ürün Tanımları Dropdown Metodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli, SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
 		public ContentResult DataSourceDropDown([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);

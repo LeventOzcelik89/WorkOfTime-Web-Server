@@ -72,6 +72,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				this.createdby = userId;
 				this.created = DateTime.Now;
 				rs = Insert(trans);
+				
 			}
 			else
 			{

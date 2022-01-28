@@ -57,7 +57,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             return View(data);
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Ekleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici,SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Ekleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici,SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Insert(VMPA_AccountModel item)
         {
             item.Load();
@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Ekleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Ekleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult Insert(VMPA_AccountModel item, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

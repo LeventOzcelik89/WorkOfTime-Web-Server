@@ -118,6 +118,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWCMP_Company>().Where(a => a.id.In(ids)).Execute().ToArray();
             }
         }
+        public VWCMP_Company GetVWCMP_CompanyByIdDistributor(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<VWCMP_Company>().Where(a => a.CMPTypes_Title.Contains("Distribütör")&&a.id==id).Execute().FirstOrDefault();
+            }
+        }
 
         public string[] GetVWCMP_CompanyEmails(DbTransaction tran = null)
         {

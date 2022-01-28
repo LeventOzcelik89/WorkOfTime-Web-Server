@@ -477,6 +477,49 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
             }
         }
+        public ResultStatus SendPasswordForCustomer()
+        {
+
+            string url = TenantConfig.Tenant.GetWebUrl();
+            var password = Guid.NewGuid().ToString().Substring(0, 8);
+
+            var user = db.GetVWSH_UserById(this.id);
+            var company = db.GetCMP_CompanyById(user.CompanyId.Value);
+            if (company==null)
+            {
+                return new ResultStatus { result = false, message = "Kullanıcıya her hangi bir şirkete ait değildir." };
+            }
+            if (string.IsNullOrEmpty(user.email))
+            {
+                return new ResultStatus { result = false, message = "Şifre bilgisi gönderilebilmesi için e-posta adresi gerekmektedir.Lütfen bir e-posta adresi tanılayınız." };
+            }
+
+            user.password = db.GetMd5Hash(db.GetMd5Hash(password));
+            var tenantName = TenantConfig.Tenant.TenantName;
+            var tenantCode = TenantConfig.Tenant.TenantCode;
+
+
+            var rs = db.UpdateSH_User(user.B_ConvertType<SH_User>(), true);
+            if (rs.result == true)
+            {
+
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                        <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
+                        <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
+                        <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
+                        <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
+                        <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
+                        ", password, url, tenantName, user.email, user.email, "", company.name+ " ("+company.code+")");
+
+                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
+                return new ResultStatus { result = true, message = "Şifre gönderme işlemi başarıyla gerçekleşti." };
+            }
+            else
+            {
+                return new ResultStatus { result = false, message = "Şifre gönderme işlemi başarısız." };
+            }
+        }
 
         public ResultStatus SendCompanyCode()
         {
@@ -739,7 +782,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.status = false;
             this.CompanyId = company.id;
             this.type = (short)EnumSH_UserType.CompanyPerson;
-            this.Roles = new List<Guid> { new Guid(SHRoles.CRMBayiPersoneli) };
+            this.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli)};
 
             var result = this.Save();
             if (result.result)
@@ -757,7 +800,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             return result;
         }
-
         private void SendFirstCustomerMail()
         {
             db = db ?? new WorkOfTimeDatabase();

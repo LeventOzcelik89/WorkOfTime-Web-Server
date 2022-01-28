@@ -174,7 +174,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var dbresult = item.Save();
             if (dbresult.result == true && item.sendMail == true)
             {
-                item.SendPassword();
+                dbresult&= item.SendPasswordForCustomer();
             }
             return Json(new ResultStatusUI(dbresult), JsonRequestBehavior.AllowGet);
         }

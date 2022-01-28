@@ -2,6 +2,8 @@
 using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Data.Common;
+using System.Linq;
+
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMPRD_EntegrationImport : VWPRD_EntegrationImport
@@ -100,7 +102,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Aynı imei ile daha önce hakediş bildirilmiştir!"
                 };
             }
-          
+
             result &= db.InsertPRD_EntegrationImport(new PRD_EntegrationImport().B_EntityDataCopyForMaterial(this));
             if (!result.result)
             {
@@ -116,7 +118,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return new ResultStatus
                 {
                     result = true,
-                    message = "Hakediş Bildirimi Ekleme İşlemi Başarıyla Tamamlandı." 
+                    message = "Hakediş Bildirimi Ekleme İşlemi Başarıyla Tamamlandı."
                 };
             }
         }
@@ -154,6 +156,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     message = "Hakediş bildirim(ler)i silme işlemi başarısız oldu."
                 };
             }
+        }
+        public SimpleQuery UpdateDataSource(SimpleQuery query, PageSecurity userStatus)
+        {
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+                query.Filter &= new BEXP
+                {
+                    Operand1 = (COL)"company_Id",
+                    Operator = BinaryOperator.Equal,
+                    Operand2 = (VAL)userStatus.user.CompanyId ?? new Guid()
+                };
+            }
+            else
+            {
+                return query;
+            }
+            return query;
         }
     }
 }

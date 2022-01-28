@@ -16,7 +16,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 {
     public class AccountController : Controller
     {
-        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri)]
+        [PageInfo("Benim Sayfam", SHRoles.Personel, SHRoles.SahaGorevMusteri, SHRoles.CRMBayiPersoneli, SHRoles.BayiGorevPersoneli, SHRoles.YukleniciPersoneli, SHRoles.YardimMasaMusteri,SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -45,6 +45,11 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             if (userStatus.user.id == new Guid("DCEAA584-35B7-4637-AF55-48CCF013C9D3"))
             {
                 return RedirectToAction("ScadaTasks", "VWFTM_TaskGrid", new { area = "FTM" });
+            }
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.CompanyPerson)
+            {
+                return RedirectToAction("IndexMy", "VWCMP_Company", new { area = "CMP" });
             }
 
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)

@@ -3502,3 +3502,26 @@ function GridRender(userOptions, element) {
     element.data('kendoGrid').refresh();
 
 }
+
+function checkUserCompanyHasNull() {
+    GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/CheckUserCompanyHasNullAreas", "", function (data) {
+        var code = parseInt(data);
+        if (code == 0) {
+            swal("Kullanıcının ait olduğu bir şirket yoktur!","Lütfen kullanıcıyı bir şirkete atayın","warning");
+        }
+        else if (code == 1) {
+            swal("Şirketinizin bilgileri tam girilmemiştir","Ödeme alabilmek için şirketinize ait tüm bilgileri giriniz.","warning");
+        }
+        else if (code==2) {
+            swal("Ödeme Bilgileri Giriniz", "Ödeme alabilmek için şirketinize ait ödeme bilgilerinizi giriniz. \n Anasayfa>Ödeme Hesabı Ekle", "warning")
+        }
+
+
+
+
+
+    });
+
+
+
+}
