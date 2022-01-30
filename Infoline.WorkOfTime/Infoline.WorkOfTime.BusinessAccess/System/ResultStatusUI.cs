@@ -34,9 +34,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string title { get; set; }
         public string message { get; set; }
         public string status { get; set; }
+        public int Type { get; set; } = 0;
         public int timeout { get; set; }
 
-        public FeedBack Success(string msg = "", bool sessionCreate = false, string action = null)
+        public FeedBack Success(string msg = "", bool sessionCreate = false, string action = null, int type = 0)
         {
 
             var result = new FeedBack
@@ -46,6 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = "İşlem Başarılı",
                 status = "success",
                 timeout = 2, //  saniye
+                Type=type
             };
 
             if (sessionCreate)
@@ -56,7 +58,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public FeedBack Error(string logMessage, string msg = "İstek işlenirken sorun oluştu. Lütfen tekrar deneyin.", bool sessionCreate = false)
+        public FeedBack Error(string logMessage, string msg = "İstek işlenirken sorun oluştu. Lütfen tekrar deneyin.", bool sessionCreate = false, int type = 0)
         {
 
             Log.Error(logMessage);
@@ -70,7 +72,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = msg,
                 title = "Sistem Uyarısı",
                 status = "error",
-                timeout = 20, //  saniye
+                timeout = 20, //  saniye,
+                Type=type
             };
 
             if (sessionCreate)
@@ -82,7 +85,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         }
 
-        public FeedBack NullableMessage(string logMessage, string msg = "Lütfen Başlıkları Eşleştiriniz.", bool sessionCreate = false)
+        public FeedBack NullableMessage(string logMessage, string msg = "Lütfen Başlıkları Eşleştiriniz.", bool sessionCreate = false, int type = 0)
         {
 
             Log.Error(logMessage);
@@ -109,7 +112,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
 
-        public FeedBack Warning(string msg = "", bool sessionCreate = false, string action = null)
+        public FeedBack Warning(string msg = "", bool sessionCreate = false, string action = null,int type=0)
         {
             var result = new FeedBack
             {
@@ -117,7 +120,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = msg,
                 title = "İşlem Eksik Gerçekleşti",
                 status = "warning",
-                timeout = 20, //  saniye
+                timeout = 20, //  saniye,
+                Type=type
             };
 
             if (sessionCreate)
@@ -128,7 +132,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public FeedBack Custom(string msg = "", string action = "", string title = "Bilgilendirme", string status = "success", int timeout = 10, bool sessionCreate = false)
+        public FeedBack Custom(string msg = "", string action = "", string title = "Bilgilendirme", string status = "success", int timeout = 10, bool sessionCreate = false,int type=0)
         {
             var result = new FeedBack
             {
@@ -137,6 +141,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = title,
                 status = status,
                 timeout = timeout, //  saniye
+                Type=type
             };
 
             if (sessionCreate)
@@ -146,7 +151,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             return result;
         }
-
     }
 
 }
