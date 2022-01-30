@@ -588,7 +588,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					errorList.Add(string.Format("{0} ürünü için girilen serinumarası miktarı {1} ile girilen miktar {2} uyuşmamaktadır.", product.fullName, serialCodes.Count(), quantity));
 				}
 			}
-			
+
 			var maintanceInventory = new List<string>();
 			var unvalidInventory = new List<string>();
 			var existInventory = new List<string>();
@@ -681,12 +681,25 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			foreach (var product in this.products)
 			{
 				var serialCode = this.items.Where(x => x.productId == product.id).Select(x => x.serialCodes).FirstOrDefault();
+				var quantityData = 0.0;
+				var alternativeQuantity = this.items.Where(x => x.productId == product.id).Select(x => x.alternativeQuantity).FirstOrDefault();
 				var quantity = this.items.Where(x => x.productId == product.id).Select(x => x.quantity).FirstOrDefault();
+
+				if (alternativeQuantity.HasValue)
+				{
+					quantityData = alternativeQuantity.Value;
+				}
+
+				if (quantity.HasValue)
+				{
+					quantityData = quantity.Value;
+				}
+
 				productTable += string.Format($"<tr>"
 								 + " <td style =\"padding-left:5px;padding-right:5px;border-color:gray;border-style:solid;border-width:0px 1px 1px 1px;word-break:break-word!important;\">{0}</td>"
 								 + " <td style =\"padding-left:5px;padding-right:5px;border-color:gray;border-style:solid;border-width:0px 1px 1px 1px;word-break:break-word!important;\">{1}</td>"
 								 + " <td style =\"padding-left:5px;padding-right:5px;border-color:gray;border-style:solid;border-width:0px 1px 1px 1px;word-break:break-word!important;\">{2}</td>"
-								+ "</tr>", product.fullName, serialCode != null ? serialCode : "-", quantity + " " + product.unitId_Title);
+								+ "</tr>", product.fullName, serialCode != null ? serialCode : "-", quantityData + " " + product.unitId_Title);
 			}
 			productTable += "</table>";
 			var notifaction = new Notification();

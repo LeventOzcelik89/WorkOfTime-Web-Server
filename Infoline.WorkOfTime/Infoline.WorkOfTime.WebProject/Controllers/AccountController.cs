@@ -425,7 +425,6 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
             EnumInfo.Execute();
             TenantConfig.Tenant.ExecuteRoles();
             ExecuteUTRules();
-            ExecuteProductUnit();
             try
             {
                 var db = new WorkOfTimeDatabase();
