@@ -41,7 +41,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Sektör Tanımları Veri Methodu", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi)]
+        [PageInfo("Sektör Tanımları Veri Methodu", SHRoles.Personel,SHRoles.CRMBayiPersoneli,SHRoles.CagriMerkezi,SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);

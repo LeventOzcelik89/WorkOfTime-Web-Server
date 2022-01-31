@@ -8,15 +8,17 @@ using System.Web.Mvc;
 using Infoline.Framework.Database;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 {
     public class VWPRD_EntegrationImportController : Controller
     {
+
         [PageInfo("Hakediş Listeleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index()
         {
+            CheckUserCompanyHasNullAreas();
             return View();
+
         }
         [PageInfo("Hak Ediş Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult ClaimReport()
@@ -161,9 +163,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
             item.Load();
-            var feedBack = new FeedBack();
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
             {
+                item.company_Id = userStatus.user.CompanyId;
                 var findUserCompany = db.GetVWCMP_CompanyById(userStatus.user.CompanyId.Value);
                 if (findUserCompany != null)
                 {
@@ -172,24 +174,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     {
                         item.distributor_id = findDist.id;
                     }
-                    else
-                    {
-                        return Json(new ResultStatusUI
-                        {
-                            Result = false,
-                            FeedBack = feedBack.Warning("Herhangi bir distribütöre kayıtlı değilsiniz!")
-                        });
-                    }
-                }
-                else
-                {
-                    return Json(new ResultStatusUI
-                    {
-                        Result = false,
-                        FeedBack = feedBack.Warning("Herhangi bir bayiye kayıtlı değilsiniz!")
-                    });
                 }
             }
+
+            var feedBack = new FeedBack();
             return View(item);
         }
         [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
@@ -218,11 +206,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
             if (dbresult.result)
             {
-                if (CheckUserCompanyHasNullAreas(dbresult).Data!=null)
-                {
-                    return CheckUserCompanyHasNullAreas(dbresult);
-                }
-                
+                CheckUserCompanyHasNullAreas();
+
             }
 
             var result = new ResultStatusUI
@@ -452,70 +437,47 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
         }
 
 
-        [AllowEveryone]
-        public JsonResult CheckUserCompanyHasNullAreas()
+
+        private void CheckUserCompanyHasNullAreas()
         {
-            var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
+
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
             {
-                var findUserCompany = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
-                var findCompanyAccount = db.GetPA_AccountByDataId(findUserCompany.id);
-                if (findUserCompany != null)
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
                 {
-                    if (string.IsNullOrEmpty(findUserCompany.taxNumber)
-                        || string.IsNullOrEmpty(findUserCompany.email)
-                        || string.IsNullOrEmpty(findUserCompany.phone)
-                        || string.IsNullOrEmpty(findUserCompany.invoiceAddress)
-                        || string.IsNullOrEmpty(findUserCompany.taxOffice))
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
                     {
-                        return Json(1, JsonRequestBehavior.AllowGet);//Kullanıcını Boş Alanları var
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
                     }
 
+                    var account = db.GetPA_AccountByDataId(company.id);
+                    if (account.Count() == 0)
+                    {
+                        new FeedBack().Warning("Bayinize atanmış herhangi bir banka hesap bilgisi yoktur! Ödeme alabilmek için bayi bilgilerinizi doldurun!", true,null,1);
+                        
+                    }
+                    if (string.IsNullOrEmpty(company.taxNumber)
+                        || string.IsNullOrEmpty(company.email)
+                        || string.IsNullOrEmpty(company.phone)
+                        || string.IsNullOrEmpty(company.invoiceAddress)
+                        || string.IsNullOrEmpty(company.taxOffice))
+                    {
+                        new FeedBack().Warning("Bayinizin eksik bilgileri var. Lütfen ödeme alabilmek için bayi bilgilerinizi eksiksiz doldurun!", true,null,1);
+                    }
                 }
                 else
                 {
-                    return Json(0);//Şirketi Yok
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
                 }
-                if (findCompanyAccount.Count() <= 0 || findCompanyAccount == null)
-                {
-                    return Json(2);//tanımlanmış ödeme bilgisi yok;
-                }
+               
 
             }
-            return Json(-1, JsonRequestBehavior.AllowGet);
         }
-        [AllowEveryone]
-        public JsonResult CheckUserCompanyHasNullAreas(ResultStatus result)
-        {
-            var db = new WorkOfTimeDatabase();
-            var feedback = new FeedBack();
-            var userStatus = (PageSecurity)Session["userStatus"];
-            var message = "";
-            var de = Convert.ToInt32(CheckUserCompanyHasNullAreas().Data);
-            if (de != -1)
-            {
-                if (de == 0)//
-                {
-                    message = "Kullanıcının ait olduğu bir şirket yoktur";
-                }
-                else if (de == 1)
-                {
-                    message = "Şirketinizin bilgileri tam girilmemiştir.Ödeme alabilmek için şirketinize ait tüm bilgileri giriniz.";
-                }
-                else if (de == 2)
-                {
-                    message = "Ödeme Bilgileri Giriniz Ödeme alabilmek için şirketinize ait ödeme bilgilerinizi giriniz. \n Anasayfa>Ödeme Hesabı Ekle";
-                }
 
-                return Json(new ResultStatusUI
-                {
-                    Result = result.result,
-                    FeedBack = result.result ? feedback.Warning($"Kayıt Oluşturuldu </br> {message}", true) : feedback.Warning(result.message)
-                }, JsonRequestBehavior.AllowGet);
-                
-            }
-            return null;
-        }
     }
 }

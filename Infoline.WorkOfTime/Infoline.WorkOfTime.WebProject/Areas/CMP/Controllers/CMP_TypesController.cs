@@ -32,7 +32,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-        [PageInfo("Firma&Cari Tipleri Veri Methodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli)]
+        [PageInfo("Firma&Cari Tipleri Veri Methodu", SHRoles.Personel, SHRoles.CRMBayiPersoneli,SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
