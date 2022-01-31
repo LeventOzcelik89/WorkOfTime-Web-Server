@@ -521,7 +521,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return data;
         }
 
-        public SummaryHeadersTaskNew GetTaskSummary(Guid userId)
+        public SummaryHeadersTaskNew GetTaskSummary(Guid userId, bool showHeaderFilter = true)
         {
 
             var roles = _db.GetSH_UserRoleByUserId(userId);
@@ -529,14 +529,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.BayiGorevPersoneli)).ToArray();
             if (userRoles.Count() > 0)
             {
-                return _db.GetVWPA_TaskMyRequestsCountFilter(userId);
+                return _db.GetVWPA_TaskMyRequestsCountFilter(userId, showHeaderFilter);
             }
 
 
             userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.SahaGorevOperator) || a.roleid == new Guid(SHRoles.SahaGorevYonetici) || a.roleid == new Guid(SHRoles.SistemYonetici)).ToArray();
             if (userRoles.Count() > 0)
             {
-                return _db.GetVWPA_TaskAllRequestsCountFilter(userId);
+                return _db.GetVWPA_TaskAllRequestsCountFilter(userId, showHeaderFilter);
             }
 
             var user = _db.GetVWSH_UserById(userId);
@@ -548,16 +548,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     return new SummaryHeadersTaskNew();
                 }
 
-                return _db.GetVWPA_TaskCustomerRequestsCountFilter(new Guid(user.CompanyId.ToString()));
+                return _db.GetVWPA_TaskCustomerRequestsCountFilter(new Guid(user.CompanyId.ToString()), showHeaderFilter);
             }
 
             userRoles = roles.Where(a => a.roleid == new Guid(SHRoles.YukleniciPersoneli)).ToArray();
             if (userRoles.Count() > 0)
             {
-                return _db.GetVWPA_TaskYukleniciRequestsCountFilter(userId, new Guid(user.CompanyId.ToString()));
+                return _db.GetVWPA_TaskYukleniciRequestsCountFilter(userId, new Guid(user.CompanyId.ToString()), showHeaderFilter);
             }
 
-            return _db.GetVWPA_TaskMyRequestsCountFilter(userId);
+            return _db.GetVWPA_TaskMyRequestsCountFilter(userId, showHeaderFilter);
         }
     }
 

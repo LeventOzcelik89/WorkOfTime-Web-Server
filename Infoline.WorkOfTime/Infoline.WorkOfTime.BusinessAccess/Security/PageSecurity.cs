@@ -15,6 +15,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public VWINV_CompanyPersonDepartments[] ChildPersons { get; set; }
     }
 
+    public class PageSecurityForMobile
+    {
+        public VWSH_User user { get; set; }
+        public string[] UnAuthorizedPage { get; set; }
+        public Guid[] AuthorizedRoles { get; set; }
+    }
+
     public class LoginStatus
     {
         public LoginResult LoginResult { get; set; }

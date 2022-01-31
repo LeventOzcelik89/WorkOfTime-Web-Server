@@ -20,7 +20,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                 AdvanceSummaries = new AdvanceSummary { },
                 OrderSummaries = new OrderSummary { },
                 TaskSummaries = new VMFTM_TaskModel().GetTaskSummary(userId),
-                TaskSummariesNew = new VMFTM_TaskServiceModel().GetTaskSummary(userId),
+                TaskSummariesNew = new VMFTM_TaskServiceModel().GetTaskSummary(userId, false),
                 SummaryWaitingTransactions = new SummaryWaitingTransactions { },
                 SummaryWaitingAdvances = new SummaryWaitingAdvances { },
                 SummaryWaitingTickets = new SummaryWaitingTickets { },
@@ -323,12 +323,14 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
         public MobileLoginInformations GetMobileLoginInformations(VWSH_User user)
         {
             var db = new WorkOfTimeDatabase();
-            var res = new MobileLoginInformations();
 
-            res.GetUserInfo = db.GetUserPageSecurityByUserid(user.id, CallContext.Current.TicketId);
-            res.GetConfigs = GetConfigs();
-            res.GetDataSources = GetDataSources(user.id);
-            res.MBUT_LocationConfig = new Locations().LConfigGetByUserId(user.id);
+            var res = new MobileLoginInformations()
+            {
+                GetUserInfo = db.GetUserPageSecurityByUseridForMobile(user.id, CallContext.Current.TicketId),
+                GetConfigs = GetConfigs(),
+                GetDataSources = GetDataSources(user.id),
+                MBUT_LocationConfig = new Locations().LConfigGetByUserId(user.id)
+            };
 
             return res;
         }
@@ -353,7 +355,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                 DemandForAdvance = db.GetSYS_EnumsByWhere(a => a.tableName == "INV_Commissions" && a.fieldName == "DemandForAdvance")
                         .OrderBy(a => a.enumDescription).ToDictionary(a => a.enumKey, a => a.enumDescription),
                 Information = db.GetSYS_EnumsByWhere(a => a.tableName == "INV_Commissions" && a.fieldName == "Information")
-                        .OrderBy(a => a.enumDescription).ToDictionary(a => a.enumKey, a => a.enumDescription),
+                .OrderBy(a => a.enumDescription).ToDictionary(a => a.enumKey, a => a.enumDescription),
                 RequestForAccommodation = db.GetSYS_EnumsByWhere(a => a.tableName == "INV_Commissions" && a.fieldName == "RequestForAccommodation")
                         .OrderBy(a => a.enumDescription).ToDictionary(a => a.enumKey, a => a.enumDescription),
                 TravelInformation = db.GetSYS_EnumsByWhere(a => a.tableName == "INV_Commissions" && a.fieldName == "TravelInformation")
@@ -370,6 +372,31 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
                         a.Person_Title != null
                     ).GroupBy(a => a.IdUser).ToDictionary(a => a.Key, a => a.Select(c => c.Person_Title).FirstOrDefault())
 
+            };
+            res.ShiftsNew = TenantConfig.Tenant.Config.WorkingTimes;
+            res.ShiftTimeSpace = 15;
+            res.FTMTasks = new DataSourceFTMTask
+            {
+                TaskOperationStatus = EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskOperationStatus>().ToDictionary(a => Convert.ToInt32(a.Key), b => new TaskOperationStatus { Value = b.Value, Color = b.Generic["color"] }),
+                TaskType = db.GetSYS_EnumsByWhere(a => a.tableName == "FTM_Task" && a.fieldName == "type").OrderBy(a => a.enumDescription).ToDictionary(a => a.enumKey, a => a.enumDescription),
+            };
+
+
+            return res;
+
+        }
+
+        public DataSourcesForMobile GetDataSourcesForMobile(Guid userId)
+        {
+
+            var db = new WorkOfTimeDatabase();
+
+            var res = new DataSourcesForMobile();
+
+            res.Permit = new DataSourcePermit
+            {
+                PermitOffical = db.GetVWINV_PermitOffical(),
+                PermitType = db.INV_PermitTypeNameIdCreated().Where(x => x.RequestStaff == true).OrderBy(x => x.created).ToArray()
             };
             res.ShiftsNew = TenantConfig.Tenant.Config.WorkingTimes;
             res.ShiftTimeSpace = 15;
@@ -569,7 +596,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
 
     public class MobileLoginInformations
     {
-        public PageSecurity GetUserInfo { get; set; }
+        public PageSecurityForMobile GetUserInfo { get; set; }
         public ConfigDatas GetConfigs { get; set; }
         public DataSources GetDataSources { get; set; }
         public List<VMUT_LocationConfig> MBUT_LocationConfig { get; set; }
@@ -583,6 +610,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Mobile
     public class DataSources
     {
         public DataSourceCommission Commission { get; set; }                //  Görevlendirme Verileri
+        public DataSourcePermit Permit { get; set; }                        //  İzin Verileri
+        public Dictionary<DayOfWeek, WorkingTime> ShiftsNew { get; set; }
+        public DataSourceFTMTask FTMTasks { get; set; }
+        public int ShiftTimeSpace { get; set; }
+    }
+    public class DataSourcesForMobile
+    {
         public DataSourcePermit Permit { get; set; }                        //  İzin Verileri
         public Dictionary<DayOfWeek, WorkingTime> ShiftsNew { get; set; }
         public DataSourceFTMTask FTMTasks { get; set; }
