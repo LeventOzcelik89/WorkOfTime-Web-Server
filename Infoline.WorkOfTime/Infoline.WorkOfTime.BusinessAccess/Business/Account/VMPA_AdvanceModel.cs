@@ -589,6 +589,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                             break;
                         case EnumUT_RulesUserStage.SonOnaylayici:
+                            //son onaylacak kişi, istek yapanın son kullanıcılarında yoksa bu adımı geç
                             var isIncluded = shuser.Manager1 == rulesStage.userId ? true
                                 : shuser.Manager2 == rulesStage.userId ? true
                                 : shuser.Manager3 == rulesStage.userId ? true
@@ -600,6 +601,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             {
                                 continue;
                             }
+                            //son onaylayacak kullanıcı kişinin son adımlarında varsa son onaylayacak kullanıcıyı ekle
                             assingUser = rulesStage.userId;
                             break;
                         default:
