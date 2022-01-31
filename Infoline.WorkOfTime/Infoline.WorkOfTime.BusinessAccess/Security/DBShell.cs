@@ -210,6 +210,39 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return pageSecurity;
             }
         }
+
+        public PageSecurityForMobile GetUserPageSecurityByUseridForMobile(Guid? userId, Guid ticketId)
+        {
+            var pages = PageInfo.GetPages();
+
+            if (pages.Count() == 0)
+            {
+                pages = GetSH_Pages().ToList();
+            }
+
+            var pageSecurity = new PageSecurityForMobile();
+            using (var db = GetDB())
+            {
+                var user = db.Table<VWSH_User>().Where(a => a.id == userId).Execute().FirstOrDefault();
+                var userRoles = db.Table<SH_UserRole>().Where(a => a.userid == userId).OrderByDesc(a => a.created).Execute().ToList();
+                var roleIds = userRoles.Where(a => a.roleid.HasValue).Select(a => a.roleid.Value).ToList();
+
+                if (userRoles.Count() > 0)
+                {
+                    var rolePages = db.Table<SH_PagesRole>().Where(a => a.roleid.In(roleIds.ToArray())).Execute().Select(a => a.action).Distinct().ToList();
+                    pageSecurity.UnAuthorizedPage = pages.Where(a => a.AllowEveryone == false && !rolePages.Contains(a.Action)).Select(a => a.Action).ToArray();
+                }
+                else
+                {
+                    pageSecurity.UnAuthorizedPage = pages.Where(a => a.AllowEveryone == false).Select(a => a.Action).ToArray();
+                }
+
+                pageSecurity.user = user;
+                pageSecurity.AuthorizedRoles = roleIds.ToArray();
+                return pageSecurity;
+            }
+        }
+
         public ResultStatus LoginLdap(string userName, string password, string Url)
         {
             var result = new ResultStatus { result = false };
