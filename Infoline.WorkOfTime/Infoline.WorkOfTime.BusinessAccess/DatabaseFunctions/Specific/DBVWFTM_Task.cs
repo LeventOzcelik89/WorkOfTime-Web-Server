@@ -369,7 +369,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTaskNew GetVWPA_TaskMyRequestsCountFilter(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTaskNew GetVWPA_TaskMyRequestsCountFilter(Guid userId, bool showHeaderFilter = true, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -384,6 +384,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     CompletedTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.isComplete == true).Count(),
                     CompletedTaskFilter = "{'Filter':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
                 };
+
+                if (!showHeaderFilter)
+                {
+                    return headers;
+                }
 
                 headers.headerFilters = new HeadersTask();
                 headers.headerFilters.title = "Durumuna Göre";
@@ -433,7 +438,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTaskNew GetVWPA_TaskAllRequestsCountFilter(Guid userId, DbTransaction tran = null)
+        public SummaryHeadersTaskNew GetVWPA_TaskAllRequestsCountFilter(Guid userId, bool showHeaderFilter = true, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -448,6 +453,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     CompletedTask = db.Table<VWFTM_Task>().Where(a => a.isComplete == true).Count(),
                     CompletedTaskFilter = "{'Filter':{'Operand1':'isComplete','Operator':'Equal','Operand2':'1'}}",
                 };
+
+                if (!showHeaderFilter)
+                {
+                    return headers;
+                }
 
                 headers.headerFilters = new HeadersTask();
                 headers.headerFilters.title = "Durumuna Göre";
@@ -521,7 +531,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTaskNew GetVWPA_TaskCustomerRequestsCountFilter(Guid companyId, DbTransaction tran = null)
+        public SummaryHeadersTaskNew GetVWPA_TaskCustomerRequestsCountFilter(Guid companyId, bool showHeaderFilter = true, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -536,6 +546,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     CompletedTask = db.Table<VWFTM_Task>().Where(a => a.customerId == companyId && a.isComplete == true).Count(),
                     CompletedTaskFilter = "{'Filter':{'Operand1':{'Operand1':'customerId','Operator':'Equal','Operand2':'" + companyId.ToString() + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
                 };
+
+                if (!showHeaderFilter)
+                {
+                    return headers;
+                }
 
                 headers.headerFilters = new HeadersTask();
                 headers.headerFilters.title = "Durumuna Göre";
@@ -569,7 +584,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public SummaryHeadersTaskNew GetVWPA_TaskYukleniciRequestsCountFilter(Guid userId, Guid companyId, DbTransaction tran = null)
+        public SummaryHeadersTaskNew GetVWPA_TaskYukleniciRequestsCountFilter(Guid userId, Guid companyId, bool showHeaderFilter = true, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))
             {
@@ -584,6 +599,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     CompletedTask = db.Table<VWFTM_Task>().Where(a => a.assignUserId == userId && a.isComplete == true).Count(),
                     CompletedTaskFilter = "{'Filter':{'Operand1':{'Operand1':'assignUserId','Operator':'Equal','Operand2':'" + userId.ToString() + "'},'Operand2':{'Operand1':'isComplete','Operator':'Equal','Operand2':'1'},'Operator':'And'}}",
                 };
+
+                if (!showHeaderFilter)
+                {
+                    return headers;
+                }
 
                 headers.headerFilters = new HeadersTask();
                 headers.headerFilters.title = "Durumuna Göre";
