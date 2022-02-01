@@ -1,4 +1,5 @@
-﻿using Infoline.WorkOfTime.BusinessData;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -146,21 +147,45 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public IEnumerable<InfolineTable> PermissionCalculator(Guid userId, Type type)
+        public IEnumerable<T> PermissionCalculator<T>(Guid userId) where T : InfolineTable, new()
         {
-            if (type == new PA_TransactionConfirmation().GetType())
+            var db = new WorkOfTimeDatabase();
+            var shUser = db.GetVWSH_UserById(userId);
+            var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
+
+            var returnList = new List<T>();
+            var getType = typeof(T);
+            var rulesUser = new VWUT_RulesUser();
+            var rulesUserStages = new VWUT_RulesUserStage[0];
+            if (getType == typeof(PA_AdvanceConfirmation))
             {
-                var confirm = new List<PA_TransactionConfirmation>();
-                confirm.Add(new PA_TransactionConfirmation() { });
-                return confirm;
+                rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Advance);
+                rulesUserStages = new VWUT_RulesUserStage[0];
+                if (rulesUser == null)
+                {
+                    var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Advance);
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
+                }
+                else
+                {
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
+                }
+
             }
-            else if (type==new PA_AdvanceConfirmation().GetType())
+            else if (getType==typeof(PA_TransactionConfirmation))
             {
-                var confirm = new List<PA_AdvanceConfirmation>();
-                confirm.Add(new PA_AdvanceConfirmation());
+
             }
-            return null;
+            else if (getType==typeof(INV_PermitConfirmation))
+            {
+
+            }
+
+      
+            return returnList;
         }
+
+
 
     }
 
