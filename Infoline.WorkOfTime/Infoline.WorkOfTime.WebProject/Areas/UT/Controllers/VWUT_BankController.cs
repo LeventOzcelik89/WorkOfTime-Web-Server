@@ -55,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[PageInfo("Banka Ekleme Sayfası", SHRoles.OnMuhasebe)]
+		[PageInfo("Banka Ekleme Sayfası", SHRoles.OnMuhasebe, SHRoles.HakEdisBayiPersoneli)]
 		public JsonResult Insert(UT_Bank item)
 		{
 		    var db = new WorkOfTimeDatabase();

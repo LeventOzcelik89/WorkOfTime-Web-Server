@@ -438,9 +438,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
 
-        private void CheckUserCompanyHasNullAreas()
+        public void CheckUserCompanyHasNullAreas(PageSecurity userStatus = null)
         {
-            var userStatus = (PageSecurity)Session["userStatus"];
+            userStatus = userStatus ?? (PageSecurity)Session["userStatus"];
 
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
             {
@@ -458,16 +458,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     var account = db.GetPA_AccountByDataId(company.id);
                     if (account.Count() == 0)
                     {
-                        new FeedBack().Warning("Bayinize atanmış herhangi bir banka hesap bilgisi yoktur! Ödeme alabilmek için bayi bilgilerinizi doldurun!", true, null, 1);
+                         new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun", Url.Action("Insert", "VWPA_Account", new { dataTable = "CustomerUser",dataId=company.id, area = "PA" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
 
                     }
                     if (string.IsNullOrEmpty(company.taxNumber)
                         || string.IsNullOrEmpty(company.email)
                         || string.IsNullOrEmpty(company.phone)
                         || string.IsNullOrEmpty(company.invoiceAddress)
-                        || string.IsNullOrEmpty(company.taxOffice))
+                        )
                     {
-                        new FeedBack().Custom("Bayinizin eksik bilgileri var. Lütfen ödeme alabilmek için bayi bilgilerinizi eksiksiz doldurun!", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
+                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
                     }
                 }
                 else

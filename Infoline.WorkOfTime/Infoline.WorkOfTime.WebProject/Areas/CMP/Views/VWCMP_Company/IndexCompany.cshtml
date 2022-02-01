@@ -1,0 +1,47 @@
+﻿@{
+    ViewBag.Title = "Şirketlerim";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
+}
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="ibox ">
+            <div class="ibox-content">
+                @(Html.Akilli()
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Company>("VWCMP_Company")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Company", new { area = "CMP" })).Sort(a => a.Add(c => c.name)).PageSize(25))
+                    .Filterable(a => a.Mode(GridFilterMode.Row))
+                    .Columns(x =>
+                    {
+                        x.Bound(y => y.searchField).Title("Şirket Bilgileri").HeaderHtmlAttributes(new { @class = "hide" }).Sortable(false).Width(90).ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#").Filterable(a => a.Cell(c => c.Template("kendo.TextSeachFilter")));
+                        // x.Bound(y => y.fullName).Title("Şirket Bilgileri").ClientTemplate("#=TemplateEngine('CMP_CompanyGridTemplate',data)#");
+                        x.Bound(y => y.code).Title("Kodu").Hidden(true);
+                        x.Bound(y => y.name).Title("İsmi").Hidden(true);
+                        x.Bound(y => y.commercialTitle).Title("Fatura Ünvanı").Hidden(true);
+                        x.Bound(y => y.CMPTypes_Title).Title("Cari Tipi").Hidden(true);
+                        x.Bound(y => y.isActive_Title).Title("Cari Durumu").Hidden(true);
+                        x.Bound(y => y.openAddressLocationId_Title).Title("Ülke/İl/İlçe").Hidden(true);
+                        x.Bound(y => y.email).Title("E-Mail").Hidden(true);
+                        x.Bound(y => y.fax).Title("Telefon Numarası").Hidden(true);
+                        x.Bound(y => y.fax).Title("Faks Numarası").Hidden(true);
+                        x.Bound(y => y.mersisNo).Title("Mersis No").Hidden(true);
+                        x.Bound(y => y.taxNumber).Title("Vergi Numarası").Hidden(true);
+                        x.Bound(y => y.taxOffice).Title("Vergi Dairesi").Hidden(true);
+                        x.Bound(y => y.invoiceAddress).Title("Fatura Adresi").Hidden(true);
+                        x.Bound(y => y.openAddress).Title("Açık Adres").Hidden(true);
+                    })
+                    .Scrollable(x => x.Height(650))
+                    .Selectable(x => x.Mode(GridSelectionMode.Single))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i data-original-title='Ödeme Hesap Ekle' class='fa fa-money'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWPA_Account", new { area = "PA", dataTable = "CustomerUser", dataId = userStatus.user.CompanyId }));
+                        x.Custom().Text("<i data-original-title='İşletme Düzenle' class='fa fa-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWCMP_Company", new { area = "CMP" }));
+                        x.Custom().Text("<i data-original-title='İşletme Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Company", new { area = "CMP" }));
+
+                    })
+                )
+            </div>
+        </div>
+    </div>
+</div>

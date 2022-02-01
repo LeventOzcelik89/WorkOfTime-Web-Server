@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
+using Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
@@ -22,10 +23,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             };
             return View(model);
         }
-        [PageInfo("Şirket Bilgileri", SHRoles.IKYonetici, SHRoles.IdariPersonelYonetici, SHRoles.OnMuhasebe,SHRoles.HakEdisBayiPersoneli)]
+        [PageInfo("Şirket Bilgileri", SHRoles.IKYonetici, SHRoles.IdariPersonelYonetici, SHRoles.OnMuhasebe)]
         public ActionResult IndexMy()
         {
 
+            return View();
+        }
+        [PageInfo("Şirket Bilgileri", SHRoles.HakEdisBayiPersoneli)]
+        public ActionResult IndexCompany()
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            CheckUserCompanyHasNullAreas(userStatus);
             return View();
         }
         [PageInfo("Müşterileri Firmalarım", SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
@@ -728,6 +736,50 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             }
             query.Filter &= filter;
             return query;
+        }
+        public string CheckUserCompanyHasNullAreas(PageSecurity userStatus = null)
+        {
+            userStatus = userStatus ?? (PageSecurity)Session["userStatus"];
+
+            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+            {
+
+                var db = new WorkOfTimeDatabase();
+                if (userStatus.user.CompanyId.HasValue)
+                {
+                    var company = db.GetCMP_CompanyById(userStatus.user.CompanyId.Value);
+
+                    if (company == null)
+                    {
+                        new FeedBack().Warning("Size Atanmış İşletme Kayıtlarımızda Yok", true, null, 1);
+                    }
+
+                    var account = db.GetPA_AccountByDataId(company.id);
+                    if (account.Count() == 0)
+                    {
+
+                        new FeedBack().Custom("Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun", Url.Action("Insert", "VWPA_Account", new { dataTable = "CustomerUser", dataId = company.id, area = "PA" }), "Ödeme Alabilmek İçin Banka Bilgilerinizi Doldurun!", "warning", 10, true, 1);
+                        return "hesap";
+                    }
+                    if (string.IsNullOrEmpty(company.taxNumber)
+                        || string.IsNullOrEmpty(company.email)
+                        || string.IsNullOrEmpty(company.phone)
+                        || string.IsNullOrEmpty(company.invoiceAddress)
+                        )
+                    {
+                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
+                        return "bilgi";
+                    }
+                }
+                else
+                {
+                    new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
+                    return null;
+                }
+
+                
+            }
+            return null;
         }
     }
 }
