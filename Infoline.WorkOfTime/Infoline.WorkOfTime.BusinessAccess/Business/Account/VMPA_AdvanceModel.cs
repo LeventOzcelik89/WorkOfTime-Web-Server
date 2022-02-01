@@ -198,11 +198,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     var getAllConfirmation = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
                     if (getAllConfirmation.Count() == 0)
                     {
-
                         var getExpens = db.GetPA_AdvanceById(this.id);
                         getExpens.direction = (short)EnumPA_AdvanceDirection.Cikis;
                         dbresult &= getExpens.B_ConvertType<VMPA_AdvanceModel>().Save(this.createdby.Value, null, transaction);
-
                     }
                     transaction.Commit();
                 }
@@ -491,8 +489,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 {
                     return new ResultStatus { message = "Kullanıcının ana departmanı yoktur" };
                 }
+                var getLimitation = rulesUserStages.Where(x => x.limit.HasValue);
                 foreach (var rulesStage in rulesUserStages.OrderBy(a => a.ruleType == (int)EnumUT_RulesUserStage.SonOnaylayici ? 10000 : a.order))
                 {
+
+                    //yönetici departmanda var mı ? 
+                    var isInDepartman = shuser.Manager1 == rulesStage.userId ? true
+                              : shuser.Manager2 == rulesStage.userId ? true
+                              : shuser.Manager3 == rulesStage.userId ? true
+                              : shuser.Manager4 == rulesStage.userId ? true
+                              : shuser.Manager5 == rulesStage.userId ? true
+                              : shuser.Manager6 == rulesStage.userId ? true
+                              : false;
                     Guid? assingUser = null;
                     switch ((EnumUT_RulesUserStage)rulesStage.type)
                     {
@@ -502,20 +510,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         case EnumUT_RulesUserStage.Manager4:
                         case EnumUT_RulesUserStage.Manager5:
                         case EnumUT_RulesUserStage.Manager6:
-                            //yöneticileri bul
                             assingUser = (
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                            null);
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+                      null);
                             //  eğer yöneticiler son onaylayıcı veya rolebaglu veya secim ise devam 
-                            var isUserExistBefore = rulesUserStages.Where(x => (
-                             x.type == (short)EnumUT_RulesUserStage.SonOnaylayici ||
-                             x.type == (short)EnumUT_RulesUserStage.RoleBagliSecim ||
-                             x.type == (short)EnumUT_RulesUserStage.SecimeBagliKullanici)
+                            var isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
                              && x.userId.HasValue
                              && x.userId == assingUser);
                             if (isUserExistBefore.Count() > 0)
@@ -541,37 +545,35 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             var apprvList = new List<VWSH_User>();
                             foreach (var user in getRoleUsers)
                             {
-                                var isInDepartman = shuser.Manager1 == user.id ? true
+                                //onaylacak kişi departmanda var mı ? 
+                                var hasRoleInDepartman = shuser.Manager1 == user.id ? true
                                     : shuser.Manager2 == user.id ? true
                                     : shuser.Manager3 == user.id ? true
                                     : shuser.Manager4 == user.id ? true
                                     : shuser.Manager5 == user.id ? true
                                     : shuser.Manager6 == user.id ? true
                                     : false;
-                                if (isInDepartman)
+                                if (hasRoleInDepartman)
                                 {
-                                    apprvList.Add(user);
+                                    apprvList.Add(user);//eğer varsa listeye ekle
                                 }
                             }
-                            var isApprv = apprvList.Where(x => x.id != shuser.id);
-                            if (apprvList.Count() > 0 && isApprv.Count() > 0)
+                            var isApprv = apprvList.Where(x => x.id != shuser.id);//onaylayacak kişileri isteği onaylayacak kişi olmayanları getir.
+                            if (apprvList.Count() > 0 && isApprv.Count() > 0)//eğer onaylayacak kişi varsa 
                             {
-                                assingUser = isApprv.FirstOrDefault().id;
+                                assingUser = isApprv.FirstOrDefault().id;//ilkini getir
                             }
                             else
                             {
-                                var roleUser = getRoleUsers.Where(x => x.id != shuser.id);
+                                var roleUser = getRoleUsers.Where(x => x.id != shuser.id);//eğer onaylayacak kimse yoksa kendi olmayanı getir
                                 if (roleUser.Count() > 0)
                                 {
-                                    assingUser = roleUser.FirstOrDefault().id;
+                                    assingUser = roleUser.FirstOrDefault().id;//ilkini al 
                                 }
-
                             }
-                            isUserExistBefore = rulesUserStages.Where(x => (
-                            x.type == (short)EnumUT_RulesUserStage.SonOnaylayici ||
-                            x.type == (short)EnumUT_RulesUserStage.SecimeBagliKullanici)
-                            && x.userId.HasValue
-                            && x.userId == assingUser);
+                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
+                             && x.userId.HasValue
+                             && x.userId == assingUser);
                             if (isUserExistBefore.Count() > 0)
                             {
                                 continue;
@@ -579,10 +581,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             break;
                         case EnumUT_RulesUserStage.SecimeBagliKullanici:
                             assingUser = rulesStage.userId;
-                            isUserExistBefore = rulesUserStages.Where(x => (
-                            x.type == (short)EnumUT_RulesUserStage.SonOnaylayici)
-                            && x.userId.HasValue
-                            && x.userId == assingUser);
+                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
+                              && x.userId.HasValue
+                              && x.userId == assingUser);
                             if (isUserExistBefore.Count() > 0)
                             {
                                 continue;
@@ -590,14 +591,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             break;
                         case EnumUT_RulesUserStage.SonOnaylayici:
                             //son onaylacak kişi, istek yapanın son kullanıcılarında yoksa bu adımı geç
-                            var isIncluded = shuser.Manager1 == rulesStage.userId ? true
-                                : shuser.Manager2 == rulesStage.userId ? true
-                                : shuser.Manager3 == rulesStage.userId ? true
-                                : shuser.Manager4 == rulesStage.userId ? true
-                                : shuser.Manager5 == rulesStage.userId ? true
-                                : shuser.Manager6 == rulesStage.userId ? true
-                                : false;
-                            if (!isIncluded)
+                            if (!isInDepartman)
                             {
                                 continue;
                             }
@@ -614,6 +608,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (assingUser == shuser.id)
                     {
                         continue;
+                    }
+                    var isUsedBefore = advanceCofirmations.Where(x => x.userId == assingUser).OrderByDescending(x => x.ruleOrder);
+                    if (isUsedBefore.Count() > 0)
+                    {
+                        advanceCofirmations.Remove(isUsedBefore.FirstOrDefault());
                     }
                     advanceCofirmations.Add(new PA_AdvanceConfirmation
                     {

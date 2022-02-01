@@ -19,8 +19,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var feedback = new FeedBack();
             this.Result = resultStatus.result;
-            this.FeedBack = resultStatus.result ? 
-                feedback.Success(string.IsNullOrEmpty(resultStatus.message) ? "işlem başarıyla gerçekleşti." : resultStatus.message) : 
+            this.FeedBack = resultStatus.result ?
+                feedback.Success(string.IsNullOrEmpty(resultStatus.message) ? "işlem başarıyla gerçekleşti." : resultStatus.message) :
                 feedback.Warning(string.IsNullOrEmpty(resultStatus.message) ? "İşlem başarısız." : resultStatus.message);
         }
 
@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = "İşlem Başarılı",
                 status = "success",
                 timeout = 2, //  saniye
-                Type=type
+                Type = type
             };
 
             if (sessionCreate)
@@ -73,7 +73,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = "Sistem Uyarısı",
                 status = "error",
                 timeout = 20, //  saniye,
-                Type=type
+                Type = type
             };
 
             if (sessionCreate)
@@ -112,7 +112,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         }
 
 
-        public FeedBack Warning(string msg = "", bool sessionCreate = false, string action = null,int type=0)
+        public FeedBack Warning(string msg = "", bool sessionCreate = false, string action = null, int type = 0)
         {
             var result = new FeedBack
             {
@@ -121,7 +121,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = "İşlem Eksik Gerçekleşti",
                 status = "warning",
                 timeout = 20, //  saniye,
-                Type=type
+                Type = type
             };
 
             if (sessionCreate)
@@ -132,7 +132,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return result;
         }
 
-        public FeedBack Custom(string msg = "", string action = "", string title = "Bilgilendirme", string status = "success", int timeout = 10, bool sessionCreate = false,int type=0)
+        public FeedBack Custom(string msg = "", string action = "", string title = "Bilgilendirme", string status = "success", int timeout = 10, bool sessionCreate = false, int type = 0)
         {
             var result = new FeedBack
             {
@@ -141,7 +141,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 title = title,
                 status = status,
                 timeout = timeout, //  saniye
-                Type=type
+                Type = type
             };
 
             if (sessionCreate)

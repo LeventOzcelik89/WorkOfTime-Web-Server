@@ -145,6 +145,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 GetManagers(All, department.PID);
             }
         }
+
+        public IEnumerable<InfolineTable> PermissionCalculator<T>(Guid userId)
+        {
+            //var getType = T.GetType();
+            //if (getType==new PA_TransactionConfirmation().GetType())
+            //{
+            //    var confirm = new List<T>();
+            //    confirm.Add(new PA_Transaction { });
+
+
+            //    return confirm;
+
+
+
+            //}
+
+
+
+
+
+            return null;
+        }
+
     }
 
 }
