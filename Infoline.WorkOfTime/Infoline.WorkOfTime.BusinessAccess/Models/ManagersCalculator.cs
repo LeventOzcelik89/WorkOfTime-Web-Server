@@ -127,7 +127,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var department = Departments.Where(a => a.id == Departmentid).FirstOrDefault();
             var departmentParent = Departments.Where(a => a.id == department.PID && a.Type == department.Type && a.ProjectId == department.ProjectId).FirstOrDefault();
-            
+
             if (departmentParent != null)
             {
                 var departmentParentTwo = Departments.Where(x => x.id == departmentParent.PID && x.Type == departmentParent.Type).FirstOrDefault();
@@ -135,7 +135,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var departmentParentPersonManager = departmentParentPerson.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
                 All.AddRange(departmentParentPersonManager);
 
-                if(departmentParentTwo != null)
+                if (departmentParentTwo != null)
                 {
                     var departmentParentPersonTwo = DepartmentsPersons.Where(a => a.DepartmentId == departmentParentTwo.id);
                     var departmentParentPersonManagerTwo = departmentParentPersonTwo.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
@@ -146,25 +146,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public IEnumerable<InfolineTable> PermissionCalculator<T>(Guid userId)
+        public IEnumerable<InfolineTable> PermissionCalculator(Guid userId, Type type)
         {
-            //var getType = T.GetType();
-            //if (getType==new PA_TransactionConfirmation().GetType())
-            //{
-            //    var confirm = new List<T>();
-            //    confirm.Add(new PA_Transaction { });
-
-
-            //    return confirm;
-
-
-
-            //}
-
-
-
-
-
+            if (type == new PA_TransactionConfirmation().GetType())
+            {
+                var confirm = new List<PA_TransactionConfirmation>();
+                confirm.Add(new PA_TransactionConfirmation() { });
+                return confirm;
+            }
+            else if (type==new PA_AdvanceConfirmation().GetType())
+            {
+                var confirm = new List<PA_AdvanceConfirmation>();
+                confirm.Add(new PA_AdvanceConfirmation());
+            }
             return null;
         }
 
