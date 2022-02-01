@@ -204,7 +204,7 @@ function feedback(feedback) {
     if (feedback == "" || feedback == null || feedback == "null") return false;
 
     if (feedback == 'SERVER') {
-        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !' };
+        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !',Type:0 };
     }
 
     var feedbackObj = feedback;

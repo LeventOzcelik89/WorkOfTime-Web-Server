@@ -44,9 +44,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             DateTime startDate = new DateTime(item.StartDate.Value.Ticks);
             DateTime endDate = new DateTime(item.EndDate.Value.Ticks);
 
+
             DateTime bTarih = endDate;
             DateTime kTarih = startDate;
             TimeSpan Sonuc = bTarih - kTarih;
+            if (Sonuc<new TimeSpan(-1,0,0))
+            {
+                return new CalculateReturn { CommencementDate = CommencementDate(item), TotalDay = 0, TotalHour = 0, Text = "0 Gün" };
+
+            }
             string str = "";
             var gun = Math.Floor(Sonuc.TotalMinutes / (60 * 24));
             if (gun != 0)

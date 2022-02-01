@@ -18,7 +18,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public SYS_Files[] Files { get; set; }
         public bool? IsCopy { get; set; }
         public Guid newId { get; set; }
-        public VWPA_AdvanceHistory[] AdvanceHistory { get; set; }
+        public VWPA_AdvanceHistory[] AdvanceHistory { get; set; } = new VWPA_AdvanceHistory[0];
         public DateTime? payBackDate { get; set; }
         public string statusDescription { get; set; }
         public class VWPA_AdvanceHistory
@@ -138,18 +138,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var advanceConfirmations = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
                 UpdateDataControl(advanceConfirmations, this.statusDescription);
             }
-
             return res;
         }
         private ResultStatus Insert(DbTransaction trans = null)
         {
             var transaction = trans ?? db.BeginTransaction();
             var dbresult = new ResultStatus { result = true };
-            var personManager = db.GetVWINV_CompanyPersonDepartmentsByIdUser(this.createdby.Value).Where(a => a.Manager1.HasValue);
-            if (personManager.Count() == 0)
-            {
-                this.direction = -1;
-            }
             if (this.dataTable == "CRM_Presentation")
             {
                 var currency = db.GetUT_CurrencyById(this.currencyId.Value);
@@ -201,6 +195,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 if (dbresult.result)
                 {
                     dbresult &= InsertConfirmation(this.createdby.Value, transaction);
+                    var getAllConfirmation = db.GetVWPA_AdvanceConfirmationByAdvanceId(this.id);
+                    if (getAllConfirmation.Count() == 0)
+                    {
+
+                        var getExpens = db.GetPA_AdvanceById(this.id);
+                        getExpens.direction = (short)EnumPA_AdvanceDirection.Cikis;
+                        dbresult &= getExpens.B_ConvertType<VMPA_AdvanceModel>().Save(this.createdby.Value, null, transaction);
+
+                    }
                     transaction.Commit();
                 }
                 else
@@ -212,7 +215,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return new ResultStatus
             {
                 result = dbresult.result,
-                message = dbresult.result ? message + "başarılı bir şekilde gerçekleştirildi." : message + "başarısız oldu."
+                message = dbresult.result ? message + "başarılı bir şekilde gerçekleştirildi." : dbresult.message
             };
         }
         private ResultStatus Update(DbTransaction trans = null)
@@ -457,13 +460,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.Load();
             return db.GetVWPA_AdvancesApprovedByUserId(userId);
         }
-
         public SummaryHeadersAdvance GetRequestAdvanceSummary(Guid userId)
         {
             this.Load();
             return db.GetVWPA_AdvancesRequestByUserId(userId);
         }
-
         public ResultStatus InsertConfirmation(Guid userId, DbTransaction trans = null)
         {
             var dbresult = new ResultStatus { result = true };
@@ -485,184 +486,147 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var shuser = db.GetVWSH_UserById(userId);
             if (rulesUserStages.Count() > 0)
             {
-                var lastValidator = rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).ToArray();
-                var companyPersonDepart = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-                foreach (var rulesStage in rulesUserStages)
+                var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
+                if (getManagers.Count() == 0)
                 {
-                    if (rulesUserStages.Where(x => x.type == (int)EnumUT_RulesUserStage.SonOnaylayici).Count() > 0 && lastValidator.Count() > 0)
+                    return new ResultStatus { message = "Kullanıcının ana departmanı yoktur" };
+                }
+                foreach (var rulesStage in rulesUserStages.OrderBy(a => a.ruleType == (int)EnumUT_RulesUserStage.SonOnaylayici ? 10000 : a.order))
+                {
+                    Guid? assingUser = null;
+                    switch ((EnumUT_RulesUserStage)rulesStage.type)
                     {
-                        if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager1 && shuser.Manager1.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager1.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
+                        case EnumUT_RulesUserStage.Manager1:
+                        case EnumUT_RulesUserStage.Manager2:
+                        case EnumUT_RulesUserStage.Manager3:
+                        case EnumUT_RulesUserStage.Manager4:
+                        case EnumUT_RulesUserStage.Manager5:
+                        case EnumUT_RulesUserStage.Manager6:
+                            //yöneticileri bul
+                            assingUser = (
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+                           rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+                            null);
+                            //  eğer yöneticiler son onaylayıcı veya rolebaglu veya secim ise devam 
+                            var isUserExistBefore = rulesUserStages.Where(x => (
+                             x.type == (short)EnumUT_RulesUserStage.SonOnaylayici ||
+                             x.type == (short)EnumUT_RulesUserStage.RoleBagliSecim ||
+                             x.type == (short)EnumUT_RulesUserStage.SecimeBagliKullanici)
+                             && x.userId.HasValue
+                             && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
                             {
                                 continue;
                             }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager2 && shuser.Manager2.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager2.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
+                            break;
+                        case EnumUT_RulesUserStage.RoleBagliSecim:
+                            if (!rulesStage.roleId.HasValue)
+                            {
+                                return new ResultStatus { message = "Kural aşaması için belirtilen rol yoktur!" };
+                            }
+                            var getRole = db.GetVWSH_RoleById(rulesStage.roleId.Value);
+                            if (getRole == null)
+                            {
+                                return new ResultStatus { message = "Kural aşaması için belirtilen rol yoktur!" };
+                            }
+                            var getRoleUsers = db.GetVWSH_UserByRoleId(getRole.id.ToString());
+                            if (getRoleUsers == null)
+                            {
+                                return new ResultStatus { message = "Kural aşaması için onaylacak kullanıcı yoktur!." };
+                            }
+                            var apprvList = new List<VWSH_User>();
+                            foreach (var user in getRoleUsers)
+                            {
+                                var isInDepartman = shuser.Manager1 == user.id ? true
+                                    : shuser.Manager2 == user.id ? true
+                                    : shuser.Manager3 == user.id ? true
+                                    : shuser.Manager4 == user.id ? true
+                                    : shuser.Manager5 == user.id ? true
+                                    : shuser.Manager6 == user.id ? true
+                                    : false;
+                                if (isInDepartman)
+                                {
+                                    apprvList.Add(user);
+                                }
+                            }
+                            var isApprv = apprvList.Where(x => x.id != shuser.id);
+                            if (apprvList.Count() > 0 && isApprv.Count() > 0)
+                            {
+                                assingUser = isApprv.FirstOrDefault().id;
+                            }
+                            else
+                            {
+                                var roleUser = getRoleUsers.Where(x => x.id != shuser.id);
+                                if (roleUser.Count() > 0)
+                                {
+                                    assingUser = roleUser.FirstOrDefault().id;
+                                }
+
+                            }
+                            isUserExistBefore = rulesUserStages.Where(x => (
+                            x.type == (short)EnumUT_RulesUserStage.SonOnaylayici ||
+                            x.type == (short)EnumUT_RulesUserStage.SecimeBagliKullanici)
+                            && x.userId.HasValue
+                            && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
                             {
                                 continue;
                             }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager3 && shuser.Manager3.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager3.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
+                            break;
+                        case EnumUT_RulesUserStage.SecimeBagliKullanici:
+                            assingUser = rulesStage.userId;
+                            isUserExistBefore = rulesUserStages.Where(x => (
+                            x.type == (short)EnumUT_RulesUserStage.SonOnaylayici)
+                            && x.userId.HasValue
+                            && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
                             {
                                 continue;
                             }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager4 && shuser.Manager4.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager4.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
+                            break;
+                        case EnumUT_RulesUserStage.SonOnaylayici:
+                            //son onaylacak kişi, istek yapanın son kullanıcılarında yoksa bu adımı geç
+                            var isIncluded = shuser.Manager1 == rulesStage.userId ? true
+                                : shuser.Manager2 == rulesStage.userId ? true
+                                : shuser.Manager3 == rulesStage.userId ? true
+                                : shuser.Manager4 == rulesStage.userId ? true
+                                : shuser.Manager5 == rulesStage.userId ? true
+                                : shuser.Manager6 == rulesStage.userId ? true
+                                : false;
+                            if (!isIncluded)
                             {
                                 continue;
                             }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager5 && shuser.Manager5.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager5.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
-                            {
-                                continue;
-                            }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.Manager6 && shuser.Manager6.HasValue)
-                        {
-                            var lastValidatorData = lastValidator.Where(x => x.userId == shuser.Manager6.Value).FirstOrDefault();
-                            if (lastValidatorData != null)
-                            {
-                                continue;
-                            }
-                        }
-                        else if (rulesStage.type == (int)EnumUT_RulesUserStage.SonOnaylayici)
-                        {
-                            var lastValidatorData = companyPersonDepart
-                                .Where(x => x.Manager1 == rulesStage.userId ||
-                                x.Manager2 == rulesStage.userId ||
-                                x.Manager3 == rulesStage.userId ||
-                                x.Manager4 == rulesStage.userId ||
-                                x.Manager5 == rulesStage.userId ||
-                                x.Manager6 == rulesStage.userId).FirstOrDefault();
-                            if (lastValidatorData == null)
-                            {
-                                if (companyPersonDepart.Where(x => x.Manager6.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager6.HasValue).FirstOrDefault().Manager6;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                                else if (companyPersonDepart.Where(x => x.Manager5.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager5.HasValue).FirstOrDefault().Manager5;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                                else if (companyPersonDepart.Where(x => x.Manager4.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager4.HasValue).FirstOrDefault().Manager4;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                                else if (companyPersonDepart.Where(x => x.Manager3.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager3.HasValue).FirstOrDefault().Manager3;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                                else if (companyPersonDepart.Where(x => x.Manager2.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager2.HasValue).FirstOrDefault().Manager2;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                                else if (companyPersonDepart.Where(x => x.Manager1.HasValue).Count() > 0)
-                                {
-                                    var manager = companyPersonDepart.Where(a => a.Manager1.HasValue).FirstOrDefault().Manager1;
-                                    if (manager == null)
-                                    {
-                                        continue;
-                                    }
-                                    var managerCompanyPerson = db.GetINV_CompanyPersonDepartmentsByIdUserAndType(manager.Value, (int)EnumINV_CompanyDepartmentsType.Organization);
-                                    var getCompanyPerson = GetCompanyPerson(managerCompanyPerson, rulesStage.userId);
-                                    if (getCompanyPerson == null)
-                                    {
-                                        continue;
-                                    }
-                                    rulesStage.userId = getCompanyPerson.Manager1.Value;
-                                }
-                            }
-                        }
-                        advanceCofirmations.Add(new PA_AdvanceConfirmation
-                        {
-                            created = this.created,
-                            createdby = userId,
-                            advanceId = this.id,
-                            ruleType = rulesStage.type,
-                            ruleOrder = rulesStage.order,
-                            ruleUserId = rulesStage.userId,
-                            ruleRoleId = rulesStage.roleId,
-                            ruleTitle = rulesStage.title,
-                            userId = (
-                            rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesStage.userId :
-  rulesStage.type == (Int16)EnumUT_RulesUserStage.SonOnaylayici ? rulesStage.userId : null)
-                        });
+                            //son onaylayacak kullanıcı kişinin son adımlarında varsa son onaylayacak kullanıcıyı ekle
+                            assingUser = rulesStage.userId;
+                            break;
+                        default:
+                            break;
                     }
+                    if (assingUser == null)
+                    {
+                        continue;//eğer onaylayacak kimsesi yoksa bunu veri tabanına ekleme;
+                    }
+                    if (assingUser == shuser.id)
+                    {
+                        continue;
+                    }
+                    advanceCofirmations.Add(new PA_AdvanceConfirmation
+                    {
+                        created = this.created,
+                        createdby = userId,
+                        advanceId = this.id,
+                        ruleType = rulesStage.type,
+                        ruleOrder = rulesStage.order,
+                        ruleUserId = rulesStage.userId,
+                        ruleRoleId = rulesStage.roleId,
+                        ruleTitle = rulesStage.title,
+                        userId = assingUser
+                    });
                 }
             }
             else
@@ -677,10 +641,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
             return new ResultStatus
             {
                 result = dbresult.result,
-                message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
+                message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : dbresult.message
             };
         }
-
         public void UpdateDataControl(VWPA_AdvanceConfirmation[] confirmations, string statusDescription)
         {
             if (this.direction == 0 || this.direction == -1 || this.direction == 1)
@@ -698,7 +661,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         confirmation.description = "Otomatik Onay";
                         db.UpdatePA_AdvanceConfirmation(new PA_AdvanceConfirmation().B_EntityDataCopyForMaterial(confirmation));
                     }
-
                 }
                 if (notNullOrder == null)
                 {
@@ -706,16 +668,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     if (isUserExist != null)
                     {
                         var users = db.GetVWSH_UserByIds(isUserExist.confirmationUserIds.Split(',').Select(a => Guid.Parse(a)).ToArray());
-
                         var getAdvance = db.GetPA_AdvanceById(this.id);
                         if (getAdvance != null)
                         {
-
                             this.createdby = getAdvance.createdby;
                             var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                             foreach (var user in users)
                             {
-
                                 var text = "<h3>Sayın " + user.FullName + ",</h3>";
                                 text += "<p>" + createdUser.FullName + " kişisi avans talebinde bulunmuştur.</p>";
                                 if (!string.IsNullOrEmpty(this.description))
@@ -728,7 +687,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             }
                         }
                     }
-
                 }
                 else
                 {
@@ -740,7 +698,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                         var getAdvance = db.GetPA_AdvanceById(this.id);
                         if (getAdvance != null)
                         {
-
                             this.createdby = getAdvance.createdby;
                             var createdUser = db.GetVWSH_UserById(this.createdby.Value);
                             foreach (var user in users)
@@ -759,11 +716,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     }
                 }
             }
-
-
-
-
-
             //var control = false;
             //var mailControl = false;
             //var notNullOrder = confirmations.Where(x => x.status != null).OrderByDescending(a => a.ruleOrder).FirstOrDefault();
