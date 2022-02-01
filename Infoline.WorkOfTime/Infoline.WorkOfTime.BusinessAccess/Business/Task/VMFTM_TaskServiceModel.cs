@@ -264,7 +264,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 }
             }
 
-            if (userDetail != null)
+            if (data.assignUserId.HasValue)
             {
                 model.company_Title = userDetail.Company_Title ?? null;
                 model.companyId = userDetail.CompanyId ?? null;

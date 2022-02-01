@@ -458,8 +458,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     var account = db.GetPA_AccountByDataId(company.id);
                     if (account.Count() == 0)
                     {
-                        new FeedBack().Warning("Bayinize atanmış herhangi bir banka hesap bilgisi yoktur! Ödeme alabilmek için bayi bilgilerinizi doldurun!", true,null,1);
-                        
+                        new FeedBack().Warning("Bayinize atanmış herhangi bir banka hesap bilgisi yoktur! Ödeme alabilmek için bayi bilgilerinizi doldurun!", true, null, 1);
+
                     }
                     if (string.IsNullOrEmpty(company.taxNumber)
                         || string.IsNullOrEmpty(company.email)
@@ -467,14 +467,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                         || string.IsNullOrEmpty(company.invoiceAddress)
                         || string.IsNullOrEmpty(company.taxOffice))
                     {
-                        new FeedBack().Warning("Bayinizin eksik bilgileri var. Lütfen ödeme alabilmek için bayi bilgilerinizi eksiksiz doldurun!", true,null,1);
+                        new FeedBack().Custom("Bayinizin eksik bilgileri var. Lütfen ödeme alabilmek için bayi bilgilerinizi eksiksiz doldurun!", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
                     }
                 }
                 else
                 {
                     new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
                 }
-               
+
 
             }
         }

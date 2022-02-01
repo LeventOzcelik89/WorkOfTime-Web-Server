@@ -17,7 +17,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public ManagersCalculator()
         {
-
             var db = new WorkOfTimeDatabase();
             Users = db.GetSH_User().Where(a => a.status == true).Select(a => a.id).ToArray();
             Departments = db.GetINV_CompanyDepartments();
@@ -69,7 +68,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var res = new List<VWINV_CompanyPersonDepartments>();
             var departmentUsers = DepartmentsPersons
-                .Where(a => a.IdUser == userId)
+                .Where(a => a.IdUser == userId &&
+                a.IsBasePosition == true &&
+                (a.EndDate == null || a.EndDate >= DateTime.Now))
                 .ToArray();
 
             if (departmentUsers.Count() == 0)
@@ -144,6 +145,29 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 GetManagers(All, department.PID);
             }
         }
+
+        public IEnumerable<InfolineTable> PermissionCalculator<T>(Guid userId)
+        {
+            //var getType = T.GetType();
+            //if (getType==new PA_TransactionConfirmation().GetType())
+            //{
+            //    var confirm = new List<T>();
+            //    confirm.Add(new PA_Transaction { });
+
+
+            //    return confirm;
+
+
+
+            //}
+
+
+
+
+
+            return null;
+        }
+
     }
 
 }

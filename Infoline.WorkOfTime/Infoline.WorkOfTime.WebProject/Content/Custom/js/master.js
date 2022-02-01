@@ -204,7 +204,7 @@ function feedback(feedback) {
     if (feedback == "" || feedback == null || feedback == "null") return false;
 
     if (feedback == 'SERVER') {
-        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !' };
+        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !', Type: 0 };
     }
 
     var feedbackObj = feedback;
@@ -229,11 +229,6 @@ function feedback(feedback) {
         "tapToDismiss": false
     }
 
-
-
-
-
-
     if (typeof feedbackObj.action != "undefined" && feedbackObj.action != null && feedbackObj.action != "") {
         toastr.options.onHidden = function (a) { location.href = feedbackObj.action; }
     } else {
@@ -248,7 +243,17 @@ function feedback(feedback) {
             toastr[feedbackObj.status](feedbackObj.message, feedbackObj.title);
         }
         else {
-            swal(feedbackObj.title, feedbackObj.message, feedbackObj.status)
+            swal({
+                title: feedbackObj.title,
+                text: feedbackObj.message,
+                type: feedbackObj.status,
+            }, function () {
+                if (typeof feedbackObj.action != "undefined" && feedbackObj.action != null && feedbackObj.action != "") {
+                    Kendo_GetRequest(feedbackObj.action, "", $('<input data-method="GET" />'));
+            
+                }
+            });
+
         }
     }
 
