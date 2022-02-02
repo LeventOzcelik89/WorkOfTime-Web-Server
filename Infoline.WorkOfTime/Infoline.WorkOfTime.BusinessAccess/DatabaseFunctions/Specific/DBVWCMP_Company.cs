@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWCMP_Company>().Where(a => a.taxNumber == taxNumber && a.type == (short)EnumCMP_CompanyType.Diger && a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
+                return db.Table<VWCMP_Company>().Where(a => a.taxNumber == taxNumber  && a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
             }
         }
         public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name, string code, DbTransaction tran = null)

@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Kayıt Güncelleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 <script data-selector="modalContainer">
 
@@ -29,7 +30,7 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md req" for="companyId">Distribütör Seçiniz</label>
+            <label class="control-label label-md " for="companyId">Distribütör Seçiniz</label>
         </div>
         <div class="col-md-8">
             @(
@@ -42,9 +43,8 @@
         .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
         .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Distribütör"))
         .Sort(x => x.Add("fullName").Ascending())
-        .Validate(Validations.Required)
         .Events(x=>x.Change("onChangeCompany"))
-          .Value(Model.distributor_id.HasValue ? Model.distributor_id.Value.ToString() : new Guid().ToString())
+         .Value(Model.distributor_id.HasValue ? Model.distributor_id.Value.ToString() : new Guid().ToString())
         .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
         .Execute()
             )

@@ -33,7 +33,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
         public ActionResult IndexCompany()
         {
             var userStatus = (PageSecurity)Session["userStatus"];
-            CheckUserCompanyHasNullAreas(userStatus);
+            ViewBag.data = CheckUserCompanyHasNullAreas(userStatus);
             return View();
         }
         [PageInfo("Müşterileri Firmalarım", SHRoles.SatisPersoneli, SHRoles.CRMYonetici)]
@@ -759,7 +759,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                     {
 
                         new FeedBack().Custom("Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun", Url.Action("Insert", "VWPA_Account", new { dataTable = "CustomerUser", dataId = company.id, area = "PA" }), "Ödeme Alabilmek İçin Banka Bilgilerinizi Doldurun!", "warning", 10, true, 1);
-                        return "hesap";
+                        return "Lütfen Ödeme Alabilmek İçin Banka Bilgileriniz Doldurun";
                     }
                     if (string.IsNullOrEmpty(company.taxNumber)
                         || string.IsNullOrEmpty(company.email)
@@ -767,19 +767,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
                         || string.IsNullOrEmpty(company.invoiceAddress)
                         )
                     {
-                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
-                        return "bilgi";
+                        new FeedBack().Custom("Vergi Numarası, E-Posta, Telefon Numarası ve Fatura Adresi alanlarını doldurun", Url.Action("Update", "VWCMP_Company", new { id = company.id, area = "CMP" }), "Bayinize Ait Eksik Bilgiler Var!", "warning", 10, true, 1);
+                        return "Lütfen E-Posta, Telefon Numarası, Fatura Adresi ve Vergi Numarası alanlarını doldurun";
                     }
                 }
                 else
                 {
                     new FeedBack().Warning("Herhangi bir işletmeye ait değilsiniz!", true, null, 1);
-                    return null;
+                    return "Herhangi bir işletmeye ait değilsiniz";
                 }
 
                 
             }
-            return null;
+            return "";
         }
     }
 }

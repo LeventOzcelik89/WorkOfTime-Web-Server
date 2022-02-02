@@ -105,7 +105,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWCMP_Company>().Where(a => a.code == code &&a.type==(short)EnumCMP_CompanyType.Diger &&a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
+                return db.Table<VWCMP_Company>().Where(a => a.code == code &&a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
             }
         }
         public CMP_Company GetCMP_CompanyByName(string name, DbTransaction tran = null)

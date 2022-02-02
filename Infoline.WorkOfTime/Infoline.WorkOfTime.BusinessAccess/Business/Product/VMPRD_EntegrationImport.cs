@@ -26,10 +26,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
             var data = db.GetVWPRD_EntegrationImportById(this.id);
-            var findDist = db.GetCMP_CompanyById(distributor_id.Value);
+            if (distributor_id.HasValue)
+            {
+                var findDist = db.GetCMP_CompanyById(distributor_id.Value);
+                distributorCode = findDist.code;
+            }
+            
             var findCompany = db.GetCMP_CompanyById(company_Id.Value);
             var findProduct = db.GetPRD_ProductById(product_Id.Value);
-            distributorCode = findDist.code;
+        
             customerCode = findCompany.code;
             productModel = findProduct.name;
             if (data == null)

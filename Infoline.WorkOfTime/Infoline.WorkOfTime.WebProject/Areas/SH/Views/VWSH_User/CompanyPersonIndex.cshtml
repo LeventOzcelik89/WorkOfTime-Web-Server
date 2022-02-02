@@ -3,7 +3,6 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
     var userStatus = (PageSecurity)Session["userStatus"];
 }
-
 <div class="col-sm-2">
    
         <a class="btn btn-block btn-primary" style="margin-bottom:20px" data-task="Insert" data-method="GET" data-href="@Url.Action("SendCompanyCodeMail", "VWSH_User", new { area = "SH",IsMyStaff = true })"><i class="fa fa-mail-forward"></i> Bayi Kodu Gönder</a>
@@ -61,7 +60,7 @@
                         x.Custom().Text("<i class='fa fa-check' data-original-title='Bayi Personelini Onayla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "id", "confirm" } }).Url(Url.Action("Confirm", "VWSH_User", new { area = "SH" }));
                         x.Custom().Text("<i class='fa fa-edit' data-original-title='Bayi Personelini Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateCompanyCustomer", "VWSH_User", new { area = "SH" }));
                         x.Custom().Text("<i class='fa fa-info-circle' data-original-title='Bayi Personel Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "false" }, { "data-show", "single" }, { "data-default", "" },{"data-blank","" } }).Url(Url.Action("Detail", "VWSH_User", new { area = "SH" }));
-                        x.Custom().Text("<i class='icon-mail-1'  data-original-title='Yeni Şifre Gönder'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Şifre sıfırlamak istediğinizden eminmisiniz." } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
+                        x.Custom().Text("<i class='icon-mail-1'  data-original-title='Yeni Şifre Gönder'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Şifre sıfırlamak istediğinizden eminmisiniz." },{ "id", "sendmail" } }).Url(Url.Action("SendPassword", "VWSH_User", new { area = "SH" }));
                         x.Custom().Text("<i class='fa fa-trash' data-original-title='Bayi Personelini Tamamen Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-modal", "true" }, { "data-ask", "Kullanıcı bilgileri tamamen silinecektir. Eğer daha önce yapılan ödeme işlemi varsa, muhasebe verileri de etkilenecektir. Bu işlemi yapmak istediğinizden emin misiniz?" } }).Url(Url.Action("Delete", "VWSH_User", new { area = "SH" }));
 
                     })
@@ -73,12 +72,15 @@
         var item = data.dataItem(data.select());
         if (item == null) {
             $("#confirm").hide();
+            $("#sendmail").hide();
         }
         if (item.status) {
             $("#confirm").hide();
+            $("#sendmail").show();
         }
         else {
             $("#confirm").show();
+            $("#sendmail").hide();
         }
     });
 </script>

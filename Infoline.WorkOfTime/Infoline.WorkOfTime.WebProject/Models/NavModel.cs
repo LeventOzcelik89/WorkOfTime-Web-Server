@@ -360,7 +360,7 @@ namespace System.Web.Mvc
             menu.AddChild(new Menu("Stok Hareketleri", "/PRD/VWPRD_StockAction/Index"));
             menu.AddChild(new Menu("Ürün Fiyat Listeleri", "/PRD/VWPRD_CompanyBasedPrice/Index"));
             menu.AddChild(new Menu("Ürün Stok Raporu", "/PRD/VWPRD_Product/StockReport"));
-            menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexCompany"));
+            menu.AddChild(new Menu("Şirketlerim", "/CMP/VWCMP_Company/IndexCompany"));
             menu.AddChild(new Menu("Hakediş Raporu", "/PRD/VWPRD_EntegrationImport/ClaimReport"));
             menu.AddChild(new Menu("Depo/Şube/Kısımlar", "/CMP/VWCMP_Storage/IndexMy"));
    

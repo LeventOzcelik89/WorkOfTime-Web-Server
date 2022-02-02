@@ -218,7 +218,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [PageInfo("Hak Ediş Veri Ekleme Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
-        public ActionResult Update(VMPRD_EntegrationImport item, bool? isPost)
+        public ActionResult Update(VMPRD_EntegrationImport item)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
             var db = new WorkOfTimeDatabase();
@@ -234,29 +234,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     {
                         item.distributor_id = findDist.id;
                     }
-                    else
-                    {
-                        return Json(new ResultStatusUI
-                        {
-                            Result = false,
-                            FeedBack = feedBack.Warning("Herhangi bir distribütöre kayıtlı değilsiniz!")
-                        });
-                    }
+                    
                 }
                 else
                 {
                     return Json(new ResultStatusUI
                     {
                         Result = false,
-                        FeedBack = feedBack.Warning("Herhangi bir bayiye kayıtlı değilsiniz!")
-                    });
+                        FeedBack = feedBack.Warning("Herhangi bir bayiye kayıtlı değilsiniz!",false,null,1)
+                    },JsonRequestBehavior.AllowGet);
                 }
             }
             return View(item);
         }
         [PageInfo("Hakediş veri ekleme metodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
-        public JsonResult Update(VMPRD_EntegrationImport item)
+        public JsonResult Update(VMPRD_EntegrationImport item, bool? isPost)
         {
             var db = new WorkOfTimeDatabase();
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -274,9 +267,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     }
                 }
             }
-            var findDist = db.GetCMP_CompanyById(item.distributor_id.Value);
+            if (item.distributor_id.HasValue)
+            {
+                var findDist = db.GetCMP_CompanyById(item.distributor_id.Value);
+                item.distributorCode = findDist.code;
+            }
+        
             var findCompany = db.GetCMP_CompanyById(item.company_Id.Value);
-            item.distributorCode = findDist.code;
+        
             item.customerCode = findCompany.code;
             var dbresult = item.Save(userStatus.user.id);
             var result = new ResultStatusUI
@@ -317,17 +315,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
                     });
                     continue;
                 }
-                var isExistDist = db.GetCMP_CompanyByCode(item.distributorCode);
-                if (isExistDist == null)
-                {
-                    existError.Add(new ExcelResult
-                    {
-                        rowNumber = excelResult.rowNumber,
-                        status = false,
-                        message = $"{item.distributorCode} kodlu distribütör yoktur!"
-                    });
-                    continue;
-                }
+                //var isExistDist = db.GetCMP_CompanyByCode(item.distributorCode);
+                //if (isExistDist == null)
+                //{
+                //    existError.Add(new ExcelResult
+                //    {
+                //        rowNumber = excelResult.rowNumber,
+                //        status = false,
+                //        message = $"{item.distributorCode} kodlu distribütör yoktur!"
+                //    });
+                //    continue;
+                //}
                 var isExistCari = db.GetCMP_CompanyByCode(item.customerCode);
                 if (isExistCari == null)
                 {
