@@ -121,25 +121,6 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 			};
 		}
 
-		public PRD_EntegrastionActionSellerReport[] GetPRD_EntegrationActionSellerReport(Guid? distrubitionId)
-		{
-			db = db ?? new WorkOfTimeDatabase();
-			var distributions = db.GetVWPRD_EntegrationAction();
-			if (distrubitionId.HasValue)
-			{
-				distributions = distributions.Where(a => a.DistributorId == distrubitionId.Value).ToArray();
-			}
-
-			if (distributions == null || distributions.Count() <= 0)
-			{
-				return null;
-			}
-
-
-
-			return distributions;
-		}
-
 		public ResultStatus GetAllDevices()
 		{
 			return TitanServices.GetAllDevices();
@@ -157,6 +138,20 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 			return TitanServices.GetDeviceActivationInformations();
 		}
 	}
+
+	public class PRD_EntegrastionActionSellerReport : VWPRD_EntegrationAction
+	{
+		public VWPRD_EntegrationAction[] entegrationActions { get; set; }
+
+		public PRD_EntegrastionActionSellerReport Load()
+		{
+			var db = new WorkOfTimeDatabase();
+
+			return this;
+		}
+
+	}
+
 	public class IndexData
 	{
 		public int All { get; set; }
@@ -180,10 +175,4 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
 		public int Count { get; set; }
 	}
 
-	public class PRD_EntegrastionActionSellerReport
-	{
-		public string distributionName { get; set; }
-		public int activationNumber { get; set; }
-		public int notActivationNumber { get; set; }
-	}
 }
