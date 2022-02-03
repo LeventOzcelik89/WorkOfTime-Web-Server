@@ -10,7 +10,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
     public class VWPRD_EntegrationActionController : Controller
     {
         [AllowEveryone]
-        [PageInfo("Bayi Aktivasyon Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator  )]
+        [PageInfo("Bayi Aktivasyon Raporu Sayfası", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici, SHRoles.UretimYonetici)]
         public ActionResult SellerReport(PRD_EntegrastionActionSellerReport model)
         {
             return View(model.Load());
@@ -18,7 +18,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 
 
         [AllowEveryone]
-        [PageInfo("Bayi Aktivasyon Raporu DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SatisPersoneli, SHRoles.IKYonetici)]
+        [PageInfo("Bayi Aktivasyon Raporu DataSource", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SistemYonetici, SHRoles.UretimYonetici)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
