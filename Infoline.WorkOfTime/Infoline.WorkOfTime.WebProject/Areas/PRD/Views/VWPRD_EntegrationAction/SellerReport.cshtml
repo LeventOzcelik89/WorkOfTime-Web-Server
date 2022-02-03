@@ -28,17 +28,13 @@
 		margin-left: -9px !important;
 	}
 </style>
-<div class="row">
-	<div class="ibox">
-			
-		<div class="col-sm-12">
-			<div class="ibox-title" style="height:50px">
-                <div class="col-sm-4">
-                    <h4>Bayi Aktivasyon Raporu</h4>
-                </div>
-                  <div class="col-sm-4"></div>
-                  <div class="col-sm-4" >
-                      @(
+
+
+<div class="ibox ">
+	<div class="ibox-title">
+		<h5>Bayi Aktivasyon Raporu</h5>
+			<div class="col-md-4" style="float:right;margin-top:-11px;">
+				@(
 									   Html.Akilli()
 									   .DropDownListFor(model => model.DistributorId)
 									   .OptionLabel("Lütfen Cari Seçiniz..")
@@ -50,15 +46,12 @@
 									   .Events(x=>x.Change("onChange"))
 									   .Execute()
                                         )
-                  </div>
-                </div>
-			
-              
 			</div>
-			<div class="ibox-content clearfix" style="min-height:350px">
-				@if (Model.DistributorId.HasValue)
-				{
-					@(Html.Akilli()
+	</div>
+	<div class="ibox-content">
+		@if (Model.DistributorId.HasValue)
+		{
+			@(Html.Akilli()
 					.Grid<Infoline.WorkOfTime.BusinessData.VWPRD_EntegrationAction>("VWPRD_EntegrationAction")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPRD_EntegrationAction", new { area = "PRD" }))
 					.Filter(a=>a.DistributorId == Model.DistributorId)
@@ -86,25 +79,23 @@
 						//x.Custom().Text("<i data-original-title='Ürün Detay' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWPRD_Product", new { area = "PRD" }));
 						//x.Custom().Text("<i data-original-title='Ürün Sil' class='fa fa-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" } }).Url(Url.Action("Delete", "VWPRD_Product", new { area = "PRD" }));
 					}))
-				}
-				else
-				{
-					<div class="alert alert-warning" style="text-align: center;">
-						<h4>Bakım Planı Kaydı Bulunamadı..</h4>
-					</div>
-				}
-
+		}
+		else
+		{
+			<div class="alert alert-warning" style="text-align: center;">
+				<h4>Bakım Planı Kaydı Bulunamadı..</h4>
 			</div>
-		</div>
+		}
 	</div>
 </div>
+
 <script>
-	function onChange(e ) {
+	function onChange(e) {
 		var companyId = e.sender.dataItem().id;
-        var filter = ("(DistributorId~eq~'" + companyId + "')");
-        var filterJSON = kendo.filterParser(filter);
-        $('#VWPRD_EntegrationAction').data("kendoGrid").dataSource.filter(filterJSON);
+		var filter = ("(DistributorId~eq~'" + companyId + "')");
+		var filterJSON = kendo.filterParser(filter);
+		$('#VWPRD_EntegrationAction').data("kendoGrid").dataSource.filter(filterJSON);
 
 
-    }
+	}
 </script>
