@@ -35,5 +35,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWPRD_EntegrationAction>().Where(a => a.DistributorId == id).Execute().ToArray();
             }
         }
+        public VWPRD_EntegrationAction[] GetVWPRD_EntegrationActionBySellerId(Guid id, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+            {
+                return db.Table<VWPRD_EntegrationAction>().Where(a => a.CustomerOperatorId == id).Execute().ToArray();
+            }
+        }
     }
 }

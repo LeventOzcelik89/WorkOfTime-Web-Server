@@ -92,5 +92,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var data = new VMPRD_TitanDeviceActivated().GetProductSellOutDistChartData(startDate, endDate);
             return Json(data, JsonRequestBehavior.AllowGet);
         }
+        [AllowEveryone]
+        [PageInfo("Titan Cihaz Listeleme Methodu", SHRoles.DepoSorumlusu, SHRoles.StokYoneticisi, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri)]
+        public JsonResult GetSellerReport(Guid distId)
+        {
+            var data = new VMPRD_TitanDeviceActivated().GetDistReportForSeller(distId);
+            return Json(data, JsonRequestBehavior.AllowGet);
+        }
     }
 }
