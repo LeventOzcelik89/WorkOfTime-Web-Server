@@ -54,13 +54,13 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return new ResultStatus
             {
                 result = true,
-                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate).OrderByDescending(x=>x.Count)
+                objects = db.GetPRD_TitanDeviceActivatedSellOutProduct(startDate, endDate).OrderByDescending(x => x.Count)
             };
         }
         public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var getIds = db.GetPRD_TitanDeviceActivatedInventoryIds(startDate, endDate);
+            var getIds = db.GetPRD_TitanDeviceActivatedInventoryIds(startDate, endDate);//envanterde olan tüm aktive olmuş cihazlar geliyor. 
             var getData = db.GetPRD_TitanDeviceActivatedSellOutDist(getIds);
             return new ResultStatus
             {
@@ -74,7 +74,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             var data = new ChartData();
             var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
             var getDates = getAllDevices.GroupBy(x => x.CreatedOfTitan.Value.Date).OrderBy(x => x.Key).Select(x => x.Key).ToList();
-            data.Dates = getDates.Select(x=>x.ToShortDateString()).ToList();
+            data.Dates = getDates.Select(x => x.ToShortDateString()).ToList();
             var groupedProducts = getAllDevices.GroupBy(x => x.productId_Title).ToList();
             foreach (var devices in groupedProducts)
             {
@@ -82,12 +82,12 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 model.name = devices.Key;
                 var groupedDevices = devices.GroupBy(x => x.CreatedOfTitan.Value.Date);
                 var outcastedDates = getDates.Where(x => x.In(groupedDevices.Select(a => a.Key.Date).ToArray())).ToList();
-                var outcasteds=outcastedDates.Select(x => new CountModel { Date = x.Date, Count = 0 });
-                var existents = groupedDevices.Select(x=>new CountModel {Date=x.Key,Count=x.Count() });
-                model.data= outcasteds.Concat(existents).OrderBy(x=>x.Date).Select(x=>x.Count).ToList();
+                var outcasteds = outcastedDates.Select(x => new CountModel { Date = x.Date, Count = 0 });
+                var existents = groupedDevices.Select(x => new CountModel { Date = x.Key, Count = x.Count() });
+                model.data = outcasteds.Concat(existents).OrderBy(x => x.Date).Select(x => x.Count).ToList();
                 data.Series.Add(model);
             }
-            
+
             return new ResultStatus
             {
                 result = true,
@@ -99,10 +99,10 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             db = db ?? new WorkOfTimeDatabase();
             var data = new ChartData();
             var getAllDevices = db.GetVWPRD_TitanDeviceActivated().Where(x => x.productId_Title != null && x.CreatedOfTitan != null && x.InventoryId != null && (x.CreatedOfTitan >= startDate && x.CreatedOfTitan <= endDate)).ToList();
-            var allInventories =db.GetPRD_TitanDeviceActivatedSellOutChartInventoryData(getAllDevices.Where(x => x.InventoryId.HasValue).Select(x=>x.InventoryId.Value).ToArray());
-            var getDates = allInventories.GroupBy(x => x.created.Value.Date).Select(x=>x.Key).OrderBy(x=>x).ToList();
+            var allInventories = db.GetPRD_TitanDeviceActivatedSellOutChartInventoryData(getAllDevices.Where(x => x.InventoryId.HasValue).Select(x => x.InventoryId.Value).ToArray());
+            var getDates = allInventories.GroupBy(x => x.created.Value.Date).Select(x => x.Key).OrderBy(x => x).ToList();
             var inventories = allInventories.GroupBy(x => x.lastActionDataCompanyId_Title);
-            data.Dates = getDates.Select(x => x.ToShortDateString()).ToList() ;
+            data.Dates = getDates.Select(x => x.ToShortDateString()).ToList();
             foreach (var devices in inventories)
             {
                 var model = new ChartModel();

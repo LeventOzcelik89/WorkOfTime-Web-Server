@@ -36,5 +36,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? lastTransactionId { get; set;}
         public Guid? firstTransactionItemId { get; set;}
         public Guid? lastTransactionItemId { get; set;}
+        public string lastActionCompanyTitles { get; set;}
     }
 }
