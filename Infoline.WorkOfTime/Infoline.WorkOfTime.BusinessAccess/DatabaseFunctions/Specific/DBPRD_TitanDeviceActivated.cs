@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                     Name=x.Key,
                     Id=x.FirstOrDefault().lastActionDataCompanyId,
                     Types=x.FirstOrDefault().lastActionCompanyTitles
-                    ,SellingCount=db.Table<PRD_EntegrationAction>().Where(a=>(a.DistributorId==x.FirstOrDefault().lastActionDataCompanyId||a.CustomerOperatorId==x.FirstOrDefault().lastActionDataCompanyId)&&a.SerialNo.In(x.Select(b=>b.serialcode).ToArray())).Count()}).ToArray();
+                    ,SellingCount=db.Table<PRD_EntegrationAction>().Where(a=>(a.DistributorId==x.FirstOrDefault().lastActionDataCompanyId||a.CustomerOperatorId==x.FirstOrDefault().lastActionDataCompanyId)&&a.Imei.In(x.Select(b=>b.serialcode).ToArray())).Count()}).ToArray();
             }
         }
 
