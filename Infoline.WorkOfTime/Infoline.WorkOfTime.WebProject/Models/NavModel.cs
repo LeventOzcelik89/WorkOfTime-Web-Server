@@ -354,7 +354,6 @@ namespace System.Web.Mvc
             {
                 menu.AddChild(new Menu("Aktivasyonlar", "/PRD/VWPRD_TitanDeviceActivated"));
                 menu.AddChild(new Menu("Sell Out Raporu", "/PRD/VWPRD_TitanDeviceActivated/SellOutDashboard"));
-                menu.AddChild(new Menu("Bayi Aktivasyon Raporu", "/PRD/VWPRD_EntegrationAction/SellerReport"));
             }
             menu.AddChild(new Menu("Ürün Değişimi", "/PRD/VWPRD_StockTaskPlan/Index"));
             menu.AddChild(new Menu("Stok Özetleri", "/PRD/VWPRD_StockSummary/Index"));
