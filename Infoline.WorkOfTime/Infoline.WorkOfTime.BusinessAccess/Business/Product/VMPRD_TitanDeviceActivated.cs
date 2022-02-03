@@ -125,15 +125,24 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public SellOutReportModel[] GetDistReportForSeller(Guid distId)
         {
             var db = new WorkOfTimeDatabase();
-            var getByDist = db.GetVWPRD_EntegrationActionByDistrubutorId(distId).Where(x => x.CustomerOperatorId.HasValue).GroupBy(x => x.CustomerOperatorId);
-            var report = getByDist.Select(x =>
-            {
-                var getBySeller = db.GetVWPRD_EntegrationActionBySellerId(x.Key.Value);
-                var getActivated = getBySeller.Where(a => a.ActivationDate.HasValue).Count();
-                var getCompany = db.GetCMP_CompanyById(x.Key.Value);
-                return new SellOutReportModel { Count = getActivated, Id = x.Key.Value, Name = getCompany.name, SellingCount = getBySeller.Count() };
-            });
-            return report.ToArray();
+
+            var getData = db.GetVWPRD_EntegrationActionByDistrubutorId(distId);
+
+            var groupCustomer = getData.GroupBy(a => a.CustomerOperatorId);
+
+            var sellOutReportModelList = new List<SellOutReportModel>();
+
+            foreach (var item in groupCustomer)
+			{
+                var sellOutReportModel = new SellOutReportModel();
+                sellOutReportModel.Count = getData.Where(a => a.CustomerOperatorId == item.Key).Count();
+                sellOutReportModel.Id = item.Key;
+                sellOutReportModel.Name = getData.Where(a => a.CustomerOperatorId == item.Key).Select(a => a.CustomerOperatorName).FirstOrDefault();
+                sellOutReportModel.SellingCount = getData.Where(a => a.CustomerOperatorId == item.Key && a.ActivationDate.HasValue).Count();
+
+                sellOutReportModelList.Add(sellOutReportModel);
+            }
+            return sellOutReportModelList.ToArray();
         }
         public ResultStatus GetAllDevices()
         {

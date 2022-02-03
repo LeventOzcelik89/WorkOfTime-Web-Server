@@ -29,6 +29,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
             var db = new WorkOfTimeDatabase();
             var data = db.GetVWPRD_EntegrationAction(condition).RemoveGeographies().ToDataSourceResult(request);
             data.Total = db.GetVWPRD_EntegrationActionCount(condition.Filter);
+
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
     }
