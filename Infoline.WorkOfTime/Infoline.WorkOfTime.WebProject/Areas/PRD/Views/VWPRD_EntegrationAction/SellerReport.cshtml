@@ -30,16 +30,15 @@
 </style>
 <div class="row">
 	<div class="ibox">
-			<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-				<div class="ibox-custom ">
-					<div style="border-bottom:1px #e7eaec solid;">
-						<form action="/PRD/VWPRD_EntegrationAction/SellerReport" method="get">
-
-							<div class="row">
-								<div class="col-md-10">
-									<div class="form-group">
-
-										@(
+			
+		<div class="col-sm-12">
+			<div class="ibox-title" style="height:50px">
+                <div class="col-sm-4">
+                    <h4>Bayi Aktivasyon Raporu</h4>
+                </div>
+                  <div class="col-sm-4"></div>
+                  <div class="col-sm-4" >
+                      @(
 									   Html.Akilli()
 									   .DropDownListFor(model => model.DistributorId)
 									   .OptionLabel("Lütfen Cari Seçiniz..")
@@ -48,23 +47,13 @@
 									   .Template("#=TemplateEngine('companyTemplate',data)#")
 									   .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
 									   .Sort(x => x.Add("fullName").Ascending())
+									   .Events(x=>x.Change("onChange"))
 									   .Execute()
                                         )
-
-									</div>
-								</div>
-								<div class="col-md-2 pull-right">
-									<button class="btn btn-md btn-block btn-success" type="submit" id="DashBoardFilter" style="line-height: 27px">Sorgula</button>
-								</div>
-							</div>
-						</form>
-					</div>
-				</div>
-				<br />
-			</div>
-		<div class="col-sm-12">
-			<div class="ibox-title">
-				<h4>Bayi Aktivasyon Raporu</h4>
+                  </div>
+                </div>
+			
+              
 			</div>
 			<div class="ibox-content clearfix" style="min-height:350px">
 				@if (Model.DistributorId.HasValue)
@@ -109,3 +98,13 @@
 		</div>
 	</div>
 </div>
+<script>
+	function onChange(e ) {
+		var companyId = e.sender.dataItem().id;
+        var filter = ("(DistributorId~eq~'" + companyId + "')");
+        var filterJSON = kendo.filterParser(filter);
+        $('#VWPRD_EntegrationAction').data("kendoGrid").dataSource.filter(filterJSON);
+
+
+    }
+</script>
