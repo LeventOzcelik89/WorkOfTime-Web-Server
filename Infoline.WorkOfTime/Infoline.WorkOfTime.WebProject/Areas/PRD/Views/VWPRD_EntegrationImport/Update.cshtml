@@ -2,6 +2,7 @@
 @{
     ViewBag.Title = "Kayıt Güncelleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)Session["userStatus"];
 }
 <script data-selector="modalContainer">
 
@@ -29,22 +30,23 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md req" for="companyId">Distribütör Seçiniz</label>
+            <label class="control-label label-md " for="companyId">Distribütör Seçiniz</label>
         </div>
         <div class="col-md-8">
             @(
-		Html.Akilli()
-		.DropDownListFor(model => model.distributor_id)
-		.OptionLabel("Lütfen Distribütör seçiniz..")
-		.DataValueField("id")
-		.DataTextField("fullName")
-		.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        Html.Akilli()
+        .DropDownListFor(model => model.distributor_id)
+        .OptionLabel("Lütfen Distribütör seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
         .Filter<VWCMP_Company>(x=>x.CMPTypes_Title.Contains("Distribütör"))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Validate(Validations.Required)
+        .Sort(x => x.Add("fullName").Ascending())
         .Events(x=>x.Change("onChangeCompany"))
-		.Execute()
+         .Value(Model.distributor_id.HasValue ? Model.distributor_id.Value.ToString() : new Guid().ToString())
+        .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+        .Execute()
             )
         </div>
     </div>
@@ -57,17 +59,19 @@
         </div>
         <div class="col-md-8">
             @(
-		Html.Akilli()
-		.DropDownListFor(model => model.company_Id)
-		.OptionLabel("Lütfen Firma Cari seçiniz..")
-		.DataValueField("id")
-		.DataTextField("fullName")
-		.Template("#=TemplateEngine('companyTemplate',data)#")
-		.Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
-		.Sort(x => x.Add("fullName").Ascending())
-		.Validate(Validations.Required)
+        Html.Akilli()
+        .DropDownListFor(model => model.company_Id)
+        .OptionLabel("Lütfen Firma Cari seçiniz..")
+        .DataValueField("id")
+        .DataTextField("fullName")
+        .Template("#=TemplateEngine('companyTemplate',data)#")
+        .Action(b => b.Action("DataSourceDropDown", "VWCMP_Company", new { area = "CMP" }))
+        .Sort(x => x.Add("fullName").Ascending())
+         .Value(userStatus.user.CompanyId.ToString())
+        .Enable(!userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)))
+        .Validate(Validations.Required)
 
-		.Execute()
+        .Execute()
             )
         </div>
     </div>

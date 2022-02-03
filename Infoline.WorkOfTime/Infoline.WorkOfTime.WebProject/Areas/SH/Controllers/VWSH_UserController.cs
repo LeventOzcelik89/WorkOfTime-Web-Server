@@ -1010,7 +1010,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var result = db.UpdateSH_User(findUser);
             if (result.result)
             {
-                SendPassword(new VMSH_UserModel { id = id });
+                var sh = new VMSH_UserModel { id = id }.Load();
+                sh.SendPasswordForCustomer();
             }
             return Json(new ResultStatusUI
             {

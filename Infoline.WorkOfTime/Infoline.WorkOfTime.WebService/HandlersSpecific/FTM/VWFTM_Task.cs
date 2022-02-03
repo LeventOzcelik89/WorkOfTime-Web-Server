@@ -21,7 +21,7 @@ namespace Infoline.WorkOfTime.WebService.Handler
         {
             try
             {
-                var data = new VMFTM_TaskServiceModel().GetTaskSummary(CallContext.Current.UserId);
+                var data = new VMFTM_TaskServiceModel().GetTaskSummary(CallContext.Current.UserId, true);
                 RenderResponse(context, data);
             }
             catch (Exception ex)

@@ -10,8 +10,9 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
     {
         public string Name { get; set; }
         public int Count { get; set; }
-
-
+        public Guid? Id { get; set; }
+        public string Types { get; set; }
+        public int SellingCount { get; set; }
 
     }
 }

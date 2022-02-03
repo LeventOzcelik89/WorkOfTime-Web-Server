@@ -5,10 +5,12 @@
     var userStatus = (PageSecurity)Session["userStatus"];
     var db = new WorkOfTimeDatabase();
     var getUser = db.GetVWSH_UserById(Model.createdby.Value);
-
-
-
-    var whosChanged = Model.AdvanceHistory.Where(x => x.status==2||x.status==3).FirstOrDefault();
+    var getAdvanceHistory = Model.AdvanceHistory.Where(x => x.status == 2 || x.status == 3);
+    var whosChanged = new VMPA_AdvanceModel.VWPA_AdvanceHistory();
+    if (getAdvanceHistory.Count() > 1)
+    {
+        whosChanged = getAdvanceHistory.FirstOrDefault();
+    }
 }
 
 @if (Model.AdvanceHistory != null && Model.AdvanceHistory.Count() > 0)
@@ -37,7 +39,7 @@
     <div class="col-sm-12">
         <div class="ibox ">
             <div>
-                <div class="client-detail" style="height:412px;">
+                <div class="client-detail" style="height:450px;">
                     <ul class="list-group clear-list">
                         <li class="list-group-item">
                             <div class="pull-right" style=" position: relative; ">
@@ -141,7 +143,7 @@
                                             </div>
                                             <div class="vertical-timeline-content">
                                                 <p>
-                                                    @Html.Raw(advanceHistory.date.ToShortDateString() + " tarihinde " +advanceHistory.userId_Title + " tarafından onaylanmıştır.")
+                                                    @Html.Raw(advanceHistory.date.ToShortDateString() + " tarihinde " + advanceHistory.userId_Title + " tarafından onaylanmıştır.")
                                                 </p>
                                             </div>
                                         </div>

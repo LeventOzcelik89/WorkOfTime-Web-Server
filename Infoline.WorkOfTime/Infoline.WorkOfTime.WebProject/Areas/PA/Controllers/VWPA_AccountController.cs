@@ -15,7 +15,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             return View();
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Methodu", SHRoles.OnMuhasebe, SHRoles.IKYonetici)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Methodu", SHRoles.OnMuhasebe, SHRoles.IKYonetici,SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -30,7 +30,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Methodu", SHRoles.OnMuhasebe)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Methodu", SHRoles.OnMuhasebe, SHRoles.HakEdisBayiPersoneli)]
         public int DataSourceCount([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -39,7 +39,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             return total;
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Veri Methodu", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.MuhasebeAlis, SHRoles.SatisFatura)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Veri Methodu", SHRoles.OnMuhasebe, SHRoles.MuhasebeSatis, SHRoles.MuhasebeAlis, SHRoles.SatisFatura, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -49,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Detay Sayfası", SHRoles.OnMuhasebe)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Detay Sayfası", SHRoles.OnMuhasebe, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Detail(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -80,7 +80,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
             }, JsonRequestBehavior.AllowGet);
         }
 
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Güncelleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Güncelleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Update(VMPA_AccountModel item)
         {
             item.Load();
@@ -88,7 +88,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PA.Controllers
         }
 
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Güncelleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici)]
+        [PageInfo("Şirket Kasa ve Banka Hesap Tanımları Güncelleme Sayfası", SHRoles.OnMuhasebe, SHRoles.IKYonetici, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult Update(VMPA_AccountModel item, bool? isPost)
         {
             var userStatus = (PageSecurity)Session["userStatus"];

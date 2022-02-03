@@ -47,13 +47,17 @@
                     </div>
                 </div>
                 <div class="pull-right">
-                    <div class="col-sm-6">
+                    <div class="col-sm-5">
                         <label class="">Başlangıç Tarihi</label>
                         @Html.Akilli().DatePicker("startDate").Value(DateTime.Now.AddDays(-30)).Max(DateTime.Now)
                     </div>
-                    <div class="col-sm-6">
+                    <div class="col-sm-5">
                         <label class="">Bitiş Tarihi</label>
                         @Html.Akilli().DatePicker("endDate").Value(DateTime.Now).Max(DateTime.Now)
+                    </div>
+                    <div class="col-sm-2">
+                        
+                       <button id="query" style="margin-top:27px" class="btn btn-primary">Sorgula</button>
                     </div>
                 </div>
             </div>
@@ -117,7 +121,7 @@
             <div class="ibox-title">
                 <h4>Ürün Bazlı Toplam Kanal Sell-Out Raporu</h4>
             </div>
-            <div class="ibox-content clearfix" style="min-height:350px">
+            <div class="ibox-content clearfix" style="min-height:350px;max-height:500px;overflow:auto">
                 <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutProduct">
                 </ul>
             </div>
@@ -126,7 +130,7 @@
             <div class="ibox-title">
                 <h4>Distribütör Bazlı Toplam Kanal Sell-Out Raporu</h4>
             </div>
-            <div class="ibox-content clearfix" style="min-height:350px">
+            <div class="ibox-content clearfix" style="min-height: 350px; max-height: 500px; overflow: scroll">
                 <ul class="folder-list m-b-md" style="padding: 0; font-size: 14px;" id="sellOutDist">
                 </ul>
             </div>
@@ -195,24 +199,47 @@
         setDataSourceForDistSellOut: function (startDate, endDate) {
             GetJsonDataFromUrl("/PRD/VWPRD_TitanDeviceActivated/GetDistSellOut", { startDate: startDate, endDate: endDate }, function (data) {
                 var count = 0;
+                var countSelling = 0;
                 $("#sellOutDist li").remove();
                 $.each(data.objects, function (i, item) {
-                    count =count+ parseInt(item.Count);
-                    $("#sellOutDist").append(
-                        '<li class= "clearfix">' +
-                        '<span class="pull-left" data-category="0">' +
-                        '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
-                        '</span>' +
-                        '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" >' + item.Count + '</span>' +
-                        '</li>'
-                    );
+                    var isCompanyDistributor = false;
+                    if (item.Types != null) {
+                        isCompanyDistributor = item.Types.toLowerCase().includes("distribütör");
+                    }
+                    count = count + parseInt(item.Count);
+                    countSelling += item.SellingCount;
+                    if (isCompanyDistributor == true) {
+                        $("#sellOutDist").append(
+                            '<li class= "clearfix" >' +
+                            '<a target="_blank" href="/PRD/VWPRD_EntegrationAction/SellerReport?DistributorId=' + item.Id + '"' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-building"  style="color:gray"></i>' + item.Name +
+                            '</span></a>' +
+                            '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Aktive Olan Miktar" >' + item.Count + '</span>' +
+                            '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Satılan Miktar" >' + item.SellingCount + '</span>' +
+                            '</li>'
+                        );
+                    }
+                    else {
+                        $("#sellOutDist").append(
+                            '<li class= "clearfix" >' +
+                            '<span class="pull-left" data-category="0">' +
+                            '<i class="fa fa-building" style="color:gray"></i>' + item.Name +
+                            '</span>'+
+                            '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Toplam Aktive Olan Miktar"  >' + item.Count + '</span>' +
+
+                            '</li>'
+                        );
+                    }
+                  
                 });
                 $("#sellOutDist").append(
                     '<li class= "clearfix">' +
                     '<span class="pull-left" data-category="0">' +
                     '<i class="fa fa-plus" style="color:gray"></i>Toplam' +
                     '</span>' +
-                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" ">' + count + '</span>' +
+                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs"  data-original-title="Toplam Aktive Olan Miktar" ">' + count + '</span> / ' +
+                    '<span id="allTasks" class="badge ' + page.getRandomColor() + ' text-white pull-right m-l-md  m-t-xs" data-original-title="Toplam Satılan Miktar"  >' + countSelling + '</span>' +
                     '</li>'
                 );
             });
@@ -361,16 +388,9 @@
         page.setDataSourceForProductSellOut(startDate, endDate);
         page.setDataSourceForDistSellOut(startDate, endDate);
     });
-    $(document).on("change", "#startDate", function () {
-        var startDate = $(this).val();
-        var endDate = $("#endDate").val();
-        page.setDataSourceForDistSellOut(startDate, endDate);
-        page.setDataSourceForProductSellOut(startDate, endDate);
-        page.createProductChart(startDate, endDate)
-        page.createDistChart(startDate, endDate);
-    }).on("change", "#endDate", function () {
+    $(document).on("click", "#query", function () {
         var startDate = $("#startDate").val();
-        var endDate = $(this).val();
+        var endDate = $("#endDate").val();
         page.setDataSourceForDistSellOut(startDate, endDate);
         page.setDataSourceForProductSellOut(startDate, endDate);
         page.createProductChart(startDate, endDate)

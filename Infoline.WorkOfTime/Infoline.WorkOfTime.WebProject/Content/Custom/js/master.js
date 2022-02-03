@@ -204,10 +204,11 @@ function feedback(feedback) {
     if (feedback == "" || feedback == null || feedback == "null") return false;
 
     if (feedback == 'SERVER') {
-        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !' };
+        feedback = { action: '', status: 'error', timeout: 20, message: 'Sunucu ile bağlantı kurulamıyor. Lütfen tekrar deneyin.', title: 'Sunucu Bağlantı Problemi !', Type: 0 };
     }
 
     var feedbackObj = feedback;
+
 
     toastr.options = {
         "closeButton": true,
@@ -238,7 +239,22 @@ function feedback(feedback) {
     }
 
     if (feedbackObj.message != "" && feedbackObj.status != "") {
-        toastr[feedbackObj.status](feedbackObj.message, feedbackObj.title);
+        if (feedbackObj.Type == 0) {
+            toastr[feedbackObj.status](feedbackObj.message, feedbackObj.title);
+        }
+        else {
+            swal({
+                title: feedbackObj.title,
+                text: feedbackObj.message,
+                type: feedbackObj.status,
+            }, function () {
+                if (typeof feedbackObj.action != "undefined" && feedbackObj.action != null && feedbackObj.action != "") {
+                    Kendo_GetRequest(feedbackObj.action, "", $('<input data-method="GET" />'));
+            
+                }
+            });
+
+        }
     }
 
 }
@@ -1512,7 +1528,7 @@ function DropDownSetValue(dropdown, value) {
             dropdown.dataSource.sort().push(item);
         });
     }
-   
+
 
     dropdown.dataSource.read();
 
@@ -2075,7 +2091,7 @@ $(document)
                     var elementData = element.data("kendoDateTimePicker") || element.data("kendoDatePicker") || element.data('kendoTimePicker');
 
                     if (!elementData) {
-                        return; 
+                        return;
                     }
 
                     var cascadeElement = $("#" + from);
@@ -3503,25 +3519,3 @@ function GridRender(userOptions, element) {
 
 }
 
-function checkUserCompanyHasNull() {
-    GetJsonDataFromUrl("/PRD/VWPRD_EntegrationImport/CheckUserCompanyHasNullAreas", "", function (data) {
-        var code = parseInt(data);
-        if (code == 0) {
-            swal("Kullanıcının ait olduğu bir şirket yoktur!","Lütfen kullanıcıyı bir şirkete atayın","warning");
-        }
-        else if (code == 1) {
-            swal("Şirketinizin bilgileri tam girilmemiştir","Ödeme alabilmek için şirketinize ait tüm bilgileri giriniz.","warning");
-        }
-        else if (code==2) {
-            swal("Ödeme Bilgileri Giriniz", "Ödeme alabilmek için şirketinize ait ödeme bilgilerinizi giriniz. \n Anasayfa>Ödeme Hesabı Ekle", "warning")
-        }
-
-
-
-
-
-    });
-
-
-
-}

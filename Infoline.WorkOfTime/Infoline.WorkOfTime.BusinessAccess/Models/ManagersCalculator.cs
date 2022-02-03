@@ -1,4 +1,5 @@
-﻿using Infoline.WorkOfTime.BusinessData;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         public ManagersCalculator()
         {
-
             var db = new WorkOfTimeDatabase();
             Users = db.GetSH_User().Where(a => a.status == true).Select(a => a.id).ToArray();
             Departments = db.GetINV_CompanyDepartments();
@@ -69,7 +69,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             var res = new List<VWINV_CompanyPersonDepartments>();
             var departmentUsers = DepartmentsPersons
-                .Where(a => a.IdUser == userId)
+                .Where(a => a.IdUser == userId &&
+                a.IsBasePosition == true &&
+                (a.EndDate == null || a.EndDate >= DateTime.Now))
                 .ToArray();
 
             if (departmentUsers.Count() == 0)
@@ -126,7 +128,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var department = Departments.Where(a => a.id == Departmentid).FirstOrDefault();
             var departmentParent = Departments.Where(a => a.id == department.PID && a.Type == department.Type && a.ProjectId == department.ProjectId).FirstOrDefault();
-            
+
             if (departmentParent != null)
             {
                 var departmentParentTwo = Departments.Where(x => x.id == departmentParent.PID && x.Type == departmentParent.Type).FirstOrDefault();
@@ -134,7 +136,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 var departmentParentPersonManager = departmentParentPerson.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
                 All.AddRange(departmentParentPersonManager);
 
-                if(departmentParentTwo != null)
+                if (departmentParentTwo != null)
                 {
                     var departmentParentPersonTwo = DepartmentsPersons.Where(a => a.DepartmentId == departmentParentTwo.id);
                     var departmentParentPersonManagerTwo = departmentParentPersonTwo.Where(a => a.IdUser.HasValue && Users.Contains(a.IdUser.Value)).ToArray();
@@ -144,6 +146,47 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 GetManagers(All, department.PID);
             }
         }
+
+        public IEnumerable<T> PermissionCalculator<T>(Guid userId) where T : InfolineTable, new()
+        {
+            var db = new WorkOfTimeDatabase();
+            var shUser = db.GetVWSH_UserById(userId);
+            var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
+
+            var returnList = new List<T>();
+            var getType = typeof(T);
+            var rulesUser = new VWUT_RulesUser();
+            var rulesUserStages = new VWUT_RulesUserStage[0];
+            if (getType == typeof(PA_AdvanceConfirmation))
+            {
+                rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Advance);
+                rulesUserStages = new VWUT_RulesUserStage[0];
+                if (rulesUser == null)
+                {
+                    var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Advance);
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
+                }
+                else
+                {
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
+                }
+
+            }
+            else if (getType==typeof(PA_TransactionConfirmation))
+            {
+
+            }
+            else if (getType==typeof(INV_PermitConfirmation))
+            {
+
+            }
+
+      
+            return returnList;
+        }
+
+
+
     }
 
 }

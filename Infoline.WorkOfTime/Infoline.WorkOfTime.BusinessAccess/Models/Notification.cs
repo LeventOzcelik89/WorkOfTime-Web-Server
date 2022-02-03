@@ -54,7 +54,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             url = key_1Data,
                             paramaters = key_2Data
                         }.Save(sendedUser);
-                        using (var clientm = new WebClient())
+#if !DEBUG
+ using (var clientm = new WebClient())
                         {
                             clientm.Headers.Add("Authorization", "key=" + this.NotificationAuthorizationKey);
                             clientm.Headers.Add("Content-Type", "application/json");
@@ -62,6 +63,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
                             var res = clientm.UploadString(this.NotificationUrl, Infoline.Helper.Json.Serialize(pushData));
                             var result = JsonConvert.DeserializeObject(res);
                         }
+#endif
+
                     }
 
                 }

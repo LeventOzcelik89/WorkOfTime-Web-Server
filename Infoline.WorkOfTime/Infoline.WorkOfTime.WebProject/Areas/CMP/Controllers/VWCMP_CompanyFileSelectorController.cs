@@ -14,13 +14,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
 {
     public class VWCMP_CompanyFileSelectorController : Controller
     {
-        [PageInfo("Firma İzin Evraklarının Listelendiği Sayfa", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Listelendiği Sayfa", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Index()
         {
             return View();
         }
         [AllowEveryone]
-        [PageInfo("Firma İzin Evraklarının Listelendiği Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Listelendiği Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
         {
             var condition = KendoToExpression.Convert(request);
@@ -32,14 +32,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             data.Total = db.GetVWCMP_CompanyFileSelectorCount(condition.Filter);
             return Content(Infoline.Helper.Json.Serialize(data), "application/json");
         }
-        [AllowEveryone]
-        [PageInfo("Firma İzin Evraklarının Eklendiği Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Eklendiği Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public ActionResult Insert(Guid customerId)
         {
             var data = new VMCMP_CompanyFileSelectorModel { id = Guid.NewGuid(), customerId = customerId };
             return View(data);
         }
-        [PageInfo("Firma İzin Evraklarının Eklendiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Eklendiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(VMCMP_CompanyFileSelectorModel item)
         {
@@ -54,7 +53,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             return Json(result, JsonRequestBehavior.AllowGet);
         }
         [HttpPost]
-        [PageInfo("Firma İzin Evraklarının Silindiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Silindiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult Delete(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -67,13 +66,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP.Controllers
             };
             return Json(result, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Ekleme Sayfası için Tüm datatabların çekildiği metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Ekleme Sayfası için Tüm datatabların çekildiği metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli, SHRoles.HakEdisBayiPersoneli)]
         public JsonResult GetAllDataTableFromSysFile()
         {
             var data = new VMCMP_CompanyFileSelectorModel().GetAllDataTableFromSysFile();
             return Json(data.objects, JsonRequestBehavior.AllowGet);
         }
-        [PageInfo("Firma İzin Evraklarının Silindiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli)]
+        [PageInfo("Firma İzin Evraklarının Silindiği   Metod", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevPersonel, SHRoles.SahaGorevMusteri, SHRoles.BayiGorevPersoneli,SHRoles.HakEdisBayiPersoneli)]
         public JsonResult GetAllFileGroupNameFromSysFile([DataSourceRequest] DataSourceRequest request, Guid companyId)
         {
             var db = new WorkOfTimeDatabase();

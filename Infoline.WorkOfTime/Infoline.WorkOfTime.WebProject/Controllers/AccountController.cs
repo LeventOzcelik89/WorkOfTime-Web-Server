@@ -49,7 +49,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
 
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.HakEdisBayiPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.CompanyPerson)
             {
-                return RedirectToAction("IndexMy", "VWCMP_Company", new { area = "CMP" });
+                return RedirectToAction("IndexCompany", "VWCMP_Company", new { area = "CMP" });
             }
 
             if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.YukleniciPersoneli)) && userStatus.user.type == (int)EnumSH_UserType.OtherPerson)
