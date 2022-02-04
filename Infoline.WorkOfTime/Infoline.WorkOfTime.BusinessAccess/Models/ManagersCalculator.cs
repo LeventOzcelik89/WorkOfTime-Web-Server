@@ -152,7 +152,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var db = new WorkOfTimeDatabase();
             var shuser = db.GetVWSH_UserById(userId);
             var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-            List<T> returnList = null;
             var transactionConfirmation = new List<PA_TransactionConfirmation>();
             var advanceConfirmation = new List<PA_AdvanceConfirmation>();
             var getType = typeof(T);
