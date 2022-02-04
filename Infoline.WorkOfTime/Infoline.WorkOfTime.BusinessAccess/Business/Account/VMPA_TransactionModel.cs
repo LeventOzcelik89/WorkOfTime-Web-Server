@@ -730,135 +730,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = new ResultStatus { result = true };
             var _trans = trans ?? db.BeginTransaction();
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var transactionCofirmations = new List<PA_TransactionConfirmation>();
-            //Kullanıcıya ait masraf kurallarını çektim.
-            var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Transaction);
-            var shuser = db.GetVWSH_UserById(userId);
-            if (rulesUser != null)
+            var confirmation = new ManagersCalculator().PermissionCalculator<PA_TransactionConfirmation>(userId, this.id);
+            if (confirmation == null)
             {
-                var rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
-                if (rulesUserStages.Count() > 0)
+                return new ResultStatus
                 {
-                    var tabAmount = rulesUserStages.Where(a => this.amount == a.limit || this.amount <= a.limit).FirstOrDefault();
-                    if (tabAmount == null)
-                    {
-                        transactionCofirmations.AddRange(rulesUserStages.Select(a => new PA_TransactionConfirmation
-                        {
-                            created = this.created,
-                            createdby = userId,
-                            transactionId = this.id,
-                            ruleType = a.type,
-                            ruleOrder = a.order,
-                            ruleUserId = a.userId,
-                            ruleRoleId = a.roleId,
-                            ruleTitle = a.title,
-                            userId = (a.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                            a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
-                        }));
-                    }
-                    else
-                    {
-                        foreach (var rulesUserStage in rulesUserStages.Where(a => a.order <= tabAmount.order).ToList())
-                        {
-                            transactionCofirmations.Add(new PA_TransactionConfirmation
-                            {
-                                created = this.created,
-                                createdby = userId,
-                                transactionId = this.id,
-                                ruleType = rulesUserStage.type,
-                                ruleOrder = rulesUserStage.order,
-                                ruleUserId = rulesUserStage.userId,
-                                ruleRoleId = rulesUserStage.roleId,
-                                ruleTitle = rulesUserStage.title,
-                                userId = (rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                                rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
-                            });
-                        }
-                    }
-                }
+                    result = false,
+                    message = "Bir Hatayla Karşılaşıldı"
+                };
             }
-            else
-            {
-                //Kullanıcının masraf kuralı yok ise varsayılanı çektim.
-                var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Transaction);
-                if (defaultRule == null)
-                {
-                    return new ResultStatus
-                    {
-                        result = false,
-                        message = "Hiç bir masraf kuralı bulunamadı."
-                    };
-                }
-                else
-                {
-                    var rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
-                    if (rulesUserStages.Count() > 0)
-                    {
-                        var tabAmount = rulesUserStages.Where(a => this.amount == a.limit || this.amount <= a.limit).FirstOrDefault();
-                        if (tabAmount == null)
-                        {
-                            transactionCofirmations.AddRange(rulesUserStages.Select(a => new PA_TransactionConfirmation
-                            {
-                                created = this.created,
-                                createdby = userId,
-                                transactionId = this.id,
-                                ruleType = a.type,
-                                ruleOrder = a.order,
-                                ruleUserId = a.userId,
-                                ruleRoleId = a.roleId,
-                                ruleTitle = a.title,
-                                userId = (a.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                            a.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                            a.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? a.userId : null)
-                            }));
-                        }
-                        else
-                        {
-                            foreach (var rulesUserStage in rulesUserStages.Where(a => a.order <= tabAmount.order).ToList())
-                            {
-                                transactionCofirmations.Add(new PA_TransactionConfirmation
-                                {
-                                    created = this.created,
-                                    createdby = userId,
-                                    transactionId = this.id,
-                                    ruleType = rulesUserStage.type,
-                                    ruleOrder = rulesUserStage.order,
-                                    ruleUserId = rulesUserStage.userId,
-                                    ruleRoleId = rulesUserStage.roleId,
-                                    ruleTitle = rulesUserStage.title,
-                                    userId = (rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                            rulesUserStage.type == (Int16)EnumUT_RulesUserStage.SecimeBagliKullanici ? rulesUserStage.userId : null)
-
-                                });
-                            }
-                        }
-                    }
-                }
-            }
-            dbresult &= db.BulkInsertPA_TransactionConfirmation(transactionCofirmations, _trans);
+            dbresult &= db.BulkInsertPA_TransactionConfirmation(confirmation, _trans);
             return new ResultStatus
             {
                 result = dbresult.result,
-                message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : "Kayıt başarısız oldu."
+                message = dbresult.result ? "Kayıt başarılı bir şekilde gerçekleştirildi." : dbresult.message
             };
         }
         public void UpdateDataControl(VWPA_TransactionConfirmation[] confirmations, string statusDescription, Guid userId)
