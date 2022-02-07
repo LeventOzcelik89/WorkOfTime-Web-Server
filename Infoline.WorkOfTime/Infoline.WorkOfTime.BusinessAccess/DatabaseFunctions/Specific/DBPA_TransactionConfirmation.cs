@@ -22,5 +22,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PA_TransactionConfirmation>().Where(a => a.transactionId == transactionId).Execute().ToArray();
             }
         }
+        public PA_TransactionConfirmation[] GetPA_TransactionConfirmationByUserIdAndIsNotApporeved(Guid userId, DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
+
+            {
+                return db.Table<PA_TransactionConfirmation>().Where(a => a.userId == userId&&a.status==null).Execute().ToArray();
+            }
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.WorkOfTime.BusinessAccess;
+using Infoline.WorkOfTime.BusinessAccess.Models;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
@@ -259,6 +260,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
         public JsonResult Delete(Guid id)
         {
             var db = new WorkOfTimeDatabase();
+            var trans = db.BeginTransaction();
             var feedback = new FeedBack();
             var person = db.GetINV_CompanyPersonDepartmentsById(id);
             var dbResult = new ResultStatus { result = false };
@@ -274,6 +276,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 {
                     person.EndDate = DateTime.Now;
                     dbResult = db.UpdateINV_CompanyPersonDepartments(person);
+                }
+                dbResult &= new ConfirmationRefresher(person.IdUser.Value).RefreshAll(trans);
+                if (dbResult.result)
+                {
+                    trans.Commit();
+                }
+                else
+                {
+                    trans.Rollback();
                 }
             }
 
