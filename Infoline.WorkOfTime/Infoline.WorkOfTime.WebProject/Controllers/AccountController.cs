@@ -85,13 +85,16 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                     Tooltip = "false"
                 }).ToArray();
 
+            var sH_ShiftTrackings = db.GetVWSH_ShiftTracking().Where(x => x.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault();
+    
             newListKeyValue.AddRange(daylyPermits);
             newListKeyValue.AddRange(hourlyPermits);
             var newData = new IndexDatas
             {
                 data = data,
                 permits = newListKeyValue,
-                permitTypes = permitTypes
+                permitTypes = permitTypes,
+                sH_ShiftTrackings = sH_ShiftTrackings
             };
 
             return View(newData);
@@ -723,7 +726,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         public LogTable[] data { get; set; }
         public List<KeyValue> permits { get; set; }
         public INV_PermitType[] permitTypes { get; set; }
-
+        public VWSH_ShiftTracking sH_ShiftTrackings { get; set; } 
 
     }
     public class CaptchaResult

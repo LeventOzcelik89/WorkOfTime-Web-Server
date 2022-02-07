@@ -213,5 +213,87 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
+        [PageInfo("Mesai Başla", SHRoles.Personel)]
+        [HttpPost]
+        public JsonResult WorkStart(SH_ShiftTracking item)     
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();  
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.id = Guid.NewGuid();
+            item.shiftTrackingStatus = 0;
+            item.userId = userStatus.user.id;
+            item.timestamp = DateTime.Now;
+            var dbresult = db.InsertSH_ShiftTracking(item);
+            return Json(new ResultStatusUI
+            {
+                Result = dbresult.result,
+                Object = item.id,
+                FeedBack = dbresult.result ? feedback.Success("Mesaiye Başlandı.") : feedback.Warning("Mesaiye Başlanma Başarısız.")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [PageInfo("Mola Ver", SHRoles.Personel)]
+        [HttpPost]
+        public JsonResult StartBreak(SH_ShiftTracking item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.id = Guid.NewGuid();
+            item.shiftTrackingStatus = 2;
+            item.userId = userStatus.user.id;
+            item.timestamp = DateTime.Now;
+            var dbresult = db.InsertSH_ShiftTracking(item);
+            return Json(new ResultStatusUI
+            {
+                Result = dbresult.result,
+                Object = item.id,
+                FeedBack = dbresult.result ? feedback.Success("Mola Verildi.") : feedback.Warning("Mola Verme Başarısız")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [PageInfo("Molayı Bitir", SHRoles.Personel)]
+        [HttpPost]
+        public JsonResult FinishTheBreak(SH_ShiftTracking item)
+
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.id = Guid.NewGuid();
+            item.shiftTrackingStatus = 3;
+            item.userId = userStatus.user.id;
+            item.timestamp = DateTime.Now;
+            var dbresult = db.InsertSH_ShiftTracking(item);
+            return Json(new ResultStatusUI
+            {
+                Result = dbresult.result,
+                Object = item.id,
+                FeedBack = dbresult.result ? feedback.Success("Mola Bitirildi.") : feedback.Warning("Mola Bitirilme İşlemi Başarısız Oldu.")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+        [PageInfo("Mesai Bitir", SHRoles.Personel)]
+        [HttpPost]
+        public JsonResult FinishTheWork(SH_ShiftTracking item)
+        {
+            var db = new WorkOfTimeDatabase();
+            var feedback = new FeedBack();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            item.id = Guid.NewGuid();
+            item.shiftTrackingStatus = 1;
+            item.userId = userStatus.user.id;
+            item.timestamp = DateTime.Now;
+            var dbresult = db.InsertSH_ShiftTracking(item);
+            return Json(new ResultStatusUI
+            {
+                Result = dbresult.result,
+                Object = item.id,
+                FeedBack = dbresult.result ? feedback.Success("Mesai Bitirildi.") : feedback.Warning("Mesaiyi Bitirilme Başarısız Oldu.")
+            }, JsonRequestBehavior.AllowGet);
+        }
+
+
     }
 }

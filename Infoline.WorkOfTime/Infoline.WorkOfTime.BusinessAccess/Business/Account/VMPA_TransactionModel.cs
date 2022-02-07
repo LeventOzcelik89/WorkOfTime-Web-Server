@@ -247,11 +247,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = new ResultStatus { result = true };
             if (this.type == (int)EnumPA_TransactionType.Masraf)
             {
-                var personManager = db.GetVWINV_CompanyPersonDepartmentsByIdUser(this.createdby.Value).Where(a => a.Manager1.HasValue);
-                if (personManager.Count() == 0)
-                {
-                    this.direction = -1;
-                }
+                
                 if (this.dataTable == "CRM_Presentation")
                 {
                     var currency = db.GetUT_CurrencyById(this.currencyId.Value);
@@ -730,7 +726,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = new ResultStatus { result = true };
             var _trans = trans ?? db.BeginTransaction();
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var confirmation = new ManagersCalculator().PermissionCalculator<PA_TransactionConfirmation>(userId, this.id);
+            var confirmation = new ConfirmationCalculator(userId, this.id, EnumUT_RulesType.Transaction).GetTransaction;
+            if (confirmation == null || confirmation.Count() == 0)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Bir Hatayla Karşılaşıldı"
+                };
+            }
             if (confirmation == null)
             {
                 return new ResultStatus
