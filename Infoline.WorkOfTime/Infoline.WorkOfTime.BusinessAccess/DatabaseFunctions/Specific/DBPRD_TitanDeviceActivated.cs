@@ -85,11 +85,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB())
             {
                 return db.Table<VWPRD_Inventory>().Where(x => x.id.In(ids)&&x.lastActionDataCompanyId_Title!=null).Execute().ToList().GroupBy(x=>x.lastActionDataCompanyId_Title).Select(x=>new SellOutReportModel
-                {Count=x.Count(),
-                    Name=x.Key,
-                    Id=x.FirstOrDefault().lastActionDataCompanyId,
-                    Types=x.FirstOrDefault().lastActionCompanyTitles
-                    ,SellingCount=db.Table<PRD_EntegrationAction>().Where(a=>a.DistributorId==x.FirstOrDefault().lastActionDataCompanyId||a.CustomerOperatorId==x.FirstOrDefault().lastActionDataCompanyId).Count()}).ToArray();
+                {
+                    Count = x.Count(),
+                    Name = x.Key,
+                    Id = x.FirstOrDefault().lastActionDataCompanyId,
+                    Types = x.FirstOrDefault().lastActionCompanyTitles,
+                    SellingCount = 0
+                }).ToArray();
             }
         }
 
@@ -111,6 +113,5 @@ namespace Infoline.WorkOfTime.BusinessAccess
                    .ToArray();
             }
         }
-       
     }
 }

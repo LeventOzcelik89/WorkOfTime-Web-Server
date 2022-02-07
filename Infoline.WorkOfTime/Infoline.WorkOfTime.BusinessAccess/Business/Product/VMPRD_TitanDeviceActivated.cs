@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public ResultStatus GetProductSellOutDistReport(DateTime startDate, DateTime endDate)
         {
             db = db ?? new WorkOfTimeDatabase();
-            var getIds = db.GetPRD_TitanDeviceActivatedInventoryIds(startDate, endDate);//envanterde olan tüm aktive olmuş cihazlar geliyor. 
+            var getIds = db.GetPRD_TitanDeviceActivatedInventoryIds(startDate, endDate);
             var getData = db.GetPRD_TitanDeviceActivatedSellOutDist(getIds);
             return new ResultStatus
             {
@@ -120,6 +120,30 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
                 objects = new { data = data }
             };
         }
+
+
+        public SellOutReportModel[] GetDistReportForSeller(Guid distId)
+        {
+            var db = new WorkOfTimeDatabase();
+
+            var getData = db.GetVWPRD_EntegrationActionByDistrubutorId(distId);
+
+            var groupCustomer = getData.GroupBy(a => a.CustomerOperatorId);
+
+            var sellOutReportModelList = new List<SellOutReportModel>();
+
+            foreach (var item in groupCustomer)
+			{
+                var sellOutReportModel = new SellOutReportModel();
+                sellOutReportModel.Count = getData.Where(a => a.CustomerOperatorId == item.Key).Count();
+                sellOutReportModel.Id = item.Key;
+                sellOutReportModel.Name = getData.Where(a => a.CustomerOperatorId == item.Key).Select(a => a.CustomerOperatorName).FirstOrDefault();
+                sellOutReportModel.SellingCount = getData.Where(a => a.CustomerOperatorId == item.Key && a.ActivationDate.HasValue).Count();
+
+                sellOutReportModelList.Add(sellOutReportModel);
+            }
+            return sellOutReportModelList.ToArray();
+        }
         public ResultStatus GetAllDevices()
         {
             return TitanServices.GetAllDevices();
@@ -137,6 +161,20 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             return TitanServices.GetDeviceActivationInformations();
         }
     }
+
+    public class PRD_EntegrastionActionSellerReport : VWPRD_EntegrationAction
+    {
+        public VWPRD_EntegrationAction[] entegrationActions { get; set; }
+
+        public PRD_EntegrastionActionSellerReport Load()
+        {
+            var db = new WorkOfTimeDatabase();
+
+            return this;
+        }
+
+    }
+
     public class IndexData
     {
         public int All { get; set; }
@@ -159,4 +197,5 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
         public DateTime Date { get; set; }
         public int Count { get; set; }
     }
+
 }

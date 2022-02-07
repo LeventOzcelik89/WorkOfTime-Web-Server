@@ -147,13 +147,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
-        public IEnumerable<T> PermissionCalculator<T>(Guid userId) where T : InfolineTable, new()
+        public IEnumerable<T> PermissionCalculator<T>(Guid userId,Guid id) where T : InfolineTable, new()
         {
             var db = new WorkOfTimeDatabase();
-            var shUser = db.GetVWSH_UserById(userId);
+            var shuser = db.GetVWSH_UserById(userId);
             var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-
-            var returnList = new List<T>();
+            var transactionConfirmation = new List<PA_TransactionConfirmation>();
+            var advanceConfirmation = new List<PA_AdvanceConfirmation>();
             var getType = typeof(T);
             var rulesUser = new VWUT_RulesUser();
             var rulesUserStages = new VWUT_RulesUserStage[0];
@@ -174,15 +174,202 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             else if (getType==typeof(PA_TransactionConfirmation))
             {
-
+                rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Transaction);
+                rulesUserStages = new VWUT_RulesUserStage[0];
+                if (rulesUser == null)
+                {
+                    var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Transaction);
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
+                }
+                else
+                {
+                    rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
+                }
             }
-            else if (getType==typeof(INV_PermitConfirmation))
+
+            if (rulesUserStages.Count() > 0)
             {
+               
+                foreach (var rulesStage in rulesUserStages.OrderBy(a => a.ruleType == (int)EnumUT_RulesUserStage.SonOnaylayici ? 10000 : a.order))
+                {
 
+                    //yönetici departmanda var mı ? 
+                    var isInDepartman = shuser.Manager1 == rulesStage.userId ? true
+                              : shuser.Manager2 == rulesStage.userId ? true
+                              : shuser.Manager3 == rulesStage.userId ? true
+                              : shuser.Manager4 == rulesStage.userId ? true
+                              : shuser.Manager5 == rulesStage.userId ? true
+                              : shuser.Manager6 == rulesStage.userId ? true
+                              : false;
+                    Guid? assingUser = null;
+                    switch ((EnumUT_RulesUserStage)rulesStage.type)
+                    {
+                        case EnumUT_RulesUserStage.Manager1:
+                        case EnumUT_RulesUserStage.Manager2:
+                        case EnumUT_RulesUserStage.Manager3:
+                        case EnumUT_RulesUserStage.Manager4:
+                        case EnumUT_RulesUserStage.Manager5:
+                        case EnumUT_RulesUserStage.Manager6:
+                            assingUser = (
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
+                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
+                      null);
+                            //  eğer yöneticiler son onaylayıcı veya rolebaglu veya secim ise devam 
+                            var isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
+                             && x.userId.HasValue
+                             && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
+                            {
+                                continue;
+                            }
+                            break;
+                        case EnumUT_RulesUserStage.RoleBagliSecim:
+                            if (!rulesStage.roleId.HasValue)
+                            {
+                                return null;
+                            }
+                            var getRole = db.GetVWSH_RoleById(rulesStage.roleId.Value);
+                            if (getRole == null)
+                            {
+                                return null;
+                            }
+                            var getRoleUsers = db.GetVWSH_UserByRoleId(getRole.id.ToString());
+                            if (getRoleUsers == null)
+                            {
+                                return null;
+                            }
+                            var apprvList = new List<VWSH_User>();
+                            foreach (var user in getRoleUsers)
+                            {
+                                //onaylacak kişi departmanda var mı ? 
+                                var hasRoleInDepartman = shuser.Manager1 == user.id ? true
+                                    : shuser.Manager2 == user.id ? true
+                                    : shuser.Manager3 == user.id ? true
+                                    : shuser.Manager4 == user.id ? true
+                                    : shuser.Manager5 == user.id ? true
+                                    : shuser.Manager6 == user.id ? true
+                                    : false;
+                                if (hasRoleInDepartman)
+                                {
+                                    apprvList.Add(user);//eğer varsa listeye ekle
+                                }
+                            }
+                            var isApprv = apprvList.Where(x => x.id != shuser.id);//onaylayacak kişileri isteği onaylayacak kişi olmayanları getir.
+                            if (apprvList.Count() > 0 && isApprv.Count() > 0)//eğer onaylayacak kişi varsa 
+                            {
+                                assingUser = isApprv.FirstOrDefault().id;//ilkini getir
+                            }
+                            else
+                            {
+                                var roleUser = getRoleUsers.Where(x => x.id != shuser.id);//eğer onaylayacak kimse yoksa kendi olmayanı getir
+                                if (roleUser.Count() > 0)
+                                {
+                                    assingUser = roleUser.FirstOrDefault().id;//ilkini al 
+                                }
+                            }
+                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
+                             && x.userId.HasValue
+                             && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
+                            {
+                                continue;
+                            }
+                            break;
+                        case EnumUT_RulesUserStage.SecimeBagliKullanici:
+                            assingUser = rulesStage.userId;
+                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
+                              && x.userId.HasValue
+                              && x.userId == assingUser);
+                            if (isUserExistBefore.Count() > 0)
+                            {
+                                continue;
+                            }
+                            break;
+                        case EnumUT_RulesUserStage.SonOnaylayici:
+                            //son onaylacak kişi, istek yapanın son kullanıcılarında yoksa bu adımı geç
+                            if (!isInDepartman)
+                            {
+                                continue;
+                            }
+                            //son onaylayacak kullanıcı kişinin son adımlarında varsa son onaylayacak kullanıcıyı ekle
+                            assingUser = rulesStage.userId;
+                            break;
+                        default:
+                            break;
+                    }
+                    if (assingUser == null)
+                    {
+                        continue;//eğer onaylayacak kimsesi yoksa bunu veri tabanına ekleme;
+                    }
+                    if (assingUser == shuser.id)
+                    {
+                        continue;
+                    }
+
+                    if (getType == typeof(PA_AdvanceConfirmation))
+                    {
+                        
+                        var isUsedBefore =advanceConfirmation.Where(x =>x.userId == assingUser).OrderByDescending(x => x.ruleOrder);
+                        if (isUsedBefore.Count() > 0)
+                        {
+                            advanceConfirmation.Remove(isUsedBefore.FirstOrDefault());
+                        }
+                        advanceConfirmation.Add(new PA_AdvanceConfirmation
+                        {
+                            created = DateTime.Now,
+                            createdby = userId,
+                            advanceId = id,
+                            ruleType = rulesStage.type,
+                            ruleOrder = rulesStage.order,
+                            ruleUserId = rulesStage.userId,
+                            ruleRoleId = rulesStage.roleId,
+                            ruleTitle = rulesStage.title,
+                            userId = assingUser
+                        });
+
+                    }
+                    else if (getType == typeof(PA_TransactionConfirmation))
+                    {
+                        var isUsedBefore = transactionConfirmation.Where(x => x.userId == assingUser).OrderByDescending(x => x.ruleOrder);
+                        if (isUsedBefore.Count() > 0)
+                        {
+                            transactionConfirmation.Remove(isUsedBefore.FirstOrDefault());
+                        }
+                        transactionConfirmation.Add(new PA_TransactionConfirmation
+                        {
+                            created = DateTime.Now,
+                            createdby = userId,
+                            transactionId = id,
+                            ruleType = rulesStage.type,
+                            ruleOrder = rulesStage.order,
+                            ruleUserId = rulesStage.userId,
+                            ruleRoleId = rulesStage.roleId,
+                            ruleTitle = rulesStage.title,
+                            userId = assingUser
+                        });
+                    }
+                }
+                if (getType == typeof(PA_AdvanceConfirmation))
+                {
+                    return (IEnumerable<T>)advanceConfirmation;
+                }
+                else if (getType == typeof(PA_TransactionConfirmation))
+                {
+                    return (IEnumerable<T>)transactionConfirmation;
+                }
+            }
+            else
+            {
+                return null;
             }
 
-      
-            return returnList;
+
+
+            return  null;
         }
 
 

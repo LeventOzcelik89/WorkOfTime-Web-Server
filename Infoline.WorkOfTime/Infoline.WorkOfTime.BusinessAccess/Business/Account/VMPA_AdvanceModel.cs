@@ -468,175 +468,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var dbresult = new ResultStatus { result = true };
             var _trans = trans ?? db.BeginTransaction();
             this.db = this.db ?? new WorkOfTimeDatabase();
-            var advanceCofirmations = new List<PA_AdvanceConfirmation>();
-            //Kullanıcıya ait avans kurallarını çektim.
-            var rulesUser = db.GetVWUT_RulesUserByUserIdAndType(userId, (Int16)EnumUT_RulesType.Advance);
-            var rulesUserStages = new VWUT_RulesUserStage[0];
-            if (rulesUser == null)
-            {
-                var defaultRule = db.GetUT_RulesByTypeIsDefault((Int16)EnumUT_RulesType.Advance);
-                rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(defaultRule.id);
-            }
-            else
-            {
-                rulesUserStages = db.GetVWUT_RulesUserStageByRulesId(rulesUser.rulesId.Value);
-            }
-            var shuser = db.GetVWSH_UserById(userId);
-            if (rulesUserStages.Count() > 0)
-            {
-                var getManagers = db.GetINV_CompanyPersonDepartmentsByIdUserAndTypeCurrentWork(userId, (int)EnumINV_CompanyDepartmentsType.Organization);
-                if (getManagers.Count() == 0)
-                {
-                    return new ResultStatus { message = "Kullanıcının ana departmanı yoktur" };
-                }
-                var getLimitation = rulesUserStages.Where(x => x.limit.HasValue);
-                foreach (var rulesStage in rulesUserStages.OrderBy(a => a.ruleType == (int)EnumUT_RulesUserStage.SonOnaylayici ? 10000 : a.order))
-                {
 
-                    //yönetici departmanda var mı ? 
-                    var isInDepartman = shuser.Manager1 == rulesStage.userId ? true
-                              : shuser.Manager2 == rulesStage.userId ? true
-                              : shuser.Manager3 == rulesStage.userId ? true
-                              : shuser.Manager4 == rulesStage.userId ? true
-                              : shuser.Manager5 == rulesStage.userId ? true
-                              : shuser.Manager6 == rulesStage.userId ? true
-                              : false;
-                    Guid? assingUser = null;
-                    switch ((EnumUT_RulesUserStage)rulesStage.type)
-                    {
-                        case EnumUT_RulesUserStage.Manager1:
-                        case EnumUT_RulesUserStage.Manager2:
-                        case EnumUT_RulesUserStage.Manager3:
-                        case EnumUT_RulesUserStage.Manager4:
-                        case EnumUT_RulesUserStage.Manager5:
-                        case EnumUT_RulesUserStage.Manager6:
-                            assingUser = (
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager1 ? shuser?.Manager1 :
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager2 ? shuser?.Manager2 :
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager3 ? shuser?.Manager3 :
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager4 ? shuser?.Manager4 :
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager5 ? shuser?.Manager5 :
-                     rulesStage.type == (Int16)EnumUT_RulesUserStage.Manager6 ? shuser?.Manager6 :
-                      null);
-                            //  eğer yöneticiler son onaylayıcı veya rolebaglu veya secim ise devam 
-                            var isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
-                             && x.userId.HasValue
-                             && x.userId == assingUser);
-                            if (isUserExistBefore.Count() > 0)
-                            {
-                                continue;
-                            }
-                            break;
-                        case EnumUT_RulesUserStage.RoleBagliSecim:
-                            if (!rulesStage.roleId.HasValue)
-                            {
-                                return new ResultStatus { message = "Kural aşaması için belirtilen rol yoktur!" };
-                            }
-                            var getRole = db.GetVWSH_RoleById(rulesStage.roleId.Value);
-                            if (getRole == null)
-                            {
-                                return new ResultStatus { message = "Kural aşaması için belirtilen rol yoktur!" };
-                            }
-                            var getRoleUsers = db.GetVWSH_UserByRoleId(getRole.id.ToString());
-                            if (getRoleUsers == null)
-                            {
-                                return new ResultStatus { message = "Kural aşaması için onaylacak kullanıcı yoktur!." };
-                            }
-                            var apprvList = new List<VWSH_User>();
-                            foreach (var user in getRoleUsers)
-                            {
-                                //onaylacak kişi departmanda var mı ? 
-                                var hasRoleInDepartman = shuser.Manager1 == user.id ? true
-                                    : shuser.Manager2 == user.id ? true
-                                    : shuser.Manager3 == user.id ? true
-                                    : shuser.Manager4 == user.id ? true
-                                    : shuser.Manager5 == user.id ? true
-                                    : shuser.Manager6 == user.id ? true
-                                    : false;
-                                if (hasRoleInDepartman)
-                                {
-                                    apprvList.Add(user);//eğer varsa listeye ekle
-                                }
-                            }
-                            var isApprv = apprvList.Where(x => x.id != shuser.id);//onaylayacak kişileri isteği onaylayacak kişi olmayanları getir.
-                            if (apprvList.Count() > 0 && isApprv.Count() > 0)//eğer onaylayacak kişi varsa 
-                            {
-                                assingUser = isApprv.FirstOrDefault().id;//ilkini getir
-                            }
-                            else
-                            {
-                                var roleUser = getRoleUsers.Where(x => x.id != shuser.id);//eğer onaylayacak kimse yoksa kendi olmayanı getir
-                                if (roleUser.Count() > 0)
-                                {
-                                    assingUser = roleUser.FirstOrDefault().id;//ilkini al 
-                                }
-                            }
-                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
-                             && x.userId.HasValue
-                             && x.userId == assingUser);
-                            if (isUserExistBefore.Count() > 0)
-                            {
-                                continue;
-                            }
-                            break;
-                        case EnumUT_RulesUserStage.SecimeBagliKullanici:
-                            assingUser = rulesStage.userId;
-                            isUserExistBefore = rulesUserStages.Where(x => (x.type != rulesStage.type)
-                              && x.userId.HasValue
-                              && x.userId == assingUser);
-                            if (isUserExistBefore.Count() > 0)
-                            {
-                                continue;
-                            }
-                            break;
-                        case EnumUT_RulesUserStage.SonOnaylayici:
-                            //son onaylacak kişi, istek yapanın son kullanıcılarında yoksa bu adımı geç
-                            if (!isInDepartman)
-                            {
-                                continue;
-                            }
-                            //son onaylayacak kullanıcı kişinin son adımlarında varsa son onaylayacak kullanıcıyı ekle
-                            assingUser = rulesStage.userId;
-                            break;
-                        default:
-                            break;
-                    }
-                    if (assingUser == null)
-                    {
-                        continue;//eğer onaylayacak kimsesi yoksa bunu veri tabanına ekleme;
-                    }
-                    if (assingUser == shuser.id)
-                    {
-                        continue;
-                    }
-                    var isUsedBefore = advanceCofirmations.Where(x => x.userId == assingUser).OrderByDescending(x => x.ruleOrder);
-                    if (isUsedBefore.Count() > 0)
-                    {
-                        advanceCofirmations.Remove(isUsedBefore.FirstOrDefault());
-                    }
-                    advanceCofirmations.Add(new PA_AdvanceConfirmation
-                    {
-                        created = this.created,
-                        createdby = userId,
-                        advanceId = this.id,
-                        ruleType = rulesStage.type,
-                        ruleOrder = rulesStage.order,
-                        ruleUserId = rulesStage.userId,
-                        ruleRoleId = rulesStage.roleId,
-                        ruleTitle = rulesStage.title,
-                        userId = assingUser
-                    });
-                }
-            }
-            else
+            //Kullanıcıya ait avans kurallarını çektim.
+            var confirmation = new ManagersCalculator().PermissionCalculator<PA_AdvanceConfirmation>(userId,this.id);
+            if (confirmation==null)
             {
                 return new ResultStatus
                 {
                     result = false,
-                    message = "Hiç bir avans kuralı bulunamadı."
+                    message = "Bir Hatayla Karşılaşıldı"
                 };
             }
-            dbresult &= db.BulkInsertPA_AdvanceConfirmation(advanceCofirmations, _trans);
+            dbresult &= db.BulkInsertPA_AdvanceConfirmation(confirmation, _trans);
             return new ResultStatus
             {
                 result = dbresult.result,

@@ -230,7 +230,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var res = new List<object>();
 			List<int> monthList = months.Select(s => int.Parse(s)).ToList();
 			var rDict = new List<Dictionary<string, object>>();
-			if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
+			if (taskType_Title.Count() <= 0 && taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
 			{
 				taskType_Title = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => c.Value).ToArray();
 			}
