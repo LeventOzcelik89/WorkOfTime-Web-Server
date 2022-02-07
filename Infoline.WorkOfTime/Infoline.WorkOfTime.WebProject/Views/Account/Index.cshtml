@@ -31,6 +31,7 @@
 <link href="~/Content/Custom/MyPage/css/General.css" rel="stylesheet" />
 <link href="~/Content/Custom/css/account-index.css" rel="stylesheet" />
 <script src="~/Content/Themes/js/plugins/chartJs/Chart.min.js"></script>
+<link href="~/Content/Custom/css/SH_ShiftTrackingDashboard.css" rel="stylesheet" />
 <style type="text/css">
     .nav.nav-tabs li {
         background-color: #d8d8d891;
@@ -146,25 +147,75 @@
     }
     $(document)
         .on("ready", function () {
-                if (@Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0) {
-                    myPage.functions.createDoughnutChart("doughnutChart", myPage.defines.yearlyData, myPage.defines.yearlyChart);
-                }
-                if (@Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count()) {
-                    myPage.functions.createDoughnutChart("doughnutChart2", myPage.defines.excuseData, myPage.defines.excuseChart);
-                }
+            if (@Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0) {
+                myPage.functions.createDoughnutChart("doughnutChart", myPage.defines.yearlyData, myPage.defines.yearlyChart);
+            }
+            if (@Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count()) {
+                myPage.functions.createDoughnutChart("doughnutChart2", myPage.defines.excuseData, myPage.defines.excuseChart);
+            }
             myPage.functions.createScheduler("scheduler");
-			myPage.functions.createCertificateScheduler("certificateScheduler");
+            myPage.functions.createCertificateScheduler("certificateScheduler");
             $('body').removeClass('mini-navbar');
         })
         .on("success", '[data-counturl]', function (e, res) {
             $(this).removeClass(res == 0 ? "green" : "red");
             $(this).addClass(res == 0 ? "red" : "green");
+        })
+        .on('click', "#startBreak", function () {
+            GetLocation(function (Location) {
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/StartBreak', { location : Location  }, function (res) {
+                    feedback(res.FeedBack);
+                    if (res.Result == true) {
+                        window.location.href = "/Account/Index";
+                    };
+                });
+            });
+        })
+        .on('click', "#finishTheBreak", function () {
+            GetLocation(function (Location) {
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/FinishTheBreak', { location: Location }, function (res) {
+                    feedback(res.FeedBack);
+                    if (res.Result == true) {
+                        window.location.href = "/Account/Index";
+                    };
+
+                });
+            });
+
+        })
+        .on('click', "#workFinish", function () {
+            GetLocation(function (Location) {
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/FinishTheWork', { location: Location }, function (res) {
+                    feedback(res.FeedBack);
+                    if (res.Result == true) {
+                        window.location.href = "/Account/Index";
+                    };
+
+                });
+            });
+
+        })
+        .on('click', "#workStart", function () {
+            GetLocation(function (Location) {
+                GetJsonDataFromUrl('/SH/VWSH_ShiftTracking/WorkStart', { location: Location }, function (res) {
+
+                    feedback(res.FeedBack);
+                    if (res.Result == true) {
+                        window.location.href = "/Account/Index";
+                    };
+                });
+            });
+
+
         });
     window.addEventListener('resize', function (e) {
         var scheduler = $("#scheduler").data("kendoScheduler");
         scheduler.element.height(window.outerHeight / 100 * 62);
         scheduler.resize(true);
     });
+
+
+
 </script>
 <script id="event-template" type="text/x-kendo-template">
     <div class="eventtemplate">
@@ -195,6 +246,7 @@
                 </div>
             </div>
         </div>
+
         @if (Model.permits.Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("F8547488-3215-1235-5126-EF2323CBBCB2") && x.ViewStaff == true).Count() > 0 && Model.permitTypes.Where(x => x.id == new Guid("AF40ADF4-9963-4790-A9DE-1D74C32B61C1") && x.ViewStaff == true).Count() > 0)
         {
             <div class="col-md-3">
@@ -744,10 +796,93 @@
         </div>
     </div>
 </div>
+
 <div class="col-md-4">
     <div class="row">
+        @if (Model.sH_ShiftTrackings.shiftTrackingStatus != null)
+        {
+
+            if (Model.sH_ShiftTrackings.shiftTrackingStatus == 1)
+            {
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div id="workStart" class="btn bttn-applora-gradient" style="margin-left: 15px; width: 93% !important;">
+                            <i class="fa fa-stop fa-4x"></i>
+                            <span>MESAİYE BAŞLA</span>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+            }
+            else if (Model.sH_ShiftTrackings.shiftTrackingStatus == 0)
+            {
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="startBreak" class="btn bttn-applora-gradient" style="margin-left: 15px; width: 93% !important;">
+                            <i class="fa fa-pause fa-4x"></i>
+                            <span>MOLA VER</span>
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="workFinish" class="btn bttn-applora-gradient" style="width: 93% !important;">
+                            <i class="fa fa-stop fa-4x"></i>
+                            <span>MESAİ BİTİR</span>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+            }
+            else if (Model.sH_ShiftTrackings.shiftTrackingStatus == 2)
+            {
+
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div id="finishTheBreak" class="btn bttn-applora-gradient" style="margin-left: 15px; width: 93% !important;;">
+                            <i class="fa fa-stop fa-4x"></i>
+                            <span>MOLAYI BİTİR</span>
+                        </div>
+                    </div>
+                </div>
+                <br />
+
+            }
+            else if (Model.sH_ShiftTrackings.shiftTrackingStatus == 3)
+            {
+                <div class="row">
+                    <div class="col-xs-6">
+                        <div id="startBreak" class="btn bttn-applora-gradient" style="margin-left: 15px; width:93% !important;">
+                            <i class="fa fa-pause fa-4x"></i>
+                            <span>MOLA VER</span>
+                        </div>
+                    </div>
+                    <div class="col-xs-6">
+                        <div id="workFinish" class="btn bttn-applora-gradient" style="width: 93% !important;">
+                            <i class="fa fa-stop fa-4x"></i>
+                            <span>MESAİ BİTİR</span>
+                        </div>
+                    </div>
+                </div>
+                <br />
+           
+            }
+        }
+        else
+        {
+            <div class="row">
+                <div class="col-xs-12">
+                    <div id="workStart" class="btn bttn-applora-gradient" style="margin-left: 15px; width: 93% !important;">
+                        <i class="fa fa-stop fa-4x"></i>
+                        <span>MESAİYE BAŞLA</span>
+                    </div>
+                </div>
+            </div>
+            <br />
+        }
+
         <div class="col-sm-6">
-            <button onclick="window.open('/INV/VWINV_Permit/Insert','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i   class="fa fa-plane button-icon"  title="Yeni İzin Talebi"></i><span >YENİ İZİN TALEBİ</span> </button>
+            <button onclick="window.open('/INV/VWINV_Permit/Insert','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-plane button-icon" title="Yeni İzin Talebi"></i><span>YENİ İZİN TALEBİ</span> </button>
         </div>
         <div class="col-sm-6">
             <button onclick="window.open('/INV/VWINV_Commissions/Insert','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-car button-icon" title="Yeni Görevlendirme Talebi"></i> YENİ GÖREVLENDİRME TALEBİ</button>
@@ -759,17 +894,20 @@
             <button data-task="Insert" data-href="/PA/VWPA_Advance/InsertExpense" data-modal="true" data-method="get" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa icon-wallet button-icon" title="Avans Talebi Yap"></i><span> AVANS TALEBİ YAP</span></button>
         </div>
         <div class="col-sm-6">
-            <button onclick="window.open('/SH/VWSH_User/ContactOffice','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="icon-contacts"  title="Şirket Rehberi"></i> <span>ŞİRKET REHBERİ</span></button>
+            <button onclick="window.open('/SH/VWSH_User/ContactOffice','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="icon-contacts" title="Şirket Rehberi"></i> <span>ŞİRKET REHBERİ</span></button>
         </div>
         <div class="col-sm-6">
-            <button onclick="window.open('/INV/VWINV_CompanyDepartments/Preview','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-sitemap"  title="Organizasyon Şeması"></i> ORGANİZASYON ŞEMASI </button>
+            <button onclick="window.open('/INV/VWINV_CompanyDepartments/Preview','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-sitemap" title="Organizasyon Şeması"></i> ORGANİZASYON ŞEMASI </button>
         </div>
         <div class="col-sm-6">
-            <button onclick="window.open('/CMP/VWCMP_Company/PersonnelRegulationDocument','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-book"  title="Şirket Yönetmeliği"></i><span>ŞİRKET YÖNETMELİĞİ</span> </button>
+            <button onclick="window.open('/CMP/VWCMP_Company/PersonnelRegulationDocument','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-book" title="Şirket Yönetmeliği"></i><span>ŞİRKET YÖNETMELİĞİ</span> </button>
         </div>
         <div class="col-sm-6">
-            <button onclick="window.open('/Account/Profile','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-user"  title="Benim Bilgilerim"></i> <span>BENİM BİLGİLERİM</span></button>
+            <button onclick="window.open('/Account/Profile','_blank')" class="btn dim btn-large-dim  btn-success button-color btn-outline"> <i class="fa fa-user" title="Benim Bilgilerim"></i> <span>BENİM BİLGİLERİM</span></button>
         </div>
+
+
+
     </div>
 </div>
 <script>
@@ -790,7 +928,7 @@
     window.onload = function () {
         disableToolTip();
     }
-    
+
     window.onresize = function () {
         disableToolTip();
     }
