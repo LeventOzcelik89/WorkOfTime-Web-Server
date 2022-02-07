@@ -173,6 +173,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+        public VWFTM_Task[] GetVWFTM_TaskBetweenPlanDates(DateTime? startDate, DateTime? endDate)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWFTM_Task>().Where(x => x.planStartDate >= startDate && x.dueDate <= endDate).Execute().ToArray();
+            }
+        }
+
         public VWFTM_Task[] GetVWFTM_TaskBetweenMonths(int month1, int month2, int month3)
         {
             using (var db = GetDB())
