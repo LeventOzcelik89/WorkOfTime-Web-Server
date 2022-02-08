@@ -102,9 +102,7 @@
 
 	$('#CalendarContainer .nav-tabs').append(itemNav);
 
-
 	function hoverFunc(data) {
-		debugger;
 		var temp = $($('#temp').html());
 		var taskPlanId = data.dataset.taskplanid;
 		var taskNo = data.dataset.taskno;
@@ -166,9 +164,8 @@
 
 					temp.find('[data-target="taskCount"]').html(taskPlanDay.taskIds.length);
 
-					temp.find('[data-target="staffCount"]').html(taskPlanDay.staffCount);
-					temp.find('[data-target="helperStaffCount"]').html(taskPlanDay.helperStaffCount);
-					debugger;
+					temp.find('[data-target="staffCount"]').html(taskPlanDay.staffCount + " Personel");
+					temp.find('[data-target="helperStaffCount"]').html(taskPlanDay.helperStaffCount + " Personel");
 					if (taskPlanDay.workingHours != '') {
 						temp.find('#workingHoursId').removeClass("hide");
 						temp.find('[data-target="workingHours"]').html(taskPlanDay.workingHours);
@@ -230,12 +227,10 @@
 <script type="text/x-kendo-template" id="taskPlanListTemplate">
 
 
-	<span  style="text-align:center;display:block;background-color:#=color#;width: 21px;height: 21px;border-radius: 30px;"  data-taskPlanId="#=taskPlanId#" data-taskNo="#=taskNo#" onClick="hoverFunc(this)">
-	  <span class="#=className#" style="font-size: 13px;"></span>
+	<span  style="text-align:center;display:block;height: 21px;border-radius: 30px;"  data-taskPlanId="#=taskPlanId#" data-taskNo="#=taskNo#" onClick="hoverFunc(this)">
+	  <span class="#=className#" style="font-size: 15px;margin-left:-5px;">#=text#</span>
 	<span>
 </script>
-
-
 
 <div class="row clearfix">
 	<div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
@@ -280,99 +275,26 @@
 			<br />
 			<div class="row">
 				<div class="col-lg-12">
-					<div class="ibox ">
-						<div class="ibox-title">
-							<h5><i class="fa fa-users"></i> Müşteri İstatistiği</h5>
-							<div class="ibox-tools">
-							</div>
-						</div>
-						<div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
-							<div class="table-responsive">
-								<table class="table table-striped">
-									<thead>
-										<tr>
-											<th style="width: 30%">Müşteri </th>
-											<th style="width: 30% ">Görev Sayısı / Tamamlananlar </th>
-											<th style="width: 20%">Görevli Personel</th>
-											<th style="width: 20%">Yardımcı Personel</th>
-										</tr>
-									</thead>
-									<tbody>
-										@foreach (var customerReport in Model.taskCustomerReportList)
-										{
-											<tr style="cursor:pointer;" data-ids="">
-												<td> @customerReport.FullName</td>
-												<td><span class="badge badge-warning">@customerReport.allTaskCount Adet</span> -  <span class="badge badge-primary"> @customerReport.finishedTask Adet</td>
-												<td>@customerReport.allStaffCount Personel</td>
-												<td>@customerReport.allHelperStaffCount Personel</td>
-											</tr>
-										}
-									</tbody>
-								</table>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="row">
-				<div class="col-lg-12">
-					<div class="ibox ">
-						<div class="ibox-title">
-							<h5><i class="icon-chart-bar-5"></i> Personel İşlem İstatistiği</h5>
-						</div>
-
-						<div class="ibox-content">
-
-							@(Html.Kendo().Grid(Model.activityResultList)
-					.Name("activityResultList")
-					.Columns(columns =>
-					{
-						columns.Bound(p => p.FullName).Title("Adı Soyadı");
-						columns.Bound(p => p.taskCount).Title("Tamamlanma Oranı").Filterable(false).ClientTemplate("#=(taskCount == 0 ? 0 : Math.floor(CompleteCount * 100 /taskCount))#");
-						columns.Bound(p => p.taskCount).Title("Görev Sayısı").Filterable(false).Width(125).Format("{0:N0} Adet");
-						columns.Bound(p => p.CompleteCount).Title("Onaylanan Görev").Filterable(false).Format("{0:N0} Adet");
-						columns.Bound(p => p.totalWorkingHours).Title("Çalışılan Süre").Filterable(false);
-					})
-					.ToolBar(a => a.Pdf())
-					.Pageable(pageable => pageable
-					   .Input(true)
-					   .Numeric(false)
-					 )
-					.Sortable()
-					.Scrollable(scr => scr.Height(450))
-					.Filterable()
-					.DataSource(dataSource => dataSource
-					.Ajax()
-					.PageSize(20)
-					.ServerOperation(false)
-					))
-						</div>
-					</div>
-				</div>
-
-			</div>
-			<div class="row">
-				<div class="col-lg-12">
 					<div class="ibox">
 						<div class="ibox-content clearfix">
 							@if (Model.operationReportList != null && Model.operationReportList.Count() > 0)
 							{
 								<fieldset class="withTabs" id="CalendarContainer">
-									<legend>GÖREV LİSTESİ</legend>
+									<legend>TOPLAM GÖREV : @string.Format("{0:N0}",Model.operationReportList.Sum(a => a.days.Select(b => b.totalTaskCount).Sum())) Adet</legend>
 									<br />
 
 									@(Html.Kendo().Grid(Model.operationReportList)
 					.Name("taskPlanListModel")
 					.Columns(columns =>
 					{
-						columns.Bound(p => p.taskPlanName).Title("Müşteri").Width(240)/*.ClientTemplate("#=taskPlanNameFunc(data)#")*/.Locked(true);
-						columns.Bound(p => p.taskType_Title).Title("Tipi").Width(85)/*.ClientTemplate("#=taskTypeNameFunc(data)#")*/.Locked(true);
+						columns.Bound(p => p.taskPlanName).Title("Müşteri").Width(350)/*.ClientTemplate("#=taskPlanNameFunc(data)#")*/.Locked(true);
+						//columns.Bound(p => p.taskType_Title).Title("Tipi").Width(85)/*.ClientTemplate("#=taskTypeNameFunc(data)#")*/.Locked(true);
 						columns.Group(c => c.Title("").Columns(d =>
 						{
 							for (int i = 0; i < Model.operationReportList.Select(a => a.days.Count()).FirstOrDefault(); i++)
 							{
 								d.Bound("days["+i+ "].title").Title(Model.operationReportList.Select(a => a.days[i].title).FirstOrDefault()).ClientTemplate("#=TemplateEngine('taskPlanListTemplate',data.days[" + i + "])#").Filterable(false).Width(45).HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
-								   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center;border-right:1px solid lightgray;border-bottom:1px solid lightgray;" } });
+								   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center;border-right:1px solid lightgray;border-bottom:1px solid lightgray;" } }).Width(75);
 							}
 						}));
 					})
@@ -386,7 +308,7 @@
 					.Filterable()
 					.DataSource(dataSource => dataSource
 					.Ajax()
-					.Sort(a=>a.Add(c=>c.taskType_Title).Descending())
+					.Sort(a=>a.Add(c=>c.taskPlanName).Ascending())
 					.PageSize(20)
 					.ServerOperation(false)
 					))
@@ -404,312 +326,194 @@
 					</div>
 				</div>
 			</div>
+			<br />
+			@if (Model.taskCustomerReportList.Count() > 0)
+			{
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox ">
+							<div class="ibox-title">
+								<span class="text-muted small pull-right">
+									@{
+										var taskCount = string.Format("{0:N0}", Model.taskCustomerReportList.Sum(a => a.allTaskCount));
+										var staffCount = string.Format("{0:N0}", Model.taskCustomerReportList.Sum(a => a.allStaffCount));
+										var helperStaffCount = string.Format("{0:N0}", Model.taskCustomerReportList.Sum(a => a.allHelperStaffCount));
+									}
+
+									@if (Model.taskCustomerReportList.Count() > 0)
+									{
+										<span><strong>Toplam Görev</strong> : @taskCount Adet |</span>
+										<span><strong>Toplam Görevli Personel</strong> : @staffCount Adet |</span>
+										<span><strong>Toplam Yardımcı Personel</strong> : @helperStaffCount Adet</span>
+									}
+								</span>
+
+								<h5><i class="fa fa-calendar"></i> Aylık Müşteri İstatistiği</h5>
+								<div class="ibox-tools">
+								</div>
+							</div>
+							<div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
+								<div class="table-responsive">
+									<table class="table table-striped">
+										<thead>
+											<tr>
+												<th style="width: 30%">Müşteri </th>
+												<th style="width: 30% ">Görev Sayısı / Tamamlananlar </th>
+												<th style="width: 20%">Görevli Personel</th>
+												<th style="width: 20%">Yardımcı Personel</th>
+											</tr>
+										</thead>
+										<tbody>
+											@foreach (var customerReport in Model.taskCustomerReportList)
+											{
+												<tr style="cursor:pointer;" data-ids="">
+													<td> @customerReport.FullName</td>
+													<td><span class="badge badge-warning">@customerReport.allTaskCount Adet</span> -  <span class="badge badge-primary"> @customerReport.finishedTask Adet</td>
+													<td>@customerReport.allStaffCount Personel</td>
+													<td>@customerReport.allHelperStaffCount Personel</td>
+												</tr>
+											}
+										</tbody>
+									</table>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!--<div class="col-lg-6">
+			<div class="ibox ">
+				<div class="ibox-title">
+					<span class="text-muted small pull-right">-->
+					@*@if (Model.taskCustomerReportTodayList.Count() > 0)
+				{
+					Toplam Görev : string.Format("{0:N0}", Model.taskCustomerReportList.Sum(a=>a.allTaskCount)) Adet
+				}*@
+					<!--</span>
+						<h5><i class="fa fa-users"></i> @DateTime.Now.ToString("dd.MM.yyyy") Tarihli Müşteri İstatistiği</h5>
+						<div class="ibox-tools">
+						</div>
+					</div>
+					<div class="ibox-content ibox-content_image clearfix " style="height:240px; overflow-y:scroll;">
+						<div class="table-responsive">
+							<table class="table table-striped">
+								<thead>
+									<tr>
+										<th style="width: 30%">Müşteri </th>
+										<th style="width: 30% ">Görev Sayısı / Tamamlananlar </th>
+										<th style="width: 20%">Görevli Personel</th>
+										<th style="width: 20%">Yardımcı Personel</th>
+									</tr>
+								</thead>
+								<tbody>
+									@foreach (var customerReport in Model.taskCustomerReportTodayList)
+									{
+										<tr style="cursor:pointer;" data-ids="">
+											<td> @customerReport.FullName</td>
+											<td><span class="badge badge-warning">@customerReport.allTaskCount Adet</span> -  <span class="badge badge-primary"> @customerReport.finishedTask Adet</td>
+											<td>@customerReport.allStaffCount Personel</td>
+											<td>@customerReport.allHelperStaffCount Personel</td>
+										</tr>
+									}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</div>
+			</div>-->
+				</div>
+			}
+
+			@if (Model.operationChartDataList.Count() > 0)
+			{
+				<div class="row">
+					<div class="col-lg-12">
+						<div class="ibox ">
+							<div class="ibox-title">
+								<h5><i class="fa fa-pie-chart"></i> Aylık Görev Tipleri Dağılımı</h5>
+								<div class="ibox-tools">
+								</div>
+							</div>
+							<div class="ibox-content ibox-content_image clearfix">
+								@(Html.Kendo().Chart()
+        .Name("chart")
+                .Title(title => title
+                    .Position(ChartTitlePosition.Top))
+        .Legend(legend => legend
+            .Visible(false)
+        )
+        .ChartArea(chart => chart
+            .Background("transparent")
+         )
+        .HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/shared/styles/world-map.png")})
+        .Series(series => {
+            series.Pie(Model.operationChartDataList)
+            .Labels(labels => labels
+                .Template("#= category #: \n #= value# Adet")
+                .Background("transparent")
+                .Visible(true)
+            )
+            .StartAngle(150);
+        })
+        .Tooltip(tooltip => tooltip
+            .Visible(true)
+            .Format("{0} Adet")
+        )
+    )
+							</div>
+						</div>
+
+
+						<div class="demo-section k-content wide">
+
+						</div>
+					</div>
+					@*<div class="col-lg-6">
+								<div class="ibox ">
+									<div class="ibox-title">
+										<h5><i class="fa fa-pie-chart"></i> @DateTime.Now.ToString("dd.MM.yyyy") Tarihli Aylık Görev Tipleri Dağılımı</h5>
+										<div class="ibox-tools">
+										</div>
+									</div>
+									<div class="ibox-content ibox-content_image clearfix">
+										@(Html.Kendo().Chart()
+					.Name("chart2")
+							.Title(title => title
+								.Position(ChartTitlePosition.Bottom))
+					.Legend(legend => legend
+						.Visible(false)
+					)
+					.ChartArea(chart => chart
+						.Background("transparent")
+					 )
+					.HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/shared/styles/world-map.png")})
+					.Series(series => {
+						series.Pie(Model.operationChartTodayDataList)
+						.Labels(labels => labels
+							.Template("#= category #: \n #= value# Adet")
+							.Background("transparent")
+							.Visible(true)
+						)
+						.StartAngle(150);
+					})
+					.Tooltip(tooltip => tooltip
+						.Visible(true)
+						.Format("{0} Adet")
+					)
+				)
+									</div>
+								</div>
+
+
+								<div class="demo-section k-content wide">
+
+								</div>
+							</div>*@
+				</div>
+			}
+
+
 		</div>
 	</div>
 </div>
-<script type="text/javascript">
-	var activityTracking = {
-		data: {
-			taskDatas: [],
-			taskChart: [],
-		},
-		fnc: {
-			createExpensTotalChart(data) {
-				$("#chartForMultiline").kendoChart({
-					title: {
-						text: "Görev ve Masraf Grafiği"
-					},
-					legend: {
-						position: "top"
-					},
-					series: [
-						{
-							type: "line",
-							data: data.Series[1],
-							name: "Masraf",
-							color: "#ec5e0a",
-							axis: "budget",
-							tooltip: {
-								visible: true,
-								format: "{0}%",
-								template: "#= series.name #: #= value #"
-							}
-						}, {
-							type: "line",
-							data: data.Series[0],
-							name: "Görev Sayısı",
-							color: "#4e4141",
-							axis: "mission"
-						}],
-					valueAxes: [
-						{
-							name: "budget",
-							title: { text: "Masraf" },
-							color: "#ec5e0a",
-							labels: {
-								format: "{0} ₺"
-							},
-							axisCrossingValue: -10
-						}, {
-							name: "mission",
-							title: { text: "Görev Sayısı" },
-							color: "#4e4141",
-							labels: {
-								format: "{0} Adet"
-							},
-							axisCrossingValue: -10
-						}],
-					tooltip: {
-						visible: true,
-						format: "{0}%",
-						template: "#= series.name #: #= value #"
-					},
-					pannable: {
-						lock: "y"
-					},
-					zoomable: {
-						mousewheel: {
-							lock: "y"
-						},
-						selection: {
-							lock: "y"
-						}
-					},
-					categoryAxis: {
-						categories: data.Categories,
-						majorGridLines: {
-							visible: true
-						},
-						labels: {
-							rotation: "auto"
-						}
-					}
-				});
-			},
-			createTaskTypeChart(data) {
-				$("#chart").kendoChart({
-					title: {
-						position: "bottom",
-						text: "Görev Tipleri Dağılımı"
-					},
-					legend: {
-						visible: false
-					},
-					chartArea: {
-						background: ""
-					},
-					seriesDefaults: {
-						labels: {
-							visible: true,
-							background: "transparent",
-							template: "#= category #"
-						}
-					},
-					series: [{
-						type: "pie",
-						startAngle: 150,
-						data: data
-					}],
-					tooltip: {
-						visible: true,
-						format: "{0}"
-					}
-				});
-			},
-			cityReport(data) {
-				var html = '<div class="table-responsive">' +
-					'<table class="table table-hover table-striped" id="cityReport">' +
-					'<thead>' +
-					'<tr>' +
-					'' +
-					'<th class="col-md-8" data-field="city">Şehir</th>' +
-					'<th data-filed="count">Görev Sayısı</th>' +
-					'</tr>' +
-					'</thead>' +
-					'<tbody>';
-				$.each(data, function (i, item) {
-					html += '<tr style="cursor:pointer;" data-ids="' + item.Ids.join(",") + '">' +
-						'<td>' + item.Property + '</td>' +
-						'<td>' + item.Value + ' Adet</td>'
-					'</tr>';
-				});
-				$("#cityReport").html(null);
-				$("#cityReport").append(html);
-			},
-			weeklyReport(data) {
-				var total = 0;
-				var html = '<div class="table-responsive" >' +
-					'<table class="table table-hover table-striped" id="weeklyReport">' +
-					'<thead>' +
-					'<tr>' +
-					'' +
-					'<th class="col-md-8">Gün</th>' +
-					'<th>Görev Sayısı</th>' +
-					'</tr>' +
-					'</thead>' +
-					'<tbody>';
-				$.each(data, function (i, item) {
-					total += parseInt(item.Value);
-					html += '<tr style="cursor:pointer;" data-ids="' + item.Ids.join(",") + '">' +
-						'<td>' + item.Property + '</td>' +
-						'<td>' + item.Value + ' Adet </td>'
-					'</tr>';
-				});
-				'<td>Toplam</td>' +
-					'<td ><b>' + total + ' </b></td>'
-				'</tr>';
-				$("#weeklyReport").html(null);
-				$("#weeklyReport").append(html);
-			},
-			budgetReport(data) {
-				var total = 0;
-				var html = '<div class="table-responsive" >' +
-					'<table class="table table-hover table-striped" id="weeklyReport">' +
-					'<thead>' +
-					'<tr>' +
-					'' +
-					'<th class="col-md-8" >Gün</th>' +
-					'<th class=" col-md-4">Masraf Tutarı</th>' +
-					'</tr>' +
-					'</thead>' +
-					'<tbody>';
-				$.each(data, function (i, item) {
-					total += parseInt(item.Value);
-					html += '<tr style="cursor:pointer;" data-budget="' + item.Ids.join(",") + '">' +
-						'<td>' + item.Property + '</td>' +
-						'<td >' + item.Value + ' ₺</td>'
-					'</tr>';
-				});
-				html += '<tr >' +
-					'<td>Toplam</td>' +
-					'<td class="">' + total + ' ₺</td>'
-				'</tr>';
-				$("#budgetReport").html(null);
-				$("#budgetReport").append(html);
-			},
-			getCustomerActivitys: function (usersData) {
-				var html = '<div class="table-responsive">' +
-					'<table class="table table-striped">' +
-					'<thead>' +
-					'<tr>' +
-					'' +
-					'<th>Müşteri </th>' +
-					'<th>Görev Sayısı / Tamamlananlar</th>' +
-					'</tr>' +
-					'</thead>' +
-					'<tbody>';
-				$.each(usersData, function (e, item) {
-					html += '<tr style="cursor:pointer;" data-ids="' + item.finishedTaskIds.join(",") + '">' +
-						'<td>' + item.FullName + '</td>' +
-						'<td><span class="badge badge-warning">' + item.allTaskCount + '</span> -  <span class="badge badge-primary">' + item.finishedTask + '</td>'
-					'</tr>';
-				})
-				html += '</tbody>' +
-					'</table>' +
-					'</div>';
-				return html;
-			},
-			loadAllTasks: function () {
-				$('#allTasks').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Tüm Görevler').Select(x => x.Value).FirstOrDefault()));
-				$('#pendingAssigment').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Personel Ataması Bekleyenler').Select(x => x.Value).FirstOrDefault()));
-				$('#toBeUndartaken').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Üstlenilmeyi Bekleyenler').Select(x => x.Value).FirstOrDefault()));
-				$('#continuing').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Devam Edenler').Select(x => x.Value).FirstOrDefault()));
-				$('#stopped').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Durdurulanlar').Select(x => x.Value).FirstOrDefault()));
-				$('#waitingApproval').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözüm Onayı Bekleyenler').Select(x => x.Value).FirstOrDefault()));
-				$('#waiting').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler').Select(x => x.Value).FirstOrDefault()));
-				$('#resolvedTasks').html(kendo.format("{0:N0}", $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözümlenmiş Görevler').Select(x => x.Value).FirstOrDefault()));
-			},
-			goToGrid: function (id) {
-				if (id == 'allTasks') {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Tüm Görevler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "pendingAssigment") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Personel Ataması Bekleyenler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "toBeUndartaken") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Üstlenilmeyi Bekleyenler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "continuing") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Devam Edenler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "stopped") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Durdurulanlar').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "waitingApproval") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözüm Onayı Bekleyenler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "waiting") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-				else if (id == "resolvedTasks") {
-					window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key == 'Çözümlenmiş Görevler').Select(x => x.ids).FirstOrDefault().join(","), '_blank')
-				}
-			},
-			getDatas: function (dataQuery) {
-				GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSourceForWeeklyReport' + dataQuery, null, function (res) {
-					activityTracking.data.taskDatas = res.Object;
-
-					activityTracking.fnc.loadAllTasks()
-					activityTracking.fnc.createTaskTypeChart(activityTracking.data.taskDatas.ChartForTaskType);
-					activityTracking.fnc.cityReport(activityTracking.data.taskDatas.cityReport)
-					activityTracking.fnc.weeklyReport(activityTracking.data.taskDatas.weeklyReport);
-					activityTracking.fnc.budgetReport(activityTracking.data.taskDatas.budgetReport);
-					activityTracking.data.taskChart = $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key != "Tüm Görevler" && x.Value != 0).ToArray()
-					activityTracking.fnc.createExpensTotalChart(activityTracking.data.taskDatas.chartForMultiAxis)
-					$("#personStatistics").html(null);
-					$("#operatorStatistics").html(null);
-					$("#customerStatistics").html(null);
-					var activityRes = activityTracking.fnc.getCustomerActivitys(activityTracking.data.taskDatas.taskCustomerReportList);
-					$('#customerStatistics').append(activityRes);
-				});
-			}
-		}
-	}
-	$(document)
-		.on("ready", function () {
-			activityTracking.fnc.getDatas('');
-		}).on("click", "[data-ids]", function () {
-			var ids = $(this).attr("data-ids");
-			if (ids != "") {
-				window.open("/FTM/VWFTM_TaskGrid/Index?taskIds=" + ids, "_blank");
-			}
-
-		}).on("click", "[data-budget]", function () {
-			var ids = $(this).attr("data-budget");
-			if (ids != "") {
-				window.open("/PA/VWPA_Transaction/IndexRequestByIds?ids=" + ids, "_blank");
-			}
-
-		});
-	$("#DashBoardFilter").click(function () {
-		var userIds = $("#assignableUsers").val();
-		var start = $("#planStartDate").val();
-		var end = $("#dueDate").val();
-		var customer = $("#customerId").val();
-		var customerStorage = $("#customerStorageId").val();
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DataSourceForWeeklyReport', { assignableUsers: userIds, planStartDate: start, dueDate: end, customer: customer, customerStorage: customerStorage }, function (res) {
-			activityTracking.data.taskDatas = res.Object;
-			activityTracking.fnc.loadAllTasks();
-			activityTracking.fnc.createTaskTypeChart(activityTracking.data.taskDatas.ChartForTaskType);
-			activityTracking.data.taskChart = $.Enumerable.From(activityTracking.data.taskDatas.TaskChart).Where(x => x.Key != "Tüm Görevler" && x.Value != 0).ToArray()
-			activityTracking.fnc.cityReport(activityTracking.data.taskDatas.cityReport);
-			activityTracking.fnc.weeklyReport(activityTracking.data.taskDatas.weeklyReport);
-			activityTracking.fnc.budgetReport(activityTracking.data.taskDatas.budgetReport);
-			activityTracking.fnc.createExpensTotalChart(activityTracking.data.taskDatas.chartForMultiAxis)
-			$("#personStatistics").html(null);
-			$("#operatorStatistics").html(null);
-			if (activityTracking.data.taskDatas.staffReportModel.length > 0) {
-				$.each(activityTracking.data.taskDatas.staffReportModel, function (e, res) {
-					res.planStartDate = kendo.toString(new Date(res.planStartDate), 'dd.MM.yyyy HH:mm');
-					res.dueDate = kendo.toString(new Date(res.dueDate), 'dd.MM.yyyy HH:mm')
-				})
-			}
-			$("#customerStatistics").html(null);
-			var activityRes = activityTracking.fnc.getCustomerActivitys(activityTracking.data.taskDatas.taskCustomerReportList);
-			$('#customerStatistics').append(activityRes);
-		});
-	});
-</script>
 
 
 <script type="text/template" id="rowTemplate">
