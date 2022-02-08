@@ -277,7 +277,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                     person.EndDate = DateTime.Now;
                     dbResult = db.UpdateINV_CompanyPersonDepartments(person);
                 }
-                dbResult &= new ConfirmationRefresher(person.IdUser.Value).RefreshAll(trans);
+                dbResult &= new ConfirmationRefresher().RefreshAll(person.IdUser.Value,trans);
                 if (dbResult.result)
                 {
                     trans.Commit();
