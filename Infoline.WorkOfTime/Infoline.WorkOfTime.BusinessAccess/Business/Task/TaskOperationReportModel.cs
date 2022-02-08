@@ -60,7 +60,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					category = b.Key,
 					value = b.Count(),
-					color = "#" + Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256)).Name.Substring(0, 6)
+					color = "#" + Color.FromArgb(rnd.Next(256), Color.CornflowerBlue).Name.Substring(0, 6)
 				}));
 
 
@@ -244,7 +244,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					category = a.taskPlanName,
 					value = a.days.Where(b => b.taskPlanId.HasValue).Sum(c => c.totalTaskCount),
-					color = "#" + Color.FromArgb(rnd.Next(256), rnd.Next(256), rnd.Next(256)).Name.Substring(0, 6)
+					color = "#" + Color.FromArgb(rnd.Next(256), Color.CadetBlue).Name.Substring(0, 6)
 				}));
 			}
 			return this;
