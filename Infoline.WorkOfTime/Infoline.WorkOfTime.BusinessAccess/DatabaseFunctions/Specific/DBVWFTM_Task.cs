@@ -177,7 +177,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB())
             {
-                return db.Table<VWFTM_Task>().Where(x => x.planStartDate >= startDate && x.dueDate <= endDate).Execute().ToArray();
+                return db.Table<VWFTM_Task>().Where(x => x.created >= startDate && x.created <= endDate).Execute().ToArray();
             }
         }
 

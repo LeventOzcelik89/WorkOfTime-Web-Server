@@ -3,6 +3,7 @@ using Infoline.WorkOfTime.BusinessData;
 using System;
 using System.Collections.Generic;
 using System.Data.Common;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,8 +18,11 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public int? year { get; set; }
 		public int? month { get; set; }
 		public List<TaskCustomerReportResult> taskCustomerReportList { get; set; } = new List<TaskCustomerReportResult>();
+		public List<TaskCustomerReportResult> taskCustomerReportTodayList { get; set; } = new List<TaskCustomerReportResult>();
 		public List<ActivityResult> activityResultList { get; set; } = new List<ActivityResult>();
 		public List<OperationReportModel> operationReportList { get; set; } = new List<OperationReportModel>();
+		public List<OperationChartModel> operationChartDataList { get; set; } = new List<OperationChartModel>();
+		public List<OperationChartModel> operationChartTodayDataList { get; set; } = new List<OperationChartModel>();
 
 
 
@@ -29,20 +33,18 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var startDate = new DateTime();
 			var endDate = new DateTime();
 
-
-			if (year.HasValue && month.HasValue)
+			if (!year.HasValue)
 			{
 				year = DateTime.Now.Year;
-				month = DateTime.Now.Month;
+			}
 
-				startDate = new DateTime(year.Value, month.Value, 1);
-				endDate = startDate.AddMonths(1).AddDays(-1);
-			}
-			else
+			if (!month.HasValue)
 			{
-				startDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-				endDate = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day, 23, 59, 59);
+				month = DateTime.Now.Month;
 			}
+
+			startDate = new DateTime(year.Value, month.Value, 1);
+			endDate = startDate.AddMonths(1).AddDays(-1);
 
 			this.operationReportList = new List<OperationReportModel>();
 			var tasks = db.GetVWFTM_TaskBetweenPlanDates(startDate, endDate);
@@ -53,8 +55,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			{
 				var ftmTaskOperation = db.GetVWFTM_TaskOperationStatusApprovedByTaskIds(tasks.Select(x => x.id).ToArray());
 				var userIds = tasks.Where(x => x.assignUserId.HasValue).Select(x => x.assignUserId.Value).ToArray();
+
+				Random r = new Random();
+
+				foreach (var task in tasks.GroupBy(a => a.type_Title))
+				{
+					var rs = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().Where(
+				x => Convert.ToInt32(x.Key) == (Int16)(EnumFTM_TaskType)task.Select(a => a.type).FirstOrDefault())
+				.FirstOrDefault();
+
+					this.operationChartDataList.Add(new OperationChartModel
+					{
+						category = task.Key,
+						value = task.Count(),
+						color = rs.Generic["color"]
+					});
+				}
+
+
 				var taskStaffReportList = new List<VWFTM_Task>();
 				this.taskCustomerReportList = new List<TaskCustomerReportResult>();
+				this.taskCustomerReportTodayList = new List<TaskCustomerReportResult>();
 				if (userIds.Length > 0)
 				{
 					var user = db.GetVWSH_UserByIds(userIds);
@@ -84,87 +105,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						{
 							FullName = x.Key,
 							allTaskCount = tasks.Where(c => c.customer_Title == x.Key).Count(),
-							finishedTask = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Count(),
-							finishedTaskIds = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi) && a.customer_Title == x.Key).Select(l => l.id).ToArray(),
+							finishedTask = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key).Count(),
+							finishedTaskIds = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key).Select(l => l.id).ToArray(),
 							allStaffCount = x.Where(a => a.assignUserId.HasValue).Select(b => b.assignUserId.Value).Count(),
 							allHelperStaffCount = x.Where(a => a.helperUserIds != null).Select(b => b.helperUserIds.Split(',')).Count()
 						}).ToList();
 
-					}
 
-					var taskOperatorActivityList = new List<OperatorActivityResult>();
-					this.activityResultList = new List<ActivityResult>();
+						//this.taskCustomerReportTodayList = tasks.Where(a => new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).GroupBy(x => x.customer_Title).Select(x => new TaskCustomerReportResult
+						//{
+						//	FullName = x.Key,
+						//	allTaskCount = tasks.Where(c => c.customer_Title == x.Key && new DateTime(c.created.Value.Year, c.created.Value.Month, c.created.Value.Day) == today).Count(),
+						//	finishedTask = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Count(),
+						//	finishedTaskIds = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(l => l.id).ToArray(),
+						//	allStaffCount = x.Where(a => a.assignUserId.HasValue && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(b => b.assignUserId.Value).Count(),
+						//	allHelperStaffCount = x.Where(a => a.helperUserIds != null && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(b => b.helperUserIds.Split(',')).Count()
+						//}).ToList();
 
-					var operationStatus = db.GetVWFTM_TaskOperation().Where(x => x.status == 10).ToList();
-					foreach (var item in user)
-					{
-						var model = new ActivityResult();
-						model.Id = item.id;
-						model.Photo = item.ProfilePhoto;
-						model.FullName = item.FullName;
-						model.CompleteCount = tasks.Where(x => x.assignUserId == item.id && x.isComplete == true).Count();
-						model.WorkingNow = tasks.Where(x => x.assignUserId == item.id).Count() - model.CompleteCount;
-						var workingHours = "";
-						var girdi = 0;
-						var operations = db.GetVWFTM_TaskOperationByTaskIds(tasks.Where(x => x.assignUserId == item.id).Select(x => x.id).ToArray());
-						if (operations.Count() > 0)
-						{
-							var groupOperations = operations.GroupBy(x => x.taskId).Select(x => new
-							{
-								Key = x.Key,
-								StartDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.GorevBaslandi).Select(f => f.created).FirstOrDefault(),
-								EndDatetime = x.Where(t => t.status == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi).Select(f => f.created).FirstOrDefault()
-							}).ToArray();
-							var operationFinish = groupOperations.Where(x => x.EndDatetime.HasValue && x.StartDatetime.HasValue).ToArray();
-							foreach (var opFinish in operationFinish)
-							{
-								TimeSpan res = opFinish.EndDatetime.Value - opFinish.StartDatetime.Value;
-								girdi += Convert.ToInt32(res.TotalSeconds);
-							}
-							int yil = 0;
-							int ay = 0;
-							int gun = 0;
-							int saat = 0;
-							int dakika = 0;
-							yil = girdi / 31104000;
-							girdi = girdi - yil * 3110400;
-							ay = girdi / 2592000;
-							girdi = girdi - ay * 2592000;
-							gun = girdi / 86400;
-							girdi = girdi - gun * 86400;
-							saat = girdi / 3600;
-							girdi = girdi - saat * 3600;
-							dakika = girdi / 60;
-							girdi = girdi - dakika * 60;
-							workingHours = (yil > 0 ? yil + " yıl " : "") +
-										   (ay > 0 ? ay + " ay " : "") +
-										   (gun > 0 ? gun + " gün " : "") +
-										   (saat > 0 ? saat + " saat " : "") +
-										   (dakika > 0 ? dakika + " dakika " : "") +
-										   (girdi > 0 ? girdi + " saniye " : "");
-						}
-						var staffModel = new ActivityResult
-						{
-							Id = item.id,
-							FullName = item.FullName,
-							Photo = item.ProfilePhoto,
-							taskCount = tasks.Where(x => x.assignUserId == item.id).Count(),
-							CompleteCount = tasks.Where(x => x.assignUserId == item.id && x.isComplete == true).Count(),
-							totalWorkingHours = !string.IsNullOrEmpty(workingHours) ? workingHours : "0 saat"
-						};
-						if (item.RoleIds != null && item.RoleIds.Contains(SHRoles.SahaGorevOperator))
-						{
-							var taskOperatorModel = new OperatorActivityResult
-							{
-								Id = item.id,
-								FullName = item.FullName,
-								OpenedTask = tasks.Where(x => x.createdby == item.id).Count(),
-								ApprovedTask = ftmTaskOperation.Where(x => x.createdby == item.id).Count(),
-								MyAppointmentTask = operationStatus.Where(x => x.createdby == item.id).GroupBy(a => a.taskId).Count()
-							};
-							taskOperatorActivityList.Add(taskOperatorModel);
-						}
-						this.activityResultList.Add(staffModel);
 					}
 				}
 
@@ -181,10 +138,48 @@ namespace Infoline.WorkOfTime.BusinessAccess
 					{
 						var date = new DateTime(whileStartDate.Ticks);
 
+						var title = "";
+
+
+						if (date.DayOfWeek == DayOfWeek.Monday)
+						{
+							title = "Pzt";
+						}
+						else if (date.DayOfWeek == DayOfWeek.Tuesday)
+						{
+							title = "Sal";
+
+						}
+						else if (date.DayOfWeek == DayOfWeek.Wednesday)
+						{
+							title = "Çrş";
+
+						}
+						else if (date.DayOfWeek == DayOfWeek.Thursday)
+						{
+							title = "Prş";
+
+						}
+						else if (date.DayOfWeek == DayOfWeek.Friday)
+						{
+							title = "Cum";
+
+						}
+						else if (date.DayOfWeek == DayOfWeek.Saturday)
+						{
+							title = "Cmt";
+
+						}
+						else
+						{
+							title = "Paz";
+						}
+
 						var taskOperationDay = new TaskOperationDay
 						{
 							date = date,
-							title = date.Day.ToString(),
+							title =  date.Day.ToString()+" "+title,
+							text = ""
 						};
 
 						if (customerTasks.Where(a => a.created.HasValue && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == date).Count() > 0)
@@ -204,7 +199,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								taskOperationDay.helperStaffCount = selectedTasks.Where(a => a.helperUserIds != null).Select(b => b.helperUserIds.Split(',')).Count();
 								taskOperationDay.taskNo = ++taskNo;
 
-								var girdi = selectedTasks.Where(a=> a.totalworkingHour.HasValue).Sum(a => a.totalworkingHour.Value);
+								var girdi = selectedTasks.Where(a => a.totalworkingHour.HasValue).Sum(a => a.totalworkingHour.Value);
 
 								int yil = 0;
 								int ay = 0;
@@ -233,25 +228,32 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount > 0 && taskOperationDay.totalTaskCount != taskOperationDay.isComplateTaskCount)
 							{
 								taskOperationDay.color = "rgb(255 187 0 / 85%)";
-								taskOperationDay.className = "fa fa-spinner";
+								taskOperationDay.className = "badge badge-warning";
+								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
+
 							}
 
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount > 0 && taskOperationDay.totalTaskCount == taskOperationDay.isComplateTaskCount)
 							{
-								taskOperationDay.color = "rgb(0 255 6 / 99%)";
-								taskOperationDay.className = "fa fa-check";
+								taskOperationDay.color = "#1ab394";
+								taskOperationDay.className = "badge badge-primary";
+								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
+
 							}
 
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount == 0)
 							{
 								taskOperationDay.color = "rgb(255 0 0 / 54%)";
-								taskOperationDay.className = "fa fa-wrench";
+								taskOperationDay.className = "badge badge-danger";
+								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
+
 							}
 
 							if (taskOperationDay.totalTaskCount == 0 && taskOperationDay.isComplateTaskCount == 0 && taskOperationDay.taskPlanId == null)
 							{
 								taskOperationDay.color = "white";
-								taskOperationDay.className = "fa fa-calendar text-white";
+								taskOperationDay.className = "badge badge-white";
+								taskOperationDay.text = "";
 							}
 						}
 
@@ -292,6 +294,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public short? type { get; set; }
 			public string color { get; set; }
 			public string className { get; set; }
+			public string text { get; set; }
 			public int staffCount { get; set; }
 			public int helperStaffCount { get; set; }
 			public string workingHours { get; set; }
@@ -335,6 +338,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			public int OpenedTask { get; set; }
 			public int ApprovedTask { get; set; }
 			public int MyAppointmentTask { get; set; }
+		}
+
+		public class OperationChartModel
+		{
+			public string category { get; set; }
+			public int value { get; set; }
+			public string color { get; set; }
 		}
 	}
 }
