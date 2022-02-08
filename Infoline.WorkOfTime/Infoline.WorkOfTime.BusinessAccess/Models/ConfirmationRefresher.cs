@@ -42,7 +42,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                 {
                     continue;
                 }
-                var findConfirmation = db.GetVWPA_AdvanceConfirmationByAdvanceId(findAdvance.id);
+                var findConfirmation = db.GetVWPA_AdvanceConfirmationByAdvanceId(findAdvance.id).ToList();
                 if (findConfirmation.Count() == 0)
                 {
                     findAdvance.direction = (short)EnumPA_AdvanceDirection.Cikis;
@@ -50,7 +50,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                 else
                 {
                     result &= db.BulkDeletePA_AdvanceConfirmation(findConfirmation.Where(x => x.userId == this.UserId&&x.status==null).B_ConvertType<PA_AdvanceConfirmation>(), trans);
-                    findConfirmation.ToList().Remove(findConfirmation.Where(x => x.userId == this.UserId && x.status == null).FirstOrDefault());
+                    findConfirmation.RemoveAll(x => x.userId == this.UserId && x.status == null);
                     var isHave = findConfirmation.Where(x => x.status == null);
                     if (isHave.Count() == 0)
                     {
@@ -88,7 +88,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                 {
                     continue;
                 }
-                var findConfirmation = db.GetPA_TransactionConfirmationByTransactionId(findTrans.id);
+                var findConfirmation = db.GetPA_TransactionConfirmationByTransactionId(findTrans.id).ToList();
                 if (findConfirmation.Count() == 0)
                 {
                     findTrans.direction = (short)EnumPA_TransactionDirection.Cikis;
@@ -96,7 +96,7 @@ namespace Infoline.WorkOfTime.BusinessAccess.Models
                 else
                 {
                     result &= db.BulkDeletePA_TransactionConfirmation(findConfirmation.Where(x => x.userId == this.UserId && x.status == null), trans);
-                    findConfirmation.ToList().Remove(findConfirmation.Where(x => x.userId == this.UserId && x.status == null).FirstOrDefault());
+                    var remove=findConfirmation.RemoveAll(x => x.userId == this.UserId && x.status == null);
                     var isHave = findConfirmation.Where(x => x.status == null);
                     if (isHave.Count() == 0)
                     {
