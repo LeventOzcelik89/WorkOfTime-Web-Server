@@ -306,6 +306,8 @@ namespace System.Web.Mvc
             sahayonetimi.AddChild(new Menu("Görev Takvimi", "/FTM/VWFTM_TaskPlan/Calendar"));
            
             var gorevRaporlari = new Menu("Görev Raporları");
+            gorevRaporlari.AddChild(new Menu("Operasyon Raporu", "/FTM/VWFTM_Task/OperationReport"));
+            gorevRaporlari.AddChild(new Menu("Dashboard", "/FTM/VWFTM_Task/WeeklyReport"));
             gorevRaporlari.AddChild(new Menu("Aktivite İzleme", "/FTM/VWFTM_Task/ActivityTracking"));
             gorevRaporlari.AddChild(new Menu("Müşteri Raporu", "/Customer"));
             gorevRaporlari.AddChild(new Menu("Detaylı Rapor", "/FTM/VWFTM_TaskGrid/Index"));
@@ -313,8 +315,6 @@ namespace System.Web.Mvc
             gorevRaporlari.AddChild(new Menu("Personel Yıl/Ay Bazlı Rapor", "/FTM/VWFTM_Task/MonthlyPersonelReport"));
             gorevRaporlari.AddChild(new Menu("Çağrı Tipi Yıl/Ay Bazlı Rapor", "/FTM/VWFTM_Task/MonthlyTypeReport"));
             gorevRaporlari.AddChild(new Menu("Personel Raporu", "/FTM/VWFTM_Task/StaffReport"));
-            gorevRaporlari.AddChild(new Menu("Operasyon Raporu", "/FTM/VWFTM_Task/WeeklyReport"));
-            gorevRaporlari.AddChild(new Menu("Yönetici Operasyon Raporu", "/FTM/VWFTM_Task/OperationReport"));
             sahayonetimi.AddChild(gorevRaporlari);
 
             return sahayonetimi;
