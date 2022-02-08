@@ -470,8 +470,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.db = this.db ?? new WorkOfTimeDatabase();
 
             //Kullanıcıya ait avans kurallarını çektim.
-            var confirmation = new ManagersCalculator().PermissionCalculator<PA_AdvanceConfirmation>(userId,this.id);
-            if (confirmation==null)
+            var confirmation = new ConfirmationCalculator(userId,this.id,EnumUT_RulesType.Advance).GetAdvance;
+            if (confirmation==null||confirmation.Count()==0)
             {
                 return new ResultStatus
                 {

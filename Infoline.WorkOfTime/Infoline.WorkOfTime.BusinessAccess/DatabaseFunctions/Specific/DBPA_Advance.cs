@@ -78,7 +78,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<PA_Advance>().Where(a => a.accountId == accountId).Execute().ToArray();
             }
         }
+        public PA_AdvanceConfirmation[] GetPA_AdvanceByUserIdAndStatusIsNotProved(Guid userId ,DbTransaction tran = null)
+        {
+            using (var db = GetDB(tran))
 
+            {
+                return db.Table<PA_AdvanceConfirmation>().Where(x => x.userId == userId && x.status == null).Execute().ToArray();
+            }
+        }
         public PA_Advance[] GetPA_AdvanceByAccountIds(Guid[] accountIds, DbTransaction tran = null)
         {
             using (var db = GetDB(tran))

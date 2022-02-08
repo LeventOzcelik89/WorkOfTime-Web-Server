@@ -81,6 +81,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		{
 			return View();
 		}
+		[AllowEveryone]
+		[PageInfo("Operasyon Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+		public ActionResult OperationReport(TaskOperationReportModel model)
+		{
+			return View(model.Load());
+		}
+
 		[PageInfo("Personel Ay/Yıl Bazlı Çağrı Raporu DataSource", SHRoles.Personel)]
 		public ContentResult MonthlyPersonelReportData(int year, string[] months, List<Guid?> assignableUsers, Guid? customer, Guid? customerStorage)
 		{
@@ -131,11 +138,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var res = new List<object>();
 			List<int> monthList = months.Select(s => int.Parse(s)).ToList();
 			var rDict = new List<Dictionary<string, object>>();
-			if (personels.Count() <= 0 && assignableUsers.Where(x => x.HasValue).Count() <= 0)
+			if (personels.Count() <= 0 && assignableUsers != null && assignableUsers.Where(x => x.HasValue).Count() <= 0)
 			{
 				personels = db.GetVWSH_UserByRoleId(SHRoles.SahaGorevPersonel).Select(x => x.FullName).ToArray();
 			}
-			else if (personels.Count() <= 0 && assignableUsers.Where(x => x.HasValue).Count() > 0)
+			else if (personels.Count() <= 0 && assignableUsers != null && assignableUsers.Where(x => x.HasValue).Count() > 0)
 			{
 				personels = db.GetVWSH_UserByIds(assignableUsers.Where(x => x.HasValue).Select(x => x.Value).ToArray()).Select(x => x.FullName).ToArray();
 			}
@@ -234,7 +241,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			{
 				taskType_Title = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => c.Value).ToArray();
 			}
-			else if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
+			else if (taskType_Title.Count() <= 0 && taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
 			{
 				var taskType = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => new { Id = c.Key, Name = c.Value }).OrderBy(a => a.Name).ToList();
 				var typeString = new List<String>();
@@ -344,11 +351,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			var res = new List<object>();
 			List<int> monthList = months.Select(s => int.Parse(s)).ToList();
 			var rDict = new List<Dictionary<string, object>>();
-			if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
+			if (taskType_Title.Count() <= 0 && taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() <= 0)
 			{
 				taskType_Title = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => c.Value).ToArray();
 			}
-			else if (taskType_Title.Count() <= 0 && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
+			else if (taskType_Title.Count() <= 0 && taskTypes != null && taskTypes.Where(x => !String.IsNullOrEmpty(x)).Count() > 0)
 			{
 				var taskType = EnumsProperties.EnumToArrayValues<EnumFTM_TaskType>().Select(c => new { Id = c.Key, Name = c.Value }).OrderBy(a => a.Name).ToList();
 				var typeString = new List<String>();

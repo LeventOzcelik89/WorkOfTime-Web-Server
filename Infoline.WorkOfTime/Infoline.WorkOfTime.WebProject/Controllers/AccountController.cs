@@ -726,7 +726,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
         public LogTable[] data { get; set; }
         public List<KeyValue> permits { get; set; }
         public INV_PermitType[] permitTypes { get; set; }
-        public VWSH_ShiftTracking sH_ShiftTrackings { get; set; }
+        public VWSH_ShiftTracking sH_ShiftTrackings { get; set; } 
 
     }
     public class CaptchaResult
