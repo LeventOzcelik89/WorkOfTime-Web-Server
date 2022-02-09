@@ -104,7 +104,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			using (var db = GetDB(tran))
 			{
-				return db.ExecuteReader<VWFTM_Task>("SELECT customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE taskTemplateId is null and taskPlanId is null and YEAR(dueDate) = {0}", year).ToArray();
+				return db.ExecuteReader<VWFTM_Task>("SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE taskTemplateId is null and taskPlanId is null and YEAR(dueDate) = {0}", year).ToArray();
 			}
 		}
 

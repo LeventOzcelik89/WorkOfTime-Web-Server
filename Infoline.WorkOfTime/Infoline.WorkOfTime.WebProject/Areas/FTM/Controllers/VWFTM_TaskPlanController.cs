@@ -95,7 +95,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 
 
 		[AllowEveryone]
-		public ContentResult AllTaskCalendarDataSource2(int? year, Guid? customerId, Guid? planId)
+		public ContentResult AllTaskCalendarNewDataSource(int? year, Guid? customerId, Guid? planId)
 		{
 			var model = new TaskSchedulerModel();
 

@@ -1,5 +1,5 @@
 ﻿@{
-	ViewBag.Title = "Planlanmış Görev Detayı";
+	ViewBag.Title = "Planlanmış Görev Listesi";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -219,11 +219,9 @@
             },
             Years: null,
             init: function () {
-                $("#calendarInitButton").removeClass("active");
-
+				$('body').loadingModal({ text: 'Takvim Hazırlanıyor. Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
                 _TaskDetail.LoadPlans();
-                
-                    debugger;
+
                     $.Enumerable.From(_TaskDetail.Calendar.Years)
                         .SelectMany(a => { return a.Data; })
                         .GroupBy(a => { return a.taskPlanId; })
@@ -252,7 +250,11 @@
                     });
 
                 _TaskDetail.Calendar.renderCalendars();
-               
+
+				setTimeout(function () {
+                    $('body').loadingModal('destroy');
+					$("#calendarInitButton").removeClass("active");
+				}, 2000)
 
             },
             renderCalendars: function () {
@@ -287,6 +289,8 @@
                         }).ToArray();
 
                     if (_TaskDetail.Calendar.activeYear == null && item.Year == new Date().getFullYear()) {
+                        debugger;
+						//var year = $("#year").val();
                         _TaskDetail.Calendar.activeYear = item.Year;
                     }
 
@@ -306,7 +310,16 @@
 
                 var _id = 'tab_' + newGuid().substring(0, 8);
                 var _idCalendar = 'calendar_' + newGuid().substring(0, 8);
-                var cls = (year == _TaskDetail.Calendar.activeYear ? 'active' : '');
+                debugger;
+
+				const d = new Date();
+				var yearData = d.getFullYear();
+
+                if ($("#year").val() != '') {
+					yearData = parseInt($("#year").val())
+				}
+
+				var cls = (year == yearData ? 'active' : '');
 
                 var itemNav = '<li class="' + cls + '"><a data-toggle="tab" href="#' + _id + '" data-year="' + year + '">' + year + '</a></li>';
                 var elemNav = $('<div id="' + _id + '" class="tab-pane ' + cls + '"><div id="' + _idCalendar + '"></div></div>')
@@ -434,16 +447,29 @@
 			var customer = $("#customerId").val();
             var plan = $("#taskPlanId").val();
 
-            $.ajax({
-                url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarDataSource2?year=' + year + '&customerId=' + customer + '&planId=' + plan,
-				type: 'POST',
-                dataType: 'json',
+			var text =  'Veriler yükleniyor. Lütfen bekleyiniz.';
+			var color =  "#000000";
+			var elem =  $('body');
+			var animation =  'rotatingPlane';
+
+
+          var ajaxPost =   $.ajax({
+			  url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarNewDataSource?year=' + year + '&customerId=' + customer + '&planId=' + plan,
+                type: 'POST',
+                dataType: 'JSON',
                 async: false,
-				success: function (res) {
-					_TaskDetail.Model = res.objects;
-					_TaskDetail.Calendar.Years = res.objects.YearDatas;
-				}
-			});
+                
+          }).responseJSON;
+
+
+			_TaskDetail.Model = ajaxPost.objects;
+			_TaskDetail.Calendar.Years = ajaxPost.objects.YearDatas;
+
+
+           
+
+            debugger;
+
         },
     };
 
@@ -495,56 +521,12 @@
 
 <div class="row">
 	<div class="col-lg-12">
-		<div class="ibox hide">
-			<div class="ibox-title">
-				<h5> <i class="fa text-success fa-bar-chart-o"></i> ÖZET BİLGİ</h5>
-			</div>
-			<div class="ibox-content clearfix" style="padding-bottom:10px !important; padding-top:10px !important;">
-				<div class="col-md-6">
-					<table class="table m-b-xs">
-						<tbody>
-							<tr>
-								<td style="border-top:none;"> <span class="label label-success pull-right">1</span> <i class="ii-ambarmevcudu"></i> Toplam Oluşturulmuş Görevler </td>
-							</tr>
-							<tr>
-								<td><span class="label label-success pull-right" data-id="VWSH_UserActive">1</span><i class="fa fa-hand-o-right"></i> Toplam Personel Sayısı </td>
-							</tr>
-							<tr>
-								<td><span data-id="VWCMP_Company" class="label label-success pull-right">1</span> <i class="fa fa-calendar"></i> Toplam Şube Sayısı </td>
-							</tr>
-							<tr>
-								<td><span class="label label-success pull-right" data-id="VWCMP_TenderSelling">1</span> <i class="fa fa-hand-o-left"></i> Satış Teklifleri </td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-				<div class="col-md-6">
-					<table class="table m-b-xs">
-						<tbody>
-							<tr>
-								<td style="border-top:none;"><span class="label label-success pull-right" data-id="VWCMP_InvoiceSelling">1</span> <i class="fa fa-mail-reply"></i>  Satış Faturaları </td>
-							</tr>
-							<tr>
-								<td> <span class="label label-success pull-right" data-id="VWCMP_InvoiceBuying">1</span> <i class="fa fa-mail-forward"></i> Alış Faturaları </td>
-							</tr>
-							<tr>
-								<td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceSelling">1</span> <i class="fa fa-money"></i> Satış Faturaları Tutarı </td>
-							</tr>
-							<tr>
-								<td> <span class="label label-success pull-right" data-total="VWCMP_InvoiceBuying">1</span> <i class="fa fa-money"></i> Alış Faturaları Tutarı </td>
-							</tr>
-						</tbody>
-					</table>
-				</div>
-			</div>
-		</div>
-
 		<div class="ibox">
-			<div class="ibox-tent" style="border-bottom:1px #e7eaec solid;">
-					<div class="row">
-						<div class="col-md-2">
-							<div class="form-group">
-								@(
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-2">
+						<div class="form-group">
+							@(
 									   Html.Akilli()
 									   .DropDownList("year")
 									   .OptionLabel("Lütfen Yıl Seçiniz..")
@@ -554,11 +536,11 @@
 									   .Value(DateTime.Now.Year.ToString())
 									   .Execute()
                                    )
-							</div>
 						</div>
-						<div class="col-md-3">
-							<div class="form-group">
-								@(
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
                  Html.Kendo().DropDownList()
                  .Name("customerId")
                  .HtmlAttributes(new Dictionary<string, object>()
@@ -578,11 +560,11 @@
                     });
                 }).Filter(FilterType.Contains)
                 )
-							</div>
 						</div>
-						<div class="col-md-3">
-							<div class="form-group">
-								@(
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
 							 Html.Akilli()
 							 .DropDownList("taskPlanId")
 							 .OptionLabel("Lütfen Plan Seçiniz..")
@@ -594,16 +576,16 @@
 							 .Sort(x => x.Add("name").Ascending())
 							 .Execute()
                                 )
-							</div>
-						</div>
-						<div class="col-md-2 pull-right">
-							<a class="btn btn-md btn-block btn-primary" data-href="/FTM/VWFTM_TaskPlan/InsertMultiple" style="line-height: 27px" data-modal="true" data-task="Insert"> <i class="fa fa-plus-circle"></i> Yeni Plan Tanımla </a>
-						</div>
-						<div class="col-md-2 pull-right">
-							<button class="btn btn-md btn-block btn-success" type="submit" id="calendarInitButton" onclick="_TaskDetail.Calendar.init();" style="line-height: 27px">Sorgula</button>
 						</div>
 					</div>
-				
+					<div class="col-md-2 pull-right">
+						<a class="btn btn-md btn-block btn-primary" data-href="/FTM/VWFTM_TaskPlan/InsertMultiple" style="line-height: 27px" data-modal="true" data-task="Insert"> <i class="fa fa-plus-circle"></i> Yeni Plan Tanımla </a>
+					</div>
+					<div class="col-md-2 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="calendarInitButton" onclick="_TaskDetail.Calendar.init();" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
 			</div>
 		</div>
 
