@@ -186,6 +186,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
+
+        [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.IdariPersonelYonetici)]
+        public ContentResult GetDataPersonTotalWorking(DateTime date, Guid? userId)
+        {
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var res = new VMShiftTrackingModel().GetDataPersonTotalWorking(date, userStatus.user.id);
+            return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).FirstOrDefault(a =>a.userId == userStatus.user.id).totalWorking), "application/json");
+        }
+
         [PageInfo("Personellerin Tüm Giriş Çıkış Verilerinin Dönüldüğü Methoddur.", SHRoles.IdariPersonelYonetici, SHRoles.IKYonetici)]
         public ContentResult GetCalculateDateDayShift(DateTime date, Guid? userId)
         {
@@ -218,8 +227,21 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         public JsonResult WorkStart(SH_ShiftTracking item)     
         {
             var db = new WorkOfTimeDatabase();
-            var feedback = new FeedBack();  
+            var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
+
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+
+            if(shift != 1 && shift != null)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mesaiye Başlanma Başarısız.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+         
             item.id = Guid.NewGuid();
             item.shiftTrackingStatus = 0;
             item.userId = userStatus.user.id;
@@ -240,6 +262,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var db = new WorkOfTimeDatabase();
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
+
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            if (shift != 0 && shift != 3)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mola Verme Başarısız")
+                }, JsonRequestBehavior.AllowGet);
+            }
             item.id = Guid.NewGuid();
             item.shiftTrackingStatus = 2;
             item.userId = userStatus.user.id;
@@ -261,6 +294,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var db = new WorkOfTimeDatabase();
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
+
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            if (shift != 2)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mola Bitirilme İşlemi Başarısız Oldu.")
+                }, JsonRequestBehavior.AllowGet);
+            }
             item.id = Guid.NewGuid();
             item.shiftTrackingStatus = 3;
             item.userId = userStatus.user.id;
@@ -281,6 +325,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var db = new WorkOfTimeDatabase();
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
+
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            if (shift != 3 && shift != 0)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mesaiyi Bitirilme Başarısız Oldu.")
+                }, JsonRequestBehavior.AllowGet);
+            }
             item.id = Guid.NewGuid();
             item.shiftTrackingStatus = 1;
             item.userId = userStatus.user.id;

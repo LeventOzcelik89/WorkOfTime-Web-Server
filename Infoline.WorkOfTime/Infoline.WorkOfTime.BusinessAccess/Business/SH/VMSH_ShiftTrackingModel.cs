@@ -59,6 +59,57 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             return listData;
         }
+        public List<VMSH_ShiftTrackingReport> GetDataPersonTotalWorking(DateTime date, Guid? userId)
+        {
+            var db = new WorkOfTimeDatabase();
+            var ourPersons = new List<VWSH_User>();
+            if (userId.HasValue)
+            {
+                ourPersons.Add(db.GetVWSH_UserById(userId.Value));
+            }
+            else
+            {
+                ourPersons = db.GetVWSH_UserMyPerson().Where(x => x.IsWorking == true).ToList();
+            }
+
+            var shiftTrackings = db.VWGetSH_ShiftTrackingByDate(date);
+            var listModel = new List<VMSH_ShiftTrackingReport>();
+            var listData = new List<VMSH_ShiftTrackingReport>();
+
+
+
+            listModel.AddRange(ourPersons.Select(x => new VMSH_ShiftTrackingReport
+            {
+                userId = x.id,
+                date = date,
+                shiftTrackingStart = shiftTrackings.Where(t => t.shiftTrackingStatus == (Int32)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBaslandi && t.userId == x.id).OrderBy(c => c.timestamp).FirstOrDefault() ?? new VMSH_ShiftTrackingReport { timestamp = DateTime.Now },
+                shiftTrackingEnd = shiftTrackings.Where(t => t.shiftTrackingStatus == (Int32)EnumSH_ShiftTrackingShiftTrackingStatus.MesaiBitti && t.userId == x.id).OrderByDescending(c => c.timestamp).FirstOrDefault() ?? new VMSH_ShiftTrackingReport { timestamp = DateTime.Now },
+                CompanyId_Title = x.Company_Title,
+                UserId_Title = x.FullName
+            }));
+
+            foreach (var shiftTracking in listModel.ToList())
+            {
+                var workingMinutes = GetCalculateDayShift(shiftTracking.userId.Value, date, shiftTrackings.Where(a => a.userId == shiftTracking.userId).ToArray());
+
+                TimeSpan ts = TimeSpan.FromMinutes(workingMinutes);
+                var workingHoursStringValue = $"{(int)ts.TotalHours} saat : {ts.Minutes} dakika";
+
+                var userPhoto = db.GetSysFilesFilePathByDataTableAndFileGroupAndDataId("SH_User", "Profil Resmi", shiftTracking.userId.Value);
+
+                listData.Add(new VMSH_ShiftTrackingReport
+                {
+                    totalWorking = workingHoursStringValue.ToString(),
+                    CompanyId_Title = shiftTracking.CompanyId_Title,
+                    UserId_Title = shiftTracking.UserId_Title,
+                    date = shiftTracking.date,
+                    userId = shiftTracking.userId,
+                    userPhoto = userPhoto?.FilePath
+                });
+            }
+
+            return listData;
+        }
 
         public double GetCalculateDayShift(Guid userId, DateTime dateTime, VWSH_ShiftTracking[] shiftTrackingReport)
         {
