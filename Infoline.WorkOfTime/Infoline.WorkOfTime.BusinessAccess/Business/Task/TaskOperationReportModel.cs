@@ -151,7 +151,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						var taskOperationDay = new TaskOperationDay
 						{
 							date = date,
-							title = date.Day.ToString() + " " + title,
+							title = date.Day.ToString() + " - " + title,
 							text = ""
 						};
 
