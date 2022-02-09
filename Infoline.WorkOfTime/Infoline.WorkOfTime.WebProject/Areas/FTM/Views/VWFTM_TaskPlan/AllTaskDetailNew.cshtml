@@ -223,6 +223,8 @@
 
                 _TaskDetail.LoadPlans();
 
+                if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+
                     $.Enumerable.From(_TaskDetail.Calendar.Years)
                         .SelectMany(a => { return a.Data; })
                         .GroupBy(a => { return a.taskPlanId; })
@@ -256,11 +258,15 @@
 				}, 2000)
 
                 _TaskDetail.Calendar.renderCalendars();
+				}
 
             },
             renderCalendars: function () {
                 $('#CalendarContainer .nav-tabs').html(null);
                 $('#CalendarContainer .tab-content').html(null);
+
+                if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+
 
                 $.each(_TaskDetail.Calendar.Years, function (i, item) {
 
@@ -290,7 +296,7 @@
                         }).ToArray();
 
                     if (_TaskDetail.Calendar.activeYear == null && item.Year == new Date().getFullYear()) {
-                        
+
                         _TaskDetail.Calendar.activeYear = item.Year;
                     }
 
@@ -300,17 +306,21 @@
                     );
 
                 });
+				}
 
                 if ($('#CalendarContainer .nav-tabs li.active').length == 0) {
                     $('#CalendarContainer .nav-tabs li:first-child a').trigger('click')
                 }
+
+                _TaskDetail.Calendar.init();
+
 
             },
             initCalendar: function (year, data) {
 
                 var _id = 'tab_' + newGuid().substring(0, 8);
                 var _idCalendar = 'calendar_' + newGuid().substring(0, 8);
-                
+
 
 				const d = new Date();
 				var yearData = d.getFullYear();
@@ -339,7 +349,7 @@
                         //Doldurulacak
                     },
                     mouseOnDay: function (e) {
-                        
+
                         if (e.events.length > 0 && !_TaskDetail.Calendar.POP.HasValue(e.date)) {
 
                             var items = $.Enumerable.From(e.events);
@@ -494,7 +504,7 @@
 
             setTimeout(function () { $("#calendarInitButton").click() }, 2500)
 			$("#calendarInitButton").click()
-			
+
         })
 
         .on("click", "#calendarInitButton", function () {
