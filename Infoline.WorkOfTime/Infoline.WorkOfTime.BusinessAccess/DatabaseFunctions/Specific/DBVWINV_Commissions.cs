@@ -23,6 +23,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 return db.Table<VWINV_Commissions>().Where(x => x.StartDate >= firstDate && x.StartDate <= lastDate).OrderBy(x => x.created).Execute().ToArray();
             }
         }
+        public VWINV_Commissions[] GetVWINV_CommissionsHasUserId(Guid userId)
+        {
+            using (var db = GetDB())
+            {
+                return db.Table<VWINV_Commissions>().Where(a => a.Manager1Approval==userId &&a.Manager1ApprovalDate==null).Execute().ToArray();
+            }
+        }
 
         public VWINV_Commissions[] GetVWINV_CommissionsRequestByToday(DbTransaction tran = null)
         {

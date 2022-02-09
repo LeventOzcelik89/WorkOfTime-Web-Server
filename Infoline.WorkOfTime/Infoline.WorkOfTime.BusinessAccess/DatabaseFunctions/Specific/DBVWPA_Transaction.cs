@@ -75,7 +75,14 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return db.Table<VWPA_Transaction>().Where(a => a.dataId == dataId).Execute().ToArray();
 			}
 		}
+		public VWPA_Transaction[] GetVWPA_TransactionByConfirmationUserIds(Guid userId, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
 
+			{
+				return db.Table<VWPA_Transaction>().Where(a => a.confirmationUserIds.Contains(userId.ToString())).Execute().ToArray();
+			}
+		}
 
 
 		public VWPA_Transaction[] GetVWPA_TransactionByCreatedBy(Guid createdBy, DbTransaction tran = null)

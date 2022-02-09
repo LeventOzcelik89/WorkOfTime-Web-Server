@@ -66,7 +66,13 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				)).OrderBy(x => x.created).Execute().FirstOrDefault();
 			}
 		}
-
+		public INV_Permit[] GetINV_PermitApprovedByStatus(Guid IdUser)
+		{
+			using (var db = GetDB())
+			{
+				return db.Table<INV_Permit>().Where(x => x.Manager1Approval == IdUser &&x.Manager1ApprovalDate==null|| x.Manager2Approval == IdUser&&x.Manager2ApprovalDate == null || x.IkApproval == IdUser&&x.IkApprovalDate == null).Execute().ToArray();
+			}
+		}
 
 		public INV_Permit GetINV_PermitByControlDate(Guid IdUser, DateTime? start, DateTime? end)
 		{
