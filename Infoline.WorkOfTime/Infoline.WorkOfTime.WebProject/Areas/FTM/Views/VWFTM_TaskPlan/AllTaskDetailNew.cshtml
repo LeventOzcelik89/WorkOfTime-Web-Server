@@ -135,6 +135,7 @@
     var _TaskDetail = {
         customerId: null,
         Model: null,
+        IsError:false,
         StatusList: [
             { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
             { Key: 'Görev Devam Ediyor', Codes: [13, 20, 21, 22, 23, 24, 25, 26, 27], Color: '#ec7c1e' },
@@ -224,6 +225,8 @@
                 _TaskDetail.LoadPlans();
 
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+                    debugger;
+
 
                     $.Enumerable.From(_TaskDetail.Calendar.Years)
                         .SelectMany(a => { return a.Data; })
@@ -258,18 +261,19 @@
 				}, 2000)
 
                 _TaskDetail.Calendar.renderCalendars();
-				}
-
+                }
+                
             },
             renderCalendars: function () {
                 $('#CalendarContainer .nav-tabs').html(null);
                 $('#CalendarContainer .tab-content').html(null);
 
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+					_TaskDetail.IsError = false;
 
 
-                $.each(_TaskDetail.Calendar.Years, function (i, item) {
-
+                    $.each(_TaskDetail.Calendar.Years, function (i, item) {
+                        debugger;
                     var planIds = $.Enumerable.From($('.customList > [data-show="true"]').map(function (i, item) { return $(item).attr('data-plan') }));
 
                     if (_TaskDetail.customerId != null && _TaskDetail.customerId != "") {
@@ -306,12 +310,12 @@
                     );
 
                 });
-				}
+                }
+				
 
                 if ($('#CalendarContainer .nav-tabs li.active').length == 0) {
                     $('#CalendarContainer .nav-tabs li:first-child a').trigger('click')
                 }
-
 
             },
             initCalendar: function (year, data) {
