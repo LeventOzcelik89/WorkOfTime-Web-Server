@@ -329,7 +329,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
         }
 
-        public VMFTM_TaskPlanCalendarModel[] CalendarDataSourceByYear(PageSecurity userStatus, int year)
+        public VMFTM_TaskPlanCalendarModel[] CalendarDataSourceByYear(PageSecurity userStatus, int year, Guid? customerId, Guid? planId)
         {
 
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -337,6 +337,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
             var plans = db.GetVWFTM_TaskPlan()
                 .Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate.Value.Year == year)
                 .ToList();
+
+			if (customerId.HasValue)
+			{
+                plans = plans.Where(a => a.customerId == customerId.Value).ToList();
+			}
+
+			if (planId.HasValue)
+			{
+                plans = plans.Where(a => a.id == planId.Value).ToList();
+			}
+
 
             //  hali hazırda açılmış görevler
             var dbtasks = db.GetVWFTM_TaskByDueDateYear(year).B_ConvertType<VMFTM_TaskPlanCalendarModel>();

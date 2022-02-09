@@ -135,7 +135,9 @@
     var _TaskDetail = {
         customerId: null,
         Model: null,
-        IsError:false,
+        year: null,
+        customer: null,
+        plan: null,
         StatusList: [
             { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
             { Key: 'Görev Devam Ediyor', Codes: [13, 20, 21, 22, 23, 24, 25, 26, 27], Color: '#ec7c1e' },
@@ -220,9 +222,23 @@
             },
             Years: null,
             init: function () {
-				$('body').loadingModal({ text: 'Takvim Hazırlanıyor. Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
 
-                _TaskDetail.LoadPlans();
+				_TaskDetail.LoadPlans();
+
+					$.ajax({
+						dataType: 'JSON',
+						type: 'POST',
+						async: true,
+						timeout: 6000000,
+						url: '/FTM/VWFTM_TaskPlan/TaskCalendarYearDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
+						data: (typeof (data) != 'undefined' ? data : null),
+						success: function (res) {
+							_TaskDetail.Calendar.Years = res.objects;
+						},
+					});
+
+
+			setTimeout(function() {
 
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
                     debugger;
@@ -262,15 +278,14 @@
 
                 _TaskDetail.Calendar.renderCalendars();
                 }
-                
+            }, 3000)
+
             },
             renderCalendars: function () {
                 $('#CalendarContainer .nav-tabs').html(null);
                 $('#CalendarContainer .tab-content').html(null);
 
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
-					_TaskDetail.IsError = false;
-
 
                     $.each(_TaskDetail.Calendar.Years, function (i, item) {
                         debugger;
@@ -311,7 +326,7 @@
 
                 });
                 }
-				
+
 
                 if ($('#CalendarContainer .nav-tabs li.active').length == 0) {
                     $('#CalendarContainer .nav-tabs li:first-child a').trigger('click')
@@ -464,52 +479,43 @@
 				$("#taskPlanDetailButton").addClass("hide");
 			}
         },
+        onChangeYear: function (e) {
+			var item = this.dataItem();
+
+            if (item != null && item.id != "") {
+                _TaskDetail.LoadPlans();
+ 			}
+        },
         LoadPlans: function (e) {
 
-			var year = $("#year").val();
-			var customer = $("#customerId").val();
-            var plan = $("#taskPlanId").val();
-
-			var text =  'Veriler yükleniyor. Lütfen bekleyiniz.';
-			var color =  "#000000";
-			var elem =  $('body');
-			var animation =  'rotatingPlane';
+			_TaskDetail.year = $("#year").val();
+			_TaskDetail.customer = $("#customerId").val();
+			_TaskDetail.plan = $("#taskPlanId").val();
 
 
 			$.ajax({
 				dataType: 'JSON',
 				type: 'POST',
-				async: true,
+				async: false,
 				timeout: 6000000,
-				url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarNewDataSource?year=' + year + '&customerId=' + customer + '&planId=' + plan,
+				url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarNewDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
 				data: (typeof (data) != 'undefined' ? data : null),
-				beforeSend: function () {
-					elem.loadingModal({ text: text, animation: animation, backgroundColor: color });
-				},
 				success: function (res) {
 					_TaskDetail.Model = res.objects;
-					_TaskDetail.Calendar.Years = res.objects.YearDatas;
 				},
-				complete: function () {
-					elem.loadingModal('destroy');
-				},
-				error: function () {
-					elem.loadingModal('destroy');
-					MesajError("İşlem Sırasında Hata Meydana Geldi. Lütfen Yöneticinize Başvurun.");
-				}
 			});
         },
     };
 
     $(document)
         .on('ready', function () {
-
-            setTimeout(function () { $("#calendarInitButton").click() }, 2500)
-			$("#calendarInitButton").click()
-
+            _TaskDetail.LoadPlans();
+			_TaskDetail.Calendar.init();
         })
 
         .on("click", "#calendarInitButton", function () {
+            _TaskDetail.LoadPlans();
+			$('body').loadingModal({ text: 'Takvim Hazırlanıyor. Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
 
 			_TaskDetail.Calendar.init();
         })
@@ -567,6 +573,7 @@
 									   .OptionLabel("Lütfen Yıl Seçiniz..")
 									   .DataValueField("id")
 									   .DataTextField("title")
+									   .Events(a => a.Change("_TaskDetail.onChangeYear"))
 									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
 									   .Value(DateTime.Now.Year.ToString())
 									   .Execute()
@@ -627,6 +634,7 @@
 
 			</div>
 		</div>
+
 
 		<div class="ibox-content clearfix">
 

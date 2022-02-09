@@ -118,22 +118,40 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				}
 			}
 
-			var data = new TaskSchedulerModel().TaskPlan.CalendarDataSourceByYear(userStatus, year.Value);
+
+
+
+			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
+		}
+
+		[AllowEveryone]
+		public ContentResult TaskCalendarYearDataSource(int? year, Guid? customerId, Guid? planId)
+		{
+			if (!year.HasValue)
+			{
+				year = DateTime.Now.Year;
+			}
+
+			var res = new List<object>();
+			var db = new WorkOfTimeDatabase();
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var data = new TaskSchedulerModel().TaskPlan.CalendarDataSourceByYear(userStatus, year.Value, customerId, planId);
 			var years = data.GroupBy(a => a.end.Year).Select(a => a.Key).OrderBy(a => a).ToArray();
 
 			foreach (var yeary in years)
 			{
 				var yearData = data.Where(a => a.dueDate.HasValue && a.dueDate.Value.Year == yeary).ToList();
-				res.YearDatas.Add(new VM_TaskTemplateYearList
+				res.Add(new VM_TaskTemplateYearList
 				{
 					Year = yeary,
 					Data = yearData
 				});
 			}
 
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
+
 		}
+
 
 		[PageInfo("Planlanmış Görev ve Şablon Detayı (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
 		public ActionResult TemplatePlanDetail(Guid id)
