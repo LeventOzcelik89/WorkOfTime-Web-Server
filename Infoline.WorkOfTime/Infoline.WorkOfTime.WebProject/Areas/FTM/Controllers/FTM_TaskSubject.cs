@@ -10,7 +10,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 {
 	public class FTM_TaskSubjectController : Controller
 	{
-		[PageInfo("Görev Konusu Tanımları", SHRoles.Personel)]
+		[PageInfo("Görev Konusu Tanımları",  SHRoles.IKYonetici, SHRoles.DepoSorumlusu, SHRoles.SahaGorevYonetici,SHRoles.SahaGorevOperator)]
 		public ActionResult Index(Guid? id)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -23,7 +23,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View(model);
 		}
 
-		[PageInfo("Görev Konuları Methodu", SHRoles.Personel)]
+		[PageInfo("Görev Konuları Methodu", SHRoles.IKYonetici, SHRoles.DepoSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
 		public ContentResult DataSource([DataSourceRequest] DataSourceRequest request)
 		{
 			var condition = KendoToExpression.Convert(request);
