@@ -11,13 +11,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.CMP
 {
     public class CMP_TypesController : Controller
 	{
-        [PageInfo("Firma&Cari Tip Tanımları", SHRoles.Personel)]
+        [PageInfo("Firma&Cari Tip Tanımları", SHRoles.IKYonetici,SHRoles.DepoSorumlusu,SHRoles.SahaGorevYonetici)]
         public ActionResult Index()
 		{
 			return View();
 		}
 
-        [PageInfo("Firma&Cari Tipleri Methodu", SHRoles.Personel)]
+        [PageInfo("Firma&Cari Tipleri Methodu", SHRoles.IKYonetici, SHRoles.DepoSorumlusu, SHRoles.SahaGorevYonetici)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);

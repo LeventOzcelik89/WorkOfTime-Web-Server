@@ -76,13 +76,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		{
 			return View();
 		}
-		[PageInfo("Haftalık Rapor", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+		[PageInfo("Haftalık Rapor", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator,SHRoles.SahaGorevYonetici)]
 		public ActionResult WeeklyReport()
 		{
 			return View();
 		}
-		[AllowEveryone]
-		[PageInfo("Operasyon Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
+		
+		[PageInfo("Operasyon Raporu", SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.SahaGorevYonetici)]
 		public ActionResult OperationReport(TaskOperationReportModel model)
 		{
 			return View(model.Load());

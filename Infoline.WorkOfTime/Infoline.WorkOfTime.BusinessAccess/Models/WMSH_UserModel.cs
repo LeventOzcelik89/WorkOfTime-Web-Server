@@ -393,6 +393,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             rs &= db.BulkDeletePA_Ledger(relatedAccountLedgers, this.trans);
             rs &= db.BulkDeletePA_Transaction(transactions, this.trans);
             rs &= db.BulkDeletePA_Account(accounts, this.trans);
+            rs &= new ConfirmationRefresher().RefreshAll(this.id,trans);
 
             if (rs.result == true)
             {
@@ -485,7 +486,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var user = db.GetVWSH_UserById(this.id);
             var company = db.GetCMP_CompanyById(user.CompanyId.Value);
-            if (company==null)
+            if (company == null)
             {
                 return new ResultStatus { result = false, message = "Kullanıcıya her hangi bir şirkete ait değildir." };
             }
@@ -503,16 +504,16 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (rs.result == true)
             {
 
-                    var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
+                var mesajIcerigi = string.Format(@"<h3>Merhaba!</h3> <p> {2} | WorkOfTime sistemi üzerinde oturum acabileceğiniz üyelik bilgileri aşagıdaki gibidir.</p>
                         <p><strong>Bayi : <strong><span style='color: #ed5565;'>{6}</span></p>
                         <p><strong>Kullanıcı Adı : <strong><span style='color: #ed5565;'>{3}</span><br> <small>E-mail veya TC-Kimklik numarası ile sisteme giriş yapabilirisiniz</small></p>
                         <p><strong>Şifre : <strong><span style='color: #ed5565;'>{0}</span></p>
                         <p><strong>E-Posta : <strong><span style='color: #ed5565;'>{4}</span></p>
                         <p> Web üzerinden giriş yapmak için lütfen <a href='{1}/Account/SignIn'> Buraya tıklayınız! </a></p>
-                        ", password, url, tenantName, user.email, user.email, "", company.name+ " ("+company.code+")");
+                        ", password, url, tenantName, user.email, user.email, "", company.name + " (" + company.code + ")");
 
-                    new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
-                              .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
+                new Email().Template("Template1", "userMailFoto.jpg", "Üyelik Bildirimi", mesajIcerigi)
+                          .Send((Int16)EmailSendTypes.ZorunluMailler, user.email, string.Format("{0} | {1}", tenantName, "Üyelik Bildirimi"), true);
                 return new ResultStatus { result = true, message = "Şifre gönderme işlemi başarıyla gerçekleşti." };
             }
             else
@@ -602,6 +603,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
             var trans = db.BeginTransaction();
             var rs = db.BulkUpdateINV_CompanyPersonDepartments(companyPersonDepartments, false, trans);
+            rs &= new ConfirmationRefresher().RefreshAll(this.id, trans);
             rs &= db.BulkUpdateINV_CompanyPersonSalary(companyPersonSalary, false, trans);
             rs &= db.UpdateINV_CompanyPerson(companyPerson, false, trans);
 
@@ -782,7 +784,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             this.status = false;
             this.CompanyId = company.id;
             this.type = (short)EnumSH_UserType.CompanyPerson;
-            this.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli)};
+            this.Roles = new List<Guid> { new Guid(SHRoles.HakEdisBayiPersoneli) };
 
             var result = this.Save();
             if (result.result)

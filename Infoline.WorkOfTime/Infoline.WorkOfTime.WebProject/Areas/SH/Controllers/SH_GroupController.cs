@@ -11,13 +11,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH
 {
     public class SH_GroupController : Controller
 	{
-        [PageInfo("Grup / Ekip Tanımlamaları", SHRoles.Personel)]
+        [PageInfo("Grup / Ekip Tanımlamaları", SHRoles.IKYonetici, SHRoles.DepoSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ActionResult Index()
 		{
 			return View();
 		}
 
-        [PageInfo("Grup & Ekip Tanımlamaları Methodu", SHRoles.Personel)]
+        [PageInfo("Grup & Ekip Tanımlamaları Methodu", SHRoles.IKYonetici, SHRoles.DepoSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator)]
         public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
