@@ -100,11 +100,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
-		public VWFTM_Task[] GetVWFTM_TaskByDueDateYear(int year, DbTransaction tran = null)
+		public VWFTM_Task[] GetVWFTM_TaskByDueDateYear(int year,Guid? customerId, Guid? planId, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
-				return db.ExecuteReader<VWFTM_Task>("SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE taskTemplateId is null and taskPlanId is null and YEAR(dueDate) = {0}", year).ToArray();
+				var query = "SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE YEAR(dueDate) = "+ year;
+				if (customerId.HasValue)
+				{
+					query += " AND customerId = '" + customerId.Value+"'";
+				}
+
+				if (planId.HasValue)
+				{
+					query += " AND taskplanId = '" + planId.Value+"'";
+				}
+				//else
+				//{
+				//	query += " AND taskTemplateId is null and taskPlanId is null";
+				//}
+
+				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
+
 			}
 		}
 
