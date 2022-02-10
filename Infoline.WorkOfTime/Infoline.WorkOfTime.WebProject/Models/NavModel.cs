@@ -423,6 +423,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(new Menu("Görev Yetki Tanımları", "/FTM/VWFTM_TaskAuthority/Index"));
             sistemYonetim.AddChild(new Menu("Sektör Tanımları", "/UT/VWUT_Sector/Index"));
             sistemYonetim.AddChild(new Menu("Banka Tanımları", "/UT/VWUT_Bank/Index"));
+            sistemYonetim.AddChild(new Menu("Şablonlar", "/UT/VWUT_Template/Index"));
             sistemYonetim.AddChild(new Menu("Satış Teklifi Şablonları", "/CMP/CMP_InvoiceDocumentTemplate/Index"));
             sistemYonetim.AddChild(new Menu("Grup / Ekip Tanımlamaları", "/SH/SH_Group/Index"));
             sistemYonetim.AddChild(new Menu("Rol Tanımları", "/SH/VWSH_Role"));
