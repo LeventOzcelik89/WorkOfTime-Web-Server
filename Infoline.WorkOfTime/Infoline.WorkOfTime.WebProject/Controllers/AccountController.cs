@@ -94,7 +94,7 @@ namespace Infoline.WorkOfTime.WebProject.Controllers
                 data = data,
                 permits = newListKeyValue,
                 permitTypes = permitTypes,
-                sH_ShiftTrackings = sH_ShiftTrackings,
+                sH_ShiftTrackings = sH_ShiftTrackings ?? new VWSH_ShiftTracking(),
 
             };
 
