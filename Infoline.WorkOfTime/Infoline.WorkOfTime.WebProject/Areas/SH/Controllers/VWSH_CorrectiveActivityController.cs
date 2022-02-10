@@ -13,12 +13,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_CorrectiveActivityController : Controller
 	{
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Listesi")]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Veri Methodu")]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +38,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Dropdown Methodu")]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Detayı")]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +60,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme")]
 		public ActionResult Insert()
 		{
 		    var data = new VWSH_CorrectiveActivity { id = Guid.NewGuid() };
@@ -60,6 +70,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme")]
 		public JsonResult Insert(SH_CorrectiveActivity item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -78,6 +90,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme")]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -87,6 +101,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme")]
 		public JsonResult Update(SH_CorrectiveActivity item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -108,6 +124,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
+		[AllowEveryone]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Silme")]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();

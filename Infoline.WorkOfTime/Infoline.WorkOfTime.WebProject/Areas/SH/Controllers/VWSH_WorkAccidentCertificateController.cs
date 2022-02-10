@@ -13,12 +13,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_WorkAccidentCertificateController : Controller
 	{
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim  Listesi")]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Veri Methodu")]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +38,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Dropdown Methodu")]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Detayı")]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +60,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
 		public ActionResult Insert()
 		{
 		    var data = new VWSH_WorkAccidentCertificate { id = Guid.NewGuid() };
@@ -60,6 +70,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
 		public JsonResult Insert(SH_WorkAccidentCertificate item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -78,6 +90,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -87,6 +101,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
 		public JsonResult Update(SH_WorkAccidentCertificate item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -108,6 +124,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Eğitim Silme")]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();

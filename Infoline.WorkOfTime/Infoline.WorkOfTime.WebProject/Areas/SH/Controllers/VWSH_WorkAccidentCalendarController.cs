@@ -13,12 +13,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_WorkAccidentCalendarController : Controller
 	{
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Etkinlik  Listesi")]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Etkinlik Veri Methodu")]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +38,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Dropdown Methodu")]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Detayı")]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +60,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
 		public ActionResult Insert()
 		{
 		    var data = new VWSH_WorkAccidentCalendar { id = Guid.NewGuid() };
@@ -60,6 +70,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
 		public JsonResult Insert(SH_WorkAccidentCalendar item)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -78,6 +90,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -86,6 +100,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(SH_WorkAccidentCalendar item)
 		{
@@ -108,6 +124,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
+		[AllowEveryone]
+		[PageInfo("Kazas Ve Olay Etkinlik Silme")]
 		public JsonResult Delete(string[] id)
 		{
 		    var db = new WorkOfTimeDatabase();
