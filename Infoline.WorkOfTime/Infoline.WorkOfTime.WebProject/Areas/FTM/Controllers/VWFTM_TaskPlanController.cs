@@ -86,15 +86,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return View(res);
 		}
 
-		[AllowEveryone]
 		[PageInfo("Bakım Planları", SHRoles.SahaGorevYonetici)]
 		public ActionResult AllTaskDetailNew()
 		{
 			return View();
 		}
 
-
-		[AllowEveryone]
+		[PageInfo("Bakım Planları DataSource (New)", SHRoles.SahaGorevYonetici)]
 		public ContentResult AllTaskCalendarNewDataSource(int? year, Guid? customerId, Guid? planId)
 		{
 			var model = new TaskSchedulerModel();
@@ -118,13 +116,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 				}
 			}
 
-
-
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
 		}
 
-		[AllowEveryone]
+		[PageInfo("Bakım Planı Aylara Göre DataSource", SHRoles.SahaGorevYonetici)]
 		public ContentResult TaskCalendarYearDataSource(int? year, Guid? customerId, Guid? planId)
 		{
 			if (!year.HasValue)
@@ -149,7 +144,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			}
 
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = res }), "application/json");
-
 		}
 
 

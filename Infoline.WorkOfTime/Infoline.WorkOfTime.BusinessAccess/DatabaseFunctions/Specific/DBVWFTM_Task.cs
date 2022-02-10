@@ -114,13 +114,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				{
 					query += " AND taskplanId = '" + planId.Value+"'";
 				}
-				//else
-				//{
-				//	query += " AND taskTemplateId is null and taskPlanId is null";
-				//}
-
 				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
-
 			}
 		}
 
