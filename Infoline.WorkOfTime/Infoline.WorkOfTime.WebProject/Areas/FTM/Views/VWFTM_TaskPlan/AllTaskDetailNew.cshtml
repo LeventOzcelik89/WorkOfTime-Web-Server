@@ -223,19 +223,9 @@
             Years: null,
             init: function () {
 
-				_TaskDetail.LoadPlans();
+				//_TaskDetail.LoadPlans();
 
-					$.ajax({
-						dataType: 'JSON',
-						type: 'POST',
-						async: true,
-						timeout: 6000000,
-						url: '/FTM/VWFTM_TaskPlan/TaskCalendarYearDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
-						data: (typeof (data) != 'undefined' ? data : null),
-						success: function (res) {
-							_TaskDetail.Calendar.Years = res.objects;
-						},
-					});
+					
 
 
 			setTimeout(function() {
@@ -495,13 +485,25 @@
 
 			$.ajax({
 				dataType: 'JSON',
-				type: 'POST',
-				async: false,
+                type: 'POST',
+                async: true,
 				timeout: 6000000,
 				url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarNewDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
 				data: (typeof (data) != 'undefined' ? data : null),
 				success: function (res) {
-					_TaskDetail.Model = res.objects;
+                    _TaskDetail.Model = res.objects;
+
+					$.ajax({
+						dataType: 'JSON',
+						type: 'POST',
+						async: false,
+						timeout: 6000000,
+						url: '/FTM/VWFTM_TaskPlan/TaskCalendarYearDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
+						data: (typeof (data) != 'undefined' ? data : null),
+						success: function (res) {
+							_TaskDetail.Calendar.Years = res.objects;
+						},
+					});
 				},
 			});
         },
