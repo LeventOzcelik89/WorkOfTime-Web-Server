@@ -329,6 +329,59 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		}
 
+		public VMFTM_TaskPlanCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			//var plans = db.GetVWFTM_TaskPlan()
+			//	.Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate >= DateTime.Now)
+			//	.ToList();
+
+			var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+			//  hali hazırda açılmış görevler
+
+			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < 13 and dueDate >= GETDATE()";
+			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+			{
+				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+				if (authoritys.Count() > 0)
+				{
+					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+
+					//plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+				}
+			}
+
+			var newTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
+
+			dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
+			{
+				a.lastOperationDate = null;
+			});
+
+			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			//foreach (var plan in plans)
+			//{
+			//	tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
+			//}
+
+			tasks.AddRange(dbtasks);
+
+			return tasks.ToArray();
+
+		}
+
+
 		public VMFTM_TaskPlanCalendarModel[] CalendarDataSourceByYear(PageSecurity userStatus, int year, Guid? customerId, Guid? planId)
 		{
 

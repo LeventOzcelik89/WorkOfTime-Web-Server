@@ -65,7 +65,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Bakım Planları", SHRoles.SahaGorevYonetici)]
-		public ActionResult AllTaskDetail()
+		public ActionResult AllTaskDetailOld()
 		{
 
 			var model = new TaskSchedulerModel();
@@ -87,7 +87,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		}
 
 		[PageInfo("Bakım Planları", SHRoles.SahaGorevYonetici)]
-		public ActionResult AllTaskDetailNew()
+		public ActionResult AllTaskDetail()
 		{
 			return View();
 		}
@@ -387,6 +387,17 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var tasks = new TaskSchedulerModel().TaskPlan.CalendarDataSource(userStatus);
+
+			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
+
+		}
+
+		[AllowEveryone]
+		[PageInfo("Planlanmış Görevler Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
+		public ContentResult CalendarNewDataSource()
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var tasks = new TaskSchedulerModel().TaskPlan.CalendarNewDataSource(userStatus);
 
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
 

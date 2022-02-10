@@ -100,20 +100,34 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			}
 		}
 
-		public VWFTM_Task[] GetVWFTM_TaskByDueDateYear(int year,Guid? customerId, Guid? planId, DbTransaction tran = null)
+		public VWFTM_Task[] GetVWFTM_TaskByDueDateYear(int year, Guid? customerId, Guid? planId, DbTransaction tran = null)
 		{
 			using (var db = GetDB(tran))
 			{
-				var query = "SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE YEAR(dueDate) = "+ year;
+				var query = "SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE YEAR(dueDate) = " + year;
 				if (customerId.HasValue)
 				{
-					query += " AND customerId = '" + customerId.Value+"'";
+					query += " AND customerId = '" + customerId.Value + "'";
 				}
 
 				if (planId.HasValue)
 				{
-					query += " AND taskplanId = '" + planId.Value+"'";
+					query += " AND taskplanId = '" + planId.Value + "'";
 				}
+				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
+			}
+		}
+
+
+		public VWFTM_Task[] GetVWFTM_TaskByQuery(string query, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				if (String.IsNullOrEmpty(query))
+				{
+					query = "SELECT * FROM VWFTM_Task WITH (NOLOCK)";
+				}
+
 				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
 			}
 		}
