@@ -62,86 +62,63 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 
 		[AllowEveryone]
 		[PageInfo("Şablon Ekleme")]
-		public ActionResult Insert()
+		public ActionResult Insert(VMUT_TemplateModel model)
 		{
-		    var data = new VWUT_Template { id = Guid.NewGuid() };
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Şablon Ekleme ")]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Insert(UT_Template item)
+		public JsonResult Insert(VMUT_TemplateModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertUT_Template(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success("Şablon kaydetme işlemi başarılı", false, Url.Action("Index", "VWUT_Template")) :
+						   feedback.Warning("Şablon kaydetme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Şablon Güncelleme")]
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VMUT_TemplateModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWUT_TemplateById(id);
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Şablon Güncelleme")]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(UT_Template item)
+		public JsonResult Update(VMUT_TemplateModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdateUT_Template(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success("Şablon güncelleme işlemi başarılı", false, Url.Action("Index", "VWUT_Template")) :
+						   feedback.Warning("Şablon güncelleme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Şablon Silme")]
 		[HttpPost]
-		public JsonResult Delete(string[] id)
+		public JsonResult Delete(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var feedback = new FeedBack();
-		
-		    var item = id.Select(a => new UT_Template { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeleteUT_Template(item);
-		
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			return Json(new ResultStatusUI(new VMUT_TemplateModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
+
 		}
 
 
