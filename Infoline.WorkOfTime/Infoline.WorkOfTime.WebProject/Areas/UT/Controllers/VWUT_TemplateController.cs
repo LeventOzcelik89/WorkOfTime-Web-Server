@@ -13,12 +13,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 {
 	public class VWUT_TemplateController : Controller
 	{
+		[AllowEveryone]
+		[PageInfo("Şablon Listesi")]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Listesi Veri Kaynağı")]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -34,6 +38,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Listesi Dropdown Methodu")]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -44,6 +50,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Detayı")]
 		public ActionResult Detail(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -52,6 +60,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Ekleme")]
 		public ActionResult Insert()
 		{
 		    var data = new VWUT_Template { id = Guid.NewGuid() };
@@ -59,6 +69,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Ekleme ")]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(UT_Template item)
 		{
@@ -78,6 +90,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Güncelleme")]
 		public ActionResult Update(Guid id)
 		{
 		    var db = new WorkOfTimeDatabase();
@@ -86,6 +100,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Güncelleme")]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(UT_Template item)
 		{
@@ -107,6 +123,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
+		[AllowEveryone]
+		[PageInfo("Şablon Silme")]
 		[HttpPost]
 		public JsonResult Delete(string[] id)
 		{
