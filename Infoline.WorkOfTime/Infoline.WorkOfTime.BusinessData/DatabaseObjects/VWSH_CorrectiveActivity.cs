@@ -13,5 +13,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public DateTime? date { get; set;}
         public Guid? templateId { get; set;}
         public string content { get; set;}
+        public string code { get; set;}
     }
 }
