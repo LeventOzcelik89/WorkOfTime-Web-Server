@@ -4,44 +4,31 @@
 }
 
 
-<div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
+<div class="col-12">
+    <div class="statbox widget box box-shadow">
+        <div class="widget-header">
+            <h4>Şablon Listesi</h4>
+        </div>
+        <div class="widget-content widget-content-area">
+            @(Html.Akilli()
+            .Grid<Infoline.WorkOfTime.BusinessData.VWUT_Template>("VWUT_Template")
+            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_Template", new { area = "UT" })).PageSize(25))
+            .Columns(x =>
+            {
+                x.Bound(y => y.title).Title("Şablon Başlığı").Width(150);
+                x.Bound(y => y.created).Title("Oluşturulma Tarihi").Format(Extensions.DateFormatShort(true)).Width(150);
+                x.Bound(y => y.type_Title).Title("Şablon Tipi").Width(150);
+                x.Bound(y => y.status_Title).Title("Şablon Durumu").Width(150);
+                x.Bound(y => y.code).Title("Şablon Kodu").Width(150);
+            })
+            .Scrollable(x => x.Height(600))
+            .Selectable(x => x.Mode(GridSelectionMode.Single))
+            .ToolBar(x =>
+            {
+                x.Custom().Text("<i data-original-title='Şablon Oluştur' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Insert", "VWUT_Template", new { area = "UT" }));
+                x.Custom().Text("<i data-original-title='Şablonu Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Update", "VWUT_Template", new { area = "UT" }));
+                x.Custom().Text("<i data-original-title='Şablonu Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_Template", new { area = "UT" }));
+            }))
+        </div>
     </div>
 </div>
-
-
-@(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWUT_Template>("VWUT_Template")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWUT_Template", new { area = "UT" })).PageSize(25))
-    .Columns(x =>
-    {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.full_Title).Title("full_Title").Width(180);
-        x.Bound(y => y.createdby_Title).Title("createdby_Title").Width(180);
-        x.Bound(y => y.changedby_Title).Title("changedby_Title").Width(180);
-        x.Bound(y => y.status_Title).Title("status_Title").Width(180);
-        x.Bound(y => y.type_Title).Title("type_Title").Width(180);
-        x.Bound(y => y.code).Title("code").Width(180);
-        x.Bound(y => y.title).Title("title").Width(180);
-        x.Bound(y => y.template).Title("template").Width(180);
-        x.Bound(y => y.status).Title("status").Width(180);
-        x.Bound(y => y.type).Title("type").Width(180);
-    })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .ToolBar(x =>
-    {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWUT_Template", new { area = "UT" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWUT_Template", new { area = "UT" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWUT_Template", new { area = "UT" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWUT_Template", new { area = "UT" }));
-    }))
