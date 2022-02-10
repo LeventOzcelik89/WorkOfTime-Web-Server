@@ -301,7 +301,6 @@ namespace System.Web.Mvc
             sahayonetimi.AddChild(new Menu("Görev Haritası", "/FTM/VWFTM_Task/Map"));
             sahayonetimi.AddChild(new Menu("Görev Şablonları", "/FTM/VWFTM_TaskTemplate/Index"));
             sahayonetimi.AddChild(new Menu("Bakım Envanterleri", "/PRD/VWPRD_Inventory/IndexMaintance"));
-            sahayonetimi.AddChild(new Menu("Bakım Periyotları", "/PRD/VWPRD_InventoryTask/Index"));
             sahayonetimi.AddChild(new Menu("Görev Formları", "/FTM/VWFTM_TaskForm"));
             sahayonetimi.AddChild(new Menu("Görev Takvimi", "/FTM/VWFTM_TaskPlan/Calendar"));
            
