@@ -1,0 +1,710 @@
+﻿@{
+	ViewBag.Title = "Planlanmış Görev Listesi";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<style type="text/css">
+
+	#CalendarContainer .calendar-header {
+		display: none;
+	}
+
+	.withTabs .customTabs:before {
+		content: 'YIL :';
+	}
+
+	.legendTable tr td {
+		padding: 4px;
+	}
+
+	.tab-content {
+		border: none !important;
+	}
+
+	.withTabs .tab-content .tab-pane {
+		padding: 0px;
+	}
+
+	.calendar {
+		padding: 0px !important;
+		margin: 20px 0px;
+	}
+
+	.popover {
+		max-width: 360px !important;
+		z-index: 2001;
+	}
+
+	.popover-content {
+		width: 320px;
+	}
+
+	.capt {
+		text-decoration: underline;
+		margin-bottom: 10px;
+		margin-top: 10px;
+	}
+
+	.popover .btn-group {
+		width: 100%;
+		margin-top: 10px;
+		border-top: 1px solid #ccc;
+		padding-top: 10px;
+		margin-left: -15px;
+		width: calc(30px + 100%);
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+
+		.popover .btn-group .btn {
+			float: right;
+		}
+
+	.popover-content h3 {
+		color: #f00;
+	}
+
+	[class^="levelLegend"] {
+		width: 30px;
+		height: 18px;
+		display: inline-block;
+		float: left;
+		margin-right: 6px;
+		margin-left: 6px;
+	}
+
+	.levelLegend1 {
+		background: #bc0101;
+		margin-left: 0px !important;
+	}
+
+	.levelLegend2 {
+		background-color: #ec7c1e;
+	}
+
+	.levelLegend3 {
+		background-color: #13a261;
+	}
+
+	.levelLegend4 {
+		background-color: #ffcc16;
+	}
+
+	.levelLegend5 {
+		background-color: #1e4dec;
+	}
+
+	.legendTable {
+		margin-bottom: 4px;
+		clear: none;
+		border: 1px solid #EBEBEB;
+	}
+
+	.calPopover .close {
+		margin-top: -12px;
+		margin-right: -8px;
+	}
+
+	[data-target="type_Title"] .badge > i {
+		margin-right: 4px;
+	}
+
+	.detailList li > i, .detailList li > strong {
+		float: left;
+	}
+
+	.detailList li > i {
+		margin-right: 5px;
+	}
+
+	.detailList li {
+		text-align: right;
+	}
+
+	#insertRadio.akilliRadioGrup label {
+		width: 8.4% !important;
+	}
+</style>
+
+<link href="~/Content/YearCalendar/css/bootstrap-year-calendar.css" rel="stylesheet" />
+<link href="~/Content/YearCalendar/css/custom-year-calendar.css" rel="stylesheet" />
+<script src="~/Content/YearCalendar/js/custom-year-calendar.js"></script>
+
+<script type="text/javascript">
+
+    var _TaskDetail = {
+        customerId: null,
+        Model: null,
+        year: null,
+        customer: null,
+        plan: null,
+        StatusList: [
+            { Key: 'Göreve Başlanmadı', Codes: [0, 1, 2, 10, 11, 12], Color: '#bc0101', ColorNextDays: 'rgba(188, 1, 1, 60%)' },
+            { Key: 'Görev Devam Ediyor', Codes: [13, 20, 21, 22, 23, 24, 25, 26, 27], Color: '#ec7c1e' },
+            { Key: 'Görev Tamamlandı', Codes: [30, 31, 32, 40], Color: '#13a261' },
+            { Key: 'Görev Planlandı', Codes: [null], Color: '#ffcc16' },
+            { Key: 'Diğer', Codes: [999], Color: '#1e4dec' },
+        ],
+        Operations: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>()))),
+        Types: @(Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))),
+        GetStatus: function (items) {
+
+            var its = $.Enumerable.From(items)
+                .GroupBy(a => { return a.lastOperationStatus; })
+                .Select(a => {
+
+                    var _val = a.Key();
+
+                    return $.Enumerable.From(_TaskDetail.StatusList).Where(a => { return a.Codes.indexOf(_val) > -1 }).FirstOrDefault() ?? _TaskDetail.StatusList[4];
+
+                }).ToArray();
+
+            var group = $.Enumerable.From(its).GroupBy(a => { return a.Key; });
+            var max = group.OrderByDescending(a => { return a.Count(); }).FirstOrDefault();
+
+            if (group.Count() > 1) {
+                return _TaskDetail.StatusList[4];   //  diğer
+            } else {
+                return max.source[0];
+            }
+
+            //            başlanmadı
+            //  13,20,21,22,23,24,25    başlandı
+            //  26,27                   başlandı
+            //  30,31,32,40             bitti
+            //  null                    planlanmış görev
+            //  diğerleri gri
+
+        },
+        Calendar: {
+            activeYear: null,
+            POP: {
+                list: [],
+                HasValue: function (_date) {
+
+                    return $.Enumerable.From(_TaskDetail.Calendar.POP.list).Any(a => { return a.date == kendo.toString(_date, 'yyyy-MM-dd') });
+
+                },
+                Hide: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    _TaskDetail.Calendar.POP.list = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    $(item.elem).popover('hide');
+
+                },
+                HideAll: function () {
+
+                    $.each(_TaskDetail.Calendar.POP.list, function (i, item) {
+
+                        $(item.elem).popover('hide');
+
+                    });
+
+                    _TaskDetail.Calendar.POP.list = [];
+
+                },
+                Toggle: function (_date, _elem) {
+
+                    var item = { date: _date, elem: _elem };
+                    item.date = kendo.toString(item.date, 'yyyy-MM-dd');
+
+                    var _it = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date == item.date }).FirstOrDefault();
+
+                    if (_it == null) {
+                        _TaskDetail.Calendar.POP.list.push(item);
+                    } else {
+                        _TaskDetail.Calendar.POP.list = $.Enumerable.From(_TaskDetail.Calendar.POP.list).Where(a => { return a.date != item.date; }).ToArray();
+                    }
+
+                }
+            },
+            Years: null,
+            init: function () {
+
+				//_TaskDetail.LoadPlans();
+
+					
+
+
+			setTimeout(function() {
+
+                if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+                    debugger;
+
+
+                    $.Enumerable.From(_TaskDetail.Calendar.Years)
+                        .SelectMany(a => { return a.Data; })
+                        .GroupBy(a => { return a.taskPlanId; })
+                        .Select(a => {
+
+                            $('.customList [data-plan="' + a.Key() + '"]').find('[data-target="count"]').html(kendo.toString(a.Count(), 'N0'));
+
+                        }).ToArray()
+
+                    $.each(_TaskDetail.Calendar.Years, function (i, item) {
+
+                        $.each(item.Data, function (id, data) {
+
+                          if (data.end == null) { return; }
+
+                          var k = kendo.toString(new Date(data.end), 'yyyy-MM-dd 00:00:00');
+
+                          data.startDate = new Date(k);
+                          data.endDate = new Date(k);
+                          data.status = $.Enumerable.From(_TaskDetail.StatusList).Where(a => { return a.Codes.indexOf(data.lastOperationStatus) > -1 }).FirstOrDefault()
+                              ?? _TaskDetail.StatusList[4];
+                          data.color = data.status.Color;
+
+                        });
+
+                    });
+
+				setTimeout(function () {
+					$('body').loadingModal('destroy');
+					$("#calendarInitButton").removeClass("active");
+				}, 2000)
+
+                _TaskDetail.Calendar.renderCalendars();
+                }
+            }, 3000)
+
+            },
+            renderCalendars: function () {
+                $('#CalendarContainer .nav-tabs').html(null);
+                $('#CalendarContainer .tab-content').html(null);
+
+                if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
+
+                    $.each(_TaskDetail.Calendar.Years, function (i, item) {
+                        debugger;
+                    var planIds = $.Enumerable.From($('.customList > [data-show="true"]').map(function (i, item) { return $(item).attr('data-plan') }));
+
+                    if (_TaskDetail.customerId != null && _TaskDetail.customerId != "") {
+                        item.Data = $.Enumerable.From(item.Data).Where(x => x.customerId == _TaskDetail.customerId).ToArray();
+                    }
+
+                    $.Enumerable.From(item.Data)
+                        .Where(a => { return a.taskPlanId == null || planIds.Contains(a.taskPlanId); })
+                        .GroupBy(a => { return kendo.toString(a.startDate, 'yyyy-MM-dd'); })
+                        .Select(a => {
+
+                            var stat = _TaskDetail.GetStatus(a.source);
+
+                            $.each(a.source, function (i, item) {
+
+                                if (stat.ColorNextDays != undefined && new Date(a.Key() + ' 00:00:00') > new Date()) {
+                                    item.color = stat.ColorNextDays;
+                                } else {
+                                    item.color = stat.Color;
+                                }
+
+                            });
+
+                        }).ToArray();
+
+                    if (_TaskDetail.Calendar.activeYear == null && item.Year == new Date().getFullYear()) {
+
+                        _TaskDetail.Calendar.activeYear = item.Year;
+                    }
+
+                    _TaskDetail.Calendar.initCalendar(
+                        item.Year,
+                        $.Enumerable.From(item.Data).Where(a => { return a.taskPlanId == null || planIds.Contains(a.taskPlanId); }).ToArray()
+                    );
+
+                });
+                }
+
+
+                if ($('#CalendarContainer .nav-tabs li.active').length == 0) {
+                    $('#CalendarContainer .nav-tabs li:first-child a').trigger('click')
+                }
+
+            },
+            initCalendar: function (year, data) {
+
+                var _id = 'tab_' + newGuid().substring(0, 8);
+                var _idCalendar = 'calendar_' + newGuid().substring(0, 8);
+
+
+				const d = new Date();
+				var yearData = d.getFullYear();
+
+                if ($("#year").val() != '') {
+					yearData = parseInt($("#year").val())
+				}
+
+				var cls = (year == yearData ? 'active' : '');
+
+                var itemNav = '<li class="' + cls + '"><a data-toggle="tab" href="#' + _id + '" data-year="' + year + '">' + year + '</a></li>';
+                var elemNav = $('<div id="' + _id + '" class="tab-pane ' + cls + '"><div id="' + _idCalendar + '"></div></div>')
+
+                $('#CalendarContainer .nav-tabs').append(itemNav);
+                $('#CalendarContainer .tab-content').append(elemNav);
+
+                $('#' + _idCalendar).calendar({
+                    startYear: year,
+                    style: 'background',
+                    dataSource: data,
+                    language: "tr",
+                    minDate: new Date(year, 0, 1),
+                    maxDate: new Date(year, 11, 31),
+                    toolbar: ["pdf"],
+                    renderEnd: function (e) {
+                        //Doldurulacak
+                    },
+                    mouseOnDay: function (e) {
+
+                        if (e.events.length > 0 && !_TaskDetail.Calendar.POP.HasValue(e.date)) {
+
+                            var items = $.Enumerable.From(e.events);
+
+                            var temp = $($('#temp').html());
+                            temp.find('[data-target="taskCount"]').html(items.Count());
+                            temp.find('[data-target="detail"]').attr('href', temp.find('[data-target="detail"]').attr('href') + items.Select(a => { return a.id; }).ToArray().join(','));
+
+                            //  Tüm görevler planlanmış ise realde herhangi bir görev yoksa
+                            if (items.Count(a => { return a.lastOperationStatus == null; }) == items.Count()) {
+                                temp.find('[data-target="detail"]').attr('href', '#').attr('disabled', 'disabled').removeAttr('target');
+                            }
+
+                            temp.find('.close').on('click', function () {
+                                _TaskDetail.Calendar.POP.Hide(e.date, e.element);
+                            });
+
+                            items
+                                .GroupBy(a => { return a.customer_Title; })
+                                .Select(a => {
+
+                                    var el = $($('#temp_Customer').html());
+                                    el.html(a.Key());
+                                    el.attr('href', el.attr('href') + a.Max(b => { return b.customerId; }));
+                                    el.appendTo(temp.find('[data-target="customers"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.type_Title; })
+                                .Select(a => {
+
+                                    var _type = $.Enumerable.From(_TaskDetail.Types).Where(b => { return b.Value == a.Key(); }).FirstOrDefault();
+
+                                    var el = $('<div class="block"><span class="badge">' + '<i class="' + _type.Generic.icon + '"></i>' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="type_Title"]'));
+
+                                })
+                                .ToArray();
+
+                            items
+                                .GroupBy(a => { return a.status.Key; })
+                                .Select(a => {
+
+                                    var el = $('<div class="block"><span class="badge badge-white" style="color: ' + a.source[0].status.Color + '; border: 1px solid; ">' + a.source.length + ' ' + a.Key() + '</span></div>');
+                                    el.appendTo(temp.find('[data-target="KeyStatus"]'));
+
+                                })
+                                .ToArray();
+
+                            $(e.element).popover({
+                                trigger: 'manual',
+                                container: 'body',
+                                html: true,
+                                content: temp,
+                                placement: 'top'
+                            });
+
+                            $(e.element).popover('show');
+
+                        }
+                        else {
+
+                            if (!_TaskDetail.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+
+                        }
+                    },
+                    clickDay: function (e) {
+
+                        _TaskDetail.Calendar.POP.Toggle(e.date, e.element);
+
+                    },
+                    mouseOutDay: function (e) {
+                        if (e.events.length > 0) {
+                            if (!_TaskDetail.Calendar.POP.HasValue(e.date)) {
+                                $(e.element).popover('hide');
+                            }
+                        }
+                    },
+                });
+
+            }
+        },
+        onChangeCustomerId: function (e) {
+            _TaskDetail.customerId = this.dataItem().Id;
+            //_TaskDetail.Calendar.init();
+            //_TaskDetail.Calendar.renderCalendars();
+
+            if (this.value() != "") {
+				var filter = ("(customerId~eq~'" + _TaskDetail.customerId + "')");
+				var filterJSON = kendo.filterParser(filter);
+				$('#taskPlanId').data("kendoDropDownList").dataSource.filter(filterJSON);
+            }
+			else {
+				$('#taskPlanId').data("kendoDropDownList").dataSource.filter(null);
+			}
+
+        },
+        onChangeTaskPlan: function (e) {
+			var item = this.dataItem();
+
+			if (item != null && item.id != "") {
+				$("#taskPlanDetailButton").removeClass("hide");
+				$("#taskPlanDetailButton").attr("href", '/FTM/VWFTM_TaskPlan/TaskDetail?id=' + item.id);
+			}
+			else {
+				$("#taskPlanDetailButton").addClass("hide");
+			}
+        },
+        onChangeYear: function (e) {
+			var item = this.dataItem();
+
+            if (item != null && item.id != "") {
+                _TaskDetail.LoadPlans();
+ 			}
+        },
+        LoadPlans: function (e) {
+
+			_TaskDetail.year = $("#year").val();
+			_TaskDetail.customer = $("#customerId").val();
+			_TaskDetail.plan = $("#taskPlanId").val();
+
+
+			$.ajax({
+				dataType: 'JSON',
+                type: 'POST',
+                async: true,
+				timeout: 6000000,
+				url: '/FTM/VWFTM_TaskPlan/AllTaskCalendarNewDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
+				data: (typeof (data) != 'undefined' ? data : null),
+				success: function (res) {
+                    _TaskDetail.Model = res.objects;
+
+					$.ajax({
+						dataType: 'JSON',
+						type: 'POST',
+						async: false,
+						timeout: 6000000,
+						url: '/FTM/VWFTM_TaskPlan/TaskCalendarYearDataSource?year=' + _TaskDetail.year + '&customerId=' + _TaskDetail.customer + '&planId=' + _TaskDetail.plan,
+						data: (typeof (data) != 'undefined' ? data : null),
+						success: function (res) {
+							_TaskDetail.Calendar.Years = res.objects;
+						},
+					});
+				},
+			});
+        },
+    };
+
+    $(document)
+        .on('ready', function () {
+            _TaskDetail.LoadPlans();
+			_TaskDetail.Calendar.init();
+        })
+
+        .on("click", "#calendarInitButton", function () {
+            _TaskDetail.LoadPlans();
+			$('body').loadingModal({ text: 'Takvim Hazırlanıyor. Lütfen Bekleyiniz...', animation: 'rotatingPlane', backgroundColor: 'black' });
+
+			_TaskDetail.Calendar.init();
+        })
+
+        .on('click', '[data-toggle="tab"]', function () {
+
+            _TaskDetail.Calendar.POP.HideAll();
+
+        })
+
+        .on('shown.bs.tab', 'a[href="#GridTasks"]', function (e) {
+
+            $("#VWFTM_Task").data("kendoGrid").refresh();
+
+        })
+
+        .on('shown.bs.tab', '#CalendarContainer .nav li', function () {
+
+            _TaskDetail.Calendar.activeYear = parseInt($(this).find('a').attr('data-year'));
+
+        })
+
+        .on('success', '#MultipleForm', function (e, res) {
+
+            if (res.Result) {
+
+                setTimeout(function () { document.location.reload() }, 4000);
+
+            }
+
+        })
+
+        .on('click', '.customList .showhide', function () {
+
+            $(this).toggleClass('active');
+
+            $(this).parents('[data-plan]').attr('data-show', $(this).hasClass('active'));
+
+            _TaskDetail.Calendar.renderCalendars();
+
+        })
+        ;
+</script>
+
+<div class="row">
+	<div class="col-lg-12">
+		<div class="ibox">
+			<div class="ibox-content" style="border-bottom:1px #e7eaec solid;">
+				<div class="row">
+					<div class="col-md-2">
+						<div class="form-group">
+							@(
+									   Html.Akilli()
+									   .DropDownList("year")
+									   .OptionLabel("Lütfen Yıl Seçiniz..")
+									   .DataValueField("id")
+									   .DataTextField("title")
+									   .Events(a => a.Change("_TaskDetail.onChangeYear"))
+									   .Action(b => b.Action("GetYears", "General", new { area = "" }))
+									   .Value(DateTime.Now.Year.ToString())
+									   .Execute()
+                                   )
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="form-group">
+							@(
+                 Html.Kendo().DropDownList()
+                 .Name("customerId")
+                 .HtmlAttributes(new Dictionary<string, object>()
+                 {
+                      {"style", "width:100%"},
+                      {"class", "form-control"},
+                 })
+                .OptionLabel("Müşteri Seçiniz..")
+                .DataTextField("Name")
+                .DataValueField("Id")
+                .Events(a => a.Change("_TaskDetail.onChangeCustomerId"))
+                .DataSource(source =>
+                {
+                    source.Read(read =>
+                    {
+                        read.Action("GetVWFTM_TaskCustomers", "General", new { area = String.Empty });
+                    });
+                }).Filter(FilterType.Contains)
+                )
+						</div>
+					</div>
+					<div class="col-md-3">
+						<div class="input-group">
+							@(
+							 Html.Akilli()
+							 .DropDownList("taskPlanId")
+							 .OptionLabel("Lütfen Plan Seçiniz..")
+							 .DataValueField("id")
+							 .DataTextField("name")
+							 //.Template("#=TemplateEngine('companyTemplate',data)#")
+							 .Action(b => b.Action("DataSourceDropDown", "VWFTM_TaskPlan", new { area = "FTM" }))
+							 .Events(a => a.Change("_TaskDetail.onChangeTaskPlan"))
+							 .Sort(x => x.Add("name").Ascending())
+							 .Execute()
+                                )
+							<span class="input-group-addon">
+								<a class="btn pull-right  btn btn-primary hide" style="color:white;" id="taskPlanDetailButton" target="_blank" href="/FTM/VWFTM_TaskPlan/TaskDetail"> <i class="fa fa-info-circle" data-original-title="Plan Detayı"></i> </a>
+
+							</span>
+						</div>
+					</div>
+					<div class="col-md-2 pull-right">
+						<a class="btn btn-md btn-block btn-primary" data-href="/FTM/VWFTM_TaskPlan/InsertMultiple" style="line-height: 27px" data-modal="true" data-task="Insert"> <i class="fa fa-plus-circle"></i> Yeni Plan Tanımla </a>
+					</div>
+					<div class="col-md-2 pull-right">
+						<button class="btn btn-md btn-block btn-success" type="submit" id="calendarInitButton" style="line-height: 27px">Sorgula</button>
+					</div>
+				</div>
+
+			</div>
+		</div>
+
+
+		<div class="ibox-content clearfix">
+
+			<fieldset class="withTabs" id="CalendarContainer">
+				<legend>TAKVİM GÖRÜNÜMÜ</legend>
+
+				<table class="legendTable">
+					<tbody>
+						<tr>
+							<td>Göreve <b>Başlanmadı</b> <span class="levelLegend1"></span></td>
+							<td>Görev <b>Devam Ediyor</b> <span class="levelLegend2"></span></td>
+							<td>Görev <b>Tamamlandı</b> <span class="levelLegend3"></span></td>
+							<td>Görev <b>Planlandı</b> <span class="levelLegend4"></span></td>
+							<td><b>Diğer</b> <span class="levelLegend5"></span></td>
+						</tr>
+					</tbody>
+				</table>
+
+				@*<ul class="nav nav-tabs customTabs usel"></ul>*@
+
+
+
+
+
+				<div class="tab-content"></div>
+
+			</fieldset>
+
+		</div>
+
+	</div>
+</div>
+
+<script type="text/template" id="rowTemplate">
+	<tr>
+		<td data-elem="customer_Title"></td>
+		<td data-elem="type_Title"></td>
+		<td data-elem="lastOperationStatus_Title"></td>
+	</tr>
+</script>
+
+<script type="text/template" id="temp_Customer">
+	<a href="/CMP/VWCMP_Company/Detail?id=" target="_blank" class="block" data-target="customerTitle"></a>
+</script>
+
+<script type="text/template" id="temp">
+	<div class="calPopover">
+
+		<button class="close">×</button>
+
+		<h3 class="text-center">Toplam <span data-target="taskCount"></span> Görev</h3>
+
+		<div class="capt">Müşteriler</div>
+		<div data-target="customers"></div>
+
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="capt">Görev Tipleri</div>
+				<div data-target="type_Title"></div>
+			</div>
+			<div class="col-sm-6">
+				<div class="capt">Görev Durumları</div>
+				<div data-target="KeyStatus"></div>
+			</div>
+		</div>
+
+		<div class="btn-group">
+			<a class="btn btn-xs btn-default" target="_blank" href="/FTM/VWFTM_Task/Index?ids=" data-target="detail">Detay</a>
+		</div>
+	</div>
+</script>

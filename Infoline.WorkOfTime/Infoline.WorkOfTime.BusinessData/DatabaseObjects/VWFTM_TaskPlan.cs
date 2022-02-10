@@ -22,5 +22,6 @@ namespace Infoline.WorkOfTime.BusinessData
         public string frequency_Title { get; set;}
         public string taskCreationTime_Title { get; set;}
         public string templateId_Title { get; set;}
+        public Guid? customerId { get; set;}
     }
 }
