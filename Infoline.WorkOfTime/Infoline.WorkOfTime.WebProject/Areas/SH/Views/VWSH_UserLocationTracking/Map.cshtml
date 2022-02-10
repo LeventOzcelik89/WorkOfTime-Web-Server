@@ -1,0 +1,96 @@
+﻿@model VWUT_LocationUserFilter
+@{
+    ViewBag.Title = "Personel Takip Haritası";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (Infoline.WorkOfTime.BusinessAccess.PageSecurity)Session["userStatus"];
+}
+<link href="/Content/UserLocationMap/map.css" rel="stylesheet" data-selector="modalContainer" />
+
+<div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
+    <div class="btn-bar left top animated slideInLeft">
+        <div class="btn-container m-b-lg">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.home(this)" data-placement="right" data-original-title="Odaklan"><i class="fa fa-home"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomIn(this)" data-placement="right" data-original-title="Yakınlaştır"><i class="fa fa-plus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomOut(this)" data-placement="right" data-original-title="Uzaklaştır"><i class="fa fa-minus"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.zoomMove(this)" data-placement="right" data-original-title="İmleç ile Yakınlaştır"><i class="flaticon-zoom-in"></i></button>
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.layersSwip(this)" data-placement="right" data-original-title="Altlık Perdesi"><i class="flaticon-arrows-1"></i></button>
+        </div>
+    </div>
+    <div class="btn-bar left bottom animated slideInUp" id="ColorInfoBox" style="bottom: 15px;">
+        <div class="btn-container">
+            <button class="btn btn-lg btn-circle btn-custom" onclick="page.fn.colorInfoSelect(this)" data-placement="top" data-original-title="Renklendirme Bilgisi"><i class="fa fa-adjust"></i></button>
+        </div>
+        <div id="ColorInfo" class="color-bar">
+            <table class="slider">
+                <tbody>
+                    <tr>
+                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">İlk Konum</td>
+                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">Konum</td>
+                        <td class="category" style="height: 48px;width: 90px; line-height: 48px;background-color: #f8ac59;padding: 0 10px 0 10px;">Son Konum</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="btn-bar right top animated slideInRight" style="width:340px;right:-280px;">
+        <div class="btn-container m-b-lg">
+            <button id="searchButton" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'search')"><i class="fa fa-sliders"></i></button>
+        </div>
+        <div class="pan-container">
+            <div id="search" class="pan-content">
+                <div class="pan-head clearfix">
+                    PERSONEL TAKİBİ SORGULA
+                </div>
+                <div class="pan-body form-horizontal">
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md">Başlangıç Tarihi </label>
+                            @(Html.Akilli().DateTimePickerFor(a => a.StartDateTime)
+                            .Value(DateTime.Now.AddDays(-1)).HtmlAttributes(new Dictionary<string, object>()
+                            {
+                                {"class", "form-control"},
+                                {"placeholder", "Lütfen Başlangıç Tarihi Girin.."},
+                            }).MaxDateElement("EndDateTime"))
+
+
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md">Bitiş Tarihi</label>
+                            @(Html.Akilli().DateTimePickerFor(a => a.EndDateTime)
+                                    .Value(DateTime.Now).HtmlAttributes(new Dictionary<string, object>()
+                                    {
+                                        {"class", "form-control"},
+                                        {"placeholder", "Lütfen Bitiş Tarihi Girin.."},
+                                    }).MinDateElement("StartDateTime"))
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="col-md-12">
+                            <label class="control-label label-md">Satış Personeli</label>
+                            @(Html.Akilli()
+                                .DropDownListFor(a => a.userId)
+                                .OptionLabel("Satış Personeli Ara")
+                                .MinLength(0)
+                                .DataTextField("FullName")
+                                .DataValueField("id")
+                                .DataSource(a => a.Read("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                                .Filter<VWCMP_Company>(f => f.type == (int)EnumCMP_CompanyType.Benimisletmem)
+                                .Sort(x => x.Add("FullName").Ascending())
+                                .Execute("id")
+                    )
+                        </div>
+                    </div>
+                </div>
+                <div class="pan-footer clearfix">
+                    <button class="btn btn-primary" style="float:right" onclick="page.onChangeDate()"><i class="fa fa-filter"></i> Sorgula </button>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script src="/Content/UserLocationMap/map.js" data-selector="modalContainer"></script>

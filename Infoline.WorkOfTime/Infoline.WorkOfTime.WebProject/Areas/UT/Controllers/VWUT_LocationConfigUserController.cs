@@ -236,7 +236,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
         public ContentResult GetMapData(DateTime startDate, DateTime endDate, Guid userId)
         {
             var db = new WorkOfTimeDatabase();
-            var trackingDatas = new SH_UserLocationTrackingMap();
+            var trackingDatas = new VWSH_UserLocationTrackingMap();
             var locationTrackingDatas = db.GetVWUT_LocationTrackingByUserIdAndDates(userId, startDate, endDate);
             if (locationTrackingDatas.Count() > 0)
             {
