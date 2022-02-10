@@ -8,12 +8,12 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    public class SH_UserLocationTrackingModel
+    public class VWSH_UserLocationTrackingModel
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
     }
-    public class SH_UserLocationTrackingMap
+    public class VWSH_UserLocationTrackingMap
     {
         public VWUT_LocationTracking[] LocationTrackings { get; set; }
         public VWUT_LocationConfigUser[] LocationTrackingsAll { get; set; }
@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public string Department_Title { get; set; }
     }
 
-    public class UT_LocationUserFilter
+    public class VWUT_LocationUserFilter
     {
         public Guid? userId { get; set; } = null;
         public DateTime StartDateTime { get; set; }
