@@ -1,6 +1,6 @@
 ﻿@model TaskOperationReportModel
 @{
-	ViewBag.Title = "Yönetici Operasyon Raporu";
+	ViewBag.Title = "Operasyon Raporu";
 	Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
@@ -147,7 +147,7 @@
 					temp.find('#planTaskId').addClass("hide");
 
 
-					var el = $('<div class="block"><span class="badge badge-white" style="color:' + taskPlanDay.color + ';border: 1px solid; ">' + taskPlanDay.isComplateTaskCount + ' / ' + taskPlanDay.totalTaskCount + '</span></div>');
+					var el = $('<div class="block"><span class="badge badge-white" style="color:' + taskPlanDay.color + ';border: 1px solid; ">' + taskPlanDay.totalTaskCount + ' / ' + taskPlanDay.isComplateTaskCount + '</span></div>');
 					el.appendTo(temp.find('[data-target="KeyStatus"]'));
 
 					if (taskPlanDay.taskIds.length > 0) {
@@ -294,7 +294,7 @@
 							for (int i = 0; i < Model.operationReportList.Select(a => a.days.Count()).FirstOrDefault(); i++)
 							{
 								d.Bound("days["+i+ "].title").Title(Model.operationReportList.Select(a => a.days[i].title).FirstOrDefault()).ClientTemplate("#=TemplateEngine('taskPlanListTemplate',data.days[" + i + "])#").Filterable(false).Width(45).HeaderHtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center" } })
-								   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center;border-right:1px solid lightgray;border-bottom:1px solid lightgray;" } }).Width(75);
+								   .HtmlAttributes(new Dictionary<string, object>() { { "style", "text-align:center;border-right:1px solid lightgray;border-bottom:1px solid lightgray;" } }).Width(80);
 							}
 						}));
 					})
@@ -425,7 +425,7 @@
 			@if (Model.operationChartDataList.Count() > 0)
 			{
 				<div class="row">
-					<div class="col-lg-12">
+					<div class="col-lg-6">
 						<div class="ibox ">
 							<div class="ibox-title">
 								<h5><i class="fa fa-pie-chart"></i> Aylık Görev Tipleri Dağılımı</h5>
@@ -434,29 +434,29 @@
 							</div>
 							<div class="ibox-content ibox-content_image clearfix">
 								@(Html.Kendo().Chart()
-        .Name("chart")
-                .Title(title => title
-                    .Position(ChartTitlePosition.Top))
-        .Legend(legend => legend
-            .Visible(false)
-        )
-        .ChartArea(chart => chart
-            .Background("transparent")
-         )
-        .HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/shared/styles/world-map.png")})
-        .Series(series => {
-            series.Pie(Model.operationChartDataList)
-            .Labels(labels => labels
-                .Template("#= category #: \n #= value# Adet")
-                .Background("transparent")
-                .Visible(true)
-            )
-            .StartAngle(150);
-        })
-        .Tooltip(tooltip => tooltip
-            .Visible(true)
-            .Format("{0} Adet")
-        )
+		.Name("chart")
+				.Title(title => title
+					.Position(ChartTitlePosition.Top))
+		.Legend(legend => legend
+			.Visible(false)
+		)
+		.ChartArea(chart => chart
+			.Background("transparent")
+		 )
+		.HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/Custom/img/world-map.png") })
+		.Series(series => {
+			series.Pie(Model.operationChartDataList)
+			.Labels(labels => labels
+				.Template("#= category #: \n #= value# Adet")
+				.Background("transparent")
+				.Visible(true)
+			)
+			.StartAngle(150);
+		})
+		.Tooltip(tooltip => tooltip
+			.Visible(true)
+			.Format("{0} Adet")
+		)
     )
 							</div>
 						</div>
@@ -466,47 +466,46 @@
 
 						</div>
 					</div>
-					@*<div class="col-lg-6">
-								<div class="ibox ">
-									<div class="ibox-title">
-										<h5><i class="fa fa-pie-chart"></i> @DateTime.Now.ToString("dd.MM.yyyy") Tarihli Aylık Görev Tipleri Dağılımı</h5>
-										<div class="ibox-tools">
-										</div>
-									</div>
-									<div class="ibox-content ibox-content_image clearfix">
-										@(Html.Kendo().Chart()
-					.Name("chart2")
-							.Title(title => title
-								.Position(ChartTitlePosition.Bottom))
-					.Legend(legend => legend
-						.Visible(false)
-					)
-					.ChartArea(chart => chart
-						.Background("transparent")
-					 )
-					.HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/shared/styles/world-map.png")})
-					.Series(series => {
-						series.Pie(Model.operationChartTodayDataList)
-						.Labels(labels => labels
-							.Template("#= category #: \n #= value# Adet")
-							.Background("transparent")
-							.Visible(true)
-						)
-						.StartAngle(150);
-					})
-					.Tooltip(tooltip => tooltip
-						.Visible(true)
-						.Format("{0} Adet")
-					)
-				)
-									</div>
+					<div class="col-lg-6">
+						<div class="ibox ">
+							<div class="ibox-title">
+								<h5><i class="fa fa-pie-chart"></i> Müşteri Bazlı Aylık Görev Dağılımı</h5>
+								<div class="ibox-tools">
 								</div>
+							</div>
+							<div class="ibox-content ibox-content_image clearfix">
+								@(Html.Kendo().Chart()
+									 .Name("chart2")
+											 .Title(title => title
+												 .Position(ChartTitlePosition.Top))
+									 .Legend(legend => legend
+										 .Visible(false)
+									 )
+									 .ChartArea(chart => chart
+										 .Background("transparent")
+									  )
+									 .HtmlAttributes(new { style="background: center no-repeat url(" + @Url.Content("~/Content/Custom/img/world-map.png") })
+									 .Series(series => {
+										 series.Pie(Model.operationCustomerChartDataList)
+										 .Labels(labels => labels
+											 .Template("#= category #: \n #= value# Adet")
+											 .Background("transparent")
+											 .Visible(true)
+										 )
+										 .StartAngle(150);
+									 })
+									 .Tooltip(tooltip => tooltip
+										 .Visible(true)
+										 .Format("{0} Adet")
+									 ))
+							</div>
+						</div>
 
 
-								<div class="demo-section k-content wide">
+						<div class="demo-section k-content wide">
 
-								</div>
-							</div>*@
+						</div>
+					</div>
 				</div>
 			}
 
@@ -543,7 +542,7 @@
 				<div data-target="type_Title"></div>
 			</div>
 			<div class="col-sm-6" id="KeyStatusId">
-				<div class="capt">Tamamlanan/Toplam</div>
+				<div class="capt">Toplam/Tamamlanan</div>
 				<div data-target="KeyStatus"></div>
 			</div>
 		</div>

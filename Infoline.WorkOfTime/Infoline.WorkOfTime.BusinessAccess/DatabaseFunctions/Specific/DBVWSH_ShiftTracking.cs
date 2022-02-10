@@ -49,6 +49,10 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
         }
 
+  
+
+
+
         public VWSH_ShiftTracking GetVWSH_ShiftTrackingLastRecordByUserIdAndDateAndTypeInvetory(Guid userid, DateTime date)
         {
             using (var db = GetDB())

@@ -22,8 +22,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		public List<ActivityResult> activityResultList { get; set; } = new List<ActivityResult>();
 		public List<OperationReportModel> operationReportList { get; set; } = new List<OperationReportModel>();
 		public List<OperationChartModel> operationChartDataList { get; set; } = new List<OperationChartModel>();
-		public List<OperationChartModel> operationChartTodayDataList { get; set; } = new List<OperationChartModel>();
-
+		public List<OperationChartModel> operationCustomerChartDataList { get; set; } = new List<OperationChartModel>();
 
 
 		public TaskOperationReportModel Load()
@@ -45,6 +44,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 			startDate = new DateTime(year.Value, month.Value, 1);
 			endDate = startDate.AddMonths(1).AddDays(-1);
+			Random rnd = new Random();
 
 			this.operationReportList = new List<OperationReportModel>();
 			var tasks = db.GetVWFTM_TaskBetweenPlanDates(startDate, endDate);
@@ -56,21 +56,12 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				var ftmTaskOperation = db.GetVWFTM_TaskOperationStatusApprovedByTaskIds(tasks.Select(x => x.id).ToArray());
 				var userIds = tasks.Where(x => x.assignUserId.HasValue).Select(x => x.assignUserId.Value).ToArray();
 
-				Random r = new Random();
-
-				foreach (var task in tasks.GroupBy(a => a.type_Title))
+				this.operationChartDataList.AddRange(tasks.GroupBy(a => a.type_Title).Select(b => new OperationChartModel
 				{
-					var rs = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumFTM_TaskType>().Where(
-				x => Convert.ToInt32(x.Key) == (Int16)(EnumFTM_TaskType)task.Select(a => a.type).FirstOrDefault())
-				.FirstOrDefault();
-
-					this.operationChartDataList.Add(new OperationChartModel
-					{
-						category = task.Key,
-						value = task.Count(),
-						color = rs.Generic["color"]
-					});
-				}
+					category = b.Key,
+					value = b.Count(),
+					color = "#" + Color.FromArgb(rnd.Next(256), Color.CornflowerBlue).Name.Substring(0, 6)
+				}));
 
 
 				var taskStaffReportList = new List<VWFTM_Task>();
@@ -110,18 +101,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 							allStaffCount = x.Where(a => a.assignUserId.HasValue).Select(b => b.assignUserId.Value).Count(),
 							allHelperStaffCount = x.Where(a => a.helperUserIds != null).Select(b => b.helperUserIds.Split(',')).Count()
 						}).ToList();
-
-
-						//this.taskCustomerReportTodayList = tasks.Where(a => new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).GroupBy(x => x.customer_Title).Select(x => new TaskCustomerReportResult
-						//{
-						//	FullName = x.Key,
-						//	allTaskCount = tasks.Where(c => c.customer_Title == x.Key && new DateTime(c.created.Value.Year, c.created.Value.Month, c.created.Value.Day) == today).Count(),
-						//	finishedTask = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Count(),
-						//	finishedTaskIds = tasks.Where(a => (a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumBildirildi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.CozumOnaylandi || a.lastOperationStatus == (Int32)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi) && a.customer_Title == x.Key && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(l => l.id).ToArray(),
-						//	allStaffCount = x.Where(a => a.assignUserId.HasValue && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(b => b.assignUserId.Value).Count(),
-						//	allHelperStaffCount = x.Where(a => a.helperUserIds != null && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == today).Select(b => b.helperUserIds.Split(',')).Count()
-						//}).ToList();
-
 					}
 				}
 
@@ -140,7 +119,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 						var title = "";
 
-
 						if (date.DayOfWeek == DayOfWeek.Monday)
 						{
 							title = "Pzt";
@@ -148,27 +126,22 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						else if (date.DayOfWeek == DayOfWeek.Tuesday)
 						{
 							title = "Sal";
-
 						}
 						else if (date.DayOfWeek == DayOfWeek.Wednesday)
 						{
 							title = "Çrş";
-
 						}
 						else if (date.DayOfWeek == DayOfWeek.Thursday)
 						{
 							title = "Prş";
-
 						}
 						else if (date.DayOfWeek == DayOfWeek.Friday)
 						{
 							title = "Cum";
-
 						}
 						else if (date.DayOfWeek == DayOfWeek.Saturday)
 						{
 							title = "Cmt";
-
 						}
 						else
 						{
@@ -178,17 +151,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						var taskOperationDay = new TaskOperationDay
 						{
 							date = date,
-							title =  date.Day.ToString()+" "+title,
+							title = date.Day.ToString() + " - " + title,
 							text = ""
 						};
 
 						if (customerTasks.Where(a => a.created.HasValue && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == date).Count() > 0)
 						{
 							var selectedTasks = customerTasks.Where(a => a.created.HasValue && new DateTime(a.created.Value.Year, a.created.Value.Month, a.created.Value.Day) == date).ToArray();
-
 							if (selectedTasks.Count() > 0)
 							{
-
 								taskOperationDay.taskPlanId = task.Key;
 								taskOperationDay.taskIds.AddRange(selectedTasks.Select(a => a.id).ToArray());
 								taskOperationDay.totalTaskCount = selectedTasks.Count();
@@ -221,8 +192,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 											   (gun > 0 ? gun + " gün " : "") +
 											   (dakika > 0 ? dakika + " saat " : "") +
 											   (girdi > 0 ? girdi + " dakika " : "");
-
-
 							}
 
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount > 0 && taskOperationDay.totalTaskCount != taskOperationDay.isComplateTaskCount)
@@ -230,7 +199,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								taskOperationDay.color = "rgb(255 187 0 / 85%)";
 								taskOperationDay.className = "badge badge-warning";
 								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
-
 							}
 
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount > 0 && taskOperationDay.totalTaskCount == taskOperationDay.isComplateTaskCount)
@@ -238,7 +206,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								taskOperationDay.color = "#1ab394";
 								taskOperationDay.className = "badge badge-primary";
 								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
-
 							}
 
 							if (taskOperationDay.totalTaskCount > 0 && taskOperationDay.isComplateTaskCount == 0)
@@ -246,7 +213,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								taskOperationDay.color = "rgb(255 0 0 / 54%)";
 								taskOperationDay.className = "badge badge-danger";
 								taskOperationDay.text = taskOperationDay.totalTaskCount + " / " + taskOperationDay.isComplateTaskCount;
-
 							}
 
 							if (taskOperationDay.totalTaskCount == 0 && taskOperationDay.isComplateTaskCount == 0 && taskOperationDay.taskPlanId == null)
@@ -269,12 +235,17 @@ namespace Infoline.WorkOfTime.BusinessAccess
 						taskSubjectId_Title = customerTasks.Where(a => a.customerId == task.Key).Select(b => b.taskSubjectType_Title).FirstOrDefault()
 					});
 
-
 					taskOperationReportDays = new List<TaskOperationDay>();
 					whileStartDate = new DateTime(startDate.Ticks);
 					taskNo = 0;
 				}
 
+				this.operationCustomerChartDataList.AddRange(operationReportList.Select(a => new OperationChartModel
+				{
+					category = a.taskPlanName,
+					value = a.days.Where(b => b.taskPlanId.HasValue).Sum(c => c.totalTaskCount),
+					color = "#" + Color.FromArgb(rnd.Next(256), Color.CadetBlue).Name.Substring(0, 6)
+				}));
 			}
 			return this;
 		}
