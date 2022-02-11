@@ -15,31 +15,24 @@
 </script>
 
 
-
 <div class="row">
 	<div class="col-md-12">
 		<div class="ibox m-b-none">
 			<div class="ibox-title">
 				<div class="col-md-6">
-					<h5>Görev Takvimi</h5>
+					<h5>Görev Havuzu</h5>
 				</div>
 				<div class="col-md-6">
-
 					<div class="btn-group pull-right" style="margin-top: -5px;">
 					</div>
-
 				</div>
 			</div>
 			<div class="ibox-content">
-
-				<div id="TaskCalendar"></div>
-
+				<div id="TaskGrid"></div>
 			</div>
 		</div>
-	</div>
 
-	<div class="col-md-12">
-		<div class="ibox m-b-none">
+		<div class="ibox m-b-none" style="margin-top: 25px;">
 			<div class="ibox-title">
 				<div class="col-md-9">
 					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
@@ -60,8 +53,6 @@
 					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
 						<i style="color:#ff0000" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler</span>
 					</span>
-
-
 				</div>
 				<div class="col-md-3">
 					<div class="btn-group pull-right">
@@ -94,57 +85,146 @@
 
 </script>
 
-<style type="text/css">
-	.type, .priority, .operation {
-		background-color: #ffffff;
-		padding: 2px;
-		float: left;
-		margin: -4px 2px 0px 0px;
-		font-weight: bold;
-		color: #000;
-	}
-
-	.event-scheduled {
-		background-color: #f08080;
-		height: 100%;
-	}
-
-	@@media (min-width: 992px) {
-		.modal-lg {
-			width: 1200px !important;
-		}
-	}
-
-	.modal-dialog .modal-body,
-	.modal-dialog .tab-pane,
-	.modal-dialog .ibox {
-		padding: 0px;
-	}
-
-	.modal-body form {
-		padding: 15px !important;
-	}
-
-	.k-event {
-		cursor: pointer;
-	}
 
 
-	element.style {
-	}
+<script type="text/x-kendo-template" id="FTM_TaskTemplate" data-selector="modalContainer">
+    #var types = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>()))#
+    #var priorityType = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))#
+    #var color ="text-primary"#
 
-	#insertRadio label {
-		width: 9.1% !important;
-	}
+    #if(priority==0)
+	{#
+    #color = "text-danger"#
+    #}
+	else if(priority==1)
+	{#
+    #color = "text-warning"#
+    #}
+	else if(priority==2){#
+    #color = "text-primary"#
+    #}#
 
-	#insertRadio.akilliRadioGrup i.icon-shuffle {
-		font-size: 30px !important;
-	}
-</style>
+    #var slaStatus = @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskSLAStatus>()));#
+
+    <table class="table shoping-cart-table">
+        <tbody>
+            <tr>
+                <td style="width:3%;text-align: center;vertical-align: inherit;">
+                    <span>
+                        #if((assignUserId!=null && isComplete=='0') && lastOperationStatus!='30' && lastOperationStatus!='26'){#
+                        <i style="font-size: 25px;" class="icon-clock #:color#" st></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                        <i style="font-size: 25px;" class="icon-users #:color#"></i><br />
+                        #}
+
+                        else if((assignUserId==null && assignableUserIds==null) && isComplete=='0'){#
+                        <i style="font-size: 25px;" class="icon-user-add #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='26'){#
+                        <i style="font-size: 25px;" class="icon-pause #:color#"></i><br />
+                        #}
+
+                        else if(isComplete=='0' && lastOperationStatus=='30' ){#
+                        <i style="font-size: 25px;" class="icon-arrows-cw #:color#"></i><br />
+                        #}
+
+                        else if(isComplete='1'){#
+                        <i style="font-size: 25px;" class="fa fa-check #:color#"></i><br />
+                        #}#
+
+
+                    </span>
+                </td>
+
+                <td class="desc" style="width:55%;">
+                    #if(taskPlanId_Title!=null){#
+                    <div style="font-size:13px;"><strong>Bakım Planı : </strong>#=taskPlanId_Title#</div>
+                    #}#
+                    #if(type_Title != null){#
+                    <div style="font-size:13px;"><strong>Görev Tipi  : <a style="font-size: 15px;" class="#:types.filter(function(e){return e.Key == type}).map(a=>a.Generic['icon'])#"></a></strong>#=type_Title#</div>
+                    #}#
+
+                    #if(description!=null){#
+                    #if(description.length >= 25){#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description.substring(0,50)#...</div>
+                    #}
+                    else
+                    {#
+                    <div style="font-size:13px;"><strong>Görev Açıklaması : </strong>#=description#</div>
+                    #}#
+                    #}#
+
+                    #if(code!=null){#
+                    <div style="font-size:13px;"><strong>Görev Kodu : </strong>#=code#</div>
+                    #}#
+
+                    #if(customer_Title!=null){#
+                    <div style="font-size:13px;"><strong>Müşteri İşletme : </strong>#=customer_Title#</div>
+                    #}#
+
+                    #if(customerStorage_Title!=null){#
+                    <div style="font-size:13px;"><strong>Şube/Depo/Kısım : </strong>#=customerStorage_Title#</div>
+                    #}#
+
+                    #if(fixture_Title!=null){#
+                    <div style="font-size:13px;"><strong>Görevli Envanter : </strong>#=' ( ' +fixture_Title + ' ) '#</div>
+                    #}#
+
+                    <div style="font-size:13px;"><strong>Planlanan Başlangıç/Bitiş Tarihi : </strong>#:(planStartDate != null ?  kendo.toString(kendo.parseDate(planStartDate), "dd.MM.yyyy HH:mm") : '-')# / #:(dueDate != null ?  kendo.toString(kendo.parseDate(dueDate), "dd.MM.yyyy HH:mm") : '-')#</div>
+
+                    #if(lastOperationStatus_Title!=null){#
+                    <div style="font-size:13px;"><strong>Son İşlem : </strong>#=lastOperationStatus_Title#</div>
+                    #}#
+
+
+
+                    #if(penaltyStartDate!=null){#
+                    <div style="font-size:13px"><strong>SLA Başlangıç Tarihi  :</strong><span style="color:red;font-weight:bold"> #=kendo.toString(penaltyStartDate,"dd.MM.yyyy HH:mm")#  #=(SLAText ? ' | '+SLAText : '')# </span></div>
+                    <div style="font-size:13px"><strong>SLA Ceza Tutarı  :</strong><span style="color:red;font-weight:bold"> #=amercementTotal#  ₺ </span> </div>
+                    #}#
+
+                    #if((assignUserId==null && assignableUserIds!=null) && isComplete==0){#
+                    <div style="font-size:13px;"><strong>Üstlenebilecek Personeller : </strong> #=assignableUserTitles# </div>
+                    #}#
+
+
+
+                    #if(taskSubjectType_Title != null){#
+                    <span style="font-size:13px;"><strong>Görev Konuları : </strong>#=(SplitDataReturnBadge(taskSubjectType_Title ?? ''))#</span>
+                    #}#
+                   </td>
+	               <td style="width:5%;vertical-align: inherit;">
+	               #if(transactionCount > 0){#
+
+	                <a href="/PA/VWPA_Transaction/IndexAllRequest?id=#:id#" target="_blank" class="btn btn-xs btn-success"> <i class="fa fa-money"></i> Görev Masrafları</a>
+
+	                #}#
+
+	                #if(planLater == @((int)EnumFTM_TaskPlanLater.Evet)){#
+                     <span>
+                        <i style="font-size: 28px;margin-right: 64px;" class="icon-clock text-success" data-toggle="tooltip" data-placement="top" title="Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekliyor." st=""></i><br>
+                    </span>
+	                #}#
+
+
+	            </td>
+                <td style="width:10%;vertical-align: inherit;">
+                     <span>
+                        <a data-task="Insert" data-href="/FTM/VWFTM_Task/Update?id=#=id#"><i style="font-size: 42px;margin-right: 64px;" class="fa fa-user" data-toggle="tooltip" data-placement="top" title="Göreve Atama Yap" st=""></i></a><br>
+                    </span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+</script>
 
 <script type="text/javascript">
 
-    var _calendar = {
+    var _Grid = {
         elem: null,
         data: {
             types: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>())),
@@ -153,37 +233,39 @@
         },
         init: function () {
 
-            $('#TaskCalendar').kendoScheduler({
-                date: new Date(),
-                localization: 'tr-TR',
-                editable: false,
-                eventTemplate: $("#eventTemplate2").html(),
-                views: [
-                    { type: 'day' },
-                    { type: 'week', selected: true },
-                    { type: 'month' }
-                ]
-            });
 
-            this.elem = $('#TaskCalendar').data('kendoScheduler');
+			this.GetTasks();
 
-            this.GetTasks();
-
+            this.elem = $('#TaskGrid').data('kendoGrid');
         },
         GetTasks: function () {
 
             ReadData('/FTM/VWFTM_TaskPlan/CalendarNewDataSource', {}, function (res) {
 
-                _calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
-                    data: res
-                }));
+				var columns = [
+					{
+						field: "type_Title",
+						title: " ",
+						template: kendo.template($("#FTM_TaskTemplate").html()),
+						filterable: false
+					}
+				]
+
+				opts = {
+					Data: res,
+					Column: columns,
+					Filtreable: false,
+					selectable: true
+				};
+
+				GridRender(opts, $('#TaskGrid'));
 
             });
 
         },
         ShowTask: function (uid) {
 
-            var dataItem = _calendar.elem.occurrenceByUid(uid);
+            var dataItem = _Grid.elem.occurrenceByUid(uid);
 
             if (dataItem.IsTemplate == true) {
                 Kendo_GetRequest('/FTM/VWFTM_TaskPlan/InsertMultiple?id=' + dataItem.taskPlanId, null, $('<a data-method="GET" />'), 'type-info');
@@ -196,7 +278,7 @@
 
     function GetType(_key) {
 
-        var item = $.Enumerable.From(_calendar.data.types).Where(a => { return a.Key == _key; }).FirstOrDefault();
+        var item = $.Enumerable.From(_Grid.data.types).Where(a => { return a.Key == _key; }).FirstOrDefault();
 
         if (item == null) {
             return '';
@@ -208,7 +290,7 @@
 
     function GetPriority(_key) {
 
-        var item = $.Enumerable.From(_calendar.data.priority).Where(a => { return a.Key == _key; }).FirstOrDefault();
+        var item = $.Enumerable.From(_Grid.data.priority).Where(a => { return a.Key == _key; }).FirstOrDefault();
 
         if (item == null) {
             return '';
@@ -220,7 +302,7 @@
 
     function GetOperation(_key) {
 
-        var item = $.Enumerable.From(_calendar.data.taskOperation).Where(a => { return a.Key == _key; }).FirstOrDefault();
+        var item = $.Enumerable.From(_Grid.data.taskOperation).Where(a => { return a.Key == _key; }).FirstOrDefault();
 
         if (item == null) {
             return '';
@@ -232,11 +314,11 @@
 
     $(document)
 
-        .on('click', '#TaskCalendar .k-event', function () {
+        .on('click', '#TaskGrid .k-event', function () {
 
             var uid = $(this).attr('data-uid');
 
-            _calendar.ShowTask(uid);
+            _Grid.ShowTask(uid);
 
         })
 
@@ -247,17 +329,16 @@
 
         .on('ready', function () {
 
-            _calendar.init();
+            _Grid.init();
 			createScheduler(null, null);
-        })
-
+		})
         .on('success', '#MultipleForm', function (e,res) {
 
             if (res.Result == true) {
 
                 setTimeout(function () {
 
-                    _calendar.GetTasks();
+                    _Grid.GetTasks();
 
                 }, 200);
 
@@ -279,7 +360,7 @@
 		var startDate = $('#startDate').data('kendoDatePicker').value();
 		var scheduler = $("#scheduler").data("kendoScheduler");
 
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserNewReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
 
 			if (startDate == null) {
 				startDate = new Date();
@@ -332,7 +413,7 @@
 			startDate = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
 		}
 
-		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserNewReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
 
 			if (startDate == null) {
 				startDate = new Date();
@@ -400,7 +481,7 @@
 
 
 	}
-	
+
 </script>
 
 <script id="event-template" type="text/x-kendo-template">
