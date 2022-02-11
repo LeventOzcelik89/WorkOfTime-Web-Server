@@ -54,9 +54,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		[PageInfo("Şablon Detayı")]
 		public ActionResult Detail(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWUT_TemplateById(id);
-		    return View(data);
+		    return View(new VMUT_TemplateModel { id = id}.Load());
 		}
 
 
