@@ -238,7 +238,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 {
                     Result = false,
                     Object = item.id,
-                    FeedBack = feedback.Warning("Mesaiye Başlanma Başarısız.")
+                    FeedBack = feedback.Warning("Mesaiye Başlama işlemi daha önce yapıldığı için Mesaiye Başlama işlemi başarısız oldu.")
                 }, JsonRequestBehavior.AllowGet);
             }
          
@@ -264,13 +264,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var userStatus = (PageSecurity)Session["userStatus"];
 
             var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
+            if (shift == 1)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mesai bitirildiği için mesai başlamadan başka işlem gerçekleştirilemez.")
+                }, JsonRequestBehavior.AllowGet);
+            }
             if (shift != 0 && shift != 3)
             {
                 return Json(new ResultStatusUI
                 {
                     Result = false,
                     Object = item.id,
-                    FeedBack = feedback.Warning("Mola Verme Başarısız")
+                    FeedBack = feedback.Warning("Mola verildiği için mola bitirilmeden başka işlem gerçekleştirilemez.")
                 }, JsonRequestBehavior.AllowGet);
             }
             item.id = Guid.NewGuid();
@@ -302,7 +311,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
                 {
                     Result = false,
                     Object = item.id,
-                    FeedBack = feedback.Warning("Mola Bitirilme İşlemi Başarısız Oldu.")
+                    FeedBack = feedback.Warning("Mola daha önce bitirildiği için mola bitirilme işlemi başarısız oldu.")
                 }, JsonRequestBehavior.AllowGet);
             }
             item.id = Guid.NewGuid();
@@ -327,6 +336,24 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var userStatus = (PageSecurity)Session["userStatus"];
 
             var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
+            if (shift == 2)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mola verildiği için mola bitirilmeden başka işlem gerçekleştirilemez.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+            if (shift == 1)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    Object = item.id,
+                    FeedBack = feedback.Warning("Mesai bitirildiği için mesai başlamadan başka işlem gerçekleştirilemez.")
+                }, JsonRequestBehavior.AllowGet);
+            }
             if (shift != 3 && shift != 0)
             {
                 return Json(new ResultStatusUI
