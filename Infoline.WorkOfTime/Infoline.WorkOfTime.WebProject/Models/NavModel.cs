@@ -42,6 +42,7 @@ namespace System.Web.Mvc
                     _root.Add(MyJobs());
                     _root.Add(GetOfisYonetimi());
                     _root.Add(GetIK(userStatus));
+                    _root.Add(GetISG());
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
@@ -219,6 +220,16 @@ namespace System.Web.Mvc
             return ik;
         }
 
+        private Menu GetISG()
+        {
+            var menu = new Menu("İş Sağlığı ve Güvenliği", "#", "icon-medkit");
+            menu.AddChild(new Menu("Kaza ve Olay Bildirimleri", "/SH/VWSH_WorkAccident/Index"));
+            menu.AddChild(new Menu("Düzenleyici Önleyici Faaliyetler", "/SH/VWSH_CorrectiveActivity/Index"));
+            
+
+            return menu;
+        }
+
         private Menu GetCRM()
         {
             var crm = new Menu("CRM - Müşteri İlişkileri", "#", "fa fa-dollar");
@@ -301,7 +312,6 @@ namespace System.Web.Mvc
             sahayonetimi.AddChild(new Menu("Görev Haritası", "/FTM/VWFTM_Task/Map"));
             sahayonetimi.AddChild(new Menu("Görev Şablonları", "/FTM/VWFTM_TaskTemplate/Index"));
             sahayonetimi.AddChild(new Menu("Bakım Envanterleri", "/PRD/VWPRD_Inventory/IndexMaintance"));
-            sahayonetimi.AddChild(new Menu("Bakım Periyotları", "/PRD/VWPRD_InventoryTask/Index"));
             sahayonetimi.AddChild(new Menu("Görev Formları", "/FTM/VWFTM_TaskForm"));
             sahayonetimi.AddChild(new Menu("Görev Takvimi", "/FTM/VWFTM_TaskPlan/Calendar"));
            
@@ -424,6 +434,7 @@ namespace System.Web.Mvc
             sistemYonetim.AddChild(new Menu("Görev Yetki Tanımları", "/FTM/VWFTM_TaskAuthority/Index"));
             sistemYonetim.AddChild(new Menu("Sektör Tanımları", "/UT/VWUT_Sector/Index"));
             sistemYonetim.AddChild(new Menu("Banka Tanımları", "/UT/VWUT_Bank/Index"));
+            sistemYonetim.AddChild(new Menu("Şablonlar", "/UT/VWUT_Template/Index"));
             sistemYonetim.AddChild(new Menu("Satış Teklifi Şablonları", "/CMP/CMP_InvoiceDocumentTemplate/Index"));
             sistemYonetim.AddChild(new Menu("Grup / Ekip Tanımlamaları", "/SH/SH_Group/Index"));
             sistemYonetim.AddChild(new Menu("Rol Tanımları", "/SH/VWSH_Role"));

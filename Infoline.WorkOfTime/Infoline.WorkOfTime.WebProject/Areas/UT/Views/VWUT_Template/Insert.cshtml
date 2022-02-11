@@ -1,0 +1,208 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWUT_Template
+@{
+    ViewBag.Title = "Şablon Oluştur";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script type="text/javascript" data-selector="modalContainer">
+    $('input[type=radio][name=type]').change(function () {
+        if (this.value == 0) {
+            //$(".meetingDropDown").show();
+            //$(".projectDropDown").hide();
+        }
+        else if (this.value == 1) {
+            //$(".meetingDropDown").hide();
+            //$(".projectDropDown").show();
+        }
+    });
+
+    function hideProjectDropDown() {
+        $(".projectDropDown").hide();
+    };
+</script>
+@using (Html.BeginForm("Insert", "VWUT_Template", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+
+    <div class="row">
+        <div class="form-group col-md-8">
+            <label for="code" class="req">Şablon Kodu</label>
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen Şablon Kodu giriniz.."}
+            }).Validate(Validations.TextEverywhere(true))
+        </div>
+
+        <div class="form-group col-md-3 pull-right">
+            <label class="req" for="status">Şablon Durumu</label>
+            @(Html.Akilli().RadioButtonGroupFor(a=>a.status).Value(EnumUT_TemplateStatus.active))
+        </div>
+
+    </div>
+
+    <div class="form-group">
+        <label for="title" class="req">Şablon Tipi</label>
+        @(
+            Html.Akilli().
+            DropDownListFor(model => model.type).
+            OptionLabel("Lütfen Şablon Tipi İşlemi Seçiniz..").
+            DataTextField("enumDescription").
+            DataValueField("Id").
+            Action(b => b.Action("GetEnums", "General", new { area = string.Empty })).
+            Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "UT_Template" && a.fieldName == "type").
+            Sort(x => x.Add("enumKey").Ascending()).
+            Validate(Validations.Required).
+            Execute("enumKey")
+        )
+    </div>
+
+    <div class="form-group">
+        <label for="title" class="req">Şablon Başlığı</label>
+        @Html.TextBoxFor(model => model.title, new Dictionary<string, object>()
+        {
+            {"class", "form-control"},
+            {"placeholder", "Lütfen Şablon Başlığı giriniz.."}
+        }).Validate(Validations.TextEverywhere(true))
+    </div>
+
+    <div class="form-group">
+        <label for="content" class="req" style="text-transform:uppercase;font-weight:bold;font-size:12px;color:rgb(0 0 0 / 70%);">Şablon İçeriği</label>
+        @Html.HiddenFor(a => a.template)
+        @Html.TextArea("templateFakeElement", HttpUtility.HtmlDecode(Model.template))
+        <script type="text/javascript">
+            var editor = CKEDITOR.replace('templateFakeElement', {
+                language: 'tr',
+                height: 320,
+                htmlEncodeOutput: true,
+                removeButtons: 'Save',
+                removePlugins: 'Save'
+            });
+
+            editor.on('instanceReady', function () { $("#template").val(new Option(editor.getData()).innerHTML); hideProjectDropDown(); });
+            editor.on('change', function () { $("#template").val(new Option(editor.getData()).innerHTML); });
+
+
+            editor.ui.addRichCombo('myparameters', {
+                label: "Toplantı Bazlı Tutanak",
+                title: "Toplantı Bazlı Tutanak",
+                voiceLabel: "Toplantı Bazlı Tutanak",
+                className: 'cke_format meetingDropDown',
+                multiSelect: false,
+                panel:
+                {
+                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
+                    multiSelect: false,
+                },
+                init: function () {
+                    var list = this;
+                    list.add('@@(Model.title)', "Toplantı Başlığı");
+                    list.add('@@(Model.meetingDate != null ? Model.meetingDate.ToString("dd.MM.yyyy") : "-")', "Toplantı Tarihi");
+
+                },
+                onClick: function (value) {
+                    editor.focus();
+                    editor.fire('saveSnapshot');
+                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
+                    editor.fire('saveSnapshot');
+                }
+            });
+
+            editor.ui.addRichCombo('myProjectParameters', {
+                label: "Proje Bazlı Tutanak",
+                title: "Proje Bazlı Tutanak",
+                voiceLabel: "Proje Bazlı Tutanak",
+                className: 'cke_format projectDropDown',
+                multiSelect: false,
+                panel:
+                {
+                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
+                    multiSelect: false,
+                },
+                init: function () {
+                    var list = this;
+                    list.add('@@(Model.committeeId_Title != null ? Model.committeeId_Title : "-")', "Bağlı Olduğu Komite İsmi");
+                    list.add('@@(Model.ProjectName != null ? Model.ProjectName : "-")', "Proje İsmi");
+                },
+                onClick: function (value) {
+                    editor.focus();
+                    editor.fire('saveSnapshot');
+                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
+                    editor.fire('saveSnapshot');
+                }
+            });
+
+
+            editor.ui.addRichCombo('myWordHelpers', {
+                label: "Word Eklentileri",
+                title: "Word Eklentileri",
+                voiceLabel: "Word Eklentileri",
+                className: 'cke_format',
+                multiSelect: false,
+                panel:
+                {
+                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
+                    multiSelect: false,
+                },
+                init: function () {
+                    var list = this;
+                    list.add('{%Ust_Bilgi_Baslangic%} - {%Ust_Bilgi_Bitis%}', "Üst Bilgi");
+                    list.add('{%Alt_Bilgi_Baslangic%} - {%Alt_Bilgi_Bitis%}', "Alt Bilgi");
+                    list.add('{%Sayfa_Sonu%}', "Sayfa Sonu");
+                    //list.add('{%Sayfa_Numarasi%}', "Sayfa Numarası");
+                    //list.add('{%Sayfa_Sayisi%}', "Toplam Sayfa Sayısı");
+                },
+                onClick: function (value) {
+                    editor.focus();
+                    editor.fire('saveSnapshot');
+                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
+                    editor.fire('saveSnapshot');
+                }
+            });
+
+            editor.ui.addRichCombo('myExcelHelpers', {
+                label: "Excel Alan Ekleme",
+                title: "Excel Alan Ekleme",
+                voiceLabel: "Excel Alan Ekleme",
+                className: 'cke_format',
+                multiSelect: false,
+                panel:
+                {
+                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
+                    multiSelect: false,
+                },
+                init: function () {
+                    var list = this;
+                    list.add('#=excel1|Sheet1|Harf-Numara#', "1. Excel Hücre Ekle");
+                    list.add('#=excel2|Sheet1|Harf-Numara#', "2. Excel Hücre Ekle");
+                    list.add('#=excel3|Sheet1|Harf-Numara#', "3. Excel Hücre Ekle");
+                    list.add('#=excel1|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "1. Excel Tablo Ekle");
+                    list.add('#=excel2|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "2. Excel Tablo Ekle");
+                    list.add('#=excel3|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "3. Excel Tablo Ekle");
+                },
+                onClick: function (value) {
+                    editor.focus();
+                    editor.fire('saveSnapshot');
+                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
+                    editor.fire('saveSnapshot');
+                }
+            });
+        </script>
+    </div>
+
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}

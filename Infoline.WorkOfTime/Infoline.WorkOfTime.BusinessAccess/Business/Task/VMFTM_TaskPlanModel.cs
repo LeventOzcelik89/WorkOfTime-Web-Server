@@ -8,614 +8,667 @@ using System.Linq;
 
 namespace Infoline.WorkOfTime.BusinessAccess
 {
-    public class VMFTM_TaskPlanModel : VWFTM_TaskPlan
-    {
-        public WorkOfTimeDatabase db { get; set; }
-        private DbTransaction trans { get; set; }
-        private bool loadedTasks { get; set; } = false;
+	public class VMFTM_TaskPlanModel : VWFTM_TaskPlan
+	{
+		public WorkOfTimeDatabase db { get; set; }
+		private DbTransaction trans { get; set; }
+		private bool loadedTasks { get; set; } = false;
 
-        public List<string> _Times { get; set; }
-        public List<string> _TimesData { get; set; } = new List<string>();
+		public List<string> _Times { get; set; }
+		public List<string> _TimesData { get; set; } = new List<string>();
 
-        public List<string> _WeekDays { get; set; }
-        public List<string> _WeekDaysData { get; set; } = new List<string>();
+		public List<string> _WeekDays { get; set; }
+		public List<string> _WeekDaysData { get; set; } = new List<string>();
 
-        public VWFTM_TaskTemplate TaskTemplate { get; set; }
+		public VWFTM_TaskTemplate TaskTemplate { get; set; }
 
-        public VMFTM_TaskPlanModel Load()
-        {
+		public VMFTM_TaskPlanModel Load()
+		{
 
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            var task = db.GetVWFTM_TaskPlanById(this.id);
+			this.db = this.db ?? new WorkOfTimeDatabase();
+			var task = db.GetVWFTM_TaskPlanById(this.id);
 
-            if (task != null)
-            {
+			if (task != null)
+			{
 
-                this.B_EntityDataCopyForMaterial(task, true);
+				this.B_EntityDataCopyForMaterial(task, true);
 
-                if (!String.IsNullOrEmpty(this.weekDays))
-                {
-                    _WeekDays = this.weekDays.Split(',').ToList();
-                }
-
-                if (!String.IsNullOrEmpty(this.times))
-                {
-                    _Times = this.times.Split(',').ToList();
-                }
-
-                if (this.templateId != null)
-                {
-                    this.TaskTemplate = db.GetVWFTM_TaskTemplateById(this.templateId.Value);
-                }
-
-            }
-
-            var timeCounter = new DateTime(2000, 1, 1, 0, 0, 0);
-            while (timeCounter < new DateTime(2000, 1, 2, 0, 0, 0))
-            {
-                this._TimesData.Add(timeCounter.ToString("HH:mm"));
-                timeCounter = timeCounter.AddMinutes(30);
-            }
+				if (!String.IsNullOrEmpty(this.weekDays))
+				{
+					_WeekDays = this.weekDays.Split(',').ToList();
+				}
+
+				if (!String.IsNullOrEmpty(this.times))
+				{
+					_Times = this.times.Split(',').ToList();
+				}
+
+				if (this.templateId != null)
+				{
+					this.TaskTemplate = db.GetVWFTM_TaskTemplateById(this.templateId.Value);
+				}
+
+			}
+
+			var timeCounter = new DateTime(2000, 1, 1, 0, 0, 0);
+			while (timeCounter < new DateTime(2000, 1, 2, 0, 0, 0))
+			{
+				this._TimesData.Add(timeCounter.ToString("HH:mm"));
+				timeCounter = timeCounter.AddMinutes(30);
+			}
 
-            _WeekDaysData.Add("Pazartesi");
-            _WeekDaysData.Add("Salı");
-            _WeekDaysData.Add("Çarşamba");
-            _WeekDaysData.Add("Perşembe");
-            _WeekDaysData.Add("Cuma");
-            _WeekDaysData.Add("Cumartesi");
-            _WeekDaysData.Add("Pazar");
+			_WeekDaysData.Add("Pazartesi");
+			_WeekDaysData.Add("Salı");
+			_WeekDaysData.Add("Çarşamba");
+			_WeekDaysData.Add("Perşembe");
+			_WeekDaysData.Add("Cuma");
+			_WeekDaysData.Add("Cumartesi");
+			_WeekDaysData.Add("Pazar");
 
 
 
-            return this;
+			return this;
 
-        }
+		}
 
-        public ResultStatus Save(Guid userid, DbTransaction _trans = null)
-        {
+		public ResultStatus Save(Guid userid, DbTransaction _trans = null)
+		{
 
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            this.trans = _trans;
+			this.db = this.db ?? new WorkOfTimeDatabase();
+			this.trans = _trans;
 
-            if (this._Times != null)
-            {
-                this.times = String.Join(",", this._Times);
-            }
-
-            if (this._WeekDays != null)
-            {
-                this.weekDays = String.Join(",", this._WeekDays);
-            }
-
-            var dbRes = new ResultStatus { result = true };
-            var plan = db.GetFTM_TaskPlanById(this.id);
-
-            if (this.frequencyStartDate == this.frequencyEndDate)
-            {
-                this.frequencyEndDate = this.frequencyEndDate.Value.AddDays(1).AddSeconds(-1);
-            }
-
-            if (plan == null)
-            {
-
-                this.created = DateTime.Now;
-                this.createdby = userid;
-
-                dbRes = db.InsertFTM_TaskPlan(this.B_ConvertType<FTM_TaskPlan>(), this.trans);
-
-                if (dbRes.result)
-                {
-                    dbRes.message = "Plan başarıyla oluşturuldu.";
-                }
-                else
-                {
-                    dbRes.message = "Plan oluşturulamadı !";
-                    return dbRes;
-                }
-
-            }
-            else
-            {
-
-                this.changed = DateTime.Now;
-                this.changedby = userid;
-
-                var tasks = db.GetVWFTM_TaskByTaskPlanId(this.id);
-                var canRemovedTasks = new int[] {
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-                    (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-                    (int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-                    (int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-                };
-
-                foreach (var task in tasks.Where(a => a.lastOperationStatus.HasValue && canRemovedTasks.Contains(a.lastOperationStatus.Value)))
-                {
-                    var _task = task.B_ConvertType<VMFTM_TaskModel>();
-                    dbRes &= _task.Delete((Guid?)null);
-                }
-
-                dbRes &= db.UpdateFTM_TaskPlan(this.B_ConvertType<FTM_TaskPlan>(), false, this.trans);
-
-                if (dbRes.result)
-                {
-                    dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi.";
-                }
-                else
-                {
-                    dbRes.message = "Plan güncellenemedi !";
-                    return dbRes;
-                }
-
-            }
-
-            if (taskCreationTime == (int)EnumFTM_TaskPlansTaskCreationTime.Hemen)
-            {
-
-                var schedulerModel = new TaskSchedulerModel();
-                schedulerModel.Load(this.id);
-
-                if (schedulerModel.TemplateModel.taskTemplateInventories.Count() == 0)
-                {
-
-                    var tasks = this.GetTasks();
-
-                    foreach (var task in tasks)
-                    {
-
-                        var _task = task
-                            .B_ConvertType<FTM_Task>()
-                            .B_ConvertType<VMFTM_TaskModel>()
-                            .AppendObjectToOther(schedulerModel.TemplateModel);
-
-                        _task.id = Guid.NewGuid();
-                        _task.code = BusinessExtensions.B_GetIdCode();
-                        _task.FTM_TaskSubjectTypeIds = schedulerModel.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
-
-                        dbRes &= _task.InsertAll(Guid.Empty);
-
-                    }
-                    if (dbRes.result)
-                    {
-                        dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi. Görev/ler başarıyla oluşturuldu.";
-                    }
-                    else
-                    {
-                        dbRes.message = "Görev oluşturma işlemi başarısız oldu.";
-                        return dbRes;
-                    }
-                }
-                else
-                {
-
-                    foreach (var inventoryId in schedulerModel.TemplateModel.taskTemplateInventories)
-                    {
-
-                        var tasks = this.GetTasks();
-
-                        foreach (var task in tasks)
-                        {
-
-                            var _task = task
-                                .B_ConvertType<FTM_Task>()
-                                .B_ConvertType<VMFTM_TaskModel>()
-                                .AppendObjectToOther(schedulerModel.TemplateModel);
-
-                            _task.id = Guid.NewGuid();
-                            _task.code = BusinessExtensions.B_GetIdCode();
-                            _task.fixtureId = inventoryId.inventoryId;
-                            _task.FTM_TaskSubjectTypeIds = schedulerModel.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
-
-                            dbRes &= _task.InsertAll(Guid.Empty);
-
-                        }
-                        if (dbRes.result)
-                        {
-                            dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi. Görev/ler başarıyla oluşturuldu.";
-                        }
-                        else
-                        {
-                            dbRes.message = "Görev oluşturma işlemi başarısız oldu.";
-                            return dbRes;
-                        }
-                    }
-
-                }
-
-            }
-
-            return dbRes;
-
-        }
-
-        public ResultStatus Delete()
-        {
-
-            this.db = this.db ?? new WorkOfTimeDatabase();
-
-            var tasks = db.GetVWFTM_TaskByTaskPlanId(this.id);
-            var rs = db.DeleteFTM_TaskPlan(this.id);
-
-            if (!rs.result)
-            {
-                return rs;
-            }
-
-            foreach (var task in tasks)
-            {
-                var _task = task.B_ConvertType<VMFTM_TaskModel>();
-
-                if (!_task.lastOperationStatus.HasValue)
-                {
-                    continue;
-                }
-
-                var canRemovedTasks = new int[] {
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-                    (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-                    (int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-                    (int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-                };
-
-                if (canRemovedTasks.Contains(_task.lastOperationStatus.Value))
-                {
-                    rs &= _task.Delete((Guid?)null);
-                }
-
-            }
-
-            if (rs.result)
-            {
-                rs.message = "Planlanmış Görev başarıyla silindi.";
-            }
-            else
-            {
-                rs.message = "Planlanmış Görev silinemedi.";
-            }
-
-            return rs;
-
-        }
-
-        public VMFTM_TaskPlanCalendarModel[] CalendarDataSource(PageSecurity userStatus)
-        {
-
-            this.db = this.db ?? new WorkOfTimeDatabase();
-
-            var plans = db.GetVWFTM_TaskPlan()
-                .Where(a => a.enabled == true)
-                .ToList();
-
-            //  hali hazırda açılmış görevler
-            var dbtasks = db.GetVWFTM_Task().Where(a => a.taskTemplateId == null && a.taskPlanId == null).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
-
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-            {
-                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-                if (authoritys.Count() > 0)
-                {
-                    dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
-
-                    plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
-                }
-            }
-
-            var newTasks = new int[] {
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-                    (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-                    (int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-                    (int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-                };
-
-            dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
-            {
-                a.lastOperationDate = null;
-            });
-
-            var tasks = new List<VMFTM_TaskPlanCalendarModel>();
-            foreach (var plan in plans)
-            {
-                tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
-            }
-
-            tasks.AddRange(dbtasks);
-
-            return tasks.ToArray();
-
-        }
-
-        public VMFTM_TaskPlanCalendarModel[] CalendarDataSourceByYear(PageSecurity userStatus, int year, Guid? customerId, Guid? planId)
-        {
-
-            this.db = this.db ?? new WorkOfTimeDatabase();
-
-            var plans = db.GetVWFTM_TaskPlan()
-                .Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate.Value.Year == year)
-                .ToList();
+			if (this._Times != null)
+			{
+				this.times = String.Join(",", this._Times);
+			}
+
+			if (this._WeekDays != null)
+			{
+				this.weekDays = String.Join(",", this._WeekDays);
+			}
+
+			var dbRes = new ResultStatus { result = true };
+			var plan = db.GetFTM_TaskPlanById(this.id);
+
+			if (this.frequencyStartDate == this.frequencyEndDate)
+			{
+				this.frequencyEndDate = this.frequencyEndDate.Value.AddDays(1).AddSeconds(-1);
+			}
+
+			if (plan == null)
+			{
+
+				this.created = DateTime.Now;
+				this.createdby = userid;
+
+				dbRes = db.InsertFTM_TaskPlan(this.B_ConvertType<FTM_TaskPlan>(), this.trans);
+
+				if (dbRes.result)
+				{
+					dbRes.message = "Plan başarıyla oluşturuldu.";
+				}
+				else
+				{
+					dbRes.message = "Plan oluşturulamadı !";
+					return dbRes;
+				}
+
+			}
+			else
+			{
+
+				this.changed = DateTime.Now;
+				this.changedby = userid;
+
+				var tasks = db.GetVWFTM_TaskByTaskPlanId(this.id);
+				var canRemovedTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
+
+				foreach (var task in tasks.Where(a => a.lastOperationStatus.HasValue && canRemovedTasks.Contains(a.lastOperationStatus.Value)))
+				{
+					var _task = task.B_ConvertType<VMFTM_TaskModel>();
+					dbRes &= _task.Delete((Guid?)null);
+				}
+
+				dbRes &= db.UpdateFTM_TaskPlan(this.B_ConvertType<FTM_TaskPlan>(), false, this.trans);
+
+				if (dbRes.result)
+				{
+					dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi.";
+				}
+				else
+				{
+					dbRes.message = "Plan güncellenemedi !";
+					return dbRes;
+				}
+
+			}
+
+			if (taskCreationTime == (int)EnumFTM_TaskPlansTaskCreationTime.Hemen)
+			{
+
+				var schedulerModel = new TaskSchedulerModel();
+				schedulerModel.Load(this.id);
+
+				if (schedulerModel.TemplateModel.taskTemplateInventories.Count() == 0)
+				{
+
+					var tasks = this.GetTasks();
+
+					foreach (var task in tasks)
+					{
+
+						var _task = task
+							.B_ConvertType<FTM_Task>()
+							.B_ConvertType<VMFTM_TaskModel>()
+							.AppendObjectToOther(schedulerModel.TemplateModel);
+
+						_task.id = Guid.NewGuid();
+						_task.code = BusinessExtensions.B_GetIdCode();
+						_task.FTM_TaskSubjectTypeIds = schedulerModel.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+
+						dbRes &= _task.InsertAll(Guid.Empty);
+
+					}
+					if (dbRes.result)
+					{
+						dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi. Görev/ler başarıyla oluşturuldu.";
+					}
+					else
+					{
+						dbRes.message = "Görev oluşturma işlemi başarısız oldu.";
+						return dbRes;
+					}
+				}
+				else
+				{
+
+					foreach (var inventoryId in schedulerModel.TemplateModel.taskTemplateInventories)
+					{
+
+						var tasks = this.GetTasks();
+
+						foreach (var task in tasks)
+						{
+
+							var _task = task
+								.B_ConvertType<FTM_Task>()
+								.B_ConvertType<VMFTM_TaskModel>()
+								.AppendObjectToOther(schedulerModel.TemplateModel);
+
+							_task.id = Guid.NewGuid();
+							_task.code = BusinessExtensions.B_GetIdCode();
+							_task.fixtureId = inventoryId.inventoryId;
+							_task.FTM_TaskSubjectTypeIds = schedulerModel.TemplateModel.FTM_TaskTemplateSubjectTypeIds;
+
+							dbRes &= _task.InsertAll(Guid.Empty);
+
+						}
+						if (dbRes.result)
+						{
+							dbRes.message = "Plan başarıyla güncellendi. İşlem yapılmamış görevler silindi. Görev/ler başarıyla oluşturuldu.";
+						}
+						else
+						{
+							dbRes.message = "Görev oluşturma işlemi başarısız oldu.";
+							return dbRes;
+						}
+					}
+
+				}
+
+			}
+
+			return dbRes;
+
+		}
+
+		public ResultStatus Delete()
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			var tasks = db.GetVWFTM_TaskByTaskPlanId(this.id);
+			var rs = db.DeleteFTM_TaskPlan(this.id);
+
+			if (!rs.result)
+			{
+				return rs;
+			}
+
+			foreach (var task in tasks)
+			{
+				var _task = task.B_ConvertType<VMFTM_TaskModel>();
+
+				if (!_task.lastOperationStatus.HasValue)
+				{
+					continue;
+				}
+
+				var canRemovedTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
+
+				if (canRemovedTasks.Contains(_task.lastOperationStatus.Value))
+				{
+					rs &= _task.Delete((Guid?)null);
+				}
+
+			}
+
+			if (rs.result)
+			{
+				rs.message = "Planlanmış Görev başarıyla silindi.";
+			}
+			else
+			{
+				rs.message = "Planlanmış Görev silinemedi.";
+			}
+
+			return rs;
+
+		}
+
+		public VMFTM_TaskPlanCalendarModel[] CalendarDataSource(PageSecurity userStatus)
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			var plans = db.GetVWFTM_TaskPlan()
+				.Where(a => a.enabled == true)
+				.ToList();
+
+			//  hali hazırda açılmış görevler
+			var dbtasks = db.GetVWFTM_Task().Where(a => a.taskTemplateId == null && a.taskPlanId == null).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+			{
+				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+				if (authoritys.Count() > 0)
+				{
+					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+
+					plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+				}
+			}
+
+			var newTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
+
+			dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
+			{
+				a.lastOperationDate = null;
+			});
+
+			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			foreach (var plan in plans)
+			{
+				tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
+			}
+
+			tasks.AddRange(dbtasks);
+
+			return tasks.ToArray();
+
+		}
+
+		public VMFTM_TaskPlanCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			//var plans = db.GetVWFTM_TaskPlan()
+			//	.Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate >= DateTime.Now)
+			//	.ToList();
+
+			var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
+			//  hali hazırda açılmış görevler
+
+			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < 13 and dueDate >= GETDATE()";
+			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+			{
+				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+				if (authoritys.Count() > 0)
+				{
+					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+
+					//plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+				}
+			}
+
+			var newTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
+
+			dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
+			{
+				a.lastOperationDate = null;
+			});
+
+			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			//foreach (var plan in plans)
+			//{
+			//	tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
+			//}
+
+			tasks.AddRange(dbtasks);
+
+			return tasks.ToArray();
+
+		}
+
+
+		public VMFTM_TaskPlanCalendarModel[] CalendarDataSourceByYear(PageSecurity userStatus, int year, Guid? customerId, Guid? planId)
+		{
+
+			this.db = this.db ?? new WorkOfTimeDatabase();
+
+			var plans = db.GetVWFTM_TaskPlan()
+				.Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate.Value.Year == year)
+				.ToList();
 
 			if (customerId.HasValue)
 			{
-                plans = plans.Where(a => a.customerId == customerId.Value).ToList();
+				plans = plans.Where(a => a.customerId == customerId.Value).ToList();
 			}
 
 			if (planId.HasValue)
 			{
-                plans = plans.Where(a => a.id == planId.Value).ToList();
+				plans = plans.Where(a => a.id == planId.Value).ToList();
 			}
 
 
-            //  hali hazırda açılmış görevler
-            var dbtasks = db.GetVWFTM_TaskByDueDateYear(year).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+			//  hali hazırda açılmış görevler
+			var dbtasks = db.GetVWFTM_TaskByDueDateYear(year, customerId, planId).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-            {
-                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-                if (authoritys.Count() > 0)
-                {
-                    dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+			{
+				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+				if (authoritys.Count() > 0)
+				{
+					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
 
-                    plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
-                }
-            }
+					plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
+				}
+			}
 
-            var newTasks = new int[] {
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-                    (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-                    (int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-                    (int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-                };
+			var newTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
 
-            dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
-            {
-                a.lastOperationDate = null;
-            });
+			dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
+			{
+				a.lastOperationDate = null;
+			});
 
-            var tasks = new List<VMFTM_TaskPlanCalendarModel>();
-            foreach (var plan in plans)
-            {
-                tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
-            }
+			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			foreach (var plan in plans)
+			{
+				tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
+			}
 
-            tasks.AddRange(dbtasks);
+			tasks.AddRange(dbtasks);
 
-            return tasks.ToArray();
+			return tasks.ToArray();
 
-        }
+		}
 
 
-        public VMFTM_TaskPlanCalendarModel[] TaskCalendarDataSource(VWFTM_TaskPlan plan, PageSecurity userStatus)
-        {
+		public VMFTM_TaskPlanCalendarModel[] TaskCalendarDataSource(VWFTM_TaskPlan plan, PageSecurity userStatus)
+		{
 
-            this.db = this.db ?? new WorkOfTimeDatabase();
+			this.db = this.db ?? new WorkOfTimeDatabase();
 
-            var tasks = new List<VMFTM_TaskPlanCalendarModel>();
+			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
 
-            //  hali hazırda açılmış görevler
-            var dbtasks = db.GetVWFTM_TaskByTaskPlanId(plan.id).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+			//  hali hazırda açılmış görevler
+			var dbtasks = db.GetVWFTM_TaskByTaskPlanId(plan.id).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
-            if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
-            {
-                var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
-                if (authoritys.Count() > 0)
-                    dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
-            }
+			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
+			{
+				var authoritys = db.GetVWFTM_TaskAuthorityByUserId(userStatus.user.id);
+				if (authoritys.Count() > 0)
+					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
+			}
 
-            var newTasks = new int[] {
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
-                    (int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
-                    (int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
-                    (int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
-                    (int)EnumFTM_TaskOperationStatus.GorevUstlenildi
-                };
+			var newTasks = new int[] {
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturuldu,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduMusteri,
+					(int)EnumFTM_TaskOperationStatus.GorevOlusturulduSistem,
+					(int)EnumFTM_TaskOperationStatus.PersonelAtamaYapildi,
+					(int)EnumFTM_TaskOperationStatus.DogrulamaKoduGonderildi,
+					(int)EnumFTM_TaskOperationStatus.GorevUstlenildi
+				};
 
-            dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
-            {
-                a.lastOperationDate = null;
-            });
+			dbtasks.Where(a => a.lastOperationStatus.HasValue && newTasks.Contains(a.lastOperationStatus.Value)).ToList().ForEach(a =>
+			{
+				a.lastOperationDate = null;
+			});
 
-            tasks.AddRange(dbtasks);
+			tasks.AddRange(dbtasks);
 
-            if (!plan.taskCreationTime.HasValue)
-            {
-                return tasks.ToArray();
-            }
+			if (!plan.taskCreationTime.HasValue)
+			{
+				return tasks.ToArray();
+			}
 
-            switch ((EnumFTM_TaskPlansTaskCreationTime)plan.taskCreationTime)
-            {
+			switch ((EnumFTM_TaskPlansTaskCreationTime)plan.taskCreationTime)
+			{
 
-                case EnumFTM_TaskPlansTaskCreationTime.Hemen:
+				case EnumFTM_TaskPlansTaskCreationTime.Hemen:
 
-                    //  Hemen dediklerimiz zaten fiziki olarak açıldı.
-                    return tasks.ToArray();
+					//  Hemen dediklerimiz zaten fiziki olarak açıldı.
+					return tasks.ToArray();
 
-                case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
+				case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
 
-                    var tasks_1 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
-                        .Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(30)).ToArray();
+					var tasks_1 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
+						.Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(30)).ToArray();
 
-                    tasks.AddRange(tasks_1);
+					tasks.AddRange(tasks_1);
 
-                    break;
-                case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
+					break;
+				case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
 
-                    var tasks_2 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
-                        .Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(7)).ToArray();
+					var tasks_2 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
+						.Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(7)).ToArray();
 
-                    tasks.AddRange(tasks_2);
+					tasks.AddRange(tasks_2);
 
-                    break;
-                case EnumFTM_TaskPlansTaskCreationTime.GunOnce:
-                case EnumFTM_TaskPlansTaskCreationTime.Gununde:
+					break;
+				case EnumFTM_TaskPlansTaskCreationTime.GunOnce:
+				case EnumFTM_TaskPlansTaskCreationTime.Gununde:
 
-                    var tasks_3 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
-                        .Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(1)).ToArray();
+					var tasks_3 = plan.B_ConvertType<VMFTM_TaskPlanModel>().GetTasks()
+						.Where(a => a.planStartDate.HasValue && a.planStartDate.Value > DateTime.Now.AddDays(1)).ToArray();
 
-                    tasks.AddRange(tasks_3);
+					tasks.AddRange(tasks_3);
 
-                    break;
+					break;
 
-                default:
+				default:
 
-                    break;
+					break;
 
-            }
+			}
 
-            return tasks.ToArray();
+			return tasks.ToArray();
 
-        }
+		}
 
 
-        public VMFTM_TaskPlanCalendarModel[] _TaskList { get; set; } = new List<VMFTM_TaskPlanCalendarModel>().ToArray();
+		public VMFTM_TaskPlanCalendarModel[] _TaskList { get; set; } = new List<VMFTM_TaskPlanCalendarModel>().ToArray();
 
 
-        //  Görev Plan Listesinde [Takvim Üzerinde Göster] Fonksiyonu eklenebilir. Public kalması ondan sebep.
-        public VMFTM_TaskPlanCalendarModel[] GetTasks()
-        {
+		//  Görev Plan Listesinde [Takvim Üzerinde Göster] Fonksiyonu eklenebilir. Public kalması ondan sebep.
+		public VMFTM_TaskPlanCalendarModel[] GetTasks()
+		{
 
-            if (this.loadedTasks == false)
-            {
-                this.LoadTasks();
-            }
+			if (this.loadedTasks == false)
+			{
+				this.LoadTasks();
+			}
 
-            return this._TaskList;
+			return this._TaskList;
 
-        }
+		}
 
-        public VMFTM_TaskPlanCalendarModel[] LoadTasks(DateTime? lastDate = null)
-        {
+		public VMFTM_TaskPlanCalendarModel[] LoadTasks(DateTime? lastDate = null)
+		{
 
-            lastDate = lastDate ?? DateTime.Now;
+			lastDate = lastDate ?? DateTime.Now;
 
-            this.loadedTasks = true;
+			this.loadedTasks = true;
 
-            var res = new List<VWFTM_Task>();
-            var taskTimes = new List<DateTime>();
-            this.db = this.db ?? new WorkOfTimeDatabase();
-            this.Load();
+			var res = new List<VWFTM_Task>();
+			var taskTimes = new List<DateTime>();
+			this.db = this.db ?? new WorkOfTimeDatabase();
+			this.Load();
 
-            if (!this.frequencyStartDate.HasValue || !this.frequencyEndDate.HasValue || !this.frequencyInterval.HasValue || !this.templateId.HasValue)
-            {
-                return new VMFTM_TaskPlanCalendarModel[0];
-            }
+			if (!this.frequencyStartDate.HasValue || !this.frequencyEndDate.HasValue || !this.frequencyInterval.HasValue || !this.templateId.HasValue)
+			{
+				return new VMFTM_TaskPlanCalendarModel[0];
+			}
 
-            if (this.TaskTemplate == null)
-            {
-                return new VMFTM_TaskPlanCalendarModel[0];
-            }
+			if (this.TaskTemplate == null)
+			{
+				return new VMFTM_TaskPlanCalendarModel[0];
+			}
 
-            var end = this.frequencyEndDate.Value;
-            var start = this.frequencyStartDate.Value;
+			var end = this.frequencyEndDate.Value;
+			var start = this.frequencyStartDate.Value;
 
-            while (start <= end)
-            {
+			while (start <= end)
+			{
 
-                switch ((EnumFTM_TaskPlansFrequency)this.frequency)
-                {
+				switch ((EnumFTM_TaskPlansFrequency)this.frequency)
+				{
 
-                    case EnumFTM_TaskPlansFrequency.Gunluk:
-                        {
-                            var times = this.times.Split(',')
-                                .Select(a => DateTime.ParseExact(start.ToString("yyyy-MM-dd") + " " + a.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
-                                .ToArray();
+					case EnumFTM_TaskPlansFrequency.Gunluk:
+						{
+							var times = this.times.Split(',')
+								.Select(a => DateTime.ParseExact(start.ToString("yyyy-MM-dd") + " " + a.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))
+								.ToArray();
 
-                            taskTimes.AddRange(times);
+							taskTimes.AddRange(times);
 
-                            start = start.AddDays(this.frequencyInterval.Value);
-                            break;
-                        }
+							start = start.AddDays(this.frequencyInterval.Value);
+							break;
+						}
 
-                    case EnumFTM_TaskPlansFrequency.Haftalik:
-                        {
-                            if (start.DayOfWeek == DayOfWeek.Monday)
-                            {
+					case EnumFTM_TaskPlansFrequency.Haftalik:
+						{
+							if (start.DayOfWeek == DayOfWeek.Monday)
+							{
 
-                                var _times = this.weekDays.Split(',').Select(a =>
-                                {
-                                    var day = a.Trim();
-                                    var dayOfWeek = (DayOfWeek)new CultureInfo("tr-TR").DateTimeFormat.DayNames.ToList().IndexOf(day);
-                                    return DateTime.ParseExact(start.AddDays((int)dayOfWeek - 1).ToString("yyyy-MM-dd") + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-                                }).ToArray();
+								var _times = this.weekDays.Split(',').Select(a =>
+								{
+									var day = a.Trim();
+									var dayOfWeek = (DayOfWeek)new CultureInfo("tr-TR").DateTimeFormat.DayNames.ToList().IndexOf(day);
+									return DateTime.ParseExact(start.AddDays((int)dayOfWeek - 1).ToString("yyyy-MM-dd") + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+								}).ToArray();
 
-                                taskTimes.AddRange(_times);
+								taskTimes.AddRange(_times);
 
-                                start = start.AddDays(7 * this.frequencyInterval.Value);
+								start = start.AddDays(7 * this.frequencyInterval.Value);
 
-                            }
-                            else
-                            {
-                                start = start.AddDays((-1) * ((int)start.DayOfWeek - 1)).AddDays(-7);
-                            }
-                            break;
-                        }
+							}
+							else
+							{
+								start = start.AddDays((-1) * ((int)start.DayOfWeek - 1)).AddDays(-7);
+							}
+							break;
+						}
 
-                    case EnumFTM_TaskPlansFrequency.Aylik:
-                        {
-                            //var dateCorrect = Int32.Parse(this.monthDays);
-                            //var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
-                            //dateCorrect = daysinMonth <= dateCorrect ? daysinMonth : dateCorrect;
+					case EnumFTM_TaskPlansFrequency.Aylik:
+						{
+							//var dateCorrect = Int32.Parse(this.monthDays);
+							//var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
+							//dateCorrect = daysinMonth <= dateCorrect ? daysinMonth : dateCorrect;
 
-                            var __times = this.monthDays.ToString().Split(',').Select(a =>
-                            {
-                                var dateCorrect = Int32.Parse(a);
-                                var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
-                                dateCorrect = daysinMonth < dateCorrect ? daysinMonth : dateCorrect;
-                                return DateTime.ParseExact(start.ToString("yyyy-MM-") + dateCorrect.ToString().Trim().PadLeft(2, '0') + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-                            });
+							var __times = this.monthDays.ToString().Split(',').Select(a =>
+							{
+								var dateCorrect = Int32.Parse(a);
+								var daysinMonth = DateTime.DaysInMonth(start.Year, start.Month);
+								dateCorrect = daysinMonth < dateCorrect ? daysinMonth : dateCorrect;
+								return DateTime.ParseExact(start.ToString("yyyy-MM-") + dateCorrect.ToString().Trim().PadLeft(2, '0') + " " + this.times.Trim(), "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+							});
 
-                            taskTimes.AddRange(__times);
+							taskTimes.AddRange(__times);
 
-                            start = start.AddMonths(this.frequencyInterval.Value);
+							start = start.AddMonths(this.frequencyInterval.Value);
 
-                            break;
-                        }
+							break;
+						}
 
-                    default:
-                        break;
+					default:
+						break;
 
-                }
+				}
 
-            }
+			}
 
-            var tasks = taskTimes
-                .Where(a => a > lastDate && a < end)
-                .Select(a =>
-                {
+			var tasks = taskTimes
+				.Where(a => a > lastDate && a < end)
+				.Select(a =>
+				{
 
-                    var task = TaskTemplate.B_ConvertType<VWFTM_Task>().B_ConvertType<VMFTM_TaskPlanCalendarModel>();
+					var task = TaskTemplate.B_ConvertType<VWFTM_Task>().B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
-                    task.id = Guid.NewGuid();
-                    task.created = DateTime.Now;
-                    task.createdby = this.createdby;
-                    task.changed = null;
-                    task.changedby = null;
-                    task.code = BusinessExtensions.B_GetIdCode();
+					task.id = Guid.NewGuid();
+					task.created = DateTime.Now;
+					task.createdby = this.createdby;
+					task.changed = null;
+					task.changedby = null;
+					task.code = BusinessExtensions.B_GetIdCode();
 
-                    task.planStartDate = a;
-                    task.IsTemplate = true;
-                    task.lastOperationDate = null;
-                    task.taskPlanId = this.id;
-                    task.taskTemplateId = this.templateId;
+					task.planStartDate = a;
+					task.IsTemplate = true;
+					task.lastOperationDate = null;
+					task.taskPlanId = this.id;
+					task.taskTemplateId = this.templateId;
 
-                    task.dueDate = a.AddMinutes(TaskTemplate.estimatedTaskMinute.Value);
+					task.dueDate = a.AddMinutes(TaskTemplate.estimatedTaskMinute.Value);
 
-                    return task;
+					return task;
 
-                }).ToArray();
+				}).ToArray();
 
-            this._TaskList = tasks;
+			this._TaskList = tasks;
 
-            return this._TaskList;
+			return this._TaskList;
 
-        }
+		}
 
-    }
+	}
 
 }

@@ -186,8 +186,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             return Content(Infoline.Helper.Json.Serialize(res.OrderByDescending(a => a.totalWorking).ToList()), "application/json");
         }
 
-
-        [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.IdariPersonelYonetici)]
+        [AllowEveryone]
+        [PageInfo("Personelin Çalışma Süresinin Dönüldüğü Methoddur.", SHRoles.Personel)]
         public ContentResult GetDataPersonTotalWorking(DateTime date, Guid? userId)
         {
             var userStatus = (PageSecurity)Session["userStatus"];
@@ -230,7 +230,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
 
             if(shift != 1 && shift != null)
             {
@@ -263,7 +263,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
             if (shift != 0 && shift != 3)
             {
                 return Json(new ResultStatusUI
@@ -295,7 +295,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
             if (shift != 2)
             {
                 return Json(new ResultStatusUI
@@ -326,7 +326,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             var feedback = new FeedBack();
             var userStatus = (PageSecurity)Session["userStatus"];
 
-            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault().shiftTrackingStatus;
+            var shift = db.GetVWSH_ShiftTracking().Where(a => a.userId == userStatus.user.id).OrderByDescending(a => a.created).FirstOrDefault()?.shiftTrackingStatus;
             if (shift != 3 && shift != 0)
             {
                 return Json(new ResultStatusUI

@@ -1,0 +1,32 @@
+﻿@{
+    ViewBag.Title = "İş Kazasi ve Olay Bildirimleri Yönetimi";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="col-12">
+    <div class="statbox widget box box-shadow">
+        <div class="widget-header">
+            <h4>İş Kazasi ve Olay Bildirimler Listesi</h4>
+        </div>
+        <div class="widget-content widget-content-area">
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccident>("VWSH_WorkAccident")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccident", new { area = "SH" })).PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).Hidden();
+                    x.Bound(y => y.keyword).Title("keyword").Width(180);
+                    x.Bound(y => y.accidentDate).Title("accidentDate").Width(180).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.content).Title("content").Width(180);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='İş Kazasi ve Olay Bildir' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_WorkAccident", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Kayıt Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data - show", "single" }, { "data - method", "GET" } }).Url(Url.Action("Update", "VWSH_WorkAccident", new { area = "SH" }));
+                     x.Custom().Text("<i data-original-title='Kayıt Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_WorkAccident", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Kayıt Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccident", new { area = "SH" }));
+                }))
+        </div>
+    </div>
+</div>

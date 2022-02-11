@@ -1,0 +1,447 @@
+﻿
+@{
+	ViewBag.Title = "İş Raporu";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script type="text/javascript">
+	$(document)
+		.on('click', '#scheduler .k-event', function () {
+			var uid = $(this).attr('data-uid');
+			var elem = $('#scheduler').data('kendoScheduler');
+			var dataItem = elem.occurrenceByUid(uid);
+			Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem.taskId, null, $('<a data-method="GET" />'), 'type-info');
+		})
+</script>
+
+
+
+<div class="row">
+	<div class="col-md-12">
+		<div class="ibox m-b-none">
+			<div class="ibox-title">
+				<div class="col-md-6">
+					<h5>Görev Takvimi</h5>
+				</div>
+				<div class="col-md-6">
+
+					<div class="btn-group pull-right" style="margin-top: -5px;">
+					</div>
+
+				</div>
+			</div>
+			<div class="ibox-content">
+
+				<div id="TaskCalendar"></div>
+
+			</div>
+		</div>
+	</div>
+
+	<div class="col-md-12">
+		<div class="ibox m-b-none">
+			<div class="ibox-title">
+				<div class="col-md-9">
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#23c6c8" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenilmeyi Bekleniyor</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#1c84c6" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Üstlenildi</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#f8ac59" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Devam Etmekte</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#1ab394" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözüm Bildirildi</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#22e93f" class="fa fa-circle"></i><span style="margin-left:1px;"> Çözümlenmiş Görevler</span>
+					</span>
+					<span class="pull-left" style="margin-right:10px; color:black; font-size:12px;" data-selector="priority">
+						<i style="color:#ff0000" class="fa fa-circle"></i><span style="margin-left:1px;"> Görev Planlanmış Başlangıç ve Bitişin Atamasını Bekleyen Görevler</span>
+					</span>
+
+
+				</div>
+				<div class="col-md-3">
+					<div class="btn-group pull-right">
+						<a class="btn pull-right m-r-sm btn-sm btn-success" style="margin-top: -5px;margin-right: -7px;" data-modal="true" data-task="Insert" data-href="/FTM/VWFTM_Task/Insert"> <i class="fa fa-plus-circle"></i> Yeni Görev </a>
+					</div>
+				</div>
+			</div>
+			<div class="ibox-content">
+				<div id="scheduler"></div>
+
+			</div>
+		</div>
+	</div>
+</div>
+
+
+<script id="eventTemplate2" type="text/x-kendo-template">
+
+	<div class="k-event-template #= (IsTemplate == true ? 'event-scheduled' : '') #">
+
+	#=GetPriority(priority)#
+
+	#=GetType(type)#
+
+	#= (IsTemplate == true ? '' : GetOperation(lastOperationStatus)) #
+
+	#:title#
+
+	</div>
+
+</script>
+
+<style type="text/css">
+	.type, .priority, .operation {
+		background-color: #ffffff;
+		padding: 2px;
+		float: left;
+		margin: -4px 2px 0px 0px;
+		font-weight: bold;
+		color: #000;
+	}
+
+	.event-scheduled {
+		background-color: #f08080;
+		height: 100%;
+	}
+
+	@@media (min-width: 992px) {
+		.modal-lg {
+			width: 1200px !important;
+		}
+	}
+
+	.modal-dialog .modal-body,
+	.modal-dialog .tab-pane,
+	.modal-dialog .ibox {
+		padding: 0px;
+	}
+
+	.modal-body form {
+		padding: 15px !important;
+	}
+
+	.k-event {
+		cursor: pointer;
+	}
+
+
+	element.style {
+	}
+
+	#insertRadio label {
+		width: 9.1% !important;
+	}
+
+	#insertRadio.akilliRadioGrup i.icon-shuffle {
+		font-size: 30px !important;
+	}
+</style>
+
+<script type="text/javascript">
+
+    var _calendar = {
+        elem: null,
+        data: {
+            types: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskType>())),
+            taskOperation: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskOperationStatus>())),
+            priority: @Html.Raw(Infoline.Helper.Json.Serialize(Infoline.Helper.EnumsProperties.EnumToArrayGeneric<Infoline.WorkOfTime.BusinessAccess.EnumFTM_TaskPriority>()))
+        },
+        init: function () {
+
+            $('#TaskCalendar').kendoScheduler({
+                date: new Date(),
+                localization: 'tr-TR',
+                editable: false,
+                eventTemplate: $("#eventTemplate2").html(),
+                views: [
+                    { type: 'day' },
+                    { type: 'week', selected: true },
+                    { type: 'month' }
+                ]
+            });
+
+            this.elem = $('#TaskCalendar').data('kendoScheduler');
+
+            this.GetTasks();
+
+        },
+        GetTasks: function () {
+
+            ReadData('/FTM/VWFTM_TaskPlan/CalendarNewDataSource', {}, function (res) {
+
+                _calendar.elem.setDataSource(new kendo.data.SchedulerDataSource({
+                    data: res
+                }));
+
+            });
+
+        },
+        ShowTask: function (uid) {
+
+            var dataItem = _calendar.elem.occurrenceByUid(uid);
+
+            if (dataItem.IsTemplate == true) {
+                Kendo_GetRequest('/FTM/VWFTM_TaskPlan/InsertMultiple?id=' + dataItem.taskPlanId, null, $('<a data-method="GET" />'), 'type-info');
+            } else {
+                Kendo_GetRequest('/FTM/VWFTM_TaskPlan/CalendarDetail?id=' + dataItem._id, null, $('<a data-method="GET" />'), 'type-info');
+            }
+
+        }
+    };
+
+    function GetType(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.types).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="type"><i class="' + item.Generic.icon + '"></i></span>';
+
+    }
+
+    function GetPriority(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.priority).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="priority" style="background-color: #' + item.Generic.color + '">' + '!' + '</span>';
+
+    }
+
+    function GetOperation(_key) {
+
+        var item = $.Enumerable.From(_calendar.data.taskOperation).Where(a => { return a.Key == _key; }).FirstOrDefault();
+
+        if (item == null) {
+            return '';
+        }
+
+        return '<span data-toggle="tooltip" title="' + item.Value + '" class="operation">' + '<i style="color: #' + item.Generic.color + '" class="' + item.Generic.icon + '"></i>' + '</span>';
+
+    }
+
+    $(document)
+
+        .on('click', '#TaskCalendar .k-event', function () {
+
+            var uid = $(this).attr('data-uid');
+
+            _calendar.ShowTask(uid);
+
+        })
+
+        .on('shown:modal', function (e, dialog) {
+
+
+        })
+
+        .on('ready', function () {
+
+            _calendar.init();
+			createScheduler(null, null);
+        })
+
+        .on('success', '#MultipleForm', function (e,res) {
+
+            if (res.Result == true) {
+
+                setTimeout(function () {
+
+                    _calendar.GetTasks();
+
+                }, 200);
+
+            }
+
+        })
+
+        ;
+
+</script>
+
+
+<script>
+	$("#DashBoardFilter").click(function () {
+
+		var userIds = $("#userIds").val();
+		var customer = $("#customerDataId").val();
+		var customerStorage = $("#customerStorageDataId").val();
+		var startDate = $('#startDate').data('kendoDatePicker').value();
+		var scheduler = $("#scheduler").data("kendoScheduler");
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+
+			if (startDate == null) {
+				startDate = new Date();
+			}
+
+
+			var starttime = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
+
+			$("#scheduler").html(null);
+			$("#scheduler").removeAttr("data-role")
+			$("#scheduler").removeAttr("class")
+			$("#scheduler").removeAttr("role")
+			$("#scheduler").removeAttr("style")
+
+
+			createScheduler(startDate, userIds, customer, customerStorage);
+
+			//if (res != null) {
+			//	var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
+			//	var datasource = new kendo.data.SchedulerDataSource({
+			//		data: resObjects
+			//	});
+
+
+			//	scheduler.date(new Date(starttime));
+			//	scheduler.setDataSource(datasource);
+			//}
+		})
+	})
+
+	function onChangeGroup(e) {
+		if (this.value() == undefined) {
+			return;
+		}
+		var users = $.ajax({
+			type: "GET",
+			url: '/General/GetGroupUsers?id=' + this.value(),
+			success: function (response) {
+			},
+			async: false
+		}).responseJSON;
+		if (users.length > 0) {
+			$('#userIds').data('kendoMultiSelect').value($.Enumerable.From(users).Select(x => x.userId).ToArray())
+		}
+	}
+
+	function createScheduler(startDate, userIds, customer, customerStorage) {
+
+		if (startDate != null) {
+			startDate = kendo.toString(startDate, "yyyy/MM/dd 00:00:00");
+		}
+
+		GetJsonDataFromUrl('/FTM/VWFTM_Task/DailyUserReport', { start: startDate, userIds: userIds, customer: customer, customerStorage: customerStorage }, function (res) {
+
+			if (startDate == null) {
+				startDate = new Date();
+			}
+
+			var starttime = kendo.toString(startDate, "yyyy/MM/dd 00:00:00").replace("00:00:00", "00:00:00");
+			var endtime = kendo.toString(startDate, "yyyy/MM/dd 23:59:59").replace("00:00:00", "23:59:59");
+
+			if (res != null) {
+				var resObjects = $.Enumerable.From(res).SelectMany(a => { return a.dataSource; }).ToArray();
+
+				//var enBuyuk = $.Enumerable.From(resObjects).Select(x => x.start).OrderByDescending(a => a.start).FirstOrDefault();
+				//var enKucuk = $.Enumerable.From(resObjects).Select(x => x.start).OrderBy(a => a.start).FirstOrDefault();
+
+				$("#scheduler").kendoScheduler({
+					date: new Date(starttime),
+					startTime: new Date(starttime),
+					endTime: new Date(endtime),
+					height: 700,
+					eventHeight: 10,
+					//majorTick: 60,
+					localization: "tr-TR",
+					views: ["timeline"],
+					scroll: true,
+					eventTemplate: $("#event-template").html(),
+					dataSource: resObjects,
+					editable: {
+						create: true,
+						move: false,
+						resize: false
+					},
+					add: function (e) {
+						Kendo_GetRequest('/FTM/VWFTM_Task/Insert?assignableUsers=' + e.event.attendees, { planStartDate: kendo.toString(e.event.start, 'yyyy-MM-dd HH:mm:00'), dueDate: kendo.toString(e.event.end, 'yyyy-MM-dd HH:mm:00') }, $('<a data-method="GET" />'), 'type-info');
+
+						e.preventDefault();
+						return false;
+
+					},
+					edit: function (e) {
+						var buttonsContainer = e.container.find(".k-edit-buttons");
+						var cancelButton = buttonsContainer.find(".k-scheduler-update");
+						var removeButtonContainer = buttonsContainer.find(".k-icon k-si-close");
+						removeButtonContainer.remove();
+						cancelButton.text("");
+						buttonsContainer.text("");
+					},
+					group: {
+						resources: ["Attendees"],
+						orientation: "vertical"
+					},
+					resources: [
+						{
+							field: "attendees",
+							name: "Attendees",
+							dataSource: res,
+							multiple: true,
+							title: "Attendees"
+						}
+					]
+				});
+
+				$("[class='k-link k-scheduler-refresh']").remove()
+			}
+		})
+
+
+	}
+	
+</script>
+
+<script id="event-template" type="text/x-kendo-template">
+	<p style="font-size: 8px;margin-top: 5px;" data-toggle="tooltip" data-placement="bottom" title="#=taskStatus_Title#"><span class="k-scheduler-mark" style="background-color:#=color#;margin-top: -4.3px;margin-left: 5px;"></span> #: customer # - #: kendo.toString(new Date(start), "HH:mm") # - #: kendo.toString(new Date(end), "HH:mm") #</p>
+</script>
+
+<style>
+	.k-scheduler-table .k-today, .k-today > .k-scheduler-datecolumn, .k-today > .k-scheduler-groupcolumn {
+		background-color: rgb(255 255 255 / 15%);
+	}
+
+	.k-scheduler-edit-form .k-edit-field {
+		width: 67%;
+	}
+
+	.k-textbox {
+		width: 315px;
+	}
+
+	.k-input {
+		width: 315px;
+	}
+
+
+	.k-event-actions {
+		visibility: hidden;
+	}
+
+
+	.ibox-custom {
+		clear: both;
+		margin-top: 0;
+		padding: 0;
+	}
+
+	.k-edit-buttons {
+		visibility: hidden;
+	}
+
+	::-webkit-scrollbar {
+		width: 8px;
+		height: 15px;
+	}
+</style>
