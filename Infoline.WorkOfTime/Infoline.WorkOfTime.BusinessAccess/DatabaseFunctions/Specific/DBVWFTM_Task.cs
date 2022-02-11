@@ -302,33 +302,9 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		}
 		public VWFTM_Task[] GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsers(DateTime date, List<Guid?> userIds, DbTransaction tran = null)
 		{
-			var startdate = new DateTime();
+			var startdate = date;
+			var enddate = date.AddMonths(1).AddDays(-1);
 
-			var enddate = new DateTime();
-
-			if (date.Month == 1)
-			{
-				startdate = new DateTime(date.Year, 12, date.Day, 00, 00, 00);
-				enddate = new DateTime(date.Year, date.Month + 1, date.Day, 23, 59, 59);
-			}
-			else if (date.Month == 12)
-			{
-				startdate = new DateTime(date.Year, date.Month - 1, date.Day, 00, 00, 00);
-				enddate = new DateTime(date.Year, date.Month, date.Day, 23, 59, 59);
-			}
-			else
-			{
-				if (date.Day == 31)
-				{
-					startdate = new DateTime(date.Year, date.Month, date.Day, 00, 00, 00);
-					enddate = new DateTime(date.Year, date.Month + 1, 25, 23, 59, 59);
-				}
-				else
-				{
-					startdate = new DateTime(date.Year, date.Month - 1, date.Day, 00, 00, 00);
-					enddate = new DateTime(date.Year, date.Month + 1, date.Day, 23, 59, 59);
-				}
-			}
 			using (var db = GetDB(tran))
 			{
 				if (userIds != null)
@@ -339,6 +315,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				return db.ExecuteReader<VWFTM_Task>("SELECT  * FROM VWFTM_Task WHERE ((LEN(assignableUserIds) = 36 and assignUserId is null) or (assignUserId is not null)) and planStartDate >= '" + string.Format("{0:yyyy-MM-dd HH:mm}", startdate) + "' and dueDate <= '" + string.Format("{0:yyyy-MM-dd HH:mm}", enddate) + "'").ToArray();
 			}
 		}
+
+		public VWFTM_Task[] GetVWFTM_TaskByAssignUserIdNotNullAndAssignableUsersNew(DateTime date, DbTransaction tran = null)
+		{
+			var startdate = date;
+			var enddate = date.AddMonths(1).AddDays(-1);
+			
+			using (var db = GetDB(tran))
+			{
+				var query = "SELECT  * FROM VWFTM_Task WHERE ((LEN(assignableUserIds) = 36 and assignUserId is null) or (assignUserId is not null)) and planStartDate >= '" + string.Format("{0:yyyy-MM-dd HH:mm}", startdate) + "' and dueDate <= '" + string.Format("{0:yyyy-MM-dd HH:mm}", enddate) + "' AND lastOperationStatus >= " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND lastOperationStatus <" + (int)EnumFTM_TaskOperationStatus.GorevDurduruldu + "";
+
+				return db.ExecuteReader<VWFTM_Task>(query).ToArray();
+			}
+		}
+
 
 
 		public SummaryHeadersTask GetVWFTM_TaskByUserIdCounts(Guid userId, DbTransaction tran = null)
