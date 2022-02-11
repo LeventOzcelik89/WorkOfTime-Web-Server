@@ -2130,17 +2130,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return query;
 		}
 
-		[AllowEveryone]
 		[PageInfo("Günlük Görev Havuzu DataSource", SHRoles.SahaGorevYonetici)]
 		public ContentResult WorkReportGridDataSource()
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var tasks = new TaskSchedulerModel().TaskPlan.CalendarNewDataSource(userStatus);
-
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
-
 		}
 	}
+
 	public class ChartTask
 	{
 		public string Ay { get; set; }
