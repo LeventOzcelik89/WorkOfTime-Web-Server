@@ -6,7 +6,7 @@
 }
 <link href="~/Content/UserLocationMap/mapAll.css" rel="stylesheet" />
 @section Javascript{
-    <script type="text/javascript">
+    <script type="text/javascript" data-selector="modalContainer">
         var control = false;
         var selectedFeature = null;
         var page = {
@@ -66,33 +66,12 @@
                         $(elem).addClass("active");
                         if ($('#selectPersonel').hasClass('active')) {
                             $('.pan-container-2').removeClass('hide');
-                            $('.pan-container').css("display", "none");
                         } else {
                             $('.pan-container-2').addClass('hide');
                         }
                         $(".btn-bar.right").animate({ right: -430 }, 200, function () {
                             $('.pan-container-2').find('.pan-content').hide();
                             $('.pan-container-2').find("#" + target).show();
-                            $(".btn-bar.right").animate({ right: 15 }, 200);
-                        });
-                    }
-                },
-                slideTabPerson: function (elem, target) {
-                    var hasActive = $(elem).hasClass("active");
-                    $(elem).parent().find("button").removeClass("active");
-                    if (hasActive) {
-                        $(".btn-bar.right").animate({ right: -430 }, 200);
-                    } else {
-                        $('.pan-container-2').addClass('hide');
-                        $('.pan-container').css("display", "block");
-                        $('#selectCompany').addClass('active');
-                        $('#selectCompany').removeClass('hide');
-                        $('#selectPersonel').removeClass('active');
-                        $('#selectedPerson').trigger('click');
-
-                        $(".btn-bar.right").animate({ right: -430 }, 200, function () {
-                            $('.pan-container').find('.pan-content').hide();
-                            $('.pan-container').find("#" + target).show();
                             $(".btn-bar.right").animate({ right: 15 }, 200);
                         });
                     }
@@ -116,20 +95,17 @@
             data: null,
             init: function () {
                 $('[data-target=".search-content"]').attr("data-placement", "left");
-                $('[data-target=".search-content"]').tooltip();
                 GetJsonDataFromUrl('/SH/SH_UserLocationTracking/GetMapDatas', {}, function (res) {
                     page.defines.filteredData = res;
                     page.locateFeatureToMap();
                     page.PersonelList();
                     page.fn.slideTab($('#personAllTemp'), 'PersonelList');
-                    $('#selectCompany').addClass('hide');
                 }, "Konumlar yükleniyor..");
-                $('[data-original-title]').tooltip();
                 page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarker.png");
                 page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarker.png");
                 page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
                 page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
-                page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
+                page.dfn.harita.feature.events(function (feature, layer) { return true; }, function (feature, layer) { return true; }, function (event, object) { });
             },
             locateFeatureToMap: function () {
                 var points = [];
@@ -154,37 +130,6 @@
                 $("#infourhour").text("(" + greenCounts + ")");
                 $("#outfourhour").text("(" + redCounts + ")");
             },
-            personlists: function (e, resp) {
-                page.dfn.harita.overlay.remove('slider-station');
-                selectedFeature = resp.element == undefined ? resp.getId() : resp.element.getId();
-                var prop = resp.element == undefined ? resp.getProperties().properties : resp.element.get("properties");
-                if (prop != null) {
-                    page.fn.slideTabPerson($('#personTemplate'), 'selectedPerson');
-                        $('#personTemplate').html(null)
-                        var elem = $($('#selectedPerson').html());
-                        var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
-                        var lastLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-                        if (prop.lastLocation != undefined) {
-                            var locations = prop.lastLocation.split('(')[1].replace(')', "");
-                            var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
-                            var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
-
-                            elem.find('[data-id="locationInfo"]').html(longitude + " " + latitude);
-                        }
-                        elem.find('[data-id="personFullName"]').html(prop.userId_Title != null ? prop.userId_Title : "-");
-                        elem.find('[data-id="personTitle"]').html(prop.title ? prop.title : "-");
-                        elem.find('[data-id="locationDate"]').html(page.parseTimeStamp(prop.timeStamp));
-                        elem.find('[data-id="locationInfo"]').html(longitude + " " + latitude);
-                        elem.find('[data-id="deviceInfo"]').html(prop.deviceId != null ? prop.deviceId : "Cihaz bilgisi bulunamadı.");
-                        elem.find('[data-id="firstLocationDate"]').html(page.parseTimeStamp(firstLocationInfo.timeStamp));
-                        elem.find('[data-id="lastLocationDate"]').html(page.parseTimeStamp(lastLocationInfo.timeStamp));
-                        elem.find('[data-id="personelPhoto"]').attr('src', prop.ProfilePhoto);
-                        elem.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + prop.userId);
-                        elem.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + prop.userId);
-                        $('#personTemplate').append(elem.html());
-                    }
-                    page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
-            },
             search: function (_this) {
                 var key = $(_this).val();
                 $.each($('#personAllTemp .card'), function (e, item) {
@@ -195,13 +140,65 @@
                     }
                 });
             },
+            getPersonDetailForHover: function (data) {
+                var person = page.defines.filteredData;
+                var locations = data.lastLocation.split('(')[1].replace(')', "");
+                var latitude = locations.split(" ")[1].replace(".", ",").substr(0, 7);
+                var longitude = locations.split(" ")[0].replace(".", ",").substr(0, 7);
+                var text = '<div class="item">                                                                                  ' +
+                    '  <div class="head text-center clearfix">                                                                  ' +
+                    '          <div class="col-xs-12">Personel ve Konum Bilgileri</div>                                         ' +
+                    '  </div>                                                                                                   ' +
+                    '   <ul class="list-group clear-list m-t">                                                                  ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    data.userId_Title +
+                    '            </span>                                                                                        ' +
+                    '            Ad Soyad :                                                                                     ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    data.title +
+                    '            </span>                                                                                        ' +
+                    '            Ünvanı :                                                                                       ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    page.parseTimeStamp(data.timeStamp) +
+                    '            </span>                                                                                        ' +
+                    '            Konumun Alındığı Tarih :                                                                       ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    longitude + " " + latitude +
+                    '            </span>                                                                                        ' +
+                    '            Konum Bilgisi :                                                                                ' +
+                    '        </li>                                                                                              ' +
+                    '        <li class="list-group-item fist-item">                                                             ' +
+                    '            <span class="pull-right listGroupValue">                                                       ' +
+                    (data.deviceId != null ? data.deviceId : "Cihaz bilgisi bulunamadı.") +
+                    '            </span>                                                                                        ' +
+                    '            Cihaz Bilgisi :                                                                                ' +
+                    '        </li>                                                                                              ' +
+                    '        </ul>                                                                                              ' +
+                    '<div class="col-md-12 btnPersonelKonum">                                                                                                        '+
+                    ' <div class="row">                                                                                                                              '+
+                    ' <div class="btnpersonelDetayı">                                                                                                                '+
+                    '<a href="/SH/VWSH_User/Detail?id=' + data.userId +'" class="btn btn-md btn-success pull-right" target="_blank">Personel Detayı</a>              '+
+                    ' </div>                                                                                                                                         '+
+                    '<div class="btnKonumDetayı">                                                                                                                    '+
+                    ' <a href="/SH/SH_UserLocationTracking/Map?userId='+ data.userId + '" class="btn btn-md btn-success pull-left" target="_blank">Konum Detayı</a>  '+
+                    '</div>                                                                                                                                          '+
+                    '</div>                                                                                                                                          '+
+                    '</div>                                                                                                                                          '+
+                    '</div>';
+
+                return text;
+            },
             parseTimeStamp: function (timeStamp) {
                 return kendo.toString(new Date(timeStamp * 1), 'dd.MM.yyyy HH:mm');
             },
-            parseLastLocation: function (id) {
-                var lastLocations = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == id).OrderByDescending(x => x.timeStamp).FirstOrDefault();
-                return kendo.toString(new Date(lastLocations.timeStamp * 1), 'dd.MM.yyyy HH:mm');
-            },
+            
             PersonelList: function () {
                 $('#personAllTemp').html(null);
 
@@ -209,6 +206,8 @@
                 $.each($.Enumerable.From(page.defines.filteredData).Where(a => a.lastLocation != null).OrderBy(x => x.timeStamp).ToArray(), function (i, data) {
                     var html = $($('#PersonelList').html());
 
+                    html.find('[data-id="userId"]').attr('href', '/SH/SH_UserLocationTracking/Map?userId=' + data.userId);
+                    html.find('[data-id="userDetail"]').attr('href', '/SH/VWSH_User/Detail?id=' + data.userId);
                     html.find('[data-id="userId_Title"]').html(data.userId_Title ?? "-");
                     html.find('[data-id="title"]').html(data.title ?? "-");
                     html.find('[data-id="configName"]').html(data.configName ?? "-");
@@ -218,7 +217,6 @@
                         var feature = page.dfn.harita.feature.add(null, data.id, null);
                         if (feature) {
                             page.dfn.harita.feature.panTo(data.id, 20);
-                            page.personlists(e, feature);
                         }
                     })
                     if (data.ProfilePhoto != null) {
@@ -240,8 +238,18 @@
                 page.init();
             })
             .on("select:feature", "#Harita", function (e, resp) {
-                page.personlists(e, resp);
-            });
+                page.dfn.harita.overlay.remove('slider-station');
+                    var elem = resp.element;
+                    var prop = elem.get("properties");
+                    if (prop) {
+                        text = page.getPersonDetailForHover(prop);
+                        var geometry = resp.element.getGeometry();
+                        var coordinate = geometry.getCoordinates();
+                        var pixel = page.dfn.harita.map.getPixelFromCoordinate(coordinate);
+                        var tooltiplocation = "bottom-right";
+                        page.dfn.harita.overlay.add('slider-station', text, '', tooltiplocation, elem.getGeometry().getCoordinates(), [180, -70]);
+                    }
+            })
     </script>
 }
 <div id="Harita" style="height:calc(100vh - 80px);position:relative;overflow:hidden;">
@@ -283,7 +291,6 @@
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
-            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTabPerson(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
 
         </div>
         <div class="pan-container-2">
@@ -303,51 +310,8 @@
 
             <div style="height: calc(100% - 112px); overflow-y: scroll; margin-top: 10px;" id="personAllTemp"></div>
         </div>
-        <div class="pan-container" id="personTemplate">
-        </div>
     </div>
 </div>
-
-<script type="text/template" id="selectedPerson">
-    <div class="pan-content">
-        <div class="pan-head clearfix" style="margin-left: 15px;">
-            <div style="padding-top: 7px;">
-                <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL VE KONUM BİLGİLERİ</span>
-                </div>
-            </div>
-        </div>
-        <div>
-            <div class="pan-bodyCustom" style="height:271px;">
-                <div class="col-md-12">
-                    <div class="panContentPresentation">
-                        <div class="card col-md-12">
-                            <nav class="nav">
-                                <ul>
-                                    <li><strong style="color:#000">Ad Soyadı :</strong><span data-id="personFullName"></span></li>
-                                    <li><strong style="color:#000">Ünvanı :</strong><span data-id="personTitle"></span></li>
-                                    <li><strong style="color:#000">Konum Tarihi :</strong><span data-id="locationDate"></span></li>
-                                    <li><strong style="color:#000">Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
-                                    <li><strong style="color:#000">Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
-                                    <li><strong style="color:#000">İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
-                                    <li><strong style="color:#000">Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
-                                </ul>
-                            </nav>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-12 btnPersonelKonum">
-                <div class="btnpersonelDetayı">
-                    <a href="#" class="btn btn-md btn-primary pull-left" target="_blank" data-id="userDetail">Personel Detayı</a>
-                </div>
-                <div class="btnKonumDetayı">
-                    <a href="#" class="btn btn-md btn-primary pull-right" target="_blank" data-id="userId">Konum Detayı</a>
-                </div>
-            </div>
-        </div>
-    </div>
-</script>
 
 <script type="text/template" id="PersonelList">
     <div class="card">
@@ -356,8 +320,10 @@
                 <img class="img-thumbnail img-circle" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-id="ProfilePhoto" src="/Content/Custom/img/na.png" />
             </div>
             <div class="col-md-9">
-                <a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" data-original-title="Düzenle"><i class="fa fa-pencil"></i></a>
-                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-original-title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" data-id="btnbtn" title="Düzenle"><i class="fa fa-pencil"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-toggle="tooltip" title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userDetail" title="Personel Detayı"><i class="fa fa-user"></i></a>
+                <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" target="_blank" data-id="userId" title="Konum Detayı"><i class="fa fa-cog"></i></a>
 
                 <h4 data-id="userId_Title"></h4>
                 <div style="color:#000" class="text-muted" data-id="title"></div>
