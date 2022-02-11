@@ -225,13 +225,13 @@
 
 				//_TaskDetail.LoadPlans();
 
-					
+
 
 
 			setTimeout(function() {
 
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
-                    
+
 
 
                     $.Enumerable.From(_TaskDetail.Calendar.Years)
@@ -272,7 +272,7 @@
 					$('body').loadingModal('destroy');
                     $("#calendarInitButton").removeClass("active");
 
-                    
+
                     if (_TaskDetail.plan != '') {
 						MesajWarning("Seçmiş olduğunuz plana ait Görev bulunamadı..", "Görev Bulunamadı!")
 					}
@@ -288,7 +288,7 @@
                 if (_TaskDetail.Calendar.Years != null && _TaskDetail.Calendar.Years.length > 0) {
 
                     $.each(_TaskDetail.Calendar.Years, function (i, item) {
-                        
+
                     var planIds = $.Enumerable.From($('.customList > [data-show="true"]').map(function (i, item) { return $(item).attr('data-plan') }));
 
                     if (_TaskDetail.customerId != null && _TaskDetail.customerId != "") {
@@ -395,6 +395,24 @@
 
                                 })
                                 .ToArray();
+
+                            debugger;
+							if (items.GroupBy(a => { return a.taskPlanId_Title }).ToArray().length <= 0) {
+								$("#planDivId").addClass("hide");
+							}
+
+
+							items
+								.GroupBy(a => { return a.taskPlanId_Title; })
+								.Select(a => {
+
+									var el = $($('#temp_Plans').html());
+									el.html(a.Key());
+									//el.attr('href', el.attr('href') + a.Max(b => { return b.taskPlanId; }));
+									el.appendTo(temp.find('[data-target="plans"]'));
+
+								})
+								.ToArray();
 
                             items
                                 .GroupBy(a => { return a.type_Title; })
@@ -692,6 +710,11 @@
 	<a href="/CMP/VWCMP_Company/Detail?id=" target="_blank" class="block" data-target="customerTitle"></a>
 </script>
 
+<script type="text/template" id="temp_Plans">
+	<span style="font-size:10px;" class="block" data-target="planTitle"></span>
+</script>
+
+
 <script type="text/template" id="temp">
 	<div class="calPopover">
 
@@ -699,8 +722,18 @@
 
 		<h3 class="text-center">Toplam <span data-target="taskCount"></span> Görev</h3>
 
-		<div class="capt">Müşteriler</div>
-		<div data-target="customers"></div>
+		<div class="row">
+			<div class="col-sm-6">
+				<div class="capt">Müşteriler</div>
+				<div data-target="customers"></div>
+
+			</div>
+			<div class="col-sm-6">
+				<div class="capt">Bakım Planları</div>
+				<div data-target="plans"></div>
+
+			</div>
+		</div>
 
 		<div class="row">
 			<div class="col-sm-6">

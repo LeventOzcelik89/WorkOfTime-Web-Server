@@ -341,7 +341,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
 			//  hali hazırda açılmış görevler
 
-			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < 13  AND dueDate >= GETDATE()";
+			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < 13 AND dueDate >= GETDATE()";
 			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
