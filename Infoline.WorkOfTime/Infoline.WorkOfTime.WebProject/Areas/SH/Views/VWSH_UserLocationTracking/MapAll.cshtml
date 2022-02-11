@@ -64,17 +64,35 @@
                         $(".btn-bar.right").animate({ right: -430 }, 200);
                     } else {
                         $(elem).addClass("active");
-
                         if ($('#selectPersonel').hasClass('active')) {
-                            $('.pan-container').addClass('hide');
                             $('.pan-container-2').removeClass('hide');
+                            $('.pan-container').css("display", "none");
                         } else {
-                            $('.pan-container').removeClass('hide');
                             $('.pan-container-2').addClass('hide');
                         }
                         $(".btn-bar.right").animate({ right: -430 }, 200, function () {
                             $('.pan-container-2').find('.pan-content').hide();
                             $('.pan-container-2').find("#" + target).show();
+                            $(".btn-bar.right").animate({ right: 15 }, 200);
+                        });
+                    }
+                },
+                slideTabPerson: function (elem, target) {
+                    var hasActive = $(elem).hasClass("active");
+                    $(elem).parent().find("button").removeClass("active");
+                    if (hasActive) {
+                        $(".btn-bar.right").animate({ right: -430 }, 200);
+                    } else {
+                        $('.pan-container-2').addClass('hide');
+                        $('.pan-container').css("display", "block");
+                        $('#selectCompany').addClass('active');
+                        $('#selectCompany').removeClass('hide');
+                        $('#selectPersonel').removeClass('active');
+                        $('#selectedPerson').trigger('click');
+
+                        $(".btn-bar.right").animate({ right: -430 }, 200, function () {
+                            $('.pan-container').find('.pan-content').hide();
+                            $('.pan-container').find("#" + target).show();
                             $(".btn-bar.right").animate({ right: 15 }, 200);
                         });
                     }
@@ -107,8 +125,8 @@
                     $('#selectCompany').addClass('hide');
                 }, "Konumlar yükleniyor..");
                 $('[data-original-title]').tooltip();
-                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarkNew1.png");
-                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarkNew1.png");
+                page.dfn.harita.style.add("GreenMarkStyle" , null, null, null, "/Content/Custom/img/PersonsBackImage/greenMarker.png");
+                page.dfn.harita.style.add("MarkStyle", null, null, null, "/Content/Custom/img/PersonsBackImage/redMarker.png");
                 page.dfn.harita.layer.addVector("Yeşil Mark", "GreenMark", "GreenMarkStyle");
                 page.dfn.harita.layer.addVector("Kırmızı Mark", "RedMark", "MarkStyle");
                 page.dfn.harita.feature.events(function (feature, layer) { return false; }, function (feature, layer) { return true; }, function (event, object) { });
@@ -140,21 +158,8 @@
                 page.dfn.harita.overlay.remove('slider-station');
                 selectedFeature = resp.element == undefined ? resp.getId() : resp.element.getId();
                 var prop = resp.element == undefined ? resp.getProperties().properties : resp.element.get("properties");
-                    if (prop != null) {
-
-                        if ($('#selectCompany').hasClass("hide")) {
-                            $('#selectCompany').removeClass("hide");
-                        }
-
-                        if ($('#selectCompany').hasClass("active")) {
-                            $('#selectCompany').removeClass("active");
-                            setTimeout(function () {
-                                $('#selectCompany').trigger("click");
-                            }, 300)
-                        }
-                        else {
-                            $('#selectCompany').trigger("click");
-                        }
+                if (prop != null) {
+                    page.fn.slideTabPerson($('#personTemplate'), 'selectedPerson');
                         $('#personTemplate').html(null)
                         var elem = $($('#selectedPerson').html());
                         var firstLocationInfo = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == selectedFeature).OrderBy(x => x.timeStamp).FirstOrDefault();
@@ -180,7 +185,6 @@
                     }
                     page.dfn.harita.feature.properties.interactionSelect.getFeatures().clear();
             },
-
             search: function (_this) {
                 var key = $(_this).val();
                 $.each($('#personAllTemp .card'), function (e, item) {
@@ -194,7 +198,6 @@
             parseTimeStamp: function (timeStamp) {
                 return kendo.toString(new Date(timeStamp * 1), 'dd.MM.yyyy HH:mm');
             },
-
             parseLastLocation: function (id) {
                 var lastLocations = $.Enumerable.From(page.defines.filteredData).Where(x => x.id == id).OrderByDescending(x => x.timeStamp).FirstOrDefault();
                 return kendo.toString(new Date(lastLocations.timeStamp * 1), 'dd.MM.yyyy HH:mm');
@@ -268,8 +271,8 @@
             <table class="slider">
                 <tbody>
                     <tr>
-                        <td class="category" style="height: 48px;width: 300px; line-height: 48px;background-color: #1ab394;padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı <span id="infourhour"></span></td>
-                        <td class="category" style="height: 48px;width: 300px; line-height: 48px;background-color: #ff0202;padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></td>
+                        <td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(19, 162, 97); padding: 0 10px 0 10px;">4 Saat içinde Konum Alındı <span id="infourhour"></span></td>
+                        <td class="category" style="height: 48px; width: 300px; line-height: 48px; background-color: rgb(188, 1, 1); padding: 0 10px 0 10px;">4 Saat İçinde Konum Alınamadı <span id="outfourhour"></span></td>
                     </tr>
                 </tbody>
             </table>
@@ -280,19 +283,19 @@
         <div class="btn-container m-b-lg">
             <button id="selectContacts" class="btn btn-lg btn-circle btn-custom hide" onclick="page.fn.slideTab(this,'contact')"><i class="fa fa-users"></i></button>
             <button id="selectPersonel" class="btn btn-lg btn-circle btn-custom active" style="margin-top:0px;" onclick="page.fn.slideTab(this, 'PersonelList')"><i class="fa fa-users"></i></button>
-            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTab(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
+            <button id="selectCompany" class="btn btn-lg btn-circle btn-custom" onclick="page.fn.slideTabPerson(this, 'selectedPerson')"><i class="fa fa-bookmark"></i></button>
 
         </div>
         <div class="pan-container-2">
 
             <div style="width:380px;" class="pan-head clearfix">
-                <h3 class="pan-head clearfix" style="color:white;">PERSONEL LİSTESİ</h3>
+                <h3 class="pan-head clearfix">PERSONEL LİSTESİ</h3>
                 <a class="btnDetail" data-original-title="Personel Ekle" id="plusbtn" data-task="Insert" data-modal="true" data-href="/UT/VWUT_LocationConfigUser/Insert" data-method="get"></a>
 
 
                 <div class="inputContainer">
                     <i class="fa fa-search"></i>
-                    <input style="width: 89%; margin-bottom: 8px;" type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
+                    <input style="width: 89%; margin-bottom: 8px; background: #ffffff;" type="text" placeholder="Arama yapmak için yazınız.." data-content="FullName" onkeyup="page.search(this)" class="searchInput" autocomplete="off">
                 </div>
 
             </div>
@@ -310,46 +313,24 @@
         <div class="pan-head clearfix" style="margin-left: 15px;">
             <div style="padding-top: 7px;">
                 <div class="col-md-12" style="padding-left:0px !important;padding-right:0px !important">
-                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL BİLGİLERİ</span>
+                    <span style="padding-left: 5px;text-transform: uppercase;">PERSONEL VE KONUM BİLGİLERİ</span>
                 </div>
             </div>
         </div>
         <div>
-            <div class="clearfix">
-
-            </div>
-            <div class="cardPerson" style="padding-bottom: 10px;">
-                <div class="col-md-2">
-                    <a href="#">
-                        <img data-id="personelPhoto" style="width:41px !important;height:41px !important;margin-left:0px;margin-top: 8px;" class="img-circle" data-toggle="tooltip" onerror="ImageError(this, '/Content/Custom/img/na.png')" data-placement="bottom" src="/Content/Custom/img/na.png">
-                    </a>
-                </div>
-                <div class="col-md-10">
-                    <nav class="nav">
-                        <ul>
-                            <li><strong>Adı ve Soyadı : </strong><span data-id="personFullName"></span></li>
-                            <li><strong>Ünvanı : </strong><span data-id="personTitle"></span></li>
-                        </ul>
-                    </nav>
-                </div>
-            </div>
-
-            <div class="pan-bodyCustom" style="height:250px">
+            <div class="pan-bodyCustom" style="height:271px;">
                 <div class="col-md-12">
                     <div class="panContentPresentation">
                         <div class="card col-md-12">
-                            <header class="header">
-                                <div class="card-details">
-                                    <h3 class="card-name" style="color: aliceblue;"> KONUM BİLGİLERİ</h3>
-                                </div>
-                            </header>
                             <nav class="nav">
                                 <ul>
-                                    <li><strong>Konum Tarihi :</strong><span data-id="locationDate"></span></li>
-                                    <li><strong>Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
-                                    <li><strong>Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
-                                    <li><strong>İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
-                                    <li><strong>Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
+                                    <li><strong style="color:#000">Ad Soyadı :</strong><span data-id="personFullName"></span></li>
+                                    <li><strong style="color:#000">Ünvanı :</strong><span data-id="personTitle"></span></li>
+                                    <li><strong style="color:#000">Konum Tarihi :</strong><span data-id="locationDate"></span></li>
+                                    <li><strong style="color:#000">Konum Bilgisi :</strong><span data-id="locationInfo"></span></li>
+                                    <li><strong style="color:#000">Cihaz Bilgisi :</strong><span data-id="deviceInfo"></span></li>
+                                    <li><strong style="color:#000">İlk Konum Tarihi :</strong><span data-id="firstLocationDate"></span></li>
+                                    <li><strong style="color:#000">Son Konum Tarihi :</strong><span data-id="lastLocationDate"></span></li>
                                 </ul>
                             </nav>
                         </div>
@@ -357,13 +338,11 @@
                 </div>
             </div>
             <div class="col-md-12 btnPersonelKonum">
-                <div class="row">
-                    <div class="col-md-6 btnpersonelDetayı">
-                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userDetail">Personel Detayı</a>
-                    </div>
-                    <div class="col-md-6 btnKonumDetayı">
-                        <a href="#" class="btn btn-md btn-success pull-right" target="_blank" data-id="userId">Konum Detayı</a>
-                    </div>
+                <div class="btnpersonelDetayı">
+                    <a href="#" class="btn btn-md btn-primary pull-left" target="_blank" data-id="userDetail">Personel Detayı</a>
+                </div>
+                <div class="btnKonumDetayı">
+                    <a href="#" class="btn btn-md btn-primary pull-right" target="_blank" data-id="userId">Konum Detayı</a>
                 </div>
             </div>
         </div>
@@ -381,9 +360,9 @@
                 <a href="#" class="btn btn-xs btn-warning pull-right" style="margin-right:5px;" data-id="btnLocation" data-original-title="Lokasyona Git"><i class="fa fa-map-marker"></i></a>
 
                 <h4 data-id="userId_Title"></h4>
-                <div class="text-muted" data-id="title"></div>
-                <div data-id="configName"></div>
-                <div class="durum" data-id="isTrackingActive">Konum Takibi Kapalı</div>
+                <div style="color:#000" class="text-muted" data-id="title"></div>
+                <div style="color:#000" data-id="configName"></div>
+                <div class="durum" style="color:#000" data-id="isTrackingActive">Konum Takibi Kapalı</div>
 
             </div>
         </div>
