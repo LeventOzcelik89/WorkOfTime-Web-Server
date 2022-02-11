@@ -239,7 +239,7 @@ function feedback(feedback) {
     }
 
     if (feedbackObj.message != "" && feedbackObj.status != "") {
-        if (feedbackObj.Type == 0) {
+        if (feedbackObj.Type == 0 || feedbackObj.Type == undefined) {
             toastr[feedbackObj.status](feedbackObj.message, feedbackObj.title);
         }
         else {
