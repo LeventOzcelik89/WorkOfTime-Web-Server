@@ -66,7 +66,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return View(data);
 		}
 
-
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Ekleme")]
@@ -82,17 +81,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
-		public ActionResult Update(VMSH_WorkAccidentModel model)
+		public ActionResult Update(Guid id)
 		{
-			var data = model.Load();
-			return View(data);
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
+		}
+
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Bildirim Bilgileri Güncelleme")]
+		public ActionResult UpdateInfo(Guid id)
+		{
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
-		[HttpPost, ValidateAntiForgeryToken]
+		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
 		public JsonResult Update(VMSH_WorkAccidentModel model, bool? isPost)
@@ -103,7 +107,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return Json(new ResultStatusUI
 			{
 				Result = rs.result,
-				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + rs.message)
+				FeedBack = rs.result ? feedback.Success(rs.message, false, Request.UrlReferrer.AbsoluteUri,timeout:1) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
+		}		
+		
+		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Bildirim İçeriği Güncelleme")]
+		public JsonResult SaveContent(VMSH_WorkAccidentModel model, bool? isPost)
+		{
+			var db = new WorkOfTimeDatabase();
+			var dbresult = db.UpdateSH_WorkAccident(new SH_WorkAccident().B_EntityDataCopyForMaterial(model));
+
+			var feedback = new FeedBack();
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("İçerik Başarılı Bir Şekilde Güncellenmiştir.", false, Request.UrlReferrer.AbsoluteUri, timeout: 1) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
 		}
 
