@@ -95,7 +95,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
-		public JsonResult Update(VMSH_WorkAccidentCertificateModel model)
+		public JsonResult Update(VMSH_WorkAccidentCertificateModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
