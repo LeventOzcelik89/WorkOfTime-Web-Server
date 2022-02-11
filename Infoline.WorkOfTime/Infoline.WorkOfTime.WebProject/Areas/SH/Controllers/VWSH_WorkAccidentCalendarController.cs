@@ -14,7 +14,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 	public class VWSH_WorkAccidentCalendarController : Controller
 	{
 		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Etkinlik  Listesi")]
+		[PageInfo("Kaza Ve Olay Etkinlik Listesi")]
 		public ActionResult Index()
 		{
 		    return View();
@@ -54,97 +54,68 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		[PageInfo("Kazas Ve Olay Etkinlik Detayı")]
 		public ActionResult Detail(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSH_WorkAccidentCalendarById(id);
-		    return View(data);
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
-		public ActionResult Insert()
+		public ActionResult Insert(VMSH_WorkAccidentCalendarModel model)
 		{
-		    var data = new VWSH_WorkAccidentCalendar { id = Guid.NewGuid() };
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
-		public JsonResult Insert(SH_WorkAccidentCalendar item)
+		public JsonResult Insert(VMSH_WorkAccidentCalendarModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertSH_WorkAccidentCalendar(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay bildirim kaydetme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VMSH_WorkAccidentCalendarModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSH_WorkAccidentCalendarById(id);
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
 		[HttpPost, ValidateAntiForgeryToken]
-		public JsonResult Update(SH_WorkAccidentCalendar item)
+		public JsonResult Update(VMSH_WorkAccidentCalendarModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdateSH_WorkAccidentCalendar(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay etkinliği güncelleme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[HttpPost]
 		[AllowEveryone]
 		[PageInfo("Kazas Ve Olay Etkinlik Silme")]
-		public JsonResult Delete(string[] id)
+		public JsonResult Delete(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var feedback = new FeedBack();
-		
-		    var item = id.Select(a => new SH_WorkAccidentCalendar { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeleteSH_WorkAccidentCalendar(item);
-		
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			return Json(new ResultStatusUI(new VMSH_WorkAccidentCalendarModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
+
 		}
-
-
 
 	}
 }

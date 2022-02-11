@@ -54,94 +54,67 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		[PageInfo("Kaza Ve Olay Eğitim Detayı")]
 		public ActionResult Detail(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSH_WorkAccidentCertificateById(id);
-		    return View(data);
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
-		public ActionResult Insert()
+		public ActionResult Insert(VMSH_WorkAccidentCertificateModel model)
 		{
-		    var data = new VWSH_WorkAccidentCertificate { id = Guid.NewGuid() };
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
-		public JsonResult Insert(SH_WorkAccidentCertificate item)
+		public JsonResult Insert(VMSH_WorkAccidentCertificateModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		    item.created = DateTime.Now;
-		    item.createdby = userStatus.user.id;
-		    var dbresult = db.InsertSH_WorkAccidentCertificate(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay eğitimi kaydetme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
-		public ActionResult Update(Guid id)
+		public ActionResult Update(VMSH_WorkAccidentCertificateModel model)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var data = db.GetVWSH_WorkAccidentCertificateById(id);
-		    return View(data);
+			var data = model.Load();
+			return View(data);
 		}
 
 
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
-		public JsonResult Update(SH_WorkAccidentCertificate item)
+		public JsonResult Update(VMSH_WorkAccidentCertificateModel model, bool? isPost)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var userStatus = (PageSecurity)Session["userStatus"];
-		    var feedback = new FeedBack();
-		
-		    item.changed = DateTime.Now;
-		    item.changedby = userStatus.user.id;
-		
-		    var dbresult = db.UpdateSH_WorkAccidentCertificate(item);
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var rs = model.Save(userStatus.user.id);
+			return Json(new ResultStatusUI
+			{
+				Result = rs.result,
+				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay eğitimi güncelleme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
 		}
 
 
 		[HttpPost]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Eğitim Silme")]
-		public JsonResult Delete(string[] id)
+		public JsonResult Delete(Guid id)
 		{
-		    var db = new WorkOfTimeDatabase();
-		    var feedback = new FeedBack();
-		
-		    var item = id.Select(a => new SH_WorkAccidentCertificate { id = new Guid(a) });
-		
-		    var dbresult = db.BulkDeleteSH_WorkAccidentCertificate(item);
-		
-		    var result = new ResultStatusUI
-		    {
-		        Result = dbresult.result,
-		        FeedBack = dbresult.result ? feedback.Success("Silme işlemi başarılı") : feedback.Error("Silme işlemi başarılı")
-		    };
-		
-		    return Json(result, JsonRequestBehavior.AllowGet);
+			return Json(new ResultStatusUI(new VMSH_WorkAccidentCertificateModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
+
 		}
 
 
