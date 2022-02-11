@@ -79,7 +79,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
-            Log.Info(string.Format("Getting All File Names From Kvk Server {0}", ftpConfiguration.Url));
+            Log.Info(string.Format("Getting All File Names From PORT Server {0}", ftpConfiguration.Url));
             var fileList = new List<FileNameWithUrl>();
             try
             {

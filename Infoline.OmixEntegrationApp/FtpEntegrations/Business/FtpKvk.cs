@@ -29,7 +29,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         }
         public ResultStatus ExportFilesToDatabase()
         {
-            var processDate = DateTime.Now.AddDays(-30);
+            var processDate = DateTime.Now.AddDays(-2000);
             var entegrationFileList = GetFilesInFtp(processDate);
 
             var result = new ResultStatus();
@@ -102,11 +102,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 
                     bool isDirectory = data[0].ToString() == "d";
                     var name = data.Substring(56);
-                    item.DateFileCreated = DateTime.ParseExact(line.Substring(43, 56 - 44), "MMM dd HH:mm", CultureInfo.InvariantCulture);
+                    var date = line.Substring(43, 56 - 44);
                     item.Name = name;
                     item.BaseUri = ftpConfiguration.Url;
                     item.IsDirectory = isDirectory;
-
                     if (name == "." || name == "..")
                     {
                     }
@@ -114,6 +113,12 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     {
                         if (!isDirectory)
                         {
+                            var isTransformed= DateTime.TryParseExact(date, "MMM dd  yyyy", CultureInfo.InvariantCulture,DateTimeStyles.None,out var parsedDate);
+                            if (isTransformed)
+                            {
+                                item.DateFileCreated = parsedDate;
+                            }
+                          
                             fileList.Add(new FileNameWithUrl { FileName = item.Name, FileCreatedDate = item.DateFileCreated, DirectoryFileName = this.ftpConfiguration.Url + this.ftpConfiguration.Directory + "//" + item.Name });
                         }
                     }
@@ -129,7 +134,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
-                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
+                if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)&&x.DistributorId==this.DistributorId))
                     continue;
 
                 entegrationFileList.Add(new PRD_EntegrationFiles

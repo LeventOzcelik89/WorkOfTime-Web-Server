@@ -289,6 +289,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.PRD.Controllers
 					product.unitId = unitsDB.Where(a => a.name.ToLower(culture) == "ADET".ToLower(culture)).Select(a => a.id).FirstOrDefault();
 				}
 
+				var productUnit = new PRD_ProductUnit
+				{
+					productId = product.id,
+					created = DateTime.Now,
+					createdby = userStatus.user.id,
+					id = Guid.NewGuid(),
+					quantity = 1,
+					isDefault = 1,
+					unitId = product.unitId
+				};
+
+				res &= db.InsertPRD_ProductUnit(productUnit, _trans);
+
 				if (!String.IsNullOrEmpty(prod.category))
 				{
 					var isExistCategory = categoriesDB.Where(a => a.name.Replace(" ", "").ToLower(culture) == prod.category.Replace(" ", "").ToLower(culture)).FirstOrDefault();

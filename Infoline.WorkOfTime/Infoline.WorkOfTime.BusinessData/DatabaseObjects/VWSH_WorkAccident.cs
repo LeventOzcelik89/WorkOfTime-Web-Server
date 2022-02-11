@@ -13,5 +13,9 @@ namespace Infoline.WorkOfTime.BusinessData
         public Guid? templateId { get; set;}
         public string content { get; set;}
         public string code { get; set;}
+        public string createdby_Title { get; set;}
+        public string changedby_Title { get; set;}
+        public string userId_Title { get; set;}
+        public string projectId_Title { get; set;}
     }
 }

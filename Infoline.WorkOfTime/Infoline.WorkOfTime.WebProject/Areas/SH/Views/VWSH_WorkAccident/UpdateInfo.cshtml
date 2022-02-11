@@ -1,8 +1,9 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWSH_WorkAccident
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_WorkAccidentModel
 @{
-    ViewBag.Title = "İş Kazası / Olayı Ekleme";
+    ViewBag.Title = "İş Kazası / Olayı Güncelleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+
 <script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
 <script type="text/javascript" data-selector="modalContainer">
     function beforeFunc() {
@@ -13,9 +14,21 @@
         }
         return true;
     }
+
+    $(document).on("ready", function () {
+        debugger;
+        var values = '@Model.keyword';
+        if (values != "" && values != undefined && values != null) {
+            var valArr = values.split(',');
+            if (valArr.length > 0) {
+                var tags = $("#keyword").data("tagify");
+                tags.addTags(valArr, true, true)
+            }
+        }
+    });
 </script>
 
-@using (Html.BeginForm("Insert", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("Update", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
@@ -24,8 +37,9 @@
 }))
 {
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
 
     <div class="form-group">
         <div class="col-md-4">
@@ -67,7 +81,7 @@
                 DropDownListFor(model => model.taskId).
                 OptionLabel("Lütfen Görev Seçiniz..").
                 DataTextField("code").
-                DataValueField("Id").
+                DataValueField("id").
                 //ValueTemplate("#=TemplateEngine('FTM_TaskDropDownTemplate',data)#").
                 //Template("#=TemplateEngine('FTM_TaskDropDownTemplate',data)#").
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
@@ -147,14 +161,14 @@
 
     <div class="form-group">
 
-        <div class="col-md-4">
+        <div class="col-md-12">
             <label class="control-label label-md" for="content">Form</label>
         </div>
-        <div class="col-md-8">
-            @Html.HiddenFor(a => a.content)
-            @Html.TextArea("contentFakeElement", HttpUtility.HtmlDecode(Model.content))
+        <div class="col-md-12">
+            @Html.HiddenFor(a => a.content, new { id = "contentModal"})
+            @Html.TextArea("contentUpdateInfoFakeElement", HttpUtility.HtmlDecode(Model.content))
             <script type="text/javascript" data-selector="modalContainer">
-                var editor = CKEDITOR.replace('contentFakeElement', {
+                var editor = CKEDITOR.replace('contentUpdateInfoFakeElement', {
                     language: 'tr',
                     height: 320,
                     htmlEncodeOutput: true,
@@ -162,8 +176,8 @@
                     removePlugins: 'Save'
                 });
 
-                editor.on('instanceReady', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
-                editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
+                editor.on('instanceReady', function () { $("#contentModal").val(new Option(editor.getData()).innerHTML); });
+                editor.on('change', function () { $("#contentModal").val(new Option(editor.getData()).innerHTML); });
 
             </script>
         </div>
@@ -174,7 +188,4 @@
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
-
 }
-
-
