@@ -391,16 +391,5 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
 
 		}
-
-		[AllowEveryone]
-		[PageInfo("Planlanmış Görevler Takvim Data Methodu (Saha Görev Yöneticisi)", SHRoles.SahaGorevYonetici)]
-		public ContentResult CalendarNewDataSource()
-		{
-			var userStatus = (PageSecurity)Session["userStatus"];
-			var tasks = new TaskSchedulerModel().TaskPlan.CalendarNewDataSource(userStatus);
-
-			return Content(Infoline.Helper.Json.Serialize(new ResultStatus { result = true, objects = tasks }), "application/json");
-
-		}
 	}
 }
