@@ -92,11 +92,11 @@ var page = {
 
         $('[data-original-title]').tooltip();
 
-        var svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#1ab394" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z"/><circle fill="#ededed" cx="256" cy="160" r="96"/><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#1ab394"  d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z"/></svg>';
+    
         var firstLocation = new ol.style.Style({
             image: new ol.style.Icon({
                 opacity: 1,
-                src: 'data:image/svg+xml,' + escape(svg),
+                src: '/Content/Custom/img/PersonsBackImage/greenMarker.png',
                 scale: 1.0,
                 anchor: [0.5, 64],
                 anchorXUnits: 'fraction',
@@ -104,11 +104,10 @@ var page = {
             })
         });
 
-        svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#ff0202" d="M256,0C115.39,0,0,115.39,0,256s115.39,256,256,256s256-115.39,256-256S396.61,0,256,0z"/></svg>';
         var locations = new ol.style.Style({
             image: new ol.style.Icon({
                 opacity: 1,
-                src: 'data:image/svg+xml,' + escape(svg),
+                src: '/Content/Custom/img/PersonsBackImage/redMarker.png',
                 scale: 0.18,
                 anchor: [0.5, 64],
                 anchorXUnits: 'fraction',
@@ -116,11 +115,10 @@ var page = {
             })
         });
 
-        svg = '<svg id="Capa_1" data-name="Capa 1" xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="64px" height="64px" viewBox="0 0 512 512"><path fill="#f8ac59" d="M256,0A160,160,0,0,0,96,160a158.2,158.2,0,0,0,15.7,69.1C112.2,230.3,256,512,256,512L398.6,232.6A160,160,0,0,0,256,0Zm0,256a96,96,0,1,1,96-96A96,96,0,0,1,256,256Z"/><circle fill="#ededed" cx="256" cy="160" r="96"/><path transform="rotate(180, 0, 0)  translate(-322,-200) scale(0.12)" fill="#f8ac59"  d="M1070-88q0-21-2-63h-1067q0 10 0 31t-1 32q0 30 1 37 12 49 64 85t112 53 125 47 97 65q17 22 17 38 0 22-11 73-4 21-10 37t-16 33-16 31q-15 35-33 132-6 38-6 75 0 105 54 168t157 63 158-63 53-168q0-31-7-75-14-89-32-132-6-14-15-31t-16-33-11-37q-11-51-11-73 0-18 17-38 31-36 97-65t125-47 111-53 64-85q2-8 2-37z"/></svg>';
         var lastLocation = new ol.style.Style({
             image: new ol.style.Icon({
                 opacity: 1,
-                src: 'data:image/svg+xml,' + escape(svg),
+                src: '/Content/Custom/img/PersonsBackImage/orangeMarker.png',
                 scale: 1.0,
                 anchor: [0.5, 64],
                 anchorXUnits: 'fraction',
@@ -320,7 +318,6 @@ $(document)
     })
     .on("hover:feature", "#Harita", function (e, resp) {
         page.dfn.harita.overlay.remove('slider-station');
-
         if (resp.type == "add") {
             var elem = resp.element;
             var prop = elem.get("properties");

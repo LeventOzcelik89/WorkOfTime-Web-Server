@@ -7,5 +7,7 @@ namespace Infoline.WorkOfTime.BusinessData
     {
         public Guid? workAccidentId { get; set;}
         public Guid? companyPersonCalendarId { get; set;}
+        public string createdby_Title { get; set;}
+        public string changedby_Title { get; set;}
     }
 }

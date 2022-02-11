@@ -42,6 +42,7 @@ namespace System.Web.Mvc
                     _root.Add(MyJobs());
                     _root.Add(GetOfisYonetimi());
                     _root.Add(GetIK(userStatus));
+                    _root.Add(GetISG());
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());
@@ -217,6 +218,16 @@ namespace System.Web.Mvc
             ik.AddChild(personeltakip);
 
             return ik;
+        }
+
+        private Menu GetISG()
+        {
+            var menu = new Menu("İş Sağlığı ve Güvenliği", "#", "icon-medkit");
+            menu.AddChild(new Menu("Kaza ve Olay Bildirimleri", "/SH/VWSH_WorkAccident/Index"));
+            menu.AddChild(new Menu("Düzenleyici Önleyici Faaliyetler", "/SH/VWSH_CorrectiveActivity/Index"));
+            
+
+            return menu;
         }
 
         private Menu GetCRM()
