@@ -104,7 +104,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			using (var db = GetDB(tran))
 			{
-				var query = "SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title FROM VWFTM_Task WITH (NOLOCK) WHERE YEAR(dueDate) = " + year;
+				var query = "SELECT id,customer_Title,customerId,taskTemplateId,lastOperationStatus,lastOperationDate,dueDate,type_Title,taskPlanId,taskPlanId_Title FROM VWFTM_Task WITH (NOLOCK) WHERE YEAR(dueDate) = " + year;
 				if (customerId.HasValue)
 				{
 					query += " AND customerId = '" + customerId.Value + "'";
