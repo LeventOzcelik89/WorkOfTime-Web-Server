@@ -415,7 +415,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             var tmpUsers = db.INV_CompanyPersonCalendarPersonsByIDPersonCalendarId(item.id);
             var rsDelete = db.BulkDeleteINV_CompanyPersonCalendarPersons(tmpUsers, trans);
 
-            var dbres1 = db.UpdateINV_CompanyPersonCalendar(item, true, trans);
+            var dbres1 = db.UpdateINV_CompanyPersonCalendar(item, false, trans);
             var dbres2 = db.BulkInsertINV_CompanyPersonCalendarPersons(personList, trans);
 
             if (!dbres1.result || !dbres2.result)

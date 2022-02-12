@@ -52,8 +52,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
+		[AllowEveryone]
+		[PageInfo("Personel Sertifikası Güncelleme")]
+		public ActionResult DetailWorkAccident(Guid id)
+		{
+			var db = new WorkOfTimeDatabase();
+			var workAccident = db.GetSH_WorkAccidentCertificateById(id);
+			var data = db.GetVWSH_PersonCertificateById(workAccident.personCertificateId.Value);
+			return View(data);
+		}
 
-        [PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
+
+		[PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
         public ActionResult Insert(Guid? userId)
 		{
 		    var data = new VWSH_PersonCertificate { id = Guid.NewGuid(), UserId = userId};
@@ -97,6 +107,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertWorkAccident(SH_PersonCertificate item)
 		{
+			var workAccidentId = Guid.Parse(Request["workAccidentId"].ToString());
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
 			var people = Request["IdPersons"];
@@ -132,17 +143,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 				tmp.UserId = Guid.Parse(person);
 
 				dbRes &= db.InsertSH_PersonCertificate(tmp, trans);
-			}
 
-			var workAccidentId = Guid.Parse(Request["workAccidentId"].ToString());
-			foreach (var certificate in certificates)
-			{
 				dbRes &= db.InsertSH_WorkAccidentCertificate(new SH_WorkAccidentCertificate { 
 					id = Guid.NewGuid(),
 					createdby = userStatus.user.id,
 					created = DateTime.Now,
 					workAccidentId = workAccidentId,
-					personCertificateId = certificate
+					personCertificateId = cerId
 				}, trans);
 			}
 
@@ -177,8 +184,18 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
+		[AllowEveryone]
+		[PageInfo("Personel Sertifikası Güncelleme")]
+		public ActionResult UpdateWorkAccident(Guid id)
+		{
+			var db = new WorkOfTimeDatabase();
+			var workAccident = db.GetSH_WorkAccidentCertificateById(id);
+			var data = db.GetVWSH_PersonCertificateById(workAccident.personCertificateId.Value);
+			return View(data);
+		}		
+	
 
-        [PageInfo("Personel Sertifikası Güncelleme", SHRoles.IKYonetici)]
+		[PageInfo("Personel Sertifikası Güncelleme", SHRoles.IKYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(SH_PersonCertificate item)
 		{
@@ -201,6 +218,52 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
+
+		[AllowEveryone]
+		[PageInfo("Personel Sertifikası Güncelleme")]
+		[HttpPost, ValidateAntiForgeryToken]
+		public JsonResult UpdateWorkAccident(SH_PersonCertificate item)
+		{
+			var db = new WorkOfTimeDatabase();
+			var trans = db.BeginTransaction();
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var dbresult = new ResultStatus { result = true };
+			item.changed = DateTime.Now;
+			item.changedby = userStatus.user.id;
+
+
+			var control = db.GetSH_PersonCertificateById(item.id);
+			if (control == null)
+			{
+				var certificate = db.GetSH_WorkAccidentCertificateById(item.id);
+				certificate.changed = item.changed;
+				certificate.changedby = item.changedby;
+
+				dbresult &= db.UpdateSH_WorkAccidentCertificate(certificate, false, trans);
+
+				item.id = certificate.personCertificateId.Value;
+			}
+
+			dbresult &= db.UpdateSH_PersonCertificate(item,true, trans);
+			if (dbresult.result == true)
+			{
+				trans.Commit();
+				new FileUploadSave(Request).SaveAs();
+            }
+            else
+            {
+				trans.Rollback();
+			}
+			var result = new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("Güncelleme işlemi başarılı") : feedback.Error("Güncelleme işlemi başarısız")
+			};
+
+			return Json(result, JsonRequestBehavior.AllowGet);
+		}
+
 
 
 		[HttpPost]
