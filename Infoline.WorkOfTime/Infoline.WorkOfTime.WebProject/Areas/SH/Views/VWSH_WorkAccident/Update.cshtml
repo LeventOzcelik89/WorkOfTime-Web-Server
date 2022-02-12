@@ -222,7 +222,8 @@
 
                         @using (Html.BeginForm("SaveContent", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
                             { "class", "form-horizontal" },
-                            { "data-formType", "Ajax" }
+                            { "data-formType", "Ajax" },
+                            { "style", "padding:0" }
                         }))
                         {
                             @Html.AntiForgeryToken()
@@ -250,7 +251,7 @@
 
                     </div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_Project", new {area="PRJ" })" id="educations">
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCertificate", new {area="SH" })" id="educations">
                         <h4><i class="icon-bookmark text-success"></i> KAZA / OLAYA BAĞLI EĞİTİMLER </h4>
                         @(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccidentCertificate>("VWSH_WorkAccidentCertificate")
@@ -259,7 +260,9 @@
                             .PageSize(25))
                             .Columns(x =>
                             {
-                                x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                                x.Bound(y => y.id).Hidden();
+                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(100);
+                                x.Bound(y => y.created).Title("Oluşturulma Zamanı").Format("{0:dd.MM.yyyy HH:mm}").Width(100);
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
                             .Scrollable(s => s.Height(550))
