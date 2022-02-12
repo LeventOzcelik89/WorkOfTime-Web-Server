@@ -331,17 +331,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 
 		public VMFTM_TaskPlanCalendarModel[] CalendarNewDataSource(PageSecurity userStatus)
 		{
-
 			this.db = this.db ?? new WorkOfTimeDatabase();
-
-			//var plans = db.GetVWFTM_TaskPlan()
-			//	.Where(a => a.enabled == true && a.frequencyEndDate.HasValue && a.frequencyEndDate >= DateTime.Now)
-			//	.ToList();
-
-			var today = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day);
-			//  hali hazırda açılmış görevler
-
-			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < 13 AND dueDate >= GETDATE()";
+			var query = "SELECT * FROM VWFTM_Task WITH (NOLOCK) WHERE lastOperationStatus < " + (int)EnumFTM_TaskOperationStatus.GorevBaslandi + "AND planStartDate IS NULL AND dueDate >= GETDATE()";
 			var dbtasks = db.GetVWFTM_TaskByQuery(query).B_ConvertType<VMFTM_TaskPlanCalendarModel>();
 
 			if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevYonetici)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SahaGorevOperator)))
@@ -350,8 +341,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
 				if (authoritys.Count() > 0)
 				{
 					dbtasks = dbtasks.Where(x => authoritys.Where(f => f.customerId.HasValue).Select(f => f.customerId.Value).ToArray().Contains(x.customerId.Value)).ToArray();
-
-					//plans = plans.Where(x => dbtasks.Where(c => c.taskTemplateId.HasValue).Select(c => c.taskTemplateId.Value).ToArray().Contains(x.id)).ToList();
 				}
 			}
 
@@ -370,15 +359,8 @@ namespace Infoline.WorkOfTime.BusinessAccess
 			});
 
 			var tasks = new List<VMFTM_TaskPlanCalendarModel>();
-			//foreach (var plan in plans)
-			//{
-			//	tasks.AddRange(TaskCalendarDataSource(plan, userStatus));
-			//}
-
 			tasks.AddRange(dbtasks);
-
 			return tasks.ToArray();
-
 		}
 
 
