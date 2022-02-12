@@ -87,12 +87,14 @@
                     <a class="btn btn-xs btn-warning" data-task="Insert" data-modal="true" data-href="/SH/VWSH_WorkAccident/UpdateInfo?id=@Model.id">  <i class="fa fa-edit"></i> Kaza / Olay Bilgilerini Düzenle  </a>
                 </div>
 
-                <div style="margin-top: 10px; display:inline-block;">
+                @*<div style="margin-top: 10px; display:inline-block;">
                     <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWINV_CompanyPersonCalendar",new { area="INV", Type = (int)EnumINV_CompanyPersonCalendarType.Eğitim, workAccidentId = Model.id})">   Eğitim Planla </a>
-                </div>
+                </div>*@
+
                 <div style="margin-top: 10px; display:inline-block;">
                     <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWSH_PersonCertificate",new { area="SH", workAccidentId = Model.id})"> Gerçekleşmiş Eğitimi Gir </a>
                 </div>
+
                 <div style="margin-top: 10px; display:inline-block;">
                     <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  Düzeltici Faaliyet Oluştur </a>
                 </div>
@@ -251,28 +253,33 @@
 
                     </div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCertificate", new {area="SH" })" id="educations">
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCalendar", new {area="SH" })" id="educations">
                         <h4><i class="icon-bookmark text-success"></i> KAZA / OLAYA BAĞLI EĞİTİMLER </h4>
                         @(Html.Akilli()
-                            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccidentCertificate>("VWSH_WorkAccidentCertificate")
-                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccidentCertificate", new { area = "SH" }))
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccidentCalendar>("VWSH_WorkAccidentCalendar")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccidentCalendar", new { area = "SH" }))
                             .Filter(a => a.workAccidentId == Model.id)
                             .PageSize(25))
                             .Columns(x =>
                             {
                                 x.Bound(y => y.id).Hidden();
-                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(100);
-                                x.Bound(y => y.created).Title("Oluşturulma Zamanı").Format("{0:dd.MM.yyyy HH:mm}").Width(100);
+                                x.Bound(y => y.createdby_Title).Title("İşlemi Yapan").Width(100);
+                                x.Bound(y => y.created).Title("İşlem Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.title).Title("Eğitim Başlığı").Width(120);
+                                x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.people_Title).Title("Eğitime Katılacaklar").Format("{0:dd.MM.yyyy HH:mm}").Width(150);
+
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
                             .Scrollable(s => s.Height(550))
                             .ToolBar(x =>
                             {
-                                x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                        }))
+                                x.Custom().Text("<i data-original-title='Eğitim Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV", Type = (int)EnumINV_CompanyPersonCalendarType.Eğitim, workAccidentId = Model.id }));
+                                x.Custom().Text("<i data-original-title='Eğitimi Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV" }));
+                                x.Custom().Text("<i data-original-title='Eğitimi Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("DetailWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV" }));
+                                x.Custom().Text("<i data-original-title='Eğitimi Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
+                            }))
                     </div>
 
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_ProjectTimeline", new {area="PRJ" })" id="dof">
