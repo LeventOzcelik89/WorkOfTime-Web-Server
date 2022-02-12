@@ -65,8 +65,122 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                 StartDate = StartDate,
                 EndDate = EndDate
             });
+        }        
+        
+        [AllowEveryone]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme")]
+        public ActionResult InsertWorkAccident(int Type,  Guid workAccidentId)
+        {
+            ViewBag.workAccidentId = workAccidentId;
+            return View(new VWINV_CompanyPersonCalendar
+            {
+                id = Guid.NewGuid(),
+                Type = Type
+
+            });
         }
 
+
+        [AllowEveryone]
+        [HttpPost, ValidateAntiForgeryToken]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme")]
+        public JsonResult InsertWorkAccident(INV_CompanyPersonCalendar item, bool? mailForParticipants)
+        {
+            var db = new WorkOfTimeDatabase();
+            var userStatus = (PageSecurity)Session["userStatus"];
+            var feedback = new FeedBack();
+            item.created = DateTime.Now;
+            item.createdby = userStatus.user.id;
+
+            var persons = Request["IdUsers"];
+            if (persons == null)
+            {
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Warning("Herhangi bir personel seçimi yapılmadı.")
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            var personList = persons.Split(',').Select(a => new INV_CompanyPersonCalendarPersons
+            {
+                IdUser = a.ToGuid(),
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                IDPersonCalendar = item.id
+            }).ToArray();
+
+            var trans = db.BeginTransaction();
+            var dbres1 = db.InsertINV_CompanyPersonCalendar(item, trans);
+            var dbres2 = db.BulkInsertINV_CompanyPersonCalendarPersons(personList, trans);
+
+            if (!dbres1.result || !dbres2.result)
+            {
+                trans.Rollback();
+                return Json(new ResultStatusUI
+                {
+                    Result = false,
+                    FeedBack = feedback.Error(dbres1.message + "\n" + dbres2.message)
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+            var rsFile = new FileUploadSave(Request, item.id).SaveAs();
+
+            if (mailForParticipants == true)
+            {
+                var stringType = ((EnumINV_CompanyPersonCalendarType)item.Type).ToDescription();
+                var emailUsers = string.Join(";", db.GetVWSH_UserByIds(persons.Split(',').Select(x => new Guid(x)).ToArray()).Where(c => !string.IsNullOrEmpty(c.email)).Select(x => x.email).ToArray());
+
+                if (item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Toplanti || item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Hatirlatma)
+                {
+                    new Email().SendCalendar(emailUsers, item.Title, item.Description, item.StartDate.Value, item.EndDate.Value);
+                }
+                else
+                {
+                    var NewEndDate = item.Type == 100 || item.Type == 101 || item.Type == 103 || item.Type == 104 ? null : "- " + String.Format("{0:dd/MM/yyyy HH:mm}", item.EndDate.ToString());
+                    var tenantName = TenantConfig.Tenant.TenantName;
+                    var mesajIcerigi = string.Format(@"<h3>Merhaba,</h3> 
+                     <p>{0}  {1} tarihinde '{2}' etkinliği oluşturulmuştur. 
+                     </p> <p>{3}</p><p>Bilgilerinize.<br>İyi Çalışmalar.</p>",
+                          String.Format("{0:dd/MM/yyyy HH:mm}", item.StartDate), String.Format("{0:dd/MM/yyyy HH:mm}", NewEndDate), stringType, item.Description);
+
+                    new Email().Template("Template1", (item.Type == 106 ? 103 : item.Type) + ".jpg", item.Title, mesajIcerigi).Send((Int16)EmailSendTypes.DuyuruEtkinlik, emailUsers, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", item.Title), true);
+                }
+            }
+
+
+            //SH_WorkAccidentCalendar kayıt ekleme
+            var workAccidentCalender = new SH_WorkAccidentCalendar
+            {
+                id = Guid.NewGuid(),
+                created = DateTime.Now,
+                createdby = userStatus.user.id,
+                workAccidentId = Guid.Parse(Request["workAccidentId"].ToString()),
+                companyPersonCalendarId = item.id
+            };
+
+            dbres1 = db.InsertSH_WorkAccidentCalendar(workAccidentCalender, trans);
+            if (dbres1.result)
+            {
+                trans.Commit();
+                return Json(new ResultStatusUI
+                {
+                    Result = true,
+                    FeedBack = feedback.Success("Takvim Etkinliği başarılı bir şekilde kaydedildi.\n" + item.Title)
+                }, JsonRequestBehavior.AllowGet);
+            }
+            else
+            {
+                trans.Rollback();
+                return Json(new ResultStatusUI
+                {
+                    Result = true,
+                    FeedBack = feedback.Warning("Takvim Etkinliği Eklenemedi.\n" + item.Title)
+                }, JsonRequestBehavior.AllowGet);
+            }
+
+
+        }
 
         [HttpPost, ValidateAntiForgeryToken]
         [PageInfo("Gündem Sayfası Veri Ekleme", SHRoles.Personel)]
@@ -142,6 +256,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             }, JsonRequestBehavior.AllowGet);
 
         }
+
 
 
         [PageInfo("Gündem Sayfası Güncelleme", SHRoles.Personel)]

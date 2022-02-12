@@ -1,9 +1,11 @@
-﻿using Infoline.WorkOfTime.BusinessAccess;
+﻿using Infoline.Framework.Database;
+using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using Kendo.Mvc;
 using Kendo.Mvc.Extensions;
 using Kendo.Mvc.UI;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
 
@@ -56,10 +58,19 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		{
 		    var data = new VWSH_PersonCertificate { id = Guid.NewGuid(), UserId = userId};
 		    return View(data);
+		}        
+		
+		[AllowEveryone]
+		[PageInfo("Personel Sertifikası Ekleme")]
+        public ActionResult InsertWorkAccident(Guid workAccidentId)
+		{
+			ViewBag.workAccidentId = workAccidentId;
+			var data = new VWSH_PersonCertificate();
+		    return View(data);
 		}
 
-
-        [PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
+		[AllowEveryone]
+		[PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(SH_PersonCertificate item)
 		{
@@ -77,6 +88,81 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    {
 		        Result = dbresult.result,
 		        FeedBack = dbresult.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
+		    };
+		
+		    return Json(result, JsonRequestBehavior.AllowGet);
+		} 
+		
+		[PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
+        [HttpPost, ValidateAntiForgeryToken]
+        public JsonResult InsertWorkAccident(SH_PersonCertificate item)
+		{
+			var userStatus = (PageSecurity)Session["userStatus"];
+			var feedback = new FeedBack();
+			var people = Request["IdPersons"];
+
+			if(people == null)
+            {
+				var rs = new ResultStatusUI
+				{
+					Result = false,
+					FeedBack = feedback.Error("Personel Seçimi Yapılmadı. Kaydetme işlemi başarısız")
+				};
+
+				return Json(rs, JsonRequestBehavior.AllowGet);
+			}
+
+			var db = new WorkOfTimeDatabase();
+			var trans = db.BeginTransaction();
+			var dbRes = new ResultStatus { result = true };
+
+
+			var peopleList = people.Split(',');
+			List<Guid> certificates = new List<Guid>();
+			foreach (var person in peopleList)
+			{
+				var cerId = Guid.NewGuid();
+				certificates.Add(cerId);
+				var tmp = new SH_PersonCertificate();
+				tmp.B_EntityDataCopyForMaterial(item);
+
+				tmp.id = cerId;
+				tmp.createdby = userStatus.user.id;
+				tmp.created = DateTime.Now;
+				tmp.UserId = Guid.Parse(person);
+
+				dbRes &= db.InsertSH_PersonCertificate(tmp, trans);
+			}
+
+			var workAccidentId = Guid.Parse(Request["workAccidentId"].ToString());
+			foreach (var certificate in certificates)
+			{
+				dbRes &= db.InsertSH_WorkAccidentCertificate(new SH_WorkAccidentCertificate { 
+					id = Guid.NewGuid(),
+					createdby = userStatus.user.id,
+					created = DateTime.Now,
+					workAccidentId = workAccidentId,
+					personCertificateId = certificate
+				}, trans);
+			}
+
+			if (dbRes.result)
+            {
+				trans.Commit();
+				foreach(var certificate in certificates)
+                {
+					new FileUploadSave(Request, certificate).SaveAs();
+				}
+			}
+			else
+            {
+				trans.Rollback();
+            }
+
+            var result = new ResultStatusUI
+		    {
+		        Result = dbRes.result,
+		        FeedBack = dbRes.result ? feedback.Success("Kaydetme işlemi başarılı") : feedback.Error("Kaydetme işlemi başarısız")
 		    };
 		
 		    return Json(result, JsonRequestBehavior.AllowGet);

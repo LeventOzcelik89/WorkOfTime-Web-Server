@@ -5,10 +5,24 @@
 }
 
 <script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
+
 <script type="text/javascript">
     function htmlDecode(input) {
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
+    }
+
+    function exportWord() {
+        var content = htmlDecode($("#content").val());
+        content = '<div class="googoose-wrapper">' + content + '</div>';
+
+        $("#formContent").html(content);
+
+        var o = {
+            filename: "İş Kazası / Olayı Formu" + ".doc"
+        };
+        $(document).googoose(o);
     }
 
 </script>
@@ -65,20 +79,22 @@
                     <small data-original-title="Proje İsmi"> <i class="icon-barcode-1"></i> @Model.code <i class="icon-barcode-1"></i></small>
                 </div>
 
-                <img src="~/Content/Custom/img/is_kazasi_logo.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 135px;margin: auto;margin-top: -15px;">
+                <div class="img-circle m-t-xs img-responsive" style="border: 2px solid white; padding: 28px; padding-top: 35px; display: inline-flex; ">
+                    <img src="~/Content/Custom/img/is_kazasi_logo.png" alt="image" class="" style="height: 79px; margin: auto; margin-top: -15px;">
+                </div>
 
                 <div style="margin-top: 10px; display:block;">
                     <a class="btn btn-xs btn-warning" data-task="Insert" data-modal="true" data-href="/SH/VWSH_WorkAccident/UpdateInfo?id=@Model.id">  <i class="fa fa-edit"></i> Kaza / Olay Bilgilerini Düzenle  </a>
                 </div>
 
                 <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@*@Url.Action("Insert","VWINV_CompanyPersonCalendar",new { area="INV"})*@">  <i class="fa fa-edit"></i> Eğitim Planla </a>
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWINV_CompanyPersonCalendar",new { area="INV", Type = (int)EnumINV_CompanyPersonCalendarType.Eğitim, workAccidentId = Model.id})">   Eğitim Planla </a>
                 </div>
                 <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  <i class="fa fa-edit"></i> Gerçekleşmiş Eğitimi Gir </a>
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWSH_PersonCertificate",new { area="SH", workAccidentId = Model.id})"> Gerçekleşmiş Eğitimi Gir </a>
                 </div>
                 <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  <i class="fa fa-edit"></i> Düzeltici Faaliyet Oluştur </a>
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  Düzeltici Faaliyet Oluştur </a>
                 </div>
 
             </div>
@@ -179,12 +195,6 @@
                         </a>
                     </li>
 
-                    <li data-toggle="tooltip" data-placement="top" title="Formu Yazdır" data-href="">
-                        <a data-toggle="tab" href="#print" aria-expanded="true">
-                            <i class="icon-print-1 text-success fa-2x"></i>
-                        </a>
-                    </li>
-
                     <li data-toggle="tooltip" data-placement="top" title="Eğitimler" data-href="@Url.Action("DataSource", "VWSH_PersonCertificate", new {area="SH" })">
                         <a data-toggle="tab" href="#educations" aria-expanded="true">
                             <i class="icon-bookmark text-success fa-2x"></i>
@@ -232,14 +242,12 @@
                                 editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
                             </script>
                             <div class="buttons">
-                                <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                                <a class="btn btn-md btn-warning"> <i class="icon-print-1"></i> Yazdır</a>
+                                <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
+                                <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="exportWord()"> <i class="icon-download"></i> İndir</a>
                             </div>
                         }
 
-                    </div>
-
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonDepartments", new {area="INV" })" id="print">
-                        <h4><i class="icon-print-1 text-success"></i>  FORMU YAZDIR </h4>
                     </div>
 
                     <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_Project", new {area="PRJ" })" id="educations">
@@ -296,6 +304,11 @@
             </div>
         </section>
     </div>
+
+</div>
+
+
+<div id="formContent" class="hide">
 
 </div>
 

@@ -113,8 +113,23 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
+            var item = db.GetSH_WorkAccidentCertificateById(this.id);
+            if(item == null)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Kaza ve Olay Eğitimi Zaten Silinmiş."
+                };
+            }
 
-            var dbresult = db.DeleteSH_WorkAccidentCertificate(new SH_WorkAccidentCertificate { id = this.id }, trans);
+
+            var dbresult = db.DeleteSH_WorkAccidentCertificate(item, trans);
+            if (item.personCertificateId.HasValue)
+            {
+                dbresult &= db.DeleteSH_PersonCertificate(new SH_PersonCertificate { id =  item.personCertificateId.Value }, trans);
+            }
+
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();

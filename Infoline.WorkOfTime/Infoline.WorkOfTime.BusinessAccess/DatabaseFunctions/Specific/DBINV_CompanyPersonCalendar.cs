@@ -89,7 +89,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         [Generic("color", "fc0330")]
         [Description("Sertifika")]
         Sertifika = 11,
-        [Generic("color", "F3F3F4", "desc", "Eğitim")]
+        [Generic("color", "41676b", "desc", "Eğitim")]
         [Description("Eğitim")]
         Eğitim = 12
 

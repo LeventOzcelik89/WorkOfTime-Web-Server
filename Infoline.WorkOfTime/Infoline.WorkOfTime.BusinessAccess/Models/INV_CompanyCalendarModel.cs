@@ -99,6 +99,20 @@ namespace Infoline.WorkOfTime.BusinessAccess
 								katilimcilar = null,
 							}));
 							break;
+						case EnumINV_CompanyPersonCalendarType.Eğitim:
+							var workAccidents = _calendarnew.Where(v => v.Type == Convert.ToInt32(enumData.Key)).ToArray();
+							list.AddRange(workAccidents.Select(c => new CalendarModel
+							{
+								id = c.id,
+								description = c.Description,
+								katilimcilar = c.Katilimcilar,
+								start = c.Start,
+								end = c.End,
+								title = c.Title,
+								type = c.Type,
+								color = GetTypeColor((int)EnumINV_CompanyPersonCalendarType.Eğitim)
+							}));
+							break;
 						case EnumINV_CompanyPersonCalendarType.Proje:
 							var projects = db.GetVWPRJ_ProjectByCalendar(start, end);
 							list.AddRange(projects.Select(c => new CalendarModel
