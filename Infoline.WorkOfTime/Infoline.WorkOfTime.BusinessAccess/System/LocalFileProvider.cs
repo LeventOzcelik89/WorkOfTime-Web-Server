@@ -615,7 +615,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             },
             {
                 "SH_WorkAccident", new []{
-                    new FileBase("Islak Imzalı Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  20,
+                    new FileBase("Islak İmzalı Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  20,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
+               }
+            },            
+            {
+                "SH_CorrectiveActivity", new []{
+                    new FileBase("Islak İmzalı Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  20,
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
