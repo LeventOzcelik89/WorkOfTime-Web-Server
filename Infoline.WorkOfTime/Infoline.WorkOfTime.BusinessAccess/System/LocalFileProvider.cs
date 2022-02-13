@@ -601,13 +601,21 @@ namespace Infoline.WorkOfTime.BusinessAccess
                                                                                  new string[]{ SHRoles.Personel }),
                 }
             },
-               {
+            {
                 "SV_Service", new []{
                     new FileBase("Servis Dosyası", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  10,
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
                     new FileBase("Cihaz Fotoğrafları", "jpg,.jpeg,.png",  20,
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel },
+                                                                                 new string[]{ SHRoles.Personel }),
+               }
+            },
+            {
+                "SH_WorkAccident", new []{
+                    new FileBase("Islak Imzalı Dosyalar", "*.csv, *.jpeg, *.ppt, *.pptx, *.doc,*.docx,*.xls,*.png,*.pdf,*.jpg,*.jpeg,*.xlsx,*.rar",  20,
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel },
                                                                                  new string[]{ SHRoles.Personel }),
