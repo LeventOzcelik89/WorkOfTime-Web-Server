@@ -13,7 +13,8 @@
         return doc.documentElement.textContent;
     }
 
-    function exportWord() {
+    function accidentExportWord() {
+        $(".googoose-wrapper").remove();
         var content = htmlDecode($("#content").val());
         content = '<div class="googoose-wrapper">' + content + '</div>';
 
@@ -254,7 +255,7 @@
                             <div class="buttons" style=" padding: 0; padding-top: 25px; ">
                                 <a class="btn btn-md btn-warning"> <i class="icon-print-1"></i> Yazdır</a>
                                 <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
-                                <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="exportWord()"> <i class="icon-download"></i> İndir</a>
+                                <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="accidentExportWord()"> <i class="icon-download"></i> İndir</a>
                             </div>
                         }
 
@@ -328,7 +329,7 @@
                             {
                                 x.Bound(y => y.id).Hidden();
                                 x.Bound(y => y.keyword).Hidden();
-                                x.Bound(y => y.createdby).Title("Oluşturan").Width(180);
+                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
                                 x.Bound(y => y.created).Title("İşlem Tarihi").Width(120).Format("{0:dd.MM.yyyy HH:mm}");
                                 x.Bound(y => y.userId_Title).Title("Personel").Width(180).Format("{0:dd.MM.yyyy HH:mm}");
                                 x.Bound(y => y.projectId_Title).Title("Proje").Width(180).Format(Extensions.DateFormatShort(true));
@@ -338,11 +339,12 @@
                             .Scrollable(s => s.Height(450))
                             .ToolBar(x =>
                             {
-                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH", taskId = Model.taskId, workAccidentId = Model.id, projctId = Model.projectId, userId = Model.userId }));
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH", taskId = Model.taskId, workAccidentId = Model.id, projectId = Model.projectId, userId = Model.userId }));
                                 x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Detayı' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Sil' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                            }))
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                            })
+                            )
                     </div>
 
                     <div class="tab-pane" data-href="" id="files">
