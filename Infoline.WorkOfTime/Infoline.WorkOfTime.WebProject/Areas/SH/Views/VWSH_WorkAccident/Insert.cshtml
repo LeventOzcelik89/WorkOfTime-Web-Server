@@ -14,6 +14,11 @@
         return true;
     }
 </script>
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg{
+        width: 80%;
+    }
+</style>
 
 @using (Html.BeginForm("Insert", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
@@ -67,7 +72,7 @@
                 DropDownListFor(model => model.taskId).
                 OptionLabel("Lütfen Görev Seçiniz..").
                 DataTextField("code").
-                DataValueField("Id").
+                DataValueField("id").
                 //ValueTemplate("#=TemplateEngine('FTM_TaskDropDownTemplate',data)#").
                 Template("#=TemplateEngine('taskTemplate',data)#").
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
@@ -91,6 +96,7 @@
                 .DataTextField("ProjectName")
                 .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
                 .Sort(x => x.Add("ProjectName").Ascending())
+                .Readonly(Model.projectId != null)
                 .Execute()
             )
         </div>
@@ -140,7 +146,6 @@
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
                   .Sort(x => x.Add("title").Ascending())
                   .Execute("id")
-                  .Validate(Validations.Required)
                 )
         </div>
     </div>
