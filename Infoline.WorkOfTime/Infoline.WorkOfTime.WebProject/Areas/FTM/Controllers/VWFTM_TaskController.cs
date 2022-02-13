@@ -1464,6 +1464,10 @@ namespace Infoline.WorkOfTime.WebProject.Areas.FTM.Controllers
 		[PageInfo("Günlük Kullanıcı Raporunun Methodu", SHRoles.Personel)]
 		public JsonResult DailyUserNewReport(DateTime? start, List<Guid?> userIds, Guid? customer, Guid? customerStorage)
 		{
+
+			//Kodlar Düzenlenecek To Do olarak Maddeye olarak not alındı.
+			//Lütfen ön yargılı yaklaşmayalım.
+
 			var db = new WorkOfTimeDatabase();
 			var userStatus = (PageSecurity)Session["userStatus"];
 			if (start == null)
