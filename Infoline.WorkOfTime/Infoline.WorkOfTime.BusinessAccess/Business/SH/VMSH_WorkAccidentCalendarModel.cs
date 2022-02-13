@@ -114,7 +114,27 @@ namespace Infoline.WorkOfTime.BusinessAccess
             db = db ?? new WorkOfTimeDatabase();
             trans = transaction ?? db.BeginTransaction();
 
-            var dbresult = db.DeleteSH_WorkAccidentCalendar(new SH_WorkAccidentCalendar { id = this.id }, trans);
+
+            var item = db.GetSH_WorkAccidentCalendarById(this.id);
+            if (item == null)
+            {
+                return new ResultStatus
+                {
+                    result = false,
+                    message = "Kaza ve Olay Etkinliği Zaten Silinmiş."
+                };
+            }
+
+
+            var dbresult = db.DeleteSH_WorkAccidentCalendar(item, trans);
+            if (item.companyPersonCalendarId.HasValue)
+            {
+                dbresult &= db.DeleteINV_CompanyPersonCalendar(new INV_CompanyPersonCalendar { id = item.companyPersonCalendarId.Value }, trans);
+                var calenderPeople = db.INV_CompanyPersonCalendarPersonsByIDPersonCalendarId(item.companyPersonCalendarId.Value);
+                dbresult &= db.BulkDeleteINV_CompanyPersonCalendarPersons(calenderPeople, trans);
+            }
+
+
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();

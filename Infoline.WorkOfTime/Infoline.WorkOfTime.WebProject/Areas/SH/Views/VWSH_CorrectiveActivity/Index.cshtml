@@ -1,40 +1,40 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Düzenleyici Önleyici Faaliyetler Yönetimi";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 
-<div class="row">
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("yellow").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("navy").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("blue").Text("Örnek Veri Başlığı").Value("0 Adet").IconClass("fa fa-home")
-    </div>
-    <div class="col-xs-12 col-sm-6 col-md-3">
-        @Html.Akilli().Card().Color("red").Text("Örnek Veri Başlığı").Value("0 Adet ").IconClass("fa fa-home")
+<div class="col-12">
+    <div class="statbox widget box box-shadow">
+        <div class="widget-header">
+            <h4>Düzenleyici Önleyici Faaliyetler Listesi</h4>
+        </div>
+        <div class="widget-content widget-content-area">
+            @(Html.Akilli()
+                .Grid<Infoline.WorkOfTime.BusinessData.VWSH_CorrectiveActivity>("VWSH_CorrectiveActivity")
+                .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_CorrectiveActivity", new { area = "SH" }))
+                .PageSize(25))
+                .Columns(x =>
+                {
+                    x.Bound(y => y.id).Hidden();
+                    x.Bound(y => y.keyword).Hidden();
+                    x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+                    x.Bound(y => y.created).Title("İşlem Tarihi").Width(120).Format("{0:dd.MM.yyyy HH:mm}");
+                    x.Bound(y => y.userId_Title).Title("Personel").Width(180).Format("{0:dd.MM.yyyy HH:mm}");
+                    x.Bound(y => y.projectId_Title).Title("Proje").Width(180).Format(Extensions.DateFormatShort(true));
+                    x.Bound(y => y.date).Title("Tarih").Format("{0:dd.MM.yyyy}").Width(120);
+                })
+                .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                .Scrollable(s => s.Height(550))
+                .ToolBar(x =>
+                {
+                    x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                    x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                })
+            )
+        </div>
     </div>
 </div>
-
-
-@(Html.Akilli()
-    .Grid<Infoline.WorkOfTime.BusinessData.VWSH_CorrectiveActivity>("VWSH_CorrectiveActivity")
-    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_CorrectiveActivity", new { area = "SH" })).PageSize(25))
-    .Columns(x =>
-    {
-        x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-        x.Bound(y => y.keyword).Title("keyword").Width(180);
-        x.Bound(y => y.date).Title("date").Width(180).Format(Extensions.DateFormatShort(true));
-        x.Bound(y => y.content).Title("content").Width(180);
-    })
-    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-    .ToolBar(x =>
-    {
-        x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH" }));
-        x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_CorrectiveActivity", new { area = "SH" }));
-        x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
-        x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
-    }))
+ 

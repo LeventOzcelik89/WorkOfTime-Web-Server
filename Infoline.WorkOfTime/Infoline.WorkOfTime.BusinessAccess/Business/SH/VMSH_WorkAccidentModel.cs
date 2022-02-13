@@ -127,6 +127,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             trans = transaction ?? db.BeginTransaction();
 
             var dbresult = db.DeleteSH_WorkAccident(new SH_WorkAccident { id = this.id }, trans);
+            var calendar = db.GetSH_WorkAccidentCalendarByWorkAccidentId(this.id);
+            var certificate = db.GetSH_WorkAccidentCertificateByWorkAccidentId(this.id);
+            
+            if(calendar != null && calendar.Length > 0)
+            {
+                dbresult &= db.BulkDeleteSH_WorkAccidentCalendar(calendar, trans);
+            }
+            if(certificate != null && certificate.Length > 0)
+            {
+                dbresult &= db.BulkDeleteSH_WorkAccidentCertificate(certificate, trans);
+
+            }
+
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();

@@ -1,0 +1,149 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWINV_CompanyPersonCalendar
+@{
+    ViewBag.Title = "Takvim Etkinliği Güncelleme";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var userStatus = (PageSecurity)HttpContext.Current.Session["userStatus"];
+}
+
+@using (Html.BeginForm("UpdateWorkAccident", "VWINV_CompanyPersonCalendar", FormMethod.Post, new Dictionary<string, object>() {
+    { "class", "form-horizontal" },
+    { "role", "form" },
+    { "data-selector", "modalContainer" },
+    { "data-formType", "Ajax" },
+    {"id","VWINV_CompanyPersonCalendar" }
+}))
+{
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true)
+    @Html.HiddenFor(model => model.id)
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="IdUsers">Kişiler</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                 Html.Akilli()
+                 .MultiSelect("IdUsers")
+                 .Placeholder("Lütfen Personelleri Seçiniz..")
+                 .DataValueField("id")
+                 .DataTextField("FullName")
+                .ItemTemplate("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                 .Sort(x => x.Add("FullName").Ascending()).Value(ViewData["Persons"])
+                 .TagMode(TagMode.Multiple)
+                 .Execute("id")
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md req" for="Type">Tip</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+              .DropDownListFor(model => model.Type)
+              .OptionLabel("Lütfen Etkinlik Tipi seçin")
+              .DataValueField("Id").DataTextField("enumDescription")
+              .Value(Model.Type.Value.ToString())
+              .Action(b => b.Action("GetEnums", "General", new { area = string.Empty }))
+              .Sort(x => x.Add("enumDescription").Ascending()).Validate(Validations.Required)
+              .Filter<Infoline.WorkOfTime.BusinessData.SYS_Enums>(a => a.tableName == "INV_CompanyPersonCalendar" && a.fieldName == "Type" && a.enumKey == (int)EnumINV_CompanyPersonCalendarType.Eğitim)
+              .Execute("enumKey")
+            )
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="StartDate">Başlangıç Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.StartDate)
+                .Placeholder("Lütfen etkinlik başlangıç tarihini girin")
+                .MaxDateElement("EndDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="EndDate">Bitiş Tarihi</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli()
+                .DateTimePickerFor(model => model.EndDate)
+                .Placeholder("Lütfen etkinlik bitiş tarihini girin")
+                .MinDateElement("StartDate")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Title">Başlık</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextBoxFor(model => model.Title, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen başlığı girin"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Description" id="DescORMeeting">Açıklama</label>
+        </div>
+        <div class="col-md-8">
+            @Html.TextAreaFor(model => model.Description, new Dictionary<string, object>()
+            {
+                {"class", "form-control"},
+                {"placeholder", "Lütfen açıklama bilgisini girin"},
+            })
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Takvim Dosyaları</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("INV_CompanyPersonCalendar")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Takvim Dosyası")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="mailForParticipants">Mail Gönderimi</label>
+        </div>
+        <div class="col-md-8" style="margin-top:8px;">
+            @(Html.Kendo().CheckBox().Name("mailForParticipants").Checked(false).Label("Katılımcılara mail gönderilsin mi?"))
+        </div>
+    </div>
+
+    <div class="buttons">
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+    </div>
+
+}
+
+
+<script type="text/javascript">
+    if (@Model.Type == 102) {
+        $('#DescORMeeting').text("Toplantı Salonu");
+    }
+    else {
+        $('#DescORMeeting').text("Açıklama");
+    }
+</script>

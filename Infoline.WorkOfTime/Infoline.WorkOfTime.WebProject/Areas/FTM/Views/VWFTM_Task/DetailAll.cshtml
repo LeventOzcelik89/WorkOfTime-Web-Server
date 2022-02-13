@@ -112,96 +112,100 @@
 		<div class="row">
 			<div class="col-lg-8">
 				<div class="tabs-container">
-					<ul class="nav nav-tabs">
-						<li class="active" data-toggle="tooltip" data-placement="top" title="Görev Detayları">
-							<a data-toggle="tab" href="#gorevdetay" aria-expanded="true"><i class="icon-spread text-success"></i></a>
-						</li>
+                    <ul class="nav nav-tabs">
+                        <li class="active" data-toggle="tooltip" data-placement="top" title="Görev Detayları">
+                            <a data-toggle="tab" href="#gorevdetay" aria-expanded="true"><i class="icon-spread text-success"></i></a>
+                        </li>
 
-						<li data-toggle="tooltip" data-placement="top" title="Operasyon Fotoğrafları">
-							<a data-toggle="tab" href="#fotolar" aria-expanded="false"><i class="icon-picture text-success" aria-hidden="true"></i></a>
-						</li>
+                        <li data-toggle="tooltip" data-placement="top" title="Operasyon Fotoğrafları">
+                            <a data-toggle="tab" href="#fotolar" aria-expanded="false"><i class="icon-picture text-success" aria-hidden="true"></i></a>
+                        </li>
 
-						<li data-toggle="tooltip" data-placement="top" title="Görev Masrafları">
-							<a data-toggle="tab" href="#masrafgirisi" aria-expanded="false"><i class="icon-money text-success" aria-hidden="true"></i></a>
-						</li>
+                        <li data-toggle="tooltip" data-placement="top" title="Görev Masrafları">
+                            <a data-toggle="tab" href="#masrafgirisi" aria-expanded="false"><i class="icon-money text-success" aria-hidden="true"></i></a>
+                        </li>
 
-						@if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
-						{
-							<li data-toggle="tooltip" data-placement="top" title="Satın Alma Talepleri">
-								<a data-toggle="tab" href="#satinalmatalepleri" aria-expanded="false"><i class="icon-basket-4 text-success" aria-hidden="true"></i></a>
-							</li>
-						}
+                        <li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWSH_WorkAccident", new {area="SH" })" data-placement="top" title="İş Kazaları">
+                            <a data-toggle="tab" href="#workAccident" aria-expanded="false"><i class="icon-user-md text-success" aria-hidden="true"></i></a>
+                        </li>
 
-					</ul>
+                        @if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
+                        {
+                            <li data-toggle="tooltip" data-placement="top" title="Satın Alma Talepleri">
+                                <a data-toggle="tab" href="#satinalmatalepleri" aria-expanded="false"><i class="icon-basket-4 text-success" aria-hidden="true"></i></a>
+                            </li>
+                        }
 
-					<div class="tab-content">
-						<div class="tab-pane active" id="gorevdetay">
-							<div class="ibox">
+                    </ul>
 
-								@Html.Partial("~/Areas/FTM/Views/VWFTM_Task/_Partial_VWFTM_Task_Detail.cshtml", Model)
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="gorevdetay">
+                            <div class="ibox">
 
-								<div class="ibox-content clearfix">
-									<div class="harita" id="Harita"></div>
-								</div>
-							</div>
-						</div>
+                                @Html.Partial("~/Areas/FTM/Views/VWFTM_Task/_Partial_VWFTM_Task_Detail.cshtml", Model)
 
-						<div class="tab-pane" id="fotolar">
-							<div class="ibox">
-								<div class="ibox-title">
-									<h5>Operasyon Fotoğrafları</h5> &nbsp;
-								</div>
-								<div class="ibox-content" style="padding:25px;height:600px;">
+                                <div class="ibox-content clearfix">
+                                    <div class="harita" id="Harita"></div>
+                                </div>
+                            </div>
+                        </div>
 
-									@if (Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")).Count() > 0)
-									{
+                        <div class="tab-pane" id="fotolar">
+                            <div class="ibox">
+                                <div class="ibox-title">
+                                    <h5>Operasyon Fotoğrafları</h5> &nbsp;
+                                </div>
+                                <div class="ibox-content" style="padding:25px;height:600px;">
 
-										<div class="carousel slide" id="carousel2">
-											<ol class="carousel-indicators">
-												@for (int j = 0; j < Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")).Count(); j++)
-												{
-													<li data-slide-to="@j" data-target="#carousel2" class="@(j == 0 ? "active" : "")"></li>
-												}
-											</ol>
-											<div class="carousel-inner" style="height:550px;">
-												@{
-													int i = 0;
-													foreach (var item in Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")))
-													{
-														<div class="item @(i == 0 ? "active" : "")">
-															<a href="@item" class="removeImage@(i)" target="_blank">
-																<img alt="image" class="img-responsive" onerror="ImageErrorData(this, '/Content/Custom/img/404error.png',@i)" src="@item" style="display: block; margin:auto;width:50%;">
-															</a>
-														</div>
-														@(i= i + 1)
-													}
-												}
-											</div>
-											<a data-slide="prev" href="#carousel2" class="left carousel-control">
-												<span class="icon-prev"></span>
-											</a>
-											<a data-slide="next" href="#carousel2" class="right carousel-control">
-												<span class="icon-next"></span>
-											</a>
-										</div>
-									}
-									else
-									{
-										<div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;">
-											Göreve ait operasyon fotoğrafı bulunamadı.
-										</div>
-									}
-								</div>
-							</div>
-						</div>
+                                    @if (Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")).Count() > 0)
+                                    {
 
-						<div class="tab-pane" id="masrafgirisi">
-							<div class="ibox">
-								<div class="ibox-title">
-									<h5>Görev Masrafları</h5> &nbsp;
-								</div>
-								<div class="ibox-content" style="padding:25px;height:600px;">
-									@(Html.Akilli()
+                                        <div class="carousel slide" id="carousel2">
+                                            <ol class="carousel-indicators">
+                                                @for (int j = 0; j < Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")).Count(); j++)
+                                                {
+                                                    <li data-slide-to="@j" data-target="#carousel2" class="@(j == 0 ? "active" : "")"></li>
+                                                }
+                                            </ol>
+                                            <div class="carousel-inner" style="height:550px;">
+                                                @{
+                                                    int i = 0;
+                                                    foreach (var item in Model.files.Where(asd => asd.Contains(".png") || asd.Contains(".jpeg") || asd.Contains("jpg")))
+                                                    {
+                                                        <div class="item @(i == 0 ? "active" : "")">
+                                                            <a href="@item" class="removeImage@(i)" target="_blank">
+                                                                <img alt="image" class="img-responsive" onerror="ImageErrorData(this, '/Content/Custom/img/404error.png',@i)" src="@item" style="display: block; margin:auto;width:50%;">
+                                                            </a>
+                                                        </div>
+                                                        @(i= i + 1)
+                                                    }
+                                                }
+                                            </div>
+                                            <a data-slide="prev" href="#carousel2" class="left carousel-control">
+                                                <span class="icon-prev"></span>
+                                            </a>
+                                            <a data-slide="next" href="#carousel2" class="right carousel-control">
+                                                <span class="icon-next"></span>
+                                            </a>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning text-center m-t-sm m-b-sm" style="animation: hello 1.5s ease-in-out infinite;text-align: center;padding:10px;">
+                                            Göreve ait operasyon fotoğrafı bulunamadı.
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane" id="masrafgirisi">
+                            <div class="ibox">
+                                <div class="ibox-title">
+                                    <h5>Görev Masrafları</h5> &nbsp;
+                                </div>
+                                <div class="ibox-content" style="padding:25px;height:600px;">
+                                    @(Html.Akilli()
 					.Grid<Infoline.WorkOfTime.BusinessData.VWPA_Transaction>("VWPA_Transaction")
 					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWPA_Transaction", new { area = "PA" })).Filter(a => a.type == (int)EnumPA_TransactionType.Masraf && a.dataTable == "FTM_Task" && a.dataId == Model.id).PageSize(25))
 					.Columns(x =>
@@ -228,19 +232,54 @@
 						}).Url(Url.Action("Delete", "VWPA_Transaction", new { area = "PA" }));
 					})
                 )
-								</div>
-							</div>
-						</div>
+                                </div>
+                            </div>
+                        </div>
 
-						@if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
-						{
-							<div class="tab-pane" id="satinalmatalepleri">
-								<div class="ibox">
-									<div class="ibox-title">
-										<h5>Satın Alma Talepleri</h5> &nbsp;
-									</div>
-									<div class="ibox-content" style="padding:25px;height:600px;">
-										@(Html.Akilli()
+
+                        <div class="tab-pane" id="workAccident">
+                            <div class="ibox">
+                                <div class="ibox-title">
+                                    <h5>GÖREVE BAĞLI İŞ KAZALARI</h5> &nbsp;
+                                </div>
+                                <div class="ibox-content" style="padding:25px;height:600px;">
+                                        @(Html.Akilli()
+                                            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccident>("VWSH_WorkAccident")
+                                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccident", new { area = "SH" }))
+                                            .Filter(a => a.taskId == Model.id)
+                                            .PageSize(25))
+                                            .Columns(x =>
+                                            {
+                                                x.Bound(y => y.id).Hidden();
+                                                x.Bound(y => y.keyword).Hidden();
+                                                x.Bound(y => y.code).Title("Kodu").Width(110);
+                                                x.Bound(y => y.accidentDate).Title("Kaza/Olay Tarihi").Width(110).Format(Extensions.DateFormatShort(true));
+                                                x.Bound(y => y.userId_Title).Title("Kazayı Geçiren Personel").Width(150);
+                                                x.Bound(y => y.projectId_Title).Title("Proje").Width(180);
+                                            })
+                                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                                            .Scrollable(x => x.Height(600))
+                                            .ToolBar(x =>
+                                            {
+                                                x.Custom().Text("<i data-original-title='İş Kazasi ve Olay Bildir' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_WorkAccident", new { area = "SH", taskId = Model.id }));
+                                                x.Custom().Text("<i data-original-title='Kayıt Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" }, { "target", "_blank" } }).Url(Url.Action("Update", "VWSH_WorkAccident", new { area = "SH" }));
+                                                x.Custom().Text("<i data-original-title='Kayıt Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "target", "_blank" } }).Url(Url.Action("Detail", "VWSH_WorkAccident", new { area = "SH" }));
+                                                x.Custom().Text("<i data-original-title='Kayıt Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccident", new { area = "SH" }));
+                                            }))
+                                </div>
+                            </div>
+                        </div>
+
+
+                        @if (Model.isTaskRule && (Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumBildirildi && Model.lastOperationStatus != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi))
+                        {
+                            <div class="tab-pane" id="satinalmatalepleri">
+                                <div class="ibox">
+                                    <div class="ibox-title">
+                                        <h5>Satın Alma Talepleri</h5> &nbsp;
+                                    </div>
+                                    <div class="ibox-content" style="padding:25px;height:600px;">
+                                        @(Html.Akilli()
 										 .Grid<Infoline.WorkOfTime.BusinessData.VWCMP_Request>("VWCMP_Request")
 										 .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCMP_Request", new { area = "CMP" }))
 										 .Filter(a => a.type == (int)EnumCMP_InvoiceType.Talep && a.taskId == Model.id).PageSize(25))
@@ -268,139 +307,139 @@
 												 x.Custom().Text("<i data-original-title='Talep Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-blank", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWCMP_Request", new { area = "CMP" }));
 											 }
 										 }))
-									</div>
-								</div>
-							</div>
-						}
+                                    </div>
+                                </div>
+                            </div>
+                        }
 
 
-					</div>
+                    </div>
 
-				</div>
-			</div>
-			<div class="col-lg-4">
-				<div class="ibox">
-					<div class="ibox-title">
-						<ul class="dots clearfix" style="margin: 0px;padding: 10px;overflow:hidden;display:-webkit-inline-box;width:100%;">
-							<li style="width: 25%;">
-								<a>
-									<span style="background-color:#7ce47f;color:white;" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" class="fa fa-upload active@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" data-toggle="tooltip" data-placement="top" title="Saha Operasyon Görev Form Sayısı">
-										<mark data-mark="@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" style="background-color:#7ce47f" class="green active@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)">@Model.taskOperations.Where(x => x.status == (int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi).Count()</mark>
-									</span>
-								</a>
-							</li>
-							<li style="width: 25%;">
-								<a>
-									<span class="fa fa-qrcode active@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" data-selector="taskSelect" style="background-color:#8e8b8b; color:white;" data-type="@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" data-toggle="tooltip" data-placement="top" title="İşlem Sayısı">
-										<mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" style="background-color:#8e8b8b" class="green active@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)">@Model.taskOperations.Where(x => x.status == 20 || x.status == 21).Count()</mark>
-									</span>
-								</a>
-							</li>
-							<li style="width: 25%;">
-								<a>
-									<span class="fa fa-file-text active@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" style="background-color:#e2c47f;color:white;" data-toggle="tooltip" data-placement="top" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" title="Doldurulan Görev Form Sayısı">
-										<mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" style="background-color:#e2c47f" class="green active@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)">@Model.taskOperations.Where(x => x.status == 22 || x.status == 23).Count()</mark>
-									</span>
-								</a>
-							</li>
-							<li style="width: 25%;">
-								<a>
-									<span class="fa fa-image active@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" style="background-color:#97c1d0;color:white;" data-toggle="tooltip" data-placement="top" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" title="Dosya(Resim) Sayısı">
-										<mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" style="background-color:#97c1d0" class="green active@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)">@Model.taskOperations.Where(x => x.status == 25 || x.status == 24).Count()</mark>
-									</span>
-								</a>
-							</li>
-						</ul>
-					</div>
-				</div>
-				<div class="ibox">
-					<div class="ibox-title">
-						<span class="text-muted small pull-right">
-							<a class="btn btn-xs btn-info" data-href="@Url.Action("Print", "VWFTM_Task", new { area = "FTM", id = Model.id })" data-original-title="Görev Formu Yazdır"
-							   data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
-								<i class="fa fa-print"></i> Yazdır
-							</a>
-							<button class="btn btn-xs btn-success" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_Task", new { area = "FTM", id = Model.id })" data-formElemId="operationForm" data-hastemplate="true"
-									data-formMessage="Görev formu ekte sunulmuştur." data-formEmail="" data-formSubject="Görev Formu"
-									data-original-title="Görev Formunu Paylaş">
-								<i class="fa fa-send"></i> Paylaş
-							</button>
-						</span>
-						<h5>Görev Operasyon Geçmişi</h5>
-					</div>
-					<div class="ibox-content">
-						<div class="tab-content" style="max-height: 760px;overflow: scroll;">
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="ibox">
+                                <div class="ibox-title">
+                                    <ul class="dots clearfix" style="margin: 0px;padding: 10px;overflow:hidden;display:-webkit-inline-box;width:100%;">
+                                        <li style="width: 25%;">
+                                            <a>
+                                                <span style="background-color:#7ce47f;color:white;" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" class="fa fa-upload active@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" data-toggle="tooltip" data-placement="top" title="Saha Operasyon Görev Form Sayısı">
+                                                    <mark data-mark="@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)" style="background-color:#7ce47f" class="green active@((int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi)">@Model.taskOperations.Where(x => x.status == (int)EnumFTM_TaskOperationStatus.IslakImzaliFormYuklendi).Count()</mark>
+                                                </span>
+                                            </a>
+                                        </li>
+                                        <li style="width: 25%;">
+                                            <a>
+                                                <span class="fa fa-qrcode active@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" data-selector="taskSelect" style="background-color:#8e8b8b; color:white;" data-type="@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" data-toggle="tooltip" data-placement="top" title="İşlem Sayısı">
+                                                    <mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)" style="background-color:#8e8b8b" class="green active@((int)EnumFTM_TaskOperationStatus.GorevIslemYapiliyorAnaUrun)">@Model.taskOperations.Where(x => x.status == 20 || x.status == 21).Count()</mark>
+                                                </span>
+                                            </a>
+                                        </li>
+                                        <li style="width: 25%;">
+                                            <a>
+                                                <span class="fa fa-file-text active@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" style="background-color:#e2c47f;color:white;" data-toggle="tooltip" data-placement="top" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" title="Doldurulan Görev Form Sayısı">
+                                                    <mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)" style="background-color:#e2c47f" class="green active@((int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)">@Model.taskOperations.Where(x => x.status == 22 || x.status == 23).Count()</mark>
+                                                </span>
+                                            </a>
+                                        </li>
+                                        <li style="width: 25%;">
+                                            <a>
+                                                <span class="fa fa-image active@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" style="background-color:#97c1d0;color:white;" data-toggle="tooltip" data-placement="top" data-selector="taskSelect" data-type="@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" title="Dosya(Resim) Sayısı">
+                                                    <mark data-mark="@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)" style="background-color:#97c1d0" class="green active@((int)EnumFTM_TaskOperationStatus.GorevDosyaIslemiAnaUrun)">@Model.taskOperations.Where(x => x.status == 25 || x.status == 24).Count()</mark>
+                                                </span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="ibox">
+                                <div class="ibox-title">
+                                    <span class="text-muted small pull-right">
+                                        <a class="btn btn-xs btn-info" data-href="@Url.Action("Print", "VWFTM_Task", new { area = "FTM", id = Model.id })" data-original-title="Görev Formu Yazdır"
+                                           data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
+                                            <i class="fa fa-print"></i> Yazdır
+                                        </a>
+                                        <button class="btn btn-xs btn-success" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_Task", new { area = "FTM", id = Model.id })" data-formElemId="operationForm" data-hastemplate="true"
+                                                data-formMessage="Görev formu ekte sunulmuştur." data-formEmail="" data-formSubject="Görev Formu"
+                                                data-original-title="Görev Formunu Paylaş">
+                                            <i class="fa fa-send"></i> Paylaş
+                                        </button>
+                                    </span>
+                                    <h5>Görev Operasyon Geçmişi</h5>
+                                </div>
+                                <div class="ibox-content">
+                                    <div class="tab-content" style="max-height: 760px;overflow: scroll;">
 
-							<div class="client-detail">
+                                        <div class="client-detail">
 
-								<div id="vertical-timeline" class="vertical-container dark-timeline">
+                                            <div id="vertical-timeline" class="vertical-container dark-timeline">
 
-									@foreach (var item in Model.taskOperations)
-									{
-										var statusEnum = enumProperties.Where(a => Convert.ToInt32(a.Key) == item.status.Value).FirstOrDefault();
+                                                @foreach (var item in Model.taskOperations)
+                                                {
+                                                    var statusEnum = enumProperties.Where(a => Convert.ToInt32(a.Key) == item.status.Value).FirstOrDefault();
 
-										<div class="vertical-timeline-block" data-select="@item.status">
-											<div class="vertical-timeline-icon" style="background-color:#@statusEnum.Generic["color"];color: white;">
-												<i class="@statusEnum.Generic["icon"]"></i>
-											</div>
-											<div class="vertical-timeline-content">
-												<p class="clearfix ">
-													<strong class="pull-left"> @item.status_Title</strong>
-													<small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
-												</p>
-												<div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
-												<div class="small text-muted"> Geçen Süre : @item.passingTime </div>
-												<div class="small text-muted"> Görev Konumuna Uzaklık : @(item.distance.HasValue ? item.distance.Value.ToString("N2") + " km" : "Konum bulunamadı")</div>
-												@if (item.battery != null)
-												{<div class="small text-muted">Batarya Durumu : <i class="@(item.battery.Value > 69 ? "icon-battery-3 text-primary" : item.battery.Value > 29 ? "icon-battery-2 text-warning" :"icon-battery-1 text-danger")"></i> &nbsp;   <strong>@item.battery %</strong></div>}
-												@if (item.fixture_Title != null)
-												{<div class="small text-muted"> Envanter : @item.fixture_Title </div>}
-												@if (item.description != null)
-												{<div class="small text-muted"> Açıklama : @item.description </div>}
+                                                    <div class="vertical-timeline-block" data-select="@item.status">
+                                                        <div class="vertical-timeline-icon" style="background-color:#@statusEnum.Generic["color"];color: white;">
+                                                            <i class="@statusEnum.Generic["icon"]"></i>
+                                                        </div>
+                                                        <div class="vertical-timeline-content">
+                                                            <p class="clearfix ">
+                                                                <strong class="pull-left"> @item.status_Title</strong>
+                                                                <small style="font-size:9px;padding-top:2px;" class="pull-right"> @string.Format("{0:dd.MM.yyyy HH:mm}", item.created)</small>
+                                                            </p>
+                                                            <div class="small text-muted m-t-sm"> İşlem Yapan :  @item.createdby_Title </div>
+                                                            <div class="small text-muted"> Geçen Süre : @item.passingTime </div>
+                                                            <div class="small text-muted"> Görev Konumuna Uzaklık : @(item.distance.HasValue ? item.distance.Value.ToString("N2") + " km" : "Konum bulunamadı")</div>
+                                                            @if (item.battery != null)
+                                                            {<div class="small text-muted">Batarya Durumu : <i class="@(item.battery.Value > 69 ? "icon-battery-3 text-primary" : item.battery.Value > 29 ? "icon-battery-2 text-warning" :"icon-battery-1 text-danger")"></i> &nbsp;   <strong>@item.battery %</strong></div>}
+                                                            @if (item.fixture_Title != null)
+                                                            {<div class="small text-muted"> Envanter : @item.fixture_Title </div>}
+                                                            @if (item.description != null)
+                                                            {<div class="small text-muted"> Açıklama : @item.description </div>}
 
-												<div class="btnns m-t-xs">
+                                                            <div class="btnns m-t-xs">
 
-													<a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWFTM_TaskOperation", new { area = "FTM", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
-													@if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
-													{
-														if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
-														{
-															if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi && item.status != (int)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi && item.status != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi)
-															{
-																<a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWFTM_TaskOperation", new { area = "FTM", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
-															}
-														}
-													}
+                                                                <a data-original-title="Detay" class="btn btn-xs btn-warning m-l-xs" data-href="@Url.Action("Detail", "VWFTM_TaskOperation", new { area = "FTM", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-eye"></i></a>
+                                                                @if (item.status > (int)EnumFTM_TaskOperationStatus.GorevUstlenildi)
+                                                                {
+                                                                    if (item.status != (int)EnumFTM_TaskOperationStatus.GorevDurduruldu)
+                                                                    {
+                                                                        if (item.status != (int)EnumFTM_TaskOperationStatus.GorevYenidenBaslatildi && item.status != (int)EnumFTM_TaskOperationStatus.MemnuniyetAnketiYuklendi && item.status != (int)EnumFTM_TaskOperationStatus.CozumOnaylandi)
+                                                                        {
+                                                                            <a class="btn btn-xs btn-primary m-l-xs" data-original-title="Düzenle" data-href="@Url.Action("Update", "VWFTM_TaskOperation", new { area = "FTM", id = item.id })" data-task="Insert" data-method="GET" data-modal="true" data-show="single"><i class="fa fa-edit"></i></a>
+                                                                        }
+                                                                    }
+                                                                }
 
-													@if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
-													{
-														<a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-original-title="Yazdır"
-														   data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
-															<i class="fa fa-print"></i>
-														</a>
-														<a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
-														   data-formMessage="Görev Operasyon Formu Ektedir." data-formEmail="" data-formSubject="Görev Operasyon Formu"
-														   data-original-title="Paylaş">
-															<i class="fa fa-send"></i>
-														</a>
+                                                                @if (item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAltUrun || item.status == (int)EnumFTM_TaskOperationStatus.GorevFormuDoldurulduAnaUrun)
+                                                                {
+                                                                    <a class="btn btn-xs btn-info  m-l-xs" data-href="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-original-title="Yazdır"
+                                                                       data-modal="false" data-task="Insert" data-method="GET" data-blank="true" data-show="single">
+                                                                        <i class="fa fa-print"></i>
+                                                                    </a>
+                                                                    <a class="btn btn-xs btn-success m-l-xs" data-selector="share" data-formUrl="@Url.Action("Print", "VWFTM_TaskOperation", new { area = "FTM", id = Model.id,operationId = item.id })" data-formElemId="operationForm" data-hastemplate="true"
+                                                                       data-formMessage="Görev Operasyon Formu Ektedir." data-formEmail="" data-formSubject="Görev Operasyon Formu"
+                                                                       data-original-title="Paylaş">
+                                                                        <i class="fa fa-send"></i>
+                                                                    </a>
 
-													}
+                                                                }
 
 
-												</div>
+                                                            </div>
 
-											</div>
-										</div>
-									}
-								</div>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            </div>
 
-							</div>
+                                        </div>
 
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 	</div>
 </div>
 

@@ -5,10 +5,60 @@
 }
 
 <script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
+
 <script type="text/javascript">
     function htmlDecode(input) {
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
+    }
+
+    function accidentExportWord() {
+        $(".googoose-wrapper").remove();    
+        var content = htmlDecode($("#content").val());
+
+        content = '<div class="googoose-wrapper">' + content;
+
+        var headerStartIndex = content.indexOf("{%Ust_Bilgi_Baslangic%}");
+        var headerEndIndex = content.indexOf("{%Ust_Bilgi_Bitis%}");
+        var footerStartIndex = content.indexOf("{%Alt_Bilgi_Baslangic%}");
+        var footerEndIndex = content.indexOf("{%Alt_Bilgi_Bitis%}");
+
+        if (headerStartIndex > -1 && headerEndIndex > -1 & footerStartIndex > -1 && footerEndIndex > -1) {
+            headerEndIndex += "{%Ust_Bilgi_Bitis%}".length;
+            var header = content.substring(headerStartIndex, headerEndIndex);
+
+            footerEndIndex += "{%Alt_Bilgi_Bitis%}".length;
+            var footer = content.substring(footerStartIndex, footerEndIndex);
+
+            content = content.replace(header, "");
+            content = content.replace(footer, "");
+
+            content += header;
+            content += footer;
+        }
+
+        content += '</div>';
+
+        content += '<style>#googoose-header{margin:0 !important; margin-left:-1000px !important; padding:0 !important;} #googoose-footer{margin:0 !important; margin-left:-500px !important; padding:0 !important;}</style>';
+
+        content = content.replaceAll('{%Ust_Bilgi_Baslangic%}', '<div id="" class="googoose header">');
+        content = content.replaceAll('{%Ust_Bilgi_Bitis%}', '</div>');
+
+        content = content.replaceAll('{%Alt_Bilgi_Baslangic%}', '<div id="" class="googoose footer">');
+        content = content.replaceAll('{%Alt_Bilgi_Bitis%}', '</div>');
+
+        content = content.replaceAll('{%Sayfa_Sonu%}', '<div class="googoose break"></div>');
+        content = content.replaceAll('{%Sayfa_Numarasi%}', '<span class="googoose currentpage"></span>');
+        content = content.replaceAll('{%Sayfa_Sayisi%}', '<span class="googoose totalpage"></span>');
+        
+
+        $("#formContent").html(content);
+
+        var o = {
+            filename: "İş Kazası / Olayı Formu" + ".doc"
+        };
+        $(document).googoose(o);
     }
 
 </script>
@@ -65,21 +115,25 @@
                     <small data-original-title="Proje İsmi"> <i class="icon-barcode-1"></i> @Model.code <i class="icon-barcode-1"></i></small>
                 </div>
 
-                <img src="~/Content/Custom/img/is_kazasi_logo.png" alt="image" class="img-circle m-t-xs img-responsive" style="height: 135px;margin: auto;margin-top: -15px;">
+                <div class="img-circle m-t-xs img-responsive" style="border: 2px solid white; padding: 23px; padding-top: 33px; display: inline-flex;">
+                    <img src="~/Content/Custom/img/is_kazasi_logo.png" alt="image" class="" style="height: 62px; margin: auto; margin-top: -15px;">
+                </div>
 
                 <div style="margin-top: 10px; display:block;">
                     <a class="btn btn-xs btn-warning" data-task="Insert" data-modal="true" data-href="/SH/VWSH_WorkAccident/UpdateInfo?id=@Model.id">  <i class="fa fa-edit"></i> Kaza / Olay Bilgilerini Düzenle  </a>
                 </div>
 
-                <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@*@Url.Action("Insert","VWINV_CompanyPersonCalendar",new { area="INV"})*@">  <i class="fa fa-edit"></i> Eğitim Planla </a>
+                @*<div style="margin-top: 10px; display:inline-block;">
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWINV_CompanyPersonCalendar",new { area="INV", Type = (int)EnumINV_CompanyPersonCalendarType.Eğitim, workAccidentId = Model.id})">   Eğitim Planla </a>
+                </div>*@
+
+                @*<div style="margin-top: 10px; display:inline-block;">
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="@Url.Action("InsertWorkAccident","VWSH_PersonCertificate",new { area="SH", workAccidentId = Model.id})"> Gerçekleşmiş Eğitimi Gir </a>
                 </div>
+
                 <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  <i class="fa fa-edit"></i> Gerçekleşmiş Eğitimi Gir </a>
-                </div>
-                <div style="margin-top: 10px; display:inline-block;">
-                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  <i class="fa fa-edit"></i> Düzeltici Faaliyet Oluştur </a>
-                </div>
+                    <a class="btn btn-xs btn-info" data-task="Insert" data-modal="true" data-href="">  Düzeltici Faaliyet Oluştur </a>
+                </div>*@
 
             </div>
         </div>
@@ -179,15 +233,16 @@
                         </a>
                     </li>
 
-                    <li data-toggle="tooltip" data-placement="top" title="Formu Yazdır" data-href="">
-                        <a data-toggle="tab" href="#print" aria-expanded="true">
-                            <i class="icon-print-1 text-success fa-2x"></i>
+                    <li data-toggle="tooltip" data-placement="top" title="Eğitimler" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCalendar", new {area="SH" })">
+                        <a data-toggle="tab" href="#educations" aria-expanded="true">
+                            <i class="icon-calendar-1 text-success fa-2x"></i>
                         </a>
                     </li>
 
-                    <li data-toggle="tooltip" data-placement="top" title="Eğitimler" data-href="@Url.Action("DataSource", "VWSH_PersonCertificate", new {area="SH" })">
-                        <a data-toggle="tab" href="#educations" aria-expanded="true">
-                            <i class="icon-bookmark text-success fa-2x"></i>
+
+                    <li data-toggle="tooltip" data-placement="top" title="Sertifikalar" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCertificate", new {area="SH" })">
+                        <a data-toggle="tab" href="#certificates" aria-expanded="true">
+                            <i class="icon-doc-text-inv text-success fa-2x"></i>
                         </a>
                     </li>
 
@@ -212,7 +267,8 @@
 
                         @using (Html.BeginForm("SaveContent", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
                             { "class", "form-horizontal" },
-                            { "data-formType", "Ajax" }
+                            { "data-formType", "Ajax" },
+                            { "style", "padding:0" }
                         }))
                         {
                             @Html.AntiForgeryToken()
@@ -223,7 +279,7 @@
                             <script type="text/javascript">
                                 var editor = CKEDITOR.replace('contentHTMLFakeElement', {
                                     language: 'tr',
-                                    height: 550,
+                                    height: 450,
                                     removeButtons: 'Save',
                                     removePlugins: 'Save',
                                 });
@@ -231,19 +287,47 @@
                                 editor.on('instanceReady', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
                                 editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
                             </script>
-                            <div class="buttons">
-                                <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+                            <div class="buttons" style=" padding: 0; padding-top: 25px; ">
+                                <a class="btn btn-md btn-warning"> <i class="icon-print-1"></i> Yazdır</a>
+                                <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
+                                <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="accidentExportWord()"> <i class="icon-download"></i> İndir</a>
                             </div>
                         }
 
                     </div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWINV_CompanyPersonDepartments", new {area="INV" })" id="print">
-                        <h4><i class="icon-print-1 text-success"></i>  FORMU YAZDIR </h4>
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCalendar", new {area="SH" })" id="educations">
+                        <h4><i class="icon-calendar-1 text-success"></i> KAZA / OLAYA BAĞLI EĞİTİMLER </h4>
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccidentCalendar>("VWSH_WorkAccidentCalendar")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccidentCalendar", new { area = "SH" }))
+                            .Filter(a => a.workAccidentId == Model.id)
+                            .PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).Hidden();
+                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(100);
+                                x.Bound(y => y.created).Title("İşlem Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.title).Title("Eğitim Başlığı").Width(120);
+                                x.Bound(y => y.startDate).Title("Başlangıç Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.endDate).Title("Bitiş Tarihi").Format("{0:dd.MM.yyyy HH:mm}").Width(90);
+                                x.Bound(y => y.people_Title).Title("Eğitime Katılacaklar").Format("{0:dd.MM.yyyy HH:mm}").Width(150);
+
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .Scrollable(s => s.Height(450))
+                            .ToolBar(x =>
+                            {
+                                x.Custom().Text("<i data-original-title='Eğitim Planla' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("InsertWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV", Type = (int)EnumINV_CompanyPersonCalendarType.Eğitim, workAccidentId = Model.id }));
+                                x.Custom().Text("<i data-original-title='Eğitimi Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV" }));
+                                x.Custom().Text("<i data-original-title='Eğitim Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("DetailWorkAccident", "VWINV_CompanyPersonCalendar", new { area = "INV" }));
+                                x.Custom().Text("<i data-original-title='Eğitimi Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccidentCalendar", new { area = "SH" }));
+                            }))
                     </div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_Project", new {area="PRJ" })" id="educations">
-                        <h4><i class="icon-bookmark text-success"></i> KAZA / OLAYA BAĞLI EĞİTİMLER </h4>
+
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccidentCertificate", new {area="SH" })" id="certificates">
+                        <h4><i class="icon-doc-text-inv  text-success"></i> KAZA / OLAY ÜZERİNE ALINMIŞ SERTİFİKALAR </h4>
                         @(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccidentCertificate>("VWSH_WorkAccidentCertificate")
                             .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccidentCertificate", new { area = "SH" }))
@@ -251,20 +335,25 @@
                             .PageSize(25))
                             .Columns(x =>
                             {
-                                x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
+                                x.Bound(y => y.id).Hidden();
+                                x.Bound(y => y.userId_Title).Title("Personel").Width(150);
+                                x.Bound(y => y.certificateName).Title("Alındığı Kurum").Width(150);
+                                x.Bound(y => y.startDate).Title("Eğitim Başlangıç Tarihi").Format("{0:dd.MM.yyyy}").Width(120);
+                                x.Bound(y => y.endDate).Title("Eğitim Bitiş Tarihi").Format("{0:dd.MM.yyyy}").Width(120);
+                                x.Bound(y => y.expirationDate).Title("Geçerlilik Tarihi").Format("{0:dd.MM.yyyy}").Width(90);
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                            .Scrollable(s => s.Height(550))
+                            .Scrollable(s => s.Height(450))
                             .ToolBar(x =>
                             {
-                                x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                                x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
-                        }))
+                                x.Custom().Text("<i data-original-title='Sertifika Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(@Url.Action("InsertWorkAccident", "VWSH_PersonCertificate", new { area = "SH", workAccidentId = Model.id }));
+                                x.Custom().Text("<i data-original-title='Sertifikayı Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("UpdateWorkAccident", "VWSH_PersonCertificate", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Sertifika Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("DetailWorkAccident", "VWSH_PersonCertificate", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Sertifikayı Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccidentCertificate", new { area = "SH" }));
+                            }))
                     </div>
 
-                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWPRJ_ProjectTimeline", new {area="PRJ" })" id="dof">
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_CorrectiveActivity", new {area="SH" })" id="dof">
                         <h4><i class="icon-briefcase text-success"></i>  KAZA / OLAYA BAĞLI DÜZENLEYİCİ ÖNLEYİCİ FAALİYETLER </h4>
                         @(Html.Akilli()
                             .Grid<Infoline.WorkOfTime.BusinessData.VWSH_CorrectiveActivity>("VWSH_CorrectiveActivity")
@@ -273,29 +362,39 @@
                             .PageSize(25))
                             .Columns(x =>
                             {
-                                x.Bound(y => y.id).GridSelector(GridSelectorType.Checkbox);
-                                x.Bound(y => y.keyword).Title("keyword").Width(180);
-                                x.Bound(y => y.date).Title("date").Width(180).Format(Extensions.DateFormatShort(true));
-                                x.Bound(y => y.content).Title("content").Width(180);
+                                x.Bound(y => y.id).Hidden();
+                                x.Bound(y => y.keyword).Hidden();
+                                x.Bound(y => y.createdby_Title).Title("Oluşturan").Width(180);
+                                x.Bound(y => y.created).Title("İşlem Tarihi").Width(120).Format("{0:dd.MM.yyyy HH:mm}");
+                                x.Bound(y => y.userId_Title).Title("Personel").Width(180).Format("{0:dd.MM.yyyy HH:mm}");
+                                x.Bound(y => y.projectId_Title).Title("Proje").Width(180).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.date).Title("Tarih").Format("{0:dd.MM.yyyy}").Width(120);
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
-                            .Scrollable(s => s.Height(550))
+                            .Scrollable(s => s.Height(450))
                             .ToolBar(x =>
                             {
-                                x.Custom().Text("Ekle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                                x.Custom().Text("Düzenle").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                                x.Custom().Text("Detay").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                                x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
-                            }))
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Ekle' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_CorrectiveActivity", new { area = "SH", taskId = Model.taskId, workAccidentId = Model.id, projectId = Model.projectId, userId = Model.userId }));
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyet Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" } }).Url(Url.Action("Detail", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Düzenleyici / Önleyici Faaliyeti Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_CorrectiveActivity", new { area = "SH" }));
+                            })
+                            )
                     </div>
 
                     <div class="tab-pane" data-href="" id="files">
                         <h4><i class="icon-file text-success"></i>  ISLAK İMZALI DOSYALAR </h4>
+                        @Html.Action("Index", "Files", new { area = "", DataId = Model.id, DataTable = "SH_WorkAccident", FileGroup = "Islak İmzalı Dosyalar" })
                     </div>
                 </div>
             </div>
         </section>
     </div>
+
+</div>
+
+
+<div id="formContent" class="hide">
 
 </div>
 

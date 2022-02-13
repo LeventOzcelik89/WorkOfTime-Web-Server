@@ -1,12 +1,92 @@
 ﻿@model Infoline.WorkOfTime.BusinessData.VWSH_CorrectiveActivity
 @{
-    ViewBag.Title = "Kayıt Güncelleme";
+    ViewBag.Title = "Düzenleyici Önleyici Faaliyet Düzenleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
 
-@using(Html.BeginForm("Update", "VWSH_CorrectiveActivity", FormMethod.Post, new Dictionary<string, object>() {  
+<script type="text/javascript" data-selector="modalContainer">
+    function beforeFunc() {
+        var tag = $("#keyword").data("tagify");
+        if (tag && tag.value) {
+            $("#keyword").val(tag.value.map(a => a.value).join(","))
+        }
+        return true;
+    }
+    function htmlDecode(input) {
+        var doc = new DOMParser().parseFromString(input, "text/html");
+        return doc.documentElement.textContent;
+    }
+    function setTags() {
+        var values = '@Model.keyword';
+        if (values != "" && values != undefined && values != null) {
+            var valArr = values.split(',');
+            if (valArr.length > 0) {
+                var tags = $("#keyword").data("tagify");
+                tags.addTags(valArr, true, true)
+            }
+        }
+    }
+    function dofUpateExportWord() {
+        $(".googoose-wrapper").remove();
+        var content = htmlDecode($("#dofContent").val());
+
+        content = '<div class="googoose-wrapper">' + content;
+
+        var headerStartIndex = content.indexOf("{%Ust_Bilgi_Baslangic%}");
+        var headerEndIndex = content.indexOf("{%Ust_Bilgi_Bitis%}");
+        var footerStartIndex = content.indexOf("{%Alt_Bilgi_Baslangic%}");
+        var footerEndIndex = content.indexOf("{%Alt_Bilgi_Bitis%}");
+
+        if (headerStartIndex > -1 && headerEndIndex > -1 & footerStartIndex > -1 && footerEndIndex > -1) {
+            headerEndIndex += "{%Ust_Bilgi_Bitis%}".length;
+            var header = content.substring(headerStartIndex, headerEndIndex);
+
+            footerEndIndex += "{%Alt_Bilgi_Bitis%}".length;
+            var footer = content.substring(footerStartIndex, footerEndIndex);
+
+            content = content.replace(header, "");
+            content = content.replace(footer, "");
+
+            content += header;
+            content += footer;
+        }
+
+        content += '</div>';
+
+        content += '<style>#googoose-header{margin:0 !important; margin-left:-1000px !important; padding:0 !important;} #googoose-footer{margin:0 !important; margin-left:-500px !important; padding:0 !important;}</style>';
+
+        content = content.replaceAll('{%Ust_Bilgi_Baslangic%}', '<div id="" class="googoose header">');
+        content = content.replaceAll('{%Ust_Bilgi_Bitis%}', '</div>');
+
+        content = content.replaceAll('{%Alt_Bilgi_Baslangic%}', '<div id="" class="googoose footer">');
+        content = content.replaceAll('{%Alt_Bilgi_Bitis%}', '</div>');
+
+        content = content.replaceAll('{%Sayfa_Sonu%}', '<div class="googoose break"></div>');
+        content = content.replaceAll('{%Sayfa_Numarasi%}', '<span class="googoose currentpage"></span>');
+        content = content.replaceAll('{%Sayfa_Sayisi%}', '<span class="googoose totalpage"></span>');
+
+
+        $("#formContentDof").html(content);
+
+        var o = {
+            filename: "Döf" + ".doc"
+        };
+        $(document).googoose(o);
+       
+    }
+</script>
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 80%;
+    }
+</style>
+
+@using (Html.BeginForm("Update", "VWSH_CorrectiveActivity", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
+    { "data-before", "beforeFunc" },
     { "data-selector", "modalContainer" },
     { "data-formType", "Ajax" }
 }))
@@ -14,142 +94,56 @@
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.workAccidentId)
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="taskId">taskId</label>
+            <label class="control-label label-md req" for="code">Kodu</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.taskId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen taskId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @Html.TextBoxFor(model => model.code, new Dictionary<string, object>()
+             {
+                 {"class", "form-control"},
+                 {"placeholder", "Lütfen Kodu giriniz.."}
+             }).Validate(Validations.TextEverywhere(true, 0, 50))
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="accidentDate">Tarih</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().
+                DateTimePickerFor(model => model.date).
+                Placeholder("Başlangıç Tarihi").
+                Format(Extensions.DateFormatFull()).
+                Value(Model.date.HasValue ? Model.date.Value : DateTime.Now)
+            )
         </div>
     </div>
 
 
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="workAccidentId">workAccidentId</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.workAccidentId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen workAccidentId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="projectId">projectId</label>
+            <label class="control-label label-md" for="taskId">Görev Seçiniz</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.projectId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen projectId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="userId">userId</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.userId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen userId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="keyword">keyword</label>
-        </div>
-        <div class="col-md-8">
-            @Html.TextBoxFor(model => model.keyword, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen keyword Girin.."},
-            }).Validate(Validations.Required)
-        </div>
-    </div>
-
-
-    <div class="form-group">
-        <div class="col-md-4">
-            <label class="control-label label-md" for="date">date</label>
-        </div>
-        <div class="col-md-8">
-          @(Html.Kendo().DatePickerFor(model => model.date).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen date Girin.."},
-            })
-            .Format(Extensions.DateFormatShort())
-            .Validate(Validations.Required)
+            @(
+                Html.Akilli().
+                DropDownListFor(model => model.taskId).
+                OptionLabel("Lütfen Görev Seçiniz..").
+                DataTextField("code").
+                DataValueField("id").
+                //ValueTemplate("#=TemplateEngine('FTM_TaskDropDownTemplate',data)#").
+                Template("#=TemplateEngine('taskTemplate',data)#").
+                Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
+                Sort(x => x.Add("code").Ascending()).
+                //Events(a => a.Change("activity.events.typeChange").DataBound("activity.events.typeLoad")).
+                Execute()
             )
         </div>
     </div>
@@ -157,48 +151,125 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="templateId">templateId</label>
+            <label class="control-label label-md" for="projectId">Proje Seçiniz</label>
         </div>
         <div class="col-md-8">
-          @(Html.Kendo().DropDownListFor(model => model.templateId).HtmlAttributes(new Dictionary<string, object>() 
-            {
-                {"style", "width:100%"},
-                {"class", "form-control"},
-            })
-            .OptionLabel("Lütfen templateId seçin")
-            .Filter(FilterType.Contains)
-            .DataTextField("Name")
-            .DataValueField("Id")
-            .DataSource(s =>
-            {
-                 s.Read(r =>
-                 {
-                     r.Action("", "General", new { area = string.Empty }); //General controllerının içine datasının oldugu metodu yaz ilk parametreye method ismini ver
-                 });
-             })
-             .Validate(Validations.Required)
-             )
+            @(Html.Akilli()
+                .DropDownListFor(model => model.projectId)
+                .OptionLabel("Lütfen Proje Seçiniz..")
+                //.DataValueField("id")
+                .DataTextField("ProjectName")
+                .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                .Sort(x => x.Add("ProjectName").Ascending())
+                .Execute()
+            )
         </div>
     </div>
 
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="content">content</label>
+            <label class="control-label label-md" for="userId">Personel Seçiniz</label>
         </div>
         <div class="col-md-8">
-            @Html.TextBoxFor(model => model.content, new Dictionary<string, object>() 
-            {
-                {"class", "form-control"},
-                {"placeholder", "Lütfen content Girin.."},
-            }).Validate(Validations.Required)
+            @(Html.Akilli()
+                  .DropDownListFor(model => model.userId)
+                  .OptionLabel("Lütfen Personel Seçiniz..")
+                  .DataTextField("FullName")
+                  .DataValueField("id")
+                  .Template("#=TemplateEngine('userTemplate',data)#")
+                  .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                  .Sort(x => x.Add("FullName").Ascending())
+                  .Execute("id")
+                )
         </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="keyword">Anahtar Kelimeler</label>
+        </div>
+        <div class="col-md-8">
+            <input id="keyword" name="keyword" placeholder="Lütfen Anahtar Kelimeleri Giriniz.." data-item="keyword" data-role="tagify" />
+        </div>
+    </div>
+
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="Dosya">Islak İmzalı Dosyalar</label>
+        </div>
+        <div class="col-md-8">
+            @(
+                Html.Akilli().FileUpload()
+                .DataTable("SH_CorrectiveActivity")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Islak İmzalı Dosyalar")
+            )
+        </div>
+    </div>
+
+    <div class="form-group">
+        <div class="col-md-4">
+            <label class="control-label label-md" for="templateId">Şablon</label>
+        </div>
+        <div class="col-md-8">
+            @(Html.Akilli()
+                  .DropDownListFor(model => model.templateId)
+                  .OptionLabel("Lütfen Şablon Seçiniz..")
+                  .DataTextField("title")
+                  .DataValueField("id")
+                  .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
+                  .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.dof && f.status == (short)EnumUT_TemplateStatus.active)
+                  .Events(a => a.DataBound("setTags"))
+                  .Sort(x => x.Add("title").Ascending())
+                  .Execute("id")
+                )
+        </div>
+    </div>
+
+    <div class="form-group">
+
+        <div class="col-md-12">
+            <label class="control-label label-md" for="content">Form</label>
+        </div>
+        <div class="col-md-12">
+            @Html.HiddenFor(a => a.content, new Dictionary<string, object>()
+             {
+                 {"id", "dofContent"},
+             })
+            @Html.TextArea("contentDofFakeElement", HttpUtility.HtmlDecode(Model.content))
+            <script type="text/javascript" data-selector="modalContainer">
+                var editor = CKEDITOR.replace('contentDofFakeElement', {
+                    language: 'tr',
+                    height: 320,
+                    htmlEncodeOutput: true,
+                    removeButtons: 'Save',
+                    removePlugins: 'Save'
+                });
+
+                editor.on('instanceReady', function () { $("#dofContent").val(new Option(editor.getData()).innerHTML); });
+                editor.on('change', function () { $("#dofContent").val(new Option(editor.getData()).innerHTML); });
+
+            </script>
+        </div>
+    </div>
+
+
+    <div id="formContentDof" class="hide">
+
     </div>
 
 
     <div class="buttons">
-        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
-        <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
-    </div>
+        <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
+        <a class="btn btn-md btn-info pull-right" style="margin-right:10px;" onclick="dofUpateExportWord()"> <i class="icon-download"></i> İndir</a>
+        <a class="btn btn-md btn-warning pull-right" style="margin-right:10px;"> <i class="icon-print-1"></i> Yazdır</a>
 
+        <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+    </div>
 }
+
+
+

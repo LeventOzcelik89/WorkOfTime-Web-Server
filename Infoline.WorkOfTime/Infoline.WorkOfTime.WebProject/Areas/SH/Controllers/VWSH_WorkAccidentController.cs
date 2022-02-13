@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web;
+using RazorEngine;
+using RazorEngine.Templating;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
@@ -134,6 +137,54 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_WorkAccidentModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
+		}
+
+
+		[AllowEveryone]
+		public string RenderTemplate(Guid? userId, Guid? projectId, Guid? taskId, Guid templateId)
+		{
+			var db = new WorkOfTimeDatabase();
+			var UTtemplate = db.GetUT_TemplateById(templateId);
+			string result = HttpUtility.HtmlDecode(UTtemplate.template);
+			if (userId.HasValue)
+            {
+				var user = new VMSH_UserModel() { id = userId.Value }.Load();
+				result = GetUserHtml(user,result);
+			}
+			if (projectId.HasValue)
+            {
+				var project = db.GetVWPRJ_ProjectById(projectId.Value);
+				result = GetProjectHtml(project, result);
+			}
+			if (taskId.HasValue)
+            {
+				var task = new VMFTM_TaskModel() { id = taskId.Value }.Load();
+				result = GetTaskHtml(task, result);
+			}
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}
+
+		private static string GetUserHtml(VMSH_UserModel user, string template)
+		{
+			template = template.Replace("Personel(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, user);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}		
+		private static string GetProjectHtml(VWPRJ_Project project, string template)
+		{
+			template = template.Replace("Proje(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, project);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}
+		private static string GetTaskHtml(VMFTM_TaskModel task, string template)
+		{
+			template = template.Replace("Görev(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, task);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
 		}
 
 	}
