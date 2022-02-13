@@ -13,6 +13,27 @@
         }
         return true;
     }
+
+    function modelChange() {
+        var template = $("#templateId").data("handler").dataItem();
+        var userId = $("#userId").data("handler").dataItem().id;
+        var projectId = $("#projectId").data("handler").dataItem().Id;
+        var taskId = $("#taskId").data("handler").dataItem().id;
+        if (template.id != "" && template.id != null && template.id != undefined) {
+            $.ajax({
+                url: "/SH/VWSH_WorkAccident/RenderTemplate",
+                data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
+                success: function (res) {
+                    res = res.replaceAll('color:#ff0001;', '');
+                    res = res.replaceAll('color:#ff0001', '');
+                    editor.setData(res);
+                }
+            })
+
+        } else {
+            editor.setData("");
+        }
+    }
 </script>
 <style type="text/css" data-selector="modalContainer">
     .modal-lg{
@@ -77,7 +98,7 @@
                 Template("#=TemplateEngine('taskTemplate',data)#").
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
                 Sort(x => x.Add("code").Ascending()).
-                //Events(a => a.Change("activity.events.typeChange").DataBound("activity.events.typeLoad")).
+                Events(a => a.Change("modelChange")).
                 Readonly(Model.taskId != null).
                 Execute()
             )
@@ -93,10 +114,11 @@
             @(Html.Akilli()
                 .DropDownListFor(model => model.projectId)
                 .OptionLabel("Lütfen Proje Seçiniz..")
-                //.DataValueField("id")
+                //.DataValueField("Id")
                 .DataTextField("ProjectName")
                 .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
                 .Sort(x => x.Add("ProjectName").Ascending())
+                .Events(a => a.Change("modelChange"))
                 .Readonly(Model.projectId != null)
                 .Execute()
             )
@@ -117,6 +139,7 @@
                   .Template("#=TemplateEngine('userTemplate',data)#")
                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                   .Sort(x => x.Add("FullName").Ascending())
+                  .Events(a => a.Change("modelChange"))
                   .Execute("id")
                   .Validate(Validations.Required)
                 )
@@ -145,8 +168,9 @@
                   .DataTextField("title")
                   .DataValueField("id")
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
-                  .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.accident)
+                  .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.accident && f.status == (short)EnumUT_TemplateStatus.active)
                   .Sort(x => x.Add("title").Ascending())
+                  .Events(a => a.Change("modelChange"))
                   .Execute("id")
                 )
         </div>
