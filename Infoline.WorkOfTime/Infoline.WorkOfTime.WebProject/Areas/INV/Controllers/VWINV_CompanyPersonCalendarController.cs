@@ -138,7 +138,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
             if (mailForParticipants == true)
             {
-                var stringType = ((EnumINV_CompanyPersonCalendarType)item.Type).ToDescription();
+                var stringType = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CompanyPersonCalendarType>().Where(x => Convert.ToInt32(x.Key)==item.Type).FirstOrDefault().Value;
+                
                 var emailUsers = string.Join(";", db.GetVWSH_UserByIds(persons.Split(',').Select(x => new Guid(x)).ToArray()).Where(c => !string.IsNullOrEmpty(c.email)).Select(x => x.email).ToArray());
 
                 if (item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Toplanti || item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Hatirlatma)
@@ -425,7 +426,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
             if (mailForParticipants == true)
             {
-                var stringType = ((EnumINV_CompanyPersonCalendarType)item.Type).ToDescription();
+                var stringType = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CompanyPersonCalendarType>().Where(x => Convert.ToInt32(x.Key) == item.Type).FirstOrDefault().Value;
                 var emailUsers = string.Join(";", db.GetVWSH_UserByIds(persons.Split(',').Select(x => new Guid(x)).ToArray()).Select(x => x.email).ToArray());
                 if (item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Toplanti)
                 {

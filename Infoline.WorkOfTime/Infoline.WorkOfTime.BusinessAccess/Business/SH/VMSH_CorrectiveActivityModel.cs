@@ -47,7 +47,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             }
             if (res.result)
             {
-               
+                new FileUploadSave(request, this.id).SaveAs();
                 if (transaction == null) trans.Commit();
             }
             else

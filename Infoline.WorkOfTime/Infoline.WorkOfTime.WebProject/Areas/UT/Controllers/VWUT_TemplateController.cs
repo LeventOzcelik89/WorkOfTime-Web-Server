@@ -13,13 +13,11 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 {
 	public class VWUT_TemplateController : Controller
 	{
-		[AllowEveryone]
-		[PageInfo("Şablon Listesi")]
+		[PageInfo("Şablon Listesi", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
-
 
 		[AllowEveryone]
 		[PageInfo("Şablon Listesi Veri Kaynağı")]
@@ -37,7 +35,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
 		[AllowEveryone]
 		[PageInfo("Şablon Listesi Dropdown Methodu")]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
@@ -50,16 +47,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Detayı")]
+		[PageInfo("Şablon Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Detail(Guid id)
 		{
 		    return View(new VMUT_TemplateModel { id = id}.Load());
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Ekleme")]
+		[PageInfo("Şablon Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Insert(VMUT_TemplateModel model)
 		{
 			var data = model.Load();
@@ -67,8 +62,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Ekleme ")]
+		[PageInfo("Şablon Ekleme ", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Insert(VMUT_TemplateModel model, bool? isPost)
 		{
@@ -84,8 +78,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Güncelleme")]
+		[PageInfo("Şablon Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Update(VMUT_TemplateModel model)
 		{
 			var data = model.Load();
@@ -93,8 +86,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Güncelleme")]
+		[PageInfo("Şablon Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMUT_TemplateModel model, bool? isPost)
 		{
@@ -110,8 +102,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.UT.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Şablon Silme")]
+		[PageInfo("Şablon Silme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		[HttpPost]
 		public JsonResult Delete(Guid id)
 		{

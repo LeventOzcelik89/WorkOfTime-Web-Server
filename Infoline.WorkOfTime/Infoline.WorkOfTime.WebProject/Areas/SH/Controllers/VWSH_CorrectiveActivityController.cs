@@ -97,7 +97,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
 			var feedback = new FeedBack();
-			var rs = model.Save(userStatus.user.id);
+			var rs = model.Save(userStatus.user.id,Request);
 			return Json(new ResultStatusUI
 			{
 				Result = rs.result,

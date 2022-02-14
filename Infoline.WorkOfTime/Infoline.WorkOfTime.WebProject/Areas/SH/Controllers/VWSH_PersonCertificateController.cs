@@ -281,7 +281,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
         
-        [PageInfo("Personel Sertifikası Grup İsimleri", SHRoles.IKYonetici)]
+        [PageInfo("Personel Sertifikası Grup İsimleri", SHRoles.IKYonetici, SHRoles.ISGSorumlusu, SHRoles.SistemYonetici)]
         public ContentResult CertificateNameGroup()
         {
             var db = new WorkOfTimeDatabase();
