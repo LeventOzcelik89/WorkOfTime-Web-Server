@@ -35,6 +35,7 @@
         var projectId = $("#projectId").data("handler").dataItem().Id;
         var taskId = $("#taskId").data("handler").dataItem().id;
         if (template.id != "" && template.id != null && template.id != undefined) {
+            editorUpdateInfo.setData("Yükleniyor..");
             $.ajax({
                 url: "/SH/VWSH_WorkAccident/RenderTemplate",
                 data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
@@ -178,9 +179,8 @@
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
                   .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.accident && f.status == (short)EnumUT_TemplateStatus.active)
                   .Sort(x => x.Add("title").Ascending())
-                  .Events(a => a.Change("modelChange"))
+                  .Events(a => a.DataBound("setTags").Change("modelChange"))
                   .Execute("id")
-                  .Events(a => a.DataBound("setTags"))
                 )
         </div>
     </div>

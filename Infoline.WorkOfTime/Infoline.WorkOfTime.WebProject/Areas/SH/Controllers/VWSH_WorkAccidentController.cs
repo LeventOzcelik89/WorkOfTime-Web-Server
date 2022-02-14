@@ -146,21 +146,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			var db = new WorkOfTimeDatabase();
 			var UTtemplate = db.GetUT_TemplateById(templateId);
 			string result = HttpUtility.HtmlDecode(UTtemplate.template);
-			if (userId.HasValue)
-            {
-				var user = new VMSH_UserModel() { id = userId.Value }.Load();
-				result = GetUserHtml(user,result);
-			}
+
+			var user = new VMSH_UserModel() { id = userId ?? Guid.NewGuid() }.Load();
+			result = GetUserHtml(user,result);
+
 			if (projectId.HasValue)
             {
 				var project = db.GetVWPRJ_ProjectById(projectId.Value);
 				result = GetProjectHtml(project, result);
-			}
-			if (taskId.HasValue)
+            }
+            else
             {
-				var task = new VMFTM_TaskModel() { id = taskId.Value }.Load();
-				result = GetTaskHtml(task, result);
+				result = GetProjectHtml(new VWPRJ_Project(), result);
 			}
+
+			var task = new VMFTM_TaskModel() { id = taskId ?? Guid.NewGuid(), code = taskId.HasValue ? null : "-" }.Load();
+			result = GetTaskHtml(task, result);
+
 			var resHtml = HttpUtility.HtmlDecode(result);
 			return resHtml;
 		}

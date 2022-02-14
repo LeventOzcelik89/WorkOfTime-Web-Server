@@ -17,6 +17,13 @@
 <script src="js/plugins/blueimp/jquery.blueimp-gallery.min.js"></script>
 
 <script type="text/javascript">
+    function keywordTemplate(keyword) {
+        if (keyword == null) return "-";
+        var content = '';
+        keyword.split(',').forEach(element => content += `<span class='badge badge-success' style='margin-right:10px;'>` + element + `</span>`);
+        return content;
+    }
+
     function ImageErrorData(element, image, id) {
         element.onerror = '';
         element.src = image;
@@ -251,11 +258,11 @@
                                             .Columns(x =>
                                             {
                                                 x.Bound(y => y.id).Hidden();
-                                                x.Bound(y => y.keyword).Hidden();
                                                 x.Bound(y => y.code).Title("Kodu").Width(110);
                                                 x.Bound(y => y.accidentDate).Title("Kaza/Olay Tarihi").Width(110).Format(Extensions.DateFormatShort(true));
                                                 x.Bound(y => y.userId_Title).Title("Kazayı Geçiren Personel").Width(150);
                                                 x.Bound(y => y.projectId_Title).Title("Proje").Width(180);
+                                                x.Bound(y => y.keyword).Title("Anahtar Kelimeler").ClientTemplate("#=keywordTemplate(data.keyword)#").Width(180);
                                             })
                                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
                                             .Scrollable(x => x.Height(600))
