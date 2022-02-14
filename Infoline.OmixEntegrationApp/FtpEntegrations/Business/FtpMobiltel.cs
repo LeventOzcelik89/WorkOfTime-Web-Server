@@ -84,6 +84,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
             }
+            Log.Success($"All Files Are Integrated In {DistributorName} FTP");
             return result;
         }
 

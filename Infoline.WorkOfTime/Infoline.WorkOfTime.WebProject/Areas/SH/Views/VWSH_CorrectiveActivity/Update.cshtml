@@ -7,6 +7,27 @@
 <script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
 
 <script type="text/javascript" data-selector="modalContainer">
+    function modelChange() {
+        var template = $("#templateId").data("handler").dataItem();
+        var userId = $("#userId").data("handler").dataItem().id;
+        var projectId = $("#projectId").data("handler").dataItem().Id;
+        var taskId = $("#taskId").data("handler").dataItem().id;
+        if (template.id != "" && template.id != null && template.id != undefined) {
+            editoDOFUpdate.setData("Yükleniyor..");
+            $.ajax({
+                url: "/SH/VWSH_WorkAccident/RenderTemplate",
+                data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
+                success: function (res) {
+                    res = res.replaceAll('color:#ff0001;', '');
+                    res = res.replaceAll('color:#ff0001', '');
+                    editoDOFUpdate.setData(res);
+                }
+            })
+
+        } else {
+            editoDOFUpdate.setData("");
+        }
+    }
     function beforeFunc() {
         var tag = $("#keyword").data("tagify");
         if (tag && tag.value) {
@@ -156,7 +177,7 @@
                 Template("#=TemplateEngine('taskTemplate',data)#").
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
                 Sort(x => x.Add("code").Ascending()).
-                //Events(a => a.Change("activity.events.typeChange").DataBound("activity.events.typeLoad")).
+                Events(a => a.Change("modelChange")).
                 Execute()
             )
         </div>
@@ -174,6 +195,7 @@
                 //.DataValueField("id")
                 .DataTextField("ProjectName")
                 .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
+                .Events(a => a.Change("modelChange"))
                 .Sort(x => x.Add("ProjectName").Ascending())
                 .Execute()
             )
@@ -192,6 +214,7 @@
                   .DataTextField("FullName")
                   .DataValueField("id")
                   .Template("#=TemplateEngine('userTemplate',data)#")
+                  .Events(a => a.Change("modelChange"))
                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                   .Sort(x => x.Add("FullName").Ascending())
                   .Execute("id")
@@ -236,7 +259,7 @@
                   .DataValueField("id")
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
                   .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.dof && f.status == (short)EnumUT_TemplateStatus.active)
-                  .Events(a => a.DataBound("setTags"))
+                  .Events(a => a.DataBound("setTags").Change("modelChange"))
                   .Sort(x => x.Add("title").Ascending())
                   .Execute("id")
                 )
@@ -255,7 +278,7 @@
              })
             @Html.TextArea("contentDofFakeElement", HttpUtility.HtmlDecode(Model.content))
             <script type="text/javascript" data-selector="modalContainer">
-                var editor = CKEDITOR.replace('contentDofFakeElement', {
+                var editoDOFUpdate = CKEDITOR.replace('contentDofFakeElement', {
                     language: 'tr',
                     height: 320,
                     htmlEncodeOutput: true,
@@ -263,8 +286,8 @@
                     removePlugins: 'Save'
                 });
 
-                editor.on('instanceReady', function () { $("#dofContent").val(new Option(editor.getData()).innerHTML); });
-                editor.on('change', function () { $("#dofContent").val(new Option(editor.getData()).innerHTML); });
+                editoDOFUpdate.on('instanceReady', function () { $("#dofContent").val(new Option(editoDOFUpdate.getData()).innerHTML); });
+                editoDOFUpdate.on('change', function () { $("#dofContent").val(new Option(editoDOFUpdate.getData()).innerHTML); });
 
             </script>
         </div>

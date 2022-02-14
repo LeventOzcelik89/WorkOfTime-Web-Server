@@ -8,6 +8,12 @@
 <script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
 
 <script type="text/javascript">
+    function keywordTemplate(keyword) {
+        if (keyword == null) return "-";
+        var content = '';
+        keyword.split(',').forEach(element => content += `<span class='badge badge-success' style='margin-right:10px;'>` + element + `</span>`);
+        return content;
+    }
     function htmlDecode(input) {
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
@@ -382,6 +388,7 @@
                                 x.Bound(y => y.userId_Title).Title("Personel").Width(180).Format("{0:dd.MM.yyyy HH:mm}");
                                 x.Bound(y => y.projectId_Title).Title("Proje").Width(180).Format(Extensions.DateFormatShort(true));
                                 x.Bound(y => y.date).Title("Tarih").Format("{0:dd.MM.yyyy}").Width(120);
+                                x.Bound(y => y.keyword).Title("Anahtar Kelimeler").ClientTemplate("#=keywordTemplate(data.keyword)#").Width(180);
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
                             .Scrollable(s => s.Height(450))
