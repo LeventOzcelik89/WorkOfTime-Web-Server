@@ -13,16 +13,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_WorkAccidentCertificateController : Controller
 	{
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim  Listesi")]
+		[PageInfo("Kaza Ve Olay Eğitim  Listesi", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici, SHRoles.IKYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Veri Methodu")]
+		[PageInfo("Kaza Ve Olay Eğitim Veri Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -38,8 +36,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Dropdown Methodu")]
+		[PageInfo("Kaza Ve Olay Eğitim Dropdown Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -50,8 +47,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Detayı")]
+		[PageInfo("Kaza Ve Olay Eğitim Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici, SHRoles.IKYonetici)]
 		public ActionResult Detail(Guid id)
 		{
 			return View(new VMSH_WorkAccidentModel { id = id }.Load());
@@ -59,7 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
+		[PageInfo("Kaza Ve Olay Eğitim Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.IKYonetici)]
 		public ActionResult Insert(VMSH_WorkAccidentCertificateModel model)
 		{
 			var data = model.Load();
@@ -68,8 +64,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Ekleme")]
+		[PageInfo("Kaza Ve Olay Eğitim Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.IKYonetici)]
 		public JsonResult Insert(VMSH_WorkAccidentCertificateModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -83,8 +78,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
+		[PageInfo("Kaza Ve Olay Eğitim Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.IKYonetici)]
 		public ActionResult Update(VMSH_WorkAccidentCertificateModel model)
 		{
 			var data = model.Load();
@@ -93,8 +87,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Güncelleme")]
+		[PageInfo("Kaza Ve Olay Eğitim Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.IKYonetici)]
 		public JsonResult Update(VMSH_WorkAccidentCertificateModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -109,8 +102,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Eğitim Silme")]
+		[PageInfo("Kaza Ve Olay Eğitim Silme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.IKYonetici)]
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_WorkAccidentCertificateModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);

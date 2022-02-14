@@ -52,8 +52,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
-		[PageInfo("Personel Sertifikası Güncelleme")]
+		[PageInfo("Personel Sertifikası Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult DetailWorkAccident(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -68,10 +67,9 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		{
 		    var data = new VWSH_PersonCertificate { id = Guid.NewGuid(), UserId = userId};
 		    return View(data);
-		}        
-		
-		[AllowEveryone]
-		[PageInfo("Personel Sertifikası Ekleme")]
+		}
+
+		[PageInfo("Personel Sertifikası Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         public ActionResult InsertWorkAccident(Guid workAccidentId)
 		{
 			ViewBag.workAccidentId = workAccidentId;
@@ -79,7 +77,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
 		[PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult Insert(SH_PersonCertificate item)
@@ -103,7 +100,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		} 
 		
-		[PageInfo("Personel Sertifikası Ekleme", SHRoles.IKYonetici)]
+		[PageInfo("Personel Sertifikası Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         [HttpPost, ValidateAntiForgeryToken]
         public JsonResult InsertWorkAccident(SH_PersonCertificate item)
 		{
@@ -184,8 +181,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return View(data);
 		}
 
-		[AllowEveryone]
-		[PageInfo("Personel Sertifikası Güncelleme")]
+		[PageInfo("Personel Sertifikası Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult UpdateWorkAccident(Guid id)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -219,8 +215,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Json(result, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
-		[PageInfo("Personel Sertifikası Güncelleme")]
+		[PageInfo("Personel Sertifikası Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult UpdateWorkAccident(SH_PersonCertificate item)
 		{

@@ -55,8 +55,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             return View(data);
         }
 
-        [AllowEveryone]
-        [PageInfo("Gündem Sayfası Detayı")]
+        [PageInfo("İş Kazası Eğitim Sayfası Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
         public ActionResult DetailWorkAccident(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -80,8 +79,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             });
         }
 
-        [AllowEveryone]
-        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme")]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         public ActionResult InsertWorkAccident(int Type, Guid workAccidentId)
         {
             ViewBag.workAccidentId = workAccidentId;
@@ -94,9 +92,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
         }
 
 
-        [AllowEveryone]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("İş Kazası Eğitim Sayfası Veri Ekleme")]
         public JsonResult InsertWorkAccident(INV_CompanyPersonCalendar item, bool? mailForParticipants)
         {
             var db = new WorkOfTimeDatabase();
@@ -360,8 +357,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
         }
 
-        [AllowEveryone]
-        [PageInfo("Gündem Sayfası Güncelleme")]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         public ActionResult UpdateWorkAccident(Guid id)
         {
             var db = new WorkOfTimeDatabase();
@@ -374,9 +370,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
             return View(data);
         }
 
-        [AllowEveryone]
+        [PageInfo("İş Kazası Eğitim Sayfası Veri Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
         [HttpPost, ValidateAntiForgeryToken]
-        [PageInfo("Gündem Sayfası Veri Güncelleme")]
         public JsonResult UpdateWorkAccident(INV_CompanyPersonCalendar item, bool? mailForParticipants)
         {
             var db = new WorkOfTimeDatabase();

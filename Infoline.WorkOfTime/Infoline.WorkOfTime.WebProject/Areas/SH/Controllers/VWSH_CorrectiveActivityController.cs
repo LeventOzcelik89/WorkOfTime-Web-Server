@@ -13,16 +13,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_CorrectiveActivityController : Controller
 	{
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Listesi")]
+
+
+		[PageInfo("Düzenleyici Önleyici Faaliyet Listesi",SHRoles.SistemYonetici,SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Veri Methodu")]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Veri Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -38,8 +38,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Dropdown Methodu")]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Dropdown Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -50,16 +49,16 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Detayı")]
+
+		[PageInfo("Düzenleyici Önleyici Faaliyet Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Detail(Guid id)
 		{
 			return View(new VMSH_CorrectiveActivityModel { id = id }.Load());
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme")]
+
+		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Insert(VMSH_CorrectiveActivityModel model)
 		{
 			var data = model.Load();
@@ -68,8 +67,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme")]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Insert(VMSH_CorrectiveActivityModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -84,8 +82,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme")]
+
+		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Update(VMSH_CorrectiveActivityModel model)
 		{
 			var data = model.Load();
@@ -94,8 +92,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme")]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Update(VMSH_CorrectiveActivityModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -110,8 +107,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
-		[AllowEveryone]
-		[PageInfo("Düzenleyici Önleyici Faaliyet Silme")]
+		[PageInfo("Düzenleyici Önleyici Faaliyet Silme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_CorrectiveActivityModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
