@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.OmixEntegrationApp.FtpEntegrations.Model;
 using Infoline.OmixEntegrationApp.FtpEntegrations.Utils;
+using Infoline.OmixEntegrationApp.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using System;
@@ -10,7 +11,6 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
-
 namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
 {
     public class FtpMobitel : IFtpDistributorEntegration
@@ -20,20 +20,17 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         { get { return "MobilTel"; } }
         public Guid DistributorId
         { get { return new Guid("da14f7f9-2a41-48b9-acd0-fd62602c8bcf"); } }
-
         public FtpMobitel()
         {
             Log.Warning("Start Process Ftp Mobitel");
             SetFtpConfiguration();
         }
-
         public WorkOfTimeDatabase GetDbConnection()
         {
             var tenantCode = ConfigurationManager.AppSettings["DefaultTenant"].ToString();
             var tenant = TenantConfig.GetTenants().Where(a => a.TenantCode == Convert.ToInt32(tenantCode)).FirstOrDefault();
             return tenant.GetDatabase();
         }
-
         public void SetFtpConfiguration()
         {
             var url = ConfigurationManager.AppSettings["MobiltelUrl"].ToString();
@@ -42,7 +39,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             var directory = ConfigurationManager.AppSettings["MobiltelDirectory"].ToString();
             var readAllDirectory = ConfigurationManager.AppSettings["MobiltelReadAllDirectory"].ToString();
             var fileExtension = ConfigurationManager.AppSettings["MobiltelFileExtension"].ToString();
-
             this.ftpConfiguration = new FtpConfiguration
             {
                 Directory = directory,
@@ -53,17 +49,14 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 FileExtension = fileExtension
             };
         }
-
         public ResultStatus ExportFilesToDatabase()
         {
             var processDate = DateTime.Now.AddDays(-150);
             var entegrationFileList = GetFilesInFtp(processDate);
-
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
-
                 var db = GetDbConnection();
                 result = db.InsertPRD_EntegrationFiles(entegrationFile);
                 if (!result.result)
@@ -71,7 +64,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
-
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
@@ -87,13 +79,11 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             Log.Success($"All Files Are Integrated In {DistributorName} FTP");
             return result;
         }
-
         public PRD_EntegrationFiles[] GetFilesInFtp(DateTime processDate)
         {
             Log.Info(string.Format("Getting File Names On {1} : {0}", this.ftpConfiguration.Url, this.DistributorName));
             var directoryItems = new List<DirectoryItem>();
             var fileList = new List<FileNameWithUrl>();
-
             try
             {
                 var request = (FtpWebRequest)WebRequest.Create(this.ftpConfiguration.Url + this.ftpConfiguration.Directory);
@@ -105,11 +95,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 {
                     lineList = reader.ReadToEnd().Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
                 }
-
                 foreach (string line in lineList.Where(x => x.Contains("SELLIN") || x.Contains("SELLTHR")))
                 {
                     var item = new DirectoryItem();
-                    var fileDate = DateTime.ParseExact(line.Substring(0, 17),"MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture);
+                    var fileDate = DateTime.ParseExact(line.Substring(0, 17), "MM-dd-yy  hh:mmtt", CultureInfo.InvariantCulture);
                     var fileName = Tools.GetItemName(line);
                     item.BaseUri = this.ftpConfiguration.Url;
                     item.IsDirectory = Tools.IsDir(line);
@@ -128,15 +117,13 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 Log.Error(this.ftpConfiguration.Url + " failed! : " + e.Message);
                 return null;
             }
-
             var db = GetDbConnection();
-            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate,DistributorName);
+            var entegrationFilesInDb = db.GetPRD_EntegrationFilesByCreatedDate(processDate, DistributorName);
             var entegrationFileList = new List<PRD_EntegrationFiles>();
             foreach (var file in fileList.Where(x => x.FileCreatedDate >= processDate))
             {
                 if (entegrationFilesInDb.Any(x => x.FileName.Contains(file.FileName)))
                     continue;
-
                 entegrationFileList.Add(new PRD_EntegrationFiles
                 {
                     id = Guid.NewGuid(),
@@ -154,12 +141,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             Log.Warning("There are {0} Files to Process...", entegrationFileList.Count());
             return entegrationFileList.ToArray();
         }
-
         public PRD_EntegrationAction[] GetSellInFilesInFtp(string fileName, Guid entegrationFilesId)
         {
             var sellThrs = new List<PRD_EntegrationAction>();
             var datetimeNow = DateTime.Now;
-
             try
             {
                 List<PropertyIndex> Index = new List<PropertyIndex>();
@@ -185,7 +170,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "");
+                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "").Replace("_", "");
                                         if (indexName == "invoicenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
                                         if (indexName == "dist")
@@ -228,14 +213,28 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
-
-                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
-                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
                         item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;
-                        item.CustomerOperatorId = Finder.FindCompany(item);
+                        var message = "";
+                        var inventory = Finder.FindInventory(item.SerialNo, item.Imei);
+                        if (inventory == null)
+                        {
+                            message = "Cihazın Envanterde Karşılı Yoktur.";
+                        }
+                        var company = Finder.FindCompany(item);
+                        if (!company.HasValue)
+                        {
+                            message = "\nCarinin Sistemde Karşılığı Yoktur.";
+                        }
+                        item.ProductId = inventory?.productId;
+                        item.InventoryId = inventory?.id;
+                        item.CustomerOperatorId = company;
                         sellThrs.Add(item);
+                        if (!string.IsNullOrEmpty(message))
+                        {
+                            NotificationLogger.SaveError(DateTime.Now, message, item);
+                        }
                     }
                     catch (Exception e)
                     {
@@ -249,7 +248,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return sellThrs.ToArray();
         }
-
         public List<string[]> GetRawFile(string fileName)
         {
             Log.Info(string.Format("Getting File  {0} on Mobitel Server {1}", fileName, ftpConfiguration.Url));
@@ -277,7 +275,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             return listStringArray;
         }
-
         public string FileTypeName(string fileName)
         {
             if (fileName.Contains("SELLIN"))
