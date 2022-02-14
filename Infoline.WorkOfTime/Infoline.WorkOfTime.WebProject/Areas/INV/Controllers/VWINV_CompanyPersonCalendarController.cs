@@ -138,7 +138,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
             if (mailForParticipants == true)
             {
-                var stringType = ((EnumINV_CompanyPersonCalendarType)item.Type).ToDescription();
+                var stringType = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CompanyPersonCalendarType>().Where(x => Convert.ToInt32(x.Key)==item.Type).FirstOrDefault().Value;
+                
                 var emailUsers = string.Join(";", db.GetVWSH_UserByIds(persons.Split(',').Select(x => new Guid(x)).ToArray()).Where(c => !string.IsNullOrEmpty(c.email)).Select(x => x.email).ToArray());
 
                 if (item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Toplanti || item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Hatirlatma)
@@ -154,7 +155,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                      </p> <p>{3}</p><p>Bilgilerinize.<br>İyi Çalışmalar.</p>",
                           String.Format("{0:dd/MM/yyyy HH:mm}", item.StartDate), String.Format("{0:dd/MM/yyyy HH:mm}", NewEndDate), stringType, item.Description);
 
-                    new Email().Template("Template1", (item.Type == 106 ? 103 : item.Type) + ".jpg", item.Title, mesajIcerigi).Send((Int16)EmailSendTypes.DuyuruEtkinlik, emailUsers, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", item.Title), true);
+                    new Email().Template("Template1", null, item.Title, mesajIcerigi).Send((Int16)EmailSendTypes.DuyuruEtkinlik, emailUsers, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", item.Title), true);
                 }
             }
 
@@ -425,7 +426,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
 
             if (mailForParticipants == true)
             {
-                var stringType = ((EnumINV_CompanyPersonCalendarType)item.Type).ToDescription();
+                var stringType = Infoline.Helper.EnumsProperties.EnumToArrayGeneric<EnumINV_CompanyPersonCalendarType>().Where(x => Convert.ToInt32(x.Key) == item.Type).FirstOrDefault().Value;
                 var emailUsers = string.Join(";", db.GetVWSH_UserByIds(persons.Split(',').Select(x => new Guid(x)).ToArray()).Select(x => x.email).ToArray());
                 if (item.Type == (Int32)EnumINV_CompanyPersonCalendarType.Toplanti)
                 {
