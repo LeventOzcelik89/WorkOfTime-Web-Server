@@ -2404,6 +2404,8 @@ $(document)
     })
     .on("click", '[data-print="qrcode"]', function (e) {
 
+        debugger;
+
         var qrId = $(this).attr("data-target");
         var qrCode = $('#' + qrId);
         var newWin = window.open("", "");
