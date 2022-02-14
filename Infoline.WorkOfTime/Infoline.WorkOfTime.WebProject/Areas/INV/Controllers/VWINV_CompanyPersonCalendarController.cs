@@ -154,7 +154,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.INV.Controllers
                      </p> <p>{3}</p><p>Bilgilerinize.<br>İyi Çalışmalar.</p>",
                           String.Format("{0:dd/MM/yyyy HH:mm}", item.StartDate), String.Format("{0:dd/MM/yyyy HH:mm}", NewEndDate), stringType, item.Description);
 
-                    new Email().Template("Template1", (item.Type == 106 ? 103 : item.Type) + ".jpg", item.Title, mesajIcerigi).Send((Int16)EmailSendTypes.DuyuruEtkinlik, emailUsers, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", item.Title), true);
+                    new Email().Template("Template1", null, item.Title, mesajIcerigi).Send((Int16)EmailSendTypes.DuyuruEtkinlik, emailUsers, string.Format("{0} | {1}", tenantName + " | WORKOFTIME", item.Title), true);
                 }
             }
 
