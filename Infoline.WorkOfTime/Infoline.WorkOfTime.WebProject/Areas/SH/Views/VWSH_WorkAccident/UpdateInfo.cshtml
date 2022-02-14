@@ -1,8 +1,13 @@
-﻿@model Infoline.WorkOfTime.BusinessData.VWSH_WorkAccident
+﻿@model Infoline.WorkOfTime.BusinessAccess.VMSH_WorkAccidentModel
 @{
-    ViewBag.Title = "İş Kazası / Olayı Ekleme";
+    ViewBag.Title = "İş Kazası / Olayı Güncelleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
+<style type="text/css" data-selector="modalContainer">
+    .modal-lg {
+        width: 80%;
+    }
+</style>
 <script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
 <script type="text/javascript" data-selector="modalContainer">
     function beforeFunc() {
@@ -13,6 +18,16 @@
         }
         return true;
     }
+    function setTags() {
+        var values = '@Model.keyword';
+        if (values != "" && values != undefined && values != null) {
+            var valArr = values.split(',');
+            if (valArr.length > 0) {
+                var tags = $("#keyword").data("tagify");
+                tags.addTags(valArr, true, true)
+            }
+        }
+    }
 
     function modelChange() {
         var template = $("#templateId").data("handler").dataItem();
@@ -20,29 +35,24 @@
         var projectId = $("#projectId").data("handler").dataItem().Id;
         var taskId = $("#taskId").data("handler").dataItem().id;
         if (template.id != "" && template.id != null && template.id != undefined) {
-            editor.setData("Yükleniyor..");
+            editorUpdateInfo.setData("Yükleniyor..");
             $.ajax({
                 url: "/SH/VWSH_WorkAccident/RenderTemplate",
                 data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
                 success: function (res) {
                     res = res.replaceAll('color:#ff0001;', '');
                     res = res.replaceAll('color:#ff0001', '');
-                    editor.setData(res);
+                    editorUpdateInfo.setData(res);
                 }
             })
 
         } else {
-            editor.setData("");
+            editorUpdateInfo.setData("");
         }
     }
 </script>
-<style type="text/css" data-selector="modalContainer">
-    .modal-lg{
-        width: 80%;
-    }
-</style>
 
-@using (Html.BeginForm("Insert", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
+@using (Html.BeginForm("Update", "VWSH_WorkAccident", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
     { "data-selector", "modalContainer" },
@@ -51,8 +61,9 @@
 }))
 {
     @Html.AntiForgeryToken()
-    @Html.ValidationSummary(true)
     @Html.HiddenFor(model => model.id)
+    @Html.HiddenFor(model => model.created)
+    @Html.HiddenFor(model => model.createdby)
 
     <div class="form-group">
         <div class="col-md-4">
@@ -100,7 +111,6 @@
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
                 Sort(x => x.Add("code").Ascending()).
                 Events(a => a.Change("modelChange")).
-                Readonly(Model.taskId != null).
                 Execute()
             )
         </div>
@@ -115,12 +125,11 @@
             @(Html.Akilli()
                 .DropDownListFor(model => model.projectId)
                 .OptionLabel("Lütfen Proje Seçiniz..")
-                //.DataValueField("Id")
+                //.DataValueField("id")
                 .DataTextField("ProjectName")
                 .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
                 .Sort(x => x.Add("ProjectName").Ascending())
                 .Events(a => a.Change("modelChange"))
-                .Readonly(Model.projectId != null)
                 .Execute()
             )
         </div>
@@ -142,7 +151,6 @@
                   .Sort(x => x.Add("FullName").Ascending())
                   .Events(a => a.Change("modelChange"))
                   .Execute("id")
-                  .Validate(Validations.Required)
                 )
         </div>
     </div>
@@ -171,7 +179,7 @@
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
                   .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.accident && f.status == (short)EnumUT_TemplateStatus.active)
                   .Sort(x => x.Add("title").Ascending())
-                  .Events(a => a.Change("modelChange"))
+                  .Events(a => a.DataBound("setTags").Change("modelChange"))
                   .Execute("id")
                 )
         </div>
@@ -183,10 +191,10 @@
             <label class="control-label label-md" for="content">Form</label>
         </div>
         <div class="col-md-12">
-            @Html.HiddenFor(a => a.content)
-            @Html.TextArea("contentFakeElement", HttpUtility.HtmlDecode(Model.content))
+            @Html.HiddenFor(a => a.content, new { id = "contentModal" })
+            @Html.TextArea("contentUpdateInfoFakeElement", HttpUtility.HtmlDecode(Model.content))
             <script type="text/javascript" data-selector="modalContainer">
-                var editor = CKEDITOR.replace('contentFakeElement', {
+                var editorUpdateInfo = CKEDITOR.replace('contentUpdateInfoFakeElement', {
                     language: 'tr',
                     height: 320,
                     htmlEncodeOutput: true,
@@ -194,8 +202,8 @@
                     removePlugins: 'Save'
                 });
 
-                editor.on('instanceReady', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
-                editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
+                editorUpdateInfo.on('instanceReady', function () { $("#contentModal").val(new Option(editorUpdateInfo.getData()).innerHTML); });
+                editorUpdateInfo.on('change', function () { $("#contentModal").val(new Option(editorUpdateInfo.getData()).innerHTML); });
 
             </script>
         </div>
@@ -206,7 +214,4 @@
         <button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
         <button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
     </div>
-
 }
-
-

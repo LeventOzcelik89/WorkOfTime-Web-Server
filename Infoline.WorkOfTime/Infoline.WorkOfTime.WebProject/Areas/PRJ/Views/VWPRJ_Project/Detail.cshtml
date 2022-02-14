@@ -33,6 +33,12 @@
 }
 
 <script type="text/javascript">
+    function keywordTemplate(keyword) {
+        if (keyword == null) return "-";
+        var content = '';
+        keyword.split(',').forEach(element => content += `<span class='badge badge-success' style='margin-right:10px;'>` + element + `</span>`);
+        return content;
+    }
 	var first = false;
 	function FilterMenuTaskType(element) {
 		element.kendoDropDownList({
@@ -799,6 +805,12 @@
                         </a>
                     </li>
 
+                    <li data-toggle="tooltip" data-href="@Url.Action("DataSource", "VWSH_WorkAccident", new {area="SH" })" data-placement="top" title="İş Kazaları">
+                        <a data-toggle="tab" href="#workAccident" aria-expanded="true">
+                            <i class="icon-user-md text-success fa-2x"></i>
+                        </a>
+                    </li>
+
                     <li data-href="@Url.Action("DataSource","VWCMP_ServiceLevel", new { area = "CMP" })" class="pull-right" data-toggle="tooltip" data-placement="top" title="Sözleşme Hizmet Seviye Tanımları">
                         <a data-toggle="tab" href="#VWCMP_ContractServiceLevelTab" aria-expanded="true"><i class="icon-signal-1 text-success fa-2x"></i></a>
                     </li>
@@ -981,8 +993,34 @@
         //x.Custom().Text("<i class='fa fa-edit' data-original-title='Görev Yetkisi Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" } }).Url(Url.Action("Update", "VWFTM_TaskAuthority", new { area = "FTM", projectId = Model.id }));
         //x.Custom().Text("Sil").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWFTM_TaskAuthority", new { area = "FTM" }));
     }))
+                    </div>
 
-
+                    <div class="tab-pane" data-href="@Url.Action("DataSource", "VWSH_WorkAccident", new {area="SH" })" id="workAccident">
+                        <h4><i class="icon-lock text-success"></i>  PROJEYE BAĞLI İŞ KAZALARI </h4>
+                        @(Html.Akilli()
+                            .Grid<Infoline.WorkOfTime.BusinessData.VWSH_WorkAccident>("VWSH_WorkAccident")
+                            .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWSH_WorkAccident", new { area = "SH" }))
+                            .Filter(a => a.projectId == Model.id)
+                            .PageSize(25))
+                            .Columns(x =>
+                            {
+                                x.Bound(y => y.id).Hidden();
+                                x.Bound(y => y.keyword).Hidden();
+                                x.Bound(y => y.code).Title("Kodu").Width(90);
+                                x.Bound(y => y.accidentDate).Title("Kaza/Olay Tarihi").Width(180).Format(Extensions.DateFormatShort(true));
+                                x.Bound(y => y.userId_Title).Title("Kazayı Geçiren Personel").Width(180);
+                                x.Bound(y => y.projectId_Title).Title("Proje").Width(180);
+                                x.Bound(y => y.keyword).Title("Anahtar Kelimeler").ClientTemplate("#=keywordTemplate(data.keyword)#").Width(180);
+                            })
+                            .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                            .Scrollable(x => x.Height(600))
+                            .ToolBar(x =>
+                            {
+                                //x.Custom().Text("<i data-original-title='İş Kazasi ve Olay Bildir' class='icon-plus-circled'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "always" }, { "data-method", "GET" } }).Url(Url.Action("Insert", "VWSH_WorkAccident", new { area = "SH", projectId = Model.id }));
+                                //x.Custom().Text("<i data-original-title='Kayıt Düzenle' class='icon-edit'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "false" } }).Url(Url.Action("Update", "VWSH_WorkAccident", new { area = "SH" }));
+                                x.Custom().Text("<i data-original-title='Kayıt Detayı' class='fa fa-info-circle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" } }).Url(Url.Action("Detail", "VWSH_WorkAccident", new { area = "SH" }));
+                                //x.Custom().Text("<i data-original-title='Kayıt Sil' class='icon-trash'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" } }).Url(Url.Action("Delete", "VWSH_WorkAccident", new { area = "SH" }));
+                            }))
                     </div>
 
                     <div class="tab-pane" id="ProjectFile">

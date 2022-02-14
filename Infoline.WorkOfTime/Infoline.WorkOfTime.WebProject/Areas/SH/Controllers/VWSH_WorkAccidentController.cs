@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web.Mvc;
+using System.Web;
+using RazorEngine;
+using RazorEngine.Templating;
 
 namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
@@ -66,7 +69,6 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return View(data);
 		}
 
-
 		[HttpPost, ValidateAntiForgeryToken]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Ekleme")]
@@ -82,17 +84,22 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
-		public ActionResult Update(VMSH_WorkAccidentModel model)
+		public ActionResult Update(Guid id)
 		{
-			var data = model.Load();
-			return View(data);
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
+		}
+
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Bildirim Bilgileri Güncelleme")]
+		public ActionResult UpdateInfo(Guid id)
+		{
+			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
-		[HttpPost, ValidateAntiForgeryToken]
+		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
 		[AllowEveryone]
 		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
 		public JsonResult Update(VMSH_WorkAccidentModel model, bool? isPost)
@@ -103,7 +110,23 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			return Json(new ResultStatusUI
 			{
 				Result = rs.result,
-				FeedBack = rs.result ? feedback.Success(rs.message) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + rs.message)
+				FeedBack = rs.result ? feedback.Success(rs.message, false, Request.UrlReferrer.AbsoluteUri,timeout:1) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + rs.message)
+			}, JsonRequestBehavior.AllowGet);
+		}		
+		
+		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
+		[AllowEveryone]
+		[PageInfo("Kaza Ve Olay Bildirim İçeriği Güncelleme")]
+		public JsonResult SaveContent(VMSH_WorkAccidentModel model, bool? isPost)
+		{
+			var db = new WorkOfTimeDatabase();
+			var dbresult = db.UpdateSH_WorkAccident(new SH_WorkAccident().B_EntityDataCopyForMaterial(model));
+
+			var feedback = new FeedBack();
+			return Json(new ResultStatusUI
+			{
+				Result = dbresult.result,
+				FeedBack = dbresult.result ? feedback.Success("İçerik Başarılı Bir Şekilde Güncellenmiştir.", false, Request.UrlReferrer.AbsoluteUri, timeout: 1) : feedback.Warning("Kaza ve olay bildirim güncelleme işlemi başarısız. Mesaj : " + dbresult.message)
 			}, JsonRequestBehavior.AllowGet);
 		}
 
@@ -114,6 +137,56 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_WorkAccidentModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
+		}
+
+
+		[AllowEveryone]
+		public string RenderTemplate(Guid? userId, Guid? projectId, Guid? taskId, Guid templateId)
+		{
+			var db = new WorkOfTimeDatabase();
+			var UTtemplate = db.GetUT_TemplateById(templateId);
+			string result = HttpUtility.HtmlDecode(UTtemplate.template);
+
+			var user = new VMSH_UserModel() { id = userId ?? Guid.NewGuid() }.Load();
+			result = GetUserHtml(user,result);
+
+			if (projectId.HasValue)
+            {
+				var project = db.GetVWPRJ_ProjectById(projectId.Value);
+				result = GetProjectHtml(project, result);
+            }
+            else
+            {
+				result = GetProjectHtml(new VWPRJ_Project(), result);
+			}
+
+			var task = new VMFTM_TaskModel() { id = taskId ?? Guid.NewGuid(), code = taskId.HasValue ? null : "-" }.Load();
+			result = GetTaskHtml(task, result);
+
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}
+
+		private static string GetUserHtml(VMSH_UserModel user, string template)
+		{
+			template = template.Replace("Personel(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, user);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}		
+		private static string GetProjectHtml(VWPRJ_Project project, string template)
+		{
+			template = template.Replace("Proje(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, project);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
+		}
+		private static string GetTaskHtml(VMFTM_TaskModel task, string template)
+		{
+			template = template.Replace("Görev(Model", "@(Model");
+			var result = Engine.Razor.RunCompile(HttpUtility.HtmlDecode(template), string.Format("{0}", Guid.NewGuid()), null, task);
+			var resHtml = HttpUtility.HtmlDecode(result);
+			return resHtml;
 		}
 
 	}

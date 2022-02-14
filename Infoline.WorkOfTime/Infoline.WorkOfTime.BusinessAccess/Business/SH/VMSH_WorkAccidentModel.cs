@@ -5,12 +5,15 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
 using System.Web;
+using Newtonsoft.Json;
+
 namespace Infoline.WorkOfTime.BusinessAccess
 {
     public class VMSH_WorkAccidentModel : VWSH_WorkAccident
     {
         private WorkOfTimeDatabase db { get; set; }
         private DbTransaction trans { get; set; }
+        public string taskCode { get; set; }
         public VMSH_WorkAccidentModel Load()
         {
             this.db = this.db ?? new WorkOfTimeDatabase();
@@ -18,6 +21,15 @@ namespace Infoline.WorkOfTime.BusinessAccess
             if (data != null)
             {
                 this.B_EntityDataCopyForMaterial(data, true);
+                if (this.taskId.HasValue)
+                {
+                    var task = db.GetVWFTM_TaskById(this.taskId.Value);
+                    this.taskCode = task.code ?? "-";
+                }
+                else
+                {
+                    this.taskCode = "-";
+                }
             }
             this.code = this.code ?? BusinessExtensions.B_GetIdCode();
             return this;
@@ -60,7 +72,6 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             //db = db ?? new WorkOfTimeDatabase();
             var res = new ResultStatus { result = true };
-          
             return res;
         }
         private ResultStatus Insert()
@@ -91,7 +102,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             db = db ?? new WorkOfTimeDatabase();
             var dbresult = new ResultStatus { result = true };
-            dbresult &= db.UpdateSH_WorkAccident(new SH_WorkAccident().B_EntityDataCopyForMaterial(this), false, this.trans);
+            dbresult &= db.UpdateSH_WorkAccident(new SH_WorkAccident().B_EntityDataCopyForMaterial(this), true, this.trans);
             if (!dbresult.result)
             {
                 Log.Error(dbresult.message);
@@ -116,6 +127,19 @@ namespace Infoline.WorkOfTime.BusinessAccess
             trans = transaction ?? db.BeginTransaction();
 
             var dbresult = db.DeleteSH_WorkAccident(new SH_WorkAccident { id = this.id }, trans);
+            var calendar = db.GetSH_WorkAccidentCalendarByWorkAccidentId(this.id);
+            var certificate = db.GetSH_WorkAccidentCertificateByWorkAccidentId(this.id);
+            
+            if(calendar != null && calendar.Length > 0)
+            {
+                dbresult &= db.BulkDeleteSH_WorkAccidentCalendar(calendar, trans);
+            }
+            if(certificate != null && certificate.Length > 0)
+            {
+                dbresult &= db.BulkDeleteSH_WorkAccidentCertificate(certificate, trans);
+
+            }
+
             if (!dbresult.result)
             {
                 if (transaction == null) trans.Rollback();

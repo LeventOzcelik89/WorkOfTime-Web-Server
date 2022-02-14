@@ -5,22 +5,15 @@
 }
 
 <script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
-<script type="text/javascript" data-selector="modalContainer">
-    $('input[type=radio][name=type]').change(function () {
-        if (this.value == 0) {
-            //$(".meetingDropDown").show();
-            //$(".projectDropDown").hide();
-        }
-        else if (this.value == 1) {
-            //$(".meetingDropDown").hide();
-            //$(".projectDropDown").show();
-        }
-    });
 
-    function hideProjectDropDown() {
-        $(".projectDropDown").hide();
-    };
-</script>
+<style type="text/css" data-selector="modalContainer">
+    .modelDropDown {
+        width: 133px;
+    }
+        .modelDropDown > a > .cke_combo_inlinelabel {
+            width: 95px;
+        }
+</style>
 @using (Html.BeginForm("Insert", "VWUT_Template", FormMethod.Post, new Dictionary<string, object>() {
     { "class", "form-horizontal" },
     { "role", "form" },
@@ -88,15 +81,15 @@
                 removePlugins: 'Save'
             });
 
-            editor.on('instanceReady', function () { $("#template").val(new Option(editor.getData()).innerHTML); hideProjectDropDown(); });
+            editor.on('instanceReady', function () { $("#template").val(new Option(editor.getData()).innerHTML);});
             editor.on('change', function () { $("#template").val(new Option(editor.getData()).innerHTML); });
 
 
             editor.ui.addRichCombo('myparameters', {
-                label: "Toplantı Bazlı Tutanak",
-                title: "Toplantı Bazlı Tutanak",
-                voiceLabel: "Toplantı Bazlı Tutanak",
-                className: 'cke_format meetingDropDown',
+                label: "Personel Bilgileri",
+                title: "Personel Bilgileri",
+                voiceLabel: "Personel Bilgileri",
+                className: 'cke_format modelDropDown',
                 multiSelect: false,
                 panel:
                 {
@@ -105,8 +98,13 @@
                 },
                 init: function () {
                     var list = this;
-                    list.add('@@(Model.title)', "Toplantı Başlığı");
-                    list.add('@@(Model.meetingDate != null ? Model.meetingDate.ToString("dd.MM.yyyy") : "-")', "Toplantı Tarihi");
+                    list.add('Personel(Model.firstname != null ? Model.firstname : "-")', "Personel İsmi");
+                    list.add('Personel(Model.lastname != null ? Model.lastname : "-")', "Personel Soyismi");
+                    list.add('Personel(Model.birthday != null ? Model.birthday.ToString("dd.MM.yyyy") : "-")', "Doğum Tarihi");
+                    list.add('Personel(Model.address != null ? Model.address : "-")', "Adresi");
+                    list.add('Personel(Model.phone != null ? Model.phone : "-")', "Telefon Numarası");
+                    list.add('Personel(Model.email != null ? Model.email : "-")', "Mail Adresi");
+                    list.add('Personel(Model.Company_Title != null Model.Company_Title : "-")', "Çalıştığı Firma");
 
                 },
                 onClick: function (value) {
@@ -118,10 +116,10 @@
             });
 
             editor.ui.addRichCombo('myProjectParameters', {
-                label: "Proje Bazlı Tutanak",
-                title: "Proje Bazlı Tutanak",
-                voiceLabel: "Proje Bazlı Tutanak",
-                className: 'cke_format projectDropDown',
+                label: "Proje Bilgileri",
+                title: "Proje Bilgileri",
+                voiceLabel: "Proje Bilgileri",
+                className: 'cke_format modelDropDown',
                 multiSelect: false,
                 panel:
                 {
@@ -130,8 +128,30 @@
                 },
                 init: function () {
                     var list = this;
-                    list.add('@@(Model.committeeId_Title != null ? Model.committeeId_Title : "-")', "Bağlı Olduğu Komite İsmi");
-                    list.add('@@(Model.ProjectName != null ? Model.ProjectName : "-")', "Proje İsmi");
+                    list.add('Proje(Model.ProjectName != null ? Model.ProjectName : "-")', "Proje İsmi");
+                },
+                onClick: function (value) {
+                    editor.focus();
+                    editor.fire('saveSnapshot');
+                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
+                    editor.fire('saveSnapshot');
+                }
+            });
+
+            editor.ui.addRichCombo('myTaskParameters', {
+                label: "Görev Bilgileri",
+                title: "Görev Bilgileri",
+                voiceLabel: "Görev Bilgileri",
+                className: 'cke_format modelDropDown',
+                multiSelect: false,
+                panel:
+                {
+                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
+                    multiSelect: false,
+                },
+                init: function () {
+                    var list = this;
+                    list.add('Görev(Model.code != null ? Model.code : "-")', "Görev Kodu");
                 },
                 onClick: function (value) {
                     editor.focus();
@@ -146,7 +166,7 @@
                 label: "Word Eklentileri",
                 title: "Word Eklentileri",
                 voiceLabel: "Word Eklentileri",
-                className: 'cke_format',
+                className: 'cke_format modelDropDown',
                 multiSelect: false,
                 panel:
                 {
@@ -158,8 +178,6 @@
                     list.add('{%Ust_Bilgi_Baslangic%} - {%Ust_Bilgi_Bitis%}', "Üst Bilgi");
                     list.add('{%Alt_Bilgi_Baslangic%} - {%Alt_Bilgi_Bitis%}', "Alt Bilgi");
                     list.add('{%Sayfa_Sonu%}', "Sayfa Sonu");
-                    //list.add('{%Sayfa_Numarasi%}', "Sayfa Numarası");
-                    //list.add('{%Sayfa_Sayisi%}', "Toplam Sayfa Sayısı");
                 },
                 onClick: function (value) {
                     editor.focus();
@@ -169,33 +187,6 @@
                 }
             });
 
-            editor.ui.addRichCombo('myExcelHelpers', {
-                label: "Excel Alan Ekleme",
-                title: "Excel Alan Ekleme",
-                voiceLabel: "Excel Alan Ekleme",
-                className: 'cke_format',
-                multiSelect: false,
-                panel:
-                {
-                    css: [CKEDITOR.config.contentsCss, CKEDITOR.getUrl("skins/moono-lisa/" + 'editor.css')],
-                    multiSelect: false,
-                },
-                init: function () {
-                    var list = this;
-                    list.add('#=excel1|Sheet1|Harf-Numara#', "1. Excel Hücre Ekle");
-                    list.add('#=excel2|Sheet1|Harf-Numara#', "2. Excel Hücre Ekle");
-                    list.add('#=excel3|Sheet1|Harf-Numara#', "3. Excel Hücre Ekle");
-                    list.add('#=excel1|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "1. Excel Tablo Ekle");
-                    list.add('#=excel2|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "2. Excel Tablo Ekle");
-                    list.add('#=excel3|Sheet1|İlk Hücre(Harf-Numara) - Son Hücre(Harf-Numara)#', "3. Excel Tablo Ekle");
-                },
-                onClick: function (value) {
-                    editor.focus();
-                    editor.fire('saveSnapshot');
-                    editor.insertHtml("<span style='color:#ff0001'>" + value + "</span>");
-                    editor.fire('saveSnapshot');
-                }
-            });
         </script>
     </div>
 

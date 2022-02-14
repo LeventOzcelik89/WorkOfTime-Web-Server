@@ -212,9 +212,9 @@ namespace System.Web.Mvc
             var personeltakip = new Menu("Personel Takip İşlemleri");
             if (userStatus.user.id == Guid.Empty)
             {
-                personeltakip.AddChild(new Menu("Personel Takip Haritası", "/SH/SH_UserLocationTracking/Map"));
+                personeltakip.AddChild(new Menu("Personel Takip Haritası", "/SH/VWSH_UserLocationTracking/Map"));
             }
-            personeltakip.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/SH_UserLocationTracking/MapAll"));
+            personeltakip.AddChild(new Menu("Personel Anlık Takip Haritası", "/SH/VWSH_UserLocationTracking/MapAll"));
             ik.AddChild(personeltakip);
 
             return ik;

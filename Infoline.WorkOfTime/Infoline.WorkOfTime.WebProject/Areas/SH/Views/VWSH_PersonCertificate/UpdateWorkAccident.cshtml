@@ -1,0 +1,215 @@
+﻿@model Infoline.WorkOfTime.BusinessData.VWSH_PersonCertificate
+@{
+	ViewBag.Title = "Sertifika/Eğitim/Dosya Düzenleme";
+	Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+@using (Html.BeginForm("UpdateWorkAccident", "VWSH_PersonCertificate", FormMethod.Post, new Dictionary<string, object>() {
+	{ "class", "form-horizontal" },
+	{ "role", "form" },
+	{ "data-selector", "modalContainer" },
+	{ "data-before", "beforeFunc" },
+	{ "data-formType", "Ajax" }
+}))
+{
+	@Html.AntiForgeryToken()
+	@Html.ValidationSummary(true)
+	@Html.HiddenFor(model => model.id)
+
+
+	<style type="text/css" data-selector="modalContainer">
+		.btn-plus:hover {
+			color: white !important;
+		}
+	</style>
+
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="UserId">Personel Adı</label>
+		</div>
+		<div class="col-md-8">
+			@(Html.Akilli()
+                .DropDownListFor(model => model.UserId)
+                .OptionLabel("Lütfen Personel Seçiniz..")
+                .DataTextField("FullName")
+                .DataValueField("id")
+                .Template("#=TemplateEngine('userTemplate',data)#")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
+                .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson) && a.IsWorking == true)
+                .Sort(x => x.Add("FullName").Ascending())
+                .Execute("id")
+                .Validate(Validations.Required)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+            <label class="control-label label-md req" for="CertificateTypeId">Sertifika/Eğitim/Dosya</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DropDownListFor(model => model.CertificateTypeId)
+                .OptionLabel("Lütfen Sertifika/Eğitim/Dosya Seçiniz..")
+                .DataTextField("CertificateName")
+                .DataValueField("id")
+                .Action(b => b.Action("DataSourceDropDown", "VWSH_PersonCertificateType", new { area = "SH" }))
+                .BasicInsert(Url.Action("Insert", "VWSH_PersonCertificateType", new { area = "SH" }), "CertificateName", false)
+                .Sort(x => x.Add("CertificateName").Ascending())
+                .Validate(Validations.Required)
+                .Execute()
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="CertificateName">Alındığı Kurum</label>
+		</div>
+		<div class="col-md-8">
+			<input list="CertificateName" name="CertificateName" class="form-control" value="@Model.CertificateName" required="required">
+			<datalist id="CertificateName"></datalist>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md req" for="CertificateTime">Süresi</label>
+		</div>
+		<div class="col-md-8">
+			<div class="input-group">
+				@Html.Kendo().NumericTextBoxFor(model => model.CertificateTime).HtmlAttributes(new Dictionary<string, object>()
+				{
+					{"style", "width:100%"},
+					{"class", "text-right form-control" }
+				}).Spinners(false).Format("n0").Culture(System.Globalization.CultureInfo.InstalledUICulture.Name).Validate(Validations.NumberOnly(false, 0, 4))
+				<span class="input-group-addon" id="CertificateTime">Saat</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="StartDate">Eğitim Başlangıç Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DatePickerFor(model => model.StartDate)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="EndDate">Eğitim Bitiş Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DatePickerFor(model => model.EndDate)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="grade">Tipi</label>
+			<i class="fa fa-info-circle" data-toggle="tooltip" title="Tipi Süreli/Süresiz seçenekleri olarak ikiye ayrılmaktadır. Süreliyi seçtiğinizde geçerlilik tarihi alanını girmek zorunludur. Süresiz ise bir geçerlilik tarihi yok ise seçebilirsiniz."></i>
+		</div>
+        <div class="col-md-8">
+            <div class="radio akilliRadioGrup clearfix">
+                <input type="radio" name="typeTmp" id="point_1" checked="" value="1">
+                <label tabindex="0" class="radio-label" for="point_1">
+                    Süreli
+                </label>
+                <input type="radio" name="typeTmp" id="point_2" value="2">
+                <label tabindex="0" class="radio-label" for="point_2">
+                    Süresiz
+                </label>
+            </div>
+        </div>
+	</div>
+
+	<div class="form-group" id="expirationDateDiv">
+		<div class="col-md-4">
+			<label class="control-label label-md req" id="expirationDate" for="ExpirationDate">Geçerlilik Tarihi</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli()
+                .DatePickerFor(model => model.ExpirationDate)
+                .Validate(Validations.Required)
+            )
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="point">Puan</label>
+		</div>
+		<div class="col-md-8">
+			<div class="input-group">
+				@Html.Kendo().NumericTextBoxFor(model => model.point).HtmlAttributes(new Dictionary<string, object>()
+							{
+								{"style", "width:100%"},
+								{"class", "text-right form-control" }
+							}).Spinners(false).Format("n2").Max(100).Culture(System.Globalization.CultureInfo.InstalledUICulture.Name)
+				<span class="input-group-addon" id="CertificateTime">Puan</span>
+			</div>
+		</div>
+	</div>
+
+	<div class="form-group">
+		<div class="col-md-4">
+			<label class="control-label label-md" for="Dosya">Dosyası</label>
+		</div>
+		<div class="col-md-8">
+			@(
+                Html.Akilli().FileUpload()
+                .DataTable("SH_PersonCertificate")
+                .DataId(Model.id)
+                .DataKey(x => x.fileGroup == "Sertifika Dosyası")
+            )
+		</div>
+	</div>
+
+	<div class="buttons">
+		<button class="btn btn-md btn-danger pull-left" data-task="modalClose">Geri</button>
+		<button class="btn btn-md btn-success pull-right" type="submit">Kaydet</button>
+	</div>
+}
+<script type="text/javascript" data-selector="modalContainer">
+
+	$(document)
+		.on("click", '[aria-owns="CertificateTypeId_listbox"]', function () {
+			$("#CertificateTypeId").data("kendoDropDownList").dataSource.read();
+		})
+        .on("click", '[for="point_1"]', function (e) {
+			$("#expirationDateDiv").removeClass("hide");
+			$("#ExpirationDate").attr("required", true);
+			$("#expirationDate").addClass("req");
+		})
+		.on("click", '[for="point_2"]', function () {
+			$("#expirationDateDiv").addClass("hide");
+			$("#ExpirationDate").attr("required", false);
+			$("#expirationDate").removeClass("req");
+		})
+
+
+	GetJsonDataFromUrl('/SH/VWSH_PersonCertificate/CertificateNameGroup', null, function (resp) {
+		resp.forEach(function (e, i) {
+			$("#CertificateName").append('<option value="' + e + '"> ' + e + ' </option>')
+		})
+	});
+
+	function beforeFunc() {
+		if ($("#expirationDateDiv").hasClass("hide")) {
+			$("#ExpirationDate").val("");
+		}
+		return true;
+    }
+
+</script>

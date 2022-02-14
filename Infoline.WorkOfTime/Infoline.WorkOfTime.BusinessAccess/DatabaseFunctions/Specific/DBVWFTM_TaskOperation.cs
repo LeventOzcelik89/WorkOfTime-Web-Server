@@ -76,40 +76,26 @@ namespace Infoline.WorkOfTime.BusinessAccess
 		{
 			using (var db = GetDB(tran))
 			{
-				var startdate = new DateTime();
-
-				var enddate = new DateTime();
-
-				if (date.Month == 1)
-				{
-					startdate = new DateTime(date.Year, 12, date.Day, 00, 00, 00);
-					enddate = new DateTime(date.Year, date.Month + 1, date.Day, 23, 59, 59);
-				}
-				else if (date.Month == 12)
-				{
-					startdate = new DateTime(date.Year, date.Month - 1, date.Day, 00, 00, 00);
-					enddate = new DateTime(date.Year, date.Month, date.Day, 23, 59, 59);
-				}
-				else
-				{
-					if (date.Day == 31)
-					{
-						startdate = new DateTime(date.Year, date.Month, date.Day, 00, 00, 00);
-						enddate = new DateTime(date.Year, date.Month + 1, 25, 23, 59, 59);
-					}
-					else
-					{
-						startdate = new DateTime(date.Year, date.Month - 1, date.Day, 00, 00, 00);
-						enddate = new DateTime(date.Year, date.Month + 1, date.Day, 23, 59, 59);
-					}
-				}
+				var startdate = date;
+				var enddate = date.AddMonths(1).AddDays(-1);
 
 				if (userIds != null)
 				{
 					return db.Table<VWFTM_TaskOperation>().Where(a => a.userId.In(userIds.ToArray()) && a.created >= startdate && a.created <= enddate && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi).Execute().OrderBy(c => c.created).ToArray();
 				}
-
 				return db.Table<VWFTM_TaskOperation>().Where(a => a.created >= startdate && a.created <= enddate && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi).Execute().OrderBy(c => c.created).ToArray();
+			}
+		}
+
+
+		public VWFTM_TaskOperation[] GetVWFTM_TaskOperationByNewCreated(DateTime date, DbTransaction tran = null)
+		{
+			using (var db = GetDB(tran))
+			{
+				var startdate = date;
+				var enddate = date.AddMonths(1).AddDays(-1);
+
+				return db.Table<VWFTM_TaskOperation>().Where(a => a.created >= startdate && a.created <= enddate && a.status >= (int)EnumFTM_TaskOperationStatus.GorevBaslandi && a.status < (int)EnumFTM_TaskOperationStatus.CozumBildirildi).Execute().OrderBy(c => c.created).ToArray();
 			}
 		}
 

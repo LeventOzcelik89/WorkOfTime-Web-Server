@@ -37,7 +37,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         public int Type { get; set; } = 0;
         public int timeout { get; set; }
 
-        public FeedBack Success(string msg = "", bool sessionCreate = false, string action = null, int type = 0)
+        public FeedBack Success(string msg = "", bool sessionCreate = false, string action = null, int type = 0, int timeout = 2)
         {
 
             var result = new FeedBack
@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
                 message = msg,
                 title = "İşlem Başarılı",
                 status = "success",
-                timeout = 2, //  saniye
+                timeout = timeout, //  saniye
                 Type = type
             };
 
