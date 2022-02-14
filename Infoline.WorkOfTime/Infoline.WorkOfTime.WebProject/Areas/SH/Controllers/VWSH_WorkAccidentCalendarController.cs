@@ -13,16 +13,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_WorkAccidentCalendarController : Controller
 	{
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Etkinlik Listesi")]
+		[PageInfo("Kaza Ve Olay Etkinlik Listesi", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Etkinlik Veri Methodu")]
+
+		[PageInfo("Kaza Ve Olay Etkinlik Veri Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -38,8 +37,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Dropdown Methodu")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Dropdown Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -50,16 +49,15 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Detayı")]
+		[PageInfo("Kazas Ve Olay Etkinlik Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Detail(Guid id)
 		{
 			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Insert(VMSH_WorkAccidentCalendarModel model)
 		{
 			var data = model.Load();
@@ -68,8 +66,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Ekleme")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Insert(VMSH_WorkAccidentCalendarModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -83,8 +81,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Update(VMSH_WorkAccidentCalendarModel model)
 		{
 			var data = model.Load();
@@ -92,8 +90,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		[HttpPost, ValidateAntiForgeryToken]
 		public JsonResult Update(VMSH_WorkAccidentCalendarModel model, bool? isPost)
 		{
@@ -109,8 +107,8 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
-		[AllowEveryone]
-		[PageInfo("Kazas Ve Olay Etkinlik Silme")]
+
+		[PageInfo("Kazas Ve Olay Etkinlik Silme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_WorkAccidentCalendarModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);

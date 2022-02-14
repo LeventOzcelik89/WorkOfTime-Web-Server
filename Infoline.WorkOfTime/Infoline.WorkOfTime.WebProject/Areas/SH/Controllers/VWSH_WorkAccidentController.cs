@@ -16,16 +16,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 {
 	public class VWSH_WorkAccidentController : Controller
 	{
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Listesi")]
+		[PageInfo("Kaza Ve Olay Bildirim Listesi", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Index()
 		{
 		    return View();
 		}
 
-
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Veri Methodu")]
+		[PageInfo("Kaza Ve Olay Bildirim Veri Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSource([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -41,8 +38,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Dropdown Methodu")]
+		[PageInfo("Kaza Ve Olay Bildirim Dropdown Methodu", SHRoles.Personel, SHRoles.SistemYonetici)]
 		public ContentResult DataSourceDropDown([DataSourceRequest]DataSourceRequest request)
 		{
 		    var condition = KendoToExpression.Convert(request);
@@ -52,17 +48,14 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		    return Content(Infoline.Helper.Json.Serialize(data), "application/json");
 		}
 
-
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Detayı")]
+		[PageInfo("Kaza Ve Olay Bildirim Detayı", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu, SHRoles.SahaGorevYonetici, SHRoles.SahaGorevOperator, SHRoles.ProjePersonel, SHRoles.ProjeYonetici)]
 		public ActionResult Detail(Guid id)
 		{
 			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Ekleme")]
+		[PageInfo("Kaza Ve Olay Bildirim Ekleme",SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Insert(VMSH_WorkAccidentModel model)
 		{
 			var data = model.Load();
@@ -70,8 +63,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}
 
 		[HttpPost, ValidateAntiForgeryToken]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Ekleme")]
+		[PageInfo("Kaza Ve Olay Bildirim Ekleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Insert(VMSH_WorkAccidentModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -84,15 +76,13 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 			}, JsonRequestBehavior.AllowGet);
 		}
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
+		[PageInfo("Kaza Ve Olay Bildirim Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult Update(Guid id)
 		{
 			return View(new VMSH_WorkAccidentModel { id = id }.Load());
 		}
 
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Bilgileri Güncelleme")]
+		[PageInfo("Kaza Ve Olay Bildirim Bilgileri Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public ActionResult UpdateInfo(Guid id)
 		{
 			return View(new VMSH_WorkAccidentModel { id = id }.Load());
@@ -100,8 +90,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Güncelleme")]
+		[PageInfo("Kaza Ve Olay Bildirim Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Update(VMSH_WorkAccidentModel model, bool? isPost)
 		{
 			var userStatus = (PageSecurity)Session["userStatus"];
@@ -115,8 +104,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 		}		
 		
 		[HttpPost, ValidateAntiForgeryToken,ValidateInput(false)]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim İçeriği Güncelleme")]
+		[PageInfo("Kaza Ve Olay Bildirim İçeriği Güncelleme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult SaveContent(VMSH_WorkAccidentModel model, bool? isPost)
 		{
 			var db = new WorkOfTimeDatabase();
@@ -132,8 +120,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
 
 
 		[HttpPost]
-		[AllowEveryone]
-		[PageInfo("Kaza Ve Olay Bildirim Silme")]
+		[PageInfo("Kaza Ve Olay Bildirim Silme", SHRoles.SistemYonetici, SHRoles.ISGSorumlusu)]
 		public JsonResult Delete(Guid id)
 		{
 			return Json(new ResultStatusUI(new VMSH_WorkAccidentModel { id = id }.Delete()), JsonRequestBehavior.AllowGet);
