@@ -1,6 +1,7 @@
 ﻿using Infoline.Framework.Database;
 using Infoline.OmixEntegrationApp.FtpEntegrations.Model;
 using Infoline.OmixEntegrationApp.FtpEntegrations.Utils;
+using Infoline.OmixEntegrationApp.Utils;
 using Infoline.WorkOfTime.BusinessAccess;
 using Infoline.WorkOfTime.BusinessData;
 using System;
@@ -24,7 +25,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         public FtpGenpa()
         {
             Log.Warning("Start Process Ftp Genpa");
-
             SetFtpConfiguration();
             Login();
             GetFilesInFtp(DateTime.Now);
@@ -39,12 +39,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
         {
             var processDate = DateTime.Now.AddDays(-30);
             var entegrationFileList = GetFilesInFtp(processDate);
-
             var result = new ResultStatus();
             foreach (var entegrationFile in entegrationFileList)
             {
                 Log.Warning("Start Process File: {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
-
                 var db = GetDbConnection();
                 result = db.InsertPRD_EntegrationFiles(entegrationFile);
                 if (!result.result)
@@ -52,7 +50,6 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     Log.Error("There was a problem while data recording...: ", result.message);
                     continue;
                 }
-
                 if (entegrationFile.FileTypeName == "SELLTHR")
                 {
                     var sellThr = GetSellInFilesInFtp(entegrationFile.FileName, entegrationFile.id);
@@ -105,8 +102,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                         }
                     }
                 }
-                Log.Info("Files Count:"+ directoryItems.Count);
-
+                Log.Info("Files Count:" + directoryItems.Count);
             }
             catch (Exception e)
             {
@@ -164,7 +160,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                     var rawFileCheckedData = rawFile[i].Replace("\\", "").Replace("\"", "");
                                     if (!string.IsNullOrEmpty(rawFileCheckedData))
                                     {
-                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "");
+                                        indexName = indexName.ToLower(new CultureInfo("en-US", false)).Replace(" ", "").Replace("_", "");
                                         if (indexName == "invoicenumber")
                                             item.InvoiceNumber = rawFileCheckedData;
                                         if (indexName == "dist")
@@ -181,7 +177,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                             item.BranchName = rawFileCheckedData;
                                         if (indexName == "taxnumber")
                                             item.TaxNumber = rawFileCheckedData;
-                                        if (indexName == "consolidationcode" )
+                                        if (indexName == "consolidationcode")
                                             item.ConsolidationCode = rawFileCheckedData;
                                         if (indexName == "consolidationname")
                                             item.ConsolidationName = rawFileCheckedData;
@@ -207,13 +203,28 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                                 Log.Error("There is Problem When Object Set Value : {0}", e.ToString());
                             }
                         }
-                        item.ProductId = Finder.FindInventory(item.SerialNo, item.Imei)?.productId;
-                        item.InventoryId = Finder.FindInventory(item.SerialNo, item.Imei)?.id;
                         item.DistributorId = DistributorId;
                         item.DistributorName = this.DistributorName;
                         item.EntegrationFileId = entegrationFilesId;
-                        item.CustomerOperatorId = Finder.FindCompany(item);
+                        var message = "";
+                        var inventory = Finder.FindInventory(item.SerialNo, item.Imei);
+                        if (inventory == null)
+                        {
+                            message = "Cihazın Envanterde Karşılı Yoktur.";
+                        }
+                        var company = Finder.FindCompany(item);
+                        if (!company.HasValue)
+                        {
+                            message = "\nCarinin Sistemde Karşılığı Yoktur.";
+                        }
+                        item.ProductId = inventory?.productId;
+                        item.InventoryId = inventory?.id;
+                        item.CustomerOperatorId = company;
                         sellThrs.Add(item);
+                        if (!string.IsNullOrEmpty(message))
+                        {
+                            NotificationLogger.SaveError(DateTime.Now, message, item);
+                        }
                     }
                     catch (Exception e)
                     {
