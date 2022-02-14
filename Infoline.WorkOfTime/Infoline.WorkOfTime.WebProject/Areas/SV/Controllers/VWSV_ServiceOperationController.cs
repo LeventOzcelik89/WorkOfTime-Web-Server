@@ -233,7 +233,12 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SV.Controllers
 
 		public ActionResult Cargo(VMSV_ServiceOperationModel model)
 		{
-			return View(model.Load());
+			var db = new WorkOfTimeDatabase();
+			var data = model.Load();
+			var service = db.GetVWSV_ServiceById(data.serviceId.Value);
+			data.customerType = service.customerType;
+			data.CompanyId = service.companyId;
+			return View(data);
 		}
 		[HttpPost]
 		[PageInfo("Servisin  Müşteriye Teslim Edilen", SHRoles.TeknikServisYoneticiRolu, SHRoles.TeknikServisBayiRolu)]
