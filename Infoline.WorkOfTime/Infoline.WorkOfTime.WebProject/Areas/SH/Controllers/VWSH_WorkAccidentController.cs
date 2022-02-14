@@ -157,7 +157,7 @@ namespace Infoline.WorkOfTime.WebProject.Areas.SH.Controllers
             }
             else
             {
-				result = GetProjectHtml(new VWPRJ_Project(), result);
+				result = GetProjectHtml(new VWPRJ_Project { ProjectCode = "-"}, result);
 			}
 
 			var task = new VMFTM_TaskModel() { id = taskId ?? Guid.NewGuid(), code = taskId.HasValue ? null : "-" }.Load();
