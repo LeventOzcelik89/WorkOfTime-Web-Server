@@ -65,7 +65,20 @@
             filename: "İş Kazası / Olayı Formu" + ".doc"
         };
         $(document).googoose(o);
+
+     
     }
+    $(document)
+        .on("click", '[data-print="formPrint"]', function (e) {
+
+            var content = "<html><body onload=\"window.print()\">" + htmlDecode($("#content").val()) + "</body></html> ";
+            content = content.replaceAll('{%Ust_Bilgi_Baslangic%}', '').replaceAll('{%Ust_Bilgi_Bitis%}', '').replaceAll('{%Alt_Bilgi_Bitis%}', '').replaceAll('{%Sayfa_Sonu%}', '');
+
+            var newWin = window.open("", "");
+            newWin.document.write(content);
+            newWin.document.close();
+            setTimeout(function () { newWin.close(); }, 10);
+        })
 
 </script>
 
@@ -294,7 +307,7 @@
                                 editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
                             </script>
                             <div class="buttons" style=" padding: 0; padding-top: 25px; ">
-                                <a class="btn btn-md btn-warning"> <i class="icon-print-1"></i> Yazdır</a>
+                                <a href="#" class="btn btn-md btn-warning" id="FormPrint" data-target="FormPrint" data-print="formPrint" data-original-title="Form Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
                                 <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
                                 <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="accidentExportWord()"> <i class="icon-download"></i> İndir</a>
                             </div>
