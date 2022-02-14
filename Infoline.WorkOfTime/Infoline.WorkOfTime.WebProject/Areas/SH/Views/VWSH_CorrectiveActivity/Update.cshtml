@@ -133,7 +133,7 @@
 
     <div class="form-group">
         <div class="col-md-4">
-            <label class="control-label label-md" for="accidentDate">Tarih</label>
+            <label class="control-label label-md" for="accidentDate">Faaliyet Tarihi</label>
         </div>
         <div class="col-md-8">
             @(
@@ -163,6 +163,7 @@
                 Template("#=TemplateEngine('taskTemplate',data)#").
                 Action(b => b.Action("DataSourceDropDown", "VWFTM_Task", new { area = "FTM" })).
                 Sort(x => x.Add("code").Ascending()).
+                Readonly(Model.taskId != null).
                 Events(a => a.Change("modelChange")).
                 Execute()
             )
@@ -182,6 +183,7 @@
                 .DataTextField("ProjectName")
                 .Action(b => b.Action("DataSourceDropDown", "VWPRJ_Project", new { area = "PRJ" }))
                 .Events(a => a.Change("modelChange"))
+                .Readonly(Model.projectId != null)
                 .Sort(x => x.Add("ProjectName").Ascending())
                 .Execute()
             )
@@ -201,6 +203,8 @@
                   .DataValueField("id")
                   .Template("#=TemplateEngine('userTemplate',data)#")
                   .Events(a => a.Change("modelChange"))
+                  .Readonly(Model.userId != null)
+                  .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson))
                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                   .Sort(x => x.Add("FullName").Ascending())
                   .Execute("id")
