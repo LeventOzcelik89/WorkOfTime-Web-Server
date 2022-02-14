@@ -31,6 +31,7 @@ namespace Infoline.WorkOfTime.BusinessData
         public string storageId_Title { get; set;}
         public string customerFullName { get; set;}
         public string Imei { get; set;}
+        public string customerPhoneNumber { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }
