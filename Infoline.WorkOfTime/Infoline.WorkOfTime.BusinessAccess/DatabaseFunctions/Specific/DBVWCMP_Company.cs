@@ -24,7 +24,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWCMP_Company>().Where(a => a.code == code || a.taxNumber == taxNumber).Execute().FirstOrDefault();
+                return db.Table<VWCMP_Company>().Where(a => (a.taxNumber != null && a.code != null) && a.code == code || a.taxNumber == taxNumber).Execute().FirstOrDefault();
             }
         }
         public VWCMP_Company GetVWCMP_CompanyByTaxNumber(string taxNumber, DbTransaction tran = null)
@@ -46,7 +46,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
         {
             using (var db = GetDB(tran))
             {
-                return db.Table<VWCMP_Company>().Where(a => a.taxNumber == taxNumber  && a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
+                return db.Table<VWCMP_Company>().Where(a => a.taxNumber == taxNumber && a.CMPTypes_Title.ToLower().Contains("bayi")).Execute().FirstOrDefault();
             }
         }
         public VWCMP_Company GetVWCMP_CompanyByNameOrCode(string name, string code, DbTransaction tran = null)
@@ -123,7 +123,7 @@ namespace Infoline.WorkOfTime.BusinessAccess
             using (var db = GetDB(tran))
 
             {
-                return db.Table<VWCMP_Company>().Where(a => a.CMPTypes_Title.Contains("Distribütör")&&a.id==id).Execute().FirstOrDefault();
+                return db.Table<VWCMP_Company>().Where(a => a.CMPTypes_Title.Contains("Distribütör") && a.id == id).Execute().FirstOrDefault();
             }
         }
 

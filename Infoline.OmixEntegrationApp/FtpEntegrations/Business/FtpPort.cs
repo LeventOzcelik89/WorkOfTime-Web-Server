@@ -56,6 +56,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
             }
+            Log.Success($"All Files Are Integrated In {DistributorName} FTP");
             return result;
         }
 
@@ -279,8 +280,9 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
             }
             catch (Exception e)
             {
-                Log.Warning(e.Message);
+                Log.Error(e.Message);
             }
+
             return listStringArray;
         }
     }

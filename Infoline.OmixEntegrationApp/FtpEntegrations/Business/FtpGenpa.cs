@@ -60,7 +60,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Business
                     {
                         var bultInsertResult = db.BulkInsertPRD_EntegrationAction(sellThr);
                         if (!bultInsertResult.result)
-                            Log.Info("SellIn Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
+                            Log.Error("SellIn Bulk Insert Problem... {1} : {0} : Message: {2}", this.ftpConfiguration.Url, this.DistributorName, bultInsertResult.message);
                     }
                 }
                 Log.Success("Finish Process File : {0} - {1} - {2}", this.ftpConfiguration.Url, this.DistributorName, entegrationFile.FileName);
