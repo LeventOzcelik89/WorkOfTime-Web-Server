@@ -275,7 +275,7 @@ namespace Infoline.WorkOfTime.Agent
                 var tenders = _db.GetVWCMP_Tender().Where(x => x.status == (int)EnumCMP_TenderStatus.CevapBekleniyor && x.created < DateTime.Now.AddHours(23).AddMinutes(59));
                 var roles = _db.GetSH_UserRoleByRoleId(new Guid(SHRoles.SatinAlmaOnaylayici));
                 var users = new List<VWSH_User>();
-                if (roles.Count() > 0)
+                if (roles.Any())
                 {
                     users = _db.GetVWSH_UserByIds(roles.Where(x => x.userid.HasValue).Select(x => x.userid.Value).ToArray()).ToList();
                 }
@@ -309,7 +309,7 @@ namespace Infoline.WorkOfTime.Agent
                     {
                         var myevent = _db.GetVWINV_CompanyPersonCalendarById(item.id);
                         var persons = _db.INV_CompanyPersonCalendarPersonsByIDPersonCalendarId(item.id);
-                        var userId = persons.Select(x => x.IdUser != null ? x.IdUser.Value : new Guid()).ToArray();
+                        var userId = persons.Select(x => x.IdUser != null ? x.IdUser.Value : Guid.NewGuid()).ToArray();
                         var emails = _db.GetSH_UserByIds(userId).ToArray();
                         SendEmail(emails, "WorkOfTime Gündem Bilgilendirmesi.",
                             "<span style='text-aling:center'>{0} - {1} Tarihleri arasında bir gündeminiz bulunmaktadır. <strong>Tipi : </strong> {2} <br/> <strong>Başlık : </strong> {3} <br/>  <strong>Açıklama : </strong> {4} <br/>  </span>", string.Format("{0}:{0:dd.MM.yyyy HH:mm}", myevent.StartDate), string.Format("{0}:{0:dd.MM.yyyy HH:mm}", myevent.EndDate), myevent.Type_Title, myevent.Title, myevent.Description);

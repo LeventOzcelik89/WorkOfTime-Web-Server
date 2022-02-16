@@ -63712,7 +63712,7 @@ WorkOfTime 
 ;0 1
 }1 2
 } 
-} ƒ$
+} æ'
 “D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessData\DatabaseObjects\VWSV_Service.cs
 	namespace 	
 Infoline
@@ -63976,18 +63976,45 @@ serialCode  
 set- 0
 ;0 1
 }1 2
-public   
-short   
-?   
-lastOperationStatus   )
-{  * +
-get  , /
-;  / 0
-set  1 4
-;  4 5
-}  5 6
-}!! 
-}"" ì
+public   
+string   
+customerFullName   &
+{  ' (
+get  ) ,
+;  , -
+set  . 1
+;  1 2
+}  2 3
+public!! 
+string!! 
+Imei!! 
+{!! 
+get!!  
+;!!  !
+set!!" %
+;!!% &
+}!!& '
+public"" 
+string"" 
+customerPhoneNumber"" )
+{""* +
+get"", /
+;""/ 0
+set""1 4
+;""4 5
+}""5 6
+public## 
+short## 
+?## 
+lastOperationStatus## )
+{##* +
+get##, /
+;##/ 0
+set##1 4
+;##4 5
+}##5 6
+}$$ 
+}%% ì
 œD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessData\DatabaseObjects\VWSV_ServiceOperation.cs
 	namespace 	
 Infoline

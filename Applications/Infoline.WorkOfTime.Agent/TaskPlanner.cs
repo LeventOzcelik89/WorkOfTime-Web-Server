@@ -80,7 +80,7 @@ namespace Infoline.WorkOfTime.Agent
                         case EnumFTM_TaskPlansTaskCreationTime.AyOnce:
 
                             schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(30)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Count() > 0)
+                            if (schedulerModel.TaskPlan._TaskList.Any())
                             {
 
                                 var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(30));
@@ -96,7 +96,7 @@ namespace Infoline.WorkOfTime.Agent
                         case EnumFTM_TaskPlansTaskCreationTime.HaftaOnce:
 
                             schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(7)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Count() > 0)
+                            if (schedulerModel.TaskPlan._TaskList.Any())
                             {
 
                                 var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(7));
@@ -113,7 +113,7 @@ namespace Infoline.WorkOfTime.Agent
                         case EnumFTM_TaskPlansTaskCreationTime.Gununde:
 
                             schedulerModel.TaskPlan._TaskList = schedulerModel.TaskPlan._TaskList.Where(a => a.start.RoundSecond() <= now.AddDays(1)).ToArray();
-                            if (schedulerModel.TaskPlan._TaskList.Count() > 0)
+                            if (schedulerModel.TaskPlan._TaskList.Any())
                             {
 
                                 var createdTasks = _db.GetVWFTM_TaskByTaskPlanIdAndDates(schedulerModel.TaskPlan.id, _lastDate, now.AddDays(1));

@@ -23,6 +23,7 @@ uD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEnt
 ÑD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\TitanEntegration\Business\TitanService.csutf-8ä
 ÄD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\TitanEntegration\Models\DeviceData.csutf-8å
 ÇD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\TitanEntegration\Models\DeviceResult.csutf-8ê
-ÜD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\TitanEntegration\ProcessTitanEntegration.csutf-8}
+ÜD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\TitanEntegration\ProcessTitanEntegration.csutf-8w
+nD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\Utils\MailSender.csutf-8}
 tD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\Utils\ServiceInstaller.csutf-8£
 óD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.OmixEntegrationApp\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.csutf-8
