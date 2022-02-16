@@ -1,0 +1,1 @@
+Roslyn version: 3.11.0.0Language version: CSharp7_3"Concurrent execution: disabledÎÉFile 'D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Infoline.WorkOfTime.LdapAgent\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.cs' was recognized as generated

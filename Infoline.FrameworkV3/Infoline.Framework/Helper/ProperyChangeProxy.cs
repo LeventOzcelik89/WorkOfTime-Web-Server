@@ -204,7 +204,7 @@ namespace Infoline.Helper
         {
             if (object.ReferenceEquals(p1, p2))
                 return true;
-            if (p1 == null || p1 == null)
+            if (p1 == null)
                 return p1 == null && p2 == null;
             if (p1.Length == p2.Length)
             {

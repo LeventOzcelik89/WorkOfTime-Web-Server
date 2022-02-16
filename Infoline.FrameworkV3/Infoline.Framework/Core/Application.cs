@@ -164,7 +164,6 @@ namespace Infoline
         }
 
         #region ICallContextProvider
-        [ThreadStatic]
         CallContext _context;
         CallContext ICallContextProvider.Context { get { return _context; } set { _context = value; } }
         bool ICallContextProvider.IsReady { get { return _context != null; } }

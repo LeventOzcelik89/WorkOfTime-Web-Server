@@ -1,0 +1,16 @@
+q
+hD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\AgentStart.csutf-8
+vD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\Models\ZKTecoK70.csutf-8y
+pD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\PdksDevice.csutf-8É
+zD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\Models\ZKTecoTK100_C.csutf-8j
+aD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Log.csutf-8
+vD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\Entities\LogInfo.csutf-8Ä
+wD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\Entities\UserInfo.csutf-8n
+eD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Program.csutf-8~
+uD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Properties\AssemblyInfo.csutf-8
+vD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Utils\IDeviceManipulator.csutf-8}
+tD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Utils\ServiceInstaller.csutf-8|
+sD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Utils\UniversalStatic.csutf-8é
+ÑD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\PDKSEntegration\PdksDevicesEntegration.csutf-8Å
+xD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\Devices\Models\ZKTecoSF300.csutf-8£
+óD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.PdksEntegrationApp\obj\Debug\.NETFramework,Version=v4.7.2.AssemblyAttributes.csutf-8
