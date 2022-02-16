@@ -31,6 +31,8 @@ namespace Infoline.WorkOfTime.BusinessData
         public string taxType_Title { get; set;}
         public string isActive_Title { get; set;}
         public string invoiceAddressLocationId_Title { get; set;}
+        public string townTitle { get; set;}
+        public string cityTitle { get; set;}
         public string openAddressLocationId_Title { get; set;}
         public string fullName { get; set;}
         public string logo { get; set;}

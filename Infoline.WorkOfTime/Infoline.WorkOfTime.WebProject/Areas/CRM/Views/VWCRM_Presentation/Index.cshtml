@@ -86,52 +86,54 @@
             </div>
             <div class="ibox-content">
                 @(Html.Akilli()
-					.Grid<Infoline.WorkOfTime.BusinessData.VWCRM_Presentation>("VWCRM_Presentation")
-					.DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" }))
-					.PageSize(25)
-					.Sort(c => c.Add(g => g.LastActivityDate)
-					.Descending()))
-					.Sortable(a => a.SortMode(GridSortMode.SingleColumn))
-					.Columns(x =>
-					{
+                    .Grid<Infoline.WorkOfTime.BusinessData.VWCRM_Presentation>("VWCRM_Presentation")
+                    .DataSource(x => x.Ajax().Read(r => r.Action("DataSource", "VWCRM_Presentation", new { area = "CRM" }))
+                    .PageSize(25)
+                    .Sort(c => c.Add(g => g.LastActivityDate)
+                    .Descending()))
+                    .Sortable(a => a.SortMode(GridSortMode.SingleColumn))
+                    .Columns(x =>
+                    {
 
-						x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(c => c.Stage_Color).Locked(true).Lockable(false);
-						x.Bound(y => y.CustomerCompany_Title).Title("Müşteri").Width(180).Locked(true);
-						x.Bound(y => y.Name).Title("Potansiyel Fırsat Adı").Width(220);
-						x.Bound(a => a.LastActivityDate).Title("Son İşlem Tarihi").Width(160).Format(Extensions.DateFormatFull(true));
-						x.Bound(y => y.Stage_Title).Title("Potansiyel Fırsat Aşaması").Width(250).Filterable(filterable => filterable.UI("LastStageFilter")).ClientTemplate("#=LastStageTemplate(data)#");
-						x.Bound(a => a.VodafoneOffer).Title("Tahmini Beklenen Ciro").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.VodafoneOffer)#");
-						x.Bound(a => a.lastTenderTotalAmount).Title("Son Teklif").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.lastTenderTotalAmount)#");
-						x.Bound(a => a.CompletionRate).Title("Tahmini Kapanma Yüzdesi (%)").Width(180).ClientTemplate("#=CompletionType(data.CompletionRate)#");
-						x.Bound(a => a.EstimatedCompletionDate).Title("Tahmini Sonuçlanma Tarihi").Width(200).Format(Extensions.DateFormatShort(true));
-						x.Bound(a => a.PriorityLevel).Title("Önem Derecesi").Width(180).ClientTemplate("#=GetStars(data.PriorityLevel)#");
-						x.Bound(y => y.TotalContact).Title("Toplam Aktivite/Randevu").Width(220);
-						x.Bound(y => y.LastStatus).Title("Son Aktivite/Randevu Durumu").Width(220).Filterable(filterable => filterable.UI("LastStatusFilter"));
-						x.Bound(y => y.LastDescription).Title("Son Aktivite/Randevu Notu").Width(220).ClientTemplate("#=First50Char(data.LastDescription)#");
-						x.Bound(a => a.DaysSinceVisit).Title("Son Aktiviteden Bugüne Geçen Süre").Format("{0:N0}").Width(250);
-						if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CagriMerkezi)))
-						{
-							x.Bound(y => y.ChannelCompany_Title).Title("Bayi").Width(180);
-						}
-						else
-						{
-							x.Bound(y => y.ChannelCompany_Title).Title("Kanal").Width(180);
-						}
-						x.Bound(y => y.SalesPerson_Title).Title("Satış Personeli").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
-						x.Bound(y => y.createdby_Title).Title("Oluşturan").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
-						x.Bound(a => a.created).Title("Oluşturma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
-						x.Bound(a => a.Product_Titles).Title("Potansiyel Ürün/Hizmetler").Width(200);
-					})
-					.Scrollable(s => s.Enabled(true).Height(670))
-					.Selectable(x => x.Mode(GridSelectionMode.Multiple))
-					.ToolBar(x =>
-					{
-						x.Custom().Text("<i class='fa fa-edit' data-toggle='tooltip' title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWCRM_Presentation", new { area = "CRM"}));
-						x.Custom().Text("<i class='fa fa-info-circle' data-toggle='tooltip' title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWCRM_Presentation", new { area = "CRM" }));
-						x.Custom().Text("<i class='fa fa-calendar' data-toggle='tooltip' title='Aktivite/Randevu Tanımla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "PresentationId" } }).Url(Url.Action("Insert", "VWCRM_Contact", new { area = "CRM" }));
-						x.Custom().Text("<i class='icon-money' data-original-title='Masraf Girişi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "expense" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" }));
-						x.Custom().Text("<i class='fa fa-trash' data-toggle='tooltip' title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" } }).Url(Url.Action("Delete", "VWCRM_Presentation", new { area = "CRM" }));
-					}))
+                        x.Bound(y => y.id).GridSelector(GridSelectorType.Radio).DataColumn(c => c.Stage_Color).Locked(true).Lockable(false);
+                        x.Bound(y => y.CustomerCompany_Title).Title("Müşteri").Width(180).Locked(true);
+                        x.Bound(y => y.Name).Title("Potansiyel Fırsat Adı").Width(220);
+                        x.Bound(a => a.LastActivityDate).Title("Son İşlem Tarihi").Width(160).Format(Extensions.DateFormatFull(true));
+                        x.Bound(y => y.Stage_Title).Title("Potansiyel Fırsat Aşaması").Width(250).Filterable(filterable => filterable.UI("LastStageFilter")).ClientTemplate("#=LastStageTemplate(data)#");
+                        x.Bound(a => a.VodafoneOffer).Title("Tahmini Beklenen Ciro").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.VodafoneOffer)#");
+                        x.Bound(a => a.lastTenderTotalAmount).Title("Son Teklif").Format("{0:N0}").Width(180).ClientTemplate("#=moneyFunction(data.lastTenderTotalAmount)#");
+                        x.Bound(a => a.CompletionRate).Title("Tahmini Kapanma Yüzdesi (%)").Width(180).ClientTemplate("#=CompletionType(data.CompletionRate)#");
+                        x.Bound(a => a.EstimatedCompletionDate).Title("Tahmini Sonuçlanma Tarihi").Width(200).Format(Extensions.DateFormatShort(true));
+                        x.Bound(a => a.PriorityLevel).Title("Önem Derecesi").Width(180).ClientTemplate("#=GetStars(data.PriorityLevel)#");
+                        x.Bound(y => y.TotalContact).Title("Toplam Aktivite/Randevu").Width(220);
+                        x.Bound(y => y.LastStatus).Title("Son Aktivite/Randevu Durumu").Width(220).Filterable(filterable => filterable.UI("LastStatusFilter"));
+                        x.Bound(y => y.LastDescription).Title("Son Aktivite/Randevu Notu").Width(220).ClientTemplate("#=First50Char(data.LastDescription)#");
+                        x.Bound(a => a.DaysSinceVisit).Title("Son Aktiviteden Bugüne Geçen Süre").Format("{0:N0}").Width(250);
+                        if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CRMBayiPersoneli)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.CagriMerkezi)))
+                        {
+                            x.Bound(y => y.ChannelCompany_Title).Title("Bayi").Width(180);
+                        }
+                        else
+                        {
+                            x.Bound(y => y.ChannelCompany_Title).Title("Kanal").Width(180);
+                        }
+                        x.Bound(y => y.SalesPerson_Title).Title("Satış Personeli").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
+                        x.Bound(y => y.createdby_Title).Title("Oluşturan").Filterable(filterable => filterable.UI("PersonFilterWithRoles")).Width(180);
+                        x.Bound(a => a.created).Title("Oluşturma Tarihi").Width(180).Format(Extensions.DateFormatFull(true));
+                        x.Bound(a => a.Product_Titles).Title("Potansiyel Ürün/Hizmetler").Width(200);
+                        x.Bound(y => y.townTitle).Title("Müşterinin İlçesi").Width(180);
+                        x.Bound(y => y.cityTitle).Title("Müşterinin İli").Width(180);
+                    })
+                    .Scrollable(s => s.Enabled(true).Height(670))
+                    .Selectable(x => x.Mode(GridSelectionMode.Multiple))
+                    .ToolBar(x =>
+                    {
+                        x.Custom().Text("<i class='fa fa-edit' data-toggle='tooltip' title='Düzenle'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-modal", "true" } }).Url(Url.Action("Update", "VWCRM_Presentation", new { area = "CRM"}));
+                        x.Custom().Text("<i class='fa fa-info-circle' data-toggle='tooltip' title='Detay'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-default", "" }, { "data-modal", "false" }, { "data-blank", "" } }).Url(Url.Action("Detail", "VWCRM_Presentation", new { area = "CRM" }));
+                        x.Custom().Text("<i class='fa fa-calendar' data-toggle='tooltip' title='Aktivite/Randevu Tanımla'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-idColumnKey", "PresentationId" } }).Url(Url.Action("Insert", "VWCRM_Contact", new { area = "CRM" }));
+                        x.Custom().Text("<i class='icon-money' data-original-title='Masraf Girişi'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-show", "single" }, { "data-method", "GET" }, { "data-id", "expense" } }).Url(Url.Action("InsertExpense", "VWPA_Transaction", new { area = "PA" }));
+                        x.Custom().Text("<i class='fa fa-trash' data-toggle='tooltip' title='Sil'></i>").HtmlAttributes(new Dictionary<string, object>() { { "data-ask", "" }, { "data-show", "single" } }).Url(Url.Action("Delete", "VWCRM_Presentation", new { area = "CRM" }));
+                    }))
             </div>
         </div>
     </div>
