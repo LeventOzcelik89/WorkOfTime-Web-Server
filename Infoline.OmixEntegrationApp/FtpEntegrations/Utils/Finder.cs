@@ -31,12 +31,10 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations.Utils
                 var findCompanyByStorage = db.GetCMP_CompanyById(getByStorage.companyId.Value);
                 if (findCompanyByStorage!=null)
                 {
-                    return getByStorage.id;
-                }
-               
+                    return findCompanyByStorage.id;
+                }  
             }
-            //AddStorage(item)
-            return null;
+             return null;
 
         }
        

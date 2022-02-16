@@ -3,12 +3,13 @@
     ViewBag.Title = "İş Kazası / Olayı Ekleme";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
-<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Plugins/ckeditor5.1/ckeditor.js" data-selector="modalContainer"></script>
 <script type="text/javascript" data-selector="modalContainer">
     function beforeFunc() {
         debugger;
         var tag = $("#keyword").data("tagify");
         if (tag && tag.value) {
+            debugger;
             $("#keyword").val(tag.value.map(a => a.value).join(","))
         }
         return true;
@@ -20,6 +21,7 @@
         var projectId = $("#projectId").data("handler").dataItem().Id;
         var taskId = $("#taskId").data("handler").dataItem().id;
         if (template.id != "" && template.id != null && template.id != undefined) {
+            editor.setData("Yükleniyor..");
             $.ajax({
                 url: "/SH/VWSH_WorkAccident/RenderTemplate",
                 data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
@@ -139,9 +141,9 @@
                   .Template("#=TemplateEngine('userTemplate',data)#")
                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                   .Sort(x => x.Add("FullName").Ascending())
+                  .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson))
                   .Events(a => a.Change("modelChange"))
                   .Execute("id")
-                  .Validate(Validations.Required)
                 )
         </div>
     </div>

@@ -4,10 +4,16 @@
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
-<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Plugins/ckeditor5.1/ckeditor.js" data-selector="modalContainer"></script>
 <script src="~/Content/Custom/js/jquery.googoose.js" data-selector="modalContainer"></script>
 
 <script type="text/javascript">
+    function keywordTemplate(keyword) {
+        if (keyword == null) return "-";
+        var content = '';
+        keyword.split(',').forEach(element => content += `<span class='badge badge-success' style='margin-right:10px;'>` + element + `</span>`);
+        return content;
+    }
     function htmlDecode(input) {
         var doc = new DOMParser().parseFromString(input, "text/html");
         return doc.documentElement.textContent;
@@ -59,7 +65,20 @@
             filename: "İş Kazası / Olayı Formu" + ".doc"
         };
         $(document).googoose(o);
+
+     
     }
+    $(document)
+        .on("click", '[data-print="formPrint"]', function (e) {
+
+            var content = "<html><body onload=\"window.print()\">" + htmlDecode($("#content").val()) + "</body></html> ";
+            content = content.replaceAll('{%Ust_Bilgi_Baslangic%}', '').replaceAll('{%Ust_Bilgi_Bitis%}', '').replaceAll('{%Alt_Bilgi_Bitis%}', '').replaceAll('{%Sayfa_Sonu%}', '');
+
+            var newWin = window.open("", "");
+            newWin.document.write(content);
+            newWin.document.close();
+            setTimeout(function () { newWin.close(); }, 10);
+        })
 
 </script>
 
@@ -288,7 +307,7 @@
                                 editor.on('change', function () { $("#content").val(new Option(editor.getData()).innerHTML); });
                             </script>
                             <div class="buttons" style=" padding: 0; padding-top: 25px; ">
-                                <a class="btn btn-md btn-warning"> <i class="icon-print-1"></i> Yazdır</a>
+                                <a href="#" class="btn btn-md btn-warning" id="FormPrint" data-target="FormPrint" data-print="formPrint" data-original-title="Form Yazdır"><i class="fa fa-print" aria-hidden="true"></i> Yazdır</a>
                                 <button class="btn btn-md btn-success pull-right" type="submit"> <i class="icon-floppy"></i> Kaydet</button>
                                 <a class="btn btn-md btn-info pull-right" style="margin-right:30px;" onclick="accidentExportWord()"> <i class="icon-download"></i> İndir</a>
                             </div>
@@ -369,6 +388,7 @@
                                 x.Bound(y => y.userId_Title).Title("Personel").Width(180).Format("{0:dd.MM.yyyy HH:mm}");
                                 x.Bound(y => y.projectId_Title).Title("Proje").Width(180).Format(Extensions.DateFormatShort(true));
                                 x.Bound(y => y.date).Title("Tarih").Format("{0:dd.MM.yyyy}").Width(120);
+                                x.Bound(y => y.keyword).Title("Anahtar Kelimeler").ClientTemplate("#=keywordTemplate(data.keyword)#").Width(180);
                             })
                             .Selectable(x => x.Mode(GridSelectionMode.Multiple))
                             .Scrollable(s => s.Height(450))

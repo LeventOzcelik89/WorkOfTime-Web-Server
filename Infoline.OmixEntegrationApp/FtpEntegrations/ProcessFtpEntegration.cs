@@ -15,6 +15,7 @@ namespace Infoline.OmixEntegrationApp.FtpEntegrations
         }
         public void Run()
         {
+            Log.Error("test");
             var taskMobitel = new Task(() =>
             {
                 new FtpMobitel().ExportFilesToDatabase(); ;

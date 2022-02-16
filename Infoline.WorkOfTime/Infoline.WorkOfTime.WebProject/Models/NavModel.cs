@@ -42,7 +42,10 @@ namespace System.Web.Mvc
                     _root.Add(MyJobs());
                     _root.Add(GetOfisYonetimi());
                     _root.Add(GetIK(userStatus));
-                    _root.Add(GetISG());
+                    if (userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.ISGSorumlusu)) || userStatus.AuthorizedRoles.Contains(new Guid(SHRoles.SistemYonetici)))
+                    {
+                        _root.Add(GetISG());
+                    }
                     _root.Add(GetCRM());
                     _root.Add(GetSatisSiparis());
                     _root.Add(GetSatinAlma());

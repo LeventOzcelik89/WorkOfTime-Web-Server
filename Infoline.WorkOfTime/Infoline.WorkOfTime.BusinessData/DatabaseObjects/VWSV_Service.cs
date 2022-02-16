@@ -29,6 +29,9 @@ namespace Infoline.WorkOfTime.BusinessData
         public string product_Title { get; set;}
         public Guid? productId { get; set;}
         public string storageId_Title { get; set;}
+        public string customerFullName { get; set;}
+        public string Imei { get; set;}
+        public string customerPhoneNumber { get; set;}
         public short? lastOperationStatus { get; set;}
     }
 }

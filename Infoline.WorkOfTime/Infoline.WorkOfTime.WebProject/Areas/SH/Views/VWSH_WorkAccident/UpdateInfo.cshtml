@@ -8,7 +8,7 @@
         width: 80%;
     }
 </style>
-<script src="~/Content/Plugins/ckeditor/ckeditor.js" data-selector="modalContainer"></script>
+<script src="~/Content/Plugins/ckeditor5.1/ckeditor.js" data-selector="modalContainer"></script>
 <script type="text/javascript" data-selector="modalContainer">
     function beforeFunc() {
         debugger;
@@ -19,8 +19,10 @@
         return true;
     }
     function setTags() {
-        var values = '@Model.keyword';
+        debugger;
+        var values = '@Html.Raw(Model.keyword)';
         if (values != "" && values != undefined && values != null) {
+            debugger;
             var valArr = values.split(',');
             if (valArr.length > 0) {
                 var tags = $("#keyword").data("tagify");
@@ -35,6 +37,7 @@
         var projectId = $("#projectId").data("handler").dataItem().Id;
         var taskId = $("#taskId").data("handler").dataItem().id;
         if (template.id != "" && template.id != null && template.id != undefined) {
+            editorUpdateInfo.setData("Yükleniyor..");
             $.ajax({
                 url: "/SH/VWSH_WorkAccident/RenderTemplate",
                 data: { userId: userId, projectId: projectId, taskId: taskId, templateId: template.id },
@@ -148,6 +151,7 @@
                   .Template("#=TemplateEngine('userTemplate',data)#")
                   .Action(b => b.Action("DataSourceDropDown", "VWSH_User", new { area = "SH" }))
                   .Sort(x => x.Add("FullName").Ascending())
+                  .Filter<VWSH_User>(a => a.type == (int)(EnumSH_UserType.MyPerson))
                   .Events(a => a.Change("modelChange"))
                   .Execute("id")
                 )
@@ -178,9 +182,8 @@
                   .Action(b => b.Action("DataSourceDropDown", "VWUT_Template", new { area = "UT" }))
                   .Filter<VWUT_Template>(f => f.type == (short)EnumUT_TemplateType.accident && f.status == (short)EnumUT_TemplateStatus.active)
                   .Sort(x => x.Add("title").Ascending())
-                  .Events(a => a.Change("modelChange"))
+                  .Events(a => a.DataBound("setTags").Change("modelChange"))
                   .Execute("id")
-                  .Events(a => a.DataBound("setTags"))
                 )
         </div>
     </div>
