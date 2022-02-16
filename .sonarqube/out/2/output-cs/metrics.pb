@@ -55,9 +55,9 @@ r
 8 rÈ	
  !#$&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmopqrstuvwxyz{|}~ÄÅÇÉÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑xÇS #$&'(*+,0124678<=?DEFHNOQRZdefhoprs{Üàâãçéêíîúùûß©¨≠≤¥†
 ¢D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\Business\Product\VMPRD_ProductBountyModel.csk 8>r’	
- !"#%&'()*+,-.0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏxGÇï "%')-23568;=>?AEJKLNRSUVXZ[]^bcdejkmoqsuwy{}ÅÇÑÖáâäãïñòôõùûü†®™´Ø∞±≤∑∏π∫ºæø¿¬√«»…Œœ–—”÷◊Ÿ⁄‚„‰Ä
-§D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\Business\Product\VMPRD_TitanDeviceActivated.csG (8@r˙	
- !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXY[\]^_`abcdefghijklmnopqrstuvwxyz}~ÅÉÖáàâäãåçèêëíìîïñóòôöõúùûü†°¢£•¶ß©™´≠Æ∞≤≥¥µ∂∑∏π∫ªºΩæø¿¡¬√ƒ≈∆«…x	ÇO!%&'()*569>?@ADIKLMNORSTUVWX[cefghijmnopqrsuÅÉáäãåçèëïôù°≠ä
+ !"#%&'()*+,-.0123456789;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúùûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºΩæø¿¡¬√ƒ≈∆«»… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁﬂ‡·‚„‰ÂÊÁËÈÍÎÏxGÇï "%')-23568;=>?AEJKLNRSUVXZ[]^bcdejkmoqsuwy{}ÅÇÑÖáâäãïñòôõùûü†®™´Ø∞±≤∑∏π∫ºæø¿¬√«»…Œœ–—”÷◊Ÿ⁄‚„‰∏
+§D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\Business\Product\VMPRD_TitanDeviceActivated.csS -8Gr†	
+ !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXY[\]^_`abcdefghijklmnopqrstuvwxyz|}~ÄÇÑÜáàâäãåéèêëíìîñòöúùûü†°¢§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏∫ªºΩæ¿¡¬ƒ≈«… ÀÃÕŒœ–—“”‘’÷◊ÿŸ⁄€‹›ﬁ‡xÇa!%&'()*569>?@ADIKLMNORSTUVWX[cefghijmnopqrsuÄÇÜâäãåéêñòúü†°¢§¶™Æ≤∂ƒä
 ¨D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\Business\Product\VMPRD_CompanyBasedPriceDetailModel.csJ 81jùr	
  !"#$%&'()*+,-./0123456789:;<=>@ABCDEFGHIJKLMNOQUVWXYZ[\]^_`abcdefghijkmnopqrstuvwxyz{|}~ÄÅÇÉÑÖÜáàâäãåçéèêëíìîïñóòôöõúûü†°¢£§•¶ß®©™´¨≠ÆØ∞±≤≥¥µ∂∑∏π∫ªºx*ÇW!"$&()*./0248:>ACIKNUY[]_`dfhjkpqstvzÄÇÉãåïñóôû†¢§¶®™≠≤¥∂πÔ
 ¶D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\Business\Product\VMPRD_CompanyBasedPriceModel.cs[ 84rø	
@@ -1353,11 +1353,9 @@ r
 ÆD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWSV_ServiceCustomerUser.cs 8r	
 Çﬁ
 £D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWPRD_Product.cs 8r%	
- !#$%&'+,Ç#%¸
-≠D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWPRD_EntegrationAction.cs
- 8r3	
- !"#$%&'()*+,./0123456xÇ
-!#(*02√
+ !#$%&'+,Ç#%Ö
+≠D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWPRD_EntegrationAction.cs 8r:	
+ !"#$%&'()*+,-./012356789:;<=xÇ!#(*/179√
 ¨D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWPRD_ProductionSchema.csr	
 ⁄
 ±D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Infoline.WorkOfTime\Infoline.WorkOfTime.BusinessAccess\DatabaseFunctions\Specific\DBVWPRD_ProductionSchemaStage.cs 8r	

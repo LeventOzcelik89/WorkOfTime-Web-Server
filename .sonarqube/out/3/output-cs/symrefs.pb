@@ -6,46 +6,47 @@ nD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Inf
  ”
 pD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Infoline.WorkOfTime.Agent\Program.cs
 
-
- 
+ 
 
 
 
- 
+ 
 
 
-" &%% %%, 02
-   6 A""3 >''5 @**, 7
-,,! #..E G
-22 33 99 ƒ
+  %%	 %% 2
+   ' 2""! ,''# .** (
+,, ..6 8
+22 33 99 ƒ
 €D:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Infoline.WorkOfTime.Agent\Properties\AssemblyInfo.cs«
 uD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Infoline.WorkOfTime.Agent\ServiceStart.cs
 
 
 
- %
-   ### *d
- )) 22 22! &44% *88 GG GG! &II% *MM 
+ "
+ # 
+## !d
+ )) 	22 22 44 88 	GG GG II MM 	
 
- 
-  
- ' 0
-? @D E
-! ": ;
-!! AA 
-## ''* 0
-%% )) ** 
+	 
+  
+  '
+6 7; <
+ 1 2
+!! AA 
+
+## '' !
+%% 	)) ** 
 
-..  '
-..- 6;; "
-44 !66 
+.. !
+..' 0;; 
+44 66 	
 
->>  '
+>> !
 
->>1 5
+>>+ /
 
-DD  &
-II !KK ¶
+DD  
+II KK 	¶
 tD:\PROJELER\Infoline-Bilgi-Teknolojileri\WorkOfTime-Web-Server\Applications\Infoline.WorkOfTime.Agent\TaskPlanner.cs
 
  ]
