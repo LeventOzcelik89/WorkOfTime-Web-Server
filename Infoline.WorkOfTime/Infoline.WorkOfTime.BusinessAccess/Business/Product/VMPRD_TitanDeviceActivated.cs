@@ -121,7 +121,28 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
             };
         }
 
+        public SellOutReportModel[] GetDistReportForSellerWithDates(Guid distId, DateTime startDate, DateTime endDate)
+        {
+            var db = new WorkOfTimeDatabase();
 
+            var getData = db.GetVWPRD_EntegrationActionByDistrubutorIdAndDate(distId,startDate,endDate);
+
+            var groupCustomer = getData.GroupBy(a => a.CustomerOperatorId);
+
+            var sellOutReportModelList = new List<SellOutReportModel>();
+
+            foreach (var item in groupCustomer)
+            {
+                var sellOutReportModel = new SellOutReportModel();
+                sellOutReportModel.Count = getData.Where(a => a.CustomerOperatorId == item.Key).Count();
+                sellOutReportModel.Id = item.Key;
+                sellOutReportModel.Name = getData.Where(a => a.CustomerOperatorId == item.Key).Select(a => a.CustomerOperatorName).FirstOrDefault();
+                sellOutReportModel.SellingCount = getData.Where(a => a.CustomerOperatorId == item.Key && a.ActivationDate.HasValue).Count();
+
+                sellOutReportModelList.Add(sellOutReportModel);
+            }
+            return sellOutReportModelList.ToArray();
+        }
         public SellOutReportModel[] GetDistReportForSeller(Guid distId)
         {
             var db = new WorkOfTimeDatabase();
@@ -165,6 +186,8 @@ namespace Infoline.WorkOfTime.BusinessAccess.Business.Product
     public class PRD_EntegrastionActionSellerReport : VWPRD_EntegrationAction
     {
         public VWPRD_EntegrationAction[] entegrationActions { get; set; }
+        public DateTime startDate { get; set; }
+        public DateTime endDate { get; set; }
 
         public PRD_EntegrastionActionSellerReport Load()
         {
